@@ -21,3 +21,4 @@ docker-compose.override.yml
 /.docker-cache
 /.okuna-cli.json
 /.docker-compose.env
+.venv
