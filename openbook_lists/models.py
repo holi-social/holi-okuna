@@ -4,7 +4,7 @@ from django.utils import timezone
 
 # Create your models here.
 from openbook_auth.models import User
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from openbook_common.models import Emoji
 from openbook_common.utils.model_loaders import get_follow_model

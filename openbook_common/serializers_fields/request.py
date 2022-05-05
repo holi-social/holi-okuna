@@ -1,7 +1,7 @@
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import URLField, FileField
 from django.template.defaultfilters import filesizeformat
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.forms import ImageField as DjangoImageField
 
 

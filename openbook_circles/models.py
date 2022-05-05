@@ -10,7 +10,7 @@ from openbook_common.utils.model_loaders import get_connection_model
 from openbook_connections.models import Connection
 from openbook_posts.models import Post
 from openbook_common.validators import hex_color_validator
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 
 class ConnectionCircle(models.Model):

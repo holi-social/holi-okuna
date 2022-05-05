@@ -1,5 +1,5 @@
 from rest_framework.exceptions import PermissionDenied
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from openbook_common.helpers import extract_urls_from_string
 from openbook_common.utils.model_loaders import get_proxy_blacklist_domain_model
