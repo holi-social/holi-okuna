@@ -13,8 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url
-from django.urls import path, include
+from django.urls import re_path, path, include
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
@@ -448,10 +447,9 @@ api_patterns = [
     path('invites/', include(invites_patterns)),
     path('moderation/', include(moderation_patterns)),
     path('hashtags/', include(hashtags_patterns)),
-    url('time/', Time.as_view(), name='time'),
-    url('emojis/groups/', EmojiGroups.as_view(), name='emoji-groups'),
-    url('proxy-domain-check/', ProxyDomainCheck.as_view(),
-        name='proxy-domain-check'),
+    path('time/', Time.as_view(), name='time'),
+    path('emojis/groups/', EmojiGroups.as_view(), name='emoji-groups'),
+    path('proxy-domain-check/', ProxyDomainCheck.as_view(), name='proxy-domain-check'),
 ]
 
 if settings.FEATURE_IMPORTER_ENABLED:
@@ -459,9 +457,9 @@ if settings.FEATURE_IMPORTER_ENABLED:
 
 urlpatterns = [
     path('api/', include(api_patterns)),
-    url('admin/', admin.site.urls),
+    path('admin/', admin.site.urls),
     path('django-rq/', include('django_rq.urls')),
-    url('health/', Health.as_view(), name='health'),
+    path('health/', Health.as_view(), name='health'),
 ]
 
 # The static helper works only in debug mode
@@ -470,4 +468,4 @@ urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Link previews proxy their urls, use local proxy API on debug/test
 if settings.DEBUG or settings.TESTING:
-    urlpatterns.append(url('proxy/(?P<url>.*)', proxy_view, name='proxy'), )
+    urlpatterns.append(re_path('proxy/(?P<url>.*)', proxy_view, name='proxy'), )
