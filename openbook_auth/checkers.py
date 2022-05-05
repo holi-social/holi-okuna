@@ -1,7 +1,7 @@
 import jwt
 from django.conf import settings
 from rest_framework.exceptions import ValidationError, PermissionDenied, NotFound, AuthenticationFailed
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from openbook_common.utils.model_loaders import get_post_model, get_community_model, get_post_comment_model, \
     get_language_model, get_user_model, get_emoji_group_model, get_post_reaction_model, get_user_invite_model, \

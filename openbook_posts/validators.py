@@ -1,5 +1,5 @@
 from rest_framework.exceptions import ValidationError, NotFound
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from openbook_common.utils.helpers import extract_hashtags_from_string
 from django.conf import settings

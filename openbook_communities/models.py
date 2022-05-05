@@ -10,7 +10,7 @@ from pilkit.processors import ResizeToFill, ResizeToFit
 
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
 from openbook_auth.models import User
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from openbook_common.utils.model_loaders import get_community_invite_model, \
     get_community_log_model, get_category_model, get_user_model, get_moderated_object_model, \

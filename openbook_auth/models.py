@@ -8,9 +8,9 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.utils import six, timezone, translation
+from django.utils import timezone, translation
 from django.template.loader import render_to_string
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
@@ -60,7 +60,7 @@ class User(AbstractUser):
     connections_circle = models.ForeignKey('openbook_circles.Circle', on_delete=models.CASCADE, related_name='+',
                                            null=True, blank=True)
 
-    username_validator = UnicodeUsernameValidator() if six.PY3 else ASCIIUsernameValidator()
+    username_validator = UnicodeUsernameValidator()
     is_email_verified = models.BooleanField(default=False)
     are_guidelines_accepted = models.BooleanField(default=False)
     # This only happens if the user was reported and found with critical severity content and its account deleted
@@ -1246,8 +1246,7 @@ class User(AbstractUser):
 
         # Language should also be prefetched here, for some reason it doesnt work....
         post_notification_target_users = Post.get_post_comment_notification_target_users(post=post,
-                                                                                         post_commenter=post_commenter).only(
-            'id', 'username', 'notifications_settings__post_comment_notifications')
+                                                                                         post_commenter=post_commenter)
         PostCommentNotification = get_post_comment_notification_model()
 
         for post_notification_target_user in post_notification_target_users:
@@ -1305,8 +1304,7 @@ class User(AbstractUser):
         # Language should also be prefetched here, for some reason it doesnt work....
         post_notification_target_users = Post.get_post_comment_reply_notification_target_users(
             post_commenter=self,
-            parent_post_comment=post_comment).only(
-            'id', 'username', 'notifications_settings__post_comment_reply_notifications')
+            parent_post_comment=post_comment)
 
         PostCommentReplyNotification = get_post_comment_reply_notification_model()
 

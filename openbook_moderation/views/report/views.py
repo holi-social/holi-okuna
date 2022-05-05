@@ -7,7 +7,7 @@ from openbook_moderation.permissions import IsNotSuspended
 from openbook_common.responses import ApiMessageResponse
 from openbook_moderation.views.report.serializers import ReportPostSerializer, ReportPostCommentSerializer, \
     ReportUserSerializer, ReportCommunitySerializer, ReportModeratedObjectSerializer, ReportHashtagSerializer
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 
 class ReportPost(APIView):

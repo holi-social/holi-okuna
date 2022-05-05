@@ -128,7 +128,7 @@ def extract_hashtags_from_string(string):
     return extracted_hashtags
 
 
-magic = magic.Magic(magic_file='openbook_common/misc/magic.mgc', mime=True)
+magic = magic.Magic(mime=True)
 
 
 def get_magic():
