@@ -119,14 +119,20 @@ def _clean():
     :return:
     """
     logger.info('🧹 Cleaning up database')
-    subprocess.run(["docker", "volume", "rm", "okuna-api_mariadb"])
-    subprocess.run(["docker", "volume", "rm", "okuna-api_redisdb"])
+    subprocess.run(["docker", "volume", "rm", _docker_name("mariadb")])
+    subprocess.run(["docker", "volume", "rm", _docker_name("redisdb")])
 
     logger.info('🧹 Cleaning up config files')
     _remove_file_silently(LOCAL_API_ENV_FILE)
     _remove_file_silently(DOCKER_COMPOSE_ENV_FILE)
     _remove_file_silently(OKUNA_CLI_CONFIG_FILE)
     logger.info('✅ Clean up done!')
+
+
+def _docker_name(suffix):
+    # docker uses the convention of prefixing resource names with the name of the current directory
+    cwd = os.path.basename(os.path.dirname(os.path.realpath(__file__)))
+    return f"{cwd}_{suffix}"
 
 
 def _print_okuna_logo():
