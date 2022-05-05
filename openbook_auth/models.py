@@ -1246,8 +1246,7 @@ class User(AbstractUser):
 
         # Language should also be prefetched here, for some reason it doesnt work....
         post_notification_target_users = Post.get_post_comment_notification_target_users(post=post,
-                                                                                         post_commenter=post_commenter).only(
-            'id', 'username', 'notifications_settings__post_comment_notifications')
+                                                                                         post_commenter=post_commenter)
         PostCommentNotification = get_post_comment_notification_model()
 
         for post_notification_target_user in post_notification_target_users:
@@ -1305,8 +1304,7 @@ class User(AbstractUser):
         # Language should also be prefetched here, for some reason it doesnt work....
         post_notification_target_users = Post.get_post_comment_reply_notification_target_users(
             post_commenter=self,
-            parent_post_comment=post_comment).only(
-            'id', 'username', 'notifications_settings__post_comment_reply_notifications')
+            parent_post_comment=post_comment)
 
         PostCommentReplyNotification = get_post_comment_reply_notification_model()
 
