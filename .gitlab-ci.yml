@@ -1,0 +1,46 @@
+image: python:3.9.12
+
+# Change pip's cache directory to be inside the project directory since we can
+# only cache local items.
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .cache/pip
+    - venv/
+
+stages:
+  - "setup"
+  - "test"
+  - "deploy"
+
+setup:
+  image: 'registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder'
+  script: |
+    python3 -m venv venv
+    source venv/bin/activate
+    pip install --upgrade pip
+    pip install -r requirements.txt --exists-action s
+
+build:
+  image: 'registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder'
+  stage: "build"
+  variables:
+    SECRET_KEY: "secret"
+  script: |
+    /etc/init.d/redis-server start
+    source venv/bin/activate
+    python manage.py test
+  interruptible: true
+
+# separate stage?: code climate test-reporter
+# separate stage?: bandit -r .
+# separate stage?: safety check
+
+.deploy:
+  stage: "deploy"
+  script: |
+    echo "TODO"
+  interruptible: true
