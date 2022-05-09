@@ -46,7 +46,6 @@ jmespath==0.10.0; python_version >= '2.6' and python_version not in '3.0, 3.1, 3
 langdetect==1.0.8
 log-symbols==0.0.14
 mixer==6.1.3
-mysqlclient==2.0.1
 natsort==7.0.1; python_version >= '3.4'
 networkx==2.5; python_version >= '3.6'
 nose-exclude==0.5.0
@@ -59,6 +58,7 @@ pbr==5.5.1; python_version >= '2.6'
 pilkit==2.0
 pillow==8.0.0
 pinocchio==0.4.2
+psycopg2-binary==2.9.3
 pyjwt==1.7.1
 pyparsing==2.4.7; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'
 python-dateutil==2.8.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'

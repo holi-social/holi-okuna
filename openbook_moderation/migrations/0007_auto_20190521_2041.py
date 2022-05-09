@@ -9,10 +9,3 @@ class Migration(migrations.Migration):
         ('openbook_moderation', '0006_auto_20190521_1850'),
     ]
 
-    operations = [
-        migrations.RenameField(
-            model_name='moderationpenalty',
-            old_name='duration',
-            new_name='expiration',
-        ),
-    ]

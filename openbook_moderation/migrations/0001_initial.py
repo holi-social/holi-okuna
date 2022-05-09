@@ -88,7 +88,7 @@ class Migration(migrations.Migration):
             name='ModerationPenalty',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('duration', models.DurationField(null=True)),
+                ('expiration', models.DateTimeField(null=True)),
                 ('type', models.CharField(choices=[('S', 'Suspension')], max_length=5)),
                 ('moderated_object', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='penalties', to='openbook_moderation.ModeratedObject')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='moderation_penalties', to=settings.AUTH_USER_MODEL)),

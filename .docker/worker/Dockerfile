@@ -1,12 +1,10 @@
-FROM python:3.7.3
+FROM python:3.9.12
 
 RUN apt-get -y update && apt-get -y upgrade &&  apt-get install -y ffmpeg  && apt-get install -y supervisor
 
-COPY wait-for-it.sh /wait-for-it.sh
-
 # Copy any files over
+COPY wait-for-it.sh /wait-for-it.sh
 COPY entrypoint.sh /entrypoint.sh
-
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Change permissions
@@ -17,6 +15,7 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 COPY requirements.txt /requirements.txt
 
+RUN pip install --upgrade pip
 RUN pip install -r /requirements.txt
 
 VOLUME ["/opt/okuna-api"]

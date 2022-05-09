@@ -9,10 +9,3 @@ class Migration(migrations.Migration):
         ('openbook_moderation', '0007_auto_20190521_2041'),
     ]
 
-    operations = [
-        migrations.AlterField(
-            model_name='moderationpenalty',
-            name='expiration',
-            field=models.DateTimeField(null=True),
-        ),
-    ]

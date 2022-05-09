@@ -238,6 +238,7 @@ RQ_QUEUES = {
     },
 }
 
+# FYI: NOSE is a (deprecated) unit testing library
 if IS_BUILD:
     NOSE_ARGS = [
         '--cover-erase',
@@ -284,6 +285,7 @@ if IS_BUILD or TESTING:
         }
     }
 else:
+    # FYI: RDS is Amazons fully managed DB (which we don't have to use), somebody just chose this var name here
     RDS_DB_NAME = os.environ.get('RDS_DB_NAME')
     RDS_USERNAME = os.environ.get('RDS_USERNAME')
     RDS_PASSWORD = os.environ.get('RDS_PASSWORD')
@@ -293,43 +295,43 @@ else:
     RDS_HOSTNAME_WRITER = os.environ.get('RDS_HOSTNAME_WRITER', RDS_HOSTNAME)
     RDS_HOSTNAME_READER = os.environ.get('RDS_HOSTNAME_READER', RDS_HOSTNAME_WRITER)
 
-    db_options = {
-        'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        'charset': 'utf8mb4'
-    }
+    #db_options = {
+    #    'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+    #    'charset': 'utf8mb4'
+    #}
 
     writer_db_config = {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': RDS_DB_NAME,
         'USER': RDS_USERNAME,
         'PASSWORD': RDS_PASSWORD,
         'HOST': RDS_HOSTNAME_WRITER,
         'PORT': RDS_PORT,
-        'OPTIONS': db_options,
+         #'OPTIONS': db_options,
     }
 
     DATABASES = {
         'default': writer_db_config,
-        'Reader': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': RDS_DB_NAME,
-            'USER': RDS_USERNAME,
-            'PASSWORD': RDS_PASSWORD,
-            'HOST': RDS_HOSTNAME_READER,
-            'PORT': RDS_PORT,
-            'OPTIONS': db_options,
-        }
+        #'Reader': {
+        #    'ENGINE': 'django.db.backends.mysql',
+        #    'NAME': RDS_DB_NAME,
+        #    'USER': RDS_USERNAME,
+        #    'PASSWORD': RDS_PASSWORD,
+        #    'HOST': RDS_HOSTNAME_READER,
+        #    'PORT': RDS_PORT,
+        #    'OPTIONS': db_options,
+        #}
     }
 
-    DATABASE_ROUTERS = ['django_replicated.router.ReplicationRouter']
+    #DATABASE_ROUTERS = ['django_replicated.router.ReplicationRouter']
 
-    REPLICATED_DATABASE_SLAVES = ['Reader', ]
+    #REPLICATED_DATABASE_SLAVES = ['Reader', ]
 
-    MIDDLEWARE.append('django_replicated.middleware.ReplicationMiddleware', )
+    #MIDDLEWARE.append('django_replicated.middleware.ReplicationMiddleware', )
 
-    REPLICATED_VIEWS_OVERRIDES = {
-        '/admin/*': 'master',
-    }
+    #REPLICATED_VIEWS_OVERRIDES = {
+    #    '/admin/*': 'master',
+    #}
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -522,7 +524,7 @@ SUPPORTED_MEDIA_MIMETYPES = [
     'video/3gpp',
     'image/gif',
     'image/jpeg',
-    'image/png'
+    'image/png',
 ]
 NEW_USER_SUGGESTED_COMMUNITIES = os.environ.get('NEW_USER_SUGGESTED_COMMUNITIES', '1')
 
@@ -558,7 +560,7 @@ if TESTING:
     MIN_UNIQUE_TOP_POST_COMMENTS_COUNT = 1
     MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT = 1
 
-if IS_PRODUCTION:
+if False:# IS_PRODUCTION:
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
     AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
