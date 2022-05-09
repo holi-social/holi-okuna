@@ -6,7 +6,9 @@ variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
 cache:
-  key: "$CI_COMMIT_REF_SLUG"
+  key:
+    files: 
+      - requirements.txt # hashes this file so cache content depends on files content
   paths:
     - .cache/pip
     - venv/
