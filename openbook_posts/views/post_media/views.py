@@ -4,7 +4,7 @@ from rest_framework.parsers import FileUploadParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from openbook_moderation.permissions import IsNotSuspended
 from openbook_posts.views.post_media.serializers import AddPostMediaSerializer, GetPostMediaSerializer, \

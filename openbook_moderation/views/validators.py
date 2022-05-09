@@ -1,7 +1,7 @@
 from rest_framework.exceptions import NotFound
 
 from openbook_moderation.models import ModerationCategory, ModeratedObject
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 
 def moderation_category_id_exists(moderation_category_id):

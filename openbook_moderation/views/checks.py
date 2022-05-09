@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 
 from openbook_moderation.permissions import IsNotSuspended
 from openbook_common.responses import ApiMessageResponse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 
 class IsNotSuspendedCheck(APIView):

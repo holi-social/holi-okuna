@@ -4,8 +4,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.template.loader import render_to_string
-from django.utils import six
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 import jwt
 from openbook.settings import USERNAME_MAX_LENGTH, PROFILE_NAME_MAX_LENGTH
 from openbook_common.models import Badge
@@ -21,7 +20,7 @@ class UserInvite(models.Model):
     name = models.CharField(max_length=PROFILE_NAME_MAX_LENGTH, null=True, blank=True)
     nickname = models.CharField(max_length=PROFILE_NAME_MAX_LENGTH, null=True, blank=True)
     email = models.EmailField(_('email address'), null=True, blank=True)
-    username_validator = UnicodeUsernameValidator() if six.PY3 else ASCIIUsernameValidator()
+    username_validator = UnicodeUsernameValidator()
     username = models.CharField(
         _('username'),
         blank=True,

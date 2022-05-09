@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from django.core.files.images import ImageFile
 from django.utils.dateparse import parse_datetime
 from rest_framework.permissions import IsAuthenticated
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from openbook_importer.serializers import ZipfileSerializer
 from openbook_importer.socialmedia_archive_parser.fb_parser import zip_parser

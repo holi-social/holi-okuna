@@ -1,6 +1,6 @@
 import django_rq
 from django.utils import translation
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 import onesignal as onesignal_sdk
 
 from openbook_common.utils.model_loaders import get_notification_model

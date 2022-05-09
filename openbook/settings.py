@@ -274,6 +274,8 @@ WSGI_APPLICATION = 'openbook.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 if IS_BUILD or TESTING:
     DATABASES = {
         'default': {

@@ -6,7 +6,7 @@ from django.db import models
 from django.utils import timezone
 
 # Create your models here.
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFit
 

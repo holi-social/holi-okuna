@@ -1,7 +1,7 @@
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import BasePermission
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 
 class IsNotSuspended(BasePermission):
