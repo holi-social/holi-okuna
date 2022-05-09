@@ -1,13 +1,10 @@
-FROM python:3.7.3
+FROM python:3.9.12
 
 RUN apt-get -y update && apt-get -y upgrade &&  apt-get install -y ffmpeg
 
+# Copy any files over
 COPY wait-for-it.sh /wait-for-it.sh
-
-# Copy any files over
 COPY entrypoint.sh /entrypoint.sh
-
-# Copy any files over
 COPY bootstrap_development_data.sh /bootstrap_development_data.sh
 
 # Change permissions
@@ -19,6 +16,7 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 COPY requirements.txt /requirements.txt
 
+RUN pip install --upgrade pip
 RUN pip install -r /requirements.txt
 
 VOLUME ["/opt/okuna-api"]

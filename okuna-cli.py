@@ -54,8 +54,8 @@ def _remove_file_silently(filename):
             raise  # re-raise exception if a different error occurred
 
 
-def _get_random_string(length=12,
-                       allowed_chars='abcdefghijklmnopqrstuvwxyz'
+def _generate_random_string(length=12,
+                            allowed_chars='abcdefghijklmnopqrstuvwxyz'
                                      'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'):
     """
     Return a securely generated random string.
@@ -66,20 +66,20 @@ def _get_random_string(length=12,
     return ''.join(random.choice(allowed_chars) for i in range(length))
 
 
-def _get_django_secret_key():
+def _generate_django_secret_key():
     """
     Return a 50 character random string usable as a SECRET_KEY setting value.
     """
     chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
-    return _get_random_string(50, chars)
+    return _generate_random_string(50, chars)
 
 
-def _get_mysql_password():
-    return _get_random_string(64)
+def _generate_postgres_password():
+    return _generate_random_string(64)
 
 
-def _get_redis_password():
-    return _get_random_string(128)
+def _generate_redis_password():
+    return _generate_random_string(128)
 
 
 def _copy_requirements_txt_to_docker_images_dir():
@@ -113,14 +113,21 @@ def _wait_until_api_is_running(address, port, message='Waiting for server to com
     spinner.stop()
 
 
+def _docker_name(suffix):
+    # docker uses the convention of prefixing resource names with the name of the current directory
+    cwd = os.path.basename(os.path.dirname(os.path.realpath(__file__)))
+    return f"{cwd}_{suffix}"
+
+
 def _clean():
     """
     Cleans everything that the okuna-cli has created. Docker volumes, config files, everything.
     :return:
     """
     logger.info('🧹 Cleaning up database')
-    subprocess.run(["docker", "volume", "rm", _docker_name("mariadb")])
-    subprocess.run(["docker", "volume", "rm", _docker_name("redisdb")])
+    subprocess.run(["docker", "volume", "rm", "-f", _docker_name("postgres")])
+    subprocess.run(["docker", "volume", "rm", "-f", _docker_name("redisdb")])
+
 
     logger.info('🧹 Cleaning up config files')
     _remove_file_silently(LOCAL_API_ENV_FILE)
@@ -177,7 +184,7 @@ def _ensure_has_local_api_environment_file(okuna_cli_config):
 
     _replace_in_file(LOCAL_API_ENV_FILE, {
         "{{DJANGO_SECRET_KEY}}": okuna_cli_config['djangoSecretKey'],
-        "{{SQL_PASSWORD}}": okuna_cli_config['sqlPassword'],
+        "{{POSTGRES_PASSWORD}}": okuna_cli_config['postgresPassword'],
         "{{REDIS_PASSWORD}}": okuna_cli_config['redisPassword'],
     })
 
@@ -194,7 +201,7 @@ def _ensure_has_docker_compose_api_environment_file(okuna_cli_config):
 
     _replace_in_file(DOCKER_COMPOSE_ENV_FILE, {
         "{{DJANGO_SECRET_KEY}}": okuna_cli_config['djangoSecretKey'],
-        "{{SQL_PASSWORD}}": okuna_cli_config['sqlPassword'],
+        "{{POSTGRES_PASSWORD}}": okuna_cli_config['postgresPassword'],
         "{{REDIS_PASSWORD}}": okuna_cli_config['redisPassword'],
     })
 
@@ -203,12 +210,12 @@ def _ensure_has_okuna_config_file():
     if _file_exists(OKUNA_CLI_CONFIG_FILE):
         return
 
-    django_secret_key = _get_django_secret_key()
-    mysql_password = _get_mysql_password()
-    redis_password = _get_redis_password()
+    django_secret_key = _generate_django_secret_key()
+    postgres_password = _generate_postgres_password()
+    redis_password = _generate_redis_password()
 
     logger.info('Generated DJANGO_SECRET_KEY=%s' % django_secret_key)
-    logger.info('Generated SQL_PASSWORD=%s' % mysql_password)
+    logger.info('Generated POSTGRES_PASSWORD=%s' % postgres_password)
     logger.info('Generated REDIS_PASSWORD=%s' % redis_password)
 
     logger.info('Config file does not exist. Creating %s' % OKUNA_CLI_CONFIG_FILE)
@@ -220,7 +227,7 @@ def _ensure_has_okuna_config_file():
 
     _replace_in_file(OKUNA_CLI_CONFIG_FILE, {
         "{{DJANGO_SECRET_KEY}}": django_secret_key,
-        "{{SQL_PASSWORD}}": mysql_password,
+        "{{POSTGRES_PASSWORD}}": postgres_password,
         "{{REDIS_PASSWORD}}": redis_password,
     })
 
