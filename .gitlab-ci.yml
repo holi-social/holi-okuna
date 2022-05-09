@@ -18,6 +18,7 @@ stages:
 
 setup:
   image: 'registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder'
+  stage: "setup"
   script: |
     python3 -m venv venv
     source venv/bin/activate
@@ -26,7 +27,7 @@ setup:
 
 build:
   image: 'registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder'
-  stage: "build"
+  stage: "test"
   variables:
     SECRET_KEY: "secret"
   script: |
