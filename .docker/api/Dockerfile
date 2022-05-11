@@ -1,4 +1,5 @@
 FROM python:3.9.12
+ENV PYTHONUNBUFFERED 1
 
 RUN apt-get -y update && apt-get -y upgrade &&  apt-get install -y ffmpeg
 

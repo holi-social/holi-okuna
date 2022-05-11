@@ -1,6 +1,7 @@
 # Create your tests here.
 import json
 import tempfile
+import time
 
 from PIL import Image
 from django.conf import settings
@@ -224,8 +225,10 @@ class PostMediaAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user=user)
 
+        # contains "medium"-sized images (~20 MB) so make sure the API accepts this size
         for test_image in get_test_images():
             with open(test_image['path'], 'rb') as file:
+                logger.info('test_image=%s', test_image['path'])
                 post = user.create_public_post(is_draft=True)
 
                 data = {
@@ -236,7 +239,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
                 response = self.client.put(url, data, **headers, format='multipart')
 
-                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                self.assertEqual(response.status_code, status.HTTP_200_OK, 'response.content='+str(response.content))
 
                 post.refresh_from_db()
 
@@ -376,6 +379,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         test_image = get_test_image()
 
         with open(test_image['path'], 'rb') as file:
+            logger.info('test_image=%s', test_image['path'])
             file = File(file)
             post = foreign_user.create_public_post(image=file)
 
@@ -385,7 +389,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format='multipart')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'response.content='+str(response.content))
 
         response_media = json.loads(response.content)
 
@@ -394,6 +398,23 @@ class PostMediaAPITests(OpenbookAPITestCase):
         post_media = post.get_media().all()
 
         self._compare_response_media_with_post_media(post_media=post_media, response_media=response_media)
+
+    # adopted from https://stackoverflow.com/a/2785908/1242529
+    @staticmethod
+    def wait_until(some_predicate, timeout_seconds, period_seconds=0.25, *args, **kwargs):
+        must_end = time.time() + timeout_seconds
+        while time.time() < must_end:
+            if some_predicate(*args, **kwargs):
+                return True
+            time.sleep(period_seconds)
+        return False
+
+    def await_published(self, post):
+        def is_post_published():
+            logger.info('checking publishing status')
+            post.refresh_from_db()
+            return post.status == Post.STATUS_PUBLISHED
+        return self.wait_until(is_post_published, 5)
 
     def test_can_retrieve_foreign_user_post_media_video(self):
         """
@@ -407,8 +428,10 @@ class PostMediaAPITests(OpenbookAPITestCase):
         test_video = get_test_video()
 
         with open(test_video['path'], 'rb') as file:
+            logger.info('test_image=%s', test_video['path'])
             file = File(file)
             post = foreign_user.create_public_post(video=file)
+            self.await_published(post)
 
         get_worker('high', worker_class=SimpleWorker).work(burst=True)
 
@@ -416,7 +439,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format='multipart')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'response.content='+str(response.content))
 
         response_media = json.loads(response.content)
 
@@ -440,6 +463,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         test_image = get_test_image()
 
         with open(test_image['path'], 'rb') as file:
+            logger.info('test_image=%s', test_image['path'])
             file = File(file)
             post = following_user.create_public_post(image=file)
 
@@ -449,7 +473,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format='multipart')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'response.content='+str(response.content))
 
         response_media = json.loads(response.content)
 
@@ -473,6 +497,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         test_video = get_test_video()
 
         with open(test_video['path'], 'rb') as file:
+            logger.info('test_image=%s', test_video['path'])
             file = File(file)
             post = following_user.create_public_post(video=file)
 
@@ -482,7 +507,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format='multipart')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'response.content='+str(response.content))
 
         response_media = json.loads(response.content)
 
@@ -506,6 +531,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         test_image = get_test_image()
 
         with open(test_image['path'], 'rb') as file:
+            logger.info('test_image=%s', test_image['path'])
             file = File(file)
             post = follower_user.create_public_post(image=file)
 
@@ -515,7 +541,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format='multipart')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'response.content='+str(response.content))
 
         response_media = json.loads(response.content)
 
@@ -539,6 +565,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         test_video = get_test_video()
 
         with open(test_video['path'], 'rb') as file:
+            logger.info('test_image=%s', test_video['path'])
             file = File(file)
             post = follower_user.create_public_post(video=file)
 
@@ -548,7 +575,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format='multipart')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'response.content='+str(response.content))
 
         response_media = json.loads(response.content)
 
@@ -574,6 +601,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         test_image = get_test_image()
 
         with open(test_image['path'], 'rb') as file:
+            logger.info('test_image=%s', test_image['path'])
             file = File(file)
             post = connected_user.create_encircled_post(image=file, circles_ids=[circle.pk])
 
@@ -581,9 +609,10 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         url = self._get_url(post=post)
 
+        time.sleep(5)
         response = self.client.get(url, **headers, format='multipart')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'response.content='+str(response.content))
 
         response_media = json.loads(response.content)
 
@@ -610,6 +639,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         test_video = get_test_video()
 
         with open(test_video['path'], 'rb') as file:
+            logger.info('test_image=%s', test_video['path'])
             file = File(file)
             post = connected_user.create_encircled_post(video=file, circles_ids=[circle.pk])
 
@@ -619,7 +649,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format='multipart')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'response.content='+str(response.content))
 
         response_media = json.loads(response.content)
 
@@ -696,6 +726,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         test_image = get_test_image()
 
         with open(test_image['path'], 'rb') as file:
+            logger.info('test_image=%s', test_image['path'])
             file = File(file)
             post = community_member.create_community_post(image=file, community_name=public_community.name)
 
@@ -705,7 +736,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format='multipart')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'response.content='+str(response.content))
 
         response_media = json.loads(response.content)
 
@@ -730,6 +761,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         test_video = get_test_video()
 
         with open(test_video['path'], 'rb') as file:
+            logger.info('test_image=%s', test_video['path'])
             file = File(file)
             post = community_member.create_community_post(video=file, community_name=public_community.name)
 
@@ -739,7 +771,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format='multipart')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'response.content='+str(response.content))
 
         response_media = json.loads(response.content)
 
@@ -766,6 +798,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         test_image = get_test_image()
 
         with open(test_image['path'], 'rb') as file:
+            logger.info('test_image=%s', test_image['path'])
             file = File(file)
             post = community_creator.create_community_post(image=file, community_name=private_community.name)
 
@@ -775,7 +808,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format='multipart')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'response.content='+str(response.content))
 
         response_media = json.loads(response.content)
 
@@ -802,6 +835,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         test_video = get_test_video()
 
         with open(test_video['path'], 'rb') as file:
+            logger.info('test_image=%s', test_video['path'])
             file = File(file)
             post = community_creator.create_community_post(video=file, community_name=private_community.name)
 
@@ -811,7 +845,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format='multipart')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 'response.content='+str(response.content))
 
         response_media = json.loads(response.content)
 

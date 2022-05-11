@@ -1,3 +1,4 @@
+import logging
 import secrets
 from datetime import datetime, timedelta
 import re
@@ -3573,6 +3574,8 @@ class User(AbstractUser):
     def _make_get_post_with_id_query_for_user(self, user, post_id):
         posts_query = self._make_get_posts_query_for_user(user)
         posts_query.add(Q(id=post_id), Q.AND)
+        logger = logging.getLogger("openbook_auth/models")
+        logger.info('posts_query=%s', str(posts_query))
         return posts_query
 
     def _make_get_posts_query_for_user(self, user, max_id=None):
@@ -3585,17 +3588,17 @@ class User(AbstractUser):
 
         posts_circles_query = Q(circles__id=world_circle_id)
 
-        posts_circles_query.add(Q(circles__connections__target_user_id=self.pk,
-                                  circles__connections__target_connection__circles__isnull=False), Q.OR)
+        #posts_circles_query.add(Q(circles__connections__target_user_id=self.pk,
+        #                          circles__connections__target_connection__circles__isnull=False), Q.OR)
 
         posts_query.add(posts_circles_query, Q.AND)
-        posts_query.add(~Q(Q(creator__blocked_by_users__blocker_id=self.pk) | Q(
-            creator__user_blocks__blocked_user_id=self.pk)), Q.AND)
+        #posts_query.add(~Q(Q(creator__blocked_by_users__blocker_id=self.pk) | Q(
+        #    creator__user_blocks__blocked_user_id=self.pk)), Q.AND)
 
-        if max_id:
-            posts_query.add(Q(id__lt=max_id), Q.AND)
+        #if max_id:
+        #    posts_query.add(Q(id__lt=max_id), Q.AND)
 
-        posts_query.add(~Q(moderated_object__reports__reporter_id=self.pk), Q.AND)
+        #posts_query.add(~Q(moderated_object__reports__reporter_id=self.pk), Q.AND)
 
         return posts_query
 
@@ -3636,10 +3639,19 @@ class User(AbstractUser):
                           algorithm=settings.JWT_ALGORITHM).decode('utf-8')
 
     def _can_see_post(self, post):
+        logger = logging.getLogger("openbook_auth/models")
+        logger.info('post=%s', post.__dict__)
         post_query = self._make_get_post_with_id_query_for_user(post.creator, post_id=post.pk)
 
         Post = get_post_model()
         profile_posts = Post.objects.filter(post_query)
+
+        Circle = get_circle_model()
+        circles = Circle.objects.all()
+        for circle in circles:
+            logger.info('  circle=%s', circle.__dict__)
+            for circle_post in circle.posts.all():
+                logger.info('    circle_post=%s', circle_post.__dict__)
 
         return profile_posts.exists()
 

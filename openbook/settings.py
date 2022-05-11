@@ -44,9 +44,17 @@ logging.config.dictConfig({
     'loggers': {
         # root logger
         '': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'handlers': ['console'],
         },
+        'django.db': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        },
+        'django.db.backends.schema': {
+            'level': 'INFO',
+            'handlers': ['console'],
+        }
     },
 })
 
@@ -478,7 +486,7 @@ POST_MAX_LENGTH = int(os.environ.get('POST_MAX_LENGTH', '5000'))
 POST_MAX_HASHTAGS = int(os.environ.get('POST_MAX_HASHTAGS', '3'))
 POST_COMMENT_MAX_HASHTAGS = int(os.environ.get('POST_COMMENT_MAX_HASHTAGS', '3'))
 POST_COMMENT_MAX_LENGTH = int(os.environ.get('POST_MAX_LENGTH', '1500'))
-POST_MEDIA_MAX_SIZE = int(os.environ.get('POST_MEDIA_MAX_SIZE', '10485760'))
+POST_MEDIA_MAX_SIZE = int(os.environ.get('POST_MEDIA_MAX_SIZE', '30485760'))
 POST_LINK_MAX_DOMAIN_LENGTH = int(os.environ.get('POST_LINK_MAX_DOMAIN_LENGTH', '126'))
 POST_MEDIA_MAX_ITEMS = int(os.environ.get('POST_MEDIA_MAX_ITEMS', '1'))
 PASSWORD_MIN_LENGTH = 10
