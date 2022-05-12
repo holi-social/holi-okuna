@@ -16,31 +16,50 @@ cache:
 stages:
   - "setup"
   - "test"
+  - "build"
   - "deploy"
 
 setup:
   image: 'registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder'
   stage: "setup"
-  script: |
-    python3 -m venv venv
-    source venv/bin/activate
-    pip install --upgrade pip
-    pip install -r requirements.txt --exists-action s
+  script:
+    - python3 -m venv venv
+    - source venv/bin/activate
+    - pip install --upgrade pip
+    - pip install -r requirements.txt --exists-action s
 
-build:
+test:
   image: 'registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder'
   stage: "test"
   variables:
     SECRET_KEY: "secret"
-  script: |
-    /etc/init.d/redis-server start
-    source venv/bin/activate
-    python manage.py test
+  script:
+    - /etc/init.d/redis-server start
+    - source venv/bin/activate
+    - python manage.py test
   interruptible: true
 
 # separate stage?: code climate test-reporter
 # separate stage?: bandit -r .
 # separate stage?: safety check
+
+build:
+  image: docker:20.10
+  stage: "build"
+  services:
+    - docker:20.10-dind
+  variables:
+    SECRET_KEY: "secret"
+    GITLAB_IMAGE: $CI_REGISTRY_IMAGE/holi-okuna
+    GCR_IMAGE: eu.gcr.io/playground-daniel-347811/holi-okuna
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - cat $GOOGLE_CLOUD_SERVICE_ACCOUNT | docker login -u _json_key --password-stdin https://eu.gcr.io
+  script:
+    - docker pull $GITLAB_IMAGE || true # Allows us to use --cache-from
+    - docker build --cache-from $GITLAB_IMAGE -t $GITLAB_IMAGE:$CI_COMMIT_SHA -t $GCR_IMAGE:$CI_COMMIT_SHA .
+    - docker push $GITLAB_IMAGE:$CI_COMMIT_SHA
+    - docker push $GCR_IMAGE:$CI_COMMIT_SHA
 
 .deploy:
   stage: "deploy"
