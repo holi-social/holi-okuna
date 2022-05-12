@@ -57,7 +57,7 @@ build:
     - cat $GOOGLE_CLOUD_SERVICE_ACCOUNT | docker login -u _json_key --password-stdin https://eu.gcr.io
   script:
     - docker pull $GITLAB_IMAGE || true # Allows us to use --cache-from
-    - docker build --cache-from $GITLAB_IMAGE -t $GITLAB_IMAGE:$CI_COMMIT_SHA -t $GCR_IMAGE:$CI_COMMIT_SHA .
+    - docker build --cache-from $GITLAB_IMAGE -t $GITLAB_IMAGE:$CI_COMMIT_SHA -t $GCR_IMAGE:$CI_COMMIT_SHA .docker/api/
     - docker push $GITLAB_IMAGE:$CI_COMMIT_SHA
     - docker push $GCR_IMAGE:$CI_COMMIT_SHA
 
