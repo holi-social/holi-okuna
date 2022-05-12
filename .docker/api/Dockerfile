@@ -14,7 +14,7 @@ RUN chmod +x /wait-for-it.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
 
-COPY requirements.txt /requirements.txt
+COPY ../../requirements.txt /requirements.txt
 
 RUN pip install --upgrade pip
 RUN pip install -r /requirements.txt
