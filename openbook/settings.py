@@ -134,6 +134,8 @@ INSTALLED_APPS = [
     'openbook_devices',
     'openbook_moderation',
     'openbook_translation',
+    'rest_framework_jwt',
+    'rest_framework_jwt.blacklist',
 ]
 
 MODELTRANSLATION_FALLBACK_LANGUAGES = ('en',)
@@ -145,9 +147,14 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.RemoteUserMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'openbook_common.middleware.TimezoneMiddleware'
+]
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.RemoteUserBackend',
 ]
 
 ROOT_URLCONF = 'openbook.urls'
@@ -156,6 +163,7 @@ AUTH_USER_MODEL = 'openbook_auth.User'
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
+# used for the invitation codes of Okunas original user signup implementation
 JWT_ALGORITHM = os.environ.get('JWT_ALGORITHM', 'HS256')
 
 REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
@@ -363,12 +371,22 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
+        'openbook_auth.jwt_auth.HoliJsonWebTokenAuthentication',
     ),
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.AcceptHeaderVersioning',
     'DEFAULT_THROTTLE_RATES': {
         'link_preview': '300/hour',
     }
+}
+
+JWT_AUTH = {
+    'JWT_PAYLOAD_GET_USERNAME_HANDLER': 'openbook_auth.jwt.jwt_get_username_from_payload_handler',
+    'JWT_DECODE_HANDLER': 'openbook_auth.jwt.jwt_decode_token',
+    'JWT_ALGORITHM': 'RS256',
+    'JWT_JWKS_URL': 'http://localhost:4456/.well-known/jwks.json',
+    'JWT_ISSUER': 'http://localhost:4455/',
+    'JWT_AUDIENCE': 'https://project-holi.org/services/okuna/api',
+    'JWT_AUTH_HEADER_PREFIX': 'Bearer',
 }
 
 # AWS Translate
@@ -470,7 +488,7 @@ PROXY_URL = os.environ.get('PROXY_URL', '')
 
 # Openbook config
 
-USERNAME_MAX_LENGTH = 30
+USERNAME_MAX_LENGTH = 36
 USER_MAX_FOLLOWS = int(os.environ.get('USER_MAX_FOLLOWS', '1500'))
 USER_MAX_CONNECTIONS = int(os.environ.get('USER_MAX_CONNECTIONS', '1500'))
 USER_MAX_COMMUNITIES = 200
