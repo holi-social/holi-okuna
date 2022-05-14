@@ -44,8 +44,8 @@ class HoliJsonWebTokenAuthentication(JSONWebTokenAuthentication):
         username = payload.get('sub')
         email = payload.get('email')
 
-        print(f"payload=%s", payload)
-        print(f"username=%s, email=%s", username, email)
+        if username == 'anonymous':
+            return None
 
         if not username:
             msg = _('Invalid payload.')
