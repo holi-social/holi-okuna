@@ -28,7 +28,7 @@ setup:
     - pip install --upgrade pip
     - pip install -r requirements.txt --exists-action s
 
-.test:
+test:
   image: 'registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder'
   stage: "test"
   variables:
