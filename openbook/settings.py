@@ -383,8 +383,8 @@ JWT_AUTH = {
     'JWT_PAYLOAD_GET_USERNAME_HANDLER': 'openbook_auth.jwt.jwt_get_username_from_payload_handler',
     'JWT_DECODE_HANDLER': 'openbook_auth.jwt.jwt_decode_token',
     'JWT_ALGORITHM': 'RS256',
-    'JWT_JWKS_URL': 'http://localhost:4456/.well-known/jwks.json',
-    'JWT_ISSUER': 'http://localhost:4455/',
+    'JWT_JWKS_URL': os.environ.get('JWT_JWKS_URL', 'http://localhost:4456/.well-known/jwks.json'),
+    'JWT_ISSUER': os.environ.get('JWT_ISSUER', 'http://localhost:4456/'),
     'JWT_AUDIENCE': 'https://project-holi.org/services/okuna/api',
     'JWT_AUTH_HEADER_PREFIX': 'Bearer',
 }
