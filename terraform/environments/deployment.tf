@@ -1,0 +1,154 @@
+/**
+ * The resource ids of resources must be unique. Since we might create resources for a branch multiple times
+ * (after destroying the ones created before maybe failed, e.g. on environment cleanup, reopening a branch), we ensure uniqueness
+ * by appending some random data to resource ids in order to avoid collisions.
+ */
+resource "random_id" "main" {
+  byte_length = 2
+  prefix      = "okuna-${local.environment_name}-"
+}
+
+resource "google_project_service" "service" {
+  for_each = toset([
+    "run.googleapis.com",
+    "servicemanagement.googleapis.com",
+    "servicecontrol.googleapis.com",
+    "endpoints.googleapis.com",
+  ])
+
+  service = each.key
+
+  project            = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
+  disable_on_destroy = false
+}
+
+resource "google_sql_database" "database" {
+  name     = random_id.main.hex
+  instance = data.terraform_remote_state.holi_infra_state.database_name_development # TODO: configure prod for prod
+}
+
+# in CI, this is set via scripts/create-or-update-env.sh 
+variable "image_tag" {
+  type    = string
+  nullable= false
+}
+
+resource "google_cloud_run_service" "okuna" {
+  project  = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
+  name     = random_id.main.hex
+  location = "europe-north1" # TODO: Frankfurt doesn't work, settle on a region here (north1 is finland and very co2 friendly)
+
+  template {
+    spec {
+      containers {
+        image = "${data.terraform_remote_state.holi_infra_state.outputs.gcr_location}/holi-okuna:${var.image_tag}"
+        ports {
+          container_port = 80
+        }
+        env {
+          name = "ENVIRONMENT"
+          value = "production"
+        }
+        env {
+          name = "SECRET_KEY"
+#          value_from {
+#            secret_key_ref {
+#              name = google_secret_manager_secret.secret.secret_id
+#              key = "1"
+#            }
+#          }          
+          value = "changeme" # TODO: no secrets in git
+        }
+        env {
+          name = "ALLOWED_HOSTS"
+          value = "*"
+        }
+        env {
+          name = "RDS_DB_NAME"
+          value = random_id.main.hex
+        }
+        env {
+          name = "RDS_USERNAME"
+          value = "admin" # TODO: env specific users or at least an unprivileged user
+        }
+        env {
+          name = "RDS_PASSWORD"
+          value = "zbQHRi6D2Mnm4GZK" # TODO: don't store secrets in git/plaintext!
+        }
+        env {
+          name = "RDS_PORT"
+          value = "5432"
+        }
+        env {
+          name = "RDS_HOSTNAME"
+          value = data.terraform_remote_state.holi_infra_state.database_ip_address_development
+        }
+
+        resources {
+          limits = {
+            # cpu can only be scaled down to 1000m as long as container_concurrency is set to != 1
+            cpu    = local.environment == "production" ? "1000m" : "1000m"
+            memory = local.environment == "production" ? "512Mi" : "256Mi"
+          }
+          requests = {
+            cpu    = local.environment == "production" ? "1000m" : "10m"
+            memory = local.environment == "production" ? "512Mi" : "256Mi"
+          }
+        }
+      }
+      container_concurrency = 0 # 0 means thread safe, no restriction on max concurrency
+    }
+    metadata {
+      annotations = {
+        "autoscaling.knative.dev/minScale" = local.environment == "production" ? "0" : "0"
+        "autoscaling.knative.dev/maxScale" = local.environment == "production" ? "10" : "1"
+        #"run.googleapis.com/ingress" = "All" # TODO security: switch to "Internal" once only the API proxy connects
+        #"run.googleapis.com/egress" = "All" # TODO security: ???
+        #"run.googleapis.com/vpc-access-egress" = "all"
+        # Use the VPC Connector
+        "run.googleapis.com/vpc-access-connector" = data.terraform_remote_state.holi_infra_state.outputs.vpc_access_connector_name
+        # all egress from the service should go through the VPC Connector
+      }
+    }
+  }
+
+  traffic {
+    percent         = 100
+    latest_revision = true
+  }
+
+  depends_on = [google_project_service.service]
+}
+
+resource "google_cloud_run_domain_mapping" "okuna" {
+  project = google_cloud_run_service.okuna.project
+  # location needs to be the same as the service's
+  location = google_cloud_run_service.okuna.location
+  name     = local.dns_name
+
+  metadata {
+    namespace = google_cloud_run_service.okuna.project
+  }
+
+  spec {
+    route_name = google_cloud_run_service.okuna.name
+  }
+}
+
+# TODO security: Can we restrict this to a specific service account (of the API proxy) some day?
+data "google_iam_policy" "okuna" {
+  binding {
+    role = "roles/run.invoker"
+    members = [
+      "allUsers",
+    ]
+  }
+}
+
+resource "google_cloud_run_service_iam_policy" "okuna" {
+  location = google_cloud_run_service.okuna.location
+  project  = google_cloud_run_service.okuna.project
+  service  = google_cloud_run_service.okuna.name
+
+  policy_data = data.google_iam_policy.okuna.policy_data
+}

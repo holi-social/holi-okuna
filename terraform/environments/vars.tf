@@ -1,0 +1,9 @@
+locals {
+  # predefined environment names are staging, production, and <branchname>
+  environment      = terraform.workspace
+  environment_name = trim(substr(local.environment, 0, 22), ".-") # limits the length of the name that it fits constraints google imposes for some resources, e.g. project ids
+  
+  dns_name = "${local.environment}.${data.terraform_remote_state.holi_okuna_common_state.outputs.dns_okuna_domain}"
+  # in staging and production envs, we are deploying the docker image built from the main branch
+  docker_image_tag = contains(["staging", "production"], local.environment) ? "main" : local.environment
+}
