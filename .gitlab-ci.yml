@@ -59,7 +59,7 @@ build:
   script:
     - cp requirements.txt .docker/api/requirements.txt
     - docker pull $GCR_IMAGE || true # Allows us to use --cache-from
-    - docker build --cache-from $GCR_IMAGE -t $GCR_IMAGE:$CI_COMMIT_SHA -t $GCR_IMAGE:$CI_COMMIT_REF_SLUG .
+    - docker build --cache-from $GCR_IMAGE -t $GCR_IMAGE:$CI_COMMIT_SHA -t $GCR_IMAGE:$CI_COMMIT_REF_SLUG .docker/api/
     - docker push $GCR_IMAGE:$CI_COMMIT_SHA # this is the tag that is used for deployment
     - docker push $GCR_IMAGE:$CI_COMMIT_REF_SLUG # just for easyly knowing which is the last image for a branch
   interruptible: true
