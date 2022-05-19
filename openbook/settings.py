@@ -158,6 +158,7 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 JWT_ALGORITHM = os.environ.get('JWT_ALGORITHM', 'HS256')
 
+# TODO Think about what to do for cache backend
 REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
 REDIS_PORT = int(os.environ.get('REDIS_PORT', '6379'))
 REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
@@ -560,6 +561,7 @@ if TESTING:
     MIN_UNIQUE_TOP_POST_COMMENTS_COUNT = 1
     MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT = 1
 
+# TODO Think about what to do for storage backend
 if False:# IS_PRODUCTION:
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')

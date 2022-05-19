@@ -5,10 +5,11 @@ from django_rq import job
 
 from openbook_common.utils.model_loaders import get_user_model
 
-onesignal_client = onesignal_sdk.Client(
-    app_id=settings.ONE_SIGNAL_APP_ID,
-    app_auth_key=settings.ONE_SIGNAL_API_KEY
-)
+# TODO Think about what to do with OneSignal
+#onesignal_client = onesignal_sdk.Client(
+#    app_id=settings.ONE_SIGNAL_APP_ID,
+#    app_auth_key=settings.ONE_SIGNAL_API_KEY
+#)
 
 
 @job('default')
@@ -28,5 +29,6 @@ def send_notification_to_user_with_id(user_id, notification):
             {"field": "tag", "key": "user_id", "relation": "=", "value": user_id},
             {"field": "tag", "key": "device_uuid", "relation": "=", "value": device.uuid},
         ])
-
-        onesignal_client.send_notification(notification)
+        
+        # TODO Think about what to do with OneSignal
+        #onesignal_client.send_notification(notification)

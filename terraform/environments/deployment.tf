@@ -24,7 +24,8 @@ resource "google_project_service" "service" {
 
 resource "google_sql_database" "database" {
   name     = random_id.main.hex
-  instance = data.terraform_remote_state.holi_infra_state.database_name_development # TODO: configure prod for prod
+  project            = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
+  instance = data.terraform_remote_state.holi_infra_state.outputs.database_name_development # TODO: configure prod for prod
 }
 
 # in CI, this is set via scripts/create-or-update-env.sh 
@@ -81,7 +82,11 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name = "RDS_HOSTNAME"
-          value = data.terraform_remote_state.holi_infra_state.database_ip_address_development
+          value = data.terraform_remote_state.holi_infra_state.outputs.database_ip_address_development
+        }
+        env {
+          name= "SENTRY_DSN"
+          value = "https://41084c0584d04b38a27d49fab9591b42@o949544.ingest.sentry.io/6421964"
         }
 
         resources {
