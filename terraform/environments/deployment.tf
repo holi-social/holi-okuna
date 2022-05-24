@@ -24,7 +24,7 @@ resource "google_project_service" "service" {
 
 resource "google_sql_database" "database" {
   name     = random_id.main.hex
-  project            = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
+  project  = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
   instance = data.terraform_remote_state.holi_infra_state.outputs.database_name_development # TODO: configure prod for prod
 }
 
@@ -49,6 +49,10 @@ resource "google_cloud_run_service" "okuna" {
         env {
           name = "ENVIRONMENT"
           value = "production"
+        }
+        env {
+          name = "ENVIRONMENT_ID"
+          value = local.environment_name
         }
         env {
           name = "SECRET_KEY"
@@ -83,6 +87,14 @@ resource "google_cloud_run_service" "okuna" {
         env {
           name = "RDS_HOSTNAME"
           value = data.terraform_remote_state.holi_infra_state.outputs.database_ip_address_development
+        }
+        env {
+          name = "REDIS_HOST"
+          value = data.terraform_remote_state.holi_infra_state.outputs.redis_host_development
+        }
+        env {
+          name = "REDIS_PORT"
+          value = data.terraform_remote_state.holi_infra_state.outputs.redis_port_development
         }
         env {
           name= "SENTRY_DSN"

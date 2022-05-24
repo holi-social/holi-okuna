@@ -57,6 +57,7 @@ load_dotenv(verbose=True, dotenv_path=find_dotenv())
 
 # The current execution environment
 ENVIRONMENT = os.environ.get('ENVIRONMENT')
+ENVIRONMENT_ID = os.environ.get('ENVIRONMENT_ID', 'local')
 
 if not ENVIRONMENT:
     if 'test' in sys.argv:
@@ -186,7 +187,7 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient"
         },
-        "KEY_PREFIX": "ob-api-"
+        "KEY_PREFIX": "ob-api-" + ENVIRONMENT_ID + "-"
     },
     'rq-default-jobs': {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -194,7 +195,7 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient"
         },
-        "KEY_PREFIX": "ob-api-rq-default-job-"
+        "KEY_PREFIX": "ob-api-rq-default-job-" + ENVIRONMENT_ID + "-"
     },
     'rq-high-jobs': {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -202,7 +203,7 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient"
         },
-        "KEY_PREFIX": "ob-api-rq-high-job-"
+        "KEY_PREFIX": "ob-api-rq-high-job-" + ENVIRONMENT_ID + "-"
     },
     'rq-low-jobs': {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -210,7 +211,7 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient"
         },
-        "KEY_PREFIX": "ob-api-rq-low-job-"
+        "KEY_PREFIX": "ob-api-rq-low-job-" + ENVIRONMENT_ID + "-"
     },
 }
 
