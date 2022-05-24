@@ -114,6 +114,7 @@ resource "google_cloud_run_service" "okuna" {
         }
       }
       container_concurrency = 0 # 0 means thread safe, no restriction on max concurrency
+      timeout_seconds = 1800
     }
     metadata {
       annotations = {
