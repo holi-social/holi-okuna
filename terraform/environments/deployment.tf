@@ -97,6 +97,10 @@ resource "google_cloud_run_service" "okuna" {
           value = data.terraform_remote_state.holi_infra_state.outputs.redis_port_development
         }
         env {
+          name = "REDIS_PASSWORD"
+          value = ""
+        }
+        env {
           name= "SENTRY_DSN"
           value = "https://41084c0584d04b38a27d49fab9591b42@o949544.ingest.sentry.io/6421964"
         }
