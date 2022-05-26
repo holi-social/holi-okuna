@@ -4,6 +4,7 @@ image: python:3.9.12
 # only cache local items.
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  API_BASE_URL_PATH: "$CI_PROJECT_DIR/api_domain"
 
 cache:
   key:
@@ -18,6 +19,7 @@ stages:
   - "test"
   - "build"
   - "deploy"
+  - "destroy"
 
 setup:
   image: 'registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder'
@@ -27,8 +29,9 @@ setup:
     - source venv/bin/activate
     - pip install --upgrade pip
     - pip install -r requirements.txt --exists-action s
+  interruptible: true
 
-test:
+.test:
   image: 'registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder'
   stage: "test"
   variables:
@@ -49,21 +52,107 @@ build:
   services:
     - docker:20.10-dind
   variables:
-    SECRET_KEY: "secret"
-    GITLAB_IMAGE: $CI_REGISTRY_IMAGE/holi-okuna
-    GCR_IMAGE: eu.gcr.io/playground-daniel-347811/holi-okuna
+    # this could be fetched via terraform output ("gcr_location" in infra project), but then we would need an extra job for terraform
+    GCR_IMAGE: eu.gcr.io/holi-shared/holi-okuna
   before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - cat $GOOGLE_CLOUD_SERVICE_ACCOUNT | docker login -u _json_key --password-stdin https://eu.gcr.io
   script:
-    - cp requirements.txt .docker/api/requirements.txt
-    - docker pull $GITLAB_IMAGE || true # Allows us to use --cache-from
-    - docker build --cache-from $GITLAB_IMAGE -t $GITLAB_IMAGE:$CI_COMMIT_SHA -t $GCR_IMAGE:$CI_COMMIT_SHA .docker/api/
-    - docker push $GITLAB_IMAGE:$CI_COMMIT_SHA
-    - docker push $GCR_IMAGE:$CI_COMMIT_SHA
+    - docker pull $GCR_IMAGE || true # Allows us to use --cache-from
+    - docker build --cache-from $GCR_IMAGE -t $GCR_IMAGE:$CI_COMMIT_SHA -t $GCR_IMAGE:$CI_COMMIT_REF_SLUG .
+    - docker push $GCR_IMAGE:$CI_COMMIT_SHA # this is the tag that is used for deployment
+    - docker push $GCR_IMAGE:$CI_COMMIT_REF_SLUG # just for easyly knowing which is the last image for a branch
+  interruptible: true
 
 .deploy:
   stage: "deploy"
-  script: |
-    echo "TODO"
+  image: 
+    name: 'hashicorp/terraform:1.1.9'
+    # default entrypoint is terraform command, but we want to run shell scripts
+    entrypoint: ["/bin/sh", "-c"]
+  variables:
+    ENVIRONMENT_ID: $CI_COMMIT_REF_SLUG
+  artifacts:
+    paths:
+      - "terraform/scripts/crash.log" # optional, only available in case of a crash/panic
+      - "terraform/scripts/terraform-*.log" # separate log for every step/command
+      - $API_BASE_URL_PATH
+    name: "${CI_JOB_NAME}_${CI_JOB_ID}"
+    #when: on_failure # can't do that for api base url, but can't define multiple artifacts
+  script:
+    - export GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_CLOUD_SERVICE_ACCOUNT}
+    - terraform/environments/scripts/create-or-update-env.sh $ENVIRONMENT_ID $CI_COMMIT_SHA
+    - echo "$(terraform/scripts/get-api-domain.sh)" > $API_BASE_URL_PATH
+  resource_group: $ENVIRONMENT_ID # never execute terraform in parallel on the same environment
+  interruptible: false
+
+.e2e:
+  stage: "deploy"
+  image: 'codeceptjs/codeceptjs'
+  script:
+    - API_BASE_URL=`cat $API_BASE_URL_PATH`
+    - echo "e2e tests against $CI_ENVIRONMENT_SLUG environment go here and against $API_BASE_URL"
+    - terraform/scripts/wait-for-ssl.sh "https://${API_BASE_URL}"
   interruptible: true
+
+review_deploy:
+  extends: .deploy
+  environment:
+    name: review/$CI_COMMIT_REF_SLUG
+    url: https://$CI_COMMIT_REF_SLUG.social.apis.project-holi.org
+    on_stop: web_review_destroy
+    auto_stop_in: 1 week
+  except:
+    - main
+    - /^noenv\/.*/
+
+web_review_destroy:
+  stage: destroy
+  image:
+    name: 'hashicorp/terraform:1.1.9'
+    # default entrypoint is terraform command, but we want to run shell scripts
+    entrypoint: ["/bin/sh", "-c"]
+  variables:
+    # has to be set to none for auto stop
+    GIT_STRATEGY: none
+  environment:
+    name: review/$CI_COMMIT_REF_SLUG
+    action: stop
+  dependencies: [] # explicitly disable artifact usage
+  before_script:
+  script:
+    - export GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_CLOUD_SERVICE_ACCOUNT}
+    # branch may have been deleted, so we clone and checkout main
+    - git clone $CI_REPOSITORY_URL main-clone
+    - cd main-clone
+    - terraform/environments/scripts/destroy-env.sh $CI_COMMIT_REF_SLUG
+  # can't use rules here: https://gitlab.com/gitlab-org/gitlab/-/issues/34077
+  when: manual
+  except:
+    - main
+    - /^noenv\/.*/
+  resource_group: $CI_COMMIT_REF_SLUG # never execute terraform in parallel on the same environment
+  interruptible: false
+
+staging_deploy:
+  extends: .deploy
+  environment:
+    name: staging
+    deployment_tier: staging
+    url: https://staging.social.apis.project-holi.org
+  variables:
+    ENVIRONMENT_ID: staging
+  only:
+    - main
+
+production_deploy:
+  extends: .deploy
+  needs: ['staging_deploy']
+  when: manual
+  environment:
+    name: production
+    deployment_tier: production
+    url: https://production.social.apis.project-holi.org
+  variables:
+    ENVIRONMENT_ID: production
+  only:
+    - main

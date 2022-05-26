@@ -58,7 +58,9 @@ from openbook_posts.jobs import process_post_media
 magic = get_magic()
 from openbook_common.helpers import get_language_for_text, extract_urls_from_string
 
-post_image_storage = S3PrivateMediaStorage() if settings.IS_PRODUCTION else default_storage
+# TODO Think about what to do for storage backend
+# post_image_storage = S3PrivateMediaStorage() if settings.IS_PRODUCTION else default_storage
+post_image_storage = default_storage
 
 
 class Post(models.Model):

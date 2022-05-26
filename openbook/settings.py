@@ -57,6 +57,7 @@ load_dotenv(verbose=True, dotenv_path=find_dotenv())
 
 # The current execution environment
 ENVIRONMENT = os.environ.get('ENVIRONMENT')
+ENVIRONMENT_ID = os.environ.get('ENVIRONMENT_ID', 'local')
 
 if not ENVIRONMENT:
     if 'test' in sys.argv:
@@ -158,11 +159,12 @@ TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 JWT_ALGORITHM = os.environ.get('JWT_ALGORITHM', 'HS256')
 
+# TODO Think about what to do for cache backend
 REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
 REDIS_PORT = int(os.environ.get('REDIS_PORT', '6379'))
 REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
 
-redis_protocol = 'rediss://' if IS_PRODUCTION else 'redis://'
+redis_protocol = 'redis://' # 'rediss://' if IS_PRODUCTION else 'redis://'
 
 redis_password = '' if not REDIS_PASSWORD else ':%s' % REDIS_PASSWORD
 
@@ -185,7 +187,7 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient"
         },
-        "KEY_PREFIX": "ob-api-"
+        "KEY_PREFIX": "ob-api-" + ENVIRONMENT_ID + "-"
     },
     'rq-default-jobs': {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -193,7 +195,7 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient"
         },
-        "KEY_PREFIX": "ob-api-rq-default-job-"
+        "KEY_PREFIX": "ob-api-rq-default-job-" + ENVIRONMENT_ID + "-"
     },
     'rq-high-jobs': {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -201,7 +203,7 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient"
         },
-        "KEY_PREFIX": "ob-api-rq-high-job-"
+        "KEY_PREFIX": "ob-api-rq-high-job-" + ENVIRONMENT_ID + "-"
     },
     'rq-low-jobs': {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -209,7 +211,7 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient"
         },
-        "KEY_PREFIX": "ob-api-rq-low-job-"
+        "KEY_PREFIX": "ob-api-rq-low-job-" + ENVIRONMENT_ID + "-"
     },
 }
 
@@ -560,6 +562,7 @@ if TESTING:
     MIN_UNIQUE_TOP_POST_COMMENTS_COUNT = 1
     MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT = 1
 
+# TODO Think about what to do for storage backend
 if False:# IS_PRODUCTION:
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
