@@ -1,5 +1,5 @@
 ## these dns changes are done in the infra shared project (https://gitlab.com/holisticfoundation/holi-infra)
-## because the zone okuna.project-holi.org is managed in that project.
+## because the zone apis.project-holi.org is managed in that project.
 
 locals {
   # effectively, this is social.apis.project-holi.org

@@ -30,8 +30,8 @@ resource "google_sql_database" "database" {
 
 # in CI, this is set via scripts/create-or-update-env.sh 
 variable "image_tag" {
-  type    = string
-  nullable= false
+  type     = string
+  nullable = false
 }
 
 resource "google_cloud_run_service" "okuna" {
@@ -47,61 +47,61 @@ resource "google_cloud_run_service" "okuna" {
           container_port = 80
         }
         env {
-          name = "ENVIRONMENT"
+          name  = "ENVIRONMENT"
           value = "production"
         }
         env {
-          name = "ENVIRONMENT_ID"
+          name  = "ENVIRONMENT_ID"
           value = local.environment_name
         }
         env {
           name = "SECRET_KEY"
-#          value_from {
-#            secret_key_ref {
-#              name = google_secret_manager_secret.secret.secret_id
-#              key = "1"
-#            }
-#          }          
+          #          value_from {
+          #            secret_key_ref {
+          #              name = google_secret_manager_secret.secret.secret_id
+          #              key = "1"
+          #            }
+          #          }          
           value = "changeme" # TODO: no secrets in git
         }
         env {
-          name = "ALLOWED_HOSTS"
+          name  = "ALLOWED_HOSTS"
           value = "*"
         }
         env {
-          name = "RDS_DB_NAME"
+          name  = "RDS_DB_NAME"
           value = random_id.main.hex
         }
         env {
-          name = "RDS_USERNAME"
+          name  = "RDS_USERNAME"
           value = "admin" # TODO: env specific users or at least an unprivileged user
         }
         env {
-          name = "RDS_PASSWORD"
+          name  = "RDS_PASSWORD"
           value = "zbQHRi6D2Mnm4GZK" # TODO: don't store secrets in git/plaintext!
         }
         env {
-          name = "RDS_PORT"
+          name  = "RDS_PORT"
           value = "5432"
         }
         env {
-          name = "RDS_HOSTNAME"
+          name  = "RDS_HOSTNAME"
           value = data.terraform_remote_state.holi_infra_state.outputs.database_ip_address_development
         }
         env {
-          name = "REDIS_HOST"
+          name  = "REDIS_HOST"
           value = data.terraform_remote_state.holi_infra_state.outputs.redis_host_development
         }
         env {
-          name = "REDIS_PORT"
+          name  = "REDIS_PORT"
           value = data.terraform_remote_state.holi_infra_state.outputs.redis_port_development
         }
         env {
-          name = "REDIS_PASSWORD"
+          name  = "REDIS_PASSWORD"
           value = data.terraform_remote_state.holi_infra_state.outputs.redis_password_development
         }
         env {
-          name= "SENTRY_DSN"
+          name  = "SENTRY_DSN"
           value = "https://41084c0584d04b38a27d49fab9591b42@o949544.ingest.sentry.io/6421964"
         }
 
@@ -118,7 +118,7 @@ resource "google_cloud_run_service" "okuna" {
         }
       }
       container_concurrency = 0 # 0 means thread safe, no restriction on max concurrency
-      timeout_seconds = 300
+      timeout_seconds       = 300
     }
     metadata {
       annotations = {
