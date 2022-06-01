@@ -144,6 +144,8 @@ staging_deploy:
   only:
     - main
 
+# TODO: e2e tests
+
 production_deploy:
   extends: .deploy
   needs: ['staging_deploy']
