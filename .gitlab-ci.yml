@@ -46,7 +46,7 @@ setup:
 # separate stage?: bandit -r .
 # separate stage?: safety check
 
-build:
+build_docker:
   image: docker:20.10
   stage: "build"
   services:
@@ -70,7 +70,7 @@ build:
     # default entrypoint is terraform command, but we want to run shell scripts
     entrypoint: ["/bin/sh", "-c"]
   variables:
-    ENVIRONMENT_ID: $CI_COMMIT_REF_SLUG
+    ENVIRONMENT_ID: $CI_ENVIRONMENT_SLUG
   artifacts:
     paths:
       - "terraform/scripts/crash.log" # optional, only available in case of a crash/panic
@@ -98,7 +98,7 @@ review_deploy:
   extends: .deploy
   environment:
     name: review/$CI_COMMIT_REF_SLUG
-    url: https://$CI_COMMIT_REF_SLUG.social.apis.project-holi.org
+    url: https://$CI_ENVIRONMENT_SLUG.social.apis.project-holi.org
     on_stop: web_review_destroy
     auto_stop_in: 1 week
   except:
@@ -124,13 +124,13 @@ web_review_destroy:
     # branch may have been deleted, so we clone and checkout main
     - git clone $CI_REPOSITORY_URL main-clone
     - cd main-clone
-    - terraform/environments/scripts/destroy-env.sh $CI_COMMIT_REF_SLUG
+    - terraform/environments/scripts/destroy-env.sh $CI_ENVIRONMENT_SLUG
   # can't use rules here: https://gitlab.com/gitlab-org/gitlab/-/issues/34077
   when: manual
   except:
     - main
     - /^noenv\/.*/
-  resource_group: $CI_COMMIT_REF_SLUG # never execute terraform in parallel on the same environment
+  resource_group: $CI_ENVIRONMENT_SLUG # never execute terraform in parallel on the same environment
   interruptible: false
 
 staging_deploy:
