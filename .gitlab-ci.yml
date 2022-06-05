@@ -21,6 +21,14 @@ stages:
   - "deploy"
   - "destroy"
 
+default:
+  before_script:
+    - set -eux
+    - env
+  interruptible: true
+  tags:
+    - holi-small # build on smaller machine
+
 setup:
   image: 'registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder'
   stage: "setup"
@@ -29,7 +37,6 @@ setup:
     - source venv/bin/activate
     - pip install --upgrade pip
     - pip install -r requirements.txt --exists-action s
-  interruptible: true
 
 .test:
   image: 'registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder'
@@ -40,7 +47,6 @@ setup:
     - /etc/init.d/redis-server start
     - source venv/bin/activate
     - python manage.py test
-  interruptible: true
 
 # separate stage?: code climate test-reporter
 # separate stage?: bandit -r .
@@ -61,7 +67,6 @@ build_docker:
     - docker build --cache-from $GCR_IMAGE -t $GCR_IMAGE:$CI_COMMIT_SHA -t $GCR_IMAGE:$CI_COMMIT_REF_SLUG .
     - docker push $GCR_IMAGE:$CI_COMMIT_SHA # this is the tag that is used for deployment
     - docker push $GCR_IMAGE:$CI_COMMIT_REF_SLUG # just for easyly knowing which is the last image for a branch
-  interruptible: true
 
 .deploy:
   stage: "deploy"
@@ -92,7 +97,6 @@ build_docker:
     - API_BASE_URL=`cat $API_BASE_URL_PATH`
     - echo "e2e tests against $CI_ENVIRONMENT_SLUG environment go here and against $API_BASE_URL"
     - terraform/scripts/wait-for-ssl.sh "https://${API_BASE_URL}"
-  interruptible: true
 
 review_deploy:
   extends: .deploy
