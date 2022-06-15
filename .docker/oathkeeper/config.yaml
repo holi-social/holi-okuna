@@ -1,0 +1,63 @@
+# see https://www.ory.sh/docs/oathkeeper/reference/configuration
+# also documents environment variables
+
+serve:
+  proxy:
+    port: 4455 # run the proxy at port 4455
+  api:
+    port: 4456 # run the api at port 4456
+
+access_rules:
+  repositories:
+    - file:///opt/config/rules.yaml
+
+errors:
+  fallback:
+    - json
+  handlers:
+    json:
+      enabled: true
+      config:
+        verbose: true
+    redirect:
+      enabled: true
+      config:
+        to: https://www.ory.sh/docs
+
+mutators:
+  header:
+    enabled: true
+    config:
+      headers:
+        X-Holi-User-ID: '{{ print .Subject }}'
+        X-Holi-User-Email: '{{ if and .Extra (index .Extra "identity")}}{{ .Extra.identity.traits.email }}{{ else }}anonymous{{ end }}'
+  noop:
+    enabled: true
+
+authorizers:
+  allow:
+    enabled: true
+  deny:
+    enabled: true
+
+authenticators:
+  anonymous:
+    enabled: true
+    config:
+      subject: anonymous # =default
+  cookie_session:
+    enabled: true
+    config:
+      check_session_url: https://mystifying-carver-akajr6v4t8.projects.oryapis.com/sessions/whoami
+      preserve_path: true
+      extra_from: '@this'
+      subject_from: 'identity.id'
+  bearer_token:
+    enabled: true
+    config:
+      check_session_url: https://mystifying-carver-akajr6v4t8.projects.oryapis.com/sessions/whoami
+      preserve_path: true
+      extra_from: '@this'
+      subject_from: 'identity.id'
+      token_from:
+        header: X-Session-Token

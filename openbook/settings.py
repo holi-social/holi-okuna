@@ -146,9 +146,14 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.RemoteUserMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'openbook_common.middleware.TimezoneMiddleware'
+]
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.oathkeeper.HoliOathkeeperAuthentication',
 ]
 
 ROOT_URLCONF = 'openbook.urls'
@@ -365,7 +370,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
+        'openbook_auth.oathkeeper.HoliOathkeeperAuthentication',
     ),
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.AcceptHeaderVersioning',
     'DEFAULT_THROTTLE_RATES': {
@@ -472,7 +477,7 @@ PROXY_URL = os.environ.get('PROXY_URL', '')
 
 # Openbook config
 
-USERNAME_MAX_LENGTH = 30
+USERNAME_MAX_LENGTH = 36
 USER_MAX_FOLLOWS = int(os.environ.get('USER_MAX_FOLLOWS', '1500'))
 USER_MAX_CONNECTIONS = int(os.environ.get('USER_MAX_CONNECTIONS', '1500'))
 USER_MAX_COMMUNITIES = 200
