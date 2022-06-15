@@ -1982,7 +1982,7 @@ class PostCloseAPITests(OpenbookAPITestCase):
         self.assertTrue(CommunityNewPostNotification.objects.filter(notification__owner_id=admin.pk,
                                                                     post_id=post.pk).exists())
         self.assertFalse(CommunityNewPostNotification.objects.filter(notification__owner_id=community_member.pk,
-                                                                    post_id=post.pk).exists())
+                                                                     post_id=post.pk).exists())
 
     def _get_url(self, post):
         return reverse('close-post', kwargs={
@@ -2748,11 +2748,12 @@ class PublishPostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers, format='multipart')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK,
+                         "status_code=%s body=%s" % (response.status_code, response.body))
 
         post = Post.objects.get(pk=post.pk)
 
-        self.assertEqual(post.status, Post.STATUS_PROCESSING)
+        self.assertEqual(post.status, Post.STATUS_PROCESSING, "status=%s" % post.status)
 
         # Run the process handled by a worker
         get_worker('high', worker_class=SimpleWorker).work(burst=True)
@@ -2779,11 +2780,12 @@ class PublishPostAPITests(OpenbookAPITestCase):
 
                 response = self.client.post(url, **headers, format='multipart')
 
-                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                self.assertEqual(response.status_code, status.HTTP_200_OK,
+                                 "status_code=%s body=%s" % (response.status_code, response.body))
 
                 post = Post.objects.get(pk=post.pk)
 
-                self.assertEqual(post.status, Post.STATUS_PROCESSING)
+                self.assertEqual(post.status, Post.STATUS_PROCESSING, "status=%s" % post.status)
 
                 # Run the process handled by a worker
                 get_worker('high', worker_class=SimpleWorker).work(burst=True)

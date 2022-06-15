@@ -81,7 +81,8 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, format='multipart')
 
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED,
+                         "status_code=%s body=%s" % (response.status_code, response.body))
 
         self.assertFalse(
             Community.objects.filter(name=community_name, title=community_title, color=community_color,
