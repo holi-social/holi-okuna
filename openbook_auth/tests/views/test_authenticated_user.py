@@ -37,13 +37,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
-        header = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         url = self._get_url()
 
-        response = self.client.get(url, **header)
+        response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

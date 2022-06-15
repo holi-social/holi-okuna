@@ -60,11 +60,9 @@ class PostsAPITests(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         post_text = fake.text(max_nb_chars=POST_MAX_LENGTH)
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'text': post_text
@@ -88,11 +86,9 @@ class PostsAPITests(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         post_text = 'https://www.okuna.io'
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'text': post_text
@@ -113,11 +109,9 @@ class PostsAPITests(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         post_text = fake.text(max_nb_chars=POST_MAX_LENGTH)
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'text': post_text
@@ -607,11 +601,9 @@ class PostsAPITests(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         post_text = fake.text(max_nb_chars=POST_MAX_LENGTH)
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'text': post_text
@@ -633,11 +625,9 @@ class PostsAPITests(OpenbookAPITestCase):
 
         circle = mixer.blend(Circle, creator=user)
 
-        auth_token = user.auth_token.key
-
         post_text = fake.text(max_nb_chars=POST_MAX_LENGTH)
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'text': post_text,
@@ -715,14 +705,12 @@ class PostsAPITests(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         image = Image.new('RGB', (100, 100))
         tmp_file = tempfile.NamedTemporaryFile(suffix='.jpg')
         image.save(tmp_file)
         tmp_file.seek(0)
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'image': tmp_file
@@ -759,8 +747,6 @@ class PostsAPITests(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         post_text = fake.text(max_nb_chars=POST_MAX_LENGTH)
 
         image = Image.new('RGB', (100, 100))
@@ -768,7 +754,7 @@ class PostsAPITests(OpenbookAPITestCase):
         image.save(tmp_file)
         tmp_file.seek(0)
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'text': post_text,
@@ -1141,7 +1127,6 @@ class PostsAPITests(OpenbookAPITestCase):
         # posts, it will fail
 
         user = make_user()
-        auth_token = user.auth_token.key
 
         amount_of_own_posts = 5
 
@@ -1187,7 +1172,7 @@ class PostsAPITests(OpenbookAPITestCase):
                                                                     community_name=community.name)
             community_posts_ids.append(community_post.pk)
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         all_posts_ids = users_to_connect_posts_ids + users_to_follow_posts_ids + user_posts_ids + community_posts_ids
 
@@ -1209,7 +1194,6 @@ class PostsAPITests(OpenbookAPITestCase):
         should be able to retrieve all posts for a given circle
         """
         user = make_user()
-        auth_token = user.auth_token.key
 
         amount_of_users_to_follow = 5
 
@@ -1246,7 +1230,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         number_of_expected_posts = number_of_circles_to_retrieve_posts_from
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         url = self._get_url()
 
@@ -1269,7 +1253,6 @@ class PostsAPITests(OpenbookAPITestCase):
         """
 
         user = make_user()
-        auth_token = user.auth_token.key
 
         amount_of_users_to_follow = 5
 
@@ -1305,7 +1288,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         number_of_expected_posts = number_of_lists_to_retrieve_posts_from
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         url = self._get_url()
 
@@ -1327,7 +1310,6 @@ class PostsAPITests(OpenbookAPITestCase):
         should be able to retrieve all posts with a max id and count
         """
         user = make_user()
-        auth_token = user.auth_token.key
 
         amount_of_own_posts = 10
 
@@ -1360,7 +1342,7 @@ class PostsAPITests(OpenbookAPITestCase):
             post = user_to_connect.create_public_post(text=fake.text(max_nb_chars=POST_MAX_LENGTH))
             users_to_connect_posts_ids.append(post.pk)
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         all_posts_ids = users_to_connect_posts_ids + users_to_follow_posts_ids + user_posts_ids
 
@@ -1391,7 +1373,6 @@ class PostsAPITests(OpenbookAPITestCase):
         should be able to retrieve all posts with a min id and count
         """
         user = make_user()
-        auth_token = user.auth_token.key
 
         amount_of_own_posts = 10
 
@@ -1424,7 +1405,7 @@ class PostsAPITests(OpenbookAPITestCase):
             post = user_to_connect.create_public_post(text=fake.text(max_nb_chars=POST_MAX_LENGTH))
             users_to_connect_posts_ids.append(post.pk)
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         all_posts_ids = users_to_connect_posts_ids + users_to_follow_posts_ids + user_posts_ids
 

@@ -7,11 +7,15 @@ from rest_framework import exceptions
 
 from django.utils.translation import gettext_lazy as _
 
+HEADER_USER_ID = 'X-Holi-User-ID'
+HEADER_USER_EMAIL = 'X-Holi-User-Email'
+
 
 class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
-        user_id = request.headers.get('X-Holi-User-ID')
-        user_email = request.headers.get('X-Holi-User-Email')
+        # in "production" request headers show up in `request.headers`, in unit testing they show up in `request.META`
+        user_id = request.headers.get(HEADER_USER_ID, request.META.get(HEADER_USER_ID))
+        user_email = request.headers.get(HEADER_USER_EMAIL, request.META.get(HEADER_USER_EMAIL))
 
         print("==> user_id %s" % user_id)
         print("==> user_email %s" % user_email)
