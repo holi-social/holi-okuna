@@ -22,8 +22,10 @@ fake = Faker()
 
 
 def make_authentication_headers_for_user(user):
-    auth_token = user.auth_token.key
-    return {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+    return {
+        'X-Holi-User-ID': '%s' % user.username,
+        'X-Holi-User-Email': '%s' % user.email,
+    }
 
 
 def make_fake_post_text():

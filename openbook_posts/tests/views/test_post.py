@@ -2667,7 +2667,7 @@ class GetPostParticipantsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "%s" % response)
 
         response_participants = json.loads(response.content)
 

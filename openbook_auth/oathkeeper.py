@@ -1,15 +1,15 @@
 from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.auth.backends import BaseBackend
+from rest_framework import authentication
 
 from rest_framework import exceptions
 
 from django.utils.translation import gettext_lazy as _
 
 
-class HoliOathkeeperAuthentication(BaseBackend):
-    def authenticate(self, request, **kwargs):
+class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
+    def authenticate(self, request):
         user_id = request.headers.get('X-Holi-User-ID')
         user_email = request.headers.get('X-Holi-User-Email')
 
