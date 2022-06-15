@@ -14,10 +14,10 @@ def parse_kickstarter_csv(filepath):
             for row in backer_data_reader:
                 name = row[name_col]
                 email = row[email_col]
-                if email is None or email is '':
+                if email is None or email == '':
                     email = row[email_kick_col]
                 username = sanitise_username(row[username_col])
-                if username is None or username is '':
+                if username is None or username == '':
                     print('Username was empty for:', name)
                     username = get_temporary_username(email)
                     print('Using generated random username @', username)
@@ -48,7 +48,7 @@ def parse_indiegogo_csv(filepath):
                     badge = None
                 UserInvite = get_user_invite_model()
 
-                if username is None or username == '0' or username is '':
+                if username is None or username == '0' or username == '':
                     print('Username was empty for:', name)
                     username = None
                 invited_user = UserInvite.create_invite(name=name, email=email, username=username,
@@ -75,7 +75,7 @@ def parse_indiegogo_csv_and_sanitise_usernames(filepath):
                 else:
                     badge = None
                 UserInvite = get_user_invite_model()
-                if username is None or username == '0' or username is '':
+                if username is None or username == '0' or username == '':
                     print('Username was empty for:', name)
                     username = get_temporary_username(email)
                     print('Using generated random username @', username)
@@ -115,7 +115,7 @@ def parse_conflicts_csv(filepath):
                 username = row[name_col]
                 UserInvite = get_user_invite_model()
 
-                if username is None or username is '0' or username is '':
+                if username is None or username == '0' or username == '':
                     print('Username was empty for:', username)
                     continue
                 invited_user = UserInvite.create_invite(name=username, email=email, username=None)

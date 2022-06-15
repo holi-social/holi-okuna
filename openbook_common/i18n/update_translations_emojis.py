@@ -9,7 +9,7 @@ FIELDS = ['keyword']
 
 for language in settings.LANGUAGES:
     language_code = language[0]
-    if language_code is 'en':
+    if language_code == 'en':
         continue
     print('Processing locale {0}'.format(language_code))
 
