@@ -1,5 +1,6 @@
 # Create your tests here.
 import tempfile
+import unittest
 from unittest import mock
 
 from PIL import Image
@@ -822,6 +823,7 @@ class PostsAPITests(OpenbookAPITestCase):
         media = PostMedia.objects.get(post_id=response_post_id, type=PostMedia.MEDIA_TYPE_IMAGE)
         self.assertEqual(media.content_object.hash, filehash)
 
+    @unittest.skip("TODO HOLI-1425")
     def test_create_video_post(self):
         """
         should be able to create a video post and return 201
@@ -922,6 +924,7 @@ class PostsAPITests(OpenbookAPITestCase):
                 self.assertIsNotNone(media.content_object.thumbnail_width)
                 self.assertIsNotNone(media.content_object.thumbnail_height)
 
+    @unittest.skip("TODO HOLI-1425")
     def test_create_video_and_text_post(self):
         """
         should be able to create a video and text post and return 201
