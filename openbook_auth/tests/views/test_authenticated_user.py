@@ -15,7 +15,7 @@ import logging
 import json
 
 from openbook_auth.views.authenticated_user.views import AuthenticatedUserSettings
-from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, make_user_bio, \
+from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, make_user_about_me, \
     make_user_location, make_user_avatar, make_user_cover, make_random_language
 
 fake = Faker()
@@ -142,17 +142,17 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         self.assertEqual(user.profile.name, new_name)
 
-    def test_can_update_user_bio(self):
+    def test_can_update_user_about_me(self):
         """
-        should be able to update the authenticated user bio and return 200
+        should be able to update the authenticated user about me and return 200
         """
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        new_bio = make_user_bio()
+        new_about_me = make_user_about_me()
 
         data = {
-            'bio': new_bio
+            'about_me': new_about_me
         }
 
         url = self._get_url()
@@ -163,7 +163,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         user.refresh_from_db()
 
-        self.assertEqual(user.profile.bio, new_bio)
+        self.assertEqual(user.profile.about_me, new_about_me)
 
     def test_can_update_user_location(self):
         """
@@ -356,19 +356,19 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         self.assertTrue(not user.profile.cover)
 
-    def test_can_delete_user_bio(self):
+    def test_can_delete_user_about_me(self):
         """
-        should be able to delete the authenticated user bio and return 200
+        should be able to delete the authenticated user about me and return 200
         """
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        user.profile.bio = make_user_bio()
+        user.profile.about_me = make_user_about_me()
 
         user.save()
 
         data = {
-            'bio': ''
+            'about_me': ''
         }
 
         url = self._get_url()
@@ -379,7 +379,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         user.refresh_from_db()
 
-        self.assertTrue(not user.profile.bio)
+        self.assertTrue(not user.profile.about_me)
 
     def test_can_delete_user_location(self):
         """

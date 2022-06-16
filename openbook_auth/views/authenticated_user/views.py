@@ -39,7 +39,7 @@ class AuthenticatedUser(APIView):
                 username=data.get('username'),
                 name=data.get('name'),
                 location=data.get('location'),
-                bio=data.get('bio'),
+                about_me=data.get('about_me'),
                 url=data.get('url'),
                 followers_count_visible=data.get('followers_count_visible'),
                 community_posts_visible=data.get('community_posts_visible'),

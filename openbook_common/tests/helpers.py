@@ -99,8 +99,8 @@ def make_circle(creator):
     return mixer.blend(Circle, creator=creator)
 
 
-def make_user_bio():
-    return fake.text(max_nb_chars=settings.PROFILE_BIO_MAX_LENGTH)
+def make_user_about_me():
+    return fake.text(max_nb_chars=settings.PROFILE_ABOUT_ME_MAX_LENGTH)
 
 
 def make_user_location():

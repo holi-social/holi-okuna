@@ -38,7 +38,7 @@ class GetAuthenticatedUserProfileSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'avatar',
-            'bio',
+            'about_me',
             'url',
             'location',
             'cover',
@@ -147,8 +147,8 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
                                  allow_blank=False, validators=[name_characters_validator])
     followers_count_visible = serializers.NullBooleanField(required=False, default=None)
     community_posts_visible = serializers.NullBooleanField(required=False, default=None)
-    bio = serializers.CharField(max_length=settings.PROFILE_BIO_MAX_LENGTH, required=False,
-                                allow_blank=True)
+    about_me = serializers.CharField(max_length=settings.PROFILE_ABOUT_ME_MAX_LENGTH, required=False,
+                                     allow_blank=True)
     url = FriendlyUrlField(required=False,
                            allow_blank=True)
     location = serializers.CharField(max_length=settings.PROFILE_LOCATION_MAX_LENGTH, required=False,

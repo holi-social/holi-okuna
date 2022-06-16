@@ -509,7 +509,7 @@ class User(AbstractUser):
                username=None,
                name=None,
                location=None,
-               bio=None,
+               about_me=None,
                url=None,
                followers_count_visible=None,
                community_posts_visible=None,
@@ -536,11 +536,11 @@ class User(AbstractUser):
             else:
                 profile.location = location
 
-        if bio is not None:
-            if len(bio) == 0:
-                profile.bio = None
+        if about_me is not None:
+            if len(about_me) == 0:
+                profile.about_me = None
             else:
-                profile.bio = bio
+                profile.about_me = about_me
 
         if followers_count_visible is not None:
             profile.followers_count_visible = followers_count_visible
@@ -3894,8 +3894,7 @@ class UserProfile(models.Model):
     cover = ProcessedImageField(verbose_name=_('cover'), blank=False, null=True, format='JPEG', options={'quality': 90},
                                 upload_to=upload_to_user_cover_directory,
                                 processors=[ResizeToFit(width=1024, upscale=False)])
-    # TODO HOLI-1726 naming: "aboutMe" in the GraphQL API
-    bio = models.TextField(_('bio'), max_length=settings.PROFILE_BIO_MAX_LENGTH, blank=False, null=True)
+    about_me = models.TextField(_('about me'), max_length=settings.PROFILE_ABOUT_ME_MAX_LENGTH, blank=False, null=True)
     url = models.URLField(_('url'), blank=False, null=True)
     followers_count_visible = models.BooleanField(_('followers count visible'), blank=False, null=False, default=False)
     community_posts_visible = models.BooleanField(_('community posts visible'), blank=False, null=False, default=True)
