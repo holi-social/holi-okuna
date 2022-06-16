@@ -250,16 +250,30 @@ if IS_BUILD:
     NOSE_ARGS = [
         '--cover-erase',
         '--cover-package=.',
-        '--with-spec', '--spec-color',
-        '--with-coverage', '--cover-xml',
-        '--verbosity=1', '--nologcapture']
+        '--with-spec',
+        '--spec-color',
+        '--with-coverage',
+        '--cover-xml',
+        '--verbosity=1',
+        '--nologcapture'
+    ]
+elif environment_checker.is_quicktest():
+    NOSE_ARGS = [
+        '--nologcapture'
+    ]
 else:
     NOSE_ARGS = [
         '--cover-erase',
         '--cover-package=.',
-        '--with-spec', '--spec-color',
-        '--with-coverage', '--cover-html',
-        '--cover-html-dir=reports/cover', '--verbosity=1', '--nologcapture', '--nocapture']
+        '--with-spec',
+        '--spec-color',
+        '--with-coverage',
+        '--cover-html',
+        '--cover-html-dir=reports/cover',
+        '--verbosity=1',
+        '--nologcapture',
+        '--nocapture'
+    ]
 
 TEMPLATES = [
     {
