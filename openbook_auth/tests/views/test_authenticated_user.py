@@ -16,7 +16,9 @@ import json
 
 from openbook_auth.views.authenticated_user.views import AuthenticatedUserSettings
 from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, make_user_about_me, \
-    make_user_location, make_user_avatar, make_user_cover, make_random_language
+    make_user_location, make_user_avatar, make_user_cover, make_random_language, make_user_skills, make_user_sdgs, \
+    make_user_interests, make_user_engagement_level, make_user_pronouns, make_user_last_name, make_user_middle_name, \
+    make_user_name
 
 fake = Faker()
 
@@ -119,17 +121,77 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         self.assertNotEqual(user.username, user_b.username)
 
-    def test_can_update_user_name(self):
+    def test_can_update_user_profile_name(self):
         """
-        should be able to update the authenticated user name and return 200
+        should be able to update the authenticated user profile name and return 200
         """
+        self._test_can_update_user_profile_field('name', lambda user: user.profile.name, make_user_name())
+
+    def test_can_update_user_profile_middle_name(self):
+        """
+        should be able to update the authenticated user profile middle name and return 200
+        """
+        self._test_can_update_user_profile_field('middle_name', lambda user: user.profile.middle_name,
+                                                 make_user_middle_name())
+
+    def test_can_update_user_profile_last_name(self):
+        """
+        should be able to update the authenticated user profile last name and return 200
+        """
+        self._test_can_update_user_profile_field('last_name', lambda user: user.profile.last_name,
+                                                 make_user_last_name())
+
+    def test_can_update_user_profile_about_me(self):
+        """
+        should be able to update the authenticated user profile about me and return 200
+        """
+        self._test_can_update_user_profile_field('about_me', lambda user: user.profile.about_me,
+                                                 make_user_about_me())
+
+    def test_can_update_user_profile_pronouns(self):
+        """
+        should be able to update the authenticated user profile pronouns and return 200
+        """
+        self._test_can_update_user_profile_field('pronouns', lambda user: user.profile.pronouns, make_user_pronouns())
+
+    def test_can_update_user_profile_engagement_level(self):
+        """
+        should be able to update the authenticated user profile engagement level and return 200
+        """
+        self._test_can_update_user_profile_field('engagement_level', lambda user: user.profile.engagement_level,
+                                                 make_user_engagement_level())
+
+    def test_can_update_user_profile_interests(self):
+        """
+        should be able to update the authenticated user profile interests and return 200
+        """
+        self._test_can_update_user_profile_field('interests', lambda user: user.profile.interests,
+                                                 make_user_interests())
+
+    def test_can_update_user_profile_sdgs(self):
+        """
+        should be able to update the authenticated user profile sdgs and return 200
+        """
+        self._test_can_update_user_profile_field('sdgs', lambda user: user.profile.sdgs, make_user_sdgs())
+
+    def test_can_update_user_profile_skills(self):
+        """
+        should be able to update the authenticated user profile skills and return 200
+        """
+        self._test_can_update_user_profile_field('skills', lambda user: user.profile.skills, make_user_skills())
+
+    def test_can_update_user_profile_location(self):
+        """
+        should be able to update the authenticated user profile location and return 200
+        """
+        self._test_can_update_user_profile_field('location', lambda user: user.profile.location, make_user_location())
+
+    def _test_can_update_user_profile_field(self, field_name, field_selector, update_value):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        new_name = fake.name()
-
         data = {
-            'name': new_name
+            field_name: update_value
         }
 
         url = self._get_url()
@@ -140,53 +202,9 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         user.refresh_from_db()
 
-        self.assertEqual(user.profile.name, new_name)
-
-    def test_can_update_user_about_me(self):
-        """
-        should be able to update the authenticated user about me and return 200
-        """
-        user = make_user()
-        headers = make_authentication_headers_for_user(user)
-
-        new_about_me = make_user_about_me()
-
-        data = {
-            'about_me': new_about_me
-        }
-
-        url = self._get_url()
-
-        response = self.client.patch(url, data, **headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        user.refresh_from_db()
-
-        self.assertEqual(user.profile.about_me, new_about_me)
-
-    def test_can_update_user_location(self):
-        """
-        should be able to update the authenticated user location and return 200
-        """
-        user = make_user()
-        headers = make_authentication_headers_for_user(user)
-
-        new_location = make_user_location()
-
-        data = {
-            'location': new_location
-        }
-
-        url = self._get_url()
-
-        response = self.client.patch(url, data, **headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        user.refresh_from_db()
-
-        self.assertEqual(user.profile.location, new_location)
+        retrieved_value = field_selector(user)
+        self.assertEqual(retrieved_value, update_value)
+        print("retrieved_value=%s update_value=%s" % (retrieved_value, update_value))
 
     def test_can_update_user_followers_count_visible(self):
         """
@@ -561,7 +579,8 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         self.assertEqual(user.targeted_connections.count(), 0)
 
-    def test_when_updating_visibility_to_non_private_from_non_private_existing_connection_requests_dont_get_deleted(self):
+    def test_when_updating_visibility_to_non_private_from_non_private_existing_connection_requests_dont_get_deleted(
+            self):
         """
         when updating the visibility from non private, to another non private, connection requests should not be deleted
         """

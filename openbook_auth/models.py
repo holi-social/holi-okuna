@@ -3851,18 +3851,6 @@ def bootstrap_circles(sender, instance=None, created=False, **kwargs):
         bootstrap_user_circles(instance)
 
 
-def get_default_interests():
-    return []
-
-
-def get_default_sdgs():
-    return []
-
-
-def get_default_skills():
-    return []
-
-
 class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
     name = models.CharField(_('name'), max_length=settings.PROFILE_NAME_MAX_LENGTH, blank=False, null=True,
@@ -3880,12 +3868,9 @@ class UserProfile(models.Model):
     location = models.CharField(_('location'), max_length=settings.PROFILE_LOCATION_MAX_LENGTH, blank=False, null=True)
     engagement_level = models.CharField(_('engagement level'), max_length=settings.PROFILE_ENGAGEMENT_LEVEL_MAX_LENGTH,
                                         blank=False, null=True)
-    interests = ArrayField(models.CharField(max_length=settings.PROFILE_INTEREST_MAX_LENGTH, blank=True),
-                           size=settings.PROFILE_INTERESTS_MAX_COUNT, default=get_default_interests)
-    sdgs = ArrayField(models.CharField(max_length=settings.PROFILE_SDG_MAX_LENGTH, blank=True),
-                      size=settings.PROFILE_SDGS_MAX_COUNT, default=get_default_sdgs)
-    skills = ArrayField(models.CharField(max_length=settings.PROFILE_SKILL_MAX_LENGTH, blank=True),
-                        size=settings.PROFILE_SKILLS_MAX_COUNT, default=get_default_skills)
+    interests = ArrayField(models.CharField(max_length=settings.PROFILE_INTEREST_MAX_LENGTH, blank=True), null=True, blank=True, default=list)
+    sdgs = ArrayField(models.CharField(max_length=settings.PROFILE_SDG_MAX_LENGTH, blank=True), null=True, blank=True, default=list)
+    skills = ArrayField(models.CharField(max_length=settings.PROFILE_SKILL_MAX_LENGTH, blank=True), null=True, blank=True, default=list)
     is_of_legal_age = models.BooleanField(default=False)
     # TODO HOLI-1726 naming: "image" in the GraphQL API
     avatar = ProcessedImageField(verbose_name=_('avatar'), blank=False, null=True, format='JPEG',

@@ -99,12 +99,44 @@ def make_circle(creator):
     return mixer.blend(Circle, creator=creator)
 
 
+def make_user_name():
+    return fake.name()
+
+
+def make_user_middle_name():
+    return fake.text(max_nb_chars=settings.PROFILE_MIDDLE_NAME_MAX_LENGTH)
+
+
+def make_user_last_name():
+    return fake.text(max_nb_chars=settings.PROFILE_LAST_NAME_MAX_LENGTH)
+
+
 def make_user_about_me():
     return fake.text(max_nb_chars=settings.PROFILE_ABOUT_ME_MAX_LENGTH)
 
 
 def make_user_location():
     return fake.text(max_nb_chars=settings.PROFILE_LOCATION_MAX_LENGTH)
+
+
+def make_user_pronouns():
+    return fake.text(max_nb_chars=settings.PROFILE_PRONOUNS_MAX_LENGTH)
+
+
+def make_user_engagement_level():
+    return fake.text(max_nb_chars=settings.PROFILE_ENGAGEMENT_LEVEL_MAX_LENGTH)
+
+
+def make_user_interests():
+    return [fake.text(max_nb_chars=settings.PROFILE_INTEREST_MAX_LENGTH) for x in range(10)]
+
+
+def make_user_skills():
+    return [fake.text(max_nb_chars=settings.PROFILE_SKILL_MAX_LENGTH) for x in range(10)]
+
+
+def make_user_sdgs():
+    return [fake.text(max_nb_chars=settings.PROFILE_SDG_MAX_LENGTH) for x in range(10)]
 
 
 def make_user_avatar():

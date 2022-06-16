@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='userprofile',
             name='interests',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(blank=True, max_length=64), default=openbook_auth.models.get_default_interests, size=64),
+            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(blank=True, max_length=64), default=list, size=64),
         ),
         migrations.AddField(
             model_name='userprofile',
@@ -41,12 +41,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='userprofile',
             name='sdgs',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(blank=True, max_length=64), default=openbook_auth.models.get_default_sdgs, size=64),
+            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(blank=True, max_length=64), default=list, size=64),
         ),
         migrations.AddField(
             model_name='userprofile',
             name='skills',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(blank=True, max_length=64), default=openbook_auth.models.get_default_skills, size=64),
+            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(blank=True, max_length=64), default=list, size=64),
         ),
         migrations.AlterField(
             model_name='userprofile',
