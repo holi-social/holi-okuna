@@ -24,6 +24,63 @@ fake = Faker()
 logger = logging.getLogger(__name__)
 
 
+class OathkeeperAuthTest(OpenbookAPITestCase):
+    """
+    OathKeeperAuthentication tests
+    """
+
+    def test_creates_user_if_not_existing(self):
+        """
+        should create a user and return 200 if user does not exist yet
+        """
+        user_id = fake.user_name()
+        user_email = fake.email()
+        url = self._get_user_profile_url(user_id)
+        headers = {
+            'X-Holi-User-ID': '%s' % user_id,
+            'X-Holi-User-Email': '%s' % user_email,
+        }
+        response = self.client.get(url, format='json', **headers)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "status_code=%s" % response.status_code)
+
+    def test_requires_holi_user_id_for_non_existing_user(self):
+        """
+        should return 403 if request header `X-Holi-User-ID` is not provided for a non-existing user
+        """
+        user_id = fake.user_name()
+        user_email = fake.email()
+        url = self._get_user_profile_url(user_id)
+        headers = {
+            'X-Holi-User-Email': '%s' % user_email,
+        }
+        response = self.client.get(url, format='json', **headers)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, "status_code=%s" % response.status_code)
+
+    def test_requires_holi_user_email_for_non_existing_user(self):
+        """
+        should return 403 if request header `X-Holi-User-Email` is not provided for a non-existing user
+        """
+        user_id = fake.user_name()
+        url = self._get_user_profile_url(user_id)
+        headers = {
+            'X-Holi-User-ID': '%s' % user_id,
+        }
+        response = self.client.get(url, format='json', **headers)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, "status_code=%s" % response.status_code)
+
+    def test_allows_anonymous_requests(self):
+        """
+        should allow anonymous requests
+        """
+        url = reverse('username-check')  # just a random endpoint that doesn't require authentication
+        data = {'username': fake.user_name()}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, "status_code=%s" % response.status_code)
+
+    def _get_user_profile_url(self, user_id):
+        return reverse('authenticated-user')
+
+
 @unittest.skip("TODO HOLI-1722 most likely remove completely")
 class RegistrationAPITests(OpenbookAPITestCase):
     """
@@ -358,6 +415,7 @@ class VerifyRegistrationTokenAPITests(OpenbookAPITestCase):
     """
     VerifyRegistrationToken API
     """
+
     def test_should_reject_invalid_token(self):
         """
         should return 400 if token is invalid.
@@ -396,7 +454,7 @@ class VerifyRegistrationTokenAPITests(OpenbookAPITestCase):
 
         # create a user
         new_user = User.create_user(username=username, email=email, password=password, name=name, avatar=None,
-                         is_of_legal_age=True, badge=user_invite.badge, are_guidelines_accepted=True)
+                                    is_of_legal_age=True, badge=user_invite.badge, are_guidelines_accepted=True)
         user_invite.created_user = new_user
         user_invite.save()
 
