@@ -1,4 +1,5 @@
 import tempfile
+import unittest
 import uuid
 from PIL import Image
 from django.urls import reverse
@@ -23,6 +24,7 @@ fake = Faker()
 logger = logging.getLogger(__name__)
 
 
+@unittest.skip("TODO HOLI-1722 most likely remove completely")
 class RegistrationAPITests(OpenbookAPITestCase):
     """
     RegistrationAPI
@@ -350,15 +352,8 @@ class RegistrationAPITests(OpenbookAPITestCase):
     def _get_url(self):
         return reverse('register-user')
 
-    def _make_user_invite_token(self):
-        user_invite = UserInvite.create_invite(email=fake.email())
-        return user_invite.token
 
-    def _make_user_invite_token_with_badge(self, badge):
-        user_invite = UserInvite.create_invite(email=fake.email(), badge=badge)
-        return user_invite.token
-
-
+@unittest.skip("TODO HOLI-1722 most likely remove completely")
 class VerifyRegistrationTokenAPITests(OpenbookAPITestCase):
     """
     VerifyRegistrationToken API
@@ -417,6 +412,7 @@ class VerifyRegistrationTokenAPITests(OpenbookAPITestCase):
         return user_invite.token
 
 
+@unittest.skip("TODO HOLI-1722 most likely remove completely")
 class RequestPasswordResetAPITests(OpenbookAPITestCase):
 
     def test_cannot_request_password_reset_with_invalid_email(self):
@@ -454,6 +450,7 @@ class RequestPasswordResetAPITests(OpenbookAPITestCase):
         return reverse('request-password-reset')
 
 
+@unittest.skip("TODO HOLI-1722 most likely remove completely")
 class VerifyResetPasswordAPITests(OpenbookAPITestCase):
 
     def test_can_update_password_with_valid_token(self):
@@ -608,7 +605,7 @@ class UsernameCheckAPITests(OpenbookAPITestCase):
         should return 400 if the username is not a valid one
         """
         url = self._get_url()
-        usernames = ('lifenau!', 'p-o-t-a-t-o', '.a!', 'dexter@', '🤷‍♂️')
+        usernames = ('lifenau!', '', '.a!', 'dexter@', '🤷‍♂️')
         for username in usernames:
             data = {
                 'username': username
@@ -697,6 +694,7 @@ class EmailCheckAPITests(OpenbookAPITestCase):
         return reverse('email-check')
 
 
+@unittest.skip("TODO HOLI-1722 most likely remove completely")
 class LoginAPITests(OpenbookAPITestCase):
     """
     LoginAPI
