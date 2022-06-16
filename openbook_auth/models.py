@@ -43,6 +43,8 @@ from openbook_common.validators import name_characters_validator
 from openbook_notifications import helpers
 from openbook_auth.checkers import *
 
+from django.contrib.postgres.fields import ArrayField
+
 
 class User(AbstractUser):
     """"
@@ -3849,19 +3851,50 @@ def bootstrap_circles(sender, instance=None, created=False, **kwargs):
         bootstrap_user_circles(instance)
 
 
+def get_default_interests():
+    return []
+
+
+def get_default_sdgs():
+    return []
+
+
+def get_default_skills():
+    return []
+
+
 class UserProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
     name = models.CharField(_('name'), max_length=settings.PROFILE_NAME_MAX_LENGTH, blank=False, null=True,
                             db_index=True,
                             validators=[name_characters_validator])
+    middle_name = models.CharField(_('middle name'), max_length=settings.PROFILE_MIDDLE_NAME_MAX_LENGTH, blank=False,
+                                   null=True,
+                                   db_index=True,
+                                   validators=[name_characters_validator])
+    last_name = models.CharField(_('last name'), max_length=settings.PROFILE_LAST_NAME_MAX_LENGTH, blank=False,
+                                 null=True,
+                                 db_index=True,
+                                 validators=[name_characters_validator])
+    pronouns = models.CharField(_('pronouns'), max_length=settings.PROFILE_PRONOUNS_MAX_LENGTH, blank=False, null=True)
     location = models.CharField(_('location'), max_length=settings.PROFILE_LOCATION_MAX_LENGTH, blank=False, null=True)
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
+    engagement_level = models.CharField(_('engagement level'), max_length=settings.PROFILE_ENGAGEMENT_LEVEL_MAX_LENGTH,
+                                        blank=False, null=True)
+    interests = ArrayField(models.CharField(max_length=settings.PROFILE_INTEREST_MAX_LENGTH, blank=True),
+                           size=settings.PROFILE_INTERESTS_MAX_COUNT, default=get_default_interests)
+    sdgs = ArrayField(models.CharField(max_length=settings.PROFILE_SDG_MAX_LENGTH, blank=True),
+                      size=settings.PROFILE_SDGS_MAX_COUNT, default=get_default_sdgs)
+    skills = ArrayField(models.CharField(max_length=settings.PROFILE_SKILL_MAX_LENGTH, blank=True),
+                        size=settings.PROFILE_SKILLS_MAX_COUNT, default=get_default_skills)
     is_of_legal_age = models.BooleanField(default=False)
+    # TODO HOLI-1726 naming: "image" in the GraphQL API
     avatar = ProcessedImageField(verbose_name=_('avatar'), blank=False, null=True, format='JPEG',
                                  options={'quality': 90}, processors=[ResizeToFill(500, 500)],
                                  upload_to=upload_to_user_avatar_directory)
     cover = ProcessedImageField(verbose_name=_('cover'), blank=False, null=True, format='JPEG', options={'quality': 90},
                                 upload_to=upload_to_user_cover_directory,
                                 processors=[ResizeToFit(width=1024, upscale=False)])
+    # TODO HOLI-1726 naming: "aboutMe" in the GraphQL API
     bio = models.TextField(_('bio'), max_length=settings.PROFILE_BIO_MAX_LENGTH, blank=False, null=True)
     url = models.URLField(_('url'), blank=False, null=True)
     followers_count_visible = models.BooleanField(_('followers count visible'), blank=False, null=False, default=False)
