@@ -294,7 +294,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'openbook.wsgi.application'
 
 # Database
-# https://docs.djangoproject.com/en/1.11/ref/settings/#databases
+# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

@@ -14,7 +14,7 @@ from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
-from django.db.models import Q, F, Count
+from django.db.models import Q, F, Count, JSONField
 from django.core.mail import EmailMultiAlternatives
 
 from openbook.settings import USERNAME_MAX_LENGTH
@@ -514,7 +514,14 @@ class User(AbstractUser):
                followers_count_visible=None,
                community_posts_visible=None,
                visibility=None,
-               save=True):
+               save=True,
+               middle_name=None,
+               last_name=None,
+               pronouns=None,
+               engagement_level=None,
+               interests=None,
+               sdgs=None,
+               skills=None):
 
         profile = self.profile
 
@@ -558,6 +565,21 @@ class User(AbstractUser):
                 self.delete_all_pending_connection_requests()
 
             self.visibility = visibility
+
+        if middle_name:
+            profile.middle_name = middle_name
+        if last_name:
+            profile.last_name = last_name
+        if pronouns:
+            profile.pronouns = pronouns
+        if engagement_level:
+            profile.engagement_level = engagement_level
+        if interests:
+            profile.interests = interests
+        if sdgs:
+            profile.sdgs = sdgs
+        if skills:
+            profile.skills = skills
 
         if save:
             profile.save()
@@ -3868,9 +3890,9 @@ class UserProfile(models.Model):
     location = models.CharField(_('location'), max_length=settings.PROFILE_LOCATION_MAX_LENGTH, blank=False, null=True)
     engagement_level = models.CharField(_('engagement level'), max_length=settings.PROFILE_ENGAGEMENT_LEVEL_MAX_LENGTH,
                                         blank=False, null=True)
-    interests = ArrayField(models.CharField(max_length=settings.PROFILE_INTEREST_MAX_LENGTH, blank=True), null=True, blank=True, default=list)
-    sdgs = ArrayField(models.CharField(max_length=settings.PROFILE_SDG_MAX_LENGTH, blank=True), null=True, blank=True, default=list)
-    skills = ArrayField(models.CharField(max_length=settings.PROFILE_SKILL_MAX_LENGTH, blank=True), null=True, blank=True, default=list)
+    interests = JSONField(null=True, blank=True, default=list)
+    sdgs = JSONField(null=True, blank=True, default=list)
+    skills = JSONField(null=True, blank=True, default=list)
     is_of_legal_age = models.BooleanField(default=False)
     # TODO HOLI-1726 naming: "image" in the GraphQL API
     avatar = ProcessedImageField(verbose_name=_('avatar'), blank=False, null=True, format='JPEG',

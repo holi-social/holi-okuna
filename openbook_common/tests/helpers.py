@@ -104,11 +104,11 @@ def make_user_name():
 
 
 def make_user_middle_name():
-    return fake.text(max_nb_chars=settings.PROFILE_MIDDLE_NAME_MAX_LENGTH)
+    return fake.name()
 
 
 def make_user_last_name():
-    return fake.text(max_nb_chars=settings.PROFILE_LAST_NAME_MAX_LENGTH)
+    return fake.name()
 
 
 def make_user_about_me():

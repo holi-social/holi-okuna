@@ -166,19 +166,20 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         should be able to update the authenticated user profile interests and return 200
         """
         self._test_can_update_user_profile_field('interests', lambda user: user.profile.interests,
-                                                 make_user_interests())
+                                                 make_user_interests(), as_json=True)
 
     def test_can_update_user_profile_sdgs(self):
         """
         should be able to update the authenticated user profile sdgs and return 200
         """
-        self._test_can_update_user_profile_field('sdgs', lambda user: user.profile.sdgs, make_user_sdgs())
+        self._test_can_update_user_profile_field('sdgs', lambda user: user.profile.sdgs, make_user_sdgs(), as_json=True)
 
     def test_can_update_user_profile_skills(self):
         """
         should be able to update the authenticated user profile skills and return 200
         """
-        self._test_can_update_user_profile_field('skills', lambda user: user.profile.skills, make_user_skills())
+        self._test_can_update_user_profile_field('skills', lambda user: user.profile.skills, make_user_skills(),
+                                                 as_json=True)
 
     def test_can_update_user_profile_location(self):
         """
@@ -186,19 +187,20 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         """
         self._test_can_update_user_profile_field('location', lambda user: user.profile.location, make_user_location())
 
-    def _test_can_update_user_profile_field(self, field_name, field_selector, update_value):
+    def _test_can_update_user_profile_field(self, field_name, field_selector, update_value, as_json=False):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        data = {
-            field_name: update_value
-        }
+        if as_json:
+            data = {field_name: json.dumps(update_value)}
+        else:
+            data = {field_name: update_value}
 
         url = self._get_url()
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "response.data %s" % response.data)
 
         user.refresh_from_db()
 

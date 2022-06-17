@@ -45,7 +45,14 @@ class GetAuthenticatedUserProfileSerializer(serializers.ModelSerializer):
             'is_of_legal_age',
             'followers_count_visible',
             'community_posts_visible',
-            'badges'
+            'badges',
+            'middle_name',
+            'last_name',
+            'pronouns',
+            'engagement_level',
+            'interests',
+            'sdgs',
+            'skills',
         )
 
 
@@ -154,6 +161,19 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
     location = serializers.CharField(max_length=settings.PROFILE_LOCATION_MAX_LENGTH, required=False,
                                      allow_blank=True)
     visibility = serializers.ChoiceField(choices=User.VISIBILITY_TYPES, required=False)
+
+    middle_name = serializers.CharField(max_length=settings.PROFILE_MIDDLE_NAME_MAX_LENGTH, allow_blank=False,
+                                        validators=[name_characters_validator], required=False)
+    last_name = serializers.CharField(max_length=settings.PROFILE_LAST_NAME_MAX_LENGTH, allow_blank=False,
+                                      validators=[name_characters_validator], required=False)
+    pronouns = serializers.CharField(max_length=settings.PROFILE_PRONOUNS_MAX_LENGTH, allow_blank=False, validators=[],
+                                     required=False)
+    engagement_level = serializers.CharField(max_length=settings.PROFILE_ENGAGEMENT_LEVEL_MAX_LENGTH, allow_blank=False,
+                                             validators=[], required=False)
+
+    interests = serializers.JSONField(required=False)
+    sdgs = serializers.JSONField(required=False)
+    skills = serializers.JSONField(required=False)
 
 
 class DeleteAuthenticatedUserSerializer(serializers.Serializer):

@@ -44,7 +44,14 @@ class AuthenticatedUser(APIView):
                 followers_count_visible=data.get('followers_count_visible'),
                 community_posts_visible=data.get('community_posts_visible'),
                 visibility=data.get('visibility'),
-                save=False
+                save=False,
+                middle_name=data.get('middle_name'),
+                last_name=data.get('last_name'),
+                pronouns=data.get('pronouns'),
+                engagement_level=data.get('engagement_level'),
+                interests=data.get('interests'),
+                sdgs=data.get('sdgs'),
+                skills=data.get('skills'),
             )
 
             has_avatar = 'avatar' in data
