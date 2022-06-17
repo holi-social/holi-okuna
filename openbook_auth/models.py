@@ -3894,7 +3894,6 @@ class UserProfile(models.Model):
     sdgs = JSONField(null=True, blank=True, default=list)
     skills = JSONField(null=True, blank=True, default=list)
     is_of_legal_age = models.BooleanField(default=False)
-    # TODO HOLI-1726 naming: "image" in the GraphQL API
     avatar = ProcessedImageField(verbose_name=_('avatar'), blank=False, null=True, format='JPEG',
                                  options={'quality': 90}, processors=[ResizeToFill(500, 500)],
                                  upload_to=upload_to_user_avatar_directory)
