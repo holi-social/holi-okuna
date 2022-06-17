@@ -1,0 +1,24 @@
+- id: holi
+  version: v0.38.25-beta.1
+  upstream:
+    url: http://host.docker.internal:8000/
+  match:
+    url: http://<127.0.0.1|localhost>:4455/<.*>
+    methods:
+      - GET
+      - HEAD
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+      - CONNECT
+      - TRACE
+      - PATCH
+  authenticators:
+    - handler: cookie_session
+    - handler: bearer_token
+    - handler: anonymous
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: header

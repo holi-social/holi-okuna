@@ -14,7 +14,7 @@ from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
-from django.db.models import Q, F, Count
+from django.db.models import Q, F, Count, JSONField
 from django.core.mail import EmailMultiAlternatives
 
 from openbook.settings import USERNAME_MAX_LENGTH
@@ -42,6 +42,8 @@ from openbook_common.utils.model_loaders import get_connection_model, get_circle
 from openbook_common.validators import name_characters_validator
 from openbook_notifications import helpers
 from openbook_auth.checkers import *
+
+from django.contrib.postgres.fields import ArrayField
 
 
 class User(AbstractUser):
@@ -507,12 +509,19 @@ class User(AbstractUser):
                username=None,
                name=None,
                location=None,
-               bio=None,
+               about_me=None,
                url=None,
                followers_count_visible=None,
                community_posts_visible=None,
                visibility=None,
-               save=True):
+               save=True,
+               middle_name=None,
+               last_name=None,
+               pronouns=None,
+               engagement_level=None,
+               interests=None,
+               sdgs=None,
+               skills=None):
 
         profile = self.profile
 
@@ -534,11 +543,11 @@ class User(AbstractUser):
             else:
                 profile.location = location
 
-        if bio is not None:
-            if len(bio) == 0:
-                profile.bio = None
+        if about_me is not None:
+            if len(about_me) == 0:
+                profile.about_me = None
             else:
-                profile.bio = bio
+                profile.about_me = about_me
 
         if followers_count_visible is not None:
             profile.followers_count_visible = followers_count_visible
@@ -556,6 +565,21 @@ class User(AbstractUser):
                 self.delete_all_pending_connection_requests()
 
             self.visibility = visibility
+
+        if middle_name:
+            profile.middle_name = middle_name
+        if last_name:
+            profile.last_name = last_name
+        if pronouns:
+            profile.pronouns = pronouns
+        if engagement_level:
+            profile.engagement_level = engagement_level
+        if interests:
+            profile.interests = interests
+        if sdgs:
+            profile.sdgs = sdgs
+        if skills:
+            profile.skills = skills
 
         if save:
             profile.save()
@@ -3850,11 +3874,25 @@ def bootstrap_circles(sender, instance=None, created=False, **kwargs):
 
 
 class UserProfile(models.Model):
-    name = models.CharField(_('name'), max_length=settings.PROFILE_NAME_MAX_LENGTH, blank=False, null=False,
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
+    name = models.CharField(_('name'), max_length=settings.PROFILE_NAME_MAX_LENGTH, blank=False, null=True,
                             db_index=True,
                             validators=[name_characters_validator])
+    middle_name = models.CharField(_('middle name'), max_length=settings.PROFILE_MIDDLE_NAME_MAX_LENGTH, blank=False,
+                                   null=True,
+                                   db_index=True,
+                                   validators=[name_characters_validator])
+    last_name = models.CharField(_('last name'), max_length=settings.PROFILE_LAST_NAME_MAX_LENGTH, blank=False,
+                                 null=True,
+                                 db_index=True,
+                                 validators=[name_characters_validator])
+    pronouns = models.CharField(_('pronouns'), max_length=settings.PROFILE_PRONOUNS_MAX_LENGTH, blank=False, null=True)
     location = models.CharField(_('location'), max_length=settings.PROFILE_LOCATION_MAX_LENGTH, blank=False, null=True)
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
+    engagement_level = models.CharField(_('engagement level'), max_length=settings.PROFILE_ENGAGEMENT_LEVEL_MAX_LENGTH,
+                                        blank=False, null=True)
+    interests = JSONField(null=True, blank=True, default=list)
+    sdgs = JSONField(null=True, blank=True, default=list)
+    skills = JSONField(null=True, blank=True, default=list)
     is_of_legal_age = models.BooleanField(default=False)
     avatar = ProcessedImageField(verbose_name=_('avatar'), blank=False, null=True, format='JPEG',
                                  options={'quality': 90}, processors=[ResizeToFill(500, 500)],
@@ -3862,7 +3900,7 @@ class UserProfile(models.Model):
     cover = ProcessedImageField(verbose_name=_('cover'), blank=False, null=True, format='JPEG', options={'quality': 90},
                                 upload_to=upload_to_user_cover_directory,
                                 processors=[ResizeToFit(width=1024, upscale=False)])
-    bio = models.TextField(_('bio'), max_length=settings.PROFILE_BIO_MAX_LENGTH, blank=False, null=True)
+    about_me = models.TextField(_('about me'), max_length=settings.PROFILE_ABOUT_ME_MAX_LENGTH, blank=False, null=True)
     url = models.URLField(_('url'), blank=False, null=True)
     followers_count_visible = models.BooleanField(_('followers count visible'), blank=False, null=False, default=False)
     community_posts_visible = models.BooleanField(_('community posts visible'), blank=False, null=False, default=True)

@@ -60,7 +60,7 @@ class GetUserUserProfileSerializer(serializers.ModelSerializer):
             'avatar',
             'location',
             'cover',
-            'bio',
+            'about_me',
             'url',
             'badges'
         )

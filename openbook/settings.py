@@ -146,9 +146,14 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.RemoteUserMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'openbook_common.middleware.TimezoneMiddleware'
+]
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.RemoteUserBackend',
 ]
 
 ROOT_URLCONF = 'openbook.urls'
@@ -245,16 +250,30 @@ if IS_BUILD:
     NOSE_ARGS = [
         '--cover-erase',
         '--cover-package=.',
-        '--with-spec', '--spec-color',
-        '--with-coverage', '--cover-xml',
-        '--verbosity=1', '--nologcapture']
+        '--with-spec',
+        '--spec-color',
+        '--with-coverage',
+        '--cover-xml',
+        '--verbosity=1',
+        '--nologcapture'
+    ]
+elif environment_checker.is_quicktest():
+    NOSE_ARGS = [
+        '--nologcapture'
+    ]
 else:
     NOSE_ARGS = [
         '--cover-erase',
         '--cover-package=.',
-        '--with-spec', '--spec-color',
-        '--with-coverage', '--cover-html',
-        '--cover-html-dir=reports/cover', '--verbosity=1', '--nologcapture', '--nocapture']
+        '--with-spec',
+        '--spec-color',
+        '--with-coverage',
+        '--cover-html',
+        '--cover-html-dir=reports/cover',
+        '--verbosity=1',
+        '--nologcapture',
+        '--nocapture'
+    ]
 
 TEMPLATES = [
     {
@@ -275,7 +294,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'openbook.wsgi.application'
 
 # Database
-# https://docs.djangoproject.com/en/1.11/ref/settings/#databases
+# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -365,7 +384,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
+        'openbook_auth.oathkeeper.HoliOathkeeperAuthentication',
     ),
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.AcceptHeaderVersioning',
     'DEFAULT_THROTTLE_RATES': {
@@ -472,7 +491,7 @@ PROXY_URL = os.environ.get('PROXY_URL', '')
 
 # Openbook config
 
-USERNAME_MAX_LENGTH = 30
+USERNAME_MAX_LENGTH = 36
 USER_MAX_FOLLOWS = int(os.environ.get('USER_MAX_FOLLOWS', '1500'))
 USER_MAX_CONNECTIONS = int(os.environ.get('USER_MAX_CONNECTIONS', '1500'))
 USER_MAX_COMMUNITIES = 200
@@ -489,8 +508,18 @@ CIRCLE_MAX_LENGTH = 100
 COLOR_ATTR_MAX_LENGTH = 7
 LIST_MAX_LENGTH = 100
 PROFILE_NAME_MAX_LENGTH = 192
-PROFILE_LOCATION_MAX_LENGTH = 64
-PROFILE_BIO_MAX_LENGTH = int(os.environ.get('PROFILE_BIO_MAX_LENGTH', '1000'))
+PROFILE_MIDDLE_NAME_MAX_LENGTH = 192
+PROFILE_LAST_NAME_MAX_LENGTH = 192
+PROFILE_PRONOUNS_MAX_LENGTH = 192
+PROFILE_LOCATION_MAX_LENGTH = 192
+PROFILE_ENGAGEMENT_LEVEL_MAX_LENGTH = 64
+PROFILE_INTEREST_MAX_LENGTH = 64
+PROFILE_INTERESTS_MAX_COUNT = 64
+PROFILE_SDG_MAX_LENGTH = 64
+PROFILE_SDGS_MAX_COUNT = 64
+PROFILE_SKILL_MAX_LENGTH = 64
+PROFILE_SKILLS_MAX_COUNT = 64
+PROFILE_ABOUT_ME_MAX_LENGTH = int(os.environ.get('PROFILE_ABOUT_ME_MAX_LENGTH', '1000'))
 PROFILE_AVATAR_MAX_SIZE = int(os.environ.get('PROFILE_AVATAR_MAX_SIZE', '10485760'))
 PROFILE_COVER_MAX_SIZE = int(os.environ.get('PROFILE_COVER_MAX_SIZE', '10485760'))
 WORLD_CIRCLE_ID = 1

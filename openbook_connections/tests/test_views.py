@@ -33,8 +33,7 @@ class ConnectionsAPITests(OpenbookAPITestCase):
         should be able to retrieve own connections and return 200
         """
         user = make_user()
-        auth_token = user.auth_token.key
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         circle = mixer.blend(Circle, creator=user)
 
@@ -73,12 +72,10 @@ class ConnectAPITests(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         circle_to_connect = mixer.blend(Circle, creator=user)
         user_to_connect = make_user()
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'username': user_to_connect.username,
@@ -123,8 +120,6 @@ class ConnectAPITests(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         amount_of_circles = 4
         circles_to_connect_ids = []
 
@@ -134,7 +129,7 @@ class ConnectAPITests(OpenbookAPITestCase):
 
         user_to_connect = make_user()
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         stringified_circles_ids = ','.join(map(str, circles_to_connect_ids))
 
@@ -161,14 +156,12 @@ class ConnectAPITests(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         circle_to_connect = mixer.blend(Circle, creator=user)
         user_to_connect = make_user()
 
         user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[circle_to_connect.pk])
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'username': user_to_connect.username,
@@ -187,11 +180,9 @@ class ConnectAPITests(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         user_to_connect = make_user()
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'username': user_to_connect.username,
@@ -316,14 +307,12 @@ class DisconnectAPITest(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         circle_to_connect = mixer.blend(Circle, creator=user)
         user_to_connect = make_user()
 
         user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[circle_to_connect.pk])
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'username': user_to_connect.username
@@ -369,9 +358,7 @@ class DisconnectAPITest(OpenbookAPITestCase):
 
         not_connected_user = make_user()
 
-        auth_token = user.auth_token.key
-
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'username': not_connected_user.username
@@ -492,8 +479,6 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         circle_to_connect = mixer.blend(Circle, creator=user)
         user_to_connect = make_user()
 
@@ -501,7 +486,7 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
 
         new_circle = mixer.blend(Circle, creator=user)
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'username': user_to_connect.username,
@@ -530,8 +515,6 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
 
         user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[initial_circle_to_connect_in.pk])
 
-        auth_token = user.auth_token.key
-
         amount_of_circles = 4
         new_circles_to_connect_ids = []
 
@@ -539,7 +522,7 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
             circle_to_connect = mixer.blend(Circle, creator=user)
             new_circles_to_connect_ids.append(circle_to_connect.pk)
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         stringified_circles_ids = ','.join(map(str, new_circles_to_connect_ids))
 
@@ -572,13 +555,11 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         not_connected_user = make_user()
 
         new_circle = mixer.blend(Circle, creator=user)
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'username': not_connected_user.username,
