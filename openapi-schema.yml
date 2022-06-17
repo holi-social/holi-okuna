@@ -1,0 +1,60 @@
+openapi: 3.0.2
+info:
+  title: ''
+  version: ''
+paths:
+  /api/auth/users/{user_username}/:
+    get:
+      operationId: retrieveGetUser
+      description: ''
+      parameters:
+      - name: user_username
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/user/:
+    get:
+      operationId: listAuthenticatedUsers
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateAuthenticatedUser
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+

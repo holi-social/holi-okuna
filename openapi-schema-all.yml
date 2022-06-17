@@ -1,0 +1,4234 @@
+openapi: 3.0.2
+info:
+  title: ''
+  version: ''
+paths:
+  /api/auth/followings/:
+    get:
+      operationId: listFollowings
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/followings/search/:
+    get:
+      operationId: listSearchFollowings
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/followers/:
+    get:
+      operationId: listFollowers
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/followers/search/:
+    get:
+      operationId: listSearchFollowers
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/linked-users/:
+    get:
+      operationId: listLinkedUsers
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/linked-users/search/:
+    get:
+      operationId: listSearchLinkedUsers
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/blocked-users/:
+    get:
+      operationId: listBlockedUsers
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/blocked-users/search/:
+    get:
+      operationId: listSearchBlockedUsers
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/users/:
+    get:
+      operationId: listSearchUsers
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/users/{user_username}/:
+    get:
+      operationId: retrieveGetUser
+      description: ''
+      parameters:
+      - name: user_username
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/users/{user_username}/posts/count/:
+    get:
+      operationId: listGetUserPostsCounts
+      description: ''
+      parameters:
+      - name: user_username
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/user/:
+    get:
+      operationId: listAuthenticatedUsers
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateAuthenticatedUser
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/user/notifications-settings/:
+    get:
+      operationId: listAuthenticatedUserNotificationsSettings
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateAuthenticatedUserNotificationsSettings
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/user/languages/:
+    get:
+      operationId: listAuthenticatedUserLanguages
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    post:
+      operationId: createAuthenticatedUserLanguage
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/proxy/:
+    get:
+      operationId: listProxyAuths
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/:
+    get:
+      operationId: retrievePostItem
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdatePostItem
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyPostItem
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/comments/:
+    get:
+      operationId: listPostComments
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updatePostComments
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/comments/{post_comment_id}/:
+    get:
+      operationId: retrievePostCommentItem
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: post_comment_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdatePostCommentItem
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: post_comment_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyPostCommentItem
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: post_comment_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/comments/{post_comment_id}/replies/:
+    get:
+      operationId: listPostCommentReplies
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: post_comment_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updatePostCommentReplies
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: post_comment_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/comments/{post_comment_id}/reactions/:
+    get:
+      operationId: listPostCommentReactions
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: post_comment_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updatePostCommentReactions
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: post_comment_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/comments/{post_comment_id}/reactions/emoji-count/:
+    get:
+      operationId: listPostCommentReactionsEmojiCounts
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: post_comment_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/reactions/:
+    get:
+      operationId: listPostReactions
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updatePostReactions
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/reactions/emoji-count/:
+    get:
+      operationId: listPostReactionsEmojiCounts
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/status/:
+    get:
+      operationId: listPostStatus
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/link-preview/:
+    get:
+      operationId: listPostPreviewLinkDatas
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/participants/:
+    get:
+      operationId: listGetPostParticipants
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/media/:
+    get:
+      operationId: listPostMedias
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updatePostMedia
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/:
+    get:
+      operationId: listPosts
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updatePosts
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/trending/:
+    get:
+      operationId: listTrendingPosts
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/trending/new/:
+    get:
+      operationId: listTrendingPostsNews
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/emojis/groups/:
+    get:
+      operationId: listPostReactionEmojiGroups
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/profile/excluded-communities/:
+    get:
+      operationId: listProfilePostsExcludedCommunities
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateProfilePostsExcludedCommunities
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/profile/excluded-communities/search/:
+    get:
+      operationId: listSearchProfilePostsExcludedCommunities
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/top/:
+    get:
+      operationId: listTopPosts
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/top/excluded-communities/:
+    get:
+      operationId: listTopPostsExcludedCommunities
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateTopPostsExcludedCommunities
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/top/excluded-communities/search/:
+    get:
+      operationId: listSearchTopPostsExcludedCommunities
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/:
+    get:
+      operationId: listCommunities
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateCommunities
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/suggested/:
+    get:
+      operationId: listSuggestedCommunities
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/trending/:
+    get:
+      operationId: listTrendingCommunities
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/joined/:
+    get:
+      operationId: listJoinedCommunities
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/joined/search/:
+    get:
+      operationId: listSearchJoinedCommunities
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/favorites/:
+    get:
+      operationId: listFavoriteCommunities
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/favorites/search/:
+    get:
+      operationId: listSearchFavoriteCommunities
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/administrated/:
+    get:
+      operationId: listAdministratedCommunities
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/administrated/search/:
+    get:
+      operationId: listSearchAdministratedCommunities
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/moderated/:
+    get:
+      operationId: listModeratedCommunities
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/moderated/search/:
+    get:
+      operationId: listSearchModeratedCommunities
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/top-posts/exclusions/:
+    get:
+      operationId: listTopPostsExcludedCommunities
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateTopPostsExcludedCommunities
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/top-posts/exclusions/search/:
+    get:
+      operationId: listSearchTopPostsExcludedCommunities
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/search/:
+    get:
+      operationId: listSearchCommunities
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/:
+    get:
+      operationId: retrieveCommunityItem
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateCommunityItem
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyCommunityItem
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/members/:
+    get:
+      operationId: listCommunityMembers
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/members/search/:
+    get:
+      operationId: listSearchCommunityMembers
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/posts/:
+    get:
+      operationId: listCommunityPosts
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateCommunityPosts
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/posts/closed/:
+    get:
+      operationId: listClosedCommunityPosts
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/posts/count/:
+    get:
+      operationId: listGetCommunityPostsCounts
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/banned-users/:
+    get:
+      operationId: listCommunityBannedUsers
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/banned-users/search/:
+    get:
+      operationId: listSearchCommunityBannedUsers
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/administrators/:
+    get:
+      operationId: listCommunityAdministrators
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateCommunityAdministrators
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/administrators/search/:
+    get:
+      operationId: listSearchCommunityAdministrators
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/moderators/:
+    get:
+      operationId: listCommunityModerators
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateCommunityModerators
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/moderators/search/:
+    get:
+      operationId: listSearchCommunityModerators
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/moderated-objects/:
+    get:
+      operationId: listCommunityModeratedObjects
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/categories/:
+    get:
+      operationId: listCategories
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/circles/:
+    get:
+      operationId: listCircles
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateCircles
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/circles/{circle_id}/:
+    get:
+      operationId: retrieveCircleItem
+      description: ''
+      parameters:
+      - name: circle_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateCircleItem
+      description: ''
+      parameters:
+      - name: circle_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyCircleItem
+      description: ''
+      parameters:
+      - name: circle_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/connections/:
+    get:
+      operationId: listConnections
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/lists/:
+    get:
+      operationId: listLists
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateLists
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/lists/{list_id}/:
+    get:
+      operationId: retrieveListItem
+      description: ''
+      parameters:
+      - name: list_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateListItem
+      description: ''
+      parameters:
+      - name: list_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyListItem
+      description: ''
+      parameters:
+      - name: list_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/follows/requests/received/:
+    get:
+      operationId: listReceivedFollowRequests
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/notifications/:
+    get:
+      operationId: listNotifications
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyNotifications
+      description: ''
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/notifications/unread/count/:
+    get:
+      operationId: listUnreadNotificationsCounts
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/devices/:
+    get:
+      operationId: listDevices
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateDevices
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyDevices
+      description: ''
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/devices/{device_uuid}/:
+    get:
+      operationId: retrieveDeviceItem
+      description: ''
+      parameters:
+      - name: device_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+    patch:
+      operationId: partialUpdateDeviceItem
+      description: ''
+      parameters:
+      - name: device_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyDeviceItem
+      description: ''
+      parameters:
+      - name: device_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/invites/:
+    get:
+      operationId: listUserInvites
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+    put:
+      operationId: updateUserInvites
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/invites/search/:
+    get:
+      operationId: listSearchUserInvites
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/moderation/moderated-objects/{moderated_object_id}/logs/:
+    get:
+      operationId: listModeratedObjectLogs
+      description: ''
+      parameters:
+      - name: moderated_object_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/moderation/moderated-objects/{moderated_object_id}/reports/:
+    get:
+      operationId: listModeratedObjectReports
+      description: ''
+      parameters:
+      - name: moderated_object_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/moderation/moderated-objects/global/:
+    get:
+      operationId: listGlobalModeratedObjects
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/moderation/categories/:
+    get:
+      operationId: listModerationCategories
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/moderation/is-not-suspended-check/:
+    get:
+      operationId: listIsNotSuspendedChecks
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/moderation/user/penalties/:
+    get:
+      operationId: listUserModerationPenalties
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/moderation/user/pending-moderated-objects-communities/:
+    get:
+      operationId: listUserPendingModeratedObjectsCommunities
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/hashtags/search/:
+    get:
+      operationId: listSearchHashtags
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/hashtags/{hashtag_name}/:
+    get:
+      operationId: retrieveHashtagItem
+      description: ''
+      parameters:
+      - name: hashtag_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/hashtags/{hashtag_name}/posts/:
+    get:
+      operationId: listHashtagPosts
+      description: ''
+      parameters:
+      - name: hashtag_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/time/:
+    get:
+      operationId: listTimes
+      description: API for returning the current time.
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/emojis/groups/:
+    get:
+      operationId: listEmojiGroups
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /api/proxy-domain-check/:
+    get:
+      operationId: listProxyDomainChecks
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - api
+  /health/:
+    get:
+      operationId: listHealths
+      description: API for checking the app health
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - health
+  /api/auth/register/:
+    post:
+      operationId: createRegister
+      description: The API to register a new user
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/register/verify-token/:
+    post:
+      operationId: createVerifyRegistrationToken
+      description: The API to verify a registration token
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/login/:
+    post:
+      operationId: createLogin
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/username-check/:
+    post:
+      operationId: createUsernameCheck
+      description: The API to check if a username is both valid and not taken.
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/email-check/:
+    post:
+      operationId: createEmailCheck
+      description: The API to check if a email is both valid and not taken.
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/email/verify/:
+    post:
+      operationId: createEmailVerify
+      description: The API to verify if a email is valid.
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/password/reset/:
+    post:
+      operationId: createPasswordResetRequest
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/password/verify/:
+    post:
+      operationId: createPasswordResetVerify
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/users/{user_username}/block/:
+    post:
+      operationId: createBlockUser
+      description: ''
+      parameters:
+      - name: user_username
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/users/{user_username}/unblock/:
+    post:
+      operationId: createUnblockUser
+      description: ''
+      parameters:
+      - name: user_username
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/users/{user_username}/report/:
+    post:
+      operationId: createReportUser
+      description: ''
+      parameters:
+      - name: user_username
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/user/delete/:
+    post:
+      operationId: createDeleteAuthenticatedUser
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/user/accept-guidelines/:
+    post:
+      operationId: createAuthenticatedUserAcceptGuidelines
+      description: The API to accept the guidelines
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/notifications/mute/:
+    post:
+      operationId: createMutePost
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/notifications/unmute/:
+    post:
+      operationId: createUnmutePost
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/comments/disable/:
+    post:
+      operationId: createPostCommentsDisable
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/comments/enable/:
+    post:
+      operationId: createPostCommentsEnable
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/comments/{post_comment_id}/translate/:
+    post:
+      operationId: createTranslatePostComment
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: post_comment_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/comments/{post_comment_id}/report/:
+    post:
+      operationId: createReportPostComment
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: post_comment_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/comments/{post_comment_id}/notifications/mute/:
+    post:
+      operationId: createMutePostComment
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: post_comment_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/comments/{post_comment_id}/notifications/unmute/:
+    post:
+      operationId: createUnmutePostComment
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: post_comment_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/close/:
+    post:
+      operationId: createPostClose
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/open/:
+    post:
+      operationId: createPostOpen
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/report/:
+    post:
+      operationId: createReportPost
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/translate/:
+    post:
+      operationId: createTranslatePost
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/publish/:
+    post:
+      operationId: createPublishPost
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/participants/search/:
+    post:
+      operationId: createSearchPostParticipants
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/links/preview/:
+    post:
+      operationId: createPreviewLink
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/links/is-previewable/:
+    post:
+      operationId: createLinkIsPreviewable
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/name-check/:
+    post:
+      operationId: createCommunityNameCheck
+      description: The API to check if a communityName is both valid and not taken.
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/members/join/:
+    post:
+      operationId: createJoinCommunity
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/members/leave/:
+    post:
+      operationId: createLeaveCommunity
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/members/invite/:
+    post:
+      operationId: createInviteCommunityMember
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/members/uninvite/:
+    post:
+      operationId: createUninviteCommunityMember
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/banned-users/ban/:
+    post:
+      operationId: createBanUser
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/banned-users/unban/:
+    post:
+      operationId: createUnbanUser
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/report/:
+    post:
+      operationId: createReportCommunity
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/circles/name-check/:
+    post:
+      operationId: createCircleNameCheck
+      description: The API to check if a circleName is both valid and not taken.
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/connections/connect/:
+    post:
+      operationId: createConnectWithUser
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/connections/confirm/:
+    post:
+      operationId: createConfirmConnection
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/connections/disconnect/:
+    post:
+      operationId: createDisconnectFromUser
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/connections/update/:
+    post:
+      operationId: createUpdateConnection
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/lists/name-check/:
+    post:
+      operationId: createListNameCheck
+      description: The API to check if a listName is both valid and not taken.
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/follows/requests/approve/:
+    post:
+      operationId: createApproveUserFollowRequest
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/follows/requests/reject/:
+    post:
+      operationId: createRejectUserFollowRequest
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/follows/requests/cancel/:
+    post:
+      operationId: createCancelRequestToFollowUser
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/follows/follow/:
+    post:
+      operationId: createFollowUser
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/follows/unfollow/:
+    post:
+      operationId: createUnfollowUser
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/follows/update/:
+    post:
+      operationId: createUpdateFollowUser
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/notifications/read/:
+    post:
+      operationId: createReadNotifications
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/notifications/{notification_id}/read/:
+    post:
+      operationId: createReadNotification
+      description: ''
+      parameters:
+      - name: notification_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/invites/{invite_id}/email/:
+    post:
+      operationId: createSendUserInviteEmail
+      description: ''
+      parameters:
+      - name: invite_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/moderation/moderated-objects/{moderated_object_id}/approve/:
+    post:
+      operationId: createApproveModeratedObject
+      description: ''
+      parameters:
+      - name: moderated_object_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/moderation/moderated-objects/{moderated_object_id}/reject/:
+    post:
+      operationId: createRejectModeratedObject
+      description: ''
+      parameters:
+      - name: moderated_object_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/moderation/moderated-objects/{moderated_object_id}/verify/:
+    post:
+      operationId: createVerifyModeratedObject
+      description: ''
+      parameters:
+      - name: moderated_object_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/moderation/moderated-objects/{moderated_object_id}/unverify/:
+    post:
+      operationId: createUnverifyModeratedObject
+      description: ''
+      parameters:
+      - name: moderated_object_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/hashtags/{hashtag_name}/report/:
+    post:
+      operationId: createReportHashtag
+      description: ''
+      parameters:
+      - name: hashtag_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/import/upload/:
+    post:
+      operationId: createImportItem
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/users/{user_username}/notifications/subscribe/new-post/:
+    put:
+      operationId: updateSubscribeToUserNewPostNotifications
+      description: ''
+      parameters:
+      - name: user_username
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroySubscribeToUserNewPostNotifications
+      description: ''
+      parameters:
+      - name: user_username
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/avatar/:
+    put:
+      operationId: updateCommunityAvatar
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyCommunityAvatar
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/cover/:
+    put:
+      operationId: updateCommunityCover
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyCommunityCover
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/favorite/:
+    put:
+      operationId: updateFavoriteCommunity
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyFavoriteCommunity
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/notifications/subscribe/new-post/:
+    put:
+      operationId: updateSubscribeToCommunityNewPostNotifications
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroySubscribeToCommunityNewPostNotifications
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/top-posts/exclude/:
+    put:
+      operationId: updateLegacyExcludeTopPostsCommunity
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyLegacyExcludeTopPostsCommunity
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/follows/requests/:
+    put:
+      operationId: updateRequestToFollowUser
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/auth/user/settings/:
+    patch:
+      operationId: partialUpdateAuthenticatedUserSettings
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/invites/{invite_id}/:
+    patch:
+      operationId: partialUpdateUserInvite
+      description: ''
+      parameters:
+      - name: invite_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+    delete:
+      operationId: destroyUserInvite
+      description: ''
+      parameters:
+      - name: invite_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/moderation/moderated-objects/{moderated_object_id}/:
+    patch:
+      operationId: partialUpdateModeratedObjectItem
+      description: ''
+      parameters:
+      - name: moderated_object_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/comments/{post_comment_id}/reactions/{post_comment_reaction_id}/:
+    delete:
+      operationId: destroyPostCommentReactionItem
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: post_comment_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: post_comment_reaction_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/posts/{post_uuid}/reactions/{post_reaction_id}/:
+    delete:
+      operationId: destroyPostReactionItem
+      description: ''
+      parameters:
+      - name: post_uuid
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: post_reaction_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/posts/profile/excluded-communities/{community_name}/:
+    delete:
+      operationId: destroyProfilePostsExcludedCommunity
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/posts/top/excluded-communities/{community_name}/:
+    delete:
+      operationId: destroyTopPostsExcludedCommunity
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/administrators/{community_administrator_username}/:
+    delete:
+      operationId: destroyCommunityAdministratorItem
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: community_administrator_username
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/communities/{community_name}/moderators/{community_moderator_username}/:
+    delete:
+      operationId: destroyCommunityModeratorItem
+      description: ''
+      parameters:
+      - name: community_name
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      - name: community_moderator_username
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
+  /api/notifications/{notification_id}/:
+    delete:
+      operationId: destroyNotificationItem
+      description: ''
+      parameters:
+      - name: notification_id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - api
