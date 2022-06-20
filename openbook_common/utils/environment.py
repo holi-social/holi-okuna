@@ -11,11 +11,13 @@ class EnvironmentChecker:
     ACCEPTANCE_VALUE = 'acceptance'
     DEVELOPMENT_VALUE = 'development'
     TEST_VALUE = 'test'
+    QUICKTEST_VALUE = 'quicktest'
     BUILD_VALUE = 'build'
 
     ALLOWED_ENVIRONMENTS = [
         BUILD_VALUE,
         TEST_VALUE,
+        QUICKTEST_VALUE,
         PRODUCTION_VALUE,
         DEVELOPMENT_VALUE,
         ACCEPTANCE_VALUE,
@@ -47,3 +49,6 @@ class EnvironmentChecker:
 
     def is_valid_environment_value(self, environment_value):
         return environment_value in self.ALLOWED_ENVIRONMENTS
+
+    def is_quicktest(self):
+        return self.environment_value == self.QUICKTEST_VALUE

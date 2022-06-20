@@ -675,12 +675,10 @@ class FollowAPITests(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         list_to_follow = mixer.blend(List, creator=user)
         user_to_follow = make_user()
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'username': user_to_follow.username,
@@ -701,8 +699,6 @@ class FollowAPITests(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         amount_of_lists = 4
         lists_to_follow_ids = []
 
@@ -712,7 +708,7 @@ class FollowAPITests(OpenbookAPITestCase):
 
         user_to_follow = make_user()
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         stringified_lists_ids = ','.join(map(str, lists_to_follow_ids))
 
@@ -736,14 +732,12 @@ class FollowAPITests(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         list_to_follow = mixer.blend(List, creator=user)
         user_to_follow = make_user()
 
         user.follow_user(user_to_follow, lists_ids=[list_to_follow.pk])
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'username': user_to_follow.username,
@@ -762,11 +756,9 @@ class FollowAPITests(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         list_to_follow = mixer.blend(List, creator=user)
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'username': user.username,
@@ -786,11 +778,9 @@ class FollowAPITests(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         user_to_follow = make_user()
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'username': user_to_follow.username,
@@ -813,14 +803,12 @@ class UnfollowAPITest(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         list_to_follow = mixer.blend(List, creator=user)
         user_to_unfollow = make_user()
 
         user.follow_user(user_to_unfollow, lists_ids=[list_to_follow.pk])
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'username': user_to_unfollow.username
@@ -842,9 +830,7 @@ class UnfollowAPITest(OpenbookAPITestCase):
 
         not_followed_user = make_user()
 
-        auth_token = user.auth_token.key
-
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'username': not_followed_user.username
@@ -864,8 +850,6 @@ class UnfollowAPITest(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         list_to_follow = mixer.blend(List, creator=user)
         user_to_unfollow = make_user()
 
@@ -874,7 +858,7 @@ class UnfollowAPITest(OpenbookAPITestCase):
         follow_notification = FollowNotification.objects.get(follower=user, notification__owner=user_to_unfollow)
         notification = Notification.objects.get(notification_type=Notification.FOLLOW, object_id=follow_notification.pk)
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'username': user_to_unfollow.username
@@ -898,8 +882,6 @@ class UpdateFollowAPITest(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         list_to_follow = mixer.blend(List, creator=user)
         user_to_follow = make_user()
 
@@ -907,7 +889,7 @@ class UpdateFollowAPITest(OpenbookAPITestCase):
 
         new_list = mixer.blend(List, creator=user)
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'username': user_to_follow.username,
@@ -933,8 +915,6 @@ class UpdateFollowAPITest(OpenbookAPITestCase):
 
         user.follow_user(user_to_follow, lists_ids=[initial_list_to_follow_in.pk])
 
-        auth_token = user.auth_token.key
-
         amount_of_lists = 4
         new_lists_to_follow_ids = []
 
@@ -942,7 +922,7 @@ class UpdateFollowAPITest(OpenbookAPITestCase):
             list_to_follow = mixer.blend(List, creator=user)
             new_lists_to_follow_ids.append(list_to_follow.pk)
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         stringified_lists_ids = ','.join(map(str, new_lists_to_follow_ids))
 
@@ -971,13 +951,11 @@ class UpdateFollowAPITest(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         not_followed_user = make_user()
 
         new_list = mixer.blend(List, creator=user)
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'username': not_followed_user.username,
