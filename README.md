@@ -64,6 +64,23 @@ cleans up stuff on shutdown (docker networks & volumes, etc.), runs migrations a
 docker-compose directly you can easily get into inconsistent states and processes can’t talk to each other due to wrong
 passwords and database contents etc!**
 
+
+## How to generate a graphql endpoint via openapi
+In order to generate the graphql schema, `drf-spectacular` and `openapi-to-graphql-cli` are needed. `drf-spectacular` is in 
+the `requirements.txt`. In order to install `openapi-to-graphql-cli` run:
+```
+npm i -g openapi-to-graphql-cli
+```
+
+Generate the openapi schema via spectacular:
+```
+ ./manage.py spectacular --file schema.yml --api-version '0.0.63'
+```
+Inspect the schema.yml and maybe remove unneeded paths and actions and then run to generate the graphql schema:
+```
+openapi-to-graphql schema.yml --save schema.graphql
+```
+
 ## Known installation issues
 
 ### MacOs
