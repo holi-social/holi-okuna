@@ -3875,6 +3875,8 @@ def bootstrap_circles(sender, instance=None, created=False, **kwargs):
 
 class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
+    # TODO: name contains the users "first name". a refactoring is considered too time-consuming at this point of time,
+    #  but should be done later
     name = models.CharField(_('name'), max_length=settings.PROFILE_NAME_MAX_LENGTH, blank=False, null=True,
                             db_index=True,
                             validators=[name_characters_validator])
