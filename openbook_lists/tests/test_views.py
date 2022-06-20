@@ -30,14 +30,12 @@ class ListsAPITests(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         list_emoji = mixer.blend(Emoji)
 
         list_name = fake.name()
         emoji_id = list_emoji.pk
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'name': list_name,
@@ -57,8 +55,7 @@ class ListsAPITests(OpenbookAPITestCase):
         should be able to retrieve all own lists return 200
         """
         user = make_user()
-        auth_token = user.auth_token.key
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         lists = mixer.cycle(5).blend(List, creator=user)
         lists_ids = [list.pk for list in lists]
@@ -108,9 +105,7 @@ class ListItemAPITests(OpenbookAPITestCase):
         should be able to delete an own list and return 200
         """
         user = make_user()
-        auth_token = user.auth_token.key
-
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         list = mixer.blend(List, creator=user)
         list_id = list.pk
@@ -126,11 +121,8 @@ class ListItemAPITests(OpenbookAPITestCase):
         should not be able to delete another user list with and return 400
         """
         user = make_user()
-        auth_token = user.auth_token.key
-
         other_user = make_user()
-
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         list = mixer.blend(List, creator=other_user)
         list_id = list.pk
@@ -146,9 +138,8 @@ class ListItemAPITests(OpenbookAPITestCase):
         should be able to update an own list and return 200
         """
         user = make_user()
-        auth_token = user.auth_token.key
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         list = mixer.blend(List, creator=user)
         list_id = list.pk
@@ -236,11 +227,10 @@ class ListItemAPITests(OpenbookAPITestCase):
         should not be able update another user list and return 400
         """
         user = make_user()
-        auth_token = user.auth_token.key
 
         other_user = make_user()
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         list = mixer.blend(List, creator=other_user)
         list_id = list.pk

@@ -29,12 +29,10 @@ class CirclesAPITests(OpenbookAPITestCase):
         """
         user = make_user()
 
-        auth_token = user.auth_token.key
-
         circle_name = fake.name()
         circle_color = fake.hex_color()
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         data = {
             'name': circle_name,
@@ -54,8 +52,7 @@ class CirclesAPITests(OpenbookAPITestCase):
         should retrieve the all own circles and return 200
         """
         user = make_user()
-        auth_token = user.auth_token.key
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         circles = mixer.cycle(5).blend(Circle, creator=user)
         circles_ids = [circle.pk for circle in circles]
@@ -93,9 +90,8 @@ class CircleItemAPITests(OpenbookAPITestCase):
         should be able to delete an own circle and return 200
         """
         user = make_user()
-        auth_token = user.auth_token.key
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         circle = mixer.blend(Circle, creator=user)
         circle_id = circle.pk
@@ -111,9 +107,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
         should not be able to own world circle and return 400
         """
         user = make_user()
-        auth_token = user.auth_token.key
-
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         circle_id = Circle.get_world_circle_id()
 
@@ -128,9 +122,8 @@ class CircleItemAPITests(OpenbookAPITestCase):
         should not be able to delete own connections circle and return 400
         """
         user = make_user()
-        auth_token = user.auth_token.key
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         circle_id = user.connections_circle_id
 
@@ -145,11 +138,10 @@ class CircleItemAPITests(OpenbookAPITestCase):
         should not be able to delete another user's circle and return 400
         """
         user = make_user()
-        auth_token = user.auth_token.key
 
         other_user = make_user()
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         circle = mixer.blend(Circle, creator=other_user)
         circle_id = circle.pk
@@ -165,9 +157,8 @@ class CircleItemAPITests(OpenbookAPITestCase):
         should be able to update own circle and return 200
         """
         user = make_user()
-        auth_token = user.auth_token.key
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         circle_color = fake.hex_color()
         circle = mixer.blend(Circle, creator=user, color=circle_color)
@@ -259,9 +250,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
         should not be able to update the circle of another user and return 400
         """
         user = make_user()
-        auth_token = user.auth_token.key
-
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         another_user = make_user()
 
@@ -288,9 +277,8 @@ class CircleItemAPITests(OpenbookAPITestCase):
         should not be able to update own world circle and return 400
         """
         user = make_user()
-        auth_token = user.auth_token.key
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         circle_id = Circle.get_world_circle_id()
 
@@ -313,9 +301,8 @@ class CircleItemAPITests(OpenbookAPITestCase):
         should not be able to update own connections circle and return 400
         """
         user = make_user()
-        auth_token = user.auth_token.key
 
-        headers = {'HTTP_AUTHORIZATION': 'Token %s' % auth_token}
+        headers = make_authentication_headers_for_user(user)
 
         circle_id = user.connections_circle_id
 

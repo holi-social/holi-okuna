@@ -146,9 +146,14 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.RemoteUserMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'openbook_common.middleware.TimezoneMiddleware'
+]
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.RemoteUserBackend',
 ]
 
 ROOT_URLCONF = 'openbook.urls'
@@ -245,16 +250,30 @@ if IS_BUILD:
     NOSE_ARGS = [
         '--cover-erase',
         '--cover-package=.',
-        '--with-spec', '--spec-color',
-        '--with-coverage', '--cover-xml',
-        '--verbosity=1', '--nologcapture']
+        '--with-spec',
+        '--spec-color',
+        '--with-coverage',
+        '--cover-xml',
+        '--verbosity=1',
+        '--nologcapture'
+    ]
+elif environment_checker.is_quicktest():
+    NOSE_ARGS = [
+        '--nologcapture'
+    ]
 else:
     NOSE_ARGS = [
         '--cover-erase',
         '--cover-package=.',
-        '--with-spec', '--spec-color',
-        '--with-coverage', '--cover-html',
-        '--cover-html-dir=reports/cover', '--verbosity=1', '--nologcapture', '--nocapture']
+        '--with-spec',
+        '--spec-color',
+        '--with-coverage',
+        '--cover-html',
+        '--cover-html-dir=reports/cover',
+        '--verbosity=1',
+        '--nologcapture',
+        '--nocapture'
+    ]
 
 TEMPLATES = [
     {
@@ -365,7 +384,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
+        'openbook_auth.oathkeeper.HoliOathkeeperAuthentication',
     ),
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.AcceptHeaderVersioning',
     'DEFAULT_THROTTLE_RATES': {
@@ -472,7 +491,7 @@ PROXY_URL = os.environ.get('PROXY_URL', '')
 
 # Openbook config
 
-USERNAME_MAX_LENGTH = 30
+USERNAME_MAX_LENGTH = 36
 USER_MAX_FOLLOWS = int(os.environ.get('USER_MAX_FOLLOWS', '1500'))
 USER_MAX_CONNECTIONS = int(os.environ.get('USER_MAX_CONNECTIONS', '1500'))
 USER_MAX_COMMUNITIES = 200
