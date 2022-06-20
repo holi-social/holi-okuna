@@ -7,6 +7,7 @@ from faker import Faker
 from rest_framework import status
 from mixer.backend.django import mixer
 
+from openbook import settings
 from openbook_circles.models import Circle
 from openbook_common.tests.models import OpenbookAPITestCase
 from openbook_auth.models import User
@@ -206,7 +207,43 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         retrieved_value = field_selector(user)
         self.assertEqual(retrieved_value, update_value)
-        print("retrieved_value=%s update_value=%s" % (retrieved_value, update_value))
+
+    def test_validates_interests_constraints(self):
+        self._user_profile_update_expect_400(self._make_json_array(field='interests',
+                                                                   length=settings.PROFILE_INTEREST_MAX_LENGTH,
+                                                                   count=settings.PROFILE_INTERESTS_MAX_COUNT + 1))
+        self._user_profile_update_expect_400(self._make_json_array(field='interests',
+                                                                   length=settings.PROFILE_INTEREST_MAX_LENGTH + 1,
+                                                                   count=settings.PROFILE_INTERESTS_MAX_COUNT))
+
+    def test_validates_sdgs_constraints(self):
+        self._user_profile_update_expect_400(self._make_json_array(field='sdgs',
+                                                                   length=settings.PROFILE_SDG_MAX_LENGTH,
+                                                                   count=settings.PROFILE_SDGS_MAX_COUNT + 1))
+        self._user_profile_update_expect_400(self._make_json_array(field='sdgs',
+                                                                   length=settings.PROFILE_SDG_MAX_LENGTH + 1,
+                                                                   count=settings.PROFILE_SDGS_MAX_COUNT))
+
+    def test_validates_skills_constraints(self):
+        self._user_profile_update_expect_400(self._make_json_array(field='skills',
+                                                                   length=settings.PROFILE_SKILL_MAX_LENGTH,
+                                                                   count=settings.PROFILE_SKILLS_MAX_COUNT + 1))
+        self._user_profile_update_expect_400(self._make_json_array(field='skills',
+                                                                   length=settings.PROFILE_SKILL_MAX_LENGTH + 1,
+                                                                   count=settings.PROFILE_SKILLS_MAX_COUNT))
+
+    @staticmethod
+    def _make_json_array(field, length, count):
+        return {
+            field: [fake.text(max_nb_chars=length) for _ in range(count)]
+        }
+
+    def _user_profile_update_expect_400(self, data):
+        user = make_user()
+        headers = make_authentication_headers_for_user(user)
+        url = self._get_url()
+        response = self.client.patch(url, data, **headers)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, "response.data %s" % response.data)
 
     def test_can_update_user_followers_count_visible(self):
         """

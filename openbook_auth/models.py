@@ -2,7 +2,7 @@ import secrets
 from datetime import datetime, timedelta
 import re
 import uuid
-from django.contrib.auth.validators import UnicodeUsernameValidator, ASCIIUsernameValidator
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.contrib.auth.models import AbstractUser
@@ -27,7 +27,7 @@ from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
 from openbook_posts.query_collections import get_posts_for_user_collection
 from openbook_translation import translation_strategy
 from openbook_common.helpers import get_supported_translation_language
-from openbook_common.models import Badge, Language
+from openbook_common.models import Badge
 from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import get_connection_model, get_circle_model, get_follow_model, \
     get_list_model, get_community_invite_model, \

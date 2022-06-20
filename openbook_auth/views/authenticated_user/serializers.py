@@ -5,7 +5,7 @@ from django.utils.translation import gettext as _
 from openbook.settings import USERNAME_MAX_LENGTH, PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, PROFILE_NAME_MAX_LENGTH
 from openbook_auth.models import User, UserProfile
 from openbook_auth.validators import username_characters_validator, \
-    email_not_taken_validator
+    email_not_taken_validator, interests_json_validator, skills_json_validator, sdgs_json_validator
 from django.contrib.auth.password_validation import validate_password
 
 from openbook_common.models import Badge, Language
@@ -171,9 +171,9 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
     engagement_level = serializers.CharField(max_length=settings.PROFILE_ENGAGEMENT_LEVEL_MAX_LENGTH, allow_blank=False,
                                              validators=[], required=False)
 
-    interests = serializers.JSONField(required=False)
-    sdgs = serializers.JSONField(required=False)
-    skills = serializers.JSONField(required=False)
+    interests = serializers.JSONField(required=False, validators=[interests_json_validator])
+    sdgs = serializers.JSONField(required=False, validators=[sdgs_json_validator])
+    skills = serializers.JSONField(required=False, validators=[skills_json_validator])
 
 
 class DeleteAuthenticatedUserSerializer(serializers.Serializer):
