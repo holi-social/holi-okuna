@@ -2655,7 +2655,6 @@ class GetPostParticipantsAPITests(OpenbookAPITestCase):
         """
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        print("--> headers %s" % headers)
 
         post_creator = make_user()
         post = post_creator.create_public_post(text=make_fake_post_text())
