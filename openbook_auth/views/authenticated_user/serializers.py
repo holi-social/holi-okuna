@@ -5,7 +5,7 @@ from django.utils.translation import gettext as _
 from openbook.settings import USERNAME_MAX_LENGTH, PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, PROFILE_NAME_MAX_LENGTH
 from openbook_auth.models import User, UserProfile
 from openbook_auth.validators import username_characters_validator, \
-    email_not_taken_validator
+    email_not_taken_validator, interests_json_validator, skills_json_validator, sdgs_json_validator
 from django.contrib.auth.password_validation import validate_password
 
 from openbook_common.models import Badge, Language
@@ -38,14 +38,21 @@ class GetAuthenticatedUserProfileSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'avatar',
-            'bio',
+            'about_me',
             'url',
             'location',
             'cover',
             'is_of_legal_age',
             'followers_count_visible',
             'community_posts_visible',
-            'badges'
+            'badges',
+            'middle_name',
+            'last_name',
+            'pronouns',
+            'engagement_level',
+            'interests',
+            'sdgs',
+            'skills',
         )
 
 
@@ -147,13 +154,26 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
                                  allow_blank=False, validators=[name_characters_validator])
     followers_count_visible = serializers.NullBooleanField(required=False, default=None)
     community_posts_visible = serializers.NullBooleanField(required=False, default=None)
-    bio = serializers.CharField(max_length=settings.PROFILE_BIO_MAX_LENGTH, required=False,
-                                allow_blank=True)
+    about_me = serializers.CharField(max_length=settings.PROFILE_ABOUT_ME_MAX_LENGTH, required=False,
+                                     allow_blank=True)
     url = FriendlyUrlField(required=False,
                            allow_blank=True)
     location = serializers.CharField(max_length=settings.PROFILE_LOCATION_MAX_LENGTH, required=False,
                                      allow_blank=True)
     visibility = serializers.ChoiceField(choices=User.VISIBILITY_TYPES, required=False)
+
+    middle_name = serializers.CharField(max_length=settings.PROFILE_MIDDLE_NAME_MAX_LENGTH, allow_blank=False,
+                                        validators=[name_characters_validator], required=False)
+    last_name = serializers.CharField(max_length=settings.PROFILE_LAST_NAME_MAX_LENGTH, allow_blank=False,
+                                      validators=[name_characters_validator], required=False)
+    pronouns = serializers.CharField(max_length=settings.PROFILE_PRONOUNS_MAX_LENGTH, allow_blank=False, validators=[],
+                                     required=False)
+    engagement_level = serializers.CharField(max_length=settings.PROFILE_ENGAGEMENT_LEVEL_MAX_LENGTH, allow_blank=False,
+                                             validators=[], required=False)
+
+    interests = serializers.JSONField(required=False, validators=[interests_json_validator])
+    sdgs = serializers.JSONField(required=False, validators=[sdgs_json_validator])
+    skills = serializers.JSONField(required=False, validators=[skills_json_validator])
 
 
 class DeleteAuthenticatedUserSerializer(serializers.Serializer):

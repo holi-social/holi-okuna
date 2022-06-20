@@ -33,7 +33,7 @@ class InvitedUserProfileSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'avatar',
-            'bio',
+            'about_me',
             'url',
             'location',
             'cover',
