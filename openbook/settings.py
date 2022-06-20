@@ -118,6 +118,7 @@ INSTALLED_APPS = [
     'django_rq',
     'scheduler',
     'django_extensions',
+    'drf_spectacular',
     'openbook_common',
     'openbook_auth',
     'openbook_posts',
@@ -134,7 +135,7 @@ INSTALLED_APPS = [
     'openbook_notifications',
     'openbook_devices',
     'openbook_moderation',
-    'openbook_translation',
+    'openbook_translation'
 ]
 
 MODELTRANSLATION_FALLBACK_LANGUAGES = ('en',)
@@ -389,7 +390,8 @@ REST_FRAMEWORK = {
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.AcceptHeaderVersioning',
     'DEFAULT_THROTTLE_RATES': {
         'link_preview': '300/hour',
-    }
+    },
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema'
 }
 
 # AWS Translate
@@ -623,3 +625,10 @@ ONE_SIGNAL_API_KEY = os.environ.get('ONE_SIGNAL_API_KEY')
 # Peekalink
 
 PEEKALINK_API_KEY = os.environ.get('PEEKALINK_API_KEY', None)
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Your Project API',
+    'DESCRIPTION': 'Your project description',
+    'VERSION': '0.0.63',
+    # OTHER SETTINGS
+}
