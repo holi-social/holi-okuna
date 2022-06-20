@@ -30,7 +30,7 @@ django-replicated==2.7
 django-rq-scheduler==2022.4
 django-rq==2.5.1
 django-storages==1.12.3
-django==4.0.4
+django==4.0.5
 djangorestframework==3.13.1
 dparse==0.5.1; python_version >= '3.5'
 faker==0.9.1
