@@ -17,8 +17,11 @@ from django.urls import re_path, path, include
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.decorators.csrf import csrf_exempt
+from graphene_django.views import GraphQLView
 from proxy.views import proxy_view
 
+from openbook import graphql_schema
 from openbook_auth.views.auth.views import Register, Login, UsernameCheck, EmailCheck, EmailVerify, \
     PasswordResetRequest, PasswordResetVerify, VerifyRegistrationToken
 from openbook_auth.views.authenticated_user.views import AuthenticatedUser, AuthenticatedUserSettings, \
@@ -460,6 +463,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('django-rq/', include('django_rq.urls')),
     path('health/', Health.as_view(), name='health'),
+    path('graphql', csrf_exempt(GraphQLView.as_view(graphiql=True, schema=graphql_schema.schema))),
 ]
 
 # The static helper works only in debug mode
