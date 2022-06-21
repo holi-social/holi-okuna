@@ -37,10 +37,11 @@ variable "image_tag" {
 resource "google_cloud_run_service" "okuna" {
   project  = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
   name     = random_id.main.hex
-  location = "europe-north1" # TODO: Frankfurt doesn't work, settle on a region here (north1 is finland and very co2 friendly)
+  location = "europe-north1" # finland, low CO2 emissions
 
   template {
     spec {
+      service_account_name = data.terraform_remote_state.holi_okuna_common_state.outputs.cloud_run_service_account_email
       containers {
         image = "${data.terraform_remote_state.holi_infra_state.outputs.gcr_location}/holi-okuna:${var.image_tag}"
         ports {
@@ -120,17 +121,24 @@ resource "google_cloud_run_service" "okuna" {
       container_concurrency = 0 # 0 means thread safe, no restriction on max concurrency
       timeout_seconds       = 300
     }
+    # template annotations: https://cloud.google.com/run/docs/reference/rpc/google.cloud.run.v1#revisiontemplate
     metadata {
       annotations = {
         "autoscaling.knative.dev/minScale" = local.environment == "production" ? "0" : "0"
         "autoscaling.knative.dev/maxScale" = local.environment == "production" ? "10" : "1"
-        #"run.googleapis.com/ingress" = "All" # TODO security: switch to "Internal" once only the API proxy connects
-        #"run.googleapis.com/egress" = "All" # TODO security: ???
-        #"run.googleapis.com/vpc-access-egress" = "all"
         # Use the VPC Connector
         "run.googleapis.com/vpc-access-connector" = data.terraform_remote_state.holi_infra_state.outputs.vpc_access_connector_name
-        # all egress from the service should go through the VPC Connector
+        # possible values: all-traffic/private-ranges-only(default) https://cloud.google.com/sdk/gcloud/reference/run/services/update#--vpc-egress
+        "run.googleapis.com/vpc-access-egress" = "private-ranges-only"
       }
+    }
+  }
+
+  # only accept traffic from the internal network, not from the internet
+  metadata {
+    annotations = {
+      # possible values: all/internal/internal-and-cloud-load-balancing https://cloud.google.com/sdk/gcloud/reference/run/services/update#--ingress
+      "run.googleapis.com/ingress" = "internal"
     }
   }
 
