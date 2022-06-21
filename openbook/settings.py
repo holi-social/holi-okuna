@@ -25,6 +25,12 @@ from sentry_sdk.integrations.rq import RqIntegration
 
 from openbook_common.utils.environment import EnvironmentChecker
 
+# TODO due to https://github.com/graphql-python/graphene-django/issues/1284 we have to monkey patch
+#  the force_text method back into django so graphene-django can work. should be updated once released
+import django
+from django.utils.encoding import force_str
+django.utils.encoding.force_text = force_str
+
 LOGGING_CONFIG = None
 logging.config.dictConfig({
     'version': 1,
@@ -118,6 +124,7 @@ INSTALLED_APPS = [
     'django_rq',
     'scheduler',
     'django_extensions',
+    'graphene_django',
     'openbook_common',
     'openbook_auth',
     'openbook_posts',
