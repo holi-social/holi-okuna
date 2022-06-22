@@ -9,7 +9,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.utils.translation import gettext as _
 from drf_spectacular.utils import extend_schema
-
 from openbook_auth.views.auth.serializers import AuthenticatedUserNotificationsSettingsSerializer, \
     UpdateAuthenticatedUserNotificationsSettingsSerializer
 from openbook_auth.views.authenticated_user.serializers import GetAuthenticatedUserSerializer, \

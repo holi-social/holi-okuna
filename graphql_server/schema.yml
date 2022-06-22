@@ -12,7 +12,7 @@ paths:
       responses:
         '200':
           content:
-            application/json; version=0.0.63:
+            application/json:
               schema:
                 $ref: '#/components/schemas/GetAuthenticatedUser'
           description: ''
@@ -34,13 +34,43 @@ paths:
       responses:
         '200':
           content:
-            application/json; version=0.0.63:
+            application/json:
               schema:
                 $ref: '#/components/schemas/GetAuthenticatedUser'
           description: ''
-
 components:
   schemas:
+    CircleNameCheck:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+      required:
+      - name
+    CommunityNameCheck:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 32
+      required:
+      - name
+    EmailCheck:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+      - email
+    EmailVerify:
+      type: object
+      properties:
+        token:
+          type: string
+      required:
+      - token
     GetAuthenticatedUser:
       type: object
       properties:
@@ -350,3 +380,6 @@ components:
       - T
       - O
       type: string
+servers:
+- url: http://localhost:8000
+  description: localhost

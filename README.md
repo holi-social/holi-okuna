@@ -74,12 +74,15 @@ npm i -g openapi-to-graphql-cli
 
 Generate the openapi schema via spectacular:
 ```
- ./manage.py spectacular --file schema.yml --api-version '0.0.63'
+ ./manage.py spectacular --file graphql_server/schema.yml --api-version '0.0.63'
 ```
-Inspect the schema.yml and maybe remove unneeded paths and actions and then run to generate the graphql schema:
+After the generation, the schema was manually updated: Unnessesary calls were removed and the version at the response 
+content types were removed.
+Start the graphql server in `graphql_server`:
 ```
-openapi-to-graphql schema.yml --save schema.graphql
+DEBUG=http,pubsub node app.js
 ```
+The authentication headers have to be set manually since they are forwarded from oathkeeper.
 
 ## Known installation issues
 

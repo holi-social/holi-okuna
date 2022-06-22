@@ -6,8 +6,11 @@ const yaml = require('js-yaml');
 
 async function main(oas) {
   // generate schema:
-  const { schema, report } = await createGraphQLSchema(oas)
-
+  const { schema, report } = await createGraphQLSchema(oas, {
+      headers: function(method, path, title, { source, args, context, info }){
+        return context.headers
+      }
+  })
   // server schema:
   const app = express()
   app.use(
@@ -17,7 +20,7 @@ async function main(oas) {
       graphiql: true
     })
   )
-  app.listen(3001)
+  app.listen(3000)
 }
 const fileContents = readFileSync('./schema.yml', 'utf8');
 const oas = yaml.load(fileContents);
