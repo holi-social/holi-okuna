@@ -13,6 +13,7 @@ class GqlUser(DjangoObjectType):
         model = User
         fields = ['id']
 
+    avatar = graphene.String()
     username = graphene.String()
     first_name = graphene.String()
     middle_name = graphene.String()
@@ -25,6 +26,9 @@ class GqlUser(DjangoObjectType):
     sdgs = graphene.List(graphene.String)
     skills = graphene.List(graphene.String)
 
+    def resolve_avatar(self, info):
+        return self.profile.avatar
+
     def resolve_first_name(self, info):
         return self.profile.name
 
@@ -34,7 +38,7 @@ class GqlUser(DjangoObjectType):
     def resolve_last_name(self, info):
         return self.profile.last_name
 
-    def resolve_aboutMe(self, info):
+    def resolve_about_me(self, info):
         return self.profile.about_me
 
     def resolve_pronouns(self, info):
@@ -44,7 +48,7 @@ class GqlUser(DjangoObjectType):
         return self.profile.location
 
     def resolve_engagement_level(self, info):
-        return self.profile.engagementLevel
+        return self.profile.engagement_level
 
     def resolve_interests(self, info):
         return self.profile.interests
@@ -58,7 +62,7 @@ class GqlUser(DjangoObjectType):
 
 class Query(graphene.ObjectType):
     user = graphene.Field(GqlUser, id=graphene.String())
-    allUsers = graphene.List(GqlUser)
+    all_users = graphene.List(GqlUser)
 
     def resolve_user(self, info, id):
         user = info.context.user
@@ -69,10 +73,11 @@ class Query(graphene.ObjectType):
         else:
             return user.get_user_with_username(id)
 
-    def resolve_allUsers(self, info, **kwargs):
+    def resolve_all_users(self, info, **kwargs):
         return User.objects.all()
 
 
+# TODO remove, as they're within class Arguments?????
 class UserInput(graphene.InputObjectType):
     avatar = graphene.String()
     firstName = graphene.String()
@@ -90,45 +95,37 @@ class UserInput(graphene.InputObjectType):
 # TODO "original" API definition receives an id: ID! field to indicate which user should be updated. This field is
 #  redundant as a user can only edit himself anyways, so the authorization headers can be used to identify the user.
 #  -> Remove the id field from the API definition?
-class UpdateUserMutation(SerializerMutation):
-    class Meta:
-        # TODO while SerializerMutation in principle nicely learns which fields exist, it ignores the validators so they
-        #  would need to be manually executed or similar
-        serializer_class = UpdateAuthenticatedUserSerializer  # reuses serializer from Django REST Framework
-        model_operations = ['update']  # default ['create', 'update']
-        only_fields = (
-            'avatar', 'name', 'middle_name', 'last_name', 'about_me', 'pronouns', 'location',
-            'engagement_level', 'interests', 'sdgs', 'skills'
-        )
-        lookup_field = 'username'
+class UpdateUserMutation(graphene.Mutation):
+    class Arguments:
+        user = graphene.Argument(UserInput)
 
-    # TODO problem: while the mutation itself works (input is just the fields defined in only_fields above), the
-    #  response is empty because the fields are actually from user.profile, not user directly.
+    user = graphene.Field(GqlUser)
+
     @classmethod
-    def mutate(cls, root, info, input):
-        user = info.context.user
-        print("UpdateUserMutation (user=%s,input=%s)" % (user, input))
+    def mutate(cls, root, info, user):
+        authenticated_user = info.context.user
+        print("UpdateUserMutation (user=%s,user_input=%s)" % (authenticated_user, user))
         # TODO validation + implementation here is copy/pasted from AuthenticatedUser.patch, this would need to be
         #  refactored into a non-REST-specific business logic method
-        serializer = UpdateAuthenticatedUserSerializer(data=input)
+        serializer = UpdateAuthenticatedUserSerializer(data=user)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        user.update(
-            name=data.get('name,'),
-            location=data.get('location,'),
-            about_me=data.get('about_me,'),
+        authenticated_user.update(
+            name=data.get('name'),
+            location=data.get('location'),
+            about_me=data.get('about_me'),
             save=True,  # TODO maybe set to false or remove after refactoring
-            middle_name=data.get('middle_name,'),
-            last_name=data.get('last_name,'),
-            pronouns=data.get('pronouns,'),
-            engagement_level=data.get('engagement_level,'),
-            interests=data.get('interests,'),
-            sdgs=data.get('sdgs,'),  # TODO receives a "JSONString" instead of an array :/
+            middle_name=data.get('middle_name'),
+            last_name=data.get('last_name'),
+            pronouns=data.get('pronouns'),
+            engagement_level=data.get('engagement_level'),
+            interests=data.get('interests'),
+            sdgs=data.get('sdgs'),  # TODO receives a "JSONString" instead of an array :/
             skills=data.get('skills'),
         )
-        print("UpdateUserMutation (user=%s)" % user)
-        return user
+        print("UpdateUserMutation (user=%s)" % authenticated_user)
+        return UpdateUserMutation(user=authenticated_user)
         # TODO do a few more things as in openbook_auth.views.authenticated_user.views.AuthenticatedUser.patch or
         #  refactor user.update() method to include the updating of these "few more things" as the business logic should
         #  not reside in the API layer anyway
