@@ -630,5 +630,5 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'Your Project API',
     'DESCRIPTION': 'Your project description',
     'VERSION': '0.0.63',
-    'SERVERS': [{'url': 'http://localhost:8000', 'description': 'localhost'}]
+    'SERVERS': [{'url': 'http://localhost:4455', 'description': 'localhost'}]
 }
