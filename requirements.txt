@@ -1,14 +1,12 @@
 -i https://pypi.python.org/simple
-appdirs==1.4.4
 bandit==1.5.1
 beautifulsoup4==4.9.3
-boto3==1.16.0
+boto3==1.16.0 # aws lib
 botocore==1.19.0
 certifi==2020.6.20
 chardet==3.0.4
 #click==7.1.2; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
 #colorama==0.4.4; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
-colormath==3.0.0
 coverage==5.3
 croniter==1.3.4
 decorator==4.4.2
@@ -35,14 +33,14 @@ djangorestframework==3.13.1
 dparse==0.5.1; python_version >= '3.5'
 faker==0.9.1
 ffmpy==0.2.3
-filelock==3.0.12
+#filelock==3.0.12
 funcy==1.15
 gitdb==4.0.5; python_version >= '3.4'
 gitpython==3.1.9; python_version >= '3.4'
 halo==0.0.30
-#idna==2.10; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
-#importlib-metadata==2.0.0; python_version < '3.8'
-#jmespath==0.10.0; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'
+idna==2.10; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+importlib-metadata==2.0.0; python_version < '3.8'
+jmespath==0.10.0; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'
 langdetect==1.0.8
 log-symbols==0.0.14
 mixer==6.1.3
@@ -51,7 +49,7 @@ networkx==2.5; python_version >= '3.6'
 nose-exclude==0.5.0
 nose==1.3.7
 onesignal-sdk==1.1.0
-#packaging==20.4; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+packaging==20.4; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 pathtools==0.1.2
 pbr==5.5.1; python_version >= '2.6'
 pilkit==2.0
@@ -59,15 +57,15 @@ pillow==8.0.0
 pinocchio==0.4.2
 psycopg2-binary==2.9.3
 pyjwt==1.7.1
-#pyparsing==2.4.7; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'
-#python-dateutil==2.8.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+pyparsing==2.4.7; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'
+python-dateutil==2.8.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 python-dotenv==0.14.0
 python-magic==0.4.18
 pytz==2022.1
 pyyaml==5.3.1
 redis==3.5.3
 requests-file==1.5.1
-#requests==2.24.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
+requests==2.24.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
 rest-framework-generic-relations==2.1.0
 rq-scheduler==0.11.0
 rq==1.10.1
@@ -76,9 +74,8 @@ safety==1.9.0
 sentry-sdk==0.10.2
 shutilwhich==1.1.0
 six==1.16.0
-#smmap==3.0.4; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+smmap==3.0.4; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 soupsieve==2.0.1; python_version >= '3.0'
-#spectra==0.0.11
 spinners==0.0.24
 sqlparse==0.4.1; python_version >= '3.5'
 stevedore==3.2.2; python_version >= '3.6'
