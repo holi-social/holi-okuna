@@ -1,4 +1,5 @@
 from rest_framework.fields import Field
+from drf_spectacular.utils import extend_schema_field, OpenApiTypes
 
 from openbook_communities.models import CommunityInvite
 from openbook_common.utils.model_loaders import get_user_model
@@ -189,6 +190,7 @@ class IsFollowRequested(Field):
         return False
 
 
+@extend_schema_field(OpenApiTypes.INT)
 class FollowersCountField(Field):
     def __init__(self, **kwargs):
         kwargs['source'] = '*'
@@ -214,7 +216,7 @@ class IsGlobalModeratorField(Field):
     def to_representation(self, user):
         return user.is_global_moderator()
 
-
+@extend_schema_field(OpenApiTypes.INT)
 class FollowingCountField(Field):
     def __init__(self, **kwargs):
         kwargs['source'] = '*'

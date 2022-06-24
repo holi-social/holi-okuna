@@ -12,6 +12,7 @@ async function main(oas) {
       }
   })
   // server schema:
+  console.log(schema)
   const app = express()
   app.use(
     '/graphql',
@@ -22,7 +23,7 @@ async function main(oas) {
   )
   app.listen(3000)
 }
-const fileContents = readFileSync('./schema.yml', 'utf8');
+const fileContents = readFileSync('../schema2.yml', 'utf8');
 const oas = yaml.load(fileContents);
 main(oas) // oas loaded/constructed someplace else
 
