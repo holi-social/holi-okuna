@@ -66,9 +66,10 @@ passwords and database contents etc!**
 
 ## Changes to reduce dependencies
 ### spectra==0.0.11
-spectra has a dependency on numpy which takes very to load and compile. It is only usded in
-`openbook_hashtags/management/commands/update_hashtags/luminance.py` to change the color of a hashtag.
-Since we may not use this feature, the spectra import and dependency was removed.
+spectra has a dependency on numpy which takes very to load and compile. It is used in
+`openbook_hashtags/management/commands/update_hashtags/luminance.py` to change the color of a hashtag. 
+It is also used in `openbook_common/utils/helpers.py` to darken a color.
+Since we may not use these features, the spectra import and dependency was removed.
 
 ## Known installation issues
 
