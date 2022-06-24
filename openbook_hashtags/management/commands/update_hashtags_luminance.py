@@ -1,4 +1,4 @@
-import spectra
+#import spectra
 from django.core.management.base import BaseCommand
 import logging
 
@@ -31,15 +31,15 @@ class Command(BaseCommand):
 
         for hashtag in Hashtag.objects.all().iterator():
             with transaction.atomic():
-                color = spectra.html(hashtag.color)
-                if luminance > 0:
-                    color = color.brighten(luminance)
-                else:
-                    color = color.darken(luminance * -1)
-                hashtag.color = color.hexcode
-                hashtag.save()
+                 # color = spectra.html(hashtag.color)
+                #if luminance > 0:
+                #    color = color.brighten(luminance)
+                #else:
+                #    color = color.darken(luminance * -1)
+                #hashtag.color = color.hexcode
+                #hashtag.save()
 
-            logger.info('Processed hashtags for post with name:' + str(hashtag.name))
+            #logger.info('Processed hashtags for post with name:' + str(hashtag.name))
             processed_hashtags = processed_hashtags + 1
 
         logger.info('Updated %d hashtags colors' % processed_hashtags)
