@@ -1,20 +1,20 @@
 import graphene
 from graphene_django import DjangoObjectType
-from graphene_django.rest_framework.mutation import SerializerMutation
 
-from openbook_auth.models import User
+from openbook_auth.models import User as UserModel
 from openbook_auth.views.authenticated_user.serializers import UpdateAuthenticatedUserSerializer
 
 
-class GqlUser(DjangoObjectType):
+# noinspection PyUnresolvedReferences
+class User(DjangoObjectType):
     # normally, all fields could just go in here to be automatically included. but for user the fields are actually in
     # user.profile instead of user directly, so we have to write custom resolvers.
     class Meta:
-        model = User
+        model = UserModel
         fields = ['id']
 
+    id = graphene.String()
     avatar = graphene.String()
-    username = graphene.String()
     first_name = graphene.String()
     middle_name = graphene.String()
     last_name = graphene.String()
@@ -25,6 +25,9 @@ class GqlUser(DjangoObjectType):
     interests = graphene.List(graphene.String)
     sdgs = graphene.List(graphene.String)
     skills = graphene.List(graphene.String)
+
+    def resolve_id(self, info):
+        return self.username
 
     def resolve_avatar(self, info):
         return self.profile.avatar
@@ -61,80 +64,63 @@ class GqlUser(DjangoObjectType):
 
 
 class Query(graphene.ObjectType):
-    user = graphene.Field(GqlUser, id=graphene.String())
-    all_users = graphene.List(GqlUser)
+    authenticated_user = graphene.Field(User)
 
-    def resolve_user(self, info, id):
-        user = info.context.user
-        print("resolve_user info=%s id=%s user=%s" % (info, id, user))
-        if user.is_anonymous:
-            # TODO this is just a quick hack and doesn't look at rights/blocks
-            return User.objects.get(username=id).first()
-        else:
-            return user.get_user_with_username(id)
-
-    def resolve_all_users(self, info, **kwargs):
-        return User.objects.all()
+    def resolve_authenticated_user(self, info):
+        if info.context.user.is_anonymous:
+            return None
+        return info.context.user
 
 
-# TODO remove, as they're within class Arguments?????
-class UserInput(graphene.InputObjectType):
+class UpdateAuthenticatedUserInput(graphene.InputObjectType):
     avatar = graphene.String()
-    firstName = graphene.String()
-    middleName = graphene.String()
-    lastName = graphene.String()
-    aboutMe = graphene.String()
+    first_name = graphene.String()
+    middle_name = graphene.String()
+    last_name = graphene.String()
+    about_me = graphene.String()
     pronouns = graphene.String()
     location = graphene.String()
-    engagementLevel = graphene.String()
+    engagement_level = graphene.String()
     interests = graphene.List(graphene.String)
     sdgs = graphene.List(graphene.String)
     skills = graphene.List(graphene.String)
 
 
-# TODO "original" API definition receives an id: ID! field to indicate which user should be updated. This field is
-#  redundant as a user can only edit himself anyways, so the authorization headers can be used to identify the user.
-#  -> Remove the id field from the API definition?
-class UpdateUserMutation(graphene.Mutation):
+class UpdateAuthenticatedUserMutation(graphene.Mutation):
     class Arguments:
-        user = graphene.Argument(UserInput)
+        input = graphene.Argument(UpdateAuthenticatedUserInput)
 
-    user = graphene.Field(GqlUser)
+    authenticated_user = graphene.Field(User)
 
     @classmethod
-    def mutate(cls, root, info, user):
+    def mutate(cls, root, info, input):
         authenticated_user = info.context.user
-        print("UpdateUserMutation (user=%s,user_input=%s)" % (authenticated_user, user))
-        # TODO validation + implementation here is copy/pasted from AuthenticatedUser.patch, this would need to be
-        #  refactored into a non-REST-specific business logic method
-        serializer = UpdateAuthenticatedUserSerializer(data=user)
+
+        input['name'] = input.first_name
+        serializer = UpdateAuthenticatedUserSerializer(data=input)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
         authenticated_user.update(
             name=data.get('name'),
-            location=data.get('location'),
-            about_me=data.get('about_me'),
-            save=True,  # TODO maybe set to false or remove after refactoring
             middle_name=data.get('middle_name'),
             last_name=data.get('last_name'),
+            about_me=data.get('about_me'),
             pronouns=data.get('pronouns'),
+            location=data.get('location'),
             engagement_level=data.get('engagement_level'),
             interests=data.get('interests'),
-            sdgs=data.get('sdgs'),  # TODO receives a "JSONString" instead of an array :/
+            sdgs=data.get('sdgs'),
             skills=data.get('skills'),
+            save=True,
         )
-        print("UpdateUserMutation (user=%s)" % authenticated_user)
-        return UpdateUserMutation(user=authenticated_user)
-        # TODO do a few more things as in openbook_auth.views.authenticated_user.views.AuthenticatedUser.patch or
-        #  refactor user.update() method to include the updating of these "few more things" as the business logic should
-        #  not reside in the API layer anyway
+
+        return UpdateAuthenticatedUserMutation(authenticated_user=authenticated_user)
 
 
 class Mutation(graphene.ObjectType):
-    # TODO remove function createUser from API definition? it should not exist, users are automatically generated once
-    #  Okuna receives a valid token, so we only need an update mutation
-    updateUser = UpdateUserMutation.Field()
+    update_authenticated_user = UpdateAuthenticatedUserMutation.Field()
 
 
+# noinspection PyTypeChecker
 schema = graphene.Schema(query=Query, mutation=Mutation)

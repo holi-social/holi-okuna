@@ -93,6 +93,24 @@ from openbook_posts.views.posts.views import Posts, TrendingPosts, TopPosts, Tre
     LinkIsPreviewable
 from openbook_importer.views import ImportItem
 
+from rest_framework.decorators import authentication_classes, api_view
+from rest_framework.settings import api_settings
+
+
+class DRFAuthenticatedGraphQLView(GraphQLView):
+    def parse_body(self, request):
+        if isinstance(request, rest_framework.request.Request):
+            return request.data
+        return super(DRFAuthenticatedGraphQLView, self).parse_body(request)
+
+    @classmethod
+    def as_view(cls, *args, **kwargs):
+        view = super(DRFAuthenticatedGraphQLView, cls).as_view(*args, **kwargs)
+        view = authentication_classes(api_settings.DEFAULT_AUTHENTICATION_CLASSES)(view)
+        view = api_view(['GET', 'POST'])(view)
+        return view
+
+
 auth_auth_patterns = [
     path('register/', Register.as_view(), name='register-user'),
     path('register/verify-token/', VerifyRegistrationToken.as_view(), name='verify-register-token'),
@@ -458,26 +476,6 @@ api_patterns = [
 
 if settings.FEATURE_IMPORTER_ENABLED:
     api_patterns.append(path('import/', include(importer_patterns))),
-
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import authentication_classes, permission_classes, api_view
-from rest_framework.settings import api_settings
-
-
-class DRFAuthenticatedGraphQLView(GraphQLView):
-    def parse_body(self, request):
-        if isinstance(request, rest_framework.request.Request):
-            return request.data
-        return super(DRFAuthenticatedGraphQLView, self).parse_body(request)
-
-    @classmethod
-    def as_view(cls, *args, **kwargs):
-        view = super(DRFAuthenticatedGraphQLView, cls).as_view(*args, **kwargs)
-        # view = permission_classes((IsAuthenticated,))(view)
-        view = authentication_classes(api_settings.DEFAULT_AUTHENTICATION_CLASSES)(view)
-        view = api_view(['GET', 'POST'])(view)
-        return view
-
 
 urlpatterns = [
     path('api/', include(api_patterns)),

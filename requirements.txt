@@ -15,6 +15,7 @@ decorator==4.4.2
 django-amazon-ses==4.0.1
 django-appconf==1.0.5
 django-cacheops==6.0
+django-cors-headers==3.13.0
 django-cursor-pagination==0.1.5
 django-extensions==3.0.9
 django-imagekit==4.1.0

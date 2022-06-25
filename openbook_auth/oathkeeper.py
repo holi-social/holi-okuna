@@ -17,8 +17,6 @@ class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
         user_id = request.headers.get(HEADER_USER_ID, request.META.get(HEADER_USER_ID))
         user_email = request.headers.get(HEADER_USER_EMAIL, request.META.get(HEADER_USER_EMAIL))
 
-        print("user_id=%s user_email=%s" % (user_id, user_email))
-
         if user_id == 'anonymous':
             return AnonymousUser(), None
 

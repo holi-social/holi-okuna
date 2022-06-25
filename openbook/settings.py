@@ -104,6 +104,7 @@ else:
 INSTALLED_APPS = [
     # Has to be before contrib admin
     # See https://django-modeltranslation.readthedocs.io/en/latest/installation.html#required-settings
+    'corsheaders',
     'modeltranslation',
     'django.contrib.admin',
     'django.contrib.humanize',
@@ -147,6 +148,7 @@ INSTALLED_APPS = [
 MODELTRANSLATION_FALLBACK_LANGUAGES = ('en',)
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -158,6 +160,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'openbook_common.middleware.TimezoneMiddleware'
 ]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^http://localhost",
+    r"^https://\w+\.web\.project-holi\.org",
+]
+CORS_ALLOW_CREDENTIALS = True
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.RemoteUserBackend',
