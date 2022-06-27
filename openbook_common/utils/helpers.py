@@ -9,7 +9,6 @@ from urllib.parse import urlparse
 from url_normalize import url_normalize
 
 import magic
-import spectra
 from django.http import QueryDict
 from imagekit.utils import get_cache
 from imagekit.models import ProcessedImageField
@@ -60,8 +59,8 @@ def get_random_pastel_color():
     h, s, l = random.random(), 0.5 + random.random() / 2.0, 0.4 + random.random() / 5.0  # nosec
     r, g, b = [int(256 * i) for i in colorsys.hls_to_rgb(h, l, s)]
     hex_color = '#%02x%02x%02x' % (r, g, b)
-    color = spectra.html(hex_color).darken(amount=20)
-    return color.hexcode
+    #color = spectra.html(hex_color).darken(amount=20)
+    return hex_color
 
 
 def delete_file_field(filefield):
