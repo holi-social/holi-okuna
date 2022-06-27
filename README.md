@@ -71,6 +71,9 @@ spectra has a dependency on numpy which takes very to load and compile. It is us
 It is also used in `openbook_common/utils/helpers.py` to darken a color.
 Since we may not use these features, the spectra import and dependency was removed.
 
+### colormath==3.0.0
+colormath has a dependency on numpy and cannot be found via search in the source code.
+
 ## Known installation issues
 
 ### MacOs
