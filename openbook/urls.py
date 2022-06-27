@@ -13,12 +13,16 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
+import rest_framework
 from django.urls import re_path, path, include
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.decorators.csrf import csrf_exempt
+from graphene_django.views import GraphQLView
 from proxy.views import proxy_view
 
+from openbook import graphql_schema
 from openbook_auth.views.auth.views import Register, Login, UsernameCheck, EmailCheck, EmailVerify, \
     PasswordResetRequest, PasswordResetVerify, VerifyRegistrationToken
 from openbook_auth.views.authenticated_user.views import AuthenticatedUser, AuthenticatedUserSettings, \
@@ -88,6 +92,24 @@ from openbook_posts.views.posts.views import Posts, TrendingPosts, TopPosts, Tre
     SearchTopPostsExcludedCommunities, ProfilePostsExcludedCommunity, TopPostsExcludedCommunity, PreviewLink, \
     LinkIsPreviewable
 from openbook_importer.views import ImportItem
+
+from rest_framework.decorators import authentication_classes, api_view
+from rest_framework.settings import api_settings
+
+
+class DRFAuthenticatedGraphQLView(GraphQLView):
+    def parse_body(self, request):
+        if isinstance(request, rest_framework.request.Request):
+            return request.data
+        return super(DRFAuthenticatedGraphQLView, self).parse_body(request)
+
+    @classmethod
+    def as_view(cls, *args, **kwargs):
+        view = super(DRFAuthenticatedGraphQLView, cls).as_view(*args, **kwargs)
+        view = authentication_classes(api_settings.DEFAULT_AUTHENTICATION_CLASSES)(view)
+        view = api_view(['GET', 'POST'])(view)
+        return view
+
 
 auth_auth_patterns = [
     path('register/', Register.as_view(), name='register-user'),
@@ -460,6 +482,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('django-rq/', include('django_rq.urls')),
     path('health/', Health.as_view(), name='health'),
+    path('graphql', csrf_exempt(DRFAuthenticatedGraphQLView.as_view(graphiql=True, schema=graphql_schema.schema))),
 ]
 
 # The static helper works only in debug mode

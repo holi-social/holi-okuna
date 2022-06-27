@@ -38,40 +38,25 @@ class AuthenticatedUser(APIView):
             user.update(
                 username=data.get('username'),
                 name=data.get('name'),
-                location=data.get('location'),
+                middle_name=data.get('middle_name'),
+                last_name=data.get('last_name'),
                 about_me=data.get('about_me'),
+                location=data.get('location'),
                 url=data.get('url'),
                 followers_count_visible=data.get('followers_count_visible'),
                 community_posts_visible=data.get('community_posts_visible'),
                 visibility=data.get('visibility'),
-                save=False,
-                middle_name=data.get('middle_name'),
-                last_name=data.get('last_name'),
                 pronouns=data.get('pronouns'),
                 engagement_level=data.get('engagement_level'),
                 interests=data.get('interests'),
                 sdgs=data.get('sdgs'),
                 skills=data.get('skills'),
+                avatar=data.get('avatar'),
+                update_avatar='avatar' in data,
+                cover=data.get('cover'),
+                update_cover='cover' in data,
+                save=True,
             )
-
-            has_avatar = 'avatar' in data
-            if has_avatar:
-                avatar = data.get('avatar')
-                if avatar is None:
-                    user.delete_profile_avatar(save=False)
-                else:
-                    user.update_profile_avatar(avatar, save=False)
-
-            has_cover = 'cover' in data
-            if has_cover:
-                cover = data.get('cover')
-                if cover is None:
-                    user.delete_profile_cover(save=False)
-                else:
-                    user.update_profile_cover(cover, save=False)
-
-            user.profile.save()
-            user.save()
 
         user_serializer = GetAuthenticatedUserSerializer(user, context={"request": request})
         return Response(user_serializer.data, status=status.HTTP_200_OK)

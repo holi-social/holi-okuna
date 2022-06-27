@@ -514,14 +514,18 @@ class User(AbstractUser):
                followers_count_visible=None,
                community_posts_visible=None,
                visibility=None,
-               save=True,
+               avatar=None,
+               update_avatar=False,
+               cover=None,
+               update_cover=False,
                middle_name=None,
                last_name=None,
                pronouns=None,
                engagement_level=None,
                interests=None,
                sdgs=None,
-               skills=None):
+               skills=None,
+               save=True):
 
         profile = self.profile
 
@@ -580,6 +584,10 @@ class User(AbstractUser):
             profile.sdgs = sdgs
         if skills:
             profile.skills = skills
+        if update_avatar:
+            self.update_profile_avatar(avatar, save=False)
+        if update_cover:
+            self.update_profile_cover(cover, save=False)
 
         if save:
             profile.save()
