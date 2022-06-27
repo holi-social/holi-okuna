@@ -1,0 +1,385 @@
+openapi: 3.0.3
+info:
+  title: Your Project API
+  version: 0.0.63 (0.0.63)
+  description: Your project description
+paths:
+  /api/auth/user/:
+    get:
+      operationId: api_auth_user_retrieve
+      tags:
+      - api
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAuthenticatedUser'
+          description: ''
+    patch:
+      operationId: api_auth_user_partial_update
+      tags:
+      - api
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateAuthenticatedUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateAuthenticatedUser'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateAuthenticatedUser'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAuthenticatedUser'
+          description: ''
+components:
+  schemas:
+    CircleNameCheck:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+      required:
+      - name
+    CommunityNameCheck:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 32
+      required:
+      - name
+    EmailCheck:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+      - email
+    EmailVerify:
+      type: object
+      properties:
+        token:
+          type: string
+      required:
+      - token
+    GetAuthenticatedUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        username:
+          type: string
+          description: Required. 36 characters or fewer. Letters, digits and _ only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 36
+        profile:
+          $ref: '#/components/schemas/GetAuthenticatedUserProfile'
+        language:
+          $ref: '#/components/schemas/UserLanguage'
+        invite_count:
+          type: integer
+          maximum: 32767
+          minimum: -32768
+        date_joined:
+          type: string
+          format: date-time
+        are_guidelines_accepted:
+          type: boolean
+        followers_count:
+          type: string
+          readOnly: true
+        following_count:
+          type: string
+          readOnly: true
+        connections_circle_id:
+          type: integer
+          nullable: true
+          readOnly: true
+        is_member_of_communities:
+          type: string
+          readOnly: true
+        is_global_moderator:
+          type: string
+          readOnly: true
+        unread_notifications_count:
+          type: string
+          readOnly: true
+        pending_communities_moderated_objects_count:
+          type: string
+          readOnly: true
+        active_moderation_penalties_count:
+          type: string
+          readOnly: true
+        visibility:
+          type: string
+          readOnly: true
+      required:
+      - active_moderation_penalties_count
+      - connections_circle_id
+      - email
+      - followers_count
+      - following_count
+      - id
+      - is_global_moderator
+      - is_member_of_communities
+      - language
+      - pending_communities_moderated_objects_count
+      - profile
+      - unread_notifications_count
+      - username
+      - uuid
+      - visibility
+    GetAuthenticatedUserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          nullable: true
+          maxLength: 192
+        avatar:
+          type: string
+          format: uri
+          nullable: true
+        about_me:
+          type: string
+          nullable: true
+          maxLength: 1000
+        url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        location:
+          type: string
+          nullable: true
+          maxLength: 192
+        cover:
+          type: string
+          format: uri
+          nullable: true
+        is_of_legal_age:
+          type: boolean
+        followers_count_visible:
+          type: boolean
+        community_posts_visible:
+          type: boolean
+        badges:
+          type: array
+          items:
+            $ref: '#/components/schemas/GetAuthenticatedUserProfileBadge'
+        middle_name:
+          type: string
+          nullable: true
+          maxLength: 192
+        last_name:
+          type: string
+          nullable: true
+          maxLength: 192
+        pronouns:
+          type: string
+          nullable: true
+          maxLength: 192
+        engagement_level:
+          type: string
+          nullable: true
+          maxLength: 64
+        interests:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        sdgs:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        skills:
+          type: object
+          additionalProperties: {}
+          nullable: true
+      required:
+      - badges
+      - id
+    GetAuthenticatedUserProfileBadge:
+      type: object
+      properties:
+        keyword:
+          type: string
+          maxLength: 16
+        keyword_description:
+          type: string
+          nullable: true
+          maxLength: 64
+      required:
+      - keyword
+    ListNameCheck:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+      required:
+      - name
+    Login:
+      type: object
+      properties:
+        username:
+          type: string
+          maxLength: 36
+        password:
+          type: string
+          maxLength: 100
+          minLength: 10
+      required:
+      - password
+      - username
+    PatchedUpdateAuthenticatedUser:
+      type: object
+      properties:
+        username:
+          type: string
+          maxLength: 36
+        avatar:
+          type: string
+          format: uri
+          nullable: true
+        cover:
+          type: string
+          format: uri
+          nullable: true
+        password:
+          type: string
+          maxLength: 100
+          minLength: 10
+        name:
+          type: string
+          maxLength: 192
+        followers_count_visible:
+          type: boolean
+          nullable: true
+        community_posts_visible:
+          type: boolean
+          nullable: true
+        about_me:
+          type: string
+          maxLength: 1000
+        url:
+          type: string
+          format: uri
+        location:
+          type: string
+          maxLength: 192
+        visibility:
+          $ref: '#/components/schemas/VisibilityEnum'
+        middle_name:
+          type: string
+          maxLength: 192
+        last_name:
+          type: string
+          maxLength: 192
+        pronouns:
+          type: string
+          maxLength: 192
+        engagement_level:
+          type: string
+          maxLength: 64
+        interests:
+          type: object
+          additionalProperties: {}
+        sdgs:
+          type: object
+          additionalProperties: {}
+        skills:
+          type: object
+          additionalProperties: {}
+    Register:
+      type: object
+      properties:
+        password:
+          type: string
+          maxLength: 100
+          minLength: 10
+        is_of_legal_age:
+          type: boolean
+        are_guidelines_accepted:
+          type: boolean
+        name:
+          type: string
+          maxLength: 192
+        username:
+          type: string
+          maxLength: 36
+        avatar:
+          type: string
+          format: uri
+        email:
+          type: string
+          format: email
+        token:
+          type: string
+      required:
+      - are_guidelines_accepted
+      - email
+      - is_of_legal_age
+      - name
+      - password
+      - token
+    TrendingCommunities:
+      type: object
+      properties:
+        category:
+          type: string
+          maxLength: 32
+    UserLanguage:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        code:
+          type: string
+          maxLength: 12
+        name:
+          type: string
+          maxLength: 64
+      required:
+      - code
+      - id
+      - name
+    UsernameCheck:
+      type: object
+      properties:
+        username:
+          type: string
+          maxLength: 36
+      required:
+      - username
+    VisibilityEnum:
+      enum:
+      - P
+      - T
+      - O
+      type: string
+servers:
+- url: http://localhost:8000
+  description: localhost

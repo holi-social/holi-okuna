@@ -33,6 +33,7 @@ django-storages==1.12.3
 django==4.0.5
 djangorestframework==3.13.1
 dparse==0.5.1; python_version >= '3.5'
+drf-spectacular==0.22.1
 faker==0.9.1
 ffmpy==0.2.3
 filelock==3.0.12

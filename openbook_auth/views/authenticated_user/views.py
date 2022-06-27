@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.utils.translation import gettext as _
-
+from drf_spectacular.utils import extend_schema
 from openbook_auth.views.auth.serializers import AuthenticatedUserNotificationsSettingsSerializer, \
     UpdateAuthenticatedUserNotificationsSettingsSerializer
 from openbook_auth.views.authenticated_user.serializers import GetAuthenticatedUserSerializer, \
@@ -22,10 +22,17 @@ from openbook_common.responses import ApiMessageResponse
 class AuthenticatedUser(APIView):
     permission_classes = (IsAuthenticated,)
 
+    @extend_schema(
+        responses={200: GetAuthenticatedUserSerializer},
+    )
     def get(self, request):
         user_serializer = GetAuthenticatedUserSerializer(request.user, context={"request": request})
         return Response(user_serializer.data, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        request=UpdateAuthenticatedUserSerializer,
+        responses={200: GetAuthenticatedUserSerializer},
+    )
     def patch(self, request):
         check_user_is_not_suspended(user=request.user)
         serializer = UpdateAuthenticatedUserSerializer(data=request.data)
