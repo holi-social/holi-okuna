@@ -64,6 +64,16 @@ cleans up stuff on shutdown (docker networks & volumes, etc.), runs migrations a
 docker-compose directly you can easily get into inconsistent states and processes can’t talk to each other due to wrong
 passwords and database contents etc!**
 
+## Changes to reduce dependencies
+### spectra==0.0.11
+spectra has a dependency on numpy which takes very to load and compile. It is used in
+`openbook_hashtags/management/commands/update_hashtags/luminance.py` to change the color of a hashtag. 
+It is also used in `openbook_common/utils/helpers.py` to darken a color.
+Since we may not use these features, the spectra import and dependency was removed.
+
+### colormath==3.0.0
+colormath has a dependency on numpy and cannot be found via search in the source code.
+
 ## Known installation issues
 
 ### MacOs
