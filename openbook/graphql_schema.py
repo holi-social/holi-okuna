@@ -18,7 +18,7 @@ class User(DjangoObjectType):
     first_name = graphene.String()
     middle_name = graphene.String()
     last_name = graphene.String()
-    aboutMe = graphene.String()
+    about_me = graphene.String()
     pronouns = graphene.String()
     location = graphene.String()
     engagement_level = graphene.String()
@@ -96,7 +96,9 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
     def mutate(cls, root, info, input):
         authenticated_user = info.context.user
 
-        input['name'] = input.first_name
+        if 'first_name' in input:
+            input['name'] = input.pop('first_name')
+
         serializer = UpdateAuthenticatedUserSerializer(data=input)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data

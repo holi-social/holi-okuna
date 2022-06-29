@@ -1,7 +1,7 @@
 - id: holi
   version: v0.38.25-beta.1
   upstream:
-    url: http://host.docker.internal:8000/
+    url: http://host.docker.internal:4000/
   match:
     url: http://<127.0.0.1|localhost>:4455/<.*>
     methods:
