@@ -109,6 +109,14 @@ class User(AbstractUser):
     JWT_TOKEN_TYPE_CHANGE_EMAIL = 'CE'
     JWT_TOKEN_TYPE_PASSWORD_RESET = 'PR'
 
+    @property
+    def avatar_default_color(self):
+        return "blue"
+
+    @property
+    def avatar_label(self):
+        return self.email[0] if self.first_name is None else self.first_name[0]
+
     class Meta:
         verbose_name = _('user')
         verbose_name_plural = _('users')

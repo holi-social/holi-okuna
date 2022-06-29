@@ -21,6 +21,8 @@ class User(DjangoObjectType):
     about_me = graphene.String()
     pronouns = graphene.String()
     location = graphene.String()
+    avatar_default_color = graphene.String()
+    avatar_label = graphene.String()
     engagement_level = graphene.String()
     interests = graphene.List(graphene.String)
     sdgs = graphene.List(graphene.String)
@@ -49,6 +51,12 @@ class User(DjangoObjectType):
 
     def resolve_location(self, info):
         return self.profile.location
+
+    def resolve_avatar_default_color(self, info):
+        return self.avatar_default_color
+
+    def resolve_avatar_label(self, info):
+        return self.avatar_label
 
     def resolve_engagement_level(self, info):
         return self.profile.engagement_level
