@@ -7,8 +7,12 @@ from rest_framework import exceptions
 
 from django.utils.translation import gettext_lazy as _
 
+import logging
+
 HEADER_USER_ID = 'X-Holi-User-ID'
 HEADER_USER_EMAIL = 'X-Holi-User-Email'
+
+logger = logging.getLogger('openbook_auth/oathkeeper')
 
 
 class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
@@ -16,6 +20,8 @@ class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
         # in "production" request headers show up in `request.headers`, in unit testing they show up in `request.META`
         user_id = request.headers.get(HEADER_USER_ID, request.META.get(HEADER_USER_ID))
         user_email = request.headers.get(HEADER_USER_EMAIL, request.META.get(HEADER_USER_EMAIL))
+
+        logger.info("user_id=%s, user_email=%s" % (user_id, user_email))
 
         if user_id == 'anonymous':
             return AnonymousUser(), None
