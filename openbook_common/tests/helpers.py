@@ -146,6 +146,7 @@ def make_user_avatar():
     tmp_file.seek(0)
     return tmp_file
 
+
 def make_category():
     return mixer.blend(Category)
 
