@@ -74,6 +74,8 @@ class User(AbstractUser):
     VISIBILITY_TYPE_PUBLIC = 'P'
     VISIBILITY_TYPE_OKUNA = 'O'
 
+    DEFAULT_AVATAR_COLORS = ['#FFAE86', '#F8F860', '#78EDA8', '#7BD7EA', '#7571EC', '#D782FB']
+
     VISIBILITY_TYPES = (
         (VISIBILITY_TYPE_PUBLIC, 'Public'),
         (VISIBILITY_TYPE_PRIVATE, 'Private'),
@@ -108,6 +110,22 @@ class User(AbstractUser):
 
     JWT_TOKEN_TYPE_CHANGE_EMAIL = 'CE'
     JWT_TOKEN_TYPE_PASSWORD_RESET = 'PR'
+
+    @property
+    def avatar_default_color(self):
+        color_count = len(User.DEFAULT_AVATAR_COLORS) -1
+        color = sum(list(self.username.encode('utf8'))) % color_count
+        return User.DEFAULT_AVATAR_COLORS[color]
+
+    @property
+    def avatar_label(self):
+        if self.first_name is None:
+            return self.email[0].upper()
+        else:
+            if self.last_name is None:
+                return self.first_name[0].upper()
+            else:
+                return self.first_name[0].upper() + self.last_name[0].upper()
 
     class Meta:
         verbose_name = _('user')

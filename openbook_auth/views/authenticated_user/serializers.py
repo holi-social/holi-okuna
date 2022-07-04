@@ -27,7 +27,6 @@ class GetAuthenticatedUserProfileBadgeSerializer(serializers.ModelSerializer):
             'keyword_description'
         )
 
-
 class GetAuthenticatedUserProfileSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(max_length=None, use_url=True, allow_null=True, required=False)
     badges = GetAuthenticatedUserProfileBadgeSerializer(many=True)
@@ -84,6 +83,8 @@ class GetAuthenticatedUserSerializer(serializers.ModelSerializer):
             'uuid',
             'email',
             'username',
+            'avatar_default_color',
+            'avatar_label',
             'profile',
             'language',
             'invite_count',
