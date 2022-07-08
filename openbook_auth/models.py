@@ -536,7 +536,6 @@ class User(AbstractUser):
                update_avatar=False,
                cover=None,
                update_cover=False,
-               middle_name=None,
                last_name=None,
                pronouns=None,
                engagement_level=None,
@@ -588,8 +587,6 @@ class User(AbstractUser):
 
             self.visibility = visibility
 
-        if middle_name:
-            profile.middle_name = middle_name
         if last_name:
             profile.last_name = last_name
         if pronouns:
@@ -3906,10 +3903,6 @@ class UserProfile(models.Model):
     name = models.CharField(_('name'), max_length=settings.PROFILE_NAME_MAX_LENGTH, blank=False, null=True,
                             db_index=True,
                             validators=[name_characters_validator])
-    middle_name = models.CharField(_('middle name'), max_length=settings.PROFILE_MIDDLE_NAME_MAX_LENGTH, blank=False,
-                                   null=True,
-                                   db_index=True,
-                                   validators=[name_characters_validator])
     last_name = models.CharField(_('last name'), max_length=settings.PROFILE_LAST_NAME_MAX_LENGTH, blank=False,
                                  null=True,
                                  db_index=True,
