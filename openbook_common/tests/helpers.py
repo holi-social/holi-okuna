@@ -103,10 +103,6 @@ def make_user_name():
     return fake.name()
 
 
-def make_user_middle_name():
-    return fake.name()
-
-
 def make_user_last_name():
     return fake.name()
 

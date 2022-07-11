@@ -74,6 +74,8 @@ class User(AbstractUser):
     VISIBILITY_TYPE_PUBLIC = 'P'
     VISIBILITY_TYPE_OKUNA = 'O'
 
+    DEFAULT_AVATAR_COLORS = ['#FFAE86', '#F8F860', '#78EDA8', '#7BD7EA', '#7571EC', '#D782FB']
+
     VISIBILITY_TYPES = (
         (VISIBILITY_TYPE_PUBLIC, 'Public'),
         (VISIBILITY_TYPE_PRIVATE, 'Private'),
@@ -108,6 +110,22 @@ class User(AbstractUser):
 
     JWT_TOKEN_TYPE_CHANGE_EMAIL = 'CE'
     JWT_TOKEN_TYPE_PASSWORD_RESET = 'PR'
+
+    @property
+    def avatar_default_color(self):
+        color_count = len(User.DEFAULT_AVATAR_COLORS) -1
+        color = sum(list(self.username.encode('utf8'))) % color_count
+        return User.DEFAULT_AVATAR_COLORS[color]
+
+    @property
+    def avatar_label(self):
+        if self.first_name is None:
+            return self.email[0].upper()
+        else:
+            if self.last_name is None:
+                return self.first_name[0].upper()
+            else:
+                return self.first_name[0].upper() + self.last_name[0].upper()
 
     class Meta:
         verbose_name = _('user')
@@ -518,7 +536,6 @@ class User(AbstractUser):
                update_avatar=False,
                cover=None,
                update_cover=False,
-               middle_name=None,
                last_name=None,
                pronouns=None,
                engagement_level=None,
@@ -570,8 +587,6 @@ class User(AbstractUser):
 
             self.visibility = visibility
 
-        if middle_name:
-            profile.middle_name = middle_name
         if last_name:
             profile.last_name = last_name
         if pronouns:
@@ -3888,10 +3903,6 @@ class UserProfile(models.Model):
     name = models.CharField(_('name'), max_length=settings.PROFILE_NAME_MAX_LENGTH, blank=False, null=True,
                             db_index=True,
                             validators=[name_characters_validator])
-    middle_name = models.CharField(_('middle name'), max_length=settings.PROFILE_MIDDLE_NAME_MAX_LENGTH, blank=False,
-                                   null=True,
-                                   db_index=True,
-                                   validators=[name_characters_validator])
     last_name = models.CharField(_('last name'), max_length=settings.PROFILE_LAST_NAME_MAX_LENGTH, blank=False,
                                  null=True,
                                  db_index=True,

@@ -46,7 +46,6 @@ class GetAuthenticatedUserProfileSerializer(serializers.ModelSerializer):
             'followers_count_visible',
             'community_posts_visible',
             'badges',
-            'middle_name',
             'last_name',
             'pronouns',
             'engagement_level',
@@ -84,6 +83,8 @@ class GetAuthenticatedUserSerializer(serializers.ModelSerializer):
             'uuid',
             'email',
             'username',
+            'avatar_default_color',
+            'avatar_label',
             'profile',
             'language',
             'invite_count',
@@ -162,9 +163,7 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
                                      allow_blank=True)
     visibility = serializers.ChoiceField(choices=User.VISIBILITY_TYPES, required=False)
 
-    middle_name = serializers.CharField(max_length=settings.PROFILE_MIDDLE_NAME_MAX_LENGTH, allow_blank=True,
-                                        validators=[name_characters_validator], required=False)
-    last_name = serializers.CharField(max_length=settings.PROFILE_LAST_NAME_MAX_LENGTH, allow_blank=True,
+    last_name = serializers.CharField(max_length=settings.PROFILE_LAST_NAME_MAX_LENGTH, allow_blank=False,
                                       validators=[name_characters_validator], required=False)
     pronouns = serializers.CharField(max_length=settings.PROFILE_PRONOUNS_MAX_LENGTH, allow_blank=False, validators=[],
                                      required=False)

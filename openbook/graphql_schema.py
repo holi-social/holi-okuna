@@ -16,11 +16,12 @@ class User(DjangoObjectType):
     id = graphene.String()
     avatar = graphene.String()
     first_name = graphene.String()
-    middle_name = graphene.String()
     last_name = graphene.String()
     about_me = graphene.String()
     pronouns = graphene.String()
     location = graphene.String()
+    avatar_default_color = graphene.String()
+    avatar_label = graphene.String()
     engagement_level = graphene.String()
     interests = graphene.List(graphene.String)
     sdgs = graphene.List(graphene.String)
@@ -35,9 +36,6 @@ class User(DjangoObjectType):
     def resolve_first_name(self, info):
         return self.profile.name
 
-    def resolve_middle_name(self, info):
-        return self.profile.middle_name
-
     def resolve_last_name(self, info):
         return self.profile.last_name
 
@@ -49,6 +47,12 @@ class User(DjangoObjectType):
 
     def resolve_location(self, info):
         return self.profile.location
+
+    def resolve_avatar_default_color(self, info):
+        return self.avatar_default_color
+
+    def resolve_avatar_label(self, info):
+        return self.avatar_label
 
     def resolve_engagement_level(self, info):
         return self.profile.engagement_level
@@ -75,7 +79,6 @@ class Query(graphene.ObjectType):
 class UpdateAuthenticatedUserInput(graphene.InputObjectType):
     avatar = graphene.String()
     first_name = graphene.String()
-    middle_name = graphene.String()
     last_name = graphene.String()
     about_me = graphene.String()
     pronouns = graphene.String()
@@ -105,7 +108,6 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
 
         authenticated_user.update(
             name=data.get('name'),
-            middle_name=data.get('middle_name'),
             last_name=data.get('last_name'),
             about_me=data.get('about_me'),
             pronouns=data.get('pronouns'),
