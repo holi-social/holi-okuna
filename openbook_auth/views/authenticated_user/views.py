@@ -38,7 +38,6 @@ class AuthenticatedUser(APIView):
             user.update(
                 username=data.get('username'),
                 name=data.get('name'),
-                middle_name=data.get('middle_name'),
                 last_name=data.get('last_name'),
                 about_me=data.get('about_me'),
                 location=data.get('location'),
