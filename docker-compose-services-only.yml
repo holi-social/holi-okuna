@@ -70,20 +70,6 @@ services:
       - .docker-compose.env
     volumes:
       - redisdb:/bitnami/redis/data
-  oathkeeper:
-    image: oryd/oathkeeper:latest
-    container_name: okuna-oathkeeper
-    ports:
-      - 4455:4455
-      - 4456:4456
-    networks:
-      okuna:
-        ipv4_address: 172.16.16.6
-    env_file:
-      - .docker-compose.env
-    volumes:
-      - ./.docker/oathkeeper:/opt/config
-    command: --config /opt/config/config.yaml serve
 
 volumes:
   postgres:

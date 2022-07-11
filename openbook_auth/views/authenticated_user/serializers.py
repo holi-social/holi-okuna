@@ -27,6 +27,7 @@ class GetAuthenticatedUserProfileBadgeSerializer(serializers.ModelSerializer):
             'keyword_description'
         )
 
+
 class GetAuthenticatedUserProfileSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(max_length=None, use_url=True, allow_null=True, required=False)
     badges = GetAuthenticatedUserProfileBadgeSerializer(many=True)
