@@ -18,8 +18,7 @@ import json
 from openbook_auth.views.authenticated_user.views import AuthenticatedUserSettings
 from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, make_user_about_me, \
     make_user_location, make_user_avatar, make_user_cover, make_random_language, make_user_skills, make_user_sdgs, \
-    make_user_interests, make_user_engagement_level, make_user_pronouns, make_user_last_name, make_user_middle_name, \
-    make_user_name
+    make_user_interests, make_user_engagement_level, make_user_pronouns, make_user_last_name, make_user_name
 
 fake = Faker()
 
@@ -127,13 +126,6 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         should be able to update the authenticated user profile name and return 200
         """
         self._test_can_update_user_profile_field('name', lambda user: user.profile.name, make_user_name())
-
-    def test_can_update_user_profile_middle_name(self):
-        """
-        should be able to update the authenticated user profile middle name and return 200
-        """
-        self._test_can_update_user_profile_field('middle_name', lambda user: user.profile.middle_name,
-                                                 make_user_middle_name())
 
     def test_can_update_user_profile_last_name(self):
         """

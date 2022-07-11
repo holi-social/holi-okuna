@@ -16,7 +16,6 @@ class User(DjangoObjectType):
     id = graphene.String()
     avatar = graphene.String()
     first_name = graphene.String()
-    middle_name = graphene.String()
     last_name = graphene.String()
     about_me = graphene.String()
     pronouns = graphene.String()
@@ -36,9 +35,6 @@ class User(DjangoObjectType):
 
     def resolve_first_name(self, info):
         return self.profile.name
-
-    def resolve_middle_name(self, info):
-        return self.profile.middle_name
 
     def resolve_last_name(self, info):
         return self.profile.last_name
@@ -83,7 +79,6 @@ class Query(graphene.ObjectType):
 class UpdateAuthenticatedUserInput(graphene.InputObjectType):
     avatar = graphene.String()
     first_name = graphene.String()
-    middle_name = graphene.String()
     last_name = graphene.String()
     about_me = graphene.String()
     pronouns = graphene.String()
@@ -113,7 +108,6 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
 
         authenticated_user.update(
             name=data.get('name'),
-            middle_name=data.get('middle_name'),
             last_name=data.get('last_name'),
             about_me=data.get('about_me'),
             pronouns=data.get('pronouns'),
