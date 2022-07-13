@@ -119,13 +119,13 @@ class User(AbstractUser):
 
     @property
     def avatar_label(self):
-        if self.first_name is None:
+        if self.profile.name is None:
             return self.email[0].upper()
         else:
-            if self.last_name is None:
-                return self.first_name[0].upper()
+            if self.profile.last_name is None:
+                return self.profile.name[0].upper()
             else:
-                return self.first_name[0].upper() + self.last_name[0].upper()
+                return self.profile.name[0].upper() + self.profile.last_name[0].upper()
 
     class Meta:
         verbose_name = _('user')
