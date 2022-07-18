@@ -92,3 +92,8 @@ ffpmeg is missing?
 ```
 brew install ffmpeg 
 ```
+
+## CI/CD
+
+The CI/CD pipeline follows our normal flow, deploying branch environments and deploying main to staging automatically
+and to production manually. The e2e tests that should go in between staging and prod deployments are missing up until now.
