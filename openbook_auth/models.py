@@ -45,7 +45,6 @@ from openbook_auth.checkers import *
 
 from django.contrib.postgres.fields import ArrayField
 
-
 class User(AbstractUser):
     """"
     Custom user model to change behaviour of the default user model
@@ -496,6 +495,12 @@ class User(AbstractUser):
         verify_token = self._make_email_verification_token_for_email(new_email=email)
         return verify_token
 
+    # engagement_level may only be set once
+    def update_engagement_level(self, engagement_level):
+        if self.profile.engagement_level is None:
+            self.profile.engagement_level = engagement_level
+            self.profile.save()
+
     def verify_email_with_token(self, token):
         new_email = check_email_verification_token_is_valid_for_email(user=self, email_verification_token=token)
         self.email = new_email
@@ -592,7 +597,7 @@ class User(AbstractUser):
         if pronouns:
             profile.pronouns = pronouns
         if engagement_level:
-            profile.engagement_level = engagement_level
+            self.update_engagement_level(engagement_level)
         if interests:
             profile.interests = interests
         if sdgs:
@@ -3895,6 +3900,10 @@ def bootstrap_circles(sender, instance=None, created=False, **kwargs):
     if created:
         bootstrap_user_circles(instance)
 
+class EngagementLevelChoice(models.TextChoices):
+    ENGAGED = 'ENGAGED',
+    INTERESTED = 'INTERESTED',
+    INITIATOR = 'INITIATOR',
 
 class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
@@ -3910,7 +3919,7 @@ class UserProfile(models.Model):
     pronouns = models.CharField(_('pronouns'), max_length=settings.PROFILE_PRONOUNS_MAX_LENGTH, blank=False, null=True)
     location = models.CharField(_('location'), max_length=settings.PROFILE_LOCATION_MAX_LENGTH, blank=False, null=True)
     engagement_level = models.CharField(_('engagement level'), max_length=settings.PROFILE_ENGAGEMENT_LEVEL_MAX_LENGTH,
-                                        blank=False, null=True)
+                                        choices=EngagementLevelChoice.choices, blank=False, null=True)
     interests = JSONField(null=True, blank=True, default=list)
     sdgs = JSONField(null=True, blank=True, default=list)
     skills = JSONField(null=True, blank=True, default=list)
@@ -3933,6 +3942,14 @@ class UserProfile(models.Model):
 
         index_together = [
             ('id', 'user'),
+        ]
+        
+        # Django's Choices don't constrain other values in the db, it needs to be set here:
+        constraints = [
+            models.CheckConstraint(
+                name="%(app_label)s_%(class)s_engagement_level_valid",
+                check=models.Q(engagement_level__in=EngagementLevelChoice.values),
+            )
         ]
 
     def __repr__(self):

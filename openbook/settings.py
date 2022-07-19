@@ -505,7 +505,6 @@ VIDEO_ENCODING_FORMATS = {
 PROXY_URL = os.environ.get('PROXY_URL', '')
 
 # Openbook config
-
 USERNAME_MAX_LENGTH = 36
 USER_MAX_FOLLOWS = int(os.environ.get('USER_MAX_FOLLOWS', '1500'))
 USER_MAX_CONNECTIONS = int(os.environ.get('USER_MAX_CONNECTIONS', '1500'))
