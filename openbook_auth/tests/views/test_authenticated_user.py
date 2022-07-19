@@ -147,12 +147,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         """
         self._test_can_update_user_profile_field('pronouns', lambda user: user.profile.pronouns, make_user_pronouns())
 
-    def test_can_update_user_profile_engagement_level(self):
+    def test_can_not_update_user_profile_engagement_level(self):
         """
-        should be able to update the authenticated user profile engagement level and return 200
+        should not be able to update the authenticated user profile engagement level if there is already one set and return 200
         """
-        self._test_can_update_user_profile_field('engagement_level', lambda user: user.profile.engagement_level,
-                                                 make_user_engagement_level())
+        self._test_can_not_update_user_engagement_level('engagement_level', lambda user: user.profile.engagement_level)
 
     def test_can_update_user_profile_interests(self):
         """
@@ -179,6 +178,30 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         should be able to update the authenticated user profile location and return 200
         """
         self._test_can_update_user_profile_field('location', lambda user: user.profile.location, make_user_location())
+
+    def _test_can_not_update_user_engagement_level(self, field_name, field_selector):
+        user = make_user()
+        initial_engagement_level = field_selector(user)
+        headers = make_authentication_headers_for_user(user)
+
+        update_value = make_user_engagement_level()
+
+        # make sure to use a new value for engagement_level to avoid false positive tests
+        while update_value == initial_engagement_level:
+            update_value = make_user_engagement_level()
+
+        data = {field_name: update_value}
+
+        url = self._get_url()
+
+        response = self.client.patch(url, data, **headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "response.data %s" % response.data)
+
+        user.refresh_from_db()
+
+        new_engagement_level = field_selector(user)
+        self.assertEqual(new_engagement_level, initial_engagement_level)
 
     def _test_can_update_user_profile_field(self, field_name, field_selector, update_value, as_json=False):
         user = make_user()
