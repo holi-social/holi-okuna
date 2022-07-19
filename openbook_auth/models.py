@@ -17,6 +17,7 @@ from rest_framework.authtoken.models import Token
 from django.db.models import Q, F, Count, JSONField
 from django.core.mail import EmailMultiAlternatives
 
+from openbook.settings import EngagementLevelChoice
 from openbook.settings import USERNAME_MAX_LENGTH
 from openbook_auth.helpers import upload_to_user_cover_directory, upload_to_user_avatar_directory
 from openbook_common.peekalink_client import peekalink_client
@@ -3899,11 +3900,6 @@ def bootstrap_circles(sender, instance=None, created=False, **kwargs):
     """
     if created:
         bootstrap_user_circles(instance)
-
-class EngagementLevelChoice(models.TextChoices):
-    ENGAGED = 'ENGAGED',
-    INTERESTED = 'INTERESTED',
-    INITIATOR = 'INITIATOR',
 
 class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
