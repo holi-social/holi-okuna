@@ -3,7 +3,7 @@ from django.conf import settings
 from django.utils.translation import gettext as _
 
 from openbook.settings import USERNAME_MAX_LENGTH, PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, PROFILE_NAME_MAX_LENGTH
-from openbook_auth.models import User, UserProfile
+from openbook_auth.models import User, UserProfile, EngagementLevelChoice
 from openbook_auth.validators import username_characters_validator, \
     email_not_taken_validator, interests_json_validator, skills_json_validator, sdgs_json_validator
 from django.contrib.auth.password_validation import validate_password
@@ -167,8 +167,7 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
                                       validators=[name_characters_validator], required=False)
     pronouns = serializers.CharField(max_length=settings.PROFILE_PRONOUNS_MAX_LENGTH, allow_blank=False, validators=[],
                                      required=False)
-    engagement_level = serializers.CharField(max_length=settings.PROFILE_ENGAGEMENT_LEVEL_MAX_LENGTH, allow_blank=False,
-                                             validators=[], required=False)
+    engagement_level = serializers.ChoiceField(choices=EngagementLevelChoice.choices, required=False, allow_blank=True)
 
     interests = serializers.JSONField(required=False, validators=[interests_json_validator])
     sdgs = serializers.JSONField(required=False, validators=[sdgs_json_validator])

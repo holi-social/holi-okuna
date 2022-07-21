@@ -5,8 +5,7 @@ from PIL import Image
 from faker import Faker
 from django.conf import settings
 from mixer.backend.django import mixer
-from openbook.settings import EngagementLevelChoice
-from openbook_auth.models import User, UserProfile
+from openbook_auth.models import User, UserProfile, EngagementLevelChoice
 from openbook_categories.models import Category
 from openbook_circles.models import Circle
 from openbook_common.models import Emoji, EmojiGroup, Badge, Language

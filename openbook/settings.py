@@ -15,7 +15,6 @@ import os
 import sys
 
 import sentry_sdk
-from django.db import models
 from django.utils.translation import gettext_lazy  as _
 from dotenv import load_dotenv, find_dotenv
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -506,11 +505,6 @@ VIDEO_ENCODING_FORMATS = {
 PROXY_URL = os.environ.get('PROXY_URL', '')
 
 # Openbook config
-class EngagementLevelChoice(models.TextChoices):
-    ENGAGED = 'ENGAGED',
-    INTERESTED = 'INTERESTED',
-    INITIATOR = 'INITIATOR',
-
 USERNAME_MAX_LENGTH = 36
 USER_MAX_FOLLOWS = int(os.environ.get('USER_MAX_FOLLOWS', '1500'))
 USER_MAX_CONNECTIONS = int(os.environ.get('USER_MAX_CONNECTIONS', '1500'))
@@ -531,7 +525,6 @@ PROFILE_NAME_MAX_LENGTH = 192
 PROFILE_LAST_NAME_MAX_LENGTH = 192
 PROFILE_PRONOUNS_MAX_LENGTH = 192
 PROFILE_LOCATION_MAX_LENGTH = 192
-PROFILE_ENGAGEMENT_LEVEL_MAX_LENGTH = 64
 PROFILE_INTEREST_MAX_LENGTH = 64
 PROFILE_INTERESTS_MAX_COUNT = 64
 PROFILE_SDG_MAX_LENGTH = 64

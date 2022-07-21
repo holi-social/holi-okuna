@@ -17,7 +17,6 @@ from rest_framework.authtoken.models import Token
 from django.db.models import Q, F, Count, JSONField
 from django.core.mail import EmailMultiAlternatives
 
-from openbook.settings import EngagementLevelChoice
 from openbook.settings import USERNAME_MAX_LENGTH
 from openbook_auth.helpers import upload_to_user_cover_directory, upload_to_user_avatar_directory
 from openbook_common.peekalink_client import peekalink_client
@@ -501,6 +500,8 @@ class User(AbstractUser):
         if self.profile.engagement_level is None:
             self.profile.engagement_level = engagement_level
             self.profile.save()
+        elif self.profile.engagement_level != engagement_level:
+            raise ValidationError('Engagement level may not change after it is set once.')
 
     def verify_email_with_token(self, token):
         new_email = check_email_verification_token_is_valid_for_email(user=self, email_verification_token=token)
@@ -3901,6 +3902,11 @@ def bootstrap_circles(sender, instance=None, created=False, **kwargs):
     if created:
         bootstrap_user_circles(instance)
 
+class EngagementLevelChoice(models.TextChoices):
+    ENGAGED = 'ENGAGED',
+    INTERESTED = 'INTERESTED',
+    INITIATOR = 'INITIATOR',
+
 class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
     # TODO: name contains the users "first name". a refactoring is considered too time-consuming at this point of time,
@@ -3914,7 +3920,7 @@ class UserProfile(models.Model):
                                  validators=[name_characters_validator])
     pronouns = models.CharField(_('pronouns'), max_length=settings.PROFILE_PRONOUNS_MAX_LENGTH, blank=False, null=True)
     location = models.CharField(_('location'), max_length=settings.PROFILE_LOCATION_MAX_LENGTH, blank=False, null=True)
-    engagement_level = models.CharField(_('engagement level'), max_length=settings.PROFILE_ENGAGEMENT_LEVEL_MAX_LENGTH,
+    engagement_level = models.CharField(_('engagement level'), max_length=10,
                                         choices=EngagementLevelChoice.choices, blank=False, null=True)
     interests = JSONField(null=True, blank=True, default=list)
     sdgs = JSONField(null=True, blank=True, default=list)
