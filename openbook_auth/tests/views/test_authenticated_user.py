@@ -151,19 +151,19 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         """
         should be able to update the authenticated user profile engagement level if current value is None and return 200
         """
-        self._test_can_update_user_engagement_level_if_current_value_is_none(lambda user: user.profile.engagement_level)
+        self._test_can_update_user_engagement_level_if_current_value_is_none()
     
     def test_can_not_update_user_engagement_level_if_current_value_is_not_none(self):
         """
         should not be able to update the authenticated user profile engagement level and return 400
         """
-        self._test_can_not_update_user_engagement_level_if_current_value_is_not_none(lambda user: user.profile.engagement_level)
+        self._test_can_not_update_user_engagement_level_if_current_value_is_not_none()
 
     def test_ignore_update_user_engagement_level_if_same_value_is_provided(self):
         """
         should ignore update the authenticated user profile engagement level if same value is provided and return 200
         """
-        self._test_ignore_update_user_engagement_level_if_same_value_is_provided(lambda user: user.profile.engagement_level)
+        self._test_ignore_update_user_engagement_level_if_same_value_is_provided()
 
     def test_can_update_user_profile_interests(self):
         """
@@ -191,7 +191,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         """
         self._test_can_update_user_profile_field('location', lambda user: user.profile.location, make_user_location())
 
-    def _test_can_update_user_engagement_level_if_current_value_is_none(self, field_selector):
+    def _test_can_update_user_engagement_level_if_current_value_is_none(self):
         user = make_user()
         
         # force initial value to be None
@@ -214,12 +214,12 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         user.refresh_from_db()
 
         # make sure new retrieved value is same as update_value
-        retrieved_value = field_selector(user)
+        retrieved_value = user.profile.engagement_level
         self.assertEqual(retrieved_value, update_value)
 
-    def _test_can_not_update_user_engagement_level_if_current_value_is_not_none(self, field_selector):
+    def _test_can_not_update_user_engagement_level_if_current_value_is_not_none(self):
         user = make_user()
-        initial_engagement_level = field_selector(user)
+        initial_engagement_level = user.profile.engagement_level
         headers = make_authentication_headers_for_user(user)
 
         update_value = make_user_engagement_level()
@@ -239,10 +239,10 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         # make sure new retrieved value is same as initial_engagement_level
         user.refresh_from_db()
-        retrieved_value = field_selector(user)
+        retrieved_value = user.profile.engagement_level
         self.assertEqual(retrieved_value, initial_engagement_level)
 
-    def _test_ignore_update_user_engagement_level_if_same_value_is_provided(self, field_selector):
+    def _test_ignore_update_user_engagement_level_if_same_value_is_provided(self):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -258,7 +258,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         # make sure new retrieved value is same as update_value
         user.refresh_from_db()
-        retrieved_value = field_selector(user)
+        retrieved_value = user.profile.engagement_level
         self.assertEqual(retrieved_value, update_value)
 
     def _test_can_update_user_profile_field(self, field_name, field_selector, update_value, as_json=False):
