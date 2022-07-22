@@ -147,12 +147,23 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         """
         self._test_can_update_user_profile_field('pronouns', lambda user: user.profile.pronouns, make_user_pronouns())
 
-    def test_can_update_user_profile_engagement_level(self):
+    def test_can_update_user_engagement_level_if_current_value_is_none(self):
         """
-        should be able to update the authenticated user profile engagement level and return 200
+        should be able to update the authenticated user profile engagement level if current value is None and return 200
         """
-        self._test_can_update_user_profile_field('engagement_level', lambda user: user.profile.engagement_level,
-                                                 make_user_engagement_level())
+        self._test_can_update_user_engagement_level_if_current_value_is_none()
+    
+    def test_can_not_update_user_engagement_level_if_current_value_is_not_none(self):
+        """
+        should not be able to update the authenticated user profile engagement level and return 400
+        """
+        self._test_can_not_update_user_engagement_level_if_current_value_is_not_none()
+
+    def test_ignore_update_user_engagement_level_if_same_value_is_provided(self):
+        """
+        should ignore update the authenticated user profile engagement level if same value is provided and return 200
+        """
+        self._test_ignore_update_user_engagement_level_if_same_value_is_provided()
 
     def test_can_update_user_profile_interests(self):
         """
@@ -179,6 +190,76 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         should be able to update the authenticated user profile location and return 200
         """
         self._test_can_update_user_profile_field('location', lambda user: user.profile.location, make_user_location())
+
+    def _test_can_update_user_engagement_level_if_current_value_is_none(self):
+        user = make_user()
+        
+        # force initial value to be None
+        user.profile.engagement_level = None
+        user.profile.save()
+        headers = make_authentication_headers_for_user(user)
+
+        # get a new engagement_level value
+        update_value = make_user_engagement_level()
+
+        data = {'engagement_level': update_value}
+
+        url = self._get_url()
+
+        response = self.client.patch(url, data, **headers)
+
+        # make sure HTTP response is expected
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "response.data %s" % response.data)
+
+        user.refresh_from_db()
+
+        # make sure new retrieved value is same as update_value
+        retrieved_value = user.profile.engagement_level
+        self.assertEqual(retrieved_value, update_value)
+
+    def _test_can_not_update_user_engagement_level_if_current_value_is_not_none(self):
+        user = make_user()
+        initial_engagement_level = user.profile.engagement_level
+        headers = make_authentication_headers_for_user(user)
+
+        update_value = make_user_engagement_level()
+
+        # make sure to use a new value for engagement_level to avoid false positive tests
+        while update_value == initial_engagement_level:
+            update_value = make_user_engagement_level()
+
+        data = {'engagement_level': update_value}
+
+        url = self._get_url()
+
+        response = self.client.patch(url, data, **headers)
+
+        # make sure HTTP response is expected
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, "response.data %s" % response.data)
+
+        # make sure new retrieved value is same as initial_engagement_level
+        user.refresh_from_db()
+        retrieved_value = user.profile.engagement_level
+        self.assertEqual(retrieved_value, initial_engagement_level)
+
+    def _test_ignore_update_user_engagement_level_if_same_value_is_provided(self):
+        user = make_user()
+        headers = make_authentication_headers_for_user(user)
+
+        update_value = user.profile.engagement_level
+
+        data = {'engagement_level': update_value}
+
+        url = self._get_url()
+
+        response = self.client.patch(url, data, **headers)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "response.data %s" % response.data)
+
+        # make sure new retrieved value is same as update_value
+        user.refresh_from_db()
+        retrieved_value = user.profile.engagement_level
+        self.assertEqual(retrieved_value, update_value)
 
     def _test_can_update_user_profile_field(self, field_name, field_selector, update_value, as_json=False):
         user = make_user()
