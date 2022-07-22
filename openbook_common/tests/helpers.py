@@ -1,10 +1,11 @@
 import tempfile
 
+import random
 from PIL import Image
 from faker import Faker
 from django.conf import settings
 from mixer.backend.django import mixer
-from openbook_auth.models import User, UserProfile
+from openbook_auth.models import User, UserProfile, EngagementLevelChoice
 from openbook_categories.models import Category
 from openbook_circles.models import Circle
 from openbook_common.models import Emoji, EmojiGroup, Badge, Language
@@ -120,7 +121,8 @@ def make_user_pronouns():
 
 
 def make_user_engagement_level():
-    return fake.text(max_nb_chars=settings.PROFILE_ENGAGEMENT_LEVEL_MAX_LENGTH)
+    engagement_level_list = list(EngagementLevelChoice)
+    return random.choice(engagement_level_list)
 
 
 def make_user_interests():
