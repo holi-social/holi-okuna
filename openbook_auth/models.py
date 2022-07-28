@@ -594,17 +594,17 @@ class User(AbstractUser):
 
             self.visibility = visibility
 
-        if last_name:
+        if last_name is not None:
             profile.last_name = last_name
-        if pronouns:
+        if pronouns is not None:
             profile.pronouns = pronouns
         if engagement_level:
             self.update_engagement_level(engagement_level)
-        if interests:
+        if interests is not None:
             profile.interests = interests
-        if sdgs:
+        if sdgs is not None:
             profile.sdgs = sdgs
-        if skills:
+        if skills is not None:
             profile.skills = skills
         if update_avatar:
             self.update_profile_avatar(avatar, save=False)
@@ -3914,12 +3914,12 @@ class UserProfile(models.Model):
     name = models.CharField(_('name'), max_length=settings.PROFILE_NAME_MAX_LENGTH, blank=False, null=True,
                             db_index=True,
                             validators=[name_characters_validator])
-    last_name = models.CharField(_('last name'), max_length=settings.PROFILE_LAST_NAME_MAX_LENGTH, blank=False,
+    last_name = models.CharField(_('last name'), max_length=settings.PROFILE_LAST_NAME_MAX_LENGTH, blank=True,
                                  null=True,
                                  db_index=True,
                                  validators=[name_characters_validator])
-    pronouns = models.CharField(_('pronouns'), max_length=settings.PROFILE_PRONOUNS_MAX_LENGTH, blank=False, null=True)
-    location = models.CharField(_('location'), max_length=settings.PROFILE_LOCATION_MAX_LENGTH, blank=False, null=True)
+    pronouns = models.CharField(_('pronouns'), max_length=settings.PROFILE_PRONOUNS_MAX_LENGTH, blank=True, null=True)
+    location = models.CharField(_('location'), max_length=settings.PROFILE_LOCATION_MAX_LENGTH, blank=True, null=True)
     engagement_level = models.CharField(_('engagement level'), max_length=10,
                                         choices=EngagementLevelChoice.choices, blank=False, null=True)
     interests = JSONField(null=True, blank=True, default=list)
