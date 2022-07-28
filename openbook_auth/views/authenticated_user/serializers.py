@@ -163,9 +163,9 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
                                      allow_blank=True)
     visibility = serializers.ChoiceField(choices=User.VISIBILITY_TYPES, required=False)
 
-    last_name = serializers.CharField(max_length=settings.PROFILE_LAST_NAME_MAX_LENGTH, allow_blank=False,
+    last_name = serializers.CharField(max_length=settings.PROFILE_LAST_NAME_MAX_LENGTH, allow_blank=True,
                                       validators=[name_characters_validator], required=False)
-    pronouns = serializers.CharField(max_length=settings.PROFILE_PRONOUNS_MAX_LENGTH, allow_blank=False, validators=[],
+    pronouns = serializers.CharField(max_length=settings.PROFILE_PRONOUNS_MAX_LENGTH, allow_blank=True, validators=[],
                                      required=False)
     engagement_level = serializers.ChoiceField(choices=EngagementLevelChoice.choices, required=False, allow_blank=True)
 
