@@ -121,7 +121,7 @@ class User(AbstractUser):
         if self.profile.name is None:
             return self.email[0].upper()
         else:
-            if self.profile.last_name is None:
+            if self.profile.last_name is None or self.profile.last_name == '':
                 return self.profile.name[0].upper()
             else:
                 return self.profile.name[0].upper() + self.profile.last_name[0].upper()
