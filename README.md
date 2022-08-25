@@ -62,7 +62,7 @@ The project uses
    And fill the DB with some fixture data:
 
    ```bash
-   python manage.py loaddata circles.json emoji-groups.json emojis.json badges.json categories.json languages.json
+   python manage.py loaddata circles.json emoji-groups.json emojis.json badges.json categories.json languages.json users.json
    ```
 
    Afterwards, you're ready to start the backend API service (in development mode):
@@ -120,3 +120,11 @@ brew install ffmpeg
 
 The CI/CD pipeline follows our normal flow, deploying branch environments and deploying main to staging automatically
 and to production manually. The e2e tests that should go in between staging and prod deployments are missing up until now.
+
+## Access local db
+
+See `.env` for `RDS_USERNAME` and `RDS_PASSWORD`
+
+```sh
+psql -h localhost okuna -U <RDS_USERNAME>
+```

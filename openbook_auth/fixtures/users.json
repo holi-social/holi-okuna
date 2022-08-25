@@ -1,0 +1,141 @@
+[
+  {
+    "model": "openbook_auth.User",
+    "pk": 1,
+    "fields": {
+      "username": "9ebfc2c2-2d2b-413d-8bfd-ec30af1b7d49",
+      "password": "F0OB4R",
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2022-08-25 12:08:16+00",
+      "email": "oswald_rippin@example.com",
+      "is_email_verified": false,
+      "uuid": "9ebfc2c2-2d2b-413d-8bfd-ec30af1b7d49",
+      "invite_count": 0,
+      "are_guidelines_accepted": true,
+      "is_deleted": false,
+      "visibility": "O"
+    }
+  },
+  {
+    "model": "openbook_auth.UserProfile",
+    "pk": 1,
+    "fields": {
+      "user_id": 1,
+      "followers_count_visible": false,
+      "is_of_legal_age": true,
+      "community_posts_visible": true,
+      "interests": "[\"HOLI_COMMUNITY\", \"CLIMATE_PROTECTION\", \"MOBILITY_INFRASTRUCTURE\"]",
+      "sdgs": "[\"4_QUALITY_EDUCATION\"]",
+      "skills": "[\"HUMOR\"]",
+      "name": "Oswald",
+      "last_name": "Rippin",
+      "avatar": "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/871.jpg",
+      "engagement_level": "INTERESTED"
+    }
+  },
+  {
+    "model": "openbook_auth.User",
+    "pk": 2,
+    "fields": {
+      "username": "5846dd02-e2c9-4350-9e68-e4c79bf02e02",
+      "password": "F0OB4R",
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2022-08-24 12:08:16+00",
+      "email": "lamar_maggio@example.com",
+      "is_email_verified": false,
+      "uuid": "5846dd02-e2c9-4350-9e68-e4c79bf02e02",
+      "invite_count": 0,
+      "are_guidelines_accepted": true,
+      "is_deleted": false,
+      "visibility": "O"
+    }
+  },
+  {
+    "model": "openbook_auth.UserProfile",
+    "pk": 2,
+    "fields": {
+      "user_id": 2,
+      "followers_count_visible": false,
+      "is_of_legal_age": true,
+      "community_posts_visible": true,
+      "interests": "[]",
+      "sdgs": "[]",
+      "skills": "[]"
+    }
+  },
+  {
+    "model": "openbook_auth.User",
+    "pk": 3,
+    "fields": {
+      "username": "a09124b7-cdaf-4922-9c02-10b40b3b1530",
+      "password": "F0OB4R",
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2022-08-23 12:08:16+00",
+      "email": "nelda_auer@example.com",
+      "is_email_verified": false,
+      "uuid": "a09124b7-cdaf-4922-9c02-10b40b3b1530",
+      "invite_count": 0,
+      "are_guidelines_accepted": true,
+      "is_deleted": false,
+      "visibility": "O"
+    }
+  },
+  {
+    "model": "openbook_auth.UserProfile",
+    "pk": 3,
+    "fields": {
+      "user_id": 3,
+      "followers_count_visible": false,
+      "is_of_legal_age": true,
+      "community_posts_visible": true,
+      "interests": "[\"SUSTAINABILITY\"]",
+      "sdgs": "[\"11_SUSTAINABLE_CITIES_COMMUNITIES\"]",
+      "skills": "[\"HOLISTIC_THINKING\", \"COMMUNICATION_SKILLS\"]",
+      "name": "Nelda",
+      "last_name": "Auer",
+      "engagement_level": "INTERESTED"
+    }
+  },
+  {
+    "model": "openbook_auth.User",
+    "pk": 4,
+    "fields": {
+      "username": "d2384748-0151-40d6-8527-0fe182112a6c",
+      "password": "F0OB4R",
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2022-08-22 12:08:16+00",
+      "email": "kaitlyn_veum@example.com",
+      "is_email_verified": false,
+      "uuid": "d2384748-0151-40d6-8527-0fe182112a6c",
+      "invite_count": 0,
+      "are_guidelines_accepted": true,
+      "is_deleted": false,
+      "visibility": "O"
+    }
+  },
+  {
+    "model": "openbook_auth.UserProfile",
+    "pk": 4,
+    "fields": {
+      "user_id": 4,
+      "followers_count_visible": false,
+      "is_of_legal_age": true,
+      "community_posts_visible": true,
+      "interests": "[\"ANIMAL_WELFARE\", \"WATER_OCEAN\"]",
+      "sdgs": "[\"13_CLIMATE_ACTION\", \"14_LIFE_BELOW_WATER\"]",
+      "skills": "[\"LOGICAL_THINKING\"]",
+      "name": "Kaitlyn",
+      "last_name": "Veum",
+      "avatar": "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/513.jpg",
+      "engagement_level": "ENGAGED"
+    }
+  }
+]
