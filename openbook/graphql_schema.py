@@ -69,12 +69,15 @@ class User(DjangoObjectType):
 
 class Query(graphene.ObjectType):
     authenticated_user = graphene.Field(User)
+    user_by_id = graphene.Field(User, id=graphene.String())
 
     def resolve_authenticated_user(self, info):
         if info.context.user.is_anonymous:
             return None
         return info.context.user
 
+    def resolve_user_by_id(self, info, id):
+        return UserModel.objects.get(username=id)
 
 class UpdateAuthenticatedUserInput(graphene.InputObjectType):
     avatar = graphene.String()
