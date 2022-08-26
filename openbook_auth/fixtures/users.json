@@ -99,7 +99,8 @@
       "skills": ["HOLISTIC_THINKING", "COMMUNICATION_SKILLS"],
       "name": "Nelda",
       "last_name": "Auer",
-      "engagement_level": "INTERESTED"
+      "engagement_level": "INTERESTED",
+      "about_me": "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua."
     }
   },
   {
@@ -135,7 +136,8 @@
       "name": "Kaitlyn",
       "last_name": "Veum",
       "avatar": "https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/513.jpg",
-      "engagement_level": "ENGAGED"
+      "engagement_level": "ENGAGED",
+      "about_me": "At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."
     }
   }
 ]
