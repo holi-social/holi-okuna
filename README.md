@@ -62,7 +62,9 @@ The project uses
    And fill the DB with some fixture data:
 
    ```bash
-   python manage.py loaddata circles.json emoji-groups.json emojis.json badges.json categories.json languages.json users.json
+   python manage.py loaddata circles.json emoji-groups.json emojis.json badges.json categories.json languages.json
+   # users must be created separately after circles creation 
+   python manage.py loaddata users.json
    ```
 
    Afterwards, you're ready to start the backend API service (in development mode):
