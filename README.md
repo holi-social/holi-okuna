@@ -2,55 +2,72 @@
 
 The Okuna-based backend for HOLI.
 
+## Table of contents
+
+- [Introduction](#introduction)
+- [Prerequisites](#prerequisites)
+- [Quickstart](#quickstart)
+- [Changes to reduce dependencies](#changes-to-reduce-dependencies)
+  - [spectra==0.0.11](#spectra0011)
+  - [colormath==3.0.0](#colormath300)
+- [Known installation issues](#known-installation-issues)
+  - [MacOs](#macos)
+- [CI/CD](#cicd)
+
 ## Introduction
+
 holi-okuna is based on / forked off okuna-api, the backend of the Okuna project. See `README_OKUNA.md` for the
 original (more extensive) README. This README here is thought for a quickstart and gives additional information about
 specifics of the HOLI project.
 
 ## Prerequisites
+
 The project uses
-* Python 3.9+
-* Django 4
-* PostgreSQL
-* Redis
-* `docker` / `docker-compose`
+
+- Python 3.9+
+- Django 4
+- PostgreSQL
+- Redis
+- `docker` / `docker-compose`
 
 ## Quickstart
 
 1. Make sure you're actually running Python 3.9 or later by running `python --version`.
-   
-2. Install AND **set up** `direnv` (http://direnv.net) and run `direnv allow .` in the current directory in order for
+
+2. Install AND **set up** [`direnv`](http://direnv.net) and run `direnv allow .` in the current directory in order for
    `direnv` to initialise the development environment (variables). This should automatically create a Python 3 venv,
    load the environment and set some environment variables (see `.envrc` for details).
 
 3. Run
-   ```
+
+   ```sh
    pip install -r requirements.txt
    pip install -r requirements-cli-only.txt
    python okuna-cli.py up-services-only
    ```
+
    This starts up docker-compose with the following processes:
-   
-   * scheduler
-   * worker
-   * db
-   * redis
-   
+
+   - scheduler
+   - worker
+   - db
+   - redis
+
    Then, run all the database migrations
-   
-   ```
+
+   ```sh
    python manage.py migrate
    ```
 
    And fill the DB with some fixture data:
 
    ```bash
-   python manage.py loaddata circles.json emoji-groups.json emojis.json badges.json categories.json languages.json
+   python manage.py loaddata circles.json emoji-groups.json emojis.json badges.json categories.json languages.json users.json
    ```
-   
+
    Afterwards, you're ready to start the backend API service (in development mode):
 
-   ```
+   ```sh
    python manage.py runserver localhost:8000
    ```
 
@@ -65,13 +82,16 @@ docker-compose directly you can easily get into inconsistent states and processe
 passwords and database contents etc!**
 
 ## Changes to reduce dependencies
+
 ### spectra==0.0.11
+
 spectra has a dependency on numpy which takes very to load and compile. It is used in
-`openbook_hashtags/management/commands/update_hashtags/luminance.py` to change the color of a hashtag. 
+`openbook_hashtags/management/commands/update_hashtags/luminance.py` to change the color of a hashtag.
 It is also used in `openbook_common/utils/helpers.py` to darken a color.
 Since we may not use these features, the spectra import and dependency was removed.
 
 ### colormath==3.0.0
+
 colormath has a dependency on numpy and cannot be found via search in the source code.
 
 ## Known installation issues
@@ -79,17 +99,20 @@ colormath has a dependency on numpy and cannot be found via search in the source
 ### MacOs
 
 Libmagic is not found on your mac? Try this command.
-```
+
+```sh
 brew install libmagic
 ```
 
 Xcode issues - Error: python@3.9: the bottle needs  the Apple Command Line Tools to be installed.
-```
+
+```sh
  xcode-select --install
  ```
 
 ffpmeg is missing?
-```
+
+```sh
 brew install ffmpeg 
 ```
 
@@ -97,3 +120,11 @@ brew install ffmpeg
 
 The CI/CD pipeline follows our normal flow, deploying branch environments and deploying main to staging automatically
 and to production manually. The e2e tests that should go in between staging and prod deployments are missing up until now.
+
+## Access local db
+
+See `.env` for `RDS_USERNAME` and `RDS_PASSWORD`
+
+```sh
+psql -h localhost okuna -U <RDS_USERNAME>
+```
