@@ -66,10 +66,10 @@ class User(DjangoObjectType):
     def resolve_skills(self, info):
         return self.profile.skills
 
-
 class Query(graphene.ObjectType):
     authenticated_user = graphene.Field(User)
     user_by_id = graphene.Field(User, id=graphene.String())
+    user_suggestions = graphene.List(User, numberOfItems=graphene.Int())
 
     def resolve_authenticated_user(self, info):
         if info.context.user.is_anonymous:
@@ -78,6 +78,11 @@ class Query(graphene.ObjectType):
 
     def resolve_user_by_id(self, info, id):
         return UserModel.objects.get(username=id)
+
+    def resolve_user_suggestions(self, info, numberOfItems=graphene.Int()):
+        if info.context.user.id:
+            return UserModel.objects.exclude(id=info.context.user.id).order_by('-date_joined')[:numberOfItems]
+        return UserModel.objects.order_by('-date_joined')[:numberOfItems]
 
 class UpdateAuthenticatedUserInput(graphene.InputObjectType):
     avatar = graphene.String()
