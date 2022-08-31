@@ -1,6 +1,5 @@
 import graphene
 from graphene_django import DjangoObjectType
-from django.db.models import Q
 
 from openbook_auth.models import User as UserModel
 from openbook_auth.views.authenticated_user.serializers import UpdateAuthenticatedUserSerializer
@@ -82,7 +81,7 @@ class Query(graphene.ObjectType):
 
     def resolve_user_suggestions(self, info, numberOfItems=graphene.Int()):
         if info.context.user.id:
-            return UserModel.objects.filter(~Q(id=info.context.user.id)).order_by('-date_joined')[:numberOfItems]
+            return UserModel.objects.exclude(id=info.context.user.id).order_by('-date_joined')[:numberOfItems]
         return UserModel.objects.order_by('-date_joined')[:numberOfItems]
 
 class UpdateAuthenticatedUserInput(graphene.InputObjectType):
