@@ -31,6 +31,14 @@ import django
 from django.utils.encoding import force_str
 django.utils.encoding.force_text = force_str
 
+# based on https://github.com/graphql-python/graphene/issues/513
+class GraphQLLogFilter(logging.Filter):
+    def filter(self, record):
+        if record.msg and 'GraphQLError' in record.msg:
+            return None
+        return True
+
+
 LOGGING_CONFIG = None
 logging.config.dictConfig({
     'version': 1,
@@ -47,11 +55,22 @@ logging.config.dictConfig({
             'formatter': 'console',
         }
     },
+    # Prevent intentional graphql exceptions from displaying in log
+    'filters': {
+        'graphql_log_filter': {
+            '()': GraphQLLogFilter,
+        }
+    },
     'loggers': {
         # root logger
         '': {
             'level': 'INFO',
             'handlers': ['console'],
+        },
+        'graphql.execution.utils': {
+            'level': 'WARNING',
+            'handlers': ['console'],
+            'filters': ['graphql_log_filter'],
         },
     },
 })

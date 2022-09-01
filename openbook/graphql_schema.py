@@ -1,11 +1,17 @@
 import graphene
 from graphene_django import DjangoObjectType
+from graphql import GraphQLError
 
 from openbook_auth.models import User as UserModel
 from openbook_auth.views.authenticated_user.serializers import UpdateAuthenticatedUserSerializer
 
 
 # noinspection PyUnresolvedReferences
+
+class ErrorCodes:
+    NOT_FOUND = 'NOT_FOUND'
+
+
 class User(DjangoObjectType):
     # normally, all fields could just go in here to be automatically included. but for user the fields are actually in
     # user.profile instead of user directly, so we have to write custom resolvers.
@@ -77,7 +83,13 @@ class Query(graphene.ObjectType):
         return info.context.user
 
     def resolve_user_by_id(self, info, id):
-        return UserModel.objects.get(username=id)
+        try:
+            return UserModel.objects.get(username=id)
+        except UserModel.DoesNotExist:
+            raise GraphQLError('User not found', extensions={
+                "code": ErrorCodes.NOT_FOUND
+            })
+
 
 class UpdateAuthenticatedUserInput(graphene.InputObjectType):
     avatar = graphene.String()
