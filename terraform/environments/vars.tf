@@ -5,6 +5,4 @@ locals {
 
   # the dns name can be at most 64 chars in total
   dns_name = "${trimsuffix(substr(local.environment, 0, 34), ".-")}.${data.terraform_remote_state.holi_okuna_common_state.outputs.dns_okuna_domain}"
-  # in staging and production envs, we are deploying the docker image built from the main branch
-  docker_image_tag = contains(["staging", "production"], local.environment) ? "main" : local.environment
 }
