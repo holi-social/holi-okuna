@@ -138,11 +138,7 @@ def make_user_sdgs():
 
 
 def make_user_avatar():
-    image = Image.new('RGB', (100, 100))
-    tmp_file = tempfile.NamedTemporaryFile(suffix='.jpg')
-    image.save(tmp_file)
-    tmp_file.seek(0)
-    return tmp_file
+    return fake.image_url()
 
 
 def make_category():
@@ -150,11 +146,7 @@ def make_category():
 
 
 def make_user_cover():
-    image = Image.new('RGB', (100, 100))
-    tmp_file = tempfile.NamedTemporaryFile(suffix='.jpg')
-    image.save(tmp_file)
-    tmp_file.seek(0)
-    return tmp_file
+    return fake.image_url()
 
 
 def make_post_image():
