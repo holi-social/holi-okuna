@@ -46,7 +46,7 @@ from openbook_auth.checkers import *
 from django.contrib.postgres.fields import ArrayField
 
 class User(AbstractUser):
-    """"
+    """
     Custom user model to change behaviour of the default user model
     such as validation and required fields.
     """
@@ -3887,7 +3887,7 @@ class User(AbstractUser):
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL, dispatch_uid='bootstrap_auth_token')
 def create_auth_token(sender, instance=None, created=False, **kwargs):
-    """"
+    """
     Create a token for all users
     """
     if created:
@@ -3896,7 +3896,7 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL, dispatch_uid='bootstrap_user_circles')
 def bootstrap_circles(sender, instance=None, created=False, **kwargs):
-    """"
+    """
     Bootstrap the user circles
     """
     if created:
@@ -4067,7 +4067,7 @@ class UserBlock(models.Model):
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL, dispatch_uid='bootstrap_notifications_settings')
 def create_user_notifications_settings(sender, instance=None, created=False, **kwargs):
-    """"
+    """
     Create a user notifications settings for users
     """
     if created:
