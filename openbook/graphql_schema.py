@@ -1,6 +1,7 @@
 import graphene
 from graphene_django import DjangoObjectType
 from graphql import GraphQLError
+from graphene_file_upload.scalars import Upload
 
 from openbook_auth.models import User as UserModel
 from openbook_auth.views.authenticated_user.serializers import UpdateAuthenticatedUserSerializer
@@ -97,7 +98,7 @@ class Query(graphene.ObjectType):
         return UserModel.objects.order_by('-date_joined')[:numberOfItems]
 
 class UpdateAuthenticatedUserInput(graphene.InputObjectType):
-    avatar = graphene.String()
+    avatar = Upload(required=False)
     first_name = graphene.String()
     last_name = graphene.String()
     about_me = graphene.String()
