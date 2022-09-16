@@ -2,14 +2,14 @@ from rest_framework import serializers
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-from openbook.settings import USERNAME_MAX_LENGTH, PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, PROFILE_NAME_MAX_LENGTH
+from openbook.settings import USERNAME_MAX_LENGTH, PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, PROFILE_AVATAR_URL_MAX_LENGTH, PROFILE_COVER_URL_MAX_LENGTH, PROFILE_NAME_MAX_LENGTH
 from openbook_auth.models import User, UserProfile, EngagementLevelChoice
 from openbook_auth.validators import username_characters_validator, \
     email_not_taken_validator, interests_json_validator, skills_json_validator, sdgs_json_validator
 from django.contrib.auth.password_validation import validate_password
 
 from openbook_common.models import Badge, Language
-from openbook_common.serializers_fields.request import FriendlyUrlField, RestrictedImageFileSizeField
+from openbook_common.serializers_fields.request import FriendlyUrlField
 from openbook_common.serializers_fields.user import FollowersCountField, \
     FollowingCountField, \
     IsMemberOfCommunities, \
@@ -29,7 +29,6 @@ class GetAuthenticatedUserProfileBadgeSerializer(serializers.ModelSerializer):
 
 
 class GetAuthenticatedUserProfileSerializer(serializers.ModelSerializer):
-    avatar = serializers.ImageField(max_length=None, use_url=True, allow_null=True, required=False)
     badges = GetAuthenticatedUserProfileBadgeSerializer(many=True)
 
     class Meta:
@@ -144,10 +143,12 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
                                      allow_blank=False,
                                      validators=[username_characters_validator],
                                      required=False)
-    avatar = RestrictedImageFileSizeField(allow_empty_file=False, required=False, allow_null=True,
-                                          max_upload_size=settings.PROFILE_AVATAR_MAX_SIZE)
-    cover = RestrictedImageFileSizeField(allow_empty_file=False, required=False, allow_null=True,
-                                         max_upload_size=settings.PROFILE_COVER_MAX_SIZE)
+    avatar = serializers.CharField(max_length=PROFILE_AVATAR_URL_MAX_LENGTH,
+                                     allow_blank=True,
+                                     required=False)
+    cover = serializers.CharField(max_length=PROFILE_COVER_URL_MAX_LENGTH,
+                                     allow_blank=True,
+                                     required=False)
     password = serializers.CharField(min_length=PASSWORD_MIN_LENGTH, max_length=PASSWORD_MAX_LENGTH,
                                      validators=[validate_password], required=False, allow_blank=False)
     name = serializers.CharField(max_length=PROFILE_NAME_MAX_LENGTH,
