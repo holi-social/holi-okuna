@@ -11,14 +11,11 @@ from django.dispatch import receiver
 from django.utils import timezone, translation
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
-from imagekit.models import ProcessedImageField
-from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
 from django.db.models import Q, F, Count, JSONField
 from django.core.mail import EmailMultiAlternatives
 
 from openbook.settings import USERNAME_MAX_LENGTH
-from openbook_auth.helpers import upload_to_user_cover_directory, upload_to_user_avatar_directory
 from openbook_common.peekalink_client import peekalink_client
 from openbook_hashtags.queries import make_search_hashtag_query_for_user_with_id, \
     make_get_hashtag_with_name_for_user_with_id_query
@@ -42,8 +39,6 @@ from openbook_common.utils.model_loaders import get_connection_model, get_circle
 from openbook_common.validators import name_characters_validator
 from openbook_notifications import helpers
 from openbook_auth.checkers import *
-
-from django.contrib.postgres.fields import ArrayField
 
 class User(AbstractUser):
     """
@@ -571,6 +566,12 @@ class User(AbstractUser):
             else:
                 profile.location = location
 
+        if avatar is not None:
+            profile.avatar = avatar
+
+        if cover is not None:
+            profile.cover = cover
+
         if about_me is not None:
             if len(about_me) == 0:
                 profile.about_me = None
@@ -606,6 +607,8 @@ class User(AbstractUser):
             profile.sdgs = sdgs
         if skills is not None:
             profile.skills = skills
+        
+        # TODO integrate our image provider service in order to delete previous avatars (extending delete_profile_avatar)
         if update_avatar:
             self.update_profile_avatar(avatar, save=False)
         if update_cover:
@@ -3926,12 +3929,8 @@ class UserProfile(models.Model):
     sdgs = JSONField(null=True, blank=True, default=list)
     skills = JSONField(null=True, blank=True, default=list)
     is_of_legal_age = models.BooleanField(default=False)
-    avatar = ProcessedImageField(verbose_name=_('avatar'), blank=False, null=True, format='JPEG',
-                                 options={'quality': 90}, processors=[ResizeToFill(500, 500)],
-                                 upload_to=upload_to_user_avatar_directory)
-    cover = ProcessedImageField(verbose_name=_('cover'), blank=False, null=True, format='JPEG', options={'quality': 90},
-                                upload_to=upload_to_user_cover_directory,
-                                processors=[ResizeToFit(width=1024, upscale=False)])
+    avatar = models.CharField(_('avatar'), max_length=settings.PROFILE_AVATAR_URL_MAX_LENGTH, blank=False, null=True)
+    cover = models.CharField(_('cover'), max_length=settings.PROFILE_AVATAR_URL_MAX_LENGTH, blank=False, null=True)
     about_me = models.TextField(_('about me'), max_length=settings.PROFILE_ABOUT_ME_MAX_LENGTH, blank=False, null=True)
     url = models.URLField(_('url'), blank=False, null=True)
     followers_count_visible = models.BooleanField(_('followers count visible'), blank=False, null=False, default=False)
