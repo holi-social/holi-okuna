@@ -1,6 +1,7 @@
 import graphene
 from graphene_django import DjangoObjectType
 from graphql import GraphQLError
+from graphene_file_upload.scalars import Upload
 
 from openbook_auth.models import User as UserModel
 from openbook_auth.views.authenticated_user.serializers import UpdateAuthenticatedUserSerializer
@@ -97,7 +98,7 @@ class Query(graphene.ObjectType):
         return UserModel.objects.order_by('-date_joined')[:numberOfItems]
 
 class UpdateAuthenticatedUserInput(graphene.InputObjectType):
-    avatar = graphene.String()
+    avatar = Upload(required=False)
     first_name = graphene.String()
     last_name = graphene.String()
     about_me = graphene.String()
@@ -118,6 +119,12 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         authenticated_user = info.context.user
+        update_avatar = False
+
+        # TODO call our image provider service here to generate a URL of the file and set input['avatar'] to the new URL.
+        if 'avatar' in input:
+            update_avatar = True
+            input['avatar'] = 'https://static.vecteezy.com/system/resources/previews/002/743/514/original/green-check-mark-icon-in-a-circle-free-vector.jpg' # placeholder until we set up our image provider
 
         if 'first_name' in input:
             input['name'] = input.pop('first_name')
@@ -136,6 +143,8 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
             interests=data.get('interests'),
             sdgs=data.get('sdgs'),
             skills=data.get('skills'),
+            avatar=data.get('avatar'),
+            update_avatar=update_avatar,
             save=True,
         )
 
