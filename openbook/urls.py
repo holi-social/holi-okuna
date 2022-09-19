@@ -21,6 +21,7 @@ from django.conf.urls.static import static
 from django.views.decorators.csrf import csrf_exempt
 from graphene_django.views import GraphQLView
 from proxy.views import proxy_view
+from graphene_file_upload.django import FileUploadGraphQLView
 
 from openbook import graphql_schema
 from openbook_auth.views.auth.views import Register, Login, UsernameCheck, EmailCheck, EmailVerify, \
@@ -101,7 +102,7 @@ class DRFAuthenticatedGraphQLView(GraphQLView):
     def parse_body(self, request):
         if isinstance(request, rest_framework.request.Request):
             return request.data
-        return super(DRFAuthenticatedGraphQLView, self).parse_body(request)
+        return super().parse_body(request)
 
     @classmethod
     def as_view(cls, *args, **kwargs):
@@ -109,6 +110,10 @@ class DRFAuthenticatedGraphQLView(GraphQLView):
         view = authentication_classes(api_settings.DEFAULT_AUTHENTICATION_CLASSES)(view)
         view = api_view(['GET', 'POST'])(view)
         return view
+
+
+class FileUploadAndAuthGraphQLView(FileUploadGraphQLView, DRFAuthenticatedGraphQLView):
+    pass
 
 
 auth_auth_patterns = [
@@ -477,12 +482,13 @@ api_patterns = [
 if settings.FEATURE_IMPORTER_ENABLED:
     api_patterns.append(path('import/', include(importer_patterns))),
 
+
 urlpatterns = [
     path('api/', include(api_patterns)),
     path('admin/', admin.site.urls),
     path('django-rq/', include('django_rq.urls')),
     path('health/', Health.as_view(), name='health'),
-    path('graphql', csrf_exempt(DRFAuthenticatedGraphQLView.as_view(graphiql=True, schema=graphql_schema.schema))),
+    path('graphql', csrf_exempt(FileUploadAndAuthGraphQLView.as_view(graphiql=True, schema=graphql_schema.schema))),
 ]
 
 # The static helper works only in debug mode
