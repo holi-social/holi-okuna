@@ -6,7 +6,9 @@ from graphene_file_upload.scalars import Upload
 from openbook_auth.models import User as UserModel
 from openbook_auth.views.authenticated_user.serializers import UpdateAuthenticatedUserSerializer
 
-from openbook_auth.images import store_avatar, get_avatar_url
+from openbook_auth.images import store_avatar, delete_old_avatars
+
+
 # noinspection PyUnresolvedReferences
 
 class ErrorCodes:
@@ -123,6 +125,7 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
 
         if 'avatar' in input:
             update_avatar = True
+            # keep the file to store it after a successful request validation
             avatar_file = input['avatar']
             input['avatar'] = 'avatar_url'
 
@@ -133,8 +136,11 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
+        # store the file in the image service. When the update of the user later fails, the image will remain
+        # in the image service, but the old image will still be used. The uploaded file will be removed, when
+        # another avatar is successfully uploaded for the user
         if update_avatar:
-            data['avatar'] = store_avatar(authenticated_user, avatar_file)
+            file_id, data['avatar'] = store_avatar(authenticated_user, avatar_file)
 
         authenticated_user.update(
             name=data.get('name'),
@@ -150,6 +156,8 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
             update_avatar=update_avatar,
             save=True,
         )
+
+        delete_old_avatars(authenticated_user, file_id)
 
         return UpdateAuthenticatedUserMutation(authenticated_user=authenticated_user)
 
