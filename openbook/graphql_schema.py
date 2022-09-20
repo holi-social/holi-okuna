@@ -6,7 +6,7 @@ from graphene_file_upload.scalars import Upload
 from openbook_auth.models import User as UserModel
 from openbook_auth.views.authenticated_user.serializers import UpdateAuthenticatedUserSerializer
 
-
+from openbook_auth.images import store_avatar, get_avatar_url
 # noinspection PyUnresolvedReferences
 
 class ErrorCodes:
@@ -121,10 +121,10 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
         authenticated_user = info.context.user
         update_avatar = False
 
-        # TODO call our image provider service here to generate a URL of the file and set input['avatar'] to the new URL.
         if 'avatar' in input:
             update_avatar = True
-            input['avatar'] = 'https://static.vecteezy.com/system/resources/previews/002/743/514/original/green-check-mark-icon-in-a-circle-free-vector.jpg' # placeholder until we set up our image provider
+            avatar_file = input['avatar']
+            input['avatar'] = 'avatar_url'
 
         if 'first_name' in input:
             input['name'] = input.pop('first_name')
@@ -132,6 +132,9 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
         serializer = UpdateAuthenticatedUserSerializer(data=input)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+
+        if update_avatar:
+            data['avatar'] = store_avatar(authenticated_user, avatar_file)
 
         authenticated_user.update(
             name=data.get('name'),
