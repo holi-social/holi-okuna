@@ -48,12 +48,18 @@ def delete_images(authenticated_user, tags=[], file_id_to_keep=''):
     for file in old_files['response']:
         file_id = file['fileId']
         if file_id != file_id_to_keep:
-            try:
-                error = imagekit.delete_file(file_id).get('error')
-                if error is not None:
-                    logger.warning("Could not delete image file with fileId: %s and tags: %s. Error response: %s", file_id, tags, error)
-            except RequestException:
-                logger.warning("Could not delete image file with fileId: %s and tags: %s.", file_id, tags, exc_info=True)
+            delete_image(file_id, imagekit, tags)
+
+
+def delete_image(file_id, imagekit):
+    if imagekit is None:
+        imagekit = get_imagekit()
+    try:
+        error = imagekit.delete_file(file_id).get('error')
+        if error is not None:
+            logger.warning("Could not delete image file with fileId: %s. Error response: %s", file_id, error)
+    except RequestException:
+        logger.warning("Could not delete image file with fileId: %s.", file_id, exc_info=True)
 
 
 def add_user(authenticated_user, tags):

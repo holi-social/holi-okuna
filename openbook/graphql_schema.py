@@ -1,4 +1,5 @@
 import graphene
+from django.db import Error
 from graphene_django import DjangoObjectType
 from graphql import GraphQLError
 from graphene_file_upload.scalars import Upload
@@ -6,7 +7,7 @@ from graphene_file_upload.scalars import Upload
 from openbook_auth.models import User as UserModel
 from openbook_auth.views.authenticated_user.serializers import UpdateAuthenticatedUserSerializer
 
-from openbook_auth.images import store_avatar, delete_old_avatars
+from openbook_auth.images import store_avatar, delete_old_avatars, delete_image
 
 
 # noinspection PyUnresolvedReferences
@@ -142,20 +143,25 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
         if update_avatar:
             file_id, data['avatar'] = store_avatar(authenticated_user, avatar_file)
 
-        authenticated_user.update(
-            name=data.get('name'),
-            last_name=data.get('last_name'),
-            about_me=data.get('about_me'),
-            pronouns=data.get('pronouns'),
-            location=data.get('location'),
-            engagement_level=data.get('engagement_level'),
-            interests=data.get('interests'),
-            sdgs=data.get('sdgs'),
-            skills=data.get('skills'),
-            avatar=data.get('avatar'),
-            update_avatar=update_avatar,
-            save=True,
-        )
+        try:
+            authenticated_user.update(
+                name=data.get('name'),
+                last_name=data.get('last_name'),
+                about_me=data.get('about_me'),
+                pronouns=data.get('pronouns'),
+                location=data.get('location'),
+                engagement_level=data.get('engagement_level'),
+                interests=data.get('interests'),
+                sdgs=data.get('sdgs'),
+                skills=data.get('skills'),
+                avatar=data.get('avatar'),
+                update_avatar=update_avatar,
+                save=True,
+            )
+        except Error:
+            if update_avatar:
+                delete_image(file_id)
+            raise
 
         delete_old_avatars(authenticated_user, file_id)
 
