@@ -43,6 +43,7 @@ graphene-django==2.15.0
 graphene-file-upload==1.3.0
 halo==0.0.30
 idna==2.10; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+imagekitio==2.2.8
 importlib-metadata==2.0.0; python_version < '3.8'
 jmespath==0.10.0; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'
 langdetect==1.0.8
