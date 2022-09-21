@@ -28,22 +28,23 @@ def store_image(authenticated_user, image_file, folder=None, tags=[]):
     Store an image in our image service and return the file_id and rendered URL
     Given Tags are added to the image. user_id is always added as an additional tag
     """
-
-    add_user(authenticated_user, tags)
+    __add_user(authenticated_user, tags)
     options = {"tags": tags}
     if folder is not None:
         options['folder'] = folder
-    imagekit = get_imagekit()
-    file_name = create_avatar_file_name(authenticated_user, image_file)
+    imagekit = __get_imagekit()
+    file_name = __create_avatar_file_name(authenticated_user, image_file)
     upload = imagekit.upload(file=image_file, file_name=file_name, options=options)
     response = upload['response']
     return response['fileId'], response['url']
 
 
 def delete_images(authenticated_user, tags=[], file_id_to_keep=''):
-    """Delete all images that have the given tags, except the one that is passed as file_id_to_keep"""
-    add_user(authenticated_user, tags)
-    imagekit = get_imagekit()
+    """
+    Delete all images that have the given tags, except the one that is passed as file_id_to_keep
+    """
+    __add_user(authenticated_user, tags)
+    imagekit = __get_imagekit()
     old_files = imagekit.list_files({"tags": ','.join(tags)})
     for file in old_files['response']:
         file_id = file['fileId']
@@ -52,8 +53,11 @@ def delete_images(authenticated_user, tags=[], file_id_to_keep=''):
 
 
 def delete_image(file_id, imagekit):
+    """
+    delete an image by file_id
+    """
     if imagekit is None:
-        imagekit = get_imagekit()
+        imagekit = __get_imagekit()
     try:
         error = imagekit.delete_file(file_id).get('error')
         if error is not None:
@@ -62,11 +66,11 @@ def delete_image(file_id, imagekit):
         logger.warning("Could not delete image file with fileId: %s.", file_id, exc_info=True)
 
 
-def add_user(authenticated_user, tags):
+def __add_user(authenticated_user, tags):
     tags.append("user_" + authenticated_user.username)
 
 
-def get_imagekit():
+def __get_imagekit():
     return ImageKit(
         private_key=IMAGEKIT_PRIVATE_KEY,
         public_key=IMAGEKIT_PUBLIC_KEY,
@@ -74,6 +78,6 @@ def get_imagekit():
     )
 
 
-def create_avatar_file_name(authenticated_user, image_file):
+def __create_avatar_file_name(authenticated_user, image_file):
     _, file_extension = os.path.splitext(image_file.name)
     return authenticated_user.username + file_extension

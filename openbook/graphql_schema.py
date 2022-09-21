@@ -137,9 +137,8 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        # store the file in the image service. When the update of the user later fails, the image will remain
-        # in the image service, but the old image will still be used. The uploaded file will be removed, when
-        # another avatar is successfully uploaded for the user
+        # store the file in the image service. When the update of the user later fails, the old image will still
+        # be used. All previous files will be removed, when another avatar is successfully uploaded for the user
         if update_avatar:
             file_id, data['avatar'] = store_avatar(authenticated_user, avatar_file)
 
