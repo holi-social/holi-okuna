@@ -48,7 +48,7 @@ def delete_images(authenticated_user, tags=[], file_id_to_keep=''):
     for file in old_files['response']:
         file_id = file['fileId']
         if file_id != file_id_to_keep:
-            delete_image(file_id, imagekit, tags)
+            delete_image(file_id, imagekit)
 
 
 def delete_image(file_id, imagekit):
