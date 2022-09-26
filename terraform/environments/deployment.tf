@@ -110,7 +110,7 @@ resource "google_cloud_run_service" "okuna" {
           value_from {
             secret_key_ref {
               key  = "latest"
-              name = "IMAGEKIT_PUBLIC_KEY"
+              name = "OKUNA_IMAGEKIT_PUBLIC_KEY"
             }
           }
         }
@@ -119,7 +119,7 @@ resource "google_cloud_run_service" "okuna" {
           value_from {
             secret_key_ref {
               key  = "latest"
-              name = "IMAGEKIT_PRIVATE_KEY"
+              name = "OKUNA_IMAGEKIT_PRIVATE_KEY"
             }
           }
         }
