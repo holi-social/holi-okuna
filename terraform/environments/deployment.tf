@@ -105,6 +105,24 @@ resource "google_cloud_run_service" "okuna" {
           name  = "SENTRY_DSN"
           value = "https://41084c0584d04b38a27d49fab9591b42@o949544.ingest.sentry.io/6421964"
         }
+        env {
+          name = "IMAGEKIT_PUBLIC_KEY"
+          value_from {
+            secret_key_ref {
+              key  = "latest"
+              name = "OKUNA_IMAGEKIT_PUBLIC_KEY"
+            }
+          }
+        }
+        env {
+          name = "IMAGEKIT_PRIVATE_KEY"
+          value_from {
+            secret_key_ref {
+              key  = "latest"
+              name = "OKUNA_IMAGEKIT_PRIVATE_KEY"
+            }
+          }
+        }
 
         resources {
           limits = {
