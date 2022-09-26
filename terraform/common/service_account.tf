@@ -8,6 +8,12 @@ resource "google_service_account" "okuna" {
 # DB: https://cloud.google.com/sql/docs/postgres/iam-roles#roles maybe nothing needed, since we connect via IP
 # REDIS
 
+resource "google_project_iam_binding" "okuna" {
+  project  = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
+  members = ["serviceAccount:${google_service_account.okuna.email}"]
+  role = "roles/secretmanager.secretAccessor"
+}
+
 output "cloud_run_service_account_email" {
   value = google_service_account.okuna.email
 }
