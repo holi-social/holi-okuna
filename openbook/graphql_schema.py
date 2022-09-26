@@ -1,10 +1,13 @@
 import graphene
+from django.db import Error
 from graphene_django import DjangoObjectType
 from graphql import GraphQLError
 from graphene_file_upload.scalars import Upload
 
 from openbook_auth.models import User as UserModel
 from openbook_auth.views.authenticated_user.serializers import UpdateAuthenticatedUserSerializer
+
+from openbook_auth.images import store_avatar, delete_old_avatars, delete_image
 
 
 # noinspection PyUnresolvedReferences
@@ -121,10 +124,11 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
         authenticated_user = info.context.user
         update_avatar = False
 
-        # TODO call our image provider service here to generate a URL of the file and set input['avatar'] to the new URL.
         if 'avatar' in input:
             update_avatar = True
-            input['avatar'] = 'https://static.vecteezy.com/system/resources/previews/002/743/514/original/green-check-mark-icon-in-a-circle-free-vector.jpg' # placeholder until we set up our image provider
+            # keep the file to store it after a successful request validation
+            avatar_file = input['avatar']
+            input['avatar'] = 'avatar_url'
 
         if 'first_name' in input:
             input['name'] = input.pop('first_name')
@@ -133,20 +137,32 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        authenticated_user.update(
-            name=data.get('name'),
-            last_name=data.get('last_name'),
-            about_me=data.get('about_me'),
-            pronouns=data.get('pronouns'),
-            location=data.get('location'),
-            engagement_level=data.get('engagement_level'),
-            interests=data.get('interests'),
-            sdgs=data.get('sdgs'),
-            skills=data.get('skills'),
-            avatar=data.get('avatar'),
-            update_avatar=update_avatar,
-            save=True,
-        )
+        # store the file in the image service. When the update of the user later fails, the old image will still
+        # be used. All previous files will be removed, when another avatar is successfully uploaded for the user
+        if update_avatar:
+            file_id, data['avatar'] = store_avatar(authenticated_user, avatar_file)
+
+        try:
+            authenticated_user.update(
+                name=data.get('name'),
+                last_name=data.get('last_name'),
+                about_me=data.get('about_me'),
+                pronouns=data.get('pronouns'),
+                location=data.get('location'),
+                engagement_level=data.get('engagement_level'),
+                interests=data.get('interests'),
+                sdgs=data.get('sdgs'),
+                skills=data.get('skills'),
+                avatar=data.get('avatar'),
+                update_avatar=update_avatar,
+                save=True,
+            )
+        except Error:
+            if update_avatar:
+                delete_image(file_id)
+            raise
+
+        delete_old_avatars(authenticated_user, file_id)
 
         return UpdateAuthenticatedUserMutation(authenticated_user=authenticated_user)
 
