@@ -162,7 +162,8 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
                 delete_image(file_id)
             raise
 
-        delete_old_avatars(authenticated_user, file_id)
+        if update_avatar:
+            delete_old_avatars(authenticated_user, file_id)
 
         return UpdateAuthenticatedUserMutation(authenticated_user=authenticated_user)
 
