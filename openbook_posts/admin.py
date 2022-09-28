@@ -69,10 +69,10 @@ class PostAdmin(admin.ModelAdmin):
     )
 
     def has_add_permission(self, request, obj=None):
-        return False
+        return True # needs to be true for creating posts via /admin
 
     def has_change_permission(self, request, obj=None):
-        return False
+        return True # needs to be true for editing posts via /admin
 
 
 admin.site.register(Post, PostAdmin)
