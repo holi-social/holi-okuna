@@ -17,6 +17,7 @@ from openbook_common.validators import hex_color_validator
 from openbook_communities.models import Community
 from openbook_hashtags.helpers import upload_to_hashtags_directory
 from openbook_hashtags.validators import hashtag_name_validator
+from openbook_insights.models import Insight
 from openbook_posts.models import Post, PostComment
 from openbook_posts.queries import make_only_public_posts_query
 
@@ -38,6 +39,7 @@ class Hashtag(models.Model):
                                   validators=[hex_color_validator], default='#ffffff')
     created = models.DateTimeField(editable=False)
     posts = models.ManyToManyField(Post, related_name='hashtags')
+    insights = models.ManyToManyField(Insight, related_name='hashtags', blank=True)
     post_comments = models.ManyToManyField(PostComment, related_name='hashtags')
     width = models.PositiveIntegerField(editable=False, null=True, blank=False)
     height = models.PositiveIntegerField(editable=False, null=True, blank=False)
