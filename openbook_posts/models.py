@@ -1,5 +1,4 @@
 # Create your models here.
-from openbook_common.helpers import get_language_for_text, extract_urls_from_string
 import os
 import tempfile
 import uuid
@@ -57,6 +56,7 @@ from openbook_posts.helpers import upload_to_post_image_directory, upload_to_pos
 from openbook_posts.jobs import process_post_media
 
 magic = get_magic()
+from openbook_common.helpers import get_language_for_text, extract_urls_from_string
 
 # TODO Think about what to do for storage backend
 # post_image_storage = S3PrivateMediaStorage() if settings.IS_PRODUCTION else default_storage
@@ -64,25 +64,19 @@ post_image_storage = default_storage
 
 
 class Post(models.Model):
-    moderated_object = GenericRelation(
-        ModeratedObject, related_query_name='posts')
-    uuid = models.UUIDField(
-        default=uuid.uuid4, editable=False, unique=True, db_index=True)
+    moderated_object = GenericRelation(ModeratedObject, related_query_name='posts')
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     text = models.TextField(_('text'), max_length=settings.POST_MAX_LENGTH, blank=False, null=True,
                             validators=post_text_validators)
     created = models.DateTimeField(editable=False, db_index=True)
     modified = models.DateTimeField(db_index=True, default=timezone.now)
-    creator = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='posts')
-    comments_enabled = models.BooleanField(
-        _('comments enabled'), default=True, editable=False, null=False)
-    public_reactions = models.BooleanField(
-        _('public reactions'), default=True, editable=False, null=False)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
+    comments_enabled = models.BooleanField(_('comments enabled'), default=True, editable=False, null=False)
+    public_reactions = models.BooleanField(_('public reactions'), default=True, editable=False, null=False)
     community = models.ForeignKey('openbook_communities.Community', on_delete=models.CASCADE, related_name='posts',
                                   null=True,
                                   blank=False)
-    language = models.ForeignKey(
-        Language, on_delete=models.SET_NULL, null=True, related_name='posts')
+    language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, related_name='posts')
     is_edited = models.BooleanField(default=False)
     is_closed = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
@@ -94,10 +88,8 @@ class Post(models.Model):
         (STATUS_PROCESSING, 'Processing'),
         (STATUS_PUBLISHED, 'Published'),
     )
-    status = models.CharField(
-        blank=False, null=False, choices=STATUSES, default=STATUS_DRAFT, max_length=2)
-    media_height = models.PositiveSmallIntegerField(
-        _('media height'), null=True)
+    status = models.CharField(blank=False, null=False, choices=STATUSES, default=STATUS_DRAFT, max_length=2)
+    media_height = models.PositiveSmallIntegerField(_('media height'), null=True)
     media_width = models.PositiveSmallIntegerField(_('media width'), null=True)
     media_thumbnail = ProcessedImageField(verbose_name=_('thumbnail'), storage=post_image_storage,
                                           upload_to=upload_to_post_directory,
@@ -105,6 +97,7 @@ class Post(models.Model):
                                           processors=[ResizeToFit(width=512, upscale=False)])
     insight = models.ForeignKey('openbook_insights.Insight', on_delete=models.SET_NULL, related_name='posts', blank=True,
                                 null=True)
+                                          
 
     class Meta:
         index_together = [
@@ -129,18 +122,15 @@ class Post(models.Model):
                     created=None, is_draft=False):
 
         if not community_name and not circles_ids:
-            raise ValidationError(
-                _('A post requires circles or a community to be posted to.'))
+            raise ValidationError(_('A post requires circles or a community to be posted to.'))
 
         if community_name and circles_ids:
-            raise ValidationError(
-                _('A post cannot be posted both to a community and to circles.'))
+            raise ValidationError(_('A post cannot be posted both to a community and to circles.'))
 
         post = Post.objects.create(creator=creator, created=created)
 
         if image and video:
-            raise ValidationError(
-                _('A post must have an image or a video, not both.'))
+            raise ValidationError(_('A post must have an image or a video, not both.'))
 
         if text:
             post.text = text
@@ -180,10 +170,8 @@ class Post(models.Model):
         TrendingPost = get_trending_post_model()
         Community = get_community_model()
 
-        posts_select_related = (
-            'post__creator', 'post__creator__profile', 'post__community', 'post__image')
-        posts_prefetch_related = (
-            'post__circles', 'post__creator__profile__badges', 'post__reactions__reactor')
+        posts_select_related = ('post__creator', 'post__creator__profile', 'post__community', 'post__image')
+        posts_prefetch_related = ('post__circles', 'post__creator__profile__badges', 'post__reactions__reactor')
 
         posts_only = ('id',
                       'post__text', 'post__id', 'post__uuid', 'post__created', 'post__image__width',
@@ -195,8 +183,7 @@ class Post(models.Model):
                       'post__community__avatar',
                       'post__community__color', 'post__community__title')
 
-        reported_posts_exclusion_query = ~Q(
-            post__moderated_object__reports__reporter_id=user_id)
+        reported_posts_exclusion_query = ~Q(post__moderated_object__reports__reporter_id=user_id)
 
         trending_community_posts_query = Q(post__is_closed=False,
                                            post__is_deleted=False,
@@ -204,10 +191,8 @@ class Post(models.Model):
 
         trending_community_posts_query.add(~Q(Q(post__creator__blocked_by_users__blocker_id=user_id) | Q(
             post__creator__user_blocks__blocked_user_id=user_id)), Q.AND)
-        trending_community_posts_query.add(
-            Q(post__community__type=Community.COMMUNITY_TYPE_PUBLIC), Q.AND)
-        trending_community_posts_query.add(
-            ~Q(post__community__banned_users__id=user_id), Q.AND)
+        trending_community_posts_query.add(Q(post__community__type=Community.COMMUNITY_TYPE_PUBLIC), Q.AND)
+        trending_community_posts_query.add(~Q(post__community__banned_users__id=user_id), Q.AND)
 
         if max_id:
             trending_community_posts_query.add(Q(id__lt=max_id), Q.AND)
@@ -215,11 +200,9 @@ class Post(models.Model):
             trending_community_posts_query.add(Q(id__gt=min_id), Q.AND)
 
         ModeratedObject = get_moderated_object_model()
-        trending_community_posts_query.add(
-            ~Q(post__moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
+        trending_community_posts_query.add(~Q(post__moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
 
-        trending_community_posts_query.add(
-            reported_posts_exclusion_query, Q.AND)
+        trending_community_posts_query.add(reported_posts_exclusion_query, Q.AND)
 
         trending_community_posts_queryset = TrendingPost.objects. \
             select_related(*posts_select_related). \
@@ -235,17 +218,14 @@ class Post(models.Model):
         For backwards compatibility reasons
         """
         trending_posts_query = cls._get_trending_posts_old_query()
-        trending_posts_query.add(
-            ~Q(community__banned_users__id=user_id), Q.AND)
+        trending_posts_query.add(~Q(community__banned_users__id=user_id), Q.AND)
 
         trending_posts_query.add(~Q(Q(creator__blocked_by_users__blocker_id=user_id) | Q(
             creator__user_blocks__blocked_user_id=user_id)), Q.AND)
 
-        trending_posts_query.add(
-            ~Q(moderated_object__reports__reporter_id=user_id), Q.AND)
+        trending_posts_query.add(~Q(moderated_object__reports__reporter_id=user_id), Q.AND)
 
-        trending_posts_query.add(
-            ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
+        trending_posts_query.add(~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
 
         return cls._get_trending_posts_old_with_query(query=trending_posts_query)
 
@@ -298,8 +278,7 @@ class Post(models.Model):
                 id=post_commenter.pk))
 
         # Add post comment creator
-        post_comment_creator = User.objects.filter(
-            pk=parent_post_comment.commenter_id)
+        post_comment_creator = User.objects.filter(pk=parent_post_comment.commenter_id)
 
         # Add post creator
         post = parent_post_comment.post
@@ -310,18 +289,15 @@ class Post(models.Model):
     def get_community_notification_target_subscriptions(cls, post):
         CommunityNotificationsSubscription = get_community_notifications_subscription_model()
 
-        community_subscriptions_query = Q(
-            community=post.community, new_post_notifications=True)
+        community_subscriptions_query = Q(community=post.community, new_post_notifications=True)
 
         exclude_blocked_users_query = Q(Q(subscriber__blocked_by_users__blocker_id=post.creator.pk) | Q(
             subscriber__user_blocks__blocked_user_id=post.creator.pk))
-        community_members_query = Q(
-            subscriber__communities_memberships__community_id=post.community.pk)
+        community_members_query = Q(subscriber__communities_memberships__community_id=post.community.pk)
         exclude_self_query = ~Q(subscriber=post.creator)
 
         # Exclude banned users
-        exclude_blocked_users_query.add(
-            Q(subscriber__banned_of_communities__id=post.community.pk), Q.OR)
+        exclude_blocked_users_query.add(Q(subscriber__banned_of_communities__id=post.community.pk), Q.OR)
 
         # Subscriptions after excluding blocked users
         target_subscriptions_excluding_blocked = CommunityNotificationsSubscription.objects. \
@@ -333,8 +309,8 @@ class Post(models.Model):
 
         staff_members_query = Q(subscriber__communities_memberships__community_id=post.community.pk,
                                 subscriber__communities_memberships__is_administrator=True) | \
-            Q(subscriber__communities_memberships__community_id=post.community.pk,
-              subscriber__communities_memberships__is_moderator=True)
+                              Q(subscriber__communities_memberships__community_id=post.community.pk,
+                                subscriber__communities_memberships__is_moderator=True)
 
         # Subscriptions from staff of community
         target_subscriptions_with_staff = CommunityNotificationsSubscription.objects. \
@@ -344,8 +320,7 @@ class Post(models.Model):
                    exclude_self_query
                    )
 
-        results = target_subscriptions_excluding_blocked.union(
-            target_subscriptions_with_staff)
+        results = target_subscriptions_excluding_blocked.union(target_subscriptions_with_staff)
 
         return results
 
@@ -353,8 +328,7 @@ class Post(models.Model):
     def get_user_notification_target_subscriptions(cls, post):
         UserNotificationsSubscription = get_user_notifications_subscription_model()
 
-        user_subscriptions_query = Q(
-            user=post.creator, new_post_notifications=True)
+        user_subscriptions_query = Q(user=post.creator, new_post_notifications=True)
 
         exclude_blocked_users_query = Q(Q(subscriber__blocked_by_users__blocker_id=post.creator.pk) | Q(
             subscriber__user_blocks__blocked_user_id=post.creator.pk))
@@ -362,8 +336,7 @@ class Post(models.Model):
 
         if post.is_encircled_post():
             circle_ids = [circle.pk for circle in post.circles.all()]
-            post_circles_query = Q(
-                subscriber__connections__target_connection__circles__in=circle_ids)
+            post_circles_query = Q(subscriber__connections__target_connection__circles__in=circle_ids)
             user_subscriptions_query.add(post_circles_query, Q.AND)
 
         user_subscriptions_query.add(exclude_self_query, Q.AND)
@@ -395,15 +368,13 @@ class Post(models.Model):
 
             # Don't count items that have been reported and approved by community moderators
             ModeratedObject = get_moderated_object_model()
-            count_query.add(
-                ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
+            count_query.add(~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
 
         # Dont count soft deleted items
         count_query.add(Q(is_deleted=False), Q.AND)
 
         # Dont count items we have reported
-        count_query.add(
-            ~Q(moderated_object__reports__reporter_id=user.pk), Q.AND)
+        count_query.add(~Q(moderated_object__reports__reporter_id=user.pk), Q.AND)
 
         return self.comments.filter(count_query).count()
 
@@ -476,8 +447,7 @@ class Post(models.Model):
     def add_media(self, file, order=None):
         check_can_add_media(post=self)
 
-        is_in_memory_file = isinstance(
-            file, InMemoryUploadedFile) or isinstance(file, SimpleUploadedFile)
+        is_in_memory_file = isinstance(file, InMemoryUploadedFile) or isinstance(file, SimpleUploadedFile)
 
         if is_in_memory_file:
             file_mime = magic.from_buffer(file.read())
@@ -502,12 +472,10 @@ class Post(models.Model):
                 file = write_in_memory_file_to_disk(file)
 
             temp_dir = tempfile.gettempdir()
-            converted_gif_file_name = os.path.join(
-                temp_dir, str(uuid.uuid4()) + '.mp4')
+            converted_gif_file_name = os.path.join(temp_dir, str(uuid.uuid4()) + '.mp4')
 
             ff = ffmpy.FFmpeg(
-                inputs={file.temporary_file_path() if hasattr(
-                    file, 'temporary_file_path') else file.name: None},
+                inputs={file.temporary_file_path() if hasattr(file, 'temporary_file_path') else file.name: None},
                 outputs={converted_gif_file_name: None})
             ff.run()
             converted_gif_file = open(converted_gif_file_name, 'rb')
@@ -619,23 +587,19 @@ class Post(models.Model):
     def delete_notifications(self):
         # Remove all post reaction notifications
         PostReactionNotification = get_post_reaction_notification_model()
-        PostReactionNotification.objects.filter(
-            post_reaction__post_id=self.pk).delete()
+        PostReactionNotification.objects.filter(post_reaction__post_id=self.pk).delete()
 
         # Remove all post user mention notifications
         PostUserMentionNotification = get_post_user_mention_notification_model()
-        PostUserMentionNotification.objects.filter(
-            post_user_mention__post_id=self.pk).delete()
+        PostUserMentionNotification.objects.filter(post_user_mention__post_id=self.pk).delete()
 
         # Remove all post comment notifications
         PostCommentNotification = get_post_comment_notification_model()
-        PostCommentNotification.objects.filter(
-            post_comment__post_id=self.pk).delete()
+        PostCommentNotification.objects.filter(post_comment__post_id=self.pk).delete()
 
         # Remove all post comment reply notifications
         PostCommentReplyNotification = get_post_comment_reply_notification_model()
-        PostCommentReplyNotification.objects.filter(
-            post_comment__post_id=self.pk).delete()
+        PostCommentReplyNotification.objects.filter(post_comment__post_id=self.pk).delete()
 
         # Remove all post comment reaction notifications
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
@@ -751,8 +715,7 @@ class Post(models.Model):
         post_creator = User.objects.filter(pk=self.creator_id)
 
         # Add post commentators
-        post_commenters = User.objects.filter(
-            posts_comments__post_id=self.pk, is_deleted=False)
+        post_commenters = User.objects.filter(posts_comments__post_id=self.pk, is_deleted=False)
 
         # If community post, add community members
         if self.community:
@@ -778,8 +741,7 @@ class Post(models.Model):
                     if existing_mention_username not in usernames:
                         existing_mention.delete()
                     else:
-                        existing_mention_usernames.append(
-                            existing_mention_username)
+                        existing_mention_usernames.append(existing_mention_username)
 
                 PostUserMention = get_post_user_mention_model()
                 User = get_user_model()
@@ -788,12 +750,10 @@ class Post(models.Model):
                     username = username.lower()
                     if username not in existing_mention_usernames:
                         try:
-                            user = User.objects.only('id', 'username').get(
-                                username__iexact=username)
+                            user = User.objects.only('id', 'username').get(username__iexact=username)
                             user_is_post_creator = user.pk == self.creator_id
                             if user.can_see_post(post=self) and not user_is_post_creator:
-                                PostUserMention.create_post_user_mention(
-                                    user=user, post=self)
+                                PostUserMention.create_post_user_mention(user=user, post=self)
                                 existing_mention_usernames.append(username)
                         except User.DoesNotExist:
                             pass
@@ -817,34 +777,29 @@ class Post(models.Model):
 
                 for hashtag in hashtags:
                     hashtag = hashtag.lower()
-                    hashtag_obj = Hashtag.get_or_create_hashtag(
-                        name=hashtag, post=self)
+                    hashtag_obj = Hashtag.get_or_create_hashtag(name=hashtag, post=self)
                     if hashtag not in existing_hashtags:
                         self.hashtags.add(hashtag_obj)
 
     def _process_post_subscribers(self):
         if self.community:
             CommunityNewPostNotification = get_community_new_post_notification_model()
-            community_subscriptions = Post.get_community_notification_target_subscriptions(
-                post=self)
+            community_subscriptions = Post.get_community_notification_target_subscriptions(post=self)
 
             for subscription in community_subscriptions:
                 CommunityNewPostNotification.create_community_new_post_notification(
                     post_id=self.pk,
                     owner_id=subscription.subscriber.pk, community_notifications_subscription_id=subscription.pk)
-                send_community_new_post_push_notification(
-                    community_notifications_subscription=subscription)
+                send_community_new_post_push_notification(community_notifications_subscription=subscription)
         else:
             UserNewPostNotification = get_user_new_post_notification_model()
-            user_subscriptions = Post.get_user_notification_target_subscriptions(
-                post=self)
+            user_subscriptions = Post.get_user_notification_target_subscriptions(post=self)
 
             for subscription in user_subscriptions:
                 UserNewPostNotification.create_user_new_post_notification(
                     post_id=self.pk, owner_id=subscription.subscriber.pk,
                     user_notifications_subscription_id=subscription.pk)
-                send_user_new_post_push_notification(
-                    user_notifications_subscription=subscription, post=self)
+                send_user_new_post_push_notification(user_notifications_subscription=subscription, post=self)
 
     def _process_post_links(self):
         if self.has_text():
@@ -854,8 +809,7 @@ class Post(models.Model):
                     self.links.all().delete()
                     for link_url in link_urls:
                         link_url = normalize_url(link_url)
-                        post_link = PostLink.create_link(
-                            link=link_url, post_id=self.pk)
+                        post_link = PostLink.create_link(link=link_url, post_id=self.pk)
                         post_link.refresh_has_preview()
             else:
                 self.links.all().delete()
@@ -864,8 +818,7 @@ class Post(models.Model):
 
 
 class TopPost(models.Model):
-    post = models.OneToOneField(
-        Post, on_delete=models.CASCADE, related_name='top_post')
+    post = models.OneToOneField(Post, on_delete=models.CASCADE, related_name='top_post')
     created = models.DateTimeField(editable=False, db_index=True)
 
     def save(self, *args, **kwargs):
@@ -878,8 +831,7 @@ class TopPost(models.Model):
 
 
 class TrendingPost(models.Model):
-    post = models.OneToOneField(
-        Post, on_delete=models.CASCADE, related_name='trending_post')
+    post = models.OneToOneField(Post, on_delete=models.CASCADE, related_name='trending_post')
     created = models.DateTimeField(editable=False, db_index=True)
 
     def save(self, *args, **kwargs):
@@ -892,8 +844,7 @@ class TrendingPost(models.Model):
 
 
 class TopPostCommunityExclusion(models.Model):
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='top_posts_community_exclusions')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='top_posts_community_exclusions')
     community = models.ForeignKey('openbook_communities.Community', on_delete=models.CASCADE,
                                   related_name='top_posts_community_exclusions')
     created = models.DateTimeField(editable=False, db_index=True)
@@ -911,8 +862,7 @@ class TopPostCommunityExclusion(models.Model):
 
 
 class ProfilePostsCommunityExclusion(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE,
-                             related_name='profile_posts_community_exclusions')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='profile_posts_community_exclusions')
     community = models.ForeignKey('openbook_communities.Community', on_delete=models.CASCADE,
                                   related_name='profile_posts_community_exclusions')
     created = models.DateTimeField(editable=False, db_index=True)
@@ -930,8 +880,7 @@ class ProfilePostsCommunityExclusion(models.Model):
 
 
 class PostMedia(OrderedModel):
-    post = models.ForeignKey(
-        Post, on_delete=models.CASCADE, related_name='media')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='media')
     order_with_respect_to = 'post'
 
     MEDIA_TYPE_VIDEO = 'V'
@@ -955,18 +904,15 @@ class PostMedia(OrderedModel):
 
 
 class PostImage(models.Model):
-    post = models.OneToOneField(
-        Post, on_delete=models.CASCADE, related_name='image', null=True)
+    post = models.OneToOneField(Post, on_delete=models.CASCADE, related_name='image', null=True)
     image = ProcessedImageField(verbose_name=_('image'), storage=post_image_storage,
                                 upload_to=upload_to_post_image_directory,
                                 width_field='width',
                                 height_field='height',
                                 blank=False, null=True, format='JPEG', options={'quality': 80},
                                 processors=[ResizeToFit(width=1024, upscale=False)])
-    width = models.PositiveIntegerField(
-        editable=False, null=False, blank=False)
-    height = models.PositiveIntegerField(
-        editable=False, null=False, blank=False)
+    width = models.PositiveIntegerField(editable=False, null=False, blank=False)
+    height = models.PositiveIntegerField(editable=False, null=False, blank=False)
     hash = models.CharField(_('hash'), max_length=64, blank=False, null=True)
     thumbnail = ProcessedImageField(verbose_name=_('thumbnail'), storage=post_image_storage,
                                     upload_to=upload_to_post_image_directory,
@@ -983,8 +929,7 @@ class PostImage(models.Model):
     @classmethod
     def create_post_media_image(cls, image, post_id, order):
         hash = sha256sum(file=image.file)
-        post_image = cls.objects.create(
-            image=image, post_id=post_id, hash=hash, thumbnail=image)
+        post_image = cls.objects.create(image=image, post_id=post_id, hash=hash, thumbnail=image)
         PostMedia.create_post_media(type=PostMedia.MEDIA_TYPE_IMAGE,
                                     content_object=post_image,
                                     post_id=post_id, order=order)
@@ -992,8 +937,7 @@ class PostImage(models.Model):
 
 
 class PostVideo(models.Model):
-    post = models.ForeignKey(
-        Post, on_delete=models.CASCADE, related_name='videos', null=True)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='videos', null=True)
 
     hash = models.CharField(_('hash'), max_length=64, blank=False, null=True)
 
@@ -1016,10 +960,8 @@ class PostVideo(models.Model):
                                     blank=False, null=True, format='JPEG', options={'quality': 30},
                                     processors=[ResizeToFit(width=1024, upscale=False)])
 
-    thumbnail_width = models.PositiveIntegerField(
-        editable=False, null=False, blank=False)
-    thumbnail_height = models.PositiveIntegerField(
-        editable=False, null=False, blank=False)
+    thumbnail_width = models.PositiveIntegerField(editable=False, null=False, blank=False)
+    thumbnail_height = models.PositiveIntegerField(editable=False, null=False, blank=False)
 
     @classmethod
     def create_post_media_video(cls, file, post_id, order):
@@ -1029,15 +971,12 @@ class PostVideo(models.Model):
         if isinstance(file, InMemoryUploadedFile):
             # If its in memory, doing read shouldn't be an issue as the file should be small.
             in_disk_file = write_in_memory_file_to_disk(file)
-            thumbnail_path = video_backend.get_thumbnail(
-                video_path=in_disk_file.name, at_time=0.0)
+            thumbnail_path = video_backend.get_thumbnail(video_path=in_disk_file.name, at_time=0.0)
         else:
-            thumbnail_path = video_backend.get_thumbnail(
-                video_path=file.file.name, at_time=0.0)
+            thumbnail_path = video_backend.get_thumbnail(video_path=file.file.name, at_time=0.0)
 
         with open(thumbnail_path, 'rb+') as thumbnail_file:
-            post_video = cls.objects.create(
-                file=file, post_id=post_id, hash=hash, thumbnail=File(thumbnail_file), )
+            post_video = cls.objects.create(file=file, post_id=post_id, hash=hash, thumbnail=File(thumbnail_file), )
         PostMedia.create_post_media(type=PostMedia.MEDIA_TYPE_VIDEO,
                                     content_object=post_video,
                                     post_id=post_id, order=order)
@@ -1045,20 +984,15 @@ class PostVideo(models.Model):
 
 
 class PostComment(models.Model):
-    moderated_object = GenericRelation(
-        ModeratedObject, related_query_name='post_comments')
-    post = models.ForeignKey(
-        Post, on_delete=models.CASCADE, related_name='comments')
-    parent_comment = models.ForeignKey(
-        'self', on_delete=models.CASCADE, related_name='replies', null=True, blank=True)
+    moderated_object = GenericRelation(ModeratedObject, related_query_name='post_comments')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+    parent_comment = models.ForeignKey('self', on_delete=models.CASCADE, related_name='replies', null=True, blank=True)
     created = models.DateTimeField(editable=False, db_index=True)
     modified = models.DateTimeField(db_index=True, default=timezone.now)
-    commenter = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='posts_comments')
+    commenter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts_comments')
     text = models.TextField(_('text'), max_length=settings.POST_COMMENT_MAX_LENGTH, blank=False, null=False,
                             validators=post_comment_text_validators)
-    language = models.ForeignKey(
-        Language, on_delete=models.SET_NULL, null=True, related_name='post_comments')
+    language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, related_name='post_comments')
     is_edited = models.BooleanField(default=False, null=False, blank=False)
     # This only happens if the comment was reported and found with critical severity content
     is_deleted = models.BooleanField(default=False)
@@ -1074,8 +1008,7 @@ class PostComment(models.Model):
 
     @classmethod
     def count_comments_for_post_with_id(cls, post_id):
-        count_query = Q(post_id=post_id,
-                        parent_comment__isnull=True, is_deleted=False)
+        count_query = Q(post_id=post_id, parent_comment__isnull=True, is_deleted=False)
 
         return cls.objects.filter(count_query).count()
 
@@ -1104,21 +1037,18 @@ class PostComment(models.Model):
 
             # Don't count items that have been reported and approved by community moderators
             ModeratedObject = get_moderated_object_model()
-            count_query.add(
-                ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
+            count_query.add(~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
 
         # Dont count soft deleted items
         count_query.add(Q(is_deleted=False), Q.AND)
 
         # Dont count items we have reported
-        count_query.add(
-            ~Q(moderated_object__reports__reporter_id=user.pk), Q.AND)
+        count_query.add(~Q(moderated_object__reports__reporter_id=user.pk), Q.AND)
 
         return self.replies.filter(count_query).count()
 
     def reply_to_comment(self, commenter, text):
-        post_comment = PostComment.create_comment(
-            text=text, commenter=commenter, post=self.post, parent_comment=self)
+        post_comment = PostComment.create_comment(text=text, commenter=commenter, post=self.post, parent_comment=self)
         post_comment.language = get_language_for_text(text)
         post_comment.save()
 
@@ -1155,8 +1085,7 @@ class PostComment(models.Model):
                 if existing_mention_username not in usernames:
                     existing_mention.delete()
                 else:
-                    existing_mention_usernames.append(
-                        existing_mention_username)
+                    existing_mention_usernames.append(existing_mention_username)
 
             PostCommentUserMention = get_post_comment_user_mention_model()
             User = get_user_model()
@@ -1165,10 +1094,8 @@ class PostComment(models.Model):
                 username = username.lower()
                 if username not in existing_mention_usernames:
                     try:
-                        user = User.objects.only('id', 'username').get(
-                            username__iexact=username)
-                        user_can_see_post_comment = user.can_see_post_comment(
-                            post_comment=self)
+                        user = User.objects.only('id', 'username').get(username__iexact=username)
+                        user_can_see_post_comment = user.can_see_post_comment(post_comment=self)
                         user_is_commenter = user.pk == self.commenter_id
 
                         if not user_can_see_post_comment or user_is_commenter:
@@ -1176,8 +1103,7 @@ class PostComment(models.Model):
 
                         if self.parent_comment:
                             user_is_parent_comment_creator = self.parent_comment.commenter_id == user.pk
-                            user_has_replied_before = self.parent_comment.replies.filter(
-                                commenter_id=user.pk).exists()
+                            user_has_replied_before = self.parent_comment.replies.filter(commenter_id=user.pk).exists()
 
                             if user_has_replied_before or user_is_parent_comment_creator:
                                 # Its a reply to a comment, if the user previously replied to the comment
@@ -1185,15 +1111,13 @@ class PostComment(models.Model):
                                 # no need for mention
                                 continue
                         else:
-                            user_has_commented_before = self.post.comments.filter(
-                                commenter_id=user.pk).exists()
+                            user_has_commented_before = self.post.comments.filter(commenter_id=user.pk).exists()
                             if user_has_commented_before:
                                 # Its a comment to a post, if the user previously commented on the post
                                 # he will already be alerted of the comment, no need for mention
                                 continue
 
-                        PostCommentUserMention.create_post_comment_user_mention(
-                            user=user, post_comment=self)
+                        PostCommentUserMention.create_post_comment_user_mention(user=user, post_comment=self)
                         existing_mention_usernames.append(username)
                     except User.DoesNotExist:
                         pass
@@ -1218,8 +1142,7 @@ class PostComment(models.Model):
                 for hashtag in hashtags:
                     hashtag = hashtag.lower()
                     if hashtag not in existing_hashtags:
-                        hashtag_obj = Hashtag.get_or_create_hashtag(
-                            name=hashtag)
+                        hashtag_obj = Hashtag.get_or_create_hashtag(name=hashtag)
                         self.hashtags.add(hashtag_obj)
 
     def update_comment(self, text):
@@ -1240,18 +1163,15 @@ class PostComment(models.Model):
     def delete_notifications(self):
         # Delete all post comment notifications
         PostCommentNotification = get_post_comment_notification_model()
-        PostCommentNotification.objects.filter(
-            post_comment_id=self.pk).delete()
+        PostCommentNotification.objects.filter(post_comment_id=self.pk).delete()
 
         # Delete all post comments reply notifications
         PostCommentReplyNotification = get_post_comment_reply_notification_model()
-        PostCommentReplyNotification.objects.filter(
-            post_comment__parent_comment_id=self.pk).delete()
+        PostCommentReplyNotification.objects.filter(post_comment__parent_comment_id=self.pk).delete()
 
         # Delete all post comment reaction notifications
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
-        PostCommentReactionNotification.objects.filter(
-            post_comment_reaction__post_comment_id=self.pk).delete()
+        PostCommentReactionNotification.objects.filter(post_comment_reaction__post_comment_id=self.pk).delete()
 
         # Delete all post comment reply reaction notifications
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
@@ -1293,13 +1213,10 @@ class PostComment(models.Model):
 
 
 class PostReaction(models.Model):
-    post = models.ForeignKey(
-        Post, on_delete=models.CASCADE, related_name='reactions')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='reactions')
     created = models.DateTimeField(editable=False)
-    reactor = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='post_reactions')
-    emoji = models.ForeignKey(
-        Emoji, on_delete=models.CASCADE, related_name='post_reactions')
+    reactor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='post_reactions')
+    emoji = models.ForeignKey(Emoji, on_delete=models.CASCADE, related_name='post_reactions')
 
     class Meta:
         unique_together = ('reactor', 'post',)
@@ -1325,13 +1242,10 @@ class PostReaction(models.Model):
 
 
 class PostCommentReaction(models.Model):
-    post_comment = models.ForeignKey(
-        PostComment, on_delete=models.CASCADE, related_name='reactions')
+    post_comment = models.ForeignKey(PostComment, on_delete=models.CASCADE, related_name='reactions')
     created = models.DateTimeField(editable=False)
-    reactor = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='post_comment_reactions')
-    emoji = models.ForeignKey(
-        Emoji, on_delete=models.CASCADE, related_name='post_comment_reactions')
+    reactor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='post_comment_reactions')
+    emoji = models.ForeignKey(Emoji, on_delete=models.CASCADE, related_name='post_comment_reactions')
 
     class Meta:
         unique_together = ('reactor', 'post_comment',)
@@ -1342,8 +1256,7 @@ class PostCommentReaction(models.Model):
 
     @classmethod
     def count_reactions_for_post_with_id(cls, post_comment_id, reactor_id=None):
-        count_query = Q(post_comment_id=post_comment_id,
-                        reactor__is_deleted=False)
+        count_query = Q(post_comment_id=post_comment_id, reactor__is_deleted=False)
 
         if reactor_id:
             count_query.add(Q(reactor_id=reactor_id), Q.AND)
@@ -1358,10 +1271,8 @@ class PostCommentReaction(models.Model):
 
 
 class PostMute(models.Model):
-    post = models.ForeignKey(
-        Post, on_delete=models.CASCADE, related_name='mutes')
-    muter = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='post_mutes')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='mutes')
+    muter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='post_mutes')
 
     class Meta:
         unique_together = ('post', 'muter',)
@@ -1372,10 +1283,8 @@ class PostMute(models.Model):
 
 
 class PostCommentMute(models.Model):
-    post_comment = models.ForeignKey(
-        PostComment, on_delete=models.CASCADE, related_name='mutes')
-    muter = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='post_comment_mutes')
+    post_comment = models.ForeignKey(PostComment, on_delete=models.CASCADE, related_name='mutes')
+    muter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='post_comment_mutes')
 
     class Meta:
         unique_together = ('post_comment', 'muter',)
@@ -1387,8 +1296,7 @@ class PostCommentMute(models.Model):
 
 class PostLink(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    post = models.ForeignKey(
-        Post, on_delete=models.CASCADE, related_name='links')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='links')
     link = models.TextField(max_length=settings.POST_MAX_LENGTH)
     has_preview = models.BooleanField(default=False)
 
@@ -1405,12 +1313,9 @@ class PostLink(models.Model):
 
         self.save()
 
-
 class PostUserMention(models.Model):
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='post_mentions')
-    post = models.ForeignKey(
-        Post, on_delete=models.CASCADE, related_name='user_mentions')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='post_mentions')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='user_mentions')
 
     class Meta:
         unique_together = ('user', 'post',)
@@ -1421,28 +1326,23 @@ class PostUserMention(models.Model):
         PostUserMentionNotification = get_post_user_mention_notification_model()
         PostUserMentionNotification.create_post_user_mention_notification(post_user_mention_id=post_user_mention.pk,
                                                                           owner_id=user.pk)
-        send_post_user_mention_push_notification(
-            post_user_mention=post_user_mention)
+        send_post_user_mention_push_notification(post_user_mention=post_user_mention)
         return post_user_mention
 
 
 class PostCommentUserMention(models.Model):
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='post_comment_mentions')
-    post_comment = models.ForeignKey(
-        PostComment, on_delete=models.CASCADE, related_name='user_mentions')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='post_comment_mentions')
+    post_comment = models.ForeignKey(PostComment, on_delete=models.CASCADE, related_name='user_mentions')
 
     class Meta:
         unique_together = ('user', 'post_comment',)
 
     @classmethod
     def create_post_comment_user_mention(cls, user, post_comment):
-        post_comment_user_mention = cls.objects.create(
-            user=user, post_comment=post_comment)
+        post_comment_user_mention = cls.objects.create(user=user, post_comment=post_comment)
         PostCommentUserMentionNotification = get_post_comment_user_mention_notification_model()
         PostCommentUserMentionNotification.create_post_comment_user_mention_notification(
             post_comment_user_mention_id=post_comment_user_mention.pk,
             owner_id=user.pk)
-        send_post_comment_user_mention_push_notification(
-            post_comment_user_mention=post_comment_user_mention)
+        send_post_comment_user_mention_push_notification(post_comment_user_mention=post_comment_user_mention)
         return post_comment_user_mention
