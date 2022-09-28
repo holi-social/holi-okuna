@@ -6,9 +6,10 @@ from graphene_file_upload.scalars import Upload
 
 from openbook_auth.models import User as UserModel
 from openbook_auth.views.authenticated_user.serializers import UpdateAuthenticatedUserSerializer
-
 from openbook_auth.images import store_avatar, delete_old_avatars, delete_image
 
+from openbook_insights.models import Insight as InsightModel
+from openbook_posts.models import Post as PostModel
 
 # noinspection PyUnresolvedReferences
 
@@ -76,10 +77,28 @@ class User(DjangoObjectType):
     def resolve_skills(self, info):
         return self.profile.skills
 
+
+class Insight(DjangoObjectType):
+    class Meta:
+        model = InsightModel
+#        fields = ("posts")
+
+    def resolve_posts(self, info, **kwargs):
+        id = kwargs.get("id")
+        
+        return PostModel.objects.filter(insight=self)
+
+
+class Post(DjangoObjectType):
+    class Meta:
+        model = PostModel
+
+
 class Query(graphene.ObjectType):
     authenticated_user = graphene.Field(User)
     user_by_id = graphene.Field(User, id=graphene.String())
     user_suggestions = graphene.List(User, numberOfItems=graphene.Int())
+    last_insights = graphene.List(Insight, numberOfItems=graphene.Int())
 
     def resolve_authenticated_user(self, info):
         if info.context.user.is_anonymous:
@@ -99,6 +118,11 @@ class Query(graphene.ObjectType):
         if info.context.user.id:
             return UserModel.objects.exclude(id=info.context.user.id).order_by('-date_joined')[:numberOfItems]
         return UserModel.objects.order_by('-date_joined')[:numberOfItems]
+
+    def resolve_last_insights(self, info, numberOfItems=graphene.Int()):
+        return InsightModel.objects.order_by('-date_published')[:numberOfItems]
+
+    
 
 class UpdateAuthenticatedUserInput(graphene.InputObjectType):
     avatar = Upload(required=False)
