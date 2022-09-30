@@ -4,8 +4,6 @@ RUN apt-get -y update && apt-get -y upgrade &&  apt-get install -y ffmpeg
 
 COPY requirements.txt /requirements.txt
 
-
-
 RUN pip install --upgrade pip
 RUN pip install -r /requirements.txt
 
@@ -24,6 +22,9 @@ COPY .docker/api/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 #RUN chmod +x /bootstrap_development_data.sh
 RUN chmod +x /wait-for-it.sh
+
+# prepare static files
+RUN python manage.py collectstatic
 
 ENTRYPOINT ["/entrypoint.sh"]
 
