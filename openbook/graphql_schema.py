@@ -7,6 +7,7 @@ from graphene_file_upload.scalars import Upload
 
 from openbook_auth.models import User as UserModel
 from openbook_auth.views.authenticated_user.serializers import UpdateAuthenticatedUserSerializer
+from openbook_connections.serializers import ConnectWithUserSerializer
 from openbook_auth.images import store_avatar, delete_old_avatars, delete_image
 
 from openbook_insights.models import Insight as InsightModel
@@ -189,8 +190,34 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
         return UpdateAuthenticatedUserMutation(authenticated_user=authenticated_user)
 
 
+class ConnectWithUserInput(graphene.InputObjectType):
+    username = graphene.String()
+    circles_ids = graphene.List(graphene.String)
+
+# TODO double check if connect_with_user_with_id is a connection request or if it triggers a connection immediately. (it seems like it is already triggering a connection)
+# It should only be a real connection upon a confirm_connection_with_user_with_id request by the other user.
+class ConnectWithUserMutation(graphene.Mutation):
+    class Arguments:
+        input = graphene.Argument(ConnectWithUserInput)
+
+    authenticated_user = graphene.Field(User)
+
+    @classmethod
+    def mutate(cls, root, info, input):
+        authenticated_user = info.context.user
+
+        serializer = ConnectWithUserSerializer(data=input)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        userToConnect = UserModel.get_user_with_username(self=authenticated_user, username=data.get('username'))
+        authenticated_user.connect_with_user_with_id(user_id=userToConnect.id,circles_ids=data.get('circles_ids'))
+
+        return ConnectWithUserMutation(authenticated_user=authenticated_user)
+
 class Mutation(graphene.ObjectType):
     update_authenticated_user = UpdateAuthenticatedUserMutation.Field()
+    connect_with_user = ConnectWithUserMutation.Field()
 
 
 # noinspection PyTypeChecker
