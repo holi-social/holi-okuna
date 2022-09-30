@@ -151,6 +151,7 @@ INSTALLED_APPS = [
     'openbook_circles',
     'openbook_connections',
     'openbook_importer',
+    'openbook_insights',
     'openbook_lists',
     'openbook_follows',
     'openbook_communities',
@@ -188,6 +189,7 @@ CORS_ALLOW_CREDENTIALS = True
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.RemoteUserBackend',
+    'django.contrib.auth.backends.ModelBackend', # needs to be here for /admin to work
 ]
 
 ROOT_URLCONF = 'openbook.urls'
@@ -662,3 +664,8 @@ PEEKALINK_API_KEY = os.environ.get('PEEKALINK_API_KEY', None)
 IMAGEKIT_PUBLIC_KEY = os.environ.get('IMAGEKIT_PUBLIC_KEY')
 IMAGEKIT_PRIVATE_KEY = os.environ.get('IMAGEKIT_PRIVATE_KEY')
 IMAGEKIT_URL = os.environ.get('IMAGEKIT_URL', 'https://ik.imagekit.io/holi')
+
+# HOLI model config settings
+
+INSIGHT_TITLE_MAX_LENGTH = 128
+INSIGHT_HEADER_IMAGE_URL_MAX_LENGTH = 500
