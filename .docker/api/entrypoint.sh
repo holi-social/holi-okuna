@@ -14,7 +14,7 @@ pip install -r requirements.txt --quiet
 python manage.py collectstatic
 
 python manage.py migrate
-yes yes | python manage.py collectmedia
+echo "yes" | python manage.py collectmedia # it always asks even if media folder is nonexistent
 python manage.py loaddata circles.json emoji-groups.json emojis.json badges.json categories.json languages.json
 
-exec $@
+exec "$@"
