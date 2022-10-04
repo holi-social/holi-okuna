@@ -178,7 +178,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.RemoteUserMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'openbook_common.middleware.TimezoneMiddleware'
+    'openbook_common.middleware.TimezoneMiddleware',
+    'openbook_common.middleware.ChunkedContentLengthMiddleware'
 ]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
