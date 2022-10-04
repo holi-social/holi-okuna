@@ -20,13 +20,6 @@ class TimezoneMiddleware(MiddlewareMixin):
             timezone.deactivate()
 
 
-class RequestLoggingMiddleware(MiddlewareMixin):
-    def process_request(self, request):
-        logger.info("Body: %s", request.body)
-        logger.info("META: %s", request.META)
-        return None
-
-
 class ChunkedContentLengthMiddleware(MiddlewareMixin):
     def process_request(self, request):
         if request.META.get("HTTP_TRANSFER_ENCODING") == "chunked":
