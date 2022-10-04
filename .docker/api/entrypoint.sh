@@ -11,7 +11,7 @@ cd /opt/okuna-api
 pip install -r requirements.txt --quiet
 
 # prepare static files
-yes yes | python manage.py collectstatic
+python manage.py collectstatic
 
 python manage.py migrate
 yes yes | python manage.py collectmedia
