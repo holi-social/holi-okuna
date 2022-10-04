@@ -27,4 +27,5 @@ VOLUME ["/opt/okuna-api"]
 
 EXPOSE 80
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:80"]
+#CMD ["python", "manage.py", "runserver", "0.0.0.0:80"]
+CMD ["uvicorn", "openbook.asgi:application", "--host", "0.0.0.0", "--port", "80"]

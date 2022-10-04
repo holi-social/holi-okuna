@@ -1,7 +1,10 @@
 import pytz
+import logging
 
 from django.utils import timezone
 from django.utils.deprecation import MiddlewareMixin
+
+logger = logging.getLogger(__name__)
 
 
 class TimezoneMiddleware(MiddlewareMixin):
@@ -15,3 +18,13 @@ class TimezoneMiddleware(MiddlewareMixin):
             timezone.activate(pytz.timezone(tzname))
         else:
             timezone.deactivate()
+
+
+class ChunkedContentLengthMiddleware(MiddlewareMixin):
+    """
+    A middleware that re-adds a CONTENT_LENGTH Http header for requests that where transferred in chunked mode.
+    """
+    def process_request(self, request):
+        if request.META.get("HTTP_TRANSFER_ENCODING") == "chunked":
+            request.META["CONTENT_LENGTH"] = len(request.body)
+        return None
