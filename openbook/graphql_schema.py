@@ -83,9 +83,6 @@ class Insight(DjangoObjectType):
     class Meta:
         model = InsightModel
 
-    def resolve_posts(self, info, **kwargs):
-        return PostModel.objects.filter(insight=self)
-
 
 class Post(DjangoObjectType):
     class Meta:

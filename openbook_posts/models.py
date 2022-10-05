@@ -95,8 +95,6 @@ class Post(models.Model):
                                           upload_to=upload_to_post_directory,
                                           blank=False, null=True, format='JPEG', options={'quality': 30},
                                           processors=[ResizeToFit(width=512, upscale=False)])
-    insight = models.ForeignKey('openbook_insights.Insight', on_delete=models.SET_NULL, related_name='posts', blank=True,
-                                null=True)
                                           
 
     class Meta:

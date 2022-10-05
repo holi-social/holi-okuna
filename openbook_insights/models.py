@@ -1,15 +1,30 @@
+import uuid
+
 from django.db import models
+from django.core.files.storage import default_storage
+from django.utils.translation import gettext_lazy as _
+
+from imagekit.models import ProcessedImageField
+from pilkit.processors import ResizeToFit
 
 # Create your models here.
 from openbook.settings import INSIGHT_TITLE_MAX_LENGTH, INSIGHT_HEADER_IMAGE_URL_MAX_LENGTH
 from openbook_auth.models import User
+from openbook_insights.helpers import upload_to_insight_directory
+
+
+# TODO Think about what to do for storage backend
+# insight_image_storage = S3PrivateMediaStorage() if settings.IS_PRODUCTION else default_storage
+insight_image_storage = default_storage
 
 class Insight(models.Model):
     title = models.CharField(max_length=INSIGHT_TITLE_MAX_LENGTH, blank=False)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     description = models.TextField(blank=False)
     curator = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='curated_insights', blank=True, null=True)
     date_published = models.DateField(blank=False)
-    header_image = models.CharField(max_length=INSIGHT_HEADER_IMAGE_URL_MAX_LENGTH, blank=True, null=True)
-
-#    class Meta:
-#        verbose_name_plural = 'insights'
+    header_image = ProcessedImageField(verbose_name=_('header_image'), storage=insight_image_storage,
+                                          upload_to=upload_to_insight_directory,
+                                          blank=False, null=True, format='JPEG', options={'quality': 70},
+                                          processors=[ResizeToFit(width=1024, upscale=False)]) # constrain to maximum width
+    posts = models.ManyToManyField(related_name='insights', to='openbook_posts.Post')
