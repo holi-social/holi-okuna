@@ -39,7 +39,7 @@ class ConnectWithUserSerializer(serializers.Serializer):
         required=False
     )
     circles_ids = serializers.ListSerializer(
-        child=serializers.IntegerField(required=False, validators=[circle_id_exists])
+        child=serializers.IntegerField(required=True, validators=[circle_id_exists])
     )
 
 
