@@ -3,10 +3,6 @@ from os.path import splitext
 
 
 def upload_to_insight_directory(insight, filename):
-    return _upload_to_insight_directory_directory(insight=insight, filename=filename)
-
-
-def _upload_to_insight_directory_directory(insight, filename):
     extension = splitext(filename)[1].lower()
     new_filename = str(uuid.uuid4()) + extension
 

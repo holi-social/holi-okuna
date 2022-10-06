@@ -17,14 +17,18 @@ from openbook_insights.helpers import upload_to_insight_directory
 # insight_image_storage = S3PrivateMediaStorage() if settings.IS_PRODUCTION else default_storage
 insight_image_storage = default_storage
 
+
 class Insight(models.Model):
     title = models.CharField(max_length=INSIGHT_TITLE_MAX_LENGTH, blank=False)
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+    uuid = models.UUIDField(
+        default=uuid.uuid4, editable=False, unique=True, db_index=True)
     description = models.TextField(blank=False)
-    curator = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='curated_insights', blank=True, null=True)
+    curator = models.ForeignKey(User, on_delete=models.SET_NULL,
+                                related_name='curated_insights', blank=True, null=True)
     date_published = models.DateField(blank=False)
     header_image = ProcessedImageField(verbose_name=_('header_image'), storage=insight_image_storage,
-                                          upload_to=upload_to_insight_directory,
-                                          blank=False, null=True, format='JPEG', options={'quality': 70},
-                                          processors=[ResizeToFit(width=1024, upscale=False)]) # constrain to maximum width
-    posts = models.ManyToManyField(related_name='insights', to='openbook_posts.Post')
+                                       upload_to=upload_to_insight_directory,
+                                       blank=False, null=True, format='JPEG', options={'quality': 80},
+                                       processors=[ResizeToFit(width=1024, upscale=False)])  # constrain to maximum width
+    posts = models.ManyToManyField(
+        related_name='insights', to='openbook_posts.Post')
