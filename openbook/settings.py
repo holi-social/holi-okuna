@@ -170,6 +170,7 @@ MODELTRANSLATION_FALLBACK_LANGUAGES = ('en',)
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -187,6 +188,9 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://\w+\.web\.project-holi\.org",
 ]
 CORS_ALLOW_CREDENTIALS = True
+
+# Needed for using the /admin interface for editing insights, HOLI-1562
+CSRF_TRUSTED_ORIGINS = ['https://0kuna-adm1n.project-holi.org',]
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.RemoteUserBackend',
