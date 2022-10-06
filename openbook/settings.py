@@ -103,7 +103,7 @@ if not SECRET_KEY:
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = environment_checker.is_debug()
+DEBUG = True # environment_checker.is_debug()
 IS_PRODUCTION = environment_checker.is_production()
 IS_BUILD = environment_checker.is_build()
 TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
