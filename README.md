@@ -65,7 +65,16 @@ The project uses
    python manage.py loaddata circles.json emoji-groups.json emojis.json badges.json categories.json languages.json users.json
    ```
 
-   Afterwards, you're ready to start the backend API service (in development mode):
+   Afterwards, you're ready to start the backend API service:
+
+   ```sh
+   python start_server.py # this binds to http://127.0.0.1:8000
+   
+   #should you need more control you can also use:
+   uvicorn openbook.asgi:application --reload [...more uvicorn options, like --host or --port...]
+   ```
+   
+   Alternatively you can also start the Django development server, but then file uploads don't work:
 
    ```sh
    python manage.py runserver localhost:8000
