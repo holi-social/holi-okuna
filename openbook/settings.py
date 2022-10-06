@@ -189,6 +189,9 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 
+# Needed for using the /admin interface for editing insights, HOLI-1562
+CSRF_TRUSTED_ORIGINS = ['https://0kuna-adm1n.project-holi.org',]
+
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.RemoteUserBackend',
     'django.contrib.auth.backends.ModelBackend', # needs to be here for /admin to work
