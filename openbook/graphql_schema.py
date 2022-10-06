@@ -146,8 +146,8 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
         update_avatar = False
 
         if 'avatar' in input:
-            if input['avatar'] in ({}, None):
-                raise GraphQLError("Attribute 'avatar' should be missing or contain a file, but was: {}".format(input['avatar']))
+            if input['avatar'] in ("", {}, None):
+                raise GraphQLError("Attribute 'avatar' should be missing or contain a file, but was: '{}'".format(input['avatar']))
             else:
                 update_avatar = True
                 # keep the file to store it after a successful request validation
