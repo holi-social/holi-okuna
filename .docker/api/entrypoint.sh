@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euxo pipefail
+set -eo pipefail
 
 /wait-for-it.sh $RDS_HOSTNAME:$RDS_PORT -t 60
 
