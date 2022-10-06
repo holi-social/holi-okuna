@@ -95,4 +95,5 @@ urllib3==1.25.11; python_version != '3.4'
 uvicorn==0.18.3
 watchdog==0.10.3
 webpreview==1.6.0
+whitenoise==6.2.0
 zipp==3.3.1; python_version >= '3.6'

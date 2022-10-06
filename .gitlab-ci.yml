@@ -101,13 +101,13 @@ review_deploy:
   environment:
     name: review/$CI_COMMIT_REF_SLUG
     url: https://$CI_ENVIRONMENT_SLUG.social.apis.project-holi.org
-    on_stop: web_review_destroy
+    on_stop: review_destroy
     auto_stop_in: 1 week
   except:
     - main
     - /^noenv\/.*/
 
-web_review_destroy:
+review_destroy:
   stage: destroy
   image:
     name: 'hashicorp/terraform:1.1.9'
