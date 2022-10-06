@@ -15,6 +15,7 @@ from rest_framework.authtoken.models import Token
 from django.db.models import Q, F, Count, JSONField
 from django.core.mail import EmailMultiAlternatives
 
+from enum import Enum
 from openbook.settings import USERNAME_MAX_LENGTH
 from openbook_common.peekalink_client import peekalink_client
 from openbook_hashtags.queries import make_search_hashtag_query_for_user_with_id, \
@@ -39,6 +40,12 @@ from openbook_common.utils.model_loaders import get_connection_model, get_circle
 from openbook_common.validators import name_characters_validator
 from openbook_notifications import helpers
 from openbook_auth.checkers import *
+
+class UserConnectionStatus(Enum):
+    NOT_CONNECTED = 1
+    CONNECTED = 2
+    REQUESTED = 3 # requested by currently authenticated user
+    PENDING_CONFIRMATION = 4 # pending confirmation by currently authenticated user
 
 class User(AbstractUser):
     """
@@ -676,6 +683,20 @@ class User(AbstractUser):
             target_connection__user_id=user_id).get()
 
         return not connection.circles.exists()
+
+    def get_connection_status_with_user_id(self, user_id):
+        # check if connected (at least one user requested to connect)
+        if self.is_connected_with_user_with_id(user_id=user_id):
+            # check if fully connected (connection request has been accepted)
+            if self.is_fully_connected_with_user_with_id(user_id=user_id):
+                return UserConnectionStatus.CONNECTED.name
+            # check if pending confirm connection (true only for the user who received the connection request)
+            if self.is_pending_confirm_connection_for_user_with_id(user_id=user_id):
+                return UserConnectionStatus.PENDING_CONFIRMATION.name
+            # if none of the above is true, the currently signed in user has made the request
+            return UserConnectionStatus.REQUESTED.name
+        # fallback to not connected (no requests initiated)
+        return UserConnectionStatus.NOT_CONNECTED.name
 
     def delete_all_pending_connection_requests(self):
         self.connections.filter(circles__isnull=True).delete()

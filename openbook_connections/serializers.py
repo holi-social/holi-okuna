@@ -12,6 +12,22 @@ from openbook_common.serializers_fields.user import IsConnectedField, ConnectedC
 from openbook_connections.models import Connection
 
 
+# Generic serializer for both 'CONNECT' and 'DISCONNECT' actions
+class UpdateConnectionWithUserSerializer(serializers.Serializer):
+    user_id = serializers.CharField(
+        max_length=settings.USERNAME_MAX_LENGTH,
+        allow_blank=False,
+        validators=[
+            username_characters_validator,
+            user_username_exists
+        ],
+        required=True
+    )
+    action = serializers.CharField(
+        allow_blank=False,
+        required=True
+    )
+
 class ConnectWithUserSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=settings.USERNAME_MAX_LENGTH,
