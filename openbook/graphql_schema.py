@@ -93,9 +93,6 @@ class Insight(DjangoObjectType):
     class Meta:
         model = InsightModel
 
-    def resolve_posts(self, info, **kwargs):
-        return PostModel.objects.filter(insight=self)
-
 
 class Post(DjangoObjectType):
     class Meta:
@@ -155,8 +152,8 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
         update_avatar = False
 
         if 'avatar' in input:
-            if input['avatar'] in ({}, None):
-                raise GraphQLError("Attribute 'avatar' should be missing or contain a file, but was: {}".format(input['avatar']))
+            if input['avatar'] in ("", {}, None):
+                raise GraphQLError("Attribute 'avatar' should be missing or contain a file, but was: '{}'".format(input['avatar']))
             else:
                 update_avatar = True
                 # keep the file to store it after a successful request validation
