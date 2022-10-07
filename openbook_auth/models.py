@@ -40,6 +40,12 @@ from openbook_common.validators import name_characters_validator
 from openbook_notifications import helpers
 from openbook_auth.checkers import *
 
+class UserConnectionStatus:
+    NOT_CONNECTED = 'NOT_CONNECTED'
+    CONNECTED = 'CONNECTED'
+    REQUESTED = 'REQUESTED' # requested by currently authenticated user
+    PENDING_CONFIRMATION = 'PENDING_CONFIRMATION' # pending confirmation by currently authenticated user
+
 class User(AbstractUser):
     """
     Custom user model to change behaviour of the default user model
@@ -676,6 +682,19 @@ class User(AbstractUser):
             target_connection__user_id=user_id).get()
 
         return not connection.circles.exists()
+
+    def get_connection_status_with_user_id(self, user_id):
+        # check if not connected (no user requested to connect)
+        if not self.is_connected_with_user_with_id(user_id=user_id):
+            return UserConnectionStatus.NOT_CONNECTED
+        # check if fully connected (connection request has been accepted)
+        if self.is_fully_connected_with_user_with_id(user_id=user_id):
+            return UserConnectionStatus.CONNECTED
+        # check if pending confirm connection (true only for the user who received the connection request)
+        if self.is_pending_confirm_connection_for_user_with_id(user_id=user_id):
+            return UserConnectionStatus.PENDING_CONFIRMATION
+        # if none of the above is true, the currently signed in user has made the request
+        return UserConnectionStatus.REQUESTED
 
     def delete_all_pending_connection_requests(self):
         self.connections.filter(circles__isnull=True).delete()
