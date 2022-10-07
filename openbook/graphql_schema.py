@@ -5,8 +5,9 @@ from graphene_django import DjangoObjectType
 from graphql import GraphQLError
 from graphene_file_upload.scalars import Upload
 
-from openbook_auth.models import User as UserModel
+from openbook_auth.models import UserConnectionStatus, User as UserModel
 from openbook_auth.views.authenticated_user.serializers import UpdateAuthenticatedUserSerializer
+from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_auth.images import store_avatar, delete_old_avatars, delete_image
 
 from openbook_insights.models import Insight as InsightModel
@@ -16,7 +17,11 @@ from openbook_posts.models import Post as PostModel
 
 class ErrorCodes:
     NOT_FOUND = 'NOT_FOUND'
+    UNAUTHORIZED = 'UNAUTHORIZED'
 
+class UpdateConnectionWithUserAction:
+    CONNECT = 'CONNECT'
+    DISCONNECT = 'DISCONNECT'
 
 class User(DjangoObjectType):
     # normally, all fields could just go in here to be automatically included. but for user the fields are actually in
@@ -38,6 +43,7 @@ class User(DjangoObjectType):
     interests = graphene.List(graphene.String)
     sdgs = graphene.List(graphene.String)
     skills = graphene.List(graphene.String)
+    connection_status_to_myself = graphene.String()
 
     def resolve_id(self, info):
         return self.username
@@ -78,6 +84,10 @@ class User(DjangoObjectType):
     def resolve_skills(self, info):
         return self.profile.skills
 
+    def resolve_connection_status_to_myself(self, info):
+        if info.context.user.is_anonymous:
+            return None
+        return info.context.user.get_connection_status_with_user_id(user_id=self.id)
 
 class Insight(DjangoObjectType):
     class Meta:
@@ -107,7 +117,6 @@ class Query(graphene.ObjectType):
             raise GraphQLError('User not found', extensions={
                 "code": ErrorCodes.NOT_FOUND
             })
-
 
     def resolve_user_suggestions(self, info, numberOfItems=graphene.Int()):
         if info.context.user.id:
@@ -189,8 +198,52 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
         return UpdateAuthenticatedUserMutation(authenticated_user=authenticated_user)
 
 
+class UpdateConnectionWithUserInput(graphene.InputObjectType):
+    user_id = graphene.String()
+    action = graphene.String()
+
+class UpdateConnectionWithUserMutation(graphene.Mutation):
+    class Arguments:
+        input = graphene.Argument(UpdateConnectionWithUserInput)
+
+    user_by_id = graphene.Field(User)
+
+    @classmethod
+    def mutate(cls, root, info, input):
+        serializer = UpdateConnectionWithUserSerializer(data=input)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        if info.context.user.is_anonymous:
+            raise GraphQLError('Unauthorized', extensions={
+                "code": ErrorCodes.UNAUTHORIZED
+            })
+
+        authenticated_user = info.context.user
+
+        userToUpdateConnection = authenticated_user.get_user_with_username(username=data.get('user_id'))
+
+        current_connection_status = authenticated_user.get_connection_status_with_user_id(user_id=userToUpdateConnection.id)
+
+        # Connect action
+        if data.get('action') == UpdateConnectionWithUserAction.CONNECT:
+            # if current user needs to confirm connection, run confirm_connection_with_user_with_id
+            if current_connection_status == UserConnectionStatus.PENDING_CONFIRMATION:
+                authenticated_user.confirm_connection_with_user_with_id(user_id=userToUpdateConnection.id)
+
+            # if there is no connection yet (no requests or pending confirmation), run connect_with_user_with_id
+            if current_connection_status == UserConnectionStatus.NOT_CONNECTED:
+                authenticated_user.connect_with_user_with_id(user_id=userToUpdateConnection.id)
+
+        # Disconnect action (only run if current connection status is different than NOT_CONNECTED)
+        elif data.get('action') == UpdateConnectionWithUserAction.DISCONNECT and current_connection_status != UserConnectionStatus.NOT_CONNECTED:
+            authenticated_user.disconnect_from_user_with_id(user_id=userToUpdateConnection.id)
+
+        return UpdateConnectionWithUserMutation(user_by_id=userToUpdateConnection)
+
 class Mutation(graphene.ObjectType):
     update_authenticated_user = UpdateAuthenticatedUserMutation.Field()
+    update_connection_with_user = UpdateConnectionWithUserMutation.Field()
 
 
 # noinspection PyTypeChecker
