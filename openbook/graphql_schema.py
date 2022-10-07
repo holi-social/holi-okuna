@@ -1,7 +1,6 @@
 import graphene
 from datetime import datetime
 from django.db import Error
-from enum import Enum
 from graphene_django import DjangoObjectType
 from graphql import GraphQLError
 from graphene_file_upload.scalars import Upload
@@ -20,9 +19,9 @@ class ErrorCodes:
     NOT_FOUND = 'NOT_FOUND'
     UNAUTHORIZED = 'UNAUTHORIZED'
 
-class UpdateConnectionWithUserAction(Enum):
-    CONNECT = 1
-    DISCONNECT = 2
+class UpdateConnectionWithUserAction:
+    CONNECT = 'CONNECT'
+    DISCONNECT = 'DISCONNECT'
 
 class User(DjangoObjectType):
     # normally, all fields could just go in here to be automatically included. but for user the fields are actually in
@@ -44,7 +43,7 @@ class User(DjangoObjectType):
     interests = graphene.List(graphene.String)
     sdgs = graphene.List(graphene.String)
     skills = graphene.List(graphene.String)
-    connection_status = graphene.String()
+    connection_status_to_myself = graphene.String()
 
     def resolve_id(self, info):
         return self.username
@@ -85,7 +84,7 @@ class User(DjangoObjectType):
     def resolve_skills(self, info):
         return self.profile.skills
 
-    def resolve_connection_status(self, info):
+    def resolve_connection_status_to_myself(self, info):
         if info.context.user.is_anonymous:
             return None
         return info.context.user.get_connection_status_with_user_id(user_id=self.id)
@@ -225,22 +224,22 @@ class UpdateConnectionWithUserMutation(graphene.Mutation):
 
         authenticated_user = info.context.user
 
-        userToUpdateConnection = UserModel.get_user_with_username(self=authenticated_user, username=data.get('user_id'))
+        userToUpdateConnection = authenticated_user.get_user_with_username(username=data.get('user_id'))
 
-        current_connection_status = info.context.user.get_connection_status_with_user_id(user_id=userToUpdateConnection.id)
+        current_connection_status = authenticated_user.get_connection_status_with_user_id(user_id=userToUpdateConnection.id)
 
         # Connect action
-        if data.get('action') == UpdateConnectionWithUserAction.CONNECT.name:
+        if data.get('action') == UpdateConnectionWithUserAction.CONNECT:
             # if current user needs to confirm connection, run confirm_connection_with_user_with_id
-            if current_connection_status == UserConnectionStatus.PENDING_CONFIRMATION.name:
+            if current_connection_status == UserConnectionStatus.PENDING_CONFIRMATION:
                 authenticated_user.confirm_connection_with_user_with_id(user_id=userToUpdateConnection.id)
 
             # if there is no connection yet (no requests or pending confirmation), run connect_with_user_with_id
-            if current_connection_status == UserConnectionStatus.NOT_CONNECTED.name:
+            if current_connection_status == UserConnectionStatus.NOT_CONNECTED:
                 authenticated_user.connect_with_user_with_id(user_id=userToUpdateConnection.id)
 
-        # Disconnect action
-        elif data.get('action') == UpdateConnectionWithUserAction.DISCONNECT.name:
+        # Disconnect action (only run if current connection status is different than NOT_CONNECTED)
+        elif data.get('action') == UpdateConnectionWithUserAction.DISCONNECT and current_connection_status != UserConnectionStatus.NOT_CONNECTED:
             authenticated_user.disconnect_from_user_with_id(user_id=userToUpdateConnection.id)
 
         return UpdateConnectionWithUserMutation(user_by_id=userToUpdateConnection)
