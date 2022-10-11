@@ -20,7 +20,7 @@ def delete_old_avatars(authenticated_user, file_id_to_keep):
     """
     Needs to be called after store_avatar to remove old and obsolete avatar images
     """
-    delete_images(authenticated_user, file_id_to_keep=file_id_to_keep)
+    delete_images(authenticated_user, folder="avatars", file_id_to_keep=file_id_to_keep)
 
 
 def store_image(authenticated_user, image_file, folder=None, tags=[]):
@@ -39,13 +39,12 @@ def store_image(authenticated_user, image_file, folder=None, tags=[]):
     return response['fileId'], response['url']
 
 
-def delete_images(authenticated_user, tags=[], file_id_to_keep=''):
+def delete_images(authenticated_user, folder=None, file_id_to_keep=''):
     """
     Delete all images that have the given tags, except the one that is passed as file_id_to_keep
     """
-    _add_user(authenticated_user, tags)
     imagekit = _get_imagekit()
-    old_files = imagekit.list_files({"tags": ','.join(tags)})
+    old_files = imagekit.list_files({"tags": "user_" + authenticated_user.username, "path": folder})
     for file in old_files['response']:
         file_id = file['fileId']
         if file_id != file_id_to_keep:
