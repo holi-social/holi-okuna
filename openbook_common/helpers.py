@@ -85,3 +85,17 @@ def send_alert_to_channel(alert):
 
     if response.status_code != requests.status_codes.codes.ok:
         raise ValueError(f"{response.status_code} != 200")
+
+
+def create_upload_filename(object_type, object_id, filename, username=None):
+    if username is None:
+        return '{type}/{id}/{filename}'.format(
+            type=object_type,
+            id=object_id,
+            filename=filename)
+
+    return '{type}/{id}/{filename}/{username}'.format(
+        type=object_type,
+        id=object_id,
+        filename=filename,
+        username=username)

@@ -175,9 +175,6 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
                 raise GraphQLError("Attribute 'avatar' should be missing or contain a file, but was: '{}'".format(input['avatar']))
             else:
                 update_avatar = True
-                # keep the file to store it after a successful request validation
-                avatar_file = input['avatar']
-                input['avatar'] = 'avatar_url'
 
         if 'first_name' in input:
             input['name'] = input.pop('first_name')
@@ -185,11 +182,6 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
         serializer = UpdateAuthenticatedUserSerializer(data=input)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-
-        # store the file in the image service. When the update of the user later fails, the old image will still
-        # be used. All previous files will be removed, when another avatar is successfully uploaded for the user
-        if update_avatar:
-            data['avatar'] = store_avatar(authenticated_user.username, avatar_file)
 
         try:
             authenticated_user.update(

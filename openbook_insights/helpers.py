@@ -1,9 +1,8 @@
-import uuid
-from os.path import splitext
+from openbook_common.helpers import create_upload_filename
 
 
 def upload_to_insight_directory(insight, filename):
-    return 'admin/insight/%(id)s/%(filename)s' % {
-        'id': str(insight.id),
-        'filename': filename,
-    }
+    return create_upload_filename(username=insight.curator.username,
+                                  object_type="insight",
+                                  object_id=str(insight.id),
+                                  filename=filename)

@@ -9,7 +9,7 @@ from openbook_auth.validators import username_characters_validator, \
 from django.contrib.auth.password_validation import validate_password
 
 from openbook_common.models import Badge, Language
-from openbook_common.serializers_fields.request import FriendlyUrlField
+from openbook_common.serializers_fields.request import FriendlyUrlField, RestrictedImageFileSizeField
 from openbook_common.serializers_fields.user import FollowersCountField, \
     FollowingCountField, \
     IsMemberOfCommunities, \
@@ -143,12 +143,10 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
                                      allow_blank=False,
                                      validators=[username_characters_validator],
                                      required=False)
-    avatar = serializers.CharField(max_length=PROFILE_AVATAR_URL_MAX_LENGTH,
-                                     allow_blank=True,
-                                     required=False)
-    cover = serializers.CharField(max_length=PROFILE_COVER_URL_MAX_LENGTH,
-                                     allow_blank=True,
-                                     required=False)
+    avatar = RestrictedImageFileSizeField(allow_empty_file=False, required=False, allow_null=True,
+                                          max_upload_size=settings.PROFILE_AVATAR_MAX_SIZE)
+    cover = RestrictedImageFileSizeField(allow_empty_file=False, required=False, allow_null=True,
+                                         max_upload_size=settings.PROFILE_COVER_MAX_SIZE)
     password = serializers.CharField(min_length=PASSWORD_MIN_LENGTH, max_length=PASSWORD_MAX_LENGTH,
                                      validators=[validate_password], required=False, allow_blank=False)
     name = serializers.CharField(max_length=PROFILE_NAME_MAX_LENGTH,

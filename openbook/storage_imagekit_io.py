@@ -38,17 +38,23 @@ class ImagekitIoStorage(Storage):
         )
 
     def _save(self, name, content):
-        if name.count("/") != 3:
+        if name.count("/") < 2:
             raise IncorrectFilename(
-                "Filenames need to have four sections: username/object_type/object_id/filename.ext but filename was: " + name)
-        username, object_type, object_id, filename = name.split("/")
+                "Filenames need to have at least three sections: object_type/object_id/filename.ext[/username] but filename was: " + name)
+        split = name.split("/")
+        object_type = split[0]
+        object_id = split[1]
+        filename = split[2]
 
-        type_tag = "%s_%s" % (object_type, object_id)
+        type_tag = "{}_{}".format(object_type, object_id)
+        tags = [type_tag]
+        if len(split) > 3:
+            tags.append("user_{}".format(split[3]))
         old_files = self.imagekit.list_files({"tags": type_tag, "path": object_type})
 
         options = {
             "folder": object_type,
-            "tags": ["user_%s" % username, type_tag]
+            "tags": tags
         }
         content.name = object_id + _get_file_extension(filename)
         upload = self.imagekit.upload(file=content, file_name=content.name, options=options)

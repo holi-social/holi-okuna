@@ -637,7 +637,8 @@ if TESTING:
 
 # TODO Think about what to do for storage backend
 
-DEFAULT_FILE_STORAGE = 'openbook.storage_imagekit_io.ImagekitIoStorage'
+if not TESTING:
+    DEFAULT_FILE_STORAGE = 'openbook.storage_imagekit_io.ImagekitIoStorage'
 
 if False:# IS_PRODUCTION:
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
