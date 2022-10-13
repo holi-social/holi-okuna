@@ -673,8 +673,8 @@ PEEKALINK_API_KEY = os.environ.get('PEEKALINK_API_KEY', None)
 
 # ImageKit Config
 
-IMAGEKIT_PUBLIC_KEY = os.environ.get('IMAGEKIT_PUBLIC_KEY')
-IMAGEKIT_PRIVATE_KEY = os.environ.get('IMAGEKIT_PRIVATE_KEY')
+IMAGEKIT_PUBLIC_KEY = os.environ.get('IMAGEKIT_PUBLIC_KEY', 'none')
+IMAGEKIT_PRIVATE_KEY = os.environ.get('IMAGEKIT_PRIVATE_KEY', 'none')
 IMAGEKIT_URL = os.environ.get('IMAGEKIT_URL', 'https://ik.imagekit.io/holi')
 
 # HOLI model config settings
