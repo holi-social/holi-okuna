@@ -114,7 +114,7 @@ class Query(graphene.ObjectType):
     user_by_id = graphene.Field(User, id=graphene.String())
     user_suggestions = graphene.List(User, numberOfItems=graphene.Int())
     last_insights = graphene.List(Insight, numberOfItems=graphene.Int())
-    insight = graphene.Field(Insight, id=graphene.String())
+    insight_by_id = graphene.Field(Insight, id=graphene.String())
 
     def resolve_authenticated_user(self, info):
         if info.context.user.is_anonymous:
@@ -137,7 +137,7 @@ class Query(graphene.ObjectType):
     def resolve_last_insights(self, info, numberOfItems=graphene.Int()):
         return InsightModel.objects.filter(date_published__lte=datetime.now()).order_by('-date_published')[:numberOfItems]
 
-    def resolve_insight(self, info, id):
+    def resolve_insight_by_id(self, info, id):
         try:
             return InsightModel.objects.get(id=id)
         except InsightModel.DoesNotExist:
