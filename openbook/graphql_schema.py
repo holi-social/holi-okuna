@@ -13,15 +13,18 @@ from openbook_auth.images import store_avatar, delete_old_avatars, delete_image
 from openbook_insights.models import Insight as InsightModel
 from openbook_posts.models import Post as PostModel
 
+
 # noinspection PyUnresolvedReferences
 
 class ErrorCodes:
     NOT_FOUND = 'NOT_FOUND'
     UNAUTHORIZED = 'UNAUTHORIZED'
 
+
 class UpdateConnectionWithUserAction:
     CONNECT = 'CONNECT'
     DISCONNECT = 'DISCONNECT'
+
 
 class User(DjangoObjectType):
     # normally, all fields could just go in here to be automatically included. but for user the fields are actually in
@@ -89,6 +92,7 @@ class User(DjangoObjectType):
             return None
         return info.context.user.get_connection_status_with_user_id(user_id=self.id)
 
+
 class Insight(DjangoObjectType):
     class Meta:
         model = InsightModel
@@ -97,6 +101,12 @@ class Insight(DjangoObjectType):
 class Post(DjangoObjectType):
     class Meta:
         model = PostModel
+        exclude = ("uuid",)
+
+    id = graphene.UUID
+
+    def resolve_id(self, info):
+        return self.uuid
 
 
 class Query(graphene.ObjectType):
@@ -104,6 +114,7 @@ class Query(graphene.ObjectType):
     user_by_id = graphene.Field(User, id=graphene.String())
     user_suggestions = graphene.List(User, numberOfItems=graphene.Int())
     last_insights = graphene.List(Insight, numberOfItems=graphene.Int())
+    insight_by_id = graphene.Field(Insight, id=graphene.String())
 
     def resolve_authenticated_user(self, info):
         if info.context.user.is_anonymous:
@@ -125,6 +136,14 @@ class Query(graphene.ObjectType):
 
     def resolve_last_insights(self, info, numberOfItems=graphene.Int()):
         return InsightModel.objects.filter(date_published__lte=datetime.now()).order_by('-date_published')[:numberOfItems]
+
+    def resolve_insight_by_id(self, info, id):
+        try:
+            return InsightModel.objects.get(id=id)
+        except InsightModel.DoesNotExist:
+            raise GraphQLError('Insight not found', extensions={
+                "code": ErrorCodes.NOT_FOUND
+            })
 
 
 class UpdateAuthenticatedUserInput(graphene.InputObjectType):
@@ -202,6 +221,7 @@ class UpdateConnectionWithUserInput(graphene.InputObjectType):
     user_id = graphene.String()
     action = graphene.String()
 
+
 class UpdateConnectionWithUserMutation(graphene.Mutation):
     class Arguments:
         input = graphene.Argument(UpdateConnectionWithUserInput)
@@ -240,6 +260,7 @@ class UpdateConnectionWithUserMutation(graphene.Mutation):
             authenticated_user.disconnect_from_user_with_id(user_id=userToUpdateConnection.id)
 
         return UpdateConnectionWithUserMutation(user_by_id=userToUpdateConnection)
+
 
 class Mutation(graphene.ObjectType):
     update_authenticated_user = UpdateAuthenticatedUserMutation.Field()

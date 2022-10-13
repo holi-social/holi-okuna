@@ -10,18 +10,16 @@ from pilkit.processors import ResizeToFit
 # Create your models here.
 from openbook.settings import INSIGHT_TITLE_MAX_LENGTH, INSIGHT_HEADER_IMAGE_URL_MAX_LENGTH
 from openbook_auth.models import User
+from openbook_common.models import ModelWithUUID
 from openbook_insights.helpers import upload_to_insight_directory
-
 
 # TODO Think about what to do for storage backend
 # insight_image_storage = S3PrivateMediaStorage() if settings.IS_PRODUCTION else default_storage
 insight_image_storage = default_storage
 
 
-class Insight(models.Model):
+class Insight(ModelWithUUID):
     title = models.CharField(max_length=INSIGHT_TITLE_MAX_LENGTH, blank=False)
-    uuid = models.UUIDField(
-        default=uuid.uuid4, editable=False, unique=True, db_index=True)
     description = models.TextField(blank=False)
     curator = models.ForeignKey(User, on_delete=models.SET_NULL,
                                 related_name='curated_insights', blank=True, null=True)
@@ -30,5 +28,4 @@ class Insight(models.Model):
                                        upload_to=upload_to_insight_directory,
                                        blank=False, null=True, format='JPEG', options={'quality': 80},
                                        processors=[ResizeToFit(width=1024, upscale=False)])  # constrain to maximum width
-    posts = models.ManyToManyField(
-        related_name='insights', to='openbook_posts.Post')
+    posts = models.ManyToManyField(related_name='insights', to='openbook_posts.Post')
