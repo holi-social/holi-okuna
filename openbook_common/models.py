@@ -1,5 +1,6 @@
 # Create your models here.
 # Create your models here.
+import uuid
 from urllib.parse import urlparse
 
 from django.conf import settings
@@ -132,3 +133,10 @@ class ProxyBlacklistedDomain(models.Model):
         url_full_domain = '.'.join([tld_extract_result.subdomain, tld_extract_result.domain, tld_extract_result.suffix])
 
         return cls.objects.filter(Q(domain=url_root_domain) | Q(domain=url_full_domain)).exists()
+
+
+class ModelWithUUID(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True, db_index=True)
+
+    class Meta:
+        abstract = True

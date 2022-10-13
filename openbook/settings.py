@@ -31,6 +31,10 @@ import django
 from django.utils.encoding import force_str
 django.utils.encoding.force_text = force_str
 
+# Python 3.10 moved collections.Callable to collections.abc.Callable. This is a patch to make old libs work (in particular nose)
+import collections
+collections.Callable = collections.abc.Callable
+
 # based on https://github.com/graphql-python/graphene/issues/513
 class GraphQLLogFilter(logging.Filter):
     def filter(self, record):
