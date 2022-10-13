@@ -94,7 +94,8 @@ class Post(models.Model):
     media_thumbnail = ProcessedImageField(verbose_name=_('thumbnail'), storage=post_image_storage,
                                           upload_to=upload_to_post_directory,
                                           blank=False, null=True, format='JPEG', options={'quality': 30},
-                                          processors=[ResizeToFit(width=512, upscale=False)])
+                                          processors=[ResizeToFit(width=512, upscale=False)],
+                                          max_length=500)
                                           
 
     class Meta:

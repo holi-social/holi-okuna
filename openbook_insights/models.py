@@ -27,5 +27,6 @@ class Insight(ModelWithUUID):
     header_image = ProcessedImageField(verbose_name=_('header_image'), storage=insight_image_storage,
                                        upload_to=upload_to_insight_directory,
                                        blank=False, null=True, format='JPEG', options={'quality': 80},
-                                       processors=[ResizeToFit(width=1024, upscale=False)])  # constrain to maximum width
+                                       processors=[ResizeToFit(width=1024, upscale=False)],
+                                       max_length=500)  # constrain to maximum width
     posts = models.ManyToManyField(related_name='insights', to='openbook_posts.Post')

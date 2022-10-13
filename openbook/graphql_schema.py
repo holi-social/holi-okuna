@@ -8,7 +8,7 @@ from graphene_file_upload.scalars import Upload
 from openbook_auth.models import UserConnectionStatus, User as UserModel
 from openbook_auth.views.authenticated_user.serializers import UpdateAuthenticatedUserSerializer
 from openbook_connections.serializers import UpdateConnectionWithUserSerializer
-from openbook_auth.images import store_avatar, delete_old_avatars, delete_image
+from openbook_auth.images import store_avatar, delete_avatar
 
 from openbook_insights.models import Insight as InsightModel
 from openbook_posts.models import Post as PostModel
@@ -189,7 +189,7 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
         # store the file in the image service. When the update of the user later fails, the old image will still
         # be used. All previous files will be removed, when another avatar is successfully uploaded for the user
         if update_avatar:
-            file_id, data['avatar'] = store_avatar(authenticated_user, avatar_file)
+            data['avatar'] = store_avatar(authenticated_user.username, avatar_file)
 
         try:
             authenticated_user.update(
@@ -208,11 +208,8 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
             )
         except Error:
             if update_avatar:
-                delete_image(file_id)
+                delete_avatar(data['avatar'])
             raise
-
-        if update_avatar:
-            delete_old_avatars(authenticated_user, file_id)
 
         return UpdateAuthenticatedUserMutation(authenticated_user=authenticated_user)
 
