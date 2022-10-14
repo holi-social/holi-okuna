@@ -909,14 +909,16 @@ class PostImage(models.Model):
                                 width_field='width',
                                 height_field='height',
                                 blank=False, null=True, format='JPEG', options={'quality': 80},
-                                processors=[ResizeToFit(width=1024, upscale=False)])
+                                processors=[ResizeToFit(width=1024, upscale=False)],
+                                max_length=500)
     width = models.PositiveIntegerField(editable=False, null=False, blank=False)
     height = models.PositiveIntegerField(editable=False, null=False, blank=False)
     hash = models.CharField(_('hash'), max_length=64, blank=False, null=True)
     thumbnail = ProcessedImageField(verbose_name=_('thumbnail'), storage=post_image_storage,
                                     upload_to=upload_to_post_image_directory,
                                     blank=False, null=True, format='JPEG', options={'quality': 30},
-                                    processors=[ResizeToFit(width=1024, upscale=False)])
+                                    processors=[ResizeToFit(width=1024, upscale=False)],
+                                    max_length=500)
 
     media = GenericRelation(PostMedia)
 
@@ -948,7 +950,8 @@ class PostVideo(models.Model):
 
     file = VideoField(width_field='width', height_field='height',
                       duration_field='duration', storage=post_image_storage,
-                      upload_to=upload_to_post_video_directory, blank=False, null=True)
+                      upload_to=upload_to_post_video_directory, blank=False, null=True,
+                      max_length=500)
 
     format_set = GenericRelation(Format)
 
@@ -957,7 +960,8 @@ class PostVideo(models.Model):
                                     width_field='thumbnail_width',
                                     height_field='thumbnail_height',
                                     blank=False, null=True, format='JPEG', options={'quality': 30},
-                                    processors=[ResizeToFit(width=1024, upscale=False)])
+                                    processors=[ResizeToFit(width=1024, upscale=False)],
+                                    max_length=500)
 
     thumbnail_width = models.PositiveIntegerField(editable=False, null=False, blank=False)
     thumbnail_height = models.PositiveIntegerField(editable=False, null=False, blank=False)

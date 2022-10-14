@@ -49,7 +49,8 @@ class Hashtag(models.Model):
                                 width_field='width',
                                 height_field='height',
                                 blank=True, null=True, format='JPEG', options={'quality': 60},
-                                processors=[ResizeToFit(width=1024, upscale=False)])
+                                processors=[ResizeToFit(width=1024, upscale=False)],
+                                max_length=500)
     emoji = models.ForeignKey(Emoji, on_delete=models.SET_NULL, related_name='hashtags', null=True, blank=True)
 
     @classmethod
