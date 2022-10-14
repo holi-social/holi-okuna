@@ -6,12 +6,12 @@ from django.utils import timezone
 from openbook_auth.models import User
 from django.utils.translation import gettext_lazy as _
 
-from openbook_common.models import Emoji
+from openbook_common.models import Emoji, ModelWithUUID
 from openbook_common.utils.model_loaders import get_follow_model
 from openbook_follows.models import Follow
 
 
-class List(models.Model):
+class List(ModelWithUUID):
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='lists')
     emoji = models.ForeignKey(Emoji, on_delete=models.SET_NULL, related_name='lists', null=True)
     name = models.CharField(_('name'), max_length=settings.LIST_MAX_LENGTH, blank=False, null=False)

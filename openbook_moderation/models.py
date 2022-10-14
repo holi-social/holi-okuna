@@ -8,11 +8,12 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
 from openbook_auth.models import User
+from openbook_common.models import ModelWithUUID
 from openbook_common.utils.model_loaders import get_post_model, get_post_comment_model, get_community_model, \
     get_user_model, get_moderation_penalty_model, get_hashtag_model
 
 
-class ModerationCategory(models.Model):
+class ModerationCategory(ModelWithUUID):
     name = models.CharField(_('name'), max_length=32, blank=False, null=False)
     title = models.CharField(_('title'), max_length=64, blank=False, null=False)
     description = models.CharField(_('description'), max_length=255, blank=False, null=False)
@@ -40,7 +41,7 @@ class ModerationCategory(models.Model):
         return super(ModerationCategory, self).save(*args, **kwargs)
 
 
-class ModeratedObject(models.Model):
+class ModeratedObject(ModelWithUUID):
     community = models.ForeignKey('openbook_communities.Community', on_delete=models.CASCADE,
                                   related_name='moderated_objects',
                                   null=True,
@@ -294,7 +295,7 @@ class ModeratedObject(models.Model):
         return User.objects.filter(moderation_reports__moderated_object_id=self.pk).all()
 
 
-class ModerationReport(models.Model):
+class ModerationReport(ModelWithUUID):
     reporter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='moderation_reports', null=False)
     moderated_object = models.ForeignKey(ModeratedObject, on_delete=models.CASCADE, related_name='reports', null=False)
     category = models.ForeignKey(ModerationCategory, on_delete=models.CASCADE, related_name='reports', null=False)
@@ -358,7 +359,7 @@ class ModerationReport(models.Model):
         return community_moderation_report
 
 
-class ModerationPenalty(models.Model):
+class ModerationPenalty(ModelWithUUID):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='moderation_penalties')
     expiration = models.DateTimeField(null=True)
     moderated_object = models.ForeignKey(ModeratedObject, on_delete=models.CASCADE, related_name='user_penalties')
@@ -377,7 +378,7 @@ class ModerationPenalty(models.Model):
                                   expiration=expiration)
 
 
-class ModeratedObjectLog(models.Model):
+class ModeratedObjectLog(ModelWithUUID):
     actor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+', null=True)
 
     LOG_TYPE_DESCRIPTION_CHANGED = 'DC'
@@ -416,7 +417,7 @@ class ModeratedObjectLog(models.Model):
         return super(ModeratedObjectLog, self).save(*args, **kwargs)
 
 
-class ModeratedObjectCategoryChangedLog(models.Model):
+class ModeratedObjectCategoryChangedLog(ModelWithUUID):
     log = GenericRelation(ModeratedObjectLog)
     changed_from = models.ForeignKey(ModerationCategory, on_delete=models.CASCADE, related_name='+')
     changed_to = models.ForeignKey(ModerationCategory, on_delete=models.CASCADE, related_name='+')
@@ -431,7 +432,7 @@ class ModeratedObjectCategoryChangedLog(models.Model):
                                                        moderated_object_id=moderated_object_id, actor_id=actor_id)
 
 
-class ModeratedObjectDescriptionChangedLog(models.Model):
+class ModeratedObjectDescriptionChangedLog(ModelWithUUID):
     log = GenericRelation(ModeratedObjectLog)
     changed_from = models.CharField(_('changed from'), max_length=settings.MODERATION_REPORT_DESCRIPTION_MAX_LENGTH,
                                     blank=False, null=True)
@@ -448,7 +449,7 @@ class ModeratedObjectDescriptionChangedLog(models.Model):
                                                        actor_id=actor_id)
 
 
-class ModeratedObjectStatusChangedLog(models.Model):
+class ModeratedObjectStatusChangedLog(ModelWithUUID):
     log = GenericRelation(ModeratedObjectLog)
     changed_from = models.CharField(_('changed from'),
                                     choices=ModeratedObject.STATUSES,
@@ -465,7 +466,7 @@ class ModeratedObjectStatusChangedLog(models.Model):
                                                        moderated_object_id=moderated_object_id, actor_id=actor_id)
 
 
-class ModeratedObjectVerifiedChangedLog(models.Model):
+class ModeratedObjectVerifiedChangedLog(ModelWithUUID):
     log = GenericRelation(ModeratedObjectLog)
     changed_from = models.BooleanField(_('changed from'),
                                        blank=False, null=False)

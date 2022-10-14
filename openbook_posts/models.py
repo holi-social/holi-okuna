@@ -32,7 +32,7 @@ from video_encoding.models import Format
 from openbook.storage_backends import S3PrivateMediaStorage
 from openbook_auth.models import User
 
-from openbook_common.models import Emoji, Language
+from openbook_common.models import Emoji, Language, ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field, sha256sum, extract_usernames_from_string, get_magic, \
     write_in_memory_file_to_disk, extract_hashtags_from_string, normalize_url
 from openbook_common.utils.model_loaders import get_emoji_model, \
@@ -63,7 +63,7 @@ from openbook_common.helpers import get_language_for_text, extract_urls_from_str
 post_image_storage = default_storage
 
 
-class Post(models.Model):
+class Post(ModelWithUUID):
     moderated_object = GenericRelation(ModeratedObject, related_query_name='posts')
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     text = models.TextField(_('text'), max_length=settings.POST_MAX_LENGTH, blank=False, null=True,
@@ -816,7 +816,7 @@ class Post(models.Model):
             self.links.all().delete()
 
 
-class TopPost(models.Model):
+class TopPost(ModelWithUUID):
     post = models.OneToOneField(Post, on_delete=models.CASCADE, related_name='top_post')
     created = models.DateTimeField(editable=False, db_index=True)
 
@@ -829,7 +829,7 @@ class TopPost(models.Model):
         return super(TopPost, self).save(*args, **kwargs)
 
 
-class TrendingPost(models.Model):
+class TrendingPost(ModelWithUUID):
     post = models.OneToOneField(Post, on_delete=models.CASCADE, related_name='trending_post')
     created = models.DateTimeField(editable=False, db_index=True)
 
@@ -842,7 +842,7 @@ class TrendingPost(models.Model):
         return super(TrendingPost, self).save(*args, **kwargs)
 
 
-class TopPostCommunityExclusion(models.Model):
+class TopPostCommunityExclusion(ModelWithUUID):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='top_posts_community_exclusions')
     community = models.ForeignKey('openbook_communities.Community', on_delete=models.CASCADE,
                                   related_name='top_posts_community_exclusions')
@@ -860,7 +860,7 @@ class TopPostCommunityExclusion(models.Model):
         return super(TopPostCommunityExclusion, self).save(*args, **kwargs)
 
 
-class ProfilePostsCommunityExclusion(models.Model):
+class ProfilePostsCommunityExclusion(ModelWithUUID):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='profile_posts_community_exclusions')
     community = models.ForeignKey('openbook_communities.Community', on_delete=models.CASCADE,
                                   related_name='profile_posts_community_exclusions')
@@ -902,7 +902,7 @@ class PostMedia(OrderedModel):
         return cls.objects.create(type=type, content_object=content_object, post_id=post_id, order=order)
 
 
-class PostImage(models.Model):
+class PostImage(ModelWithUUID):
     post = models.OneToOneField(Post, on_delete=models.CASCADE, related_name='image', null=True)
     image = ProcessedImageField(verbose_name=_('image'), storage=post_image_storage,
                                 upload_to=upload_to_post_image_directory,
@@ -937,7 +937,7 @@ class PostImage(models.Model):
         return post_image
 
 
-class PostVideo(models.Model):
+class PostVideo(ModelWithUUID):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='videos', null=True)
 
     hash = models.CharField(_('hash'), max_length=64, blank=False, null=True)
@@ -986,7 +986,7 @@ class PostVideo(models.Model):
         return post_video
 
 
-class PostComment(models.Model):
+class PostComment(ModelWithUUID):
     moderated_object = GenericRelation(ModeratedObject, related_query_name='post_comments')
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
     parent_comment = models.ForeignKey('self', on_delete=models.CASCADE, related_name='replies', null=True, blank=True)
@@ -1215,7 +1215,7 @@ class PostComment(models.Model):
             notification__owner_id=user.pk).delete()
 
 
-class PostReaction(models.Model):
+class PostReaction(ModelWithUUID):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='reactions')
     created = models.DateTimeField(editable=False)
     reactor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='post_reactions')
@@ -1244,7 +1244,7 @@ class PostReaction(models.Model):
         return super(PostReaction, self).save(*args, **kwargs)
 
 
-class PostCommentReaction(models.Model):
+class PostCommentReaction(ModelWithUUID):
     post_comment = models.ForeignKey(PostComment, on_delete=models.CASCADE, related_name='reactions')
     created = models.DateTimeField(editable=False)
     reactor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='post_comment_reactions')
@@ -1273,7 +1273,7 @@ class PostCommentReaction(models.Model):
         return super(PostCommentReaction, self).save(*args, **kwargs)
 
 
-class PostMute(models.Model):
+class PostMute(ModelWithUUID):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='mutes')
     muter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='post_mutes')
 
@@ -1285,7 +1285,7 @@ class PostMute(models.Model):
         return cls.objects.create(post_id=post_id, muter_id=muter_id)
 
 
-class PostCommentMute(models.Model):
+class PostCommentMute(ModelWithUUID):
     post_comment = models.ForeignKey(PostComment, on_delete=models.CASCADE, related_name='mutes')
     muter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='post_comment_mutes')
 
@@ -1297,7 +1297,7 @@ class PostCommentMute(models.Model):
         return cls.objects.create(post_comment_id=post_comment_id, muter_id=muter_id)
 
 
-class PostLink(models.Model):
+class PostLink(ModelWithUUID):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='links')
     link = models.TextField(max_length=settings.POST_MAX_LENGTH)
@@ -1316,7 +1316,7 @@ class PostLink(models.Model):
 
         self.save()
 
-class PostUserMention(models.Model):
+class PostUserMention(ModelWithUUID):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='post_mentions')
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='user_mentions')
 
@@ -1333,7 +1333,7 @@ class PostUserMention(models.Model):
         return post_user_mention
 
 
-class PostCommentUserMention(models.Model):
+class PostCommentUserMention(ModelWithUUID):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='post_comment_mentions')
     post_comment = models.ForeignKey(PostComment, on_delete=models.CASCADE, related_name='user_mentions')
 

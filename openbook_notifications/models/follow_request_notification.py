@@ -1,11 +1,12 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 
+from openbook_common.models import ModelWithUUID
 from openbook_follows.models import FollowRequest
 from openbook_notifications.models.notification import Notification
 
 
-class FollowRequestNotification(models.Model):
+class FollowRequestNotification(ModelWithUUID):
     notification = GenericRelation(Notification)
     follow_request = models.ForeignKey(FollowRequest, on_delete=models.CASCADE)
 

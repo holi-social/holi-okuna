@@ -27,7 +27,7 @@ from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
 from openbook_posts.query_collections import get_posts_for_user_collection
 from openbook_translation import translation_strategy
 from openbook_common.helpers import get_supported_translation_language
-from openbook_common.models import Badge
+from openbook_common.models import Badge, ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import get_connection_model, get_circle_model, get_follow_model, \
     get_list_model, get_community_invite_model, \
@@ -3932,7 +3932,7 @@ class EngagementLevelChoice(models.TextChoices):
     INTERESTED = 'INTERESTED',
     INITIATOR = 'INITIATOR',
 
-class UserProfile(models.Model):
+class UserProfile(ModelWithUUID):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
     # TODO: name contains the users "first name". a refactoring is considered too time-consuming at this point of time,
     #  but should be done later
@@ -3986,7 +3986,7 @@ class UserProfile(models.Model):
         return self.user.username
 
 
-class UserNotificationsSettings(models.Model):
+class UserNotificationsSettings(ModelWithUUID):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                                 related_name='notifications_settings')
     post_comment_notifications = models.BooleanField(_('post comment notifications'), default=True)
@@ -4070,7 +4070,7 @@ class UserNotificationsSettings(models.Model):
         self.save()
 
 
-class UserBlock(models.Model):
+class UserBlock(ModelWithUUID):
     blocked_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blocked_by_users')
     blocker = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_blocks')
 
@@ -4116,7 +4116,7 @@ def bootstrap_user_profile(user, name, is_of_legal_age, avatar=None, ):
     return UserProfile.objects.create(name=name, user=user, avatar=avatar, is_of_legal_age=is_of_legal_age, )
 
 
-class UserNotificationsSubscription(models.Model):
+class UserNotificationsSubscription(ModelWithUUID):
     subscriber = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_notifications_subscriptions',
                                    null=False,
                                    blank=False)

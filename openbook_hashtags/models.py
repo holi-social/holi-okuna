@@ -11,7 +11,7 @@ from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFit
 
 from openbook.storage_backends import S3PrivateMediaStorage
-from openbook_common.models import Emoji
+from openbook_common.models import Emoji, ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field, get_random_pastel_color
 from openbook_common.validators import hex_color_validator
 from openbook_communities.models import Community
@@ -26,7 +26,7 @@ from openbook_posts.queries import make_only_public_posts_query
 hashtag_image_storage = default_storage
 
 
-class Hashtag(models.Model):
+class Hashtag(ModelWithUUID):
 
     moderated_object = GenericRelation('openbook_moderation.ModeratedObject', related_query_name='hashtags')
 

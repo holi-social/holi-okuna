@@ -12,6 +12,7 @@ from openbook.settings import COLOR_ATTR_MAX_LENGTH
 from openbook_auth.models import User
 from django.utils.translation import gettext_lazy as _
 
+from openbook_common.models import ModelWithUUID
 from openbook_common.utils.model_loaders import get_community_invite_model, \
     get_community_log_model, get_category_model, get_user_model, get_moderated_object_model, \
     get_community_notifications_subscription_model, get_community_new_post_notification_model, \
@@ -26,7 +27,7 @@ from openbook_posts.models import Post
 from imagekit.models import ProcessedImageField
 
 
-class Community(models.Model):
+class Community(ModelWithUUID):
     moderated_object = GenericRelation(ModeratedObject, related_query_name='communities')
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_communities', null=False,
                                 blank=False)
@@ -519,7 +520,7 @@ class Community(models.Model):
         return self.name
 
 
-class CommunityMembership(models.Model):
+class CommunityMembership(ModelWithUUID):
     """
     An object representing the membership of a user in a community
     """
@@ -553,7 +554,7 @@ class CommunityMembership(models.Model):
         return super(CommunityMembership, self).save(*args, **kwargs)
 
 
-class CommunityLog(models.Model):
+class CommunityLog(ModelWithUUID):
     """
     A log for community moderators user actions such as banning/unbanning
     """
@@ -595,7 +596,7 @@ class CommunityLog(models.Model):
         return super(CommunityLog, self).save(*args, **kwargs)
 
 
-class CommunityInvite(models.Model):
+class CommunityInvite(ModelWithUUID):
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_communities_invites', null=False,
                                 blank=False)
     invited_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='communities_invites', null=False,
@@ -615,7 +616,7 @@ class CommunityInvite(models.Model):
         return cls.objects.filter(community__name=community_name, invited_user__username=username).exists()
 
 
-class CommunityNotificationsSubscription(models.Model):
+class CommunityNotificationsSubscription(ModelWithUUID):
     subscriber = models.ForeignKey(User, on_delete=models.CASCADE, related_name='community_notifications_subscriptions',
                                    null=False,
                                    blank=False)

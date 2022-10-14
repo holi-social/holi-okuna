@@ -15,7 +15,14 @@ from openbook_common.validators import hex_color_validator
 import tldextract
 
 
-class EmojiGroup(models.Model):
+class ModelWithUUID(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True, db_index=True)
+
+    class Meta:
+        abstract = True
+
+
+class EmojiGroup(ModelWithUUID):
     keyword = models.CharField(_('keyword'), max_length=32, blank=False, null=False)
     color = models.CharField(_('color'), max_length=COLOR_ATTR_MAX_LENGTH, blank=False, null=False,
                              validators=[hex_color_validator], unique=False)
@@ -36,7 +43,7 @@ class EmojiGroup(models.Model):
         return self.emojis.filter(pk=emoji_id).exists()
 
 
-class Emoji(models.Model):
+class Emoji(ModelWithUUID):
     group = models.ForeignKey(EmojiGroup, on_delete=models.CASCADE, related_name='emojis', null=True)
     keyword = models.CharField(_('keyword'), max_length=16, blank=False, null=False)
     # Hex colour. #FFFFFF
@@ -86,7 +93,7 @@ class Emoji(models.Model):
         return super(Emoji, self).save(*args, **kwargs)
 
 
-class Badge(models.Model):
+class Badge(ModelWithUUID):
     keyword = models.CharField(max_length=16, blank=False, null=False, unique=True)
     keyword_description = models.CharField(_('keyword_description'), max_length=64, blank=True, null=True, unique=True)
     created = models.DateTimeField(editable=False)
@@ -97,7 +104,7 @@ class Badge(models.Model):
         return super(Badge, self).save(*args, **kwargs)
 
 
-class Language(models.Model):
+class Language(ModelWithUUID):
     code = models.CharField(_('code'), max_length=12, blank=False, null=False)
     name = models.CharField(_('name'), max_length=64, blank=False, null=False)
     created = models.DateTimeField(editable=False)
@@ -111,7 +118,7 @@ class Language(models.Model):
         return super(Language, self).save(*args, **kwargs)
 
 
-class ProxyBlacklistedDomain(models.Model):
+class ProxyBlacklistedDomain(ModelWithUUID):
     domain = models.CharField(max_length=settings.PROXY_BLACKLIST_DOMAIN_MAX_LENGTH, unique=True)
 
     @classmethod
@@ -133,10 +140,3 @@ class ProxyBlacklistedDomain(models.Model):
         url_full_domain = '.'.join([tld_extract_result.subdomain, tld_extract_result.domain, tld_extract_result.suffix])
 
         return cls.objects.filter(Q(domain=url_root_domain) | Q(domain=url_full_domain)).exists()
-
-
-class ModelWithUUID(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True, db_index=True)
-
-    class Meta:
-        abstract = True

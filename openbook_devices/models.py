@@ -6,10 +6,11 @@ from django.utils import timezone
 from openbook_auth.models import User
 from django.utils.translation import gettext_lazy as _
 
+from openbook_common.models import ModelWithUUID
 from openbook_communities.models import Community
 
 # Create your models here.
-class Device(models.Model):
+class Device(ModelWithUUID):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='devices', null=False)
     uuid = models.CharField(_('uuid'), null=False, editable=False, unique=False,
                             max_length=settings.DEVICE_UUID_MAX_LENGTH)

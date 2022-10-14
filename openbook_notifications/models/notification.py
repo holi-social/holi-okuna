@@ -4,9 +4,10 @@ from django.db import models
 from django.utils import timezone
 
 from openbook_auth.models import User
+from openbook_common.models import ModelWithUUID
 
 
-class Notification(models.Model):
+class Notification(ModelWithUUID):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     created = models.DateTimeField(editable=False, db_index=True)
     read = models.BooleanField(default=False)

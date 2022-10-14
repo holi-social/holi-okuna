@@ -7,12 +7,12 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 import jwt
 from openbook.settings import USERNAME_MAX_LENGTH, PROFILE_NAME_MAX_LENGTH
-from openbook_common.models import Badge
+from openbook_common.models import Badge, ModelWithUUID
 from openbook_common.utils.model_loaders import get_user_invite_model
 from rest_framework.exceptions import ValidationError
 
 
-class UserInvite(models.Model):
+class UserInvite(ModelWithUUID):
     invited_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='invited_users',
                                    null=True, blank=True)
     created = models.DateTimeField(_('invited datetime'), null=False, blank=False)

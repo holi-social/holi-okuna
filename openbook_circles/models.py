@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from openbook.settings import CIRCLE_MAX_LENGTH, COLOR_ATTR_MAX_LENGTH
 from openbook_auth.models import User
+from openbook_common.models import ModelWithUUID
 from openbook_common.utils.model_loaders import get_connection_model
 from openbook_connections.models import Connection
 from openbook_posts.models import Post
@@ -13,7 +14,7 @@ from openbook_common.validators import hex_color_validator
 from django.utils.translation import gettext_lazy as _
 
 
-class ConnectionCircle(models.Model):
+class ConnectionCircle(ModelWithUUID):
     connection = models.ForeignKey(Connection, on_delete=models.CASCADE)
     circle = models.ForeignKey('openbook_circles.Circle', on_delete=models.CASCADE)
 
@@ -27,7 +28,7 @@ class ConnectionCircle(models.Model):
         ]
 
 
-class Circle(models.Model):
+class Circle(ModelWithUUID):
     creator = models.ForeignKey('openbook_auth.User', on_delete=models.CASCADE, related_name='circles', null=True)
     name = models.CharField(_('name'), max_length=CIRCLE_MAX_LENGTH, blank=False, null=False)
     color = models.CharField(_('color'), max_length=COLOR_ATTR_MAX_LENGTH, blank=False, null=False,
