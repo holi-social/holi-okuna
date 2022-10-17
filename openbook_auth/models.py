@@ -17,7 +17,6 @@ from rest_framework.authtoken.models import Token
 from django.db.models import Q, F, Count, JSONField
 from django.core.mail import EmailMultiAlternatives
 
-from openbook.settings import USERNAME_MAX_LENGTH
 from openbook_auth.helpers import upload_to_user_avatar_directory, upload_to_user_cover_directory
 from openbook_common.peekalink_client import peekalink_client
 from openbook_hashtags.queries import make_search_hashtag_query_for_user_with_id, \
@@ -43,25 +42,30 @@ from openbook_common.validators import name_characters_validator
 from openbook_notifications import helpers
 from openbook_auth.checkers import *
 
+
 class UserConnectionStatus:
     NOT_CONNECTED = 'NOT_CONNECTED'
     CONNECTED = 'CONNECTED'
-    REQUESTED = 'REQUESTED' # requested by currently authenticated user
-    PENDING_CONFIRMATION = 'PENDING_CONFIRMATION' # pending confirmation by currently authenticated user
+    REQUESTED = 'REQUESTED'  # requested by currently authenticated user
+    # pending confirmation by currently authenticated user
+    PENDING_CONFIRMATION = 'PENDING_CONFIRMATION'
+
 
 class User(AbstractUser):
     """
     Custom user model to change behaviour of the default user model
     such as validation and required fields.
     """
-    moderated_object = GenericRelation('openbook_moderation.ModeratedObject', related_query_name='users')
+    moderated_object = GenericRelation(
+        'openbook_moderation.ModeratedObject', related_query_name='users')
     first_name = None
     last_name = None
     language = models.ForeignKey('openbook_common.Language', null=True, blank=True,
                                  on_delete=models.SET_NULL, related_name='users')
     translation_language = models.ForeignKey('openbook_common.Language', null=True, blank=True,
                                              on_delete=models.SET_NULL, related_name='translation_users')
-    email = models.EmailField(_('email address'), unique=True, null=False, blank=False)
+    email = models.EmailField(
+        _('email address'), unique=True, null=False, blank=False)
     connections_circle = models.ForeignKey('openbook_circles.Circle', on_delete=models.CASCADE, related_name='+',
                                            null=True, blank=True)
 
@@ -77,7 +81,8 @@ class User(AbstractUser):
     VISIBILITY_TYPE_PUBLIC = 'P'
     VISIBILITY_TYPE_OKUNA = 'O'
 
-    DEFAULT_AVATAR_COLORS = ['#FFAE86', '#F8F860', '#78EDA8', '#7BD7EA', '#7571EC', '#D782FB']
+    DEFAULT_AVATAR_COLORS = ['#FFAE86', '#F8F860',
+                             '#78EDA8', '#7BD7EA', '#7571EC', '#D782FB']
 
     VISIBILITY_TYPES = (
         (VISIBILITY_TYPE_PUBLIC, 'Public'),
@@ -98,10 +103,10 @@ class User(AbstractUser):
         _('username'),
         blank=False,
         null=False,
-        max_length=USERNAME_MAX_LENGTH,
+        max_length=settings.USERNAME_MAX_LENGTH,
         unique=True,
         help_text=_('Required. %(username_max_length)d characters or fewer. Letters, digits and _ only.' % {
-            'username_max_length': USERNAME_MAX_LENGTH}),
+            'username_max_length': settings.USERNAME_MAX_LENGTH}),
         validators=[username_validator],
         error_messages={
             'unique': _("A user with that username already exists."),
@@ -116,7 +121,7 @@ class User(AbstractUser):
 
     @property
     def avatar_default_color(self):
-        color_count = len(User.DEFAULT_AVATAR_COLORS) -1
+        color_count = len(User.DEFAULT_AVATAR_COLORS) - 1
         color = sum(list(self.username.encode('utf8'))) % color_count
         return User.DEFAULT_AVATAR_COLORS[color]
 
@@ -162,7 +167,8 @@ class User(AbstractUser):
     @classmethod
     def is_username_taken(cls, username):
         UserInvite = get_user_invite_model()
-        user_invites = UserInvite.objects.filter(username=username, created_user=None)
+        user_invites = UserInvite.objects.filter(
+            username=username, created_user=None)
         users = cls.objects.filter(username=username)
         if not user_invites.exists() and not users.exists():
             return False
@@ -241,7 +247,8 @@ class User(AbstractUser):
         Count public posts for unauthenticated user
         :return:
         """
-        public_posts = cls.get_unauthenticated_public_posts_for_user_with_username(username=username)
+        public_posts = cls.get_unauthenticated_public_posts_for_user_with_username(
+            username=username)
 
         return public_posts.count()
 
@@ -273,9 +280,11 @@ class User(AbstractUser):
                       'creator__profile__badges__keyword', 'creator__profile__id', 'community__id',
                       'community__name', 'community__avatar', 'community__color', 'community__title',)
 
-        exclude_reported_and_approved_posts_query = ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED)
+        exclude_reported_and_approved_posts_query = ~Q(
+            moderated_object__status=ModeratedObject.STATUS_APPROVED)
 
-        exclude_deleted_posts_query = Q(is_deleted=False, status=Post.STATUS_PUBLISHED)
+        exclude_deleted_posts_query = Q(
+            is_deleted=False, status=Post.STATUS_PUBLISHED)
 
         # Get user world circle posts
 
@@ -293,7 +302,8 @@ class User(AbstractUser):
         # Get user community posts
         Community = get_community_model()
         community_posts_query = Q(community__isnull=False, is_closed=False)
-        exclude_private_community_posts_query = Q(community__type=Community.COMMUNITY_TYPE_PUBLIC)
+        exclude_private_community_posts_query = Q(
+            community__type=Community.COMMUNITY_TYPE_PUBLIC)
 
         community_posts = Post.objects.prefetch_related(*posts_prefetch_related) \
             .only(*posts_only).filter(
@@ -338,18 +348,22 @@ class User(AbstractUser):
 
         user_query = Q(creator_id=user.pk)
 
-        exclude_reported_and_approved_posts_query = ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED)
+        exclude_reported_and_approved_posts_query = ~Q(
+            moderated_object__status=ModeratedObject.STATUS_APPROVED)
 
-        exclude_reported_posts_query = ~Q(moderated_object__reports__reporter_id=self.pk)
+        exclude_reported_posts_query = ~Q(
+            moderated_object__reports__reporter_id=self.pk)
 
         exclude_blocked_posts_query = ~Q(Q(creator__blocked_by_users__blocker_id=self.pk) | Q(
             creator__user_blocks__blocked_user_id=self.pk))
 
-        exclude_deleted_posts_query = Q(is_deleted=False, status=Post.STATUS_PUBLISHED)
+        exclude_deleted_posts_query = Q(
+            is_deleted=False, status=Post.STATUS_PUBLISHED)
 
         # Get user world circle posts
 
-        world_circle_posts_query = Q(creator__id=user.pk, circles__id=world_circle_id)
+        world_circle_posts_query = Q(
+            creator__id=user.pk, circles__id=world_circle_id)
 
         world_circle_posts = Post.objects.prefetch_related(posts_prefetch_related) \
             .only(posts_only) \
@@ -364,8 +378,10 @@ class User(AbstractUser):
 
         # Get user community posts
         Community = get_community_model()
-        community_posts_query = Q(creator__pk=user.pk, community__isnull=False, is_closed=False)
-        exclude_private_community_posts_query = Q(community__type=Community.COMMUNITY_TYPE_PUBLIC)
+        community_posts_query = Q(
+            creator__pk=user.pk, community__isnull=False, is_closed=False)
+        exclude_private_community_posts_query = Q(
+            community__type=Community.COMMUNITY_TYPE_PUBLIC)
 
         community_posts = Post.objects.prefetch_related(posts_prefetch_related) \
             .only(posts_only).filter(
@@ -395,7 +411,8 @@ class User(AbstractUser):
         Count how many posts are with the given hashtag name relative to the user
         """
         Post = get_post_model()
-        hashtag_posts_query = make_get_hashtag_posts_for_user_with_id_query(user_id=self.pk, hashtag=hashtag)
+        hashtag_posts_query = make_get_hashtag_posts_for_user_with_id_query(
+            user_id=self.pk, hashtag=hashtag)
 
         return Post.objects.filter(hashtag_posts_query).distinct().cache().count()
 
@@ -407,7 +424,8 @@ class User(AbstractUser):
         """
         user = User.objects.get(pk=user_id)
         if user.is_connected_with_user_with_id(self.pk):
-            count = user.get_posts_for_user_with_username(username=self.username).count()
+            count = user.get_posts_for_user_with_username(
+                username=self.username).count()
         else:
             count = user.count_public_posts_for_user(user=self)
         return count
@@ -496,7 +514,8 @@ class User(AbstractUser):
     def request_email_update(self, email):
         check_email_not_taken(user=self, email=email)
         self.save()
-        verify_token = self._make_email_verification_token_for_email(new_email=email)
+        verify_token = self._make_email_verification_token_for_email(
+            new_email=email)
         return verify_token
 
     # engagement_level may only be set once
@@ -505,10 +524,12 @@ class User(AbstractUser):
             self.profile.engagement_level = engagement_level
             self.profile.save()
         elif self.profile.engagement_level != engagement_level:
-            raise ValidationError('Engagement level may not change after it is set once.')
+            raise ValidationError(
+                'Engagement level may not change after it is set once.')
 
     def verify_email_with_token(self, token):
-        new_email = check_email_verification_token_is_valid_for_email(user=self, email_verification_token=token)
+        new_email = check_email_verification_token_is_valid_for_email(
+            user=self, email_verification_token=token)
         self.email = new_email
         self.save()
 
@@ -522,11 +543,13 @@ class User(AbstractUser):
         Language = get_language_model()
         language = Language.objects.get(pk=language_id)
         self.language = language
-        self.translation_language = get_supported_translation_language(language.code)
+        self.translation_language = get_supported_translation_language(
+            language.code)
         self.save()
 
     def verify_password_reset_token(self, token, password):
-        check_password_reset_verification_token_is_valid(user=self, password_verification_token=token)
+        check_password_reset_verification_token_is_valid(
+            user=self, password_verification_token=token)
         self.update_password(password=password)
 
     def request_password_reset(self):
@@ -616,7 +639,7 @@ class User(AbstractUser):
             profile.sdgs = sdgs
         if skills is not None:
             profile.skills = skills
-        
+
         # TODO integrate our image provider service in order to delete previous avatars (extending delete_profile_avatar)
         if update_avatar:
             self.update_profile_avatar(avatar, save=False)
@@ -759,18 +782,18 @@ class User(AbstractUser):
         UserNotificationsSubscription = get_user_notifications_subscription_model()
         return UserNotificationsSubscription. \
             are_new_post_notifications_enabled_for_user_with_username_and_target_with_username(
-            username=self.username,
-            target_username=user.username
-        )
+                username=self.username,
+                target_username=user.username
+            )
 
     def are_new_post_notifications_enabled_for_community(self, community):
         CommunityNotificationsSubscription = get_community_notifications_subscription_model()
 
         return CommunityNotificationsSubscription. \
             are_new_post_notifications_enabled_for_user_with_username_and_community_with_name(
-            username=self.username,
-            community_name=community.name
-        )
+                username=self.username,
+                community_name=community.name
+            )
 
     def is_world_circle_id(self, id):
         world_circle_id = self._get_world_circle_id()
@@ -1058,7 +1081,8 @@ class User(AbstractUser):
     def get_reactions_for_post(self, post, max_id=None, emoji_id=None):
         check_can_get_reactions_for_post(user=self, post=post)
 
-        reactions_query = self._make_get_reactions_for_post_query(post=post, emoji_id=emoji_id, max_id=max_id)
+        reactions_query = self._make_get_reactions_for_post_query(
+            post=post, emoji_id=emoji_id, max_id=max_id)
 
         PostReaction = get_post_reaction_model()
         return PostReaction.objects.filter(reactions_query)
@@ -1097,7 +1121,8 @@ class User(AbstractUser):
                     Q(post_reactions__reactor__communities_memberships__is_administrator=True) | Q(
                         post_reactions__reactor__communities_memberships__is_moderator=True), Q.AND)
 
-                blocked_users_query.add(~blocked_users_query_staff_members, Q.AND)
+                blocked_users_query.add(
+                    ~blocked_users_query_staff_members, Q.AND)
                 emoji_query.add(blocked_users_query, Q.AND)
         else:
             # Show all, even blocked users reactions
@@ -1116,14 +1141,17 @@ class User(AbstractUser):
         return self.get_emoji_counts_for_post_comment(post_comment=post_comment, emoji_id=emoji_id)
 
     def get_emoji_counts_for_post_comment(self, post_comment, emoji_id=None):
-        check_can_get_reactions_for_post_comment(user=self, post_comment=post_comment)
+        check_can_get_reactions_for_post_comment(
+            user=self, post_comment=post_comment)
 
         Emoji = get_emoji_model()
 
-        emoji_query = Q(post_comment_reactions__post_comment_id=post_comment.pk, )
+        emoji_query = Q(
+            post_comment_reactions__post_comment_id=post_comment.pk, )
 
         if emoji_id:
-            emoji_query.add(Q(post_comment_reactions__emoji_id=emoji_id), Q.AND)
+            emoji_query.add(
+                Q(post_comment_reactions__emoji_id=emoji_id), Q.AND)
 
         post_comment_community = post_comment.post.community
 
@@ -1138,7 +1166,8 @@ class User(AbstractUser):
                     Q(post_comment_reactions__reactor__communities_memberships__is_administrator=True) | Q(
                         post_comment_reactions__reactor__communities_memberships__is_moderator=True), Q.AND)
 
-                blocked_users_query.add(~blocked_users_query_staff_members, Q.AND)
+                blocked_users_query.add(
+                    ~blocked_users_query_staff_members, Q.AND)
                 emoji_query.add(blocked_users_query, Q.AND)
         else:
             # Show all, even blocked users reactions
@@ -1161,7 +1190,8 @@ class User(AbstractUser):
         return self.get_reactions_for_post_comment(post_comment=post_comment, max_id=max_id, emoji_id=emoji_id)
 
     def get_reactions_for_post_comment(self, post_comment, max_id=None, emoji_id=None):
-        check_can_get_reactions_for_post_comment(user=self, post_comment=post_comment)
+        check_can_get_reactions_for_post_comment(
+            user=self, post_comment=post_comment)
 
         reactions_query = self._make_get_reactions_for_post_comment_query(post_comment=post_comment,
                                                                           emoji_id=emoji_id, max_id=max_id)
@@ -1189,15 +1219,18 @@ class User(AbstractUser):
             if post_reaction.post.creator_id != self.pk:
                 if post.creator.has_reaction_notifications_enabled_for_post_with_id(post_id=post.pk) and \
                         not post.creator.has_blocked_user_with_id(self.pk):
-                    self._create_post_reaction_notification(post_reaction=post_reaction)
-                self._send_post_reaction_push_notification(post_reaction=post_reaction)
+                    self._create_post_reaction_notification(
+                        post_reaction=post_reaction)
+                self._send_post_reaction_push_notification(
+                    post_reaction=post_reaction)
 
         return post_reaction
 
     def delete_reaction_with_id_for_post_with_id(self, post_reaction_id, post_id):
         Post = get_post_model()
         post = Post.objects.get(pk=post_id)
-        check_can_delete_reaction_with_id_for_post(user=self, post_reaction_id=post_reaction_id, post=post)
+        check_can_delete_reaction_with_id_for_post(
+            user=self, post_reaction_id=post_reaction_id, post=post)
         PostReaction = get_post_reaction_model()
         post_reaction = PostReaction.objects.filter(pk=post_reaction_id).get()
         self._delete_post_reaction_notification(post_reaction=post_reaction)
@@ -1209,34 +1242,42 @@ class User(AbstractUser):
         return self.react_to_post_comment(post_comment=post_comment, emoji_id=emoji_id)
 
     def react_to_post_comment(self, post_comment, emoji_id):
-        check_can_react_to_post_comment(user=self, post_comment=post_comment, emoji_id=emoji_id)
+        check_can_react_to_post_comment(
+            user=self, post_comment=post_comment, emoji_id=emoji_id)
 
         post_comment_id = post_comment.pk
 
         if self.has_reacted_to_post_comment_with_id(post_comment_id):
-            post_comment_reaction = self.post_comment_reactions.get(post_comment_id=post_comment_id)
+            post_comment_reaction = self.post_comment_reactions.get(
+                post_comment_id=post_comment_id)
             post_comment_reaction.emoji_id = emoji_id
             post_comment_reaction.save()
         else:
-            post_comment_reaction = post_comment.react(reactor=self, emoji_id=emoji_id)
+            post_comment_reaction = post_comment.react(
+                reactor=self, emoji_id=emoji_id)
             if post_comment_reaction.post_comment.commenter_id != self.pk:
                 commenter_has_reaction_notifications_enabled = post_comment.commenter.has_reaction_notifications_enabled_for_post_comment(
                     post_comment=post_comment)
 
                 if commenter_has_reaction_notifications_enabled:
-                    self._send_post_comment_reaction_push_notification(post_comment_reaction=post_comment_reaction)
-                self._create_post_comment_reaction_notification(post_comment_reaction=post_comment_reaction)
+                    self._send_post_comment_reaction_push_notification(
+                        post_comment_reaction=post_comment_reaction)
+                self._create_post_comment_reaction_notification(
+                    post_comment_reaction=post_comment_reaction)
 
         return post_comment_reaction
 
     def delete_post_comment_reaction_with_id(self, post_comment_reaction_id):
         PostCommentReaction = get_post_comment_reaction_model()
-        post_comment_reaction = PostCommentReaction.objects.filter(pk=post_comment_reaction_id).get()
+        post_comment_reaction = PostCommentReaction.objects.filter(
+            pk=post_comment_reaction_id).get()
         return self.delete_post_comment_reaction(post_comment_reaction=post_comment_reaction)
 
     def delete_post_comment_reaction(self, post_comment_reaction):
-        check_can_delete_post_comment_reaction(user=self, post_comment_reaction=post_comment_reaction)
-        self._delete_post_comment_reaction_notification(post_comment_reaction=post_comment_reaction)
+        check_can_delete_post_comment_reaction(
+            user=self, post_comment_reaction=post_comment_reaction)
+        self._delete_post_comment_reaction_notification(
+            post_comment_reaction=post_comment_reaction)
         post_comment_reaction.delete()
 
     def get_comments_for_post_with_id(self, post_id, min_id=None, max_id=None):
@@ -1245,7 +1286,8 @@ class User(AbstractUser):
 
         check_can_get_comments_for_post(user=self, post=post)
 
-        comments_query = self._make_get_comments_for_post_query(post=post, max_id=max_id, min_id=min_id)
+        comments_query = self._make_get_comments_for_post_query(
+            post=post, max_id=max_id, min_id=min_id)
 
         PostComment = get_post_comment_model()
         return PostComment.objects.filter(comments_query)
@@ -1260,7 +1302,8 @@ class User(AbstractUser):
                                                               max_id=max_id)
 
     def get_comment_replies_for_comment_with_post(self, post, post_comment, min_id=None, max_id=None):
-        check_can_get_comment_replies_for_post_and_comment(user=self, post=post, post_comment=post_comment)
+        check_can_get_comment_replies_for_post_and_comment(
+            user=self, post=post, post_comment=post_comment)
 
         comment_replies_query = self._make_get_comments_for_post_query(post=post,
                                                                        post_comment_parent_id=post_comment.pk,
@@ -1290,8 +1333,10 @@ class User(AbstractUser):
             raise ValidationError('Post is not a community post')
 
         post = Post.objects.select_related('community').get(pk=post_id)
-        check_can_enable_disable_comments_for_post_in_community_with_name(user=self, community_name=post.community.name)
-        post.community.create_enable_post_comments_log(source_user=self, target_user=post.creator, post=post)
+        check_can_enable_disable_comments_for_post_in_community_with_name(
+            user=self, community_name=post.community.name)
+        post.community.create_enable_post_comments_log(
+            source_user=self, target_user=post.creator, post=post)
         post.comments_enabled = True
         post.save()
 
@@ -1303,8 +1348,10 @@ class User(AbstractUser):
             raise ValidationError('Post is not a community post')
 
         post = Post.objects.select_related('community').get(pk=post_id)
-        check_can_enable_disable_comments_for_post_in_community_with_name(user=self, community_name=post.community.name)
-        post.community.create_disable_post_comments_log(source_user=self, target_user=post.creator, post=post)
+        check_can_enable_disable_comments_for_post_in_community_with_name(
+            user=self, community_name=post.community.name)
+        post.community.create_disable_post_comments_log(
+            source_user=self, target_user=post.creator, post=post)
         post.comments_enabled = False
         post.save()
 
@@ -1350,9 +1397,9 @@ class User(AbstractUser):
                         notification_message = {
                             "en": _(
                                 '%(post_commenter_name)s · @%(post_commenter_username)s commented on a post you also commented on.') % {
-                                      'post_commenter_username': post_commenter.username,
-                                      'post_commenter_name': post_commenter.profile.name,
-                                  }}
+                                'post_commenter_username': post_commenter.username,
+                                'post_commenter_name': post_commenter.profile.name,
+                            }}
 
                     self._send_post_comment_push_notification(post_comment=post_comment,
                                                               notification_message=notification_message,
@@ -1371,8 +1418,10 @@ class User(AbstractUser):
         return self.reply_to_comment_for_post(post_comment=post_comment, text=text, post=post)
 
     def reply_to_comment_for_post(self, post_comment, post, text):
-        check_can_reply_to_post_comment_for_post(user=self, post_comment=post_comment, post=post)
-        post_comment_reply = post_comment.reply_to_comment(text=text, commenter=self)
+        check_can_reply_to_post_comment_for_post(
+            user=self, post_comment=post_comment, post=post)
+        post_comment_reply = post_comment.reply_to_comment(
+            text=text, commenter=self)
         comment_creator = post_comment.commenter.id
         post_creator = post.creator
         replier = self
@@ -1406,23 +1455,23 @@ class User(AbstractUser):
                         notification_message = {
                             "en": _(
                                 '%(post_commenter_name)s · @%(post_commenter_username)s replied to your comment on a post.') % {
-                                      'post_commenter_username': replier.username,
-                                      'post_commenter_name': replier.profile.name,
-                                  }}
+                                'post_commenter_username': replier.username,
+                                'post_commenter_name': replier.profile.name,
+                            }}
                     elif post_notification_target_user_is_post_creator:
                         notification_message = {
                             "en": _(
                                 '%(post_commenter_name)s · %(post_commenter_username)s replied to a comment on your post.') % {
-                                      'post_commenter_username': replier.username,
-                                      'post_commenter_name': replier.profile.name,
-                                  }}
+                                'post_commenter_username': replier.username,
+                                'post_commenter_name': replier.profile.name,
+                            }}
                     else:
                         notification_message = {
                             "en": _(
                                 '%(post_commenter_name)s · @%(post_commenter_username)s replied on a comment you also replied on.') % {
-                                      'post_commenter_username': replier.username,
-                                      'post_commenter_name': replier.profile.name,
-                                  }}
+                                'post_commenter_username': replier.username,
+                                'post_commenter_name': replier.profile.name,
+                            }}
 
                     self._send_post_comment_push_notification(post_comment=post_comment_reply,
                                                               notification_message=notification_message,
@@ -1437,18 +1486,21 @@ class User(AbstractUser):
     def delete_comment_with_id_for_post_with_id(self, post_comment_id, post_id):
         Post = get_post_model()
         post = Post.objects.get(pk=post_id)
-        check_can_delete_comment_with_id_for_post(user=self, post_comment_id=post_comment_id, post=post)
+        check_can_delete_comment_with_id_for_post(
+            user=self, post_comment_id=post_comment_id, post=post)
         PostComment = get_post_comment_model()
         post_comment = PostComment.objects.get(pk=post_comment_id)
         self._delete_post_comment_notification(post_comment=post_comment)
         post_comment.delete()
 
     def update_comment_with_id_for_post_with_id(self, post_comment_id, post_id, text):
-        check_has_post_comment_with_id(user=self, post_comment_id=post_comment_id)
+        check_has_post_comment_with_id(
+            user=self, post_comment_id=post_comment_id)
         check_comments_enabled_for_post_with_id(user=self, post_id=post_id)
         Post = get_post_model()
         post = Post.objects.get(pk=post_id)
-        check_can_edit_comment_with_id_for_post(user=self, post_comment_id=post_comment_id, post=post)
+        check_can_edit_comment_with_id_for_post(
+            user=self, post_comment_id=post_comment_id, post=post)
 
         PostComment = get_post_comment_model()
         post_comment = PostComment.objects.get(pk=post_comment_id)
@@ -1464,7 +1516,8 @@ class User(AbstractUser):
         return self.get_comment_for_post(post_comment=post_comment, post=post)
 
     def get_comment_for_post(self, post, post_comment):
-        check_can_get_comment_for_post(user=self, post_comment=post_comment, post=post)
+        check_can_get_comment_for_post(
+            user=self, post_comment=post_comment, post=post)
         return post_comment
 
     def create_circle(self, name, color):
@@ -1516,31 +1569,37 @@ class User(AbstractUser):
                 else:
                     new_circle_users.append(user)
 
-            circle_users_to_remove = filter(lambda circle_user: circle_user not in new_circle_users, circle_users)
+            circle_users_to_remove = filter(
+                lambda circle_user: circle_user not in new_circle_users, circle_users)
 
             for user_to_remove in circle_users_to_remove:
-                self.remove_circle_with_id_from_connection_with_user_with_id(user_to_remove.pk, circle_to_update.pk)
+                self.remove_circle_with_id_from_connection_with_user_with_id(
+                    user_to_remove.pk, circle_to_update.pk)
 
             for new_circle_user in new_circle_users:
                 if not self.is_connected_with_user_with_id_in_circle_with_id(new_circle_user.pk, circle_to_update.pk):
                     if self.is_connected_with_user_with_id(new_circle_user.pk):
-                        self.add_circle_with_id_to_connection_with_user_with_id(new_circle_user.pk, circle_to_update.pk)
+                        self.add_circle_with_id_to_connection_with_user_with_id(
+                            new_circle_user.pk, circle_to_update.pk)
                     else:
-                        self.connect_with_user_with_id(new_circle_user.pk, circles_ids=[circle_to_update.pk])
+                        self.connect_with_user_with_id(
+                            new_circle_user.pk, circles_ids=[circle_to_update.pk])
 
         circle_to_update.save()
         return circle_to_update
 
     def remove_circle_with_id_from_connection_with_user_with_id(self, user_id, circle_id):
         check_is_following_user_with_id(user=self, user_id=user_id)
-        check_is_connected_with_user_with_id_in_circle_with_id(user=self, user_id=user_id, circle_id=circle_id)
+        check_is_connected_with_user_with_id_in_circle_with_id(
+            user=self, user_id=user_id, circle_id=circle_id)
         connection = self.get_connection_for_user_with_id(user_id)
         connection.circles.remove(circle_id)
         return connection
 
     def add_circle_with_id_to_connection_with_user_with_id(self, user_id, circle_id):
         check_is_following_user_with_id(user=self, user_id=user_id)
-        check_is_not_connected_with_user_with_id_in_circle_with_id(user=self, user_id=user_id, circle_id=circle_id)
+        check_is_not_connected_with_user_with_id_in_circle_with_id(
+            user=self, user_id=user_id, circle_id=circle_id)
         connection = self.get_connection_for_user_with_id(user_id)
         connection.circles.add(circle_id)
         return connection
@@ -1550,7 +1609,8 @@ class User(AbstractUser):
         return self.circles.get(id=circle_id)
 
     def favorite_community_with_name(self, community_name):
-        check_can_favorite_community_with_name(user=self, community_name=community_name)
+        check_can_favorite_community_with_name(
+            user=self, community_name=community_name)
 
         Community = get_community_model()
         community_to_favorite = Community.objects.get(name=community_name)
@@ -1560,7 +1620,8 @@ class User(AbstractUser):
         return community_to_favorite
 
     def unfavorite_community_with_name(self, community_name):
-        check_can_unfavorite_community_with_name(user=self, community_name=community_name)
+        check_can_unfavorite_community_with_name(
+            user=self, community_name=community_name)
 
         Community = get_community_model()
         community_to_unfavorite = Community.objects.get(name=community_name)
@@ -1587,7 +1648,8 @@ class User(AbstractUser):
         return self.delete_community_with_name(community.name)
 
     def delete_community_with_name(self, community_name):
-        check_can_delete_community_with_name(user=self, community_name=community_name)
+        check_can_delete_community_with_name(
+            user=self, community_name=community_name)
 
         Community = get_community_model()
         community = Community.objects.get(name=community_name)
@@ -1605,12 +1667,14 @@ class User(AbstractUser):
                                    user_adjective=None,
                                    users_adjective=None, rules=None, categories_names=None,
                                    invites_enabled=None):
-        check_can_update_community_with_name(user=self, community_name=community_name)
+        check_can_update_community_with_name(
+            user=self, community_name=community_name)
 
         Community = get_community_model()
         community_to_update = Community.objects.get(name=community_name)
 
-        check_community_data(user=self, community=community_to_update, name=name, type=type)
+        check_community_data(
+            user=self, community=community_to_update, name=name, type=type)
 
         community_to_update.update(name=name, title=title, description=description,
                                    color=color, type=type, user_adjective=user_adjective,
@@ -1620,11 +1684,14 @@ class User(AbstractUser):
         return community_to_update
 
     def update_community_with_name_avatar(self, community_name, avatar):
-        check_can_update_community_with_name(user=self, community_name=community_name)
+        check_can_update_community_with_name(
+            user=self, community_name=community_name)
 
         Community = get_community_model()
-        community_to_update_avatar_from = Community.objects.get(name=community_name)
-        check_community_data(user=self, community=community_to_update_avatar_from, avatar=avatar)
+        community_to_update_avatar_from = Community.objects.get(
+            name=community_name)
+        check_community_data(
+            user=self, community=community_to_update_avatar_from, avatar=avatar)
 
         community_to_update_avatar_from.avatar = avatar
         community_to_update_avatar_from.save()
@@ -1632,20 +1699,25 @@ class User(AbstractUser):
         return community_to_update_avatar_from
 
     def delete_community_with_name_avatar(self, community_name):
-        check_can_update_community_with_name(user=self, community_name=community_name)
+        check_can_update_community_with_name(
+            user=self, community_name=community_name)
         Community = get_community_model()
-        community_to_delete_avatar_from = Community.objects.get(name=community_name)
+        community_to_delete_avatar_from = Community.objects.get(
+            name=community_name)
         delete_file_field(community_to_delete_avatar_from.avatar)
         community_to_delete_avatar_from.avatar = None
         community_to_delete_avatar_from.save()
         return community_to_delete_avatar_from
 
     def update_community_with_name_cover(self, community_name, cover):
-        check_can_update_community_with_name(user=self, community_name=community_name)
+        check_can_update_community_with_name(
+            user=self, community_name=community_name)
 
         Community = get_community_model()
-        community_to_update_cover_from = Community.objects.get(name=community_name)
-        check_community_data(user=self, community=community_to_update_cover_from, cover=cover)
+        community_to_update_cover_from = Community.objects.get(
+            name=community_name)
+        check_community_data(
+            user=self, community=community_to_update_cover_from, cover=cover)
 
         community_to_update_cover_from.cover = cover
 
@@ -1654,10 +1726,12 @@ class User(AbstractUser):
         return community_to_update_cover_from
 
     def delete_community_with_name_cover(self, community_name):
-        check_can_update_community_with_name(user=self, community_name=community_name)
+        check_can_update_community_with_name(
+            user=self, community_name=community_name)
 
         Community = get_community_model()
-        community_to_delete_cover_from = Community.objects.get(name=community_name)
+        community_to_delete_cover_from = Community.objects.get(
+            name=community_name)
 
         delete_file_field(community_to_delete_cover_from.cover)
         community_to_delete_cover_from.cover = None
@@ -1692,7 +1766,8 @@ class User(AbstractUser):
 
         # Clean up_full any invites
         CommunityInvite = get_community_invite_model()
-        CommunityInvite.objects.filter(community__name=community_name, invited_user__username=self.username).delete()
+        CommunityInvite.objects.filter(
+            community__name=community_name, invited_user__username=self.username).delete()
 
         # No need to delete community invite notifications as they are delete cascaded
 
@@ -1710,7 +1785,8 @@ class User(AbstractUser):
             self.unfavorite_community_with_name(community_name=community_name)
 
         if self.is_subscribed_to_community_notifications(community=community_to_leave):
-            self.unsubscribe_from_community_notifications(community=community_to_leave)
+            self.unsubscribe_from_community_notifications(
+                community=community_to_leave)
 
         community_to_leave.remove_member(self)
 
@@ -1722,10 +1798,12 @@ class User(AbstractUser):
 
         Community = get_community_model()
 
-        community_to_invite_user_to = Community.objects.get(name=community_name)
+        community_to_invite_user_to = Community.objects.get(
+            name=community_name)
         user_to_invite = User.objects.get(username=username)
 
-        community_invite = community_to_invite_user_to.create_invite(creator=self, invited_user=user_to_invite)
+        community_invite = community_to_invite_user_to.create_invite(
+            creator=self, invited_user=user_to_invite)
 
         self._create_community_invite_notification(community_invite)
         self._send_community_invite_push_notification(community_invite)
@@ -1768,10 +1846,12 @@ class User(AbstractUser):
 
         Community = get_community_model()
 
-        community_to_add_administrator_to = Community.objects.get(name=community_name)
+        community_to_add_administrator_to = Community.objects.get(
+            name=community_name)
         user_to_add_as_administrator = User.objects.get(username=username)
 
-        community_to_add_administrator_to.add_administrator(user_to_add_as_administrator)
+        community_to_add_administrator_to.add_administrator(
+            user_to_add_as_administrator)
         community_to_add_administrator_to.create_add_administrator_log(source_user=self,
                                                                        target_user=user_to_add_as_administrator)
 
@@ -1789,10 +1869,12 @@ class User(AbstractUser):
 
         Community = get_community_model()
 
-        community_to_remove_administrator_from = Community.objects.get(name=community_name)
+        community_to_remove_administrator_from = Community.objects.get(
+            name=community_name)
         user_to_remove_as_administrator = User.objects.get(username=username)
 
-        community_to_remove_administrator_from.remove_administrator(user_to_remove_as_administrator)
+        community_to_remove_administrator_from.remove_administrator(
+            user_to_remove_as_administrator)
         community_to_remove_administrator_from.create_remove_administrator_log(source_user=self,
                                                                                target_user=user_to_remove_as_administrator)
 
@@ -1823,7 +1905,8 @@ class User(AbstractUser):
 
         Community = get_community_model()
 
-        community_to_add_moderator_to = Community.objects.get(name=community_name)
+        community_to_add_moderator_to = Community.objects.get(
+            name=community_name)
         user_to_add_as_moderator = User.objects.get(username=username)
 
         community_to_add_moderator_to.add_moderator(user_to_add_as_moderator)
@@ -1841,10 +1924,12 @@ class User(AbstractUser):
 
         Community = get_community_model()
 
-        community_to_remove_moderator_from = Community.objects.get(name=community_name)
+        community_to_remove_moderator_from = Community.objects.get(
+            name=community_name)
         user_to_remove_as_moderator = User.objects.get(username=username)
 
-        community_to_remove_moderator_from.remove_moderator(user_to_remove_as_moderator)
+        community_to_remove_moderator_from.remove_moderator(
+            user_to_remove_as_moderator)
         community_to_remove_moderator_from.create_remove_moderator_log(source_user=self,
                                                                        target_user=user_to_remove_as_moderator)
 
@@ -1875,10 +1960,12 @@ class User(AbstractUser):
         user_to_ban = User.objects.get(username=username)
 
         if user_to_ban.is_member_of_community_with_name(community_name=community_name):
-            user_to_ban.leave_community_with_name(community_name=community_name)
+            user_to_ban.leave_community_with_name(
+                community_name=community_name)
 
         community_to_ban_user_from.banned_users.add(user_to_ban)
-        community_to_ban_user_from.create_user_ban_log(source_user=self, target_user=user_to_ban)
+        community_to_ban_user_from.create_user_ban_log(
+            source_user=self, target_user=user_to_ban)
 
         return community_to_ban_user_from
 
@@ -1887,11 +1974,13 @@ class User(AbstractUser):
                                                                     community_name=community_name)
         Community = get_community_model()
 
-        community_to_unban_user_from = Community.objects.get(name=community_name)
+        community_to_unban_user_from = Community.objects.get(
+            name=community_name)
         user_to_unban = User.objects.get(username=username)
 
         community_to_unban_user_from.banned_users.remove(user_to_unban)
-        community_to_unban_user_from.create_user_unban_log(source_user=self, target_user=user_to_unban)
+        community_to_unban_user_from.create_user_unban_log(
+            source_user=self, target_user=user_to_unban)
 
         return community_to_unban_user_from
 
@@ -1944,17 +2033,21 @@ class User(AbstractUser):
                 else:
                     new_list_users.append(user)
 
-            list_users_to_remove = filter(lambda list_user: list_user not in new_list_users, list_users)
+            list_users_to_remove = filter(
+                lambda list_user: list_user not in new_list_users, list_users)
 
             for user_to_remove in list_users_to_remove:
-                self.remove_list_with_id_from_follow_for_user_with_id(user_to_remove.pk, list_to_update.pk)
+                self.remove_list_with_id_from_follow_for_user_with_id(
+                    user_to_remove.pk, list_to_update.pk)
 
             for new_list_user in new_list_users:
                 if not self.is_following_user_with_id_in_list_with_id(new_list_user.pk, list_to_update.pk):
                     if self.is_following_user_with_id(new_list_user.pk):
-                        self.add_list_with_id_to_follow_for_user_with_id(new_list_user.pk, list_to_update.pk)
+                        self.add_list_with_id_to_follow_for_user_with_id(
+                            new_list_user.pk, list_to_update.pk)
                     else:
-                        self.follow_user_with_id(new_list_user.pk, lists_ids=[list_to_update.pk])
+                        self.follow_user_with_id(
+                            new_list_user.pk, lists_ids=[list_to_update.pk])
 
         list_to_update.save()
         return list_to_update
@@ -1964,7 +2057,8 @@ class User(AbstractUser):
         return self.lists.get(id=list_id)
 
     def search_hashtags_with_query(self, query):
-        hashtags_query = make_search_hashtag_query_for_user_with_id(search_query=query, user_id=self.pk)
+        hashtags_query = make_search_hashtag_query_for_user_with_id(
+            search_query=query, user_id=self.pk)
         Hashtag = get_hashtag_model()
 
         return Hashtag.objects.filter(hashtags_query)
@@ -2098,7 +2192,8 @@ class User(AbstractUser):
         return User.objects.filter(followings_query)
 
     def search_followers_with_query(self, query):
-        followers_query = Q(follows__followed_user_id=self.pk, is_deleted=False)
+        followers_query = Q(
+            follows__followed_user_id=self.pk, is_deleted=False)
 
         names_query = Q(username__icontains=query)
         names_query.add(Q(profile__name__icontains=query), Q.OR)
@@ -2108,7 +2203,8 @@ class User(AbstractUser):
         return User.objects.filter(followers_query)
 
     def get_user_subscriptions(self, max_id=None):
-        user_subscriptions_query = Q(notifications_subscribers__subscriber=self, is_deleted=False)
+        user_subscriptions_query = Q(
+            notifications_subscribers__subscriber=self, is_deleted=False)
 
         if max_id:
             user_subscriptions_query.add(Q(id__lt=max_id), Q.AND)
@@ -2116,7 +2212,8 @@ class User(AbstractUser):
         return User.objects.filter(user_subscriptions_query)
 
     def search_user_notifications_subscriptions_with_query(self, query):
-        user_subscriptions_query = Q(notifications_subscribers__subscriber=self, is_deleted=False)
+        user_subscriptions_query = Q(
+            notifications_subscribers__subscriber=self, is_deleted=False)
 
         names_query = Q(username__icontains=query)
         names_query.add(Q(profile__name__icontains=query), Q.OR)
@@ -2153,7 +2250,8 @@ class User(AbstractUser):
                                                                 excluded_from_profile_posts=excluded_from_profile_posts)
 
     def get_community_with_name(self, community_name):
-        check_can_get_community_with_name(user=self, community_name=community_name)
+        check_can_get_community_with_name(
+            user=self, community_name=community_name)
         Community = get_community_model()
         return Community.get_community_with_name_for_user_with_id(community_name=community_name, user_id=self.pk)
 
@@ -2169,10 +2267,12 @@ class User(AbstractUser):
         return Community.objects.filter(notifications_subscriptions__subscriber=self)
 
     def search_subscribed_communities_with_query(self, query):
-        subscribed_communities_query = Q(notifications_subscriptions__subscriber=self)
+        subscribed_communities_query = Q(
+            notifications_subscriptions__subscriber=self)
         subscribed_communities_name_query = Q(name__icontains=query)
         subscribed_communities_name_query.add(Q(title__icontains=query), Q.OR)
-        subscribed_communities_query.add(subscribed_communities_name_query, Q.AND)
+        subscribed_communities_query.add(
+            subscribed_communities_name_query, Q.AND)
         Community = get_community_model()
         return Community.objects.filter(subscribed_communities_query)
 
@@ -2204,10 +2304,13 @@ class User(AbstractUser):
         return Community.objects.filter(memberships__user=self, memberships__is_administrator=True)
 
     def search_administrated_communities_with_query(self, query):
-        administrated_communities_query = Q(memberships__user=self, memberships__is_administrator=True)
+        administrated_communities_query = Q(
+            memberships__user=self, memberships__is_administrator=True)
         administrated_communities_name_query = Q(name__icontains=query)
-        administrated_communities_name_query.add(Q(title__icontains=query), Q.OR)
-        administrated_communities_query.add(administrated_communities_name_query, Q.AND)
+        administrated_communities_name_query.add(
+            Q(title__icontains=query), Q.OR)
+        administrated_communities_query.add(
+            administrated_communities_name_query, Q.AND)
         Community = get_community_model()
         return Community.objects.filter(administrated_communities_query)
 
@@ -2216,10 +2319,12 @@ class User(AbstractUser):
         return Community.objects.filter(memberships__user=self, memberships__is_moderator=True)
 
     def search_moderated_communities_with_query(self, query):
-        moderated_communities_query = Q(memberships__user=self, memberships__is_moderator=True)
+        moderated_communities_query = Q(
+            memberships__user=self, memberships__is_moderator=True)
         moderated_communities_name_query = Q(name__icontains=query)
         moderated_communities_name_query.add(Q(title__icontains=query), Q.OR)
-        moderated_communities_query.add(moderated_communities_name_query, Q.AND)
+        moderated_communities_query.add(
+            moderated_communities_name_query, Q.AND)
         Community = get_community_model()
         return Community.objects.filter(moderated_communities_query)
 
@@ -2247,7 +2352,8 @@ class User(AbstractUser):
         return post
 
     def create_community_post(self, community_name, text=None, image=None, video=None, created=None, is_draft=False):
-        check_can_post_to_community_with_name(user=self, community_name=community_name)
+        check_can_post_to_community_with_name(
+            user=self, community_name=community_name)
         Post = get_post_model()
         post = Post.create_post(text=text, creator=self, community_name=community_name, image=image, video=video,
                                 created=created, is_draft=is_draft)
@@ -2314,7 +2420,8 @@ class User(AbstractUser):
         check_can_open_post_with_id(user=self, post_id=post_id)
         Post = get_post_model()
         post = Post.objects.select_related('community').get(id=post_id)
-        post.community.create_open_post_log(source_user=self, target_user=post.creator, post=post)
+        post.community.create_open_post_log(
+            source_user=self, target_user=post.creator, post=post)
         post.is_closed = False
         post.save()
 
@@ -2327,9 +2434,11 @@ class User(AbstractUser):
 
     def close_post(self, post):
         check_can_close_post(user=self, post=post)
-        post.community.create_close_post_log(source_user=self, target_user=post.creator, post=post)
+        post.community.create_close_post_log(
+            source_user=self, target_user=post.creator, post=post)
         post.is_closed = True
-        excluded_users = self._get_excluded_users_for_deleting_community_notifications_on_close_post(post)
+        excluded_users = self._get_excluded_users_for_deleting_community_notifications_on_close_post(
+            post)
         post.delete_notifications_except_for_users(excluded_users)
         post.save()
 
@@ -2345,7 +2454,8 @@ class User(AbstractUser):
         Hashtag = get_hashtag_model()
         hashtag = Hashtag.objects.get(name=hashtag_name)
 
-        hashtag_posts_query = make_get_hashtag_posts_for_user_with_id_query(user_id=self.pk, hashtag=hashtag)
+        hashtag_posts_query = make_get_hashtag_posts_for_user_with_id_query(
+            user_id=self.pk, hashtag=hashtag)
 
         if max_id:
             hashtag_posts_query.add(Q(id__lt=max_id), Q.AND)
@@ -2361,7 +2471,8 @@ class User(AbstractUser):
         :param max_id:
         :return:
         """
-        check_can_get_posts_for_community_with_name(user=self, community_name=community_name)
+        check_can_get_posts_for_community_with_name(
+            user=self, community_name=community_name)
 
         Community = get_community_model()
         community = Community.objects.get(name=community_name)
@@ -2379,7 +2490,8 @@ class User(AbstractUser):
         return profile_posts
 
     def get_closed_posts_for_community_with_name(self, community_name, max_id=None):
-        check_can_get_closed_posts_for_community_with_name(user=self, community_name=community_name)
+        check_can_get_closed_posts_for_community_with_name(
+            user=self, community_name=community_name)
         Community = get_community_model()
         community = Community.objects.get(name=community_name)
 
@@ -2404,13 +2516,14 @@ class User(AbstractUser):
         Community = get_community_model()
         CommunityNotificationsSubscription = get_community_notifications_subscription_model()
         community = Community.objects.get(name=community_name)
-        check_can_enable_new_post_notifications_for_community(user=self, community=community)
+        check_can_enable_new_post_notifications_for_community(
+            user=self, community=community)
 
         community_notifications_subscription = CommunityNotificationsSubscription. \
             get_or_create_community_notifications_subscription(
-            community=community,
-            subscriber=self
-        )
+                community=community,
+                subscriber=self
+            )
 
         community_notifications_subscription.new_post_notifications = True
         community_notifications_subscription.save()
@@ -2421,13 +2534,14 @@ class User(AbstractUser):
         Community = get_community_model()
         CommunityNotificationsSubscription = get_community_notifications_subscription_model()
         community = Community.objects.get(name=community_name)
-        check_can_disable_new_post_notifications_for_community(user=self, community=community)
+        check_can_disable_new_post_notifications_for_community(
+            user=self, community=community)
 
         community_notifications_subscription = CommunityNotificationsSubscription. \
             get_or_create_community_notifications_subscription(
-            community=community,
-            subscriber=self
-        )
+                community=community,
+                subscriber=self
+            )
 
         community_notifications_subscription.new_post_notifications = False
         community_notifications_subscription.save()
@@ -2449,13 +2563,16 @@ class User(AbstractUser):
         Post = get_post_model()
         ModeratedObject = get_moderated_object_model()
 
-        posts_query = Q(creator_id=self.id, is_deleted=False, status=Post.STATUS_PUBLISHED)
+        posts_query = Q(creator_id=self.id, is_deleted=False,
+                        status=Post.STATUS_PUBLISHED)
 
-        exclude_reported_and_approved_posts_query = ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED)
+        exclude_reported_and_approved_posts_query = ~Q(
+            moderated_object__status=ModeratedObject.STATUS_APPROVED)
 
         posts_query.add(exclude_reported_and_approved_posts_query, Q.AND)
 
-        exclude_excluded_communitities_posts_query = ~Q(community__profile_posts_community_exclusions__user_id=self.pk)
+        exclude_excluded_communitities_posts_query = ~Q(
+            community__profile_posts_community_exclusions__user_id=self.pk)
 
         posts_query.add(exclude_excluded_communitities_posts_query, Q.AND)
 
@@ -2504,14 +2621,16 @@ class User(AbstractUser):
         self.exclude_community_from_top_posts(community_to_exclude)
 
     def exclude_community_from_top_posts(self, community):
-        check_can_exclude_community_from_top_posts(user=self, community=community)
+        check_can_exclude_community_from_top_posts(
+            user=self, community=community)
 
         TopPostCommunityExclusion = get_top_post_community_exclusion_model()
         top_post_community_exclusion = TopPostCommunityExclusion(
             user=self,
             community=community
         )
-        self.top_posts_community_exclusions.add(top_post_community_exclusion, bulk=False)
+        self.top_posts_community_exclusions.add(
+            top_post_community_exclusion, bulk=False)
 
     def remove_exclusion_for_community_with_name_from_top_posts(self, community_name):
         Community = get_community_model()
@@ -2519,10 +2638,12 @@ class User(AbstractUser):
         self.remove_exclusion_for_community_from_top_posts(community)
 
     def remove_exclusion_for_community_from_top_posts(self, community):
-        check_can_remove_top_posts_exclusion_for_community(user=self, community=community)
+        check_can_remove_top_posts_exclusion_for_community(
+            user=self, community=community)
 
         TopPostCommunityExclusion = get_top_post_community_exclusion_model()
-        TopPostCommunityExclusion.objects.get(user=self, community=community).delete()
+        TopPostCommunityExclusion.objects.get(
+            user=self, community=community).delete()
 
     def exclude_community_with_name_from_profile_posts(self, community_name):
         Community = get_community_model()
@@ -2530,14 +2651,16 @@ class User(AbstractUser):
         self.exclude_community_from_profile_posts(community_to_exclude)
 
     def exclude_community_from_profile_posts(self, community):
-        check_can_exclude_community_from_profile_posts(user=self, community=community)
+        check_can_exclude_community_from_profile_posts(
+            user=self, community=community)
 
         ProfilePostsCommunityExclusion = get_profile_posts_community_exclusion_model()
         profile_posts_community_exclusion = ProfilePostsCommunityExclusion(
             user=self,
             community=community
         )
-        self.profile_posts_community_exclusions.add(profile_posts_community_exclusion, bulk=False)
+        self.profile_posts_community_exclusions.add(
+            profile_posts_community_exclusion, bulk=False)
 
     def remove_exclusion_for_community_with_name_from_profile_posts(self, community_name):
         Community = get_community_model()
@@ -2545,10 +2668,12 @@ class User(AbstractUser):
         self.remove_exclusion_for_community_from_profile_posts(community)
 
     def remove_exclusion_for_community_from_profile_posts(self, community):
-        check_can_remove_profile_posts_exclusion_for_community(user=self, community=community)
+        check_can_remove_profile_posts_exclusion_for_community(
+            user=self, community=community)
 
         ProfilePostsCommunityExclusion = get_profile_posts_community_exclusion_model()
-        ProfilePostsCommunityExclusion.objects.get(user=self, community=community).delete()
+        ProfilePostsCommunityExclusion.objects.get(
+            user=self, community=community).delete()
 
     def get_top_posts(self, max_id=None, min_id=None, exclude_joined_communities=False):
         """
@@ -2558,8 +2683,10 @@ class User(AbstractUser):
         TopPost = get_top_post_model()
         Community = get_community_model()
 
-        posts_select_related = ('post__creator', 'post__creator__profile', 'post__community', 'post__image')
-        posts_prefetch_related = ('post__circles', 'post__creator__profile__badges')
+        posts_select_related = (
+            'post__creator', 'post__creator__profile', 'post__community', 'post__image')
+        posts_prefetch_related = (
+            'post__circles', 'post__creator__profile__badges')
 
         posts_only = ('id',
                       'post__text', 'post__id', 'post__uuid', 'post__created', 'post__image__width',
@@ -2571,8 +2698,10 @@ class User(AbstractUser):
                       'post__community__avatar',
                       'post__community__color', 'post__community__title')
 
-        reported_posts_exclusion_query = ~Q(post__moderated_object__reports__reporter_id=self.pk)
-        excluded_top_posts_communities_query = ~Q(post__community__top_posts_community_exclusions__user=self.pk)
+        reported_posts_exclusion_query = ~Q(
+            post__moderated_object__reports__reporter_id=self.pk)
+        excluded_top_posts_communities_query = ~Q(
+            post__community__top_posts_community_exclusions__user=self.pk)
 
         top_community_posts_query = Q(post__is_closed=False,
                                       post__is_deleted=False,
@@ -2580,8 +2709,10 @@ class User(AbstractUser):
 
         top_community_posts_query.add(~Q(Q(post__creator__blocked_by_users__blocker_id=self.pk) | Q(
             post__creator__user_blocks__blocked_user_id=self.pk)), Q.AND)
-        top_community_posts_query.add(Q(post__community__type=Community.COMMUNITY_TYPE_PUBLIC), Q.AND)
-        top_community_posts_query.add(~Q(post__community__banned_users__id=self.pk), Q.AND)
+        top_community_posts_query.add(
+            Q(post__community__type=Community.COMMUNITY_TYPE_PUBLIC), Q.AND)
+        top_community_posts_query.add(
+            ~Q(post__community__banned_users__id=self.pk), Q.AND)
 
         if max_id:
             top_community_posts_query.add(Q(id__lt=max_id), Q.AND)
@@ -2589,15 +2720,19 @@ class User(AbstractUser):
             top_community_posts_query.add(Q(id__gt=min_id), Q.AND)
 
         ModeratedObject = get_moderated_object_model()
-        top_community_posts_query.add(~Q(post__moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
+        top_community_posts_query.add(
+            ~Q(post__moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
 
         if exclude_joined_communities:
             # exclude communities the user is a member of
-            exclude_joined_communities_query = ~Q(post__community__memberships__user__id=self.pk)
-            top_community_posts_query.add(exclude_joined_communities_query, Q.AND)
+            exclude_joined_communities_query = ~Q(
+                post__community__memberships__user__id=self.pk)
+            top_community_posts_query.add(
+                exclude_joined_communities_query, Q.AND)
 
         top_community_posts_query.add(reported_posts_exclusion_query, Q.AND)
-        top_community_posts_query.add(excluded_top_posts_communities_query, Q.AND)
+        top_community_posts_query.add(
+            excluded_top_posts_communities_query, Q.AND)
 
         top_community_posts_queryset = TopPost.objects.select_related(*posts_select_related).prefetch_related(
             *posts_prefetch_related).only(*posts_only).filter(top_community_posts_query)
@@ -2620,7 +2755,8 @@ class User(AbstractUser):
         world_circle_id = self._get_world_circle_id()
 
         if circles_ids:
-            timeline_posts_query = Q(creator=self.pk, circles__id__in=circles_ids)
+            timeline_posts_query = Q(
+                creator=self.pk, circles__id__in=circles_ids)
         else:
             timeline_posts_query = Q()
 
@@ -2629,7 +2765,8 @@ class User(AbstractUser):
         else:
             followed_users_query = self.follows.all()
 
-        followed_users = followed_users_query.values('followed_user__id').cache()
+        followed_users = followed_users_query.values(
+            'followed_user__id').cache()
 
         for followed_user in followed_users:
 
@@ -2638,7 +2775,8 @@ class User(AbstractUser):
             followed_user_query = Q(creator_id=followed_user_id)
 
             if circles_ids:
-                followed_user_query.add(Q(creator__connections__target_connection__circles__in=circles_ids), Q.AND)
+                followed_user_query.add(
+                    Q(creator__connections__target_connection__circles__in=circles_ids), Q.AND)
 
             followed_user_circles_query = Q(circles__id=world_circle_id)
 
@@ -2655,9 +2793,11 @@ class User(AbstractUser):
         elif min_id:
             timeline_posts_query.add(Q(id__gt=min_id), Q.AND)
 
-        timeline_posts_query.add(Q(is_deleted=False, status=Post.STATUS_PUBLISHED), Q.AND)
+        timeline_posts_query.add(
+            Q(is_deleted=False, status=Post.STATUS_PUBLISHED), Q.AND)
 
-        timeline_posts_query.add(~Q(moderated_object__reports__reporter_id=self.pk), Q.AND)
+        timeline_posts_query.add(
+            ~Q(moderated_object__reports__reporter_id=self.pk), Q.AND)
 
         return Post.objects.filter(timeline_posts_query).distinct()
 
@@ -2669,7 +2809,8 @@ class User(AbstractUser):
 
         Post = get_post_model()
 
-        posts_select_related = ('creator', 'creator__profile', 'community', 'image')
+        posts_select_related = (
+            'creator', 'creator__profile', 'community', 'image')
 
         posts_prefetch_related = ('circles', 'creator__profile__badges')
 
@@ -2681,9 +2822,11 @@ class User(AbstractUser):
                       'community__title')
 
         ModeratedObject = get_moderated_object_model()
-        reported_posts_exclusion_query = ~Q(moderated_object__reports__reporter_id=self.pk)
+        reported_posts_exclusion_query = ~Q(
+            moderated_object__reports__reporter_id=self.pk)
 
-        own_posts_query = Q(creator=self.pk, community__isnull=True, is_deleted=False, status=Post.STATUS_PUBLISHED)
+        own_posts_query = Q(creator=self.pk, community__isnull=True,
+                            is_deleted=False, status=Post.STATUS_PUBLISHED)
 
         own_posts_query.add(reported_posts_exclusion_query, Q.AND)
 
@@ -2702,7 +2845,8 @@ class User(AbstractUser):
         if max_id:
             community_posts_query.add(Q(id__lt=max_id), Q.AND)
 
-        community_posts_query.add(~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
+        community_posts_query.add(
+            ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
 
         community_posts_query.add(reported_posts_exclusion_query, Q.AND)
 
@@ -2711,9 +2855,11 @@ class User(AbstractUser):
 
         followed_users = self.follows.values('followed_user_id')
 
-        followed_users_ids = [followed_user['followed_user_id'] for followed_user in followed_users]
+        followed_users_ids = [followed_user['followed_user_id']
+                              for followed_user in followed_users]
 
-        followed_users_query = Q(creator__in=followed_users_ids, is_deleted=False, status=Post.STATUS_PUBLISHED)
+        followed_users_query = Q(
+            creator__in=followed_users_ids, is_deleted=False, status=Post.STATUS_PUBLISHED)
 
         followed_users_query.add(reported_posts_exclusion_query, Q.AND)
 
@@ -2727,7 +2873,8 @@ class User(AbstractUser):
         followed_users_queryset = Post.objects.select_related(*posts_select_related).prefetch_related(
             *posts_prefetch_related).only(*posts_only).filter(followed_users_query)
 
-        final_queryset = own_posts_queryset.union(community_posts_queryset, followed_users_queryset)
+        final_queryset = own_posts_queryset.union(
+            community_posts_queryset, followed_users_queryset)
 
         return final_queryset
 
@@ -2757,7 +2904,8 @@ class User(AbstractUser):
         return self.get_logs_for_moderated_object(moderated_object=moderated_object, max_id=max_id)
 
     def get_logs_for_moderated_object(self, moderated_object, max_id=None):
-        check_can_get_moderated_object(user=self, moderated_object=moderated_object)
+        check_can_get_moderated_object(
+            user=self, moderated_object=moderated_object)
 
         query = Q()
 
@@ -2772,7 +2920,8 @@ class User(AbstractUser):
         return self.get_reports_for_moderated_object(moderated_object=moderated_object, max_id=max_id)
 
     def get_reports_for_moderated_object(self, moderated_object, max_id=None):
-        check_can_get_moderated_object(user=self, moderated_object=moderated_object)
+        check_can_get_moderated_object(
+            user=self, moderated_object=moderated_object)
 
         query = Q()
 
@@ -2782,7 +2931,8 @@ class User(AbstractUser):
         return moderated_object.reports.filter(query)
 
     def get_community_moderated_objects(self, community_name, types=None, max_id=None, verified=None, statuses=None):
-        check_can_get_community_moderated_objects(user=self, community_name=community_name)
+        check_can_get_community_moderated_objects(
+            user=self, community_name=community_name)
         ModeratedObject = get_moderated_object_model()
 
         moderated_objects_query = Q(community__name=community_name)
@@ -2813,10 +2963,11 @@ class User(AbstractUser):
     def get_pending_moderated_objects_communities(self, max_id):
         """Retrieves the communities staff of that have pending moderated objects"""
         query = Q(memberships__user_id=self.pk) & (
-                Q(memberships__is_moderator=True) | Q(memberships__is_administrator=True))
+            Q(memberships__is_moderator=True) | Q(memberships__is_administrator=True))
 
         ModeratedObject = get_moderated_object_model()
-        query.add(Q(moderated_objects__status=ModeratedObject.STATUS_PENDING), Q.AND)
+        query.add(
+            Q(moderated_objects__status=ModeratedObject.STATUS_PENDING), Q.AND)
 
         if max_id:
             query.add(Q(id__lt=max_id), Q.AND)
@@ -2829,7 +2980,7 @@ class User(AbstractUser):
         ModeratedObject = get_moderated_object_model()
 
         query = Q(community__memberships__user_id=self.pk) & (
-                Q(community__memberships__is_moderator=True) | Q(community__memberships__is_administrator=True))
+            Q(community__memberships__is_moderator=True) | Q(community__memberships__is_administrator=True))
 
         query.add(Q(status=ModeratedObject.STATUS_PENDING), Q.AND)
 
@@ -2858,14 +3009,17 @@ class User(AbstractUser):
         return self.create_follow_request_for_user(user)
 
     def create_follow_request_for_user(self, user):
-        check_can_create_follow_request(user=self, user_requesting_to_follow=user)
+        check_can_create_follow_request(
+            user=self, user_requesting_to_follow=user)
 
         FollowRequest = get_follow_request_model()
-        follow_request = FollowRequest.create_follow_request(creator_id=self.pk, target_user_id=user.pk)
+        follow_request = FollowRequest.create_follow_request(
+            creator_id=self.pk, target_user_id=user.pk)
 
         # Create request notification
         self._create_follow_request_notification(follow_request=follow_request)
-        self._send_follow_request_push_notification(follow_request=follow_request)
+        self._send_follow_request_push_notification(
+            follow_request=follow_request)
 
         return follow_request
 
@@ -2874,17 +3028,20 @@ class User(AbstractUser):
         return self.delete_follow_request_for_user(user)
 
     def delete_follow_request_for_user(self, user):
-        check_can_delete_follow_request_for_user(user=self, user_requesting_to_follow=user)
+        check_can_delete_follow_request_for_user(
+            user=self, user_requesting_to_follow=user)
 
         FollowRequest = get_follow_request_model()
-        FollowRequest.delete_follow_request(creator_id=self.pk, target_user_id=user.pk)
+        FollowRequest.delete_follow_request(
+            creator_id=self.pk, target_user_id=user.pk)
 
     def approve_follow_request_from_user_with_username(self, user_username):
         user = User.objects.get(username=user_username)
         return self.approve_follow_request_from_user(user=user)
 
     def approve_follow_request_from_user(self, user):
-        check_can_approve_follow_request_from_requesting_user(user=self, requesting_user=user)
+        check_can_approve_follow_request_from_requesting_user(
+            user=self, requesting_user=user)
         follow = user.follow_user(user=self, is_pre_approved=True)
 
         # Create approved notification
@@ -2898,7 +3055,8 @@ class User(AbstractUser):
         return self.follow_user(user, lists_ids)
 
     def follow_user(self, user, lists_ids=None, is_pre_approved=False):
-        check_can_follow_user(user=self, user_to_follow=user, is_pre_approved=is_pre_approved)
+        check_can_follow_user(user=self, user_to_follow=user,
+                              is_pre_approved=is_pre_approved)
 
         if not lists_ids:
             lists_ids = self._get_default_follow_lists()
@@ -2906,7 +3064,8 @@ class User(AbstractUser):
         check_follow_lists_ids(user=self, lists_ids=lists_ids)
 
         Follow = get_follow_model()
-        follow = Follow.create_follow(user_id=self.pk, followed_user_id=user.pk, lists_ids=lists_ids)
+        follow = Follow.create_follow(
+            user_id=self.pk, followed_user_id=user.pk, lists_ids=lists_ids)
         self._create_follow_notification(followed_user_id=user.pk)
 
         if not is_pre_approved:
@@ -2949,14 +3108,16 @@ class User(AbstractUser):
 
     def remove_list_with_id_from_follow_for_user_with_id(self, user_id, list_id):
         check_is_following_user_with_id(user=self, user_id=user_id)
-        check_is_following_user_with_id_in_list_with_id(user=self, user_id=user_id, list_id=list_id)
+        check_is_following_user_with_id_in_list_with_id(
+            user=self, user_id=user_id, list_id=list_id)
         follow = self.get_follow_for_user_with_id(user_id)
         follow.lists.remove(list_id)
         return follow
 
     def add_list_with_id_to_follow_for_user_with_id(self, user_id, list_id):
         check_is_following_user_with_id(user=self, user_id=user_id)
-        check_is_not_following_user_with_id_in_list_with_id(user=self, user_id=user_id, list_id=list_id)
+        check_is_not_following_user_with_id_in_list_with_id(
+            user=self, user_id=user_id, list_id=list_id)
         follow = self.get_follow_for_user_with_id(user_id)
         follow.lists.add(list_id)
         return follow
@@ -2969,7 +3130,8 @@ class User(AbstractUser):
         self.delete_follow_request_from_user(user=user)
 
     def delete_follow_request_from_user(self, user):
-        check_can_delete_follow_request_from_requesting_user(user=self, requesting_user=user)
+        check_can_delete_follow_request_from_requesting_user(
+            user=self, requesting_user=user)
         FollowRequest = get_follow_request_model()
         FollowRequest.objects.filter(creator=user, target_user=self).delete()
 
@@ -2978,7 +3140,8 @@ class User(AbstractUser):
         return self.connect_with_user(user, circles_ids=circles_ids)
 
     def connect_with_user(self, user, circles_ids=None):
-        check_can_connect_with_target_user(user=self, user_to_connect_with=user)
+        check_can_connect_with_target_user(
+            user=self, user_to_connect_with=user)
 
         if not circles_ids:
             circles_ids = self._get_default_connection_circles()
@@ -2988,19 +3151,23 @@ class User(AbstractUser):
         check_connection_circles_ids(user=self, circles_ids=circles_ids)
 
         Connection = get_connection_model()
-        connection = Connection.create_connection(user_id=self.pk, target_user_id=user.pk, circles_ids=circles_ids)
+        connection = Connection.create_connection(
+            user_id=self.pk, target_user_id=user.pk, circles_ids=circles_ids)
 
         # Automatically follow user
         if not self.is_following_user_with_id(user.pk):
             self.follow_user_with_id(user.pk)
 
-        self._create_connection_request_notification(user_connection_requested_for_id=user.pk)
-        self._send_connection_request_push_notification(user_connection_requested_for_id=user.pk)
+        self._create_connection_request_notification(
+            user_connection_requested_for_id=user.pk)
+        self._send_connection_request_push_notification(
+            user_connection_requested_for_id=user.pk)
 
         return connection
 
     def confirm_connection_with_user_with_id(self, user_id, circles_ids=None):
-        check_is_not_fully_connected_with_user_with_id(user=self, user_id=user_id)
+        check_is_not_fully_connected_with_user_with_id(
+            user=self, user_id=user_id)
 
         if not circles_ids:
             circles_ids = self._get_default_connection_circles()
@@ -3008,13 +3175,15 @@ class User(AbstractUser):
             circles_ids.append(self.connections_circle_id)
 
         check_connection_circles_ids(user=self, circles_ids=circles_ids)
-        connection = self.update_connection_with_user_with_id(user_id, circles_ids=circles_ids)
+        connection = self.update_connection_with_user_with_id(
+            user_id, circles_ids=circles_ids)
 
         # Automatically follow user
         if not self.is_following_user_with_id(user_id):
             self.follow_user_with_id(user_id)
 
-        self._create_connection_confirmed_notification(user_connected_with_id=user_id)
+        self._create_connection_confirmed_notification(
+            user_connected_with_id=user_id)
 
         return connection
 
@@ -3043,11 +3212,13 @@ class User(AbstractUser):
     def disconnect_from_user_with_id(self, user_id):
         check_is_connected_with_user_with_id(user=self, user_id=user_id)
         if self.is_fully_connected_with_user_with_id(user_id):
-            self._delete_connection_confirmed_notification(user_connected_with_id=user_id)
+            self._delete_connection_confirmed_notification(
+                user_connected_with_id=user_id)
             if self.is_following_user_with_id(user_id):
                 self.unfollow_user_with_id(user_id)
         else:
-            self._delete_connection_request_notification_for_user_with_id(user_id=user_id)
+            self._delete_connection_request_notification_for_user_with_id(
+                user_id=user_id)
 
         connection = self.connections.get(target_connection__user_id=user_id)
         connection.delete()
@@ -3093,14 +3264,16 @@ class User(AbstractUser):
         return self.notifications.filter(notifications_query)
 
     def read_notification_with_id(self, notification_id):
-        check_can_read_notification_with_id(user=self, notification_id=notification_id)
+        check_can_read_notification_with_id(
+            user=self, notification_id=notification_id)
         notification = self.notifications.get(id=notification_id)
         notification.read = True
         notification.save()
         return notification
 
     def delete_notification_with_id(self, notification_id):
-        check_can_delete_notification_with_id(user=self, notification_id=notification_id)
+        check_can_delete_notification_with_id(
+            user=self, notification_id=notification_id)
         notification = self.notifications.get(id=notification_id)
         notification.delete()
 
@@ -3114,11 +3287,13 @@ class User(AbstractUser):
         """
         # Remove all user new post notifications
         UserNewPostNotification = get_user_new_post_notification_model()
-        UserNewPostNotification.objects.filter(user_notifications_subscription__user=self).delete()
+        UserNewPostNotification.objects.filter(
+            user_notifications_subscription__user=self).delete()
 
         # Removes all user connection requests
         ConnectionRequestNotification = get_connection_request_notification_model()
-        ConnectionRequestNotification.objects.filter(connection_requester=self).delete()
+        ConnectionRequestNotification.objects.filter(
+            connection_requester=self).delete()
 
         # Removes all follow notifications
         FollowNotification = get_follow_notification_model()
@@ -3126,7 +3301,8 @@ class User(AbstractUser):
 
         # Removes all connection confirmed notifications
         ConnectionConfirmedNotification = get_connection_confirmed_notification_model()
-        ConnectionConfirmedNotification.objects.filter(connection_confirmator=self).delete()
+        ConnectionConfirmedNotification.objects.filter(
+            connection_confirmator=self).delete()
 
     def delete_all_notifications(self):
         self.delete_own_notifications()
@@ -3189,7 +3365,8 @@ class User(AbstractUser):
     def mute_post_comment(self, post_comment):
         check_can_mute_post_comment(user=self, post_comment=post_comment)
         PostCommentMute = get_post_comment_mute_model()
-        PostCommentMute.create_post_comment_mute(post_comment_id=post_comment.pk, muter_id=self.pk)
+        PostCommentMute.create_post_comment_mute(
+            post_comment_id=post_comment.pk, muter_id=self.pk)
         return post_comment
 
     def unmute_post_comment_with_id(self, post_comment_id):
@@ -3197,11 +3374,13 @@ class User(AbstractUser):
         post_comment = Post_comment.objects.get(pk=post_comment_id)
 
         check_can_unmute_post_comment(user=self, post_comment=post_comment)
-        self.post_comment_mutes.filter(post_comment_id=post_comment_id).delete()
+        self.post_comment_mutes.filter(
+            post_comment_id=post_comment_id).delete()
         return post_comment
 
     def translate_post_comment_with_id(self, post_comment_id):
-        check_can_translate_comment_with_id(user=self, post_comment_id=post_comment_id)
+        check_can_translate_comment_with_id(
+            user=self, post_comment_id=post_comment_id)
         PostComment = get_post_comment_model()
         post_comment = PostComment.objects.get(pk=post_comment_id)
         result = translation_strategy.translate_text(
@@ -3222,13 +3401,14 @@ class User(AbstractUser):
         target_user = User.objects.get(username=username)
         UserNotificationsSubscription = get_user_notifications_subscription_model()
 
-        check_can_enable_new_post_notifications_for_user(user=self, target_user=target_user)
+        check_can_enable_new_post_notifications_for_user(
+            user=self, target_user=target_user)
 
         user_notifications_subscription = UserNotificationsSubscription. \
             get_or_create_user_notifications_subscription(
-            user=target_user,
-            subscriber=self
-        )
+                user=target_user,
+                subscriber=self
+            )
 
         user_notifications_subscription.new_post_notifications = True
         user_notifications_subscription.save()
@@ -3239,13 +3419,14 @@ class User(AbstractUser):
         target_user = User.objects.get(username=username)
         UserNotificationsSubscription = get_user_notifications_subscription_model()
 
-        check_can_disable_new_post_notifications_for_user(user=self, target_user=target_user)
+        check_can_disable_new_post_notifications_for_user(
+            user=self, target_user=target_user)
 
         user_notifications_subscription = UserNotificationsSubscription. \
             get_or_create_user_notifications_subscription(
-            user=target_user,
-            subscriber=self
-        )
+                user=target_user,
+                subscriber=self
+            )
 
         user_notifications_subscription.new_post_notifications = False
         user_notifications_subscription.save()
@@ -3276,7 +3457,8 @@ class User(AbstractUser):
             user_to_block.unsubscribe_from_user_notifications(self)
 
         UserBlock = get_user_block_model()
-        UserBlock.create_user_block(blocker_id=self.pk, blocked_user_id=user_id)
+        UserBlock.create_user_block(
+            blocker_id=self.pk, blocked_user_id=user_id)
 
         return user_to_block
 
@@ -3300,7 +3482,8 @@ class User(AbstractUser):
                                             post=post)
 
     def report_comment_for_post(self, post_comment, post, category_id, description=None):
-        check_can_report_comment_for_post(user=self, post_comment=post_comment, post=post)
+        check_can_report_comment_for_post(
+            user=self, post_comment=post_comment, post=post)
         ModerationReport = get_moderation_report_model()
         ModerationReport.create_post_comment_moderation_report(post_comment=post_comment,
                                                                category_id=category_id,
@@ -3403,7 +3586,8 @@ class User(AbstractUser):
         invite.delete()
 
     def send_invite_to_invite_id_with_email(self, invite_id, email):
-        check_can_send_email_invite_to_invite_id(user=self, invite_id=invite_id, email=email)
+        check_can_send_email_invite_to_invite_id(
+            user=self, invite_id=invite_id, email=email)
         UserInvite = get_user_invite_model()
         invite = UserInvite.objects.get(id=invite_id)
         invite.email = email
@@ -3415,7 +3599,8 @@ class User(AbstractUser):
         return self.verify_moderated_object(moderated_object=moderated_object)
 
     def verify_moderated_object(self, moderated_object):
-        check_can_verify_moderated_object(user=self, moderated_object=moderated_object)
+        check_can_verify_moderated_object(
+            user=self, moderated_object=moderated_object)
         moderated_object.verify_with_actor_with_id(actor_id=self.pk)
 
     def unverify_moderated_object_with_id(self, moderated_object_id):
@@ -3424,7 +3609,8 @@ class User(AbstractUser):
         return self.unverify_moderated_object(moderated_object=moderated_object)
 
     def unverify_moderated_object(self, moderated_object):
-        check_can_unverify_moderated_object(user=self, moderated_object=moderated_object)
+        check_can_unverify_moderated_object(
+            user=self, moderated_object=moderated_object)
         moderated_object.unverify_with_actor_with_id(actor_id=self.pk)
 
     def approve_moderated_object_with_id(self, moderated_object_id):
@@ -3433,7 +3619,8 @@ class User(AbstractUser):
         return self.approve_moderated_object(moderated_object=moderated_object)
 
     def approve_moderated_object(self, moderated_object):
-        check_can_approve_moderated_object(user=self, moderated_object=moderated_object)
+        check_can_approve_moderated_object(
+            user=self, moderated_object=moderated_object)
         moderated_object.approve_with_actor_with_id(actor_id=self.pk)
 
     def reject_moderated_object_with_id(self, moderated_object_id):
@@ -3442,7 +3629,8 @@ class User(AbstractUser):
         return self.reject_moderated_object(moderated_object=moderated_object)
 
     def reject_moderated_object(self, moderated_object):
-        check_can_reject_moderated_object(user=self, moderated_object=moderated_object)
+        check_can_reject_moderated_object(
+            user=self, moderated_object=moderated_object)
         moderated_object.reject_with_actor_with_id(actor_id=self.pk)
 
     def update_moderated_object_with_id(self, moderated_object_id, description=None,
@@ -3455,7 +3643,8 @@ class User(AbstractUser):
 
     def update_moderated_object(self, moderated_object, description=None,
                                 category_id=None):
-        check_can_update_moderated_object(user=self, moderated_object=moderated_object)
+        check_can_update_moderated_object(
+            user=self, moderated_object=moderated_object)
         moderated_object.update_with_actor_with_id(actor_id=self.pk, description=description,
                                                    category_id=category_id)
         return moderated_object
@@ -3523,7 +3712,8 @@ class User(AbstractUser):
                                                                      owner_id=post_comment.post.creator_id)
         else:
             # Comment is a reply
-            self._delete_post_comment_reply_notification(post_comment=post_comment)
+            self._delete_post_comment_reply_notification(
+                post_comment=post_comment)
 
     def _delete_post_comment_reply_notification(self, post_comment):
         PostCommentReplyNotification = get_post_comment_notification_model()
@@ -3536,7 +3726,8 @@ class User(AbstractUser):
                                                                    owner_id=post_reaction.post.creator_id)
 
     def _send_post_reaction_push_notification(self, post_reaction):
-        helpers.send_post_reaction_push_notification(post_reaction=post_reaction)
+        helpers.send_post_reaction_push_notification(
+            post_reaction=post_reaction)
 
     def _delete_post_reaction_notification(self, post_reaction):
         PostReactionNotification = get_post_reaction_notification_model()
@@ -3550,7 +3741,8 @@ class User(AbstractUser):
             owner_id=post_comment_reaction.post_comment.commenter_id)
 
     def _send_post_comment_reaction_push_notification(self, post_comment_reaction):
-        helpers.send_post_comment_reaction_push_notification(post_comment_reaction=post_comment_reaction)
+        helpers.send_post_comment_reaction_push_notification(
+            post_comment_reaction=post_comment_reaction)
 
     def _delete_post_comment_reaction_notification(self, post_comment_reaction):
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
@@ -3564,23 +3756,28 @@ class User(AbstractUser):
                                                                          owner_id=community_invite.invited_user_id)
 
     def _send_community_invite_push_notification(self, community_invite):
-        helpers.send_community_invite_push_notification(community_invite=community_invite)
+        helpers.send_community_invite_push_notification(
+            community_invite=community_invite)
 
     def _create_follow_notification(self, followed_user_id):
         FollowNotification = get_follow_notification_model()
-        FollowNotification.create_follow_notification(follower_id=self.pk, owner_id=followed_user_id)
+        FollowNotification.create_follow_notification(
+            follower_id=self.pk, owner_id=followed_user_id)
 
     def _send_follow_push_notification(self, followed_user_id):
         followed_user = User.objects.get(pk=followed_user_id)
-        helpers.send_follow_push_notification(followed_user=followed_user, following_user=self)
+        helpers.send_follow_push_notification(
+            followed_user=followed_user, following_user=self)
 
     def _delete_follow_notification(self, followed_user_id):
         FollowNotification = get_follow_notification_model()
-        FollowNotification.delete_follow_notification(follower_id=self.pk, owner_id=followed_user_id)
+        FollowNotification.delete_follow_notification(
+            follower_id=self.pk, owner_id=followed_user_id)
 
     def _create_connection_confirmed_notification(self, user_connected_with_id):
         # Remove the connection request we got from the other user
-        self._delete_connection_request_notification_for_user_with_id(user_id=user_connected_with_id)
+        self._delete_connection_request_notification_for_user_with_id(
+            user_id=user_connected_with_id)
         ConnectionConfirmedNotification = get_connection_confirmed_notification_model()
         ConnectionConfirmedNotification.create_connection_confirmed_notification(connection_confirmator_id=self.pk,
                                                                                  owner_id=user_connected_with_id)
@@ -3597,7 +3794,8 @@ class User(AbstractUser):
                                                                              owner_id=user_connection_requested_for_id)
 
     def _send_connection_request_push_notification(self, user_connection_requested_for_id):
-        connection_requested_for = User.objects.get(pk=user_connection_requested_for_id)
+        connection_requested_for = User.objects.get(
+            pk=user_connection_requested_for_id)
         helpers.send_connection_request_push_notification(
             connection_requester=self,
             connection_requested_for=connection_requested_for)
@@ -3613,7 +3811,8 @@ class User(AbstractUser):
                                                                      owner_id=follow_request.target_user.pk)
 
     def _send_follow_request_push_notification(self, follow_request):
-        helpers.send_follow_request_push_notification(follow_request=follow_request)
+        helpers.send_follow_request_push_notification(
+            follow_request=follow_request)
 
     def _create_follow_request_approved_notification(self, follow):
         FollowRequestApprovedNotification = get_follow_request_approved_notification_model()
@@ -3658,7 +3857,8 @@ class User(AbstractUser):
 
         Post = get_post_model()
 
-        posts_query = Q(creator_id=user.pk, is_deleted=False, status=Post.STATUS_PUBLISHED)
+        posts_query = Q(creator_id=user.pk, is_deleted=False,
+                        status=Post.STATUS_PUBLISHED)
 
         world_circle_id = self._get_world_circle_id()
 
@@ -3674,7 +3874,8 @@ class User(AbstractUser):
         if max_id:
             posts_query.add(Q(id__lt=max_id), Q.AND)
 
-        posts_query.add(~Q(moderated_object__reports__reporter_id=self.pk), Q.AND)
+        posts_query.add(
+            ~Q(moderated_object__reports__reporter_id=self.pk), Q.AND)
 
         return posts_query
 
@@ -3715,7 +3916,8 @@ class User(AbstractUser):
                           algorithm=settings.JWT_ALGORITHM).decode('utf-8')
 
     def _can_see_post(self, post):
-        post_query = self._make_get_post_with_id_query_for_user(post.creator, post_id=post.pk)
+        post_query = self._make_get_post_with_id_query_for_user(
+            post.creator, post_id=post.pk)
 
         Post = get_post_model()
         profile_posts = Post.objects.filter(post_query)
@@ -3726,7 +3928,8 @@ class User(AbstractUser):
         if post.creator_id == self.pk:
             return True
 
-        community_posts_query = self._make_get_community_with_id_posts_query(community=community)
+        community_posts_query = self._make_get_community_with_id_posts_query(
+            community=community)
 
         community_posts_query.add(Q(pk=post.pk), Q.AND)
 
@@ -3751,7 +3954,8 @@ class User(AbstractUser):
                 blocked_users_query_staff_members.add(Q(reactor__communities_memberships__is_administrator=True) | Q(
                     reactor__communities_memberships__is_moderator=True), Q.AND)
 
-                blocked_users_query.add(~blocked_users_query_staff_members, Q.AND)
+                blocked_users_query.add(
+                    ~blocked_users_query_staff_members, Q.AND)
                 reactions_query.add(blocked_users_query, Q.AND)
         else:
             blocked_users_query = ~Q(Q(reactor__blocked_by_users__blocker_id=self.pk) | Q(
@@ -3780,7 +3984,8 @@ class User(AbstractUser):
                 blocked_users_query_staff_members.add(Q(reactor__communities_memberships__is_administrator=True) | Q(
                     reactor__communities_memberships__is_moderator=True), Q.AND)
 
-                blocked_users_query.add(~blocked_users_query_staff_members, Q.AND)
+                blocked_users_query.add(
+                    ~blocked_users_query_staff_members, Q.AND)
                 reactions_query.add(blocked_users_query, Q.AND)
         else:
             blocked_users_query = ~Q(Q(reactor__blocked_by_users__blocker_id=self.pk) | Q(
@@ -3815,7 +4020,8 @@ class User(AbstractUser):
         if post_comment_parent_id is None:
             comments_query.add(Q(parent_comment__isnull=True), Q.AND)
         else:
-            comments_query.add(Q(parent_comment__id=post_comment_parent_id), Q.AND)
+            comments_query.add(
+                Q(parent_comment__id=post_comment_parent_id), Q.AND)
 
         post_community = post.community
 
@@ -3829,12 +4035,14 @@ class User(AbstractUser):
                 blocked_users_query_staff_members.add(Q(commenter__communities_memberships__is_administrator=True) | Q(
                     commenter__communities_memberships__is_moderator=True), Q.AND)
 
-                blocked_users_query.add(~blocked_users_query_staff_members, Q.AND)
+                blocked_users_query.add(
+                    ~blocked_users_query_staff_members, Q.AND)
                 comments_query.add(blocked_users_query, Q.AND)
 
                 # Don't retrieve items that have been reported and approved
                 ModeratedObject = get_moderated_object_model()
-                comments_query.add(~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
+                comments_query.add(
+                    ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
         else:
             #  Dont retrieve posts of blocked users
             blocked_users_query = ~Q(Q(commenter__blocked_by_users__blocker_id=self.pk) | Q(
@@ -3848,7 +4056,8 @@ class User(AbstractUser):
             comments_query.add(Q(id__gte=min_id), Q.AND)
 
         # Dont retrieve items we have reported
-        comments_query.add(~Q(moderated_object__reports__reporter_id=self.pk), Q.AND)
+        comments_query.add(
+            ~Q(moderated_object__reports__reporter_id=self.pk), Q.AND)
 
         # Dont retrieve soft deleted post comments
         comments_query.add(Q(is_deleted=False), Q.AND)
@@ -3863,34 +4072,42 @@ class User(AbstractUser):
         Post = get_post_model()
 
         # Retrieve posts from the given community name
-        community_posts_query = Q(community_id=community.pk, is_deleted=False, status=Post.STATUS_PUBLISHED)
+        community_posts_query = Q(
+            community_id=community.pk, is_deleted=False, status=Post.STATUS_PUBLISHED)
 
         # Don't retrieve items that have been reported and approved
         ModeratedObject = get_moderated_object_model()
-        community_posts_query.add(~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
+        community_posts_query.add(
+            ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
 
         # Dont retrieve items we have reported
-        community_posts_query.add(~Q(moderated_object__reports__reporter_id=self.pk), Q.AND)
+        community_posts_query.add(
+            ~Q(moderated_object__reports__reporter_id=self.pk), Q.AND)
 
         # Only retrieve posts if we're not banned
-        community_posts_query.add(~Q(community__banned_users__id=self.pk), Q.AND)
+        community_posts_query.add(
+            ~Q(community__banned_users__id=self.pk), Q.AND)
 
         # Ensure public/private visibility is respected
-        community_posts_visibility_query = Q(community__memberships__user__id=self.pk)
+        community_posts_visibility_query = Q(
+            community__memberships__user__id=self.pk)
         Community = get_community_model()
-        community_posts_visibility_query.add(Q(community__type=Community.COMMUNITY_TYPE_PUBLIC, ), Q.OR)
+        community_posts_visibility_query.add(
+            Q(community__type=Community.COMMUNITY_TYPE_PUBLIC, ), Q.OR)
 
         community_posts_query.add(community_posts_visibility_query, Q.AND)
 
         if not self.is_staff_of_community_with_name(community_name=community.name):
             # Dont retrieve closed posts
-            community_posts_query.add(Q(is_closed=False) | Q(creator_id=self.pk), Q.AND)
+            community_posts_query.add(
+                Q(is_closed=False) | Q(creator_id=self.pk), Q.AND)
 
             # Don't retrieve posts of blocked users, except if they're staff members
             blocked_users_query = ~Q(Q(creator__blocked_by_users__blocker_id=self.pk) | Q(
                 creator__user_blocks__blocked_user_id=self.pk))
 
-            blocked_users_query_staff_members = Q(creator__communities_memberships__community_id=community)
+            blocked_users_query_staff_members = Q(
+                creator__communities_memberships__community_id=community)
             blocked_users_query_staff_members.add(Q(creator__communities_memberships__is_administrator=True) | Q(
                 creator__communities_memberships__is_moderator=True), Q.AND)
 
@@ -3927,13 +4144,16 @@ def bootstrap_circles(sender, instance=None, created=False, **kwargs):
     if created:
         bootstrap_user_circles(instance)
 
+
 class EngagementLevelChoice(models.TextChoices):
     ENGAGED = 'ENGAGED',
     INTERESTED = 'INTERESTED',
     INITIATOR = 'INITIATOR',
 
+
 class UserProfile(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
     # TODO: name contains the users "first name". a refactoring is considered too time-consuming at this point of time,
     #  but should be done later
     name = models.CharField(_('name'), max_length=settings.PROFILE_NAME_MAX_LENGTH, blank=False, null=True,
@@ -3943,8 +4163,10 @@ class UserProfile(models.Model):
                                  null=True,
                                  db_index=True,
                                  validators=[name_characters_validator])
-    pronouns = models.CharField(_('pronouns'), max_length=settings.PROFILE_PRONOUNS_MAX_LENGTH, blank=True, null=True)
-    location = models.CharField(_('location'), max_length=settings.PROFILE_LOCATION_MAX_LENGTH, blank=True, null=True)
+    pronouns = models.CharField(
+        _('pronouns'), max_length=settings.PROFILE_PRONOUNS_MAX_LENGTH, blank=True, null=True)
+    location = models.CharField(
+        _('location'), max_length=settings.PROFILE_LOCATION_MAX_LENGTH, blank=True, null=True)
     engagement_level = models.CharField(_('engagement level'), max_length=10,
                                         choices=EngagementLevelChoice.choices, blank=False, null=True)
     interests = JSONField(null=True, blank=True, default=list)
@@ -3957,10 +4179,13 @@ class UserProfile(models.Model):
     cover = ProcessedImageField(verbose_name=_('cover'), blank=False, null=True, format='JPEG', options={'quality': 90},
                                 upload_to=upload_to_user_cover_directory,
                                 processors=[ResizeToFit(width=1024, upscale=False)])
-    about_me = models.TextField(_('about me'), max_length=settings.PROFILE_ABOUT_ME_MAX_LENGTH, blank=False, null=True)
+    about_me = models.TextField(
+        _('about me'), max_length=settings.PROFILE_ABOUT_ME_MAX_LENGTH, blank=False, null=True)
     url = models.URLField(_('url'), blank=False, null=True)
-    followers_count_visible = models.BooleanField(_('followers count visible'), blank=False, null=False, default=False)
-    community_posts_visible = models.BooleanField(_('community posts visible'), blank=False, null=False, default=True)
+    followers_count_visible = models.BooleanField(
+        _('followers count visible'), blank=False, null=False, default=False)
+    community_posts_visible = models.BooleanField(
+        _('community posts visible'), blank=False, null=False, default=True)
     badges = models.ManyToManyField(Badge, related_name='users_profiles')
 
     class Meta:
@@ -3970,12 +4195,13 @@ class UserProfile(models.Model):
         index_together = [
             ('id', 'user'),
         ]
-        
+
         # Django's Choices don't constrain other values in the db, it needs to be set here:
         constraints = [
             models.CheckConstraint(
                 name="%(app_label)s_%(class)s_engagement_level_valid",
-                check=models.Q(engagement_level__in=EngagementLevelChoice.values),
+                check=models.Q(
+                    engagement_level__in=EngagementLevelChoice.values),
             )
         ]
 
@@ -3989,22 +4215,34 @@ class UserProfile(models.Model):
 class UserNotificationsSettings(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                                 related_name='notifications_settings')
-    post_comment_notifications = models.BooleanField(_('post comment notifications'), default=True)
-    post_comment_reply_notifications = models.BooleanField(_('post comment reply notifications'), default=True)
-    post_reaction_notifications = models.BooleanField(_('post reaction notifications'), default=True)
-    follow_notifications = models.BooleanField(_('follow notifications'), default=True)
-    follow_request_notifications = models.BooleanField(_('follow request notifications'), default=True)
+    post_comment_notifications = models.BooleanField(
+        _('post comment notifications'), default=True)
+    post_comment_reply_notifications = models.BooleanField(
+        _('post comment reply notifications'), default=True)
+    post_reaction_notifications = models.BooleanField(
+        _('post reaction notifications'), default=True)
+    follow_notifications = models.BooleanField(
+        _('follow notifications'), default=True)
+    follow_request_notifications = models.BooleanField(
+        _('follow request notifications'), default=True)
     follow_request_approved_notifications = models.BooleanField(_('follow request approved notifications'),
                                                                 default=True)
-    connection_request_notifications = models.BooleanField(_('connection request notifications'), default=True)
-    connection_confirmed_notifications = models.BooleanField(_('connection confirmed notifications'), default=True)
-    community_invite_notifications = models.BooleanField(_('community invite notifications'), default=True)
-    community_new_post_notifications = models.BooleanField(_('community new post notifications'), default=True)
-    user_new_post_notifications = models.BooleanField(_('user new post notifications'), default=True)
-    post_comment_reaction_notifications = models.BooleanField(_('post comment reaction notifications'), default=True)
+    connection_request_notifications = models.BooleanField(
+        _('connection request notifications'), default=True)
+    connection_confirmed_notifications = models.BooleanField(
+        _('connection confirmed notifications'), default=True)
+    community_invite_notifications = models.BooleanField(
+        _('community invite notifications'), default=True)
+    community_new_post_notifications = models.BooleanField(
+        _('community new post notifications'), default=True)
+    user_new_post_notifications = models.BooleanField(
+        _('user new post notifications'), default=True)
+    post_comment_reaction_notifications = models.BooleanField(
+        _('post comment reaction notifications'), default=True)
     post_comment_user_mention_notifications = models.BooleanField(_('post comment user mention notifications'),
                                                                   default=True)
-    post_user_mention_notifications = models.BooleanField(_('post user mention notifications'), default=True)
+    post_user_mention_notifications = models.BooleanField(
+        _('post user mention notifications'), default=True)
 
     @classmethod
     def create_notifications_settings(cls, user):
@@ -4071,8 +4309,10 @@ class UserNotificationsSettings(models.Model):
 
 
 class UserBlock(models.Model):
-    blocked_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blocked_by_users')
-    blocker = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_blocks')
+    blocked_user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='blocked_by_users')
+    blocker = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='user_blocks')
 
     class Meta:
         unique_together = ('blocked_user', 'blocker',)
@@ -4132,7 +4372,8 @@ class UserNotificationsSubscription(models.Model):
         if not cls.objects.filter(subscriber=subscriber, user=user).exists():
             return cls.objects.create(subscriber=subscriber, user=user)
 
-        user_notifications_subscription = cls.objects.get(subscriber=subscriber, user=user)
+        user_notifications_subscription = cls.objects.get(
+            subscriber=subscriber, user=user)
         user_notifications_subscription.save()
 
         return user_notifications_subscription
