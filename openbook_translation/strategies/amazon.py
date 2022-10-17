@@ -55,10 +55,10 @@ class AmazonTranslate(BaseTranslationStrategy):
                                                   SourceLanguageCode=source_language_code,
                                                   TargetLanguageCode=target_language_code)
         except self.client.exceptions.UnsupportedLanguagePairException as e:
-            print('Client error from AWS Translate : \n %s' % e)
+            print(f'Client error from AWS Translate : \n {e}')
             raise UnsupportedLanguagePairException
         except ClientError as e:
-            print('Client error from AWS Translate : \n %s' % e)
+            print(f'Client error from AWS Translate : \n {e}')
             raise TranslationClientError
 
         result = {

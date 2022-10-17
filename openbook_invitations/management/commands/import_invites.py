@@ -29,11 +29,11 @@ class Command(BaseCommand):
             with transaction.atomic():
                 parse_kickstarter_csv(filepath)
         except IntegrityError as e:
-            print('IntegrityError %s ' % e)
+            print(f'IntegrityError {e} ')
             self.stderr.write('Aborting import of file..')
             return
         except DatabaseError as e:
-            print('DatabaseError %s ' % e)
+            print(f'DatabaseError {e} ')
             self.stderr.write('Aborting import of file..')
             return
         self.stdout.write(self.style.SUCCESS('Successfully imported data'))
@@ -43,11 +43,11 @@ class Command(BaseCommand):
             with transaction.atomic():
                 parse_indiegogo_csv(filepath)
         except IntegrityError as e:
-            print('IntegrityError %s ' % e)
+            print(f'IntegrityError {e} ')
             self.stderr.write('Aborting import of file..')
             return
         except DatabaseError as e:
-            print('DatabaseError %s ' % e)
+            print(f'DatabaseError {e} ')
             self.stderr.write('Aborting import of file..')
             return
         self.stdout.write(self.style.SUCCESS('Successfully imported data'))
@@ -57,11 +57,11 @@ class Command(BaseCommand):
             with transaction.atomic():
                 parse_conflicts_csv(filepath)
         except IntegrityError as e:
-            print('IntegrityError %s ' % e)
+            print(f'IntegrityError {e} ')
             self.stderr.write('Aborting import of file..')
             return
         except DatabaseError as e:
-            print('DatabaseError %s ' % e)
+            print(f'DatabaseError {e} ')
             self.stderr.write('Aborting import of file..')
             return
         self.stdout.write(self.style.SUCCESS('Successfully imported data'))

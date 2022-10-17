@@ -79,7 +79,7 @@ class Hashtag(models.Model):
         return cls.objects.filter(name=hashtag_name).exists()
 
     def __str__(self):
-        return '#%s' % self.name
+        return f'#{self.name}'
 
     def save(self, *args, **kwargs):
         if not self.id:

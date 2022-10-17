@@ -63,7 +63,7 @@ class NotificationsAPITests(OpenbookAPITestCase):
                 valid_types.append(notification_type)
                 valid_ids.append(notification.pk)
 
-        url = '{0}?types={1}'.format(self._get_url(), ','.join(valid_types))
+        url = f"{self._get_url()}?types={','.join(valid_types)}"
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
@@ -85,7 +85,7 @@ class NotificationsAPITests(OpenbookAPITestCase):
         """
         user = make_user()
 
-        url = '{0}?types={1}'.format(self._get_url(), 'AA')
+        url = f"{self._get_url()}?types=AA"
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 

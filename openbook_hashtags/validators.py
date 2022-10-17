@@ -14,7 +14,7 @@ def hashtag_name_exists(hashtag_name):
 
 
 def hashtag_name_validator(hashtag_name):
-    if not hashtags_regexp.match('#%s' % hashtag_name):
+    if not hashtags_regexp.match(f'#{hashtag_name}'):
         raise NotFound(
             _('Hashtags must to be alphanumerical and up to 32 characters.'),
         )

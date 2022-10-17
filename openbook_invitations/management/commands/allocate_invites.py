@@ -9,10 +9,14 @@ class Command(BaseCommand):
     help = 'Allocates invites to users'
 
     def add_arguments(self, parser):
-        parser.add_argument('--count', type=int, help='Count by which each users invites will be increased')
-        parser.add_argument('--limit', type=int, help='Limit invites to max amount for each user, use with --count')
-        parser.add_argument('--total', type=int, help='Total final amount to which each users invites will be set')
-        parser.add_argument('--username', type=str, help='Username to allocate invites to')
+        parser.add_argument(
+            '--count', type=int, help='Count by which each users invites will be increased')
+        parser.add_argument(
+            '--limit', type=int, help='Limit invites to max amount for each user, use with --count')
+        parser.add_argument(
+            '--total', type=int, help='Total final amount to which each users invites will be set')
+        parser.add_argument('--username', type=str,
+                            help='Username to allocate invites to')
 
     def handle(self, *args, **options):
         username = None
@@ -36,7 +40,7 @@ class Command(BaseCommand):
         if username is not None:
             users = User.objects.filter(username=username)
             if not users.exists():
-                self.stderr.write('No user found with username %s' % username)
+                self.stderr.write(f'No user found with username {username}')
                 return
         else:
             users = User.objects.all()
@@ -57,15 +61,16 @@ class Command(BaseCommand):
                     user.invite_count = F('invite_count') + count
                     user.save()
             except IntegrityError as e:
-                print('IntegrityError %s '.format(e))
-                self.stderr.write('Error during allocation for user %s'.format(user.username))
+                print(f'IntegrityError {e}')
+                self.stderr.write(
+                    f'Error during allocation for user {user.username}')
 
     def handle_set_total_count(self, total_count, username):
         User = get_user_model()
         if username is not None:
             users = User.objects.filter(username=username)
             if not users.exists():
-                self.stderr.write('No user found with username %s' % username)
+                self.stderr.write(f'No user found with username {username}')
                 return
         else:
             users = User.objects.all()
@@ -75,5 +80,6 @@ class Command(BaseCommand):
                 user.invite_count = total_count
                 user.save()
             except IntegrityError as e:
-                print('IntegrityError %s '.format(e))
-                self.stderr.write('Error during allocation for user %s'.format(user.username))
+                print(f'IntegrityError {e}')
+                self.stderr.write(
+                    f'Error during allocation for user {user.username}')

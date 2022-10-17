@@ -149,5 +149,5 @@ class UserInvite(models.Model):
         return token_bytes.decode('UTF-8')
 
     def _generate_one_time_link(self):
-        return '{0}/api/auth/invite?token={1}'.format(settings.EMAIL_HOST, self.token)
+        return f'{settings.EMAIL_HOST}/api/auth/invite?token={self.token}'
 

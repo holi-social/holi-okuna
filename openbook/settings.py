@@ -10,12 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
+import collections
 import logging.config
 import os
 import sys
 
 import sentry_sdk
-from django.utils.translation import gettext_lazy  as _
+from django.utils.translation import gettext_lazy as _
 from dotenv import load_dotenv, find_dotenv
 from sentry_sdk.integrations.django import DjangoIntegration
 from django_replicated.settings import *
@@ -32,10 +33,11 @@ from django.utils.encoding import force_str
 django.utils.encoding.force_text = force_str
 
 # Python 3.10 moved collections.Callable to collections.abc.Callable. This is a patch to make old libs work (in particular nose)
-import collections
 collections.Callable = collections.abc.Callable
 
 # based on https://github.com/graphql-python/graphene/issues/513
+
+
 class GraphQLLogFilter(logging.Filter):
     def filter(self, record):
         if record.msg and 'GraphQLError' in record.msg:
@@ -90,7 +92,8 @@ ENVIRONMENT_ID = os.environ.get('ENVIRONMENT_ID', 'local')
 
 if not ENVIRONMENT:
     if 'test' in sys.argv:
-        logger.info('No ENVIRONMENT variable found but test detected. Setting ENVIRONMENT=TEST_VALUE')
+        logger.info(
+            'No ENVIRONMENT variable found but test detected. Setting ENVIRONMENT=TEST_VALUE')
         ENVIRONMENT = EnvironmentChecker.TEST_VALUE
     else:
         raise NameError('ENVIRONMENT environment variable is required')
@@ -115,8 +118,10 @@ TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS')
 if IS_PRODUCTION:
     if not ALLOWED_HOSTS:
-        raise NameError('ALLOWED_HOSTS environment variable is required when running on a production environment')
-    ALLOWED_HOSTS = [allowed_host.strip() for allowed_host in ALLOWED_HOSTS.split(',')]
+        raise NameError(
+            'ALLOWED_HOSTS environment variable is required when running on a production environment')
+    ALLOWED_HOSTS = [allowed_host.strip()
+                     for allowed_host in ALLOWED_HOSTS.split(',')]
 else:
     if ALLOWED_HOSTS:
         logger.info('ALLOWED_HOSTS environment variable ignored.')
@@ -194,11 +199,12 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 CORS_ALLOW_CREDENTIALS = True
 
 # Needed for using the /admin interface for editing insights, HOLI-1562
-CSRF_TRUSTED_ORIGINS = ['https://0kuna-adm1n.project-holi.org',]
+CSRF_TRUSTED_ORIGINS = ['https://0kuna-adm1n.project-holi.org', ]
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.RemoteUserBackend',
-    'django.contrib.auth.backends.ModelBackend', # needs to be here for /admin to work
+    # needs to be here for /admin to work
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 ROOT_URLCONF = 'openbook.urls'
@@ -214,21 +220,18 @@ REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
 REDIS_PORT = int(os.environ.get('REDIS_PORT', '6379'))
 REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
 
-redis_protocol = 'redis://' # 'rediss://' if IS_PRODUCTION else 'redis://'
+redis_protocol = 'redis://'  # 'rediss://' if IS_PRODUCTION else 'redis://'
 
-redis_password = '' if not REDIS_PASSWORD else ':%s' % REDIS_PASSWORD
+redis_password = '' if not REDIS_PASSWORD else f':{REDIS_PASSWORD}'
 
-REDIS_LOCATION = '%(protocol)s%(password)s@%(host)s:%(port)d' % {'protocol': redis_protocol,
-                                                                 'password': redis_password,
-                                                                 'host': REDIS_HOST,
-                                                                 'port': REDIS_PORT}
+REDIS_LOCATION = f'{redis_protocol}{redis_password}@{REDIS_HOST}:{REDIS_PORT}'
 
 RQ_SHOW_ADMIN_LINK = False
 
-REDIS_DEFAULT_CACHE_LOCATION = '%(redis_location)s/%(db)d' % {'redis_location': REDIS_LOCATION, 'db': 0}
-REDIS_RQ_DEFAULT_JOBS_CACHE_LOCATION = '%(redis_location)s/%(db)d' % {'redis_location': REDIS_LOCATION, 'db': 1}
-REDIS_RQ_HIGH_JOBS_CACHE_LOCATION = '%(redis_location)s/%(db)d' % {'redis_location': REDIS_LOCATION, 'db': 2}
-REDIS_RQ_LOW_JOBS_CACHE_LOCATION = '%(redis_location)s/%(db)d' % {'redis_location': REDIS_LOCATION, 'db': 3}
+REDIS_DEFAULT_CACHE_LOCATION = f'{REDIS_LOCATION}/0'
+REDIS_RQ_DEFAULT_JOBS_CACHE_LOCATION = f'{REDIS_LOCATION}/1'
+REDIS_RQ_HIGH_JOBS_CACHE_LOCATION = f'{REDIS_LOCATION}/2'
+REDIS_RQ_LOW_JOBS_CACHE_LOCATION = f'{REDIS_LOCATION}/3'
 
 CACHES = {
     'default': {
@@ -267,7 +270,7 @@ CACHES = {
 
 CACHEOPS_REDIS_DB = int(os.environ.get('CACHEOPS_REDIS_DB', '1'))
 
-CACHEOPS_REDIS = '%(redis_location)s/%(db)d' % {'redis_location': REDIS_LOCATION, 'db': CACHEOPS_REDIS_DB}
+CACHEOPS_REDIS = f'{REDIS_LOCATION}/{CACHEOPS_REDIS_DB}'
 
 CACHEOPS_DEFAULTS = {
     'timeout': 60 * 60
@@ -359,12 +362,13 @@ else:
     RDS_HOSTNAME = os.environ.get('RDS_HOSTNAME')
 
     RDS_HOSTNAME_WRITER = os.environ.get('RDS_HOSTNAME_WRITER', RDS_HOSTNAME)
-    RDS_HOSTNAME_READER = os.environ.get('RDS_HOSTNAME_READER', RDS_HOSTNAME_WRITER)
+    RDS_HOSTNAME_READER = os.environ.get(
+        'RDS_HOSTNAME_READER', RDS_HOSTNAME_WRITER)
 
-    #db_options = {
+    # db_options = {
     #    'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
     #    'charset': 'utf8mb4'
-    #}
+    # }
 
     writer_db_config = {
         'ENGINE': 'django.db.backends.postgresql',
@@ -373,12 +377,12 @@ else:
         'PASSWORD': RDS_PASSWORD,
         'HOST': RDS_HOSTNAME_WRITER,
         'PORT': RDS_PORT,
-         #'OPTIONS': db_options,
+        # 'OPTIONS': db_options,
     }
 
     DATABASES = {
         'default': writer_db_config,
-        #'Reader': {
+        # 'Reader': {
         #    'ENGINE': 'django.db.backends.mysql',
         #    'NAME': RDS_DB_NAME,
         #    'USER': RDS_USERNAME,
@@ -386,7 +390,7 @@ else:
         #    'HOST': RDS_HOSTNAME_READER,
         #    'PORT': RDS_PORT,
         #    'OPTIONS': db_options,
-        #}
+        # }
     }
 
     #DATABASE_ROUTERS = ['django_replicated.router.ReplicationRouter']
@@ -395,9 +399,9 @@ else:
 
     #MIDDLEWARE.append('django_replicated.middleware.ReplicationMiddleware', )
 
-    #REPLICATED_VIEWS_OVERRIDES = {
+    # REPLICATED_VIEWS_OVERRIDES = {
     #    '/admin/*': 'master',
-    #}
+    # }
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -460,7 +464,8 @@ UNICODE_JSON = True
 SENTRY_DSN = os.environ.get('SENTRY_DSN')
 if IS_PRODUCTION:
     if not SENTRY_DSN:
-        raise NameError('SENTRY_DSN environment variable is required when running on a production environment')
+        raise NameError(
+            'SENTRY_DSN environment variable is required when running on a production environment')
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         integrations=[DjangoIntegration(), RqIntegration()]
@@ -541,10 +546,12 @@ USER_MAX_CONNECTIONS = int(os.environ.get('USER_MAX_CONNECTIONS', '1500'))
 USER_MAX_COMMUNITIES = 200
 POST_MAX_LENGTH = int(os.environ.get('POST_MAX_LENGTH', '5000'))
 POST_MAX_HASHTAGS = int(os.environ.get('POST_MAX_HASHTAGS', '3'))
-POST_COMMENT_MAX_HASHTAGS = int(os.environ.get('POST_COMMENT_MAX_HASHTAGS', '3'))
+POST_COMMENT_MAX_HASHTAGS = int(
+    os.environ.get('POST_COMMENT_MAX_HASHTAGS', '3'))
 POST_COMMENT_MAX_LENGTH = int(os.environ.get('POST_MAX_LENGTH', '1500'))
 POST_MEDIA_MAX_SIZE = int(os.environ.get('POST_MEDIA_MAX_SIZE', '10485760'))
-POST_LINK_MAX_DOMAIN_LENGTH = int(os.environ.get('POST_LINK_MAX_DOMAIN_LENGTH', '126'))
+POST_LINK_MAX_DOMAIN_LENGTH = int(
+    os.environ.get('POST_LINK_MAX_DOMAIN_LENGTH', '126'))
 POST_MEDIA_MAX_ITEMS = int(os.environ.get('POST_MEDIA_MAX_ITEMS', '1'))
 PASSWORD_MIN_LENGTH = 10
 PASSWORD_MAX_LENGTH = 100
@@ -561,10 +568,13 @@ PROFILE_SDG_MAX_LENGTH = 64
 PROFILE_SDGS_MAX_COUNT = 64
 PROFILE_SKILL_MAX_LENGTH = 64
 PROFILE_SKILLS_MAX_COUNT = 64
-PROFILE_ABOUT_ME_MAX_LENGTH = int(os.environ.get('PROFILE_ABOUT_ME_MAX_LENGTH', '3000'))
-PROFILE_AVATAR_MAX_SIZE = int(os.environ.get('PROFILE_AVATAR_MAX_SIZE', '10485760'))
+PROFILE_ABOUT_ME_MAX_LENGTH = int(
+    os.environ.get('PROFILE_ABOUT_ME_MAX_LENGTH', '3000'))
+PROFILE_AVATAR_MAX_SIZE = int(os.environ.get(
+    'PROFILE_AVATAR_MAX_SIZE', '10485760'))
 PROFILE_AVATAR_URL_MAX_LENGTH = 500
-PROFILE_COVER_MAX_SIZE = int(os.environ.get('PROFILE_COVER_MAX_SIZE', '10485760'))
+PROFILE_COVER_MAX_SIZE = int(os.environ.get(
+    'PROFILE_COVER_MAX_SIZE', '10485760'))
 PROFILE_COVER_URL_MAX_LENGTH = 500
 WORLD_CIRCLE_ID = 1
 PASSWORD_RESET_TIMEOUT_DAYS = 1
@@ -573,11 +583,14 @@ COMMUNITY_TITLE_MAX_LENGTH = 32
 COMMUNITY_DESCRIPTION_MAX_LENGTH = 500
 COMMUNITY_USER_ADJECTIVE_MAX_LENGTH = 16
 COMMUNITY_USERS_ADJECTIVE_MAX_LENGTH = 16
-COMMUNITY_RULES_MAX_LENGTH = int(os.environ.get('COMMUNITY_RULES_MAX_LENGTH', '5000'))
+COMMUNITY_RULES_MAX_LENGTH = int(
+    os.environ.get('COMMUNITY_RULES_MAX_LENGTH', '5000'))
 COMMUNITY_CATEGORIES_MAX_AMOUNT = 3
 COMMUNITY_CATEGORIES_MIN_AMOUNT = 1
-COMMUNITY_AVATAR_MAX_SIZE = int(os.environ.get('COMMUNITY_AVATAR_MAX_SIZE', '10485760'))
-COMMUNITY_COVER_MAX_SIZE = int(os.environ.get('COMMUNITY_COVER_MAX_SIZE', '10485760'))
+COMMUNITY_AVATAR_MAX_SIZE = int(os.environ.get(
+    'COMMUNITY_AVATAR_MAX_SIZE', '10485760'))
+COMMUNITY_COVER_MAX_SIZE = int(os.environ.get(
+    'COMMUNITY_COVER_MAX_SIZE', '10485760'))
 HASHTAG_NAME_MAX_LENGTH = 32
 CATEGORY_NAME_MAX_LENGTH = 32
 CATEGORY_TITLE_MAX_LENGTH = 64
@@ -585,13 +598,16 @@ CATEGORY_DESCRIPTION_MAX_LENGTH = 64
 DEVICE_NAME_MAX_LENGTH = 32
 DEVICE_UUID_MAX_LENGTH = 64
 SEARCH_QUERIES_MAX_LENGTH = 120
-FEATURE_IMPORTER_ENABLED = os.environ.get('FEATURE_IMPORTER_ENABLED', 'True') == 'True'
+FEATURE_IMPORTER_ENABLED = os.environ.get(
+    'FEATURE_IMPORTER_ENABLED', 'True') == 'True'
 MODERATION_REPORT_DESCRIPTION_MAX_LENGTH = 1000
 MODERATED_OBJECT_DESCRIPTION_MAX_LENGTH = 1000
-GLOBAL_HIDE_CONTENT_AFTER_REPORTS_AMOUNT = int(os.environ.get('GLOBAL_HIDE_CONTENT_AFTER_REPORTS_AMOUNT', '20'))
+GLOBAL_HIDE_CONTENT_AFTER_REPORTS_AMOUNT = int(
+    os.environ.get('GLOBAL_HIDE_CONTENT_AFTER_REPORTS_AMOUNT', '20'))
 MODERATORS_COMMUNITY_NAME = os.environ.get('MODERATORS_COMMUNITY_NAME', 'mods')
 PROXY_BLACKLIST_DOMAIN_MAX_LENGTH = 150
-LINK_PREVIEW_TIMEOUT_IN_SECONDS = int(os.environ.get('GLOBAL_HIDE_CONTENT_AFTER_REPORTS_AMOUNT', 8))
+LINK_PREVIEW_TIMEOUT_IN_SECONDS = int(os.environ.get(
+    'GLOBAL_HIDE_CONTENT_AFTER_REPORTS_AMOUNT', 8))
 
 SUPPORTED_MEDIA_MIMETYPES = [
     'video/mp4',
@@ -601,16 +617,20 @@ SUPPORTED_MEDIA_MIMETYPES = [
     'image/jpeg',
     'image/png',
 ]
-NEW_USER_SUGGESTED_COMMUNITIES = os.environ.get('NEW_USER_SUGGESTED_COMMUNITIES', '1')
+NEW_USER_SUGGESTED_COMMUNITIES = os.environ.get(
+    'NEW_USER_SUGGESTED_COMMUNITIES', '1')
 
 FAILED_JOB_THRESHOLD = 20
 ACTIVE_JOB_THRESHOLD = 50
 ACTIVE_WORKER_THRESHOLD = 5
 ALERT_HOOK_URL = os.environ.get('ALERT_HOOK_URL')
 
-MIN_UNIQUE_TOP_POST_REACTIONS_COUNT = int(os.environ.get('MIN_UNIQUE_TOP_POST_REACTIONS_COUNT', '5'))
-MIN_UNIQUE_TOP_POST_COMMENTS_COUNT = int(os.environ.get('MIN_UNIQUE_TOP_POST_COMMENTS_COUNT', '5'))
-MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT = int(os.environ.get('MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT', '5'))
+MIN_UNIQUE_TOP_POST_REACTIONS_COUNT = int(
+    os.environ.get('MIN_UNIQUE_TOP_POST_REACTIONS_COUNT', '5'))
+MIN_UNIQUE_TOP_POST_COMMENTS_COUNT = int(
+    os.environ.get('MIN_UNIQUE_TOP_POST_COMMENTS_COUNT', '5'))
+MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT = int(
+    os.environ.get('MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT', '5'))
 
 # Email Config
 
@@ -636,7 +656,7 @@ if TESTING:
     MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT = 1
 
 # TODO Think about what to do for storage backend
-if False:# IS_PRODUCTION:
+if False:  # IS_PRODUCTION:
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
     AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
@@ -644,15 +664,15 @@ if False:# IS_PRODUCTION:
     AWS_S3_ENCRYPTION = True
     AWS_S3_SIGNATURE_VERSION = 's3v4'
     AWS_S3_HOST = os.environ.get('AWS_S3_HOST', 's3.amazonaws.com')
-    AWS_S3_CUSTOM_DOMAIN = '%s.%s' % (AWS_STORAGE_BUCKET_NAME, AWS_S3_HOST)
+    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.{AWS_S3_HOST}'
 
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',
     }
 
-    STATIC_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, AWS_STATIC_LOCATION)
+    STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_STATIC_LOCATION}/"
 
-    MEDIA_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, AWS_PUBLIC_MEDIA_LOCATION)
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_PUBLIC_MEDIA_LOCATION}/"
 
     STATICFILES_STORAGE = 'openbook.storage_backends.S3StaticStorage'
 

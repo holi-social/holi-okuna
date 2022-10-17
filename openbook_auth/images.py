@@ -20,7 +20,8 @@ def delete_old_avatars(authenticated_user, file_id_to_keep):
     """
     Needs to be called after store_avatar to remove old and obsolete avatar images
     """
-    delete_images(authenticated_user, folder="avatars", file_id_to_keep=file_id_to_keep)
+    delete_images(authenticated_user, folder="avatars",
+                  file_id_to_keep=file_id_to_keep)
 
 
 def store_image(authenticated_user, image_file, folder=None, tags=[]):
@@ -34,7 +35,8 @@ def store_image(authenticated_user, image_file, folder=None, tags=[]):
         options['folder'] = folder
     imagekit = _get_imagekit()
     file_name = _create_avatar_file_name(authenticated_user, image_file)
-    upload = imagekit.upload(file=image_file, file_name=file_name, options=options)
+    upload = imagekit.upload(
+        file=image_file, file_name=file_name, options=options)
     response = upload['response']
     return response['fileId'], response['url']
 
@@ -44,7 +46,8 @@ def delete_images(authenticated_user, folder=None, file_id_to_keep=''):
     Delete all images that have the given tags, except the one that is passed as file_id_to_keep
     """
     imagekit = _get_imagekit()
-    old_files = imagekit.list_files({"tags": "user_" + authenticated_user.username, "path": folder})
+    old_files = imagekit.list_files(
+        {"tags": "user_" + authenticated_user.username, "path": folder})
     for file in old_files['response']:
         file_id = file['fileId']
         if file_id != file_id_to_keep:
@@ -60,9 +63,11 @@ def delete_image(file_id, imagekit):
     try:
         error = imagekit.delete_file(file_id).get('error')
         if error is not None:
-            logger.warning("Could not delete image file with fileId: %s. Error response: %s", file_id, error)
+            logger.warning(
+                f"Could not delete image file with fileId: {file_id}. Error response: {error}")
     except RequestException:
-        logger.warning("Could not delete image file with fileId: %s.", file_id, exc_info=True)
+        logger.warning(
+            f"Could not delete image file with fileId: {file_id}.", exc_info=True)
 
 
 def _add_user(authenticated_user, tags):

@@ -16,8 +16,6 @@ def _upload_to_user_directory(user, filename):
     extension = splitext(filename)[1].lower()
     new_filename = str(uuid.uuid4()) + extension
 
-    path = 'users/%(user_uuid)s/' % {
-        'user_uuid': str(user.id)}
+    path = f'users/{str(user.id)}/'
 
-    return '%(path)s%(new_filename)s' % {'path': path,
-                                         'new_filename': new_filename, }
+    return f'{path}{new_filename}'
