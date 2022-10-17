@@ -172,7 +172,8 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
 
         if 'avatar' in input:
             if input['avatar'] in ("", {}, None):
-                raise GraphQLError("Attribute 'avatar' should be missing or contain a file, but was: '{}'".format(input['avatar']))
+                raise GraphQLError(
+                    f"Attribute 'avatar' should be missing or contain a file, but was: '{input['avatar']}'")
             else:
                 update_avatar = True
 
@@ -230,23 +231,28 @@ class UpdateConnectionWithUserMutation(graphene.Mutation):
 
         authenticated_user = info.context.user
 
-        userToUpdateConnection = authenticated_user.get_user_with_username(username=data.get('user_id'))
+        userToUpdateConnection = authenticated_user.get_user_with_username(
+            username=data.get('user_id'))
 
-        current_connection_status = authenticated_user.get_connection_status_with_user_id(user_id=userToUpdateConnection.id)
+        current_connection_status = authenticated_user.get_connection_status_with_user_id(
+            user_id=userToUpdateConnection.id)
 
         # Connect action
         if data.get('action') == UpdateConnectionWithUserAction.CONNECT:
             # if current user needs to confirm connection, run confirm_connection_with_user_with_id
             if current_connection_status == UserConnectionStatus.PENDING_CONFIRMATION:
-                authenticated_user.confirm_connection_with_user_with_id(user_id=userToUpdateConnection.id)
+                authenticated_user.confirm_connection_with_user_with_id(
+                    user_id=userToUpdateConnection.id)
 
             # if there is no connection yet (no requests or pending confirmation), run connect_with_user_with_id
             if current_connection_status == UserConnectionStatus.NOT_CONNECTED:
-                authenticated_user.connect_with_user_with_id(user_id=userToUpdateConnection.id)
+                authenticated_user.connect_with_user_with_id(
+                    user_id=userToUpdateConnection.id)
 
         # Disconnect action (only run if current connection status is different than NOT_CONNECTED)
         elif data.get('action') == UpdateConnectionWithUserAction.DISCONNECT and current_connection_status != UserConnectionStatus.NOT_CONNECTED:
-            authenticated_user.disconnect_from_user_with_id(user_id=userToUpdateConnection.id)
+            authenticated_user.disconnect_from_user_with_id(
+                user_id=userToUpdateConnection.id)
 
         return UpdateConnectionWithUserMutation(user_by_id=userToUpdateConnection)
 

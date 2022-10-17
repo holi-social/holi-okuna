@@ -46,20 +46,23 @@ class ImagekitIoStorage(Storage):
         object_id = split[1]
         filename = split[2]
 
-        type_tag = "{}_{}".format(object_type, object_id)
+        type_tag = f"{object_type}_{object_id}"
         tags = [type_tag]
         if len(split) > 3:
-            tags.append("user_{}".format(split[3]))
-        old_files = self.imagekit.list_files({"tags": type_tag, "path": object_type})
+            tags.append(f"user_{split[3]}")
+        old_files = self.imagekit.list_files(
+            {"tags": type_tag, "path": object_type})
 
         options = {
             "folder": object_type,
             "tags": tags
         }
         content.name = object_id + _get_file_extension(filename)
-        upload = self.imagekit.upload(file=content, file_name=content.name, options=options)
+        upload = self.imagekit.upload(
+            file=content, file_name=content.name, options=options)
 
-        self.delete_images(map(lambda file: file['fileId'], old_files['response']))
+        self.delete_images(
+            map(lambda file: file['fileId'], old_files['response']))
 
         return upload['response']['url']
 
@@ -77,9 +80,11 @@ class ImagekitIoStorage(Storage):
         try:
             error = self.imagekit.delete_file(file_id).get('error')
             if error is not None:
-                logger.warning("Could not delete image file with fileId: %s. Error response: %s", file_id, error)
+                logger.warning(
+                    f"Could not delete image file with fileId: {file_id}. Error response: {error}")
         except RequestException:
-            logger.warning("Could not delete image file with fileId: %s.", file_id, exc_info=True)
+            logger.warning(
+                f"Could not delete image file with fileId: {file_id}.", exc_info=True)
 
     def _get_file_id(self, url):
         filename = os.path.basename(url)
