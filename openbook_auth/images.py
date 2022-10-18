@@ -11,9 +11,6 @@ def store_avatar(username, image_file):
     return default_storage.save(
         name=f"{username}/avatar/{username}/{image_file.name})",
         content=image_file)
-                  file_id_to_keep=file_id_to_keep)
-        file=image_file, file_name=file_name, options=options)
-        {"tags": "user_" + authenticated_user.username, "path": folder})
 
 
 def delete_avatar(url):
@@ -21,5 +18,3 @@ def delete_avatar(url):
     delete an avatar image by url
     """
     default_storage.delete(url)
-                f"Could not delete image file with fileId: {file_id}. Error response: {error}")
-            f"Could not delete image file with fileId: {file_id}.", exc_info=True)
