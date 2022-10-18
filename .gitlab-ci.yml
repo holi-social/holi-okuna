@@ -44,7 +44,7 @@ test:
   script:
     - /etc/init.d/redis-server start
     - source venv/bin/activate
-    - python manage.py test --parallel
+    - python manage.py test
   tags:
     - holi-big # more cpu, quicker testing
 
