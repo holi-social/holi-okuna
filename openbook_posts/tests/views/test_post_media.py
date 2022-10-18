@@ -952,10 +952,6 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
                 post_media_item_format_set = post_media_item.content_object.format_set.all()
 
-                logger.info(
-                    f"TESTPOSTMEDIA post all: {post_media_item_format_set}")
-                logger.info(
-                    f"TESTPOSTMEDIA response all: {response_item['content_object']['format_set']}")
                 for j in range(0, len(post_media_item_format_set)):
                     post_media_item_format_set_item = post_media_item_format_set[j]
                     response_post_media_item_format_set_item = response_item[
@@ -964,10 +960,6 @@ class PostMediaAPITests(OpenbookAPITestCase):
                                      response_post_media_item_format_set_item['format'])
                     self.assertEqual(post_media_item_format_set_item.progress,
                                      response_post_media_item_format_set_item['progress'])
-                    logger.info(
-                        f"TESTPOSTMEDIA post: {str(post_media_item_format_set_item.file)}")
-                    logger.info(
-                        f"TESTPOSTMEDIA response: {response_post_media_item_format_set_item['file']}")
                     self.assertIn(str(post_media_item_format_set_item.file),
                                   response_post_media_item_format_set_item['file'])
 
