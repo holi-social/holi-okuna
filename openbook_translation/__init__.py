@@ -21,7 +21,7 @@ class TranslationStrategyManager:
     def __init__(self, config_name=DEFAULT_STRATEGY_ALIAS):
         if config_name not in settings.OS_TRANSLATION_CONFIG:
             raise InvalidTranslationStrategyError(
-                "Could not find config for '%s' in settings.OS_TRANSLATION_CONFIG" % config_name
+                f"Could not find config for '{config_name}' in settings.OS_TRANSLATION_CONFIG"
             )
         self.strategy_instance = self._create_translation_strategy(config_name)
 
@@ -34,7 +34,7 @@ class TranslationStrategyManager:
             strategy_cls = import_string(strategy)
         except ImportError as e:
             raise InvalidTranslationStrategyError(
-                "Could not find strategy '%s': %s" % (strategy, e))
+                f"Could not find strategy '{strategy}': {e}")
 
         return strategy_cls(params)
 

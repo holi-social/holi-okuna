@@ -37,11 +37,11 @@ class OathkeeperAuthTest(OpenbookAPITestCase):
         user_email = fake.email()
         url = self._get_user_profile_url(user_id)
         headers = {
-            'X-Holi-User-ID': '%s' % user_id,
-            'X-Holi-User-Email': '%s' % user_email,
+            'X-Holi-User-ID': f'{user_id}',
+            'X-Holi-User-Email': f'{user_email}',
         }
         response = self.client.get(url, format='json', **headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK, "status_code=%s" % response.status_code)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"status_code={response.status_code}")
 
     def test_requires_holi_user_id_for_non_existing_user(self):
         """
@@ -51,10 +51,10 @@ class OathkeeperAuthTest(OpenbookAPITestCase):
         user_email = fake.email()
         url = self._get_user_profile_url(user_id)
         headers = {
-            'X-Holi-User-Email': '%s' % user_email,
+            'X-Holi-User-Email': f'{user_email}',
         }
         response = self.client.get(url, format='json', **headers)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, "status_code=%s" % response.status_code)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"status_code={response.status_code}")
 
     def test_requires_holi_user_email_for_non_existing_user(self):
         """
@@ -63,10 +63,10 @@ class OathkeeperAuthTest(OpenbookAPITestCase):
         user_id = fake.user_name()
         url = self._get_user_profile_url(user_id)
         headers = {
-            'X-Holi-User-ID': '%s' % user_id,
+            'X-Holi-User-ID': f'{user_id}',
         }
         response = self.client.get(url, format='json', **headers)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, "status_code=%s" % response.status_code)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"status_code={response.status_code}")
 
     def test_allows_anonymous_requests(self):
         """
@@ -75,7 +75,7 @@ class OathkeeperAuthTest(OpenbookAPITestCase):
         url = reverse('username-check')  # just a random endpoint that doesn't require authentication
         data = {'username': fake.user_name()}
         response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, "status_code=%s" % response.status_code)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, f"status_code={response.status_code}")
 
     def _get_user_profile_url(self, user_id):
         return reverse('authenticated-user')

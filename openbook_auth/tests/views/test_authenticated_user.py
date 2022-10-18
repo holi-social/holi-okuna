@@ -209,7 +209,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         response = self.client.patch(url, data, **headers)
 
         # make sure HTTP response is expected
-        self.assertEqual(response.status_code, status.HTTP_200_OK, "response.data %s" % response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"response.data {response.data}")
 
         user.refresh_from_db()
 
@@ -235,7 +235,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         response = self.client.patch(url, data, **headers)
 
         # make sure HTTP response is expected
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, "response.data %s" % response.data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"response.data {response.data}")
 
         # make sure new retrieved value is same as initial_engagement_level
         user.refresh_from_db()
@@ -254,7 +254,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, "response.data %s" % response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"response.data {response.data}")
 
         # make sure new retrieved value is same as update_value
         user.refresh_from_db()
@@ -274,7 +274,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, "response.data %s" % response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"response.data {response.data}")
 
         user.refresh_from_db()
 
@@ -316,7 +316,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         url = self._get_url()
         response = self.client.patch(url, data, **headers)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, "response.data %s" % response.data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"response.data {response.data}")
 
     def test_can_update_user_followers_count_visible(self):
         """

@@ -29,7 +29,7 @@ def flush_draft_posts():
         draft_post.delete()
         flushed_posts = flushed_posts + 1
 
-    return 'Flushed %s posts' % str(flushed_posts)
+    return f'Flushed {str(flushed_posts)} posts'
 
 
 @job('high')
@@ -64,7 +64,7 @@ def curate_top_posts():
     PostComment = get_post_comment_model()
     ModeratedObject = get_moderated_object_model()
     TopPost = get_top_post_model()
-    logger.info('Processing top posts at %s...' % timezone.now())
+    logger.info(f'Processing top posts at {timezone.now()}...')
 
     top_posts_community_query = Q(top_post__isnull=True)
     top_posts_community_query.add(Q(community__isnull=False, community__type=Community.COMMUNITY_TYPE_PUBLIC), Q.AND)
@@ -208,7 +208,7 @@ def curate_trending_posts():
     Community = get_community_model()
     ModeratedObject = get_moderated_object_model()
     TrendingPost = get_trending_post_model()
-    logger.info('Processing trending posts at %s...' % timezone.now())
+    logger.info(f'Processing trending posts at {timezone.now()}...')
 
     trending_posts_query = Q(created__gte=timezone.now() - timedelta(
         hours=12))
@@ -259,7 +259,7 @@ def bootstrap_trending_posts():
     Community = get_community_model()
     ModeratedObject = get_moderated_object_model()
     TrendingPost = get_trending_post_model()
-    logger.info('Processing trending posts at %s...' % timezone.now())
+    logger.info(f'Processing trending posts at {timezone.now()}...')
 
     trending_posts_community_query = Q(community__isnull=False, community__type=Community.COMMUNITY_TYPE_PUBLIC,
                                        status=Post.STATUS_PUBLISHED,

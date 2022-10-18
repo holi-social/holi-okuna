@@ -189,7 +189,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user=user)
 
         hashtag_name = make_hashtag_name()
-        post_text = '#%s #%s' % (hashtag_name, hashtag_name)
+        post_text = f'#{hashtag_name} #{hashtag_name}'
 
         data = {
             'text': post_text
@@ -296,7 +296,7 @@ class PostsAPITests(OpenbookAPITestCase):
         post_hashtags = []
 
         for i in range(0, settings.POST_MAX_HASHTAGS + 1):
-            hashtag = '#%s' % make_hashtag_name()
+            hashtag = f'#{make_hashtag_name()}'
             post_hashtags.append(hashtag)
 
         post_text = ' '.join(post_hashtags)
@@ -845,7 +845,7 @@ class PostsAPITests(OpenbookAPITestCase):
                 response = self.client.put(url, data, **headers, format='multipart')
 
                 self.assertEqual(response.status_code, status.HTTP_201_CREATED,
-                                 "status_code=%s body=%s" % (response.status_code, response.body))
+                                 f"status_code={response.status_code} body={response.body}")
 
                 response_post = json.loads(response.content)
 
@@ -855,13 +855,13 @@ class PostsAPITests(OpenbookAPITestCase):
 
                 created_post = user.posts.filter(pk=response_post_id).get()
 
-                self.assertTrue(created_post.status == Post.STATUS_PROCESSING, "status=%s" % created_post.status)
+                self.assertTrue(created_post.status == Post.STATUS_PROCESSING, f"status={created_post.status}")
 
                 get_worker('high', worker_class=SimpleWorker).work(burst=True)
 
                 created_post.refresh_from_db()
 
-                self.assertTrue(created_post.status == Post.STATUS_PUBLISHED, "status=%s" % created_post.status)
+                self.assertTrue(created_post.status == Post.STATUS_PUBLISHED, f"status={created_post.status}")
 
                 post_media_video = created_post.media.get(post_id=response_post_id, type=PostMedia.MEDIA_TYPE_VIDEO)
 
@@ -948,7 +948,7 @@ class PostsAPITests(OpenbookAPITestCase):
             response = self.client.put(url, data, **headers, format='multipart')
 
             self.assertEqual(response.status_code, status.HTTP_201_CREATED,
-                             "status_code=%s body=%s" % (response.status_code, response.body))
+                             f"status_code={response.status_code} body={response.body}")
 
             response_post = json.loads(response.content)
 
@@ -958,15 +958,15 @@ class PostsAPITests(OpenbookAPITestCase):
 
             created_post = user.posts.filter(pk=response_post_id).get()
 
-            self.assertTrue(created_post.status == Post.STATUS_PROCESSING, "status=%s" % created_post.status)
+            self.assertTrue(created_post.status == Post.STATUS_PROCESSING, f"status={created_post.status}")
 
-            self.assertEqual(created_post.text, post_text, "text=%s" % created_post.text)
+            self.assertEqual(created_post.text, post_text, f"text={created_post.text}")
 
             get_worker('high', worker_class=SimpleWorker).work(burst=True)
 
             created_post.refresh_from_db()
 
-            self.assertTrue(created_post.status == Post.STATUS_PUBLISHED, "status=%s" % created_post.status)
+            self.assertTrue(created_post.status == Post.STATUS_PUBLISHED, f"status={created_post.status}")
 
             post_media_video = created_post.media.get(post_id=response_post_id, type=PostMedia.MEDIA_TYPE_VIDEO)
 

@@ -20,11 +20,11 @@ class Command(BaseCommand):
             with transaction.atomic():
                 parse_indiegogo_csv_and_sanitise_usernames(filepath)
         except IntegrityError as e:
-            print('IntegrityError %s ' % e)
+            print(f'IntegrityError {e} ')
             self.stderr.write('Aborting import of file..')
             return
         except DatabaseError as e:
-            print('DatabaseError %s ' % e)
+            print(f'DatabaseError {e} ')
             self.stderr.write('Aborting import of file..')
             return
         self.stdout.write(self.style.SUCCESS('Successfully altered data'))

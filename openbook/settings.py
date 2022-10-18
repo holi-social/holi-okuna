@@ -222,23 +222,16 @@ REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
 
 redis_protocol = 'redis://'  # 'rediss://' if IS_PRODUCTION else 'redis://'
 
-redis_password = '' if not REDIS_PASSWORD else ':%s' % REDIS_PASSWORD
+redis_password = '' if not REDIS_PASSWORD else f':{REDIS_PASSWORD}'
 
-REDIS_LOCATION = '%(protocol)s%(password)s@%(host)s:%(port)d' % {'protocol': redis_protocol,
-                                                                 'password': redis_password,
-                                                                 'host': REDIS_HOST,
-                                                                 'port': REDIS_PORT}
+REDIS_LOCATION = f'{redis_protocol}{redis_password}@{REDIS_HOST}:{REDIS_PORT}'
 
 RQ_SHOW_ADMIN_LINK = False
 
-REDIS_DEFAULT_CACHE_LOCATION = '%(redis_location)s/%(db)d' % {
-    'redis_location': REDIS_LOCATION, 'db': 0}
-REDIS_RQ_DEFAULT_JOBS_CACHE_LOCATION = '%(redis_location)s/%(db)d' % {
-    'redis_location': REDIS_LOCATION, 'db': 1}
-REDIS_RQ_HIGH_JOBS_CACHE_LOCATION = '%(redis_location)s/%(db)d' % {
-    'redis_location': REDIS_LOCATION, 'db': 2}
-REDIS_RQ_LOW_JOBS_CACHE_LOCATION = '%(redis_location)s/%(db)d' % {
-    'redis_location': REDIS_LOCATION, 'db': 3}
+REDIS_DEFAULT_CACHE_LOCATION = f'{REDIS_LOCATION}/0'
+REDIS_RQ_DEFAULT_JOBS_CACHE_LOCATION = f'{REDIS_LOCATION}/1'
+REDIS_RQ_HIGH_JOBS_CACHE_LOCATION = f'{REDIS_LOCATION}/2'
+REDIS_RQ_LOW_JOBS_CACHE_LOCATION = f'{REDIS_LOCATION}/3'
 
 CACHES = {
     'default': {
@@ -277,8 +270,7 @@ CACHES = {
 
 CACHEOPS_REDIS_DB = int(os.environ.get('CACHEOPS_REDIS_DB', '1'))
 
-CACHEOPS_REDIS = '%(redis_location)s/%(db)d' % {
-    'redis_location': REDIS_LOCATION, 'db': CACHEOPS_REDIS_DB}
+CACHEOPS_REDIS = f'{REDIS_LOCATION}/{CACHEOPS_REDIS_DB}'
 
 CACHEOPS_DEFAULTS = {
     'timeout': 60 * 60
@@ -676,16 +668,15 @@ if False:  # IS_PRODUCTION:
     AWS_S3_ENCRYPTION = True
     AWS_S3_SIGNATURE_VERSION = 's3v4'
     AWS_S3_HOST = os.environ.get('AWS_S3_HOST', 's3.amazonaws.com')
-    AWS_S3_CUSTOM_DOMAIN = '%s.%s' % (AWS_STORAGE_BUCKET_NAME, AWS_S3_HOST)
+    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.{AWS_S3_HOST}'
 
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',
     }
 
-    STATIC_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, AWS_STATIC_LOCATION)
+    STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_STATIC_LOCATION}/"
 
-    MEDIA_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN,
-                                    AWS_PUBLIC_MEDIA_LOCATION)
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_PUBLIC_MEDIA_LOCATION}/"
 
     STATICFILES_STORAGE = 'openbook.storage_backends.S3StaticStorage'
 
