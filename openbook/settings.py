@@ -656,6 +656,10 @@ if TESTING:
     MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT = 1
 
 # TODO Think about what to do for storage backend
+
+if not TESTING:
+    DEFAULT_FILE_STORAGE = 'openbook.storage_imagekit_io.ImagekitIoStorage'
+
 if False:  # IS_PRODUCTION:
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
@@ -690,11 +694,11 @@ PEEKALINK_API_KEY = os.environ.get('PEEKALINK_API_KEY', None)
 
 # ImageKit Config
 
-IMAGEKIT_PUBLIC_KEY = os.environ.get('IMAGEKIT_PUBLIC_KEY')
-IMAGEKIT_PRIVATE_KEY = os.environ.get('IMAGEKIT_PRIVATE_KEY')
+IMAGEKIT_PUBLIC_KEY = os.environ.get('IMAGEKIT_PUBLIC_KEY', 'none')
+IMAGEKIT_PRIVATE_KEY = os.environ.get('IMAGEKIT_PRIVATE_KEY', 'none')
 IMAGEKIT_URL = os.environ.get('IMAGEKIT_URL', 'https://ik.imagekit.io/holi')
 
 # HOLI model config settings
 
 INSIGHT_TITLE_MAX_LENGTH = 128
-INSIGHT_HEADER_IMAGE_URL_MAX_LENGTH = 500
+IMAGE_URL_MAX_LENGTH = 500

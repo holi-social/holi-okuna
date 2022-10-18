@@ -28,7 +28,8 @@ hashtag_image_storage = default_storage
 
 class Hashtag(models.Model):
 
-    moderated_object = GenericRelation('openbook_moderation.ModeratedObject', related_query_name='hashtags')
+    moderated_object = GenericRelation(
+        'openbook_moderation.ModeratedObject', related_query_name='hashtags')
 
     name = models.CharField(_('name'), max_length=settings.HASHTAG_NAME_MAX_LENGTH, blank=False, null=False,
                             validators=[hashtag_name_validator],
@@ -39,18 +40,24 @@ class Hashtag(models.Model):
                                   validators=[hex_color_validator], default='#ffffff')
     created = models.DateTimeField(editable=False)
     posts = models.ManyToManyField(Post, related_name='hashtags')
-    insights = models.ManyToManyField(Insight, related_name='hashtags', blank=True)
-    post_comments = models.ManyToManyField(PostComment, related_name='hashtags')
+    insights = models.ManyToManyField(
+        Insight, related_name='hashtags', blank=True)
+    post_comments = models.ManyToManyField(
+        PostComment, related_name='hashtags')
     width = models.PositiveIntegerField(editable=False, null=True, blank=False)
-    height = models.PositiveIntegerField(editable=False, null=True, blank=False)
+    height = models.PositiveIntegerField(
+        editable=False, null=True, blank=False)
     image = ProcessedImageField(verbose_name=_('image'),
                                 storage=hashtag_image_storage,
                                 upload_to=upload_to_hashtags_directory,
                                 width_field='width',
                                 height_field='height',
                                 blank=True, null=True, format='JPEG', options={'quality': 60},
-                                processors=[ResizeToFit(width=1024, upscale=False)])
-    emoji = models.ForeignKey(Emoji, on_delete=models.SET_NULL, related_name='hashtags', null=True, blank=True)
+                                processors=[ResizeToFit(
+                                    width=1024, upscale=False)],
+                                max_length=settings.IMAGE_URL_MAX_LENGTH)
+    emoji = models.ForeignKey(
+        Emoji, on_delete=models.SET_NULL, related_name='hashtags', null=True, blank=True)
 
     @classmethod
     def create_hashtag(cls, name, color=None, image=None):
@@ -97,7 +104,8 @@ class Hashtag(models.Model):
         if not self.has_image() and post and post.is_publicly_visible():
             post_first_media_image = post.get_first_media_image()
             if post_first_media_image:
-                image_copy = ContentFile(post_first_media_image.content_object.image.read())
+                image_copy = ContentFile(
+                    post_first_media_image.content_object.image.read())
                 image_copy.name = post_first_media_image.content_object.image.name
                 self.image.save(image_copy.name, image_copy)
                 self.save()

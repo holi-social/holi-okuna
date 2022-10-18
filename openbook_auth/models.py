@@ -11,11 +11,13 @@ from django.dispatch import receiver
 from django.utils import timezone, translation
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
+from imagekit.models import ProcessedImageField
+from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
 from django.db.models import Q, F, Count, JSONField
 from django.core.mail import EmailMultiAlternatives
 
-from openbook.settings import USERNAME_MAX_LENGTH
+from openbook_auth.helpers import upload_to_user_avatar_directory, upload_to_user_cover_directory
 from openbook_common.peekalink_client import peekalink_client
 from openbook_hashtags.queries import make_search_hashtag_query_for_user_with_id, \
     make_get_hashtag_with_name_for_user_with_id_query
@@ -101,10 +103,10 @@ class User(AbstractUser):
         _('username'),
         blank=False,
         null=False,
-        max_length=USERNAME_MAX_LENGTH,
+        max_length=settings.USERNAME_MAX_LENGTH,
         unique=True,
         help_text=_('Required. %(username_max_length)d characters or fewer. Letters, digits and _ only.' % {
-            'username_max_length': USERNAME_MAX_LENGTH}),
+            'username_max_length': settings.USERNAME_MAX_LENGTH}),
         validators=[username_validator],
         error_messages={
             'unique': _("A user with that username already exists."),
@@ -4171,10 +4173,12 @@ class UserProfile(models.Model):
     sdgs = JSONField(null=True, blank=True, default=list)
     skills = JSONField(null=True, blank=True, default=list)
     is_of_legal_age = models.BooleanField(default=False)
-    avatar = models.CharField(
-        _('avatar'), max_length=settings.PROFILE_AVATAR_URL_MAX_LENGTH, blank=False, null=True)
-    cover = models.CharField(
-        _('cover'), max_length=settings.PROFILE_AVATAR_URL_MAX_LENGTH, blank=False, null=True)
+    avatar = ProcessedImageField(verbose_name=_('avatar'), blank=False, null=True, format='JPEG',
+                                 options={'quality': 90}, processors=[ResizeToFill(500, 500)],
+                                 upload_to=upload_to_user_avatar_directory)
+    cover = ProcessedImageField(verbose_name=_('cover'), blank=False, null=True, format='JPEG', options={'quality': 90},
+                                upload_to=upload_to_user_cover_directory,
+                                processors=[ResizeToFit(width=1024, upscale=False)])
     about_me = models.TextField(
         _('about me'), max_length=settings.PROFILE_ABOUT_ME_MAX_LENGTH, blank=False, null=True)
     url = models.URLField(_('url'), blank=False, null=True)

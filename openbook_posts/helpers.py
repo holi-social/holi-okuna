@@ -1,5 +1,4 @@
-import uuid
-from os.path import splitext
+from openbook_common.helpers import create_upload_filename
 
 
 def upload_to_post_directory(post, filename):
@@ -17,9 +16,7 @@ def upload_to_post_video_directory(post_video, filename):
 
 
 def _upload_to_post_directory_directory(post, filename):
-    extension = splitext(filename)[1].lower()
-    new_filename = str(uuid.uuid4()) + extension
-
-    path = f'posts/{str(post.uuid)}/'
-
-    return f'{path}{new_filename}'
+    return create_upload_filename(username=post.creator.username,
+                                  object_type="post",
+                                  object_id=str(post.uuid),
+                                  filename=filename)
