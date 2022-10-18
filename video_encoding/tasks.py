@@ -64,7 +64,7 @@ def convert_video(fieldfile, force=False):
         # TODO do not upscale videos
 
         _, target_path = tempfile.mkstemp(
-            suffix=f'_{options.name}.{options.extension}')
+            suffix=f"_{options['name']}.{options['extension']}")
 
         try:
             encoding = encoding_backend.encode(
@@ -83,7 +83,7 @@ def convert_video(fieldfile, force=False):
 
         # save encoded file
         video_format.file.save(
-            f'{filename}_{options.name}.{options.extension}',
+            f"{filename}_{options['name']}.{options['extension']}",
             File(open(target_path, mode='rb')))
 
         video_format.update_progress(100)  # now we are ready
