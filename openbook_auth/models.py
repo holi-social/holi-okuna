@@ -3679,7 +3679,7 @@ class User(AbstractUser):
         return peekalink_client.peek(link=link)
 
     def _generate_password_reset_link(self, token):
-        return '{0}/api/auth/password/verify?token={1}'.format(settings.EMAIL_HOST, token)
+        return f'{settings.EMAIL_HOST}/api/auth/password/verify?token={token}'
 
     def _send_password_reset_email_with_token(self, password_reset_token):
         mail_subject = _('Reset your password for Okuna')
@@ -4206,7 +4206,7 @@ class UserProfile(models.Model):
         ]
 
     def __repr__(self):
-        return '<UserProfile %s>' % self.user.username
+        return f'<UserProfile {self.user.username}>'
 
     def __str__(self):
         return self.user.username

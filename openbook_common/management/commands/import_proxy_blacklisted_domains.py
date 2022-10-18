@@ -52,12 +52,12 @@ class Command(BaseCommand):
                     url_full_domain = tld_extract_result.domain
 
                 if ProxyBlacklistedDomain.objects.filter(domain=url_full_domain).exists():
-                    logger.info('Domain %s already exists, not importing.' % url_full_domain)
+                    logger.info(f'Domain {url_full_domain} already exists, not importing.')
                     already_existing_domains += 1
                     continue
 
                 ProxyBlacklistedDomain.objects.create(domain=url_full_domain)
-                logger.info('Imported domain %s successfully.' % url_full_domain)
+                logger.info(f'Imported domain {url_full_domain} successfully.')
                 imported_domains += 1
 
             logger.info('Finished. Imported %d domains and skipped %d as they already existed' % (

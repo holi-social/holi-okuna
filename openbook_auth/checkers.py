@@ -32,7 +32,8 @@ def check_can_post_to_circles_with_ids(user, circles_ids=None):
     for circle_id in circles_ids:
         if not user.has_circle_with_id(circle_id) and not user.is_world_circle_id(circle_id):
             raise ValidationError(
-                _('You cannot post to circle with id %(id)s') % {'id': circle_id},
+                _('You cannot post to circle with id %(id)s') % {
+                    'id': circle_id},
             )
 
 
@@ -135,13 +136,16 @@ def check_circle_data(user, name, color):
 
 
 def check_can_create_follow_request(user, user_requesting_to_follow):
-    check_can_follow_user(user=user, user_to_follow=user_requesting_to_follow, is_pre_approved=True)
-    check_target_user_has_no_follow_request_from_user(user=user, target_user=user_requesting_to_follow)
+    check_can_follow_user(
+        user=user, user_to_follow=user_requesting_to_follow, is_pre_approved=True)
+    check_target_user_has_no_follow_request_from_user(
+        user=user, target_user=user_requesting_to_follow)
     check_user_visibility_is_private(target_user=user_requesting_to_follow)
 
 
 def check_can_delete_follow_request_for_user(user, user_requesting_to_follow):
-    check_has_follow_request(user=user_requesting_to_follow, requesting_user=user)
+    check_has_follow_request(
+        user=user_requesting_to_follow, requesting_user=user)
 
 
 def check_can_approve_follow_request_from_requesting_user(user, requesting_user):
@@ -169,7 +173,8 @@ def check_can_follow_user(user, user_to_follow, is_pre_approved):
         )
 
     check_is_not_following_user_with_id(user=user, user_id=user_to_follow.pk)
-    check_is_not_blocked_with_user_with_id(user=user, user_id=user_to_follow.pk)
+    check_is_not_blocked_with_user_with_id(
+        user=user, user_id=user_to_follow.pk)
     check_has_not_reached_max_follows(user=user)
 
     if not is_pre_approved:
@@ -204,7 +209,8 @@ def check_can_get_posts_for_user(user, target_user):
 
 def check_target_user_is_visibile_for_user(user, target_user):
     if target_user.has_visibility_private() and not user.is_following_user(target_user):
-        raise ValidationError(_('This user is private, send a follow request.'))
+        raise ValidationError(
+            _('This user is private, send a follow request.'))
 
 
 def check_can_get_unauthenticated_posts_for_user(user):
@@ -264,9 +270,12 @@ def check_can_connect_with_target_user(user, user_to_connect_with):
             _('A user cannot connect with itself.'),
         )
 
-    check_target_user_is_visibile_for_user(user=user, target_user=user_to_connect_with)
-    check_is_not_blocked_with_user_with_id(user=user, user_id=user_to_connect_with.pk)
-    check_is_not_connected_with_user_with_id(user=user, user_id=user_to_connect_with.pk)
+    check_target_user_is_visibile_for_user(
+        user=user, target_user=user_to_connect_with)
+    check_is_not_blocked_with_user_with_id(
+        user=user, user_id=user_to_connect_with.pk)
+    check_is_not_connected_with_user_with_id(
+        user=user, user_id=user_to_connect_with.pk)
     check_has_not_reached_max_connections(user=user)
 
 
@@ -376,11 +385,12 @@ def check_can_update_community_with_name(user, community_name):
 
 
 def check_can_get_posts_for_community_with_name(user, community_name):
-    check_is_not_banned_from_community_with_name(user=user, community_name=community_name)
+    check_is_not_banned_from_community_with_name(
+        user=user, community_name=community_name)
     Community = get_community_model()
     if Community.is_community_with_name_private(
-            community_name=community_name) and not user.is_member_of_community_with_name(
-        community_name=community_name):
+        community_name=community_name) and not user.is_member_of_community_with_name(
+            community_name=community_name):
         raise ValidationError(
             _('The community is private. You must become a member to retrieve its posts.'),
         )
@@ -395,24 +405,28 @@ def check_can_get_closed_posts_for_community_with_name(user, community_name):
 
 
 def check_can_enable_new_post_notifications_for_community(user, community):
-    is_member = user.is_member_of_community_with_name(community_name=community.name)
+    is_member = user.is_member_of_community_with_name(
+        community_name=community.name)
 
     if not is_member:
         raise ValidationError(
             _('Only members can enable new post notifications'),
         )
-    new_post_notifications_enabled = user.are_new_post_notifications_enabled_for_community(community=community)
+    new_post_notifications_enabled = user.are_new_post_notifications_enabled_for_community(
+        community=community)
 
     if new_post_notifications_enabled:
         raise ValidationError(
             _('New post notifications are already enabled'),
         )
 
-    check_is_not_banned_from_community_with_name(user=user, community_name=community.name)
+    check_is_not_banned_from_community_with_name(
+        user=user, community_name=community.name)
 
 
 def check_can_disable_new_post_notifications_for_community(user, community):
-    new_post_notifications_enabled = user.are_new_post_notifications_enabled_for_community(community=community)
+    new_post_notifications_enabled = user.are_new_post_notifications_enabled_for_community(
+        community=community)
 
     if not new_post_notifications_enabled:
         raise ValidationError(
@@ -421,7 +435,8 @@ def check_can_disable_new_post_notifications_for_community(user, community):
 
 
 def check_can_get_community_with_name_members(user, community_name):
-    check_is_not_banned_from_community_with_name(user=user, community_name=community_name)
+    check_is_not_banned_from_community_with_name(
+        user=user, community_name=community_name)
 
     Community = get_community_model()
 
@@ -434,7 +449,8 @@ def check_can_get_community_with_name_members(user, community_name):
 
 def check_can_join_community_with_name(user, community_name):
     if user.is_banned_from_community_with_name(community_name):
-        raise ValidationError('You can\'t join a community you have been banned from.')
+        raise ValidationError(
+            'You can\'t join a community you have been banned from.')
 
     if user.is_member_of_community_with_name(community_name):
         raise ValidationError(
@@ -483,7 +499,7 @@ def check_can_invite_user_with_username_to_community_with_name(user, username, c
     if not Community.is_community_with_name_invites_enabled(community_name=community_name) and not (
             user.is_administrator_of_community_with_name(
                 community_name=community_name) or user.is_moderator_of_community_with_name(
-        community_name=community_name)):
+                community_name=community_name)):
         raise ValidationError(
             _('Invites for this community are not enabled. Only administrators & moderators can invite.'),
         )
@@ -499,8 +515,8 @@ def check_can_uninvite_user_with_username_to_community_with_name(user, username,
 
 def check_can_get_community_with_name_banned_users(user, community_name):
     if not user.is_administrator_of_community_with_name(
-            community_name=community_name) and not user.is_moderator_of_community_with_name(
-        community_name=community_name):
+        community_name=community_name) and not user.is_moderator_of_community_with_name(
+            community_name=community_name):
         raise ValidationError(
             _('Only community administrators & moderators can get banned users.'),
         )
@@ -508,8 +524,8 @@ def check_can_get_community_with_name_banned_users(user, community_name):
 
 def check_can_ban_user_with_username_from_community_with_name(user, username, community_name):
     if not user.is_administrator_of_community_with_name(
-            community_name=community_name) and not user.is_moderator_of_community_with_name(
-        community_name=community_name):
+        community_name=community_name) and not user.is_moderator_of_community_with_name(
+            community_name=community_name):
         raise ValidationError(
             _('Only community administrators & moderators can ban community members.'),
         )
@@ -523,7 +539,7 @@ def check_can_ban_user_with_username_from_community_with_name(user, username, co
 
     if Community.is_user_with_username_moderator_of_community_with_name(username=username,
                                                                         community_name=community_name) or Community.is_user_with_username_administrator_of_community_with_name(
-        username=username, community_name=community_name):
+            username=username, community_name=community_name):
         raise ValidationError(
             _('You can\'t ban moderators or administrators of the community'),
         )
@@ -531,8 +547,8 @@ def check_can_ban_user_with_username_from_community_with_name(user, username, co
 
 def check_can_unban_user_with_username_from_community_with_name(user, username, community_name):
     if not user.is_administrator_of_community_with_name(
-            community_name=community_name) and not user.is_moderator_of_community_with_name(
-        community_name=community_name):
+        community_name=community_name) and not user.is_moderator_of_community_with_name(
+            community_name=community_name):
         raise ValidationError(
             _('Only community administrators & moderators can ban community members.'),
         )
@@ -582,7 +598,8 @@ def check_can_remove_administrator_with_username_to_community_with_name(user, us
 
 
 def check_can_get_community_with_name_administrators(user, community_name):
-    check_is_not_banned_from_community_with_name(user=user, community_name=community_name)
+    check_is_not_banned_from_community_with_name(
+        user=user, community_name=community_name)
 
 
 def check_can_add_moderator_with_username_to_community_with_name(user, username, community_name):
@@ -627,7 +644,8 @@ def check_can_remove_moderator_with_username_to_community_with_name(user, userna
 
 
 def check_can_get_community_with_name_moderators(user, community_name):
-    check_is_not_banned_from_community_with_name(user=user, community_name=community_name)
+    check_is_not_banned_from_community_with_name(
+        user=user, community_name=community_name)
 
 
 def check_is_not_banned_from_community_with_name(user, community_name):
@@ -832,7 +850,8 @@ def check_can_mute_post_comment(user, post_comment):
 
 
 def check_can_unmute_post_comment(user, post_comment):
-    check_has_muted_post_comment_with_id(user=user, post_comment_id=post_comment.pk)
+    check_has_muted_post_comment_with_id(
+        user=user, post_comment_id=post_comment.pk)
     check_can_see_post_comment(user=user, post_comment=post_comment)
 
 
@@ -895,7 +914,8 @@ def check_can_set_language_with_id(user, language_id):
 
 
 def check_can_get_community_with_name(user, community_name):
-    check_is_not_banned_from_community_with_name(user=user, community_name=community_name)
+    check_is_not_banned_from_community_with_name(
+        user=user, community_name=community_name)
 
 
 def check_can_block_user_with_id(user, user_id):
@@ -906,7 +926,8 @@ def check_can_block_user_with_id(user, user_id):
 
 def check_can_unblock_user_with_id(user, user_id):
     if not user.has_blocked_user_with_id(user_id=user_id):
-        raise ValidationError(_('You cannot unblock an account you have not blocked.'))
+        raise ValidationError(
+            _('You cannot unblock an account you have not blocked.'))
 
 
 def check_is_not_blocked_with_user_with_id(user, user_id):
@@ -918,7 +939,8 @@ def check_is_not_blocked_with_user_with_id(user, user_id):
 
 
 def check_can_report_comment_for_post(user, post_comment, post):
-    check_has_not_reported_post_comment_with_id(user=user, post_comment_id=post_comment.pk)
+    check_has_not_reported_post_comment_with_id(
+        user=user, post_comment_id=post_comment.pk)
     check_can_see_post(user=user, post=post)
 
     if post_comment.commenter_id == user.pk:
@@ -966,7 +988,8 @@ def check_has_not_reported_user_with_id(user, user_id):
 
 
 def check_can_report_community(user, community):
-    check_has_not_reported_community_with_id(user=user, community_id=community.pk)
+    check_has_not_reported_community_with_id(
+        user=user, community_id=community.pk)
     if community.creator.pk == user.pk:
         raise ValidationError(
             _('You cannot report your own community.'),
@@ -1118,8 +1141,10 @@ def check_can_edit_comment_with_id_for_post(user, post_comment_id, post):
         )
 
     if post.community and post.is_closed:
-        is_administrator = user.is_administrator_of_community_with_name(post.community.name)
-        is_moderator = user.is_moderator_of_community_with_name(post.community.name)
+        is_administrator = user.is_administrator_of_community_with_name(
+            post.community.name)
+        is_moderator = user.is_moderator_of_community_with_name(
+            post.community.name)
         if not is_moderator and not is_administrator:
             raise ValidationError(
                 _('Only administrators/moderators can edit a closed post.')
@@ -1145,11 +1170,14 @@ def check_can_delete_comment_with_id_for_post(user, post_comment_id, post):
         raise ValidationError(
             _('The comment does not belong to the specified post.')
         )
-    is_comment_creator = user.posts_comments.filter(id=post_comment_id).exists()
+    is_comment_creator = user.posts_comments.filter(
+        id=post_comment_id).exists()
 
     if post.community:
-        is_moderator = user.is_moderator_of_community_with_name(post.community.name)
-        is_administrator = user.is_administrator_of_community_with_name(post.community.name)
+        is_moderator = user.is_moderator_of_community_with_name(
+            post.community.name)
+        is_administrator = user.is_administrator_of_community_with_name(
+            post.community.name)
         if not is_administrator and not is_moderator:
             if post.is_closed:
                 raise ValidationError(
@@ -1161,7 +1189,8 @@ def check_can_delete_comment_with_id_for_post(user, post_comment_id, post):
                 )
         else:
             # is admin or mod
-            post_comment = PostComment.objects.select_related('commenter').get(pk=post_comment_id)
+            post_comment = PostComment.objects.select_related(
+                'commenter').get(pk=post_comment_id)
             if post_comment.parent_comment is not None:
                 post.community.create_remove_post_comment_reply_log(source_user=user,
                                                                     target_user=post_comment.commenter)
@@ -1269,7 +1298,8 @@ def check_can_react_to_post_comment(user, post_comment, emoji_id):
 
 
 def check_can_delete_post_comment_reaction(user, post_comment_reaction):
-    check_can_see_post_comment(user=user, post_comment=post_comment_reaction.post_comment)
+    check_can_see_post_comment(
+        user=user, post_comment=post_comment_reaction.post_comment)
 
     if post_comment_reaction.reactor_id != user.pk:
         raise ValidationError(
@@ -1298,11 +1328,13 @@ def check_can_get_moderated_object(user, moderated_object):
     if user.is_global_moderator():
         return
 
-    check_can_get_community_moderated_objects(user=user, community_name=moderated_object.community)
+    check_can_get_community_moderated_objects(
+        user=user, community_name=moderated_object.community)
 
 
 def check_can_get_community_moderated_objects(user, community_name):
-    check_is_staff_of_community_with_name(user=user, community_name=community_name)
+    check_is_staff_of_community_with_name(
+        user=user, community_name=community_name)
 
 
 def check_has_not_reported_moderated_object_with_id(user, moderated_object_id):
@@ -1313,7 +1345,8 @@ def check_has_not_reported_moderated_object_with_id(user, moderated_object_id):
 
 
 def check_can_update_moderated_object(user, moderated_object):
-    check_can_moderate_moderated_object(user=user, moderated_object=moderated_object)
+    check_can_moderate_moderated_object(
+        user=user, moderated_object=moderated_object)
 
     if moderated_object.is_verified():
         raise PermissionDenied(
@@ -1327,7 +1360,8 @@ def check_can_update_moderated_object(user, moderated_object):
 
 
 def check_can_approve_moderated_object(user, moderated_object):
-    check_can_moderate_moderated_object(user=user, moderated_object=moderated_object)
+    check_can_moderate_moderated_object(
+        user=user, moderated_object=moderated_object)
 
     if moderated_object.is_verified():
         raise ValidationError(
@@ -1336,7 +1370,8 @@ def check_can_approve_moderated_object(user, moderated_object):
 
 
 def check_can_reject_moderated_object(user, moderated_object):
-    check_can_moderate_moderated_object(user=user, moderated_object=moderated_object)
+    check_can_moderate_moderated_object(
+        user=user, moderated_object=moderated_object)
     if moderated_object.is_verified():
         raise ValidationError(
             _('The moderated object has already been verified.')
@@ -1378,17 +1413,22 @@ def check_can_moderate_moderated_object(user, moderated_object):
     if isinstance(content_object, Post):
         if content_object.community:
             if not user.is_staff_of_community_with_name(community_name=content_object.community.name):
-                raise ValidationError(_('Only community staff can moderate community posts'))
+                raise ValidationError(
+                    _('Only community staff can moderate community posts'))
         else:
-            raise ValidationError(_('Only global moderators can moderate non-community posts'))
+            raise ValidationError(
+                _('Only global moderators can moderate non-community posts'))
     elif isinstance(content_object, PostComment):
         if content_object.post.community:
             if not user.is_staff_of_community_with_name(community_name=content_object.post.community.name):
-                raise ValidationError(_('Only community staff can moderate community post comments'))
+                raise ValidationError(
+                    _('Only community staff can moderate community post comments'))
         else:
-            raise ValidationError(_('Only global moderators can moderate non-community post comments'))
+            raise ValidationError(
+                _('Only global moderators can moderate non-community post comments'))
     else:
-        raise ValidationError(_('Non global moderators can only moderate posts and post comments.'))
+        raise ValidationError(
+            _('Non global moderators can only moderate posts and post comments.'))
 
 
 def check_is_global_moderator(user):
@@ -1431,7 +1471,8 @@ def check_if_invite_is_not_used(user, invite_id):
     UserInvite = get_user_invite_model()
     invite = UserInvite.objects.get(id=invite_id)
     if invite.created_user:
-        raise ValidationError(_('Invite is already used and cannot be deleted'))
+        raise ValidationError(
+            _('Invite is already used and cannot be deleted'))
 
 
 def check_is_creator_of_invite_with_id(user, invite_id):
@@ -1470,7 +1511,8 @@ def check_can_enable_new_post_notifications_for_user(user, target_user):
             _('You cannot enable notifications for yourself'),
         )
 
-    new_post_notifications_enabled = user.are_new_post_notifications_enabled_for_user(user=target_user)
+    new_post_notifications_enabled = user.are_new_post_notifications_enabled_for_user(
+        user=target_user)
 
     if target_user.has_blocked_user_with_id(user_id=user.pk) or user.has_blocked_user_with_id(user_id=target_user.pk):
         raise PermissionDenied(_('This account is blocked.'))
@@ -1482,7 +1524,8 @@ def check_can_enable_new_post_notifications_for_user(user, target_user):
 
 
 def check_can_disable_new_post_notifications_for_user(user, target_user):
-    new_post_notifications_enabled = user.are_new_post_notifications_enabled_for_user(user=target_user)
+    new_post_notifications_enabled = user.are_new_post_notifications_enabled_for_user(
+        user=target_user)
 
     if target_user.has_blocked_user_with_id(user_id=user.pk) or user.has_blocked_user_with_id(user_id=target_user.pk):
         raise PermissionDenied(_('This account is blocked.'))

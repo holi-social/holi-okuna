@@ -23,7 +23,7 @@ class Command(BaseCommand):
             try:
                 comment._process_post_comment_hashtags()
             except Exception as e:
-                logger.info('Failed to process hashtags with error %s' % str(e))
+                logger.info(f'Failed to process hashtags with error {str(e)}')
             logger.info('Processed hashtags for post comment with id:' + str(comment.pk))
             migrated_postComments = migrated_postComments + 1
 

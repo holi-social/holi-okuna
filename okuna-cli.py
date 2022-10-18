@@ -91,7 +91,7 @@ def _copy_requirements_txt_to_docker_images_dir():
 def _check_okuna_api_is_running(address, port):
     # Create a TCP socket
     try:
-        response = requests.get('http://%s:%s/health/' % (address, port))
+        response = requests.get(f'http://{address}:{port}/health/')
         response_status = response.status_code
         return response_status == 200
     except requests.ConnectionError as e:
@@ -175,7 +175,7 @@ def _replace_in_file(filename, texts):
 def _ensure_has_local_api_environment_file(okuna_cli_config):
     if _file_exists(LOCAL_API_ENV_FILE):
         return
-    logger.info('Local API .env file does not exist. Creating %s' % LOCAL_API_ENV_FILE)
+    logger.info(f'Local API .env file does not exist. Creating {LOCAL_API_ENV_FILE}')
 
     if not _file_exists(LOCAL_API_ENV_FILE_TEMPLATE):
         raise Exception('Local API .env file template did not exist')
@@ -192,7 +192,7 @@ def _ensure_has_local_api_environment_file(okuna_cli_config):
 def _ensure_has_docker_compose_api_environment_file(okuna_cli_config):
     if _file_exists(DOCKER_COMPOSE_ENV_FILE):
         return
-    logger.info('Docker compose env file does not exist. Creating %s' % DOCKER_COMPOSE_ENV_FILE)
+    logger.info(f'Docker compose env file does not exist. Creating {DOCKER_COMPOSE_ENV_FILE}')
 
     if not _file_exists(DOCKER_COMPOSE_ENV_FILE_TEMPLATE):
         raise Exception('Docker compose env file template did not exist')
@@ -214,11 +214,11 @@ def _ensure_has_okuna_config_file():
     postgres_password = _generate_postgres_password()
     redis_password = _generate_redis_password()
 
-    logger.info('Generated DJANGO_SECRET_KEY=%s' % django_secret_key)
-    logger.info('Generated POSTGRES_PASSWORD=%s' % postgres_password)
-    logger.info('Generated REDIS_PASSWORD=%s' % redis_password)
+    logger.info(f'Generated DJANGO_SECRET_KEY={django_secret_key}')
+    logger.info(f'Generated POSTGRES_PASSWORD={postgres_password}')
+    logger.info(f'Generated REDIS_PASSWORD={redis_password}')
 
-    logger.info('Config file does not exist. Creating %s' % OKUNA_CLI_CONFIG_FILE)
+    logger.info(f'Config file does not exist. Creating {OKUNA_CLI_CONFIG_FILE}')
 
     if not _file_exists(OKUNA_CLI_CONFIG_FILE_TEMPLATE):
         raise Exception('Config file template did not exists')
@@ -320,7 +320,7 @@ def up_full():
 
     _ensure_was_bootstrapped(is_local_api=False)
 
-    logger.info('🥳  Okuna is live at http://%s:%s.' % (okuna_api_address, okuna_api_port))
+    logger.info(f'🥳  Okuna is live at http://{okuna_api_address}:{okuna_api_port}.')
 
     subprocess.run(["docker-compose", "-f", "docker-compose-full.yml", "logs", "--follow", "--tail=0", "webserver"])
 
