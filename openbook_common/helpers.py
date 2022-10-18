@@ -35,7 +35,8 @@ def get_language_for_text(text):
 
 def get_supported_translation_language(language_code):
     Language = get_language_model()
-    supported_translation_code = translation_strategy.get_supported_translation_language_code(language_code)
+    supported_translation_code = translation_strategy.get_supported_translation_language_code(
+        language_code)
 
     return Language.objects.get(code=supported_translation_code)
 
@@ -85,3 +86,10 @@ def send_alert_to_channel(alert):
 
     if response.status_code != requests.status_codes.codes.ok:
         raise ValueError(f"{response.status_code} != 200")
+
+
+def create_upload_filename(object_type, object_id, filename, username=None):
+    if username is None:
+        return f'{object_type}/{object_id}/{filename}'
+
+    return f'{object_type}/{object_id}/{filename}/{username}'
