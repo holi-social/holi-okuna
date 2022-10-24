@@ -1,6 +1,8 @@
 import logging
 import os
+import urllib3
 
+from django.core.files.base import ContentFile
 from django.core.files.storage import Storage
 from imagekitio import ImageKit
 from requests import RequestException
@@ -22,6 +24,7 @@ class ImagekitIoStorage(Storage):
             public_key=settings.IMAGEKIT_PUBLIC_KEY,
             url_endpoint=settings.IMAGEKIT_URL,
         )
+        self.http = urllib3.PoolManager()
 
     def delete(self, name):
         self.delete_image(self._get_file_id(name))
@@ -33,9 +36,7 @@ class ImagekitIoStorage(Storage):
         return name
 
     def _open(self, name, mode='rb'):
-        raise NotImplementedError(
-            "ImagekitIoStorage does not support opening of images"
-        )
+        return ContentFile(self.http.request("GET", name))
 
     def _save(self, name, content):
         if name.count("/") < 2:
@@ -64,7 +65,8 @@ class ImagekitIoStorage(Storage):
         if old_files and old_files['response']:
             self.delete_images(
                 map(lambda file: file['fileId'], old_files['response']))
-            logger.info("deleted %s old versions of the file", len(old_files['response']))
+            logger.info("deleted %s old versions of the file",
+                        len(old_files['response']))
 
         # once, the container did not start because part of the return statement was None. Therefore I integrated logging for analysis next time around.
         logger.info("UPLOAD result: %s", upload)
