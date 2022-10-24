@@ -64,11 +64,10 @@ class ImagekitIoStorage(Storage):
         if old_files and old_files['response']:
             self.delete_images(
                 map(lambda file: file['fileId'], old_files['response']))
-            logger.info(
-                f"deleted {len(old_files['response'])} old versions of the file")
+            logger.info("deleted %s old versions of the file", len(old_files['response']))
 
         # once, the container did not start because part of the return statement was None. Therefore I integrated logging for analysis next time around.
-        logger.info(f"UPLOAD result: {upload}")
+        logger.info("UPLOAD result: %s", upload)
         return upload['response']['url']
 
     def delete_images(self, file_ids):
@@ -86,10 +85,10 @@ class ImagekitIoStorage(Storage):
             error = self.imagekit.delete_file(file_id).get('error')
             if error is not None:
                 logger.warning(
-                    f"Could not delete image file with fileId: {file_id}. Error response: {error}")
+                    "Could not delete image file with fileId: %s. Error response: %s", file_id, error)
         except RequestException:
             logger.warning(
-                f"Could not delete image file with fileId: {file_id}.", exc_info=True)
+                "Could not delete image file with fileId: %s.", file_id, exc_info=True)
 
     def _get_file_id(self, url):
         filename = os.path.basename(url)
