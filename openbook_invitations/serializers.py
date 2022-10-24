@@ -96,14 +96,14 @@ class SearchUserInvitesSerializer(serializers.Serializer):
 
 
 class DeleteUserInviteSerializer(serializers.Serializer):
-    invite_id = serializers.IntegerField(
+    invite_id = serializers.UUIDField(
         validators=[invite_id_exists],
         required=True,
     )
 
 
 class EditUserInviteSerializer(serializers.Serializer):
-    invite_id = serializers.IntegerField(
+    invite_id = serializers.UUIDField(
         validators=[check_invite_not_used, invite_id_exists],
         required=True,
     )
@@ -115,7 +115,7 @@ class EditUserInviteSerializer(serializers.Serializer):
 
 class EmailUserInviteSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
-    invite_id = serializers.IntegerField(
+    invite_id = serializers.UUIDField(
         validators=[check_invite_not_used, invite_id_exists],
         required=True,
     )
