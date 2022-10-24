@@ -1,7 +1,7 @@
 [
   {
     "model": "openbook_common.Emoji",
-    "pk": 1,
+    "pk": "6d3f88b8-c2dd-4f77-a58a-c7defa8244d4",
     "fields": {
       "order": 9,
       "group_id": 2,
@@ -21,7 +21,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 2,
+    "pk": "42b008b5-d05c-4882-b4c5-2d2590b44c28",
     "fields": {
       "group_id": 2,
       "order": 8,
@@ -41,7 +41,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 4,
+    "pk": "612f4f6c-cf7a-4074-a3d1-9c1f9a91efaf",
     "fields": {
       "group_id": 1,
       "order": 1,
@@ -61,7 +61,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 5,
+    "pk": "bf1a8328-91f3-4260-9c76-1c4c2091b304",
     "fields": {
       "group_id": 1,
       "order": 4,
@@ -81,7 +81,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 6,
+    "pk": "abbaa77f-67ae-421c-8ff0-00b7c607904f",
     "fields": {
       "group_id": 2,
       "order": 7,
@@ -101,7 +101,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 7,
+    "pk": "bf30ca27-5d98-41ad-8892-90249a6322ad",
     "fields": {
       "group_id": 2,
       "order": 6,
@@ -121,7 +121,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 8,
+    "pk": "07e85b84-4da2-43e7-99f8-c506731e7e41",
     "fields": {
       "group_id": 1,
       "order": 5,
@@ -141,7 +141,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 3,
+    "pk": "da502e3c-1fb5-4b09-b342-a2f57c0680cf",
     "fields": {
       "group_id": 1,
       "order": 3,
@@ -161,7 +161,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 10,
+    "pk": "4fb91608-f791-422c-80de-5d34c239eeb5",
     "fields": {
       "group_id": 1,
       "order": 2,
@@ -181,7 +181,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 11,
+    "pk": "61946ca0-766c-41d5-9115-a583adedfdc2",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -201,7 +201,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 12,
+    "pk": "38f6feda-ace1-4980-8cc1-8e6d00c774af",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -221,7 +221,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 13,
+    "pk": "8631450f-8629-488a-a617-baeb1806a019",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -234,7 +234,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 14,
+    "pk": "7a0420d2-36c5-4b51-af3c-55d334cb3f04",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -254,7 +254,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 15,
+    "pk": "99599f7d-88b0-40d6-97f6-ad5fc08b3ea1",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -274,7 +274,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 16,
+    "pk": "4467551f-b53d-42ea-b6f4-04bfebca08e8",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -294,7 +294,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 17,
+    "pk": "1b45d8de-ad09-48b7-ae96-e66d629885f2",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -314,7 +314,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 18,
+    "pk": "bd12aeaf-b768-497f-9346-ac8b67230357",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -334,7 +334,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 19,
+    "pk": "bfe16df9-ea38-4405-9207-6ab18dc097f6",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -354,7 +354,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 20,
+    "pk": "43fab761-f6b4-4fe8-b653-b508d55da00f",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -374,7 +374,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 21,
+    "pk": "4334c9b1-9a90-406c-961e-efc3bc989822",
     "fields": {
       "group_id": 2,
       "order": 2,
@@ -394,7 +394,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 22,
+    "pk": "791685fb-deff-4a26-abed-39def9469a78",
     "fields": {
       "group_id": 1,
       "order": 98,
@@ -414,7 +414,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 23,
+    "pk": "92dcd97e-e9f6-4803-940f-c26f2dc21d4b",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -434,7 +434,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 24,
+    "pk": "fd379479-50bc-460f-8158-bb1754ac563c",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -454,7 +454,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 25,
+    "pk": "334fa75c-132c-411e-ad04-7a04e9738413",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -474,7 +474,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 26,
+    "pk": "474b2192-8dc7-46eb-aba4-ba65f9413cf8",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -494,7 +494,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 27,
+    "pk": "f38a0bc4-ec1c-4766-a700-3d9e8688f267",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -514,7 +514,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 28,
+    "pk": "8de0c28d-7a46-4525-aa10-291156f43429",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -534,7 +534,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 29,
+    "pk": "dd2c8268-1b2b-401f-a25b-f16f962388d9",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -554,7 +554,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 30,
+    "pk": "473fd053-031c-4c33-af46-f7e6a65e2b81",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -574,7 +574,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 31,
+    "pk": "ee588596-dcdc-4786-b40c-37bad0294397",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -594,7 +594,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 32,
+    "pk": "efec5343-be33-44b1-8f92-90a487f70394",
     "fields": {
       "group_id": 2,
       "order": 2,
@@ -614,7 +614,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 33,
+    "pk": "a834af6c-9c00-4662-a3e3-caa2cb436e4f",
     "fields": {
       "group_id": 2,
       "order": 2,
@@ -634,7 +634,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 34,
+    "pk": "a6980ab3-f963-4b97-9430-4ed0b0ded874",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -654,7 +654,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 35,
+    "pk": "5bed57ea-0f03-4d3a-9f7b-70c4141d2a83",
     "fields": {
       "group_id": 2,
       "order": 2,
@@ -674,7 +674,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 36,
+    "pk": "f53d9e2d-feb0-4908-8b6d-f02e22fc18b3",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -694,7 +694,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 37,
+    "pk": "5d1540c8-333c-41b5-93b9-e82c5487c938",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -714,7 +714,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 38,
+    "pk": "b810c106-e4fb-41bc-9726-67378ed7c0c5",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -734,7 +734,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 39,
+    "pk": "a579d220-dbd7-410a-8484-5f4015fddb5e",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -754,7 +754,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 40,
+    "pk": "434fdd17-50a9-4d3c-92fe-e0c308081275",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -774,7 +774,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 41,
+    "pk": "c4803a40-f987-4096-af2f-9fcb1f430899",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -794,7 +794,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 42,
+    "pk": "39c779d1-30e4-4b1f-bfb4-a1dc15cbd544",
     "fields": {
       "group_id": 3,
       "order": 2,
@@ -814,7 +814,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 43,
+    "pk": "bc2d57b1-dad8-46cc-b54f-844ae34617dc",
     "fields": {
       "group_id": 1,
       "order": 99,
@@ -834,7 +834,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 44,
+    "pk": "31042a68-f45e-40e4-9b9d-cb79d692a16b",
     "fields": {
       "group_id": 2,
       "order": 100,
@@ -854,7 +854,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 45,
+    "pk": "09eaa044-02a5-4a38-afce-9b69f2427802",
     "fields": {
       "group_id": 2,
       "order": 100,
@@ -874,7 +874,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 46,
+    "pk": "a30e7850-5b9f-4109-bf68-d0959f43cba2",
     "fields": {
       "group_id": 1,
       "order": 96,
@@ -894,7 +894,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 47,
+    "pk": "bd8c75c2-13b2-412e-b3cc-b849b93c11d8",
     "fields": {
       "group_id": 2,
       "order": 100,
@@ -914,7 +914,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 48,
+    "pk": "bc89a8b0-b2ce-433f-a67f-6e37ad73feba",
     "fields": {
       "group_id": 1,
       "order": 100,
@@ -934,7 +934,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 49,
+    "pk": "86c9df40-f5f3-48f2-b55c-91dbe0b7b536",
     "fields": {
       "group_id": 1,
       "order": 100,
@@ -954,7 +954,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 50,
+    "pk": "d9e0fc79-d156-4602-9ea5-07a3a76dfe6f",
     "fields": {
       "group_id": 2,
       "order": 2,
@@ -974,7 +974,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 51,
+    "pk": "90404a2a-dc0a-421f-b6cb-5f66b11ece4e",
     "fields": {
       "group_id": 2,
       "order": 200,
@@ -994,7 +994,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 52,
+    "pk": "0002c236-e879-4c65-89ac-efae19744c06",
     "fields": {
       "group_id": 2,
       "order": 200,
@@ -1014,7 +1014,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 53,
+    "pk": "21ed81cc-698c-4c5b-8657-ef254b298c3b",
     "fields": {
       "group_id": 2,
       "order": 200,
@@ -1034,7 +1034,7 @@
   },
   {
     "model": "openbook_common.Emoji",
-    "pk": 54,
+    "pk": "50a2db8f-8ca5-49a6-b6b6-93c7f803da02",
     "fields": {
       "group_id": 3,
       "order": 200,

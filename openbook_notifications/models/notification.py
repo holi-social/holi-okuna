@@ -48,7 +48,7 @@ class Notification(ModelWithUUID):
 
     # Generic relation types
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
+    object_id = models.CharField(max_length=36)
     content_object = GenericForeignKey()
 
     @classmethod
@@ -60,8 +60,8 @@ class Notification(ModelWithUUID):
         return [a for (a, b) in Notification.NOTIFICATION_TYPES]
 
     def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id and not self.created:
+        """ On save, update timestamps """
+        if not self.created:
             self.created = timezone.now()
 
         return super(Notification, self).save(*args, **kwargs)

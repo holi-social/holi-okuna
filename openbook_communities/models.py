@@ -477,8 +477,8 @@ class Community(ModelWithUUID):
                                                                     source_user=source_user)
 
     def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id:
+        """ On save, update timestamps """
+        if not self.created:
             self.created = timezone.now()
 
         self.name = self.name.lower()
@@ -548,8 +548,8 @@ class CommunityMembership(ModelWithUUID):
         return membership
 
     def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id:
+        """ On save, update timestamps """
+        if not self.created:
             self.created = timezone.now()
         return super(CommunityMembership, self).save(*args, **kwargs)
 
@@ -590,8 +590,8 @@ class CommunityLog(ModelWithUUID):
                                   target_user=target_user, post=post)
 
     def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id:
+        """ On save, update timestamps """
+        if not self.created:
             self.created = timezone.now()
         return super(CommunityLog, self).save(*args, **kwargs)
 

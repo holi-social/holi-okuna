@@ -548,8 +548,8 @@ class Post(ModelWithUUID):
         return self.media.exists()
 
     def save(self, *args, **kwargs):
-        ''' On create, update timestamps '''
-        if not self.id and not self.created:
+        """ On create, update timestamps """
+        if not self.created:
             self.created = timezone.now()
 
         self.modified = timezone.now()
@@ -821,8 +821,8 @@ class TopPost(ModelWithUUID):
     created = models.DateTimeField(editable=False, db_index=True)
 
     def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id:
+        """ On save, update timestamps """
+        if not self.created:
             self.created = timezone.now()
         self.modified = timezone.now()
 
@@ -834,8 +834,8 @@ class TrendingPost(ModelWithUUID):
     created = models.DateTimeField(editable=False, db_index=True)
 
     def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id:
+        """ On save, update timestamps """
+        if not self.created:
             self.created = timezone.now()
         self.modified = timezone.now()
 
@@ -852,8 +852,8 @@ class TopPostCommunityExclusion(ModelWithUUID):
         unique_together = ('user', 'community',)
 
     def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id:
+        """ On save, update timestamps """
+        if not self.created:
             self.created = timezone.now()
         self.modified = timezone.now()
 
@@ -870,8 +870,8 @@ class ProfilePostsCommunityExclusion(ModelWithUUID):
         unique_together = ('user', 'community',)
 
     def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id:
+        """ On save, update timestamps """
+        if not self.created:
             self.created = timezone.now()
         self.modified = timezone.now()
 
@@ -894,7 +894,7 @@ class PostMedia(OrderedModel):
 
     # Generic relation types
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
+    object_id = models.CharField(max_length=36)
     content_object = GenericForeignKey()
 
     @classmethod
@@ -1061,8 +1061,8 @@ class PostComment(ModelWithUUID):
         return PostCommentReaction.create_reaction(reactor=reactor, emoji_id=emoji_id, post_comment=self)
 
     def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id:
+        """ On save, update timestamps """
+        if not self.created:
             self.created = timezone.now()
 
         self.modified = timezone.now()
@@ -1238,8 +1238,8 @@ class PostReaction(ModelWithUUID):
         return cls.objects.filter(count_query).count()
 
     def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id:
+        """ On save, update timestamps """
+        if not self.created:
             self.created = timezone.now()
         return super(PostReaction, self).save(*args, **kwargs)
 
@@ -1267,8 +1267,8 @@ class PostCommentReaction(ModelWithUUID):
         return cls.objects.filter(count_query).count()
 
     def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id:
+        """ On save, update timestamps """
+        if not self.created:
             self.created = timezone.now()
         return super(PostCommentReaction, self).save(*args, **kwargs)
 

@@ -85,8 +85,9 @@ class Circle(ModelWithUUID):
             circles__id=self.id).count()
 
     def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id:
+        """ On save, update timestamps """
+        print("Circle Save: {} - {}".format(self.id, self.created))
+        if not self.created:
             self.created = timezone.now()
         return super(Circle, self).save(*args, **kwargs)
 

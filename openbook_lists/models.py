@@ -49,7 +49,7 @@ class List(ModelWithUUID):
         return self.follows.count()
 
     def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id:
+        """ On save, update timestamps """
+        if not self.created:
             self.created = timezone.now()
         return super(List, self).save(*args, **kwargs)

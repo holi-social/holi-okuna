@@ -33,6 +33,6 @@ class Device(ModelWithUUID):
         self.save()
 
     def save(self, *args, **kwargs):
-        if not self.id:
+        if not self.created:
             self.created = timezone.now()
         return super(Device, self).save(*args, **kwargs)

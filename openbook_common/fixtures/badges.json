@@ -1,7 +1,7 @@
 [
   {
     "model": "openbook_common.Badge",
-    "pk": 1,
+    "pk": "ead127a9-1ffc-4464-97e4-d7d2d47d19fd",
     "fields": {
       "keyword": "VERIFIED",
       "keyword_description_es": "Verified",
@@ -12,7 +12,7 @@
   },
   {
     "model": "openbook_common.Badge",
-    "pk": 2,
+    "pk": "10b06871-715c-43f4-8ff8-365700969bc4",
     "fields": {
       "keyword": "SUPER_FOUNDER",
       "keyword_description_es": "Okuna Super Founder",
@@ -23,7 +23,7 @@
   },
   {
     "model": "openbook_common.Badge",
-    "pk": 3,
+    "pk": "046df463-7ad1-4f00-8d56-33f5ed0dc960",
     "fields": {
       "keyword": "DIAMOND_FOUNDER",
       "keyword_description_es": "Okuna Diamond Founder",
@@ -34,7 +34,7 @@
   },
   {
     "model": "openbook_common.Badge",
-    "pk": 4,
+    "pk": "5dcb366d-2db4-48de-8971-8597c17b4488",
     "fields": {
       "keyword": "GOLDEN_FOUNDER",
       "keyword_description_es": "Okuna Golden Founder",
@@ -45,7 +45,7 @@
   },
   {
     "model": "openbook_common.Badge",
-    "pk": 5,
+    "pk": "863ff478-1cb9-4320-9dba-6827026352e2",
     "fields": {
       "keyword": "FOUNDER",
       "keyword_description_es": "Okuna Founder",
@@ -56,7 +56,7 @@
   },
   {
     "model": "openbook_common.Badge",
-    "pk": 6,
+    "pk": "d0616eed-59d0-40b0-a4c1-fc0d140c1cc2",
     "fields": {
       "keyword": "ANGEL",
       "keyword_description_es": "Okuna Angel",

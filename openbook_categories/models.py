@@ -34,7 +34,7 @@ class Category(ModelWithUUID):
         return category
 
     def save(self, *args, **kwargs):
-        if not self.id:
+        if not self.created:
             self.created = timezone.now()
         return super(Category, self).save(*args, **kwargs)
 

@@ -83,7 +83,7 @@ class Hashtag(ModelWithUUID):
         return '#%s' % self.name
 
     def save(self, *args, **kwargs):
-        if not self.id:
+        if not self.created:
             self.created = timezone.now()
 
         self.full_clean()

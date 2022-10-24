@@ -15,8 +15,13 @@ from openbook_common.validators import hex_color_validator
 import tldextract
 
 
+def uuid_as_str():
+    return str(uuid.uuid4())
+
+
 class ModelWithUUID(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True, db_index=True)
+    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.CharField(primary_key=True, default=uuid_as_str, editable=False, max_length=36)
 
     class Meta:
         abstract = True
@@ -34,8 +39,8 @@ class EmojiGroup(ModelWithUUID):
         return 'EmojiGroup: ' + self.keyword
 
     def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id:
+        """ On save, update timestamps """
+        if not self.created:
             self.created = timezone.now()
         return super(EmojiGroup, self).save(*args, **kwargs)
 
@@ -87,8 +92,8 @@ class Emoji(ModelWithUUID):
         return 'Emoji: ' + self.keyword
 
     def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id:
+        """ On save, update timestamps """
+        if not self.created:
             self.created = timezone.now()
         return super(Emoji, self).save(*args, **kwargs)
 
@@ -99,7 +104,7 @@ class Badge(ModelWithUUID):
     created = models.DateTimeField(editable=False)
 
     def save(self, *args, **kwargs):
-        if not self.id:
+        if not self.created:
             self.created = timezone.now()
         return super(Badge, self).save(*args, **kwargs)
 
@@ -113,7 +118,7 @@ class Language(ModelWithUUID):
         return 'Language: ' + self.code
 
     def save(self, *args, **kwargs):
-        if not self.id:
+        if not self.created:
             self.created = timezone.now()
         return super(Language, self).save(*args, **kwargs)
 

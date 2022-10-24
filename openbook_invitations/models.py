@@ -90,7 +90,7 @@ class UserInvite(ModelWithUUID):
             )
 
     def save(self, *args, **kwargs):
-        if not self.id:
+        if not self.created:
             self.created = timezone.now()
         return super(UserInvite, self).save(*args, **kwargs)
 

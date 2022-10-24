@@ -34,8 +34,8 @@ class ModerationCategory(ModelWithUUID):
     severity = models.CharField(max_length=5, choices=SEVERITIES)
 
     def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id and not self.created:
+        """ On save, update timestamps """
+        if not self.created:
             self.created = timezone.now()
 
         return super(ModerationCategory, self).save(*args, **kwargs)
@@ -83,7 +83,7 @@ class ModeratedObject(ModelWithUUID):
 
     # Generic relation types
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
+    object_id = models.CharField(max_length=36)
     content_object = GenericForeignKey()
 
     class Meta:
@@ -397,7 +397,7 @@ class ModeratedObjectLog(ModelWithUUID):
 
     # Generic relation types
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
+    object_id = models.CharField(max_length=36)
     content_object = GenericForeignKey()
 
     moderated_object = models.ForeignKey(ModeratedObject, on_delete=models.CASCADE, related_name='logs')
@@ -410,8 +410,8 @@ class ModeratedObjectLog(ModelWithUUID):
                                   actor_id=actor_id)
 
     def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id and not self.created:
+        """ On save, update timestamps """
+        if not self.created:
             self.created = timezone.now()
 
         return super(ModeratedObjectLog, self).save(*args, **kwargs)
