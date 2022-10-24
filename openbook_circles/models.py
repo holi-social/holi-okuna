@@ -46,6 +46,11 @@ class Circle(ModelWithUUID):
         return circle
 
     @classmethod
+    def create_world_circle(cls):
+        circle = cls.objects.create(name="World", color="#023ca7", id=settings.WORLD_CIRCLE_ID)
+        return circle
+
+    @classmethod
     def bootstrap_circles_for_user(cls, user):
         user_connections_circle = cls.create_circle(name=_('Connections'), color='#FFFFFF', creator=user)
         user.connections_circle = user_connections_circle
@@ -61,7 +66,12 @@ class Circle(ModelWithUUID):
 
     @classmethod
     def get_world_circle(cls):
-        return Circle.objects.get(pk=cls.get_world_circle_id())
+        try:
+            return Circle.objects.get(pk=cls.get_world_circle_id())
+        except (Circle.DoesNotExist):
+            return cls.create_world_circle()
+
+
 
     @classmethod
     def get_world_circle_id(cls):
@@ -86,7 +96,6 @@ class Circle(ModelWithUUID):
 
     def save(self, *args, **kwargs):
         """ On save, update timestamps """
-        print("Circle Save: {} - {}".format(self.id, self.created))
         if not self.created:
             self.created = timezone.now()
         return super(Circle, self).save(*args, **kwargs)
