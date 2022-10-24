@@ -172,6 +172,7 @@ INSTALLED_APPS = [
     'openbook_devices',
     'openbook_moderation',
     'openbook_translation',
+    'openbook_spaces',
 ]
 
 MODELTRANSLATION_FALLBACK_LANGUAGES = ('en',)
@@ -702,3 +703,5 @@ IMAGEKIT_URL = os.environ.get('IMAGEKIT_URL', 'https://ik.imagekit.io/holi')
 
 INSIGHT_TITLE_MAX_LENGTH = 128
 IMAGE_URL_MAX_LENGTH = 500
+
+SPACE_TITLE_MAX_LENGTH = 128
