@@ -189,10 +189,9 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(
-            PostCommentReaction.objects.filter(post_comment_id=connected_user_post.pk,
+        self.assertEqual(PostCommentReaction.objects.filter(post_comment_id=connected_user_post.pk,
                                                emoji_id=post_comment_reaction_emoji_id,
-                                               reactor_id=user.pk).count() == 1)
+                                               reactor_id=user.pk).count(), 1)
 
     def test_cannot_react_to_connected_user_encircled_post_comment_not_part_of(self):
         """
@@ -250,10 +249,9 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(
-            PostCommentReaction.objects.filter(post_comment_id=foreign_user_post.pk,
+        self.assertEqual(PostCommentReaction.objects.filter(post_comment_id=foreign_user_post.pk,
                                                emoji_id=post_comment_reaction_emoji_id,
-                                               reactor_id=user.pk).count() == 1)
+                                               reactor_id=user.pk).count(), 1)
 
     def test_cannot_react_to_followed_user_encircled_post_comment(self):
         """

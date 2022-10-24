@@ -79,7 +79,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         user = make_user()
 
         post_creator = make_user()
-        circle = make_user()
+        circle = make_user().connections_circle.pk
 
         post_creator.connect_with_user_with_id(user.pk)
         user.confirm_connection_with_user_with_id(post_creator.pk)
@@ -109,7 +109,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         user = make_user()
 
         post_creator = make_user()
-        circle = make_user()
+        circle = make_user().connections_circle.pk
 
         commenter = make_user()
 
@@ -1111,7 +1111,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
             should update language of comment when editing post comment
         """
         Language = get_language_model()
-        get_language_for_text_call.return_value = Language.objects.get(id=1)
+        get_language_for_text_call.return_value = Language.objects.get(code="en")
         user = make_user()
         post = user.create_public_post(text=make_fake_post_text())
         original_post_comment_text = make_fake_post_comment_text()

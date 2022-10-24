@@ -2031,7 +2031,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
             'count_min': count_min
         }, **headers)
         parsed_response = json.loads(response.content)
-        response_ids = [int(reply['id']) for reply in parsed_response]
+        response_ids = [reply['id'] for reply in parsed_response]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(len(parsed_response) == (count_max + count_min))
@@ -2074,7 +2074,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
             'sort': 'ASC'
         }, **headers)
         parsed_response = json.loads(response.content)
-        response_ids = [int(reply['id']) for reply in parsed_response]
+        response_ids = [reply['id'] for reply in parsed_response]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(len(parsed_response) == (count_max + count_min))

@@ -810,7 +810,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         should update language when editing own  post and return 200
         """
         Language = get_language_model()
-        get_language_for_text_call.return_value = Language.objects.get(pk=1)
+        get_language_for_text_call.return_value = Language.objects.get(code='en')
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())

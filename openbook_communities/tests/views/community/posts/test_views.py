@@ -835,7 +835,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         }
         response = self.client.put(url, data, **headers, format='multipart')
 
-        # notification should only be for community susbcribed to
+        # notification should only be for community subscribed to
         self.assertEqual(CommunityNewPostNotification.objects.filter(
             notification__owner_id=user.pk,
             notification__notification_type=Notification.COMMUNITY_NEW_POST).count(), 1)
