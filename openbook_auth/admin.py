@@ -18,8 +18,7 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = ('username', 'email', 'full_name')
 
     exclude = ('password',)
-    list_display = ('username', 'email',
-                    'full_name')
+    list_display = ('username', 'email', 'full_name')
 
     def full_name(self, object):
         if object.profile.name is None:
