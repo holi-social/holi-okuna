@@ -12,6 +12,7 @@ from openbook_auth.images import store_avatar, delete_avatar
 
 from openbook_insights.models import Insight as InsightModel
 from openbook_posts.models import Post as PostModel
+from openbook_spaces.models import Space as SpaceModel
 
 
 # noinspection PyUnresolvedReferences
@@ -98,6 +99,11 @@ class Insight(DjangoObjectType):
         model = InsightModel
 
 
+class Space(DjangoObjectType):
+    class Meta:
+        model = SpaceModel
+
+
 class Post(DjangoObjectType):
     class Meta:
         model = PostModel
@@ -115,6 +121,8 @@ class Query(graphene.ObjectType):
     user_suggestions = graphene.List(User, numberOfItems=graphene.Int())
     last_insights = graphene.List(Insight, numberOfItems=graphene.Int())
     insight_by_id = graphene.Field(Insight, id=graphene.String())
+    spaces = graphene.List(Space, offset=graphene.Int(default_value=0), limit=graphene.Int(default_value=5))
+    space_by_id = graphene.Field(Space, id=graphene.String())
 
     def resolve_authenticated_user(self, info):
         if info.context.user.is_anonymous:
@@ -144,7 +152,17 @@ class Query(graphene.ObjectType):
             raise GraphQLError('Insight not found', extensions={
                 "code": ErrorCodes.NOT_FOUND
             })
+    
+    def resolve_spaces(self, info, offset=graphene.Int(), limit=graphene.Int()):
+        return SpaceModel.objects.order_by('-created')[offset:offset+limit]
 
+    def resolve_space_by_id(self, info, id):
+        try:
+            return SpaceModel.objects.get(id=id)
+        except SpaceModel.DoesNotExist:
+            raise GraphQLError('Space not found', extensions={
+                "code": ErrorCodes.NOT_FOUND
+            })
 
 class UpdateAuthenticatedUserInput(graphene.InputObjectType):
     avatar = Upload(required=False)
