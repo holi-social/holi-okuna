@@ -15,7 +15,7 @@ class UserAdmin(admin.ModelAdmin):
     inlines = [
         UserProfileInline,
     ]
-    search_fields = ('username', 'email', 'full_name')
+    search_fields = ('username', 'email')
 
     exclude = ('password',)
     list_display = ('username', 'email', 'full_name')
