@@ -1,6 +1,6 @@
 import graphene
 from datetime import datetime
-from django.db import Error
+from django.db import Error, transaction
 from graphene_django import DjangoObjectType
 from graphql import GraphQLError
 from graphene_file_upload.scalars import Upload
@@ -11,11 +11,17 @@ from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_auth.images import store_avatar, delete_avatar
 
 from openbook_insights.models import Insight as InsightModel
-from openbook_posts.models import Post as PostModel
+from openbook_posts.models import Post as PostModel, PostComment as PostCommentModel
+from openbook_posts.views.post_comments.serializers import CommentPostSerializer
+from openbook_posts.views.post_comments.views import get_post_id_for_post_uuid
 from openbook_spaces.models import Space as SpaceModel
 
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 # noinspection PyUnresolvedReferences
+
 
 class ErrorCodes:
     NOT_FOUND = 'NOT_FOUND'
@@ -115,13 +121,19 @@ class Post(DjangoObjectType):
         return self.uuid
 
 
+class PostComment(DjangoObjectType):
+    class Meta:
+        model = PostCommentModel
+
+
 class Query(graphene.ObjectType):
     authenticated_user = graphene.Field(User)
     user_by_id = graphene.Field(User, id=graphene.String())
     user_suggestions = graphene.List(User, numberOfItems=graphene.Int())
     last_insights = graphene.List(Insight, numberOfItems=graphene.Int())
     insight_by_id = graphene.Field(Insight, id=graphene.String())
-    spaces = graphene.List(Space, offset=graphene.Int(default_value=0), limit=graphene.Int(default_value=5))
+    spaces = graphene.List(Space, offset=graphene.Int(
+        default_value=0), limit=graphene.Int(default_value=5))
     space_by_id = graphene.Field(Space, id=graphene.String())
 
     def resolve_authenticated_user(self, info):
@@ -152,7 +164,7 @@ class Query(graphene.ObjectType):
             raise GraphQLError('Insight not found', extensions={
                 "code": ErrorCodes.NOT_FOUND
             })
-    
+
     def resolve_spaces(self, info, offset=graphene.Int(), limit=graphene.Int()):
         return SpaceModel.objects.order_by('-created')[offset:offset+limit]
 
@@ -163,6 +175,7 @@ class Query(graphene.ObjectType):
             raise GraphQLError('Space not found', extensions={
                 "code": ErrorCodes.NOT_FOUND
             })
+
 
 class UpdateAuthenticatedUserInput(graphene.InputObjectType):
     avatar = Upload(required=False)
@@ -275,9 +288,45 @@ class UpdateConnectionWithUserMutation(graphene.Mutation):
         return UpdateConnectionWithUserMutation(user_by_id=userToUpdateConnection)
 
 
+class CreatePostCommentInput(graphene.InputObjectType):
+    post_uuid = graphene.String()
+    text = graphene.String()
+
+
+class CreatePostCommentMutation(graphene.Mutation):
+    class Arguments:
+        input = graphene.Argument(CreatePostCommentInput)
+
+    post_comment = graphene.Field(PostComment)
+
+    @classmethod
+    def mutate(cls, root, info, input):
+        if info.context.user.is_anonymous:
+            raise GraphQLError('Unauthorized', extensions={
+                "code": ErrorCodes.UNAUTHORIZED
+            })
+
+        serializer = CommentPostSerializer(data=input)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        comment_text = data.get('text')
+        post_uuid = data.get('post_uuid')
+        post_id = get_post_id_for_post_uuid(post_uuid)
+
+        authenticated_user = info.context.user
+
+        with transaction.atomic():
+            post_comment = authenticated_user.comment_post_with_id(
+                post_id=post_id, text=comment_text)
+
+        return CreatePostCommentMutation(post_comment=post_comment)
+
+
 class Mutation(graphene.ObjectType):
     update_authenticated_user = UpdateAuthenticatedUserMutation.Field()
     update_connection_with_user = UpdateConnectionWithUserMutation.Field()
+    update_post_comment = CreatePostCommentMutation.Field()
 
 
 # noinspection PyTypeChecker

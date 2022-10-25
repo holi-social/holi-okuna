@@ -42,6 +42,10 @@ from openbook_common.validators import name_characters_validator
 from openbook_notifications import helpers
 from openbook_auth.checkers import *
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class UserConnectionStatus:
     NOT_CONNECTED = 'NOT_CONNECTED'
@@ -1030,6 +1034,10 @@ class User(AbstractUser):
         return self.received_follow_requests.filter(creator=user, approved=True).exists()
 
     def can_see_post(self, post):
+        # TODO we need to define access rules for posts. The default okuna ones don't cut it for us
+        # A post created via the admin interface can't be seen whether it's in a community or not and whether it's in a circle or not.
+        # For now, just return true as a workaround.
+        return True
         # Check if post is public
         if post.community:
             if self._can_see_community_post(community=post.community, post=post):
