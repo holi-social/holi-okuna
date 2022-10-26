@@ -3869,9 +3869,6 @@ class User(AbstractUser):
         posts_query.add(~Q(Q(creator__blocked_by_users__blocker_id=self.pk) | Q(
             creator__user_blocks__blocked_user_id=self.pk)), Q.AND)
 
-        if max_id:
-            posts_query.add(Q(id__lt=max_id), Q.AND)
-
         posts_query.add(
             ~Q(moderated_object__reports__reporter_id=self.pk), Q.AND)
         
