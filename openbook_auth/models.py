@@ -1034,10 +1034,6 @@ class User(AbstractUser):
         return self.received_follow_requests.filter(creator=user, approved=True).exists()
 
     def can_see_post(self, post):
-        # TODO we need to define access rules for posts. The default okuna ones don't cut it for us
-        # A post created via the admin interface can't be seen whether it's in a community or not and whether it's in a circle or not.
-        # For now, just return true as a workaround.
-        return True
         # Check if post is public
         if post.community:
             if self._can_see_community_post(community=post.community, post=post):
@@ -3856,8 +3852,29 @@ class User(AbstractUser):
 
         return blocked_users_query
 
-    def _make_get_post_with_id_query_for_user(self, user, post_id):
-        posts_query = self._make_get_posts_query_for_user(user)
+    def _make_get_post_with_id_query(self, post_id):
+
+        Post = get_post_model()
+
+        posts_query = Q(is_deleted=False, status=Post.STATUS_PUBLISHED)
+
+        world_circle_id = self._get_world_circle_id()
+
+        posts_circles_query = Q(circles__id=world_circle_id)
+
+        posts_circles_query.add(Q(circles__connections__target_user_id=self.pk,
+                                  circles__connections__target_connection__circles__isnull=False), Q.OR)
+
+        posts_query.add(posts_circles_query, Q.AND)
+        posts_query.add(~Q(Q(creator__blocked_by_users__blocker_id=self.pk) | Q(
+            creator__user_blocks__blocked_user_id=self.pk)), Q.AND)
+
+        if max_id:
+            posts_query.add(Q(id__lt=max_id), Q.AND)
+
+        posts_query.add(
+            ~Q(moderated_object__reports__reporter_id=self.pk), Q.AND)
+        
         posts_query.add(Q(id=post_id), Q.AND)
         return posts_query
 
@@ -3924,8 +3941,7 @@ class User(AbstractUser):
                           algorithm=settings.JWT_ALGORITHM).decode('utf-8')
 
     def _can_see_post(self, post):
-        post_query = self._make_get_post_with_id_query_for_user(
-            post.creator, post_id=post.pk)
+        post_query = self._make_get_post_with_id_query(post_id=post.pk)
 
         Post = get_post_model()
         profile_posts = Post.objects.filter(post_query)
