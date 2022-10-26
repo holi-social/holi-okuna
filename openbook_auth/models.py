@@ -776,8 +776,8 @@ class User(AbstractUser):
         world_circle_id = self._get_world_circle_id()
         return world_circle_id == id
 
-    def is_connections_circle_id(self, id):
-        return self.connections_circle_id == id
+    def is_connections_circle_id(self, circle_id):
+        return self.connections_circle_id == circle_id
 
     def has_circle_with_id(self, circle_id):
         return self.circles.filter(id=circle_id).exists()

@@ -1,6 +1,7 @@
 # Create your tests here.
 import json
 import random
+import unittest
 from unittest import mock
 from unittest.mock import ANY
 
@@ -1932,6 +1933,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         for comment in comment_replies:
             self.assertTrue(comment.pk in response_ids)
 
+    @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_retrieve_comment_replies_less_than_max_id_on_post(self):
         """
         should retrieve comment replies less than max id for post if param is present
@@ -1965,6 +1967,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         for returned_id in response_ids:
             self.assertTrue(returned_id < max_id)
 
+    @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_retrieve_comment_replies_greater_than_or_equal_to_min_id(self):
         """
         should retrieve comment replies greater than or equal to min_id for post if param is present
@@ -1998,6 +2001,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         for returned_id in response_ids:
             self.assertTrue(returned_id >= min_id)
 
+    @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_retrieve_comment_replies_slice_for_min_id_and_max_id(self):
         """
         should retrieve comment replies slice for post comments taking into account min_id and max_id
@@ -2040,6 +2044,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         self.assertTrue(len(replies_after_min_id) == count_min)
         self.assertTrue(len(replies_before_max_id) == count_max)
 
+    @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_retrieve_comment_replies_slice_with_sort_for_min_id_and_max_id(self):
         """
         should retrieve comment replies slice sorted ascending for post comments taking into account min_id and max_id

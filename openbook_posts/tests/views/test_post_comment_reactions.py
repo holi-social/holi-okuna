@@ -189,7 +189,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(PostCommentReaction.objects.filter(post_comment_id=connected_user_post.pk,
+        self.assertEqual(PostCommentReaction.objects.filter(post_comment_id=connected_user_post_comment.pk,
                                                emoji_id=post_comment_reaction_emoji_id,
                                                reactor_id=user.pk).count(), 1)
 
@@ -249,7 +249,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(PostCommentReaction.objects.filter(post_comment_id=foreign_user_post.pk,
+        self.assertEqual(PostCommentReaction.objects.filter(post_comment_id=foreign_user_post_comment.pk,
                                                emoji_id=post_comment_reaction_emoji_id,
                                                reactor_id=user.pk).count(), 1)
 

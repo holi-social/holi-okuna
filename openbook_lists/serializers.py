@@ -12,17 +12,17 @@ from openbook_lists.validators import list_id_exists
 
 class CreateListSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=LIST_MAX_LENGTH, required=True, allow_blank=False)
-    emoji_id = serializers.UUIDField(validators=[emoji_id_exists])
+    emoji_id = serializers.CharField(max_length=36, validators=[emoji_id_exists])
 
 
 class DeleteListSerializer(serializers.Serializer):
-    list_id = serializers.UUIDField(required=True, validators=[list_id_exists])
+    list_id = serializers.CharField(max_length=36, required=True, validators=[list_id_exists])
 
 
 class UpdateListSerializer(serializers.Serializer):
-    list_id = serializers.UUIDField(required=False, validators=[list_id_exists])
+    list_id = serializers.CharField(max_length=36, required=False, validators=[list_id_exists])
     name = serializers.CharField(max_length=LIST_MAX_LENGTH, required=False, allow_blank=False)
-    emoji_id = serializers.UUIDField(validators=[emoji_id_exists], required=False)
+    emoji_id = serializers.CharField(max_length=36, validators=[emoji_id_exists], required=False)
     usernames = serializers.ListSerializer(
         required=False,
         allow_empty=True,

@@ -1,5 +1,6 @@
 # Create your tests here.
 import random
+import unittest
 
 from django.urls import reverse
 from django.conf import settings
@@ -572,6 +573,7 @@ class JoinedCommunities(OpenbookAPITestCase):
             response_community_id = response_community.get('id')
             self.assertIn(response_community_id, communities_ids)
 
+    @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_retrieve_joined_communities_offset(self):
         """
         should be able to retrieve all own communities with an offset return 200
@@ -1735,6 +1737,7 @@ class SuggestedCommunitiesAPITests(OpenbookAPITestCase):
 
         # create a community with id 1 in case none exists in test db
         community = make_community(creator=user)
+        settings.NEW_USER_SUGGESTED_COMMUNITIES = community.pk
 
         url = self._get_url()
         response = self.client.get(url, **headers)
@@ -1742,7 +1745,7 @@ class SuggestedCommunitiesAPITests(OpenbookAPITestCase):
         retrieved_community = parsed_response[0]
 
         self.assertEqual(len(parsed_response), 1)
-        self.assertEqual(retrieved_community['id'], 1)
+        self.assertEqual(retrieved_community['id'], community.pk)
 
     def _get_url(self):
         return reverse('suggested-communities')

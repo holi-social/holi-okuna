@@ -1,4 +1,5 @@
 import json
+import unittest
 
 from django.urls import reverse
 from faker import Faker
@@ -26,7 +27,7 @@ class NotificationsAPITests(OpenbookAPITestCase):
         notifications_ids = []
 
         for i in range(0, amount_of_notifications):
-            notification = make_notification(owner=user)
+            notification = make_notification(owner=user, notification_type=Notification.POST_COMMENT)
             notifications_ids.append(notification.pk)
 
         url = self._get_url()
@@ -143,6 +144,7 @@ class ReadNotificationsAPITests(OpenbookAPITestCase):
         self.assertTrue(Notification.objects.filter(owner=user, read=True, id__in=notifications_ids).count() == len(
             notifications_ids))
 
+    @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_be_able_to_read_notifications_with_max_id(self):
         """
         should be able to read all notifications with a max_id and return 200
@@ -355,6 +357,7 @@ class UnreadNotificationsCountAPITests(OpenbookAPITestCase):
 
         self.assertTrue(parsed_response['count'] == 5)
 
+    @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_be_able_to_get_unread_notifications_count_with_max_id(self):
         """
         should be able to get all unread notifications count with a max_id and return 200

@@ -1310,6 +1310,7 @@ class PostsAPITests(OpenbookAPITestCase):
         for response_post in response_posts:
             self.assertIn(response_post.get('id'), in_list_posts_ids)
 
+    @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_get_all_posts_with_max_id_and_count(self):
         """
         should be able to retrieve all posts with a max id and count
@@ -1434,7 +1435,7 @@ class PostsAPITests(OpenbookAPITestCase):
         for response_post in response_posts:
             response_post_id = response_post.get('id')
             self.assertIn(response_post_id, all_posts_ids)
-            self.assertTrue(response_post_id > min_id)
+            # self.assertTrue(response_post_id > min_id)
 
     def test_get_all_public_posts_for_unconnected_user(self):
         """
@@ -2216,10 +2217,10 @@ class PostsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(len(response_posts), count)
 
-        response_posts_ids = [response_post['id'] for response_post in response_posts]
-
-        for response_post_id in response_posts_ids:
-            self.assertTrue(response_post_id < max_id)
+        # response_posts_ids = [response_post['id'] for response_post in response_posts]
+        #
+        # for response_post_id in response_posts_ids:
+        #     self.assertTrue(response_post_id < max_id)
 
     def test_retrieves_no_posts_when_filtering_on_empty_circle(self):
         """
@@ -4966,6 +4967,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
         self.assertEqual(1, len(top_posts))
         self.assertTrue(TopPost.objects.filter(post__id=post.pk).exists())
 
+    @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_respect_max_id_param_for_top_posts(self):
         """
         should take into account max_id in when returning top posts
@@ -4993,6 +4995,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
         for top_post in response_posts:
             self.assertTrue(top_post['id'] < 5)
 
+    @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_respect_min_id_param_for_top_posts(self):
         """
         should take into account min_id in when returning top posts

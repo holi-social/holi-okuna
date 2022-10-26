@@ -1,5 +1,7 @@
 # Create your tests here.
 import json
+import unittest
+
 from django.urls import reverse
 from faker import Faker
 from rest_framework import status
@@ -1667,6 +1669,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         for comment in post_comments:
             self.assertTrue(comment.pk in response_ids)
 
+    @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_retrieve_comments_less_than_max_id_on_post(self):
         """
         should retrieve comments less than max id for post if param is present
@@ -1696,6 +1699,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         for returned_id in response_ids:
             self.assertTrue(returned_id < max_id)
 
+    @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_retrieve_comments_greater_than_or_equal_to_min_id(self):
         """
         should retrieve comments greater than or equal to min_id for post if param is present
@@ -1725,6 +1729,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         for returned_id in response_ids:
             self.assertTrue(returned_id >= min_id)
 
+    @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_retrieve_comments_slice_for_min_id_and_max_id(self):
         """
         should retrieve comments slice for post comments taking into account min_id and max_id
@@ -1763,6 +1768,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         self.assertTrue(len(comments_after_min_id) == count_min)
         self.assertTrue(len(comments_before_max_id) == count_max)
 
+    @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_retrieve_comments_slice_with_sort_for_min_id_and_max_id(self):
         """
         should retrieve comments slice sorted ascending for post comments taking into account min_id and max_id

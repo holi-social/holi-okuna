@@ -26,7 +26,7 @@ class ReactToPostSerializer(serializers.Serializer):
         validators=[post_uuid_exists],
         required=True,
     )
-    emoji_id = serializers.UUIDField(
+    emoji_id = serializers.CharField(max_length=36,
         validators=[emoji_id_exists],
         required=True,
     )
@@ -51,7 +51,7 @@ class GetPostReactionsSerializer(serializers.Serializer):
         required=False,
         max_value=20
     )
-    emoji_id = serializers.UUIDField(
+    emoji_id = serializers.CharField(max_length=36,
         validators=[emoji_id_exists],
         required=False,
     )

@@ -1,4 +1,5 @@
 # Create your tests here.
+import unittest
 from unittest import mock
 
 from django.urls import reverse
@@ -168,6 +169,7 @@ class UserInvitesAPITests(OpenbookAPITestCase):
         for invite in parsed_response:
             self.assertIn(invite['id'], pending_invited_ids)
 
+    @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_get_invites_count_offset(self):
         """
         should be able to get invites list with count and offset for user

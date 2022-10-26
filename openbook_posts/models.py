@@ -17,7 +17,6 @@ from django.db.models import Count
 import ffmpy
 
 # Create your views here.
-from ordered_model.models import OrderedModel
 from pilkit.processors import ResizeToFit
 from rest_framework.exceptions import ValidationError
 
@@ -32,7 +31,7 @@ from video_encoding.models import Format
 from openbook.storage_backends import S3PrivateMediaStorage
 from openbook_auth.models import User
 
-from openbook_common.models import Emoji, Language, ModelWithUUID
+from openbook_common.models import Emoji, Language, ModelWithUUID, OrderedModelWithUUID
 from openbook_common.utils.helpers import delete_file_field, sha256sum, extract_usernames_from_string, get_magic, \
     write_in_memory_file_to_disk, extract_hashtags_from_string, normalize_url
 from openbook_common.utils.model_loaders import get_emoji_model, \
@@ -878,7 +877,7 @@ class ProfilePostsCommunityExclusion(ModelWithUUID):
         return super(ProfilePostsCommunityExclusion, self).save(*args, **kwargs)
 
 
-class PostMedia(OrderedModel):
+class PostMedia(OrderedModelWithUUID):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='media')
     order_with_respect_to = 'post'
 

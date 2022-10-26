@@ -8,6 +8,7 @@ from django.db import models
 from django.db.models import QuerySet, Q, Count
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from ordered_model.models import OrderedModel
 
 # Create your views here.
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
@@ -20,6 +21,14 @@ def uuid_as_str():
 
 
 class ModelWithUUID(models.Model):
+    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.CharField(primary_key=True, default=uuid_as_str, editable=False, max_length=36)
+
+    class Meta:
+        abstract = True
+
+
+class OrderedModelWithUUID(OrderedModel):
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     id = models.CharField(primary_key=True, default=uuid_as_str, editable=False, max_length=36)
 
