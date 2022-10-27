@@ -36,7 +36,7 @@ class ImagekitIoStorage(Storage):
         return name
 
     def _open(self, name, mode='rb'):
-        return ContentFile(self.http.request("GET", name))
+        return ContentFile(self.http.request("GET", name).data)
 
     def _save(self, name, content):
         if name.count("/") < 2:
