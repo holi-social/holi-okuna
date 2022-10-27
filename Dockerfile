@@ -23,6 +23,9 @@ RUN chmod +x /entrypoint.sh
 #RUN chmod +x /bootstrap_development_data.sh
 RUN chmod +x /wait-for-it.sh
 
+WORKDIR /opt/okuna-api
+run python manage.py collectstatic
+
 ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 80
