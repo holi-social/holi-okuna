@@ -79,7 +79,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         user = make_user()
 
         post_creator = make_user()
-        circle = make_user().connections_circle
+        circle = post_creator.connections_circle
 
         post_creator.connect_with_user_with_id(user.pk)
         user.confirm_connection_with_user_with_id(post_creator.pk)
@@ -109,7 +109,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         user = make_user()
 
         post_creator = make_user()
-        circle = make_user().connections_circle
+        circle = post_creator.connections_circle
 
         commenter = make_user()
 
