@@ -731,20 +731,21 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         similar_username = fake.user_name()
+        fake_words = fake.words(4, unique=True)
 
-        community_creator = make_user(username=similar_username + fake.word())
+        community_creator = make_user(username=similar_username + fake_words[0])
         community = make_community(creator=community_creator, type='P')
         community_name = community.name
 
-        community_member = make_user(username=similar_username + fake.word())
+        community_member = make_user(username=similar_username + fake_words[1])
         community_member.join_community_with_name(community_name=community_name)
 
-        community_moderator = make_user(username=similar_username + fake.word())
+        community_moderator = make_user(username=similar_username + fake_words[2])
         community_moderator.join_community_with_name(community_name=community_name)
         community_creator.add_moderator_with_username_to_community_with_name(username=community_moderator.username,
                                                                              community_name=community.name)
 
-        community_administrator = make_user(username=similar_username + fake.word())
+        community_administrator = make_user(username=similar_username + fake_words[3])
         community_administrator.join_community_with_name(community_name=community_name)
         community_creator.add_administrator_with_username_to_community_with_name(
             username=community_administrator.username,
