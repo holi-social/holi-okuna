@@ -908,7 +908,7 @@ class PostImage(ModelWithUUID):
                                 height_field='height',
                                 blank=False, null=True, format='JPEG', options={'quality': 80},
                                 processors=[ResizeToFit(width=1024, upscale=False)],
-                                max_length=settings.IMAGE_URL_MAX_LENGT)
+                                max_length=settings.IMAGE_URL_MAX_LENGTH)
     width = models.PositiveIntegerField(editable=False, null=False, blank=False)
     height = models.PositiveIntegerField(editable=False, null=False, blank=False)
     hash = models.CharField(_('hash'), max_length=64, blank=False, null=True)
