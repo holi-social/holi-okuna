@@ -50,7 +50,7 @@ def interests_json_validator(interests):
             raise ValidationError(_('User interests must be strings'))
         if len(interest) > settings.PROFILE_INTEREST_MAX_LENGTH:
             raise ValidationError(
-                _("User interests may not be more than %s characters long" % settings.PROFILE_INTEREST_MAX_LENGTH))
+                _("User interests may not be more than %s characters long") % settings.PROFILE_INTEREST_MAX_LENGTH)
 
 
 def sdgs_json_validator(sdgs):
@@ -61,7 +61,7 @@ def sdgs_json_validator(sdgs):
             raise ValidationError(_('User SDGs must be strings'))
         if len(sdg) > settings.PROFILE_SDG_MAX_LENGTH:
             raise ValidationError(
-                _("User SDGs may not be more than %s characters long" % settings.PROFILE_SDG_MAX_LENGTH))
+                _("User SDGs may not be more than %s characters long") % settings.PROFILE_SDG_MAX_LENGTH)
 
 
 def skills_json_validator(skills):
@@ -72,4 +72,4 @@ def skills_json_validator(skills):
             raise ValidationError(_('User skills must be strings'))
         if len(skill) > settings.PROFILE_SDG_MAX_LENGTH:
             raise ValidationError(
-                _("User skills may not be more than %s characters long" % settings.PROFILE_SDG_MAX_LENGTH))
+                _("User skills may not be more than %s characters long") % settings.PROFILE_SDG_MAX_LENGTH)

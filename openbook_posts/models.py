@@ -94,8 +94,7 @@ class Post(ModelWithUUID):
                                           upload_to=upload_to_post_directory,
                                           blank=False, null=True, format='JPEG', options={'quality': 30},
                                           processors=[ResizeToFit(width=512, upscale=False)],
-                                          max_length=500)
-                                          
+                                          max_length=settings.IMAGE_URL_MAX_LENGTH)
 
     class Meta:
         index_together = [
@@ -307,8 +306,8 @@ class Post(ModelWithUUID):
 
         staff_members_query = Q(subscriber__communities_memberships__community_id=post.community.pk,
                                 subscriber__communities_memberships__is_administrator=True) | \
-                              Q(subscriber__communities_memberships__community_id=post.community.pk,
-                                subscriber__communities_memberships__is_moderator=True)
+            Q(subscriber__communities_memberships__community_id=post.community.pk,
+              subscriber__communities_memberships__is_moderator=True)
 
         # Subscriptions from staff of community
         target_subscriptions_with_staff = CommunityNotificationsSubscription.objects. \
@@ -909,7 +908,7 @@ class PostImage(ModelWithUUID):
                                 height_field='height',
                                 blank=False, null=True, format='JPEG', options={'quality': 80},
                                 processors=[ResizeToFit(width=1024, upscale=False)],
-                                max_length=500)
+                                max_length=settings.IMAGE_URL_MAX_LENGT)
     width = models.PositiveIntegerField(editable=False, null=False, blank=False)
     height = models.PositiveIntegerField(editable=False, null=False, blank=False)
     hash = models.CharField(_('hash'), max_length=64, blank=False, null=True)
@@ -917,7 +916,7 @@ class PostImage(ModelWithUUID):
                                     upload_to=upload_to_post_image_directory,
                                     blank=False, null=True, format='JPEG', options={'quality': 30},
                                     processors=[ResizeToFit(width=1024, upscale=False)],
-                                    max_length=500)
+                                    max_length=settings.IMAGE_URL_MAX_LENGTH)
 
     media = GenericRelation(PostMedia)
 
@@ -950,7 +949,7 @@ class PostVideo(ModelWithUUID):
     file = VideoField(width_field='width', height_field='height',
                       duration_field='duration', storage=post_image_storage,
                       upload_to=upload_to_post_video_directory, blank=False, null=True,
-                      max_length=500)
+                      max_length=settings.IMAGE_URL_MAX_LENGTH)
 
     format_set = GenericRelation(Format)
 
@@ -960,7 +959,7 @@ class PostVideo(ModelWithUUID):
                                     height_field='thumbnail_height',
                                     blank=False, null=True, format='JPEG', options={'quality': 30},
                                     processors=[ResizeToFit(width=1024, upscale=False)],
-                                    max_length=500)
+                                    max_length=settings.IMAGE_URL_MAX_LENGTH)
 
     thumbnail_width = models.PositiveIntegerField(editable=False, null=False, blank=False)
     thumbnail_height = models.PositiveIntegerField(editable=False, null=False, blank=False)

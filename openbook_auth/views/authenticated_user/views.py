@@ -182,7 +182,7 @@ class AuthenticatedUserSettings(APIView):
         email.send()
 
     def generate_confirmation_link(self, token):
-        return '{0}/api/auth/email/verify/{1}'.format(settings.EMAIL_HOST, token)
+        return f'{settings.EMAIL_HOST}/api/auth/email/verify/{token}'
 
 
 class AuthenticatedUserAcceptGuidelines(APIView):

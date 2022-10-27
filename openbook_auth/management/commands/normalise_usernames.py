@@ -20,7 +20,7 @@ class Command(BaseCommand):
             normalised_username = unicodedata.normalize('NFD', old_username).encode('ascii', 'ignore').decode('utf-8')
             normalised_username = self.sanitise_username(normalised_username)
 
-            logger.info('Normalised username {0}  to   {1}'.format(old_username, normalised_username))
+            logger.info(f'Normalised username {old_username}  to   {normalised_username}')
 
     def sanitise_username(self, username):
         chars = '[@#!±$%^&*()=|/><?,:;\~`{}]'

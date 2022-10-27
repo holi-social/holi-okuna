@@ -836,7 +836,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user=user)
 
         hashtag_name = make_hashtag_name()
-        post_comment_text = '#%s #%s' % (hashtag_name, hashtag_name)
+        post_comment_text = f'#{hashtag_name} #{hashtag_name}'
 
         data = {
             'text': post_comment_text

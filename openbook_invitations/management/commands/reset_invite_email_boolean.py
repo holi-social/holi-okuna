@@ -32,4 +32,4 @@ class Command(BaseCommand):
                 invite.is_invite_email_sent = False
                 invite.save()
 
-        self.stdout.write(self.style.SUCCESS('Successfully reset email boolean for %s invites' % total_count))
+        self.stdout.write(self.style.SUCCESS(f'Successfully reset email boolean for {total_count} invites'))

@@ -39,12 +39,12 @@ class FFmpegBackend(BaseEncodingBackend):
             settings, 'VIDEO_ENCODING_FFPROBE_PATH', which('ffprobe'))
 
         if not self.ffmpeg_path:
-            raise exceptions.FFmpegError("ffmpeg binary not found: {}".format(
-                self.ffmpeg_path or ''))
+            raise exceptions.FFmpegError(
+                f"ffmpeg binary not found: {self.ffmpeg_path or ''}")
 
         if not self.ffprobe_path:
-            raise exceptions.FFmpegError("ffprobe binary not found: {}".format(
-                self.ffmpeg_path or ''))
+            raise exceptions.FFmpegError(
+                "ffprobe binary not found: {self.ffmpeg_path or ''}")
 
     @classmethod
     def check(cls):
@@ -74,8 +74,8 @@ class FFmpegBackend(BaseEncodingBackend):
     def _check_returncode(self, process):
         stdout, stderr = process.communicate()
         if process.returncode != 0:
-            raise exceptions.FFmpegError("`{}` exited with code {:d}".format(
-                ' '.join(process.args), process.returncode))
+            raise exceptions.FFmpegError(
+                f"`{' '.join(process.args)}` exited with code {process.returncode}")
         self.stdout = stdout.decode(console_encoding)
         self.stderr = stderr.decode(console_encoding)
         return self.stdout, self.stderr
@@ -123,7 +123,7 @@ class FFmpegBackend(BaseEncodingBackend):
                 time = 60 * time + float(part)
 
             percent = time / total_time
-            logger.debug('yield {}%'.format(percent))
+            logger.debug(f'yield {percent}%')
             yield percent
 
         if os.path.getsize(target_path) == 0:
@@ -177,7 +177,7 @@ class FFmpegBackend(BaseEncodingBackend):
         """
         filename = os.path.basename(video_path)
         filename, __ = os.path.splitext(filename)
-        _, image_path = tempfile.mkstemp(suffix='_{}.jpg'.format(filename))
+        _, image_path = tempfile.mkstemp(suffix=f'_{filename}.jpg')
 
         video_duration = self.get_media_info(video_path)['duration']
         if at_time > video_duration:

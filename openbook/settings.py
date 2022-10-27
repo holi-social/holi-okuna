@@ -10,12 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
+import collections
 import logging.config
 import os
 import sys
 
 import sentry_sdk
-from django.utils.translation import gettext_lazy  as _
+from django.utils.translation import gettext_lazy as _
 from dotenv import load_dotenv, find_dotenv
 from sentry_sdk.integrations.django import DjangoIntegration
 from django_replicated.settings import *
@@ -32,7 +33,6 @@ from django.utils.encoding import force_str
 django.utils.encoding.force_text = force_str
 
 # Python 3.10 moved collections.Callable to collections.abc.Callable. This is a patch to make old libs work (in particular nose)
-import collections
 collections.Callable = collections.abc.Callable
 
 # based on https://github.com/graphql-python/graphene/issues/513
@@ -167,6 +167,7 @@ INSTALLED_APPS = [
     'openbook_devices',
     'openbook_moderation',
     'openbook_translation',
+    'openbook_spaces',
 ]
 
 MODELTRANSLATION_FALLBACK_LANGUAGES = ('en',)
@@ -194,7 +195,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 CORS_ALLOW_CREDENTIALS = True
 
 # Needed for using the /admin interface for editing insights, HOLI-1562
-CSRF_TRUSTED_ORIGINS = ['https://0kuna-adm1n.project-holi.org',]
+CSRF_TRUSTED_ORIGINS = ['https://0kuna-adm1n.project-holi.org', ]
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.RemoteUserBackend',
@@ -216,19 +217,16 @@ REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
 
 redis_protocol = 'redis://' # 'rediss://' if IS_PRODUCTION else 'redis://'
 
-redis_password = '' if not REDIS_PASSWORD else ':%s' % REDIS_PASSWORD
+redis_password = '' if not REDIS_PASSWORD else f':{REDIS_PASSWORD}'
 
-REDIS_LOCATION = '%(protocol)s%(password)s@%(host)s:%(port)d' % {'protocol': redis_protocol,
-                                                                 'password': redis_password,
-                                                                 'host': REDIS_HOST,
-                                                                 'port': REDIS_PORT}
+REDIS_LOCATION = f'{redis_protocol}{redis_password}@{REDIS_HOST}:{REDIS_PORT}'
 
 RQ_SHOW_ADMIN_LINK = False
 
-REDIS_DEFAULT_CACHE_LOCATION = '%(redis_location)s/%(db)d' % {'redis_location': REDIS_LOCATION, 'db': 0}
-REDIS_RQ_DEFAULT_JOBS_CACHE_LOCATION = '%(redis_location)s/%(db)d' % {'redis_location': REDIS_LOCATION, 'db': 1}
-REDIS_RQ_HIGH_JOBS_CACHE_LOCATION = '%(redis_location)s/%(db)d' % {'redis_location': REDIS_LOCATION, 'db': 2}
-REDIS_RQ_LOW_JOBS_CACHE_LOCATION = '%(redis_location)s/%(db)d' % {'redis_location': REDIS_LOCATION, 'db': 3}
+REDIS_DEFAULT_CACHE_LOCATION = f'{REDIS_LOCATION}/0'
+REDIS_RQ_DEFAULT_JOBS_CACHE_LOCATION = f'{REDIS_LOCATION}/1'
+REDIS_RQ_HIGH_JOBS_CACHE_LOCATION = f'{REDIS_LOCATION}/2'
+REDIS_RQ_LOW_JOBS_CACHE_LOCATION = f'{REDIS_LOCATION}/3'
 
 CACHES = {
     'default': {
@@ -267,7 +265,7 @@ CACHES = {
 
 CACHEOPS_REDIS_DB = int(os.environ.get('CACHEOPS_REDIS_DB', '1'))
 
-CACHEOPS_REDIS = '%(redis_location)s/%(db)d' % {'redis_location': REDIS_LOCATION, 'db': CACHEOPS_REDIS_DB}
+CACHEOPS_REDIS = f'{REDIS_LOCATION}/{CACHEOPS_REDIS_DB}'
 
 CACHEOPS_DEFAULTS = {
     'timeout': 60 * 60
@@ -361,10 +359,10 @@ else:
     RDS_HOSTNAME_WRITER = os.environ.get('RDS_HOSTNAME_WRITER', RDS_HOSTNAME)
     RDS_HOSTNAME_READER = os.environ.get('RDS_HOSTNAME_READER', RDS_HOSTNAME_WRITER)
 
-    #db_options = {
+    # db_options = {
     #    'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
     #    'charset': 'utf8mb4'
-    #}
+    # }
 
     writer_db_config = {
         'ENGINE': 'django.db.backends.postgresql',
@@ -373,12 +371,12 @@ else:
         'PASSWORD': RDS_PASSWORD,
         'HOST': RDS_HOSTNAME_WRITER,
         'PORT': RDS_PORT,
-         #'OPTIONS': db_options,
+        # 'OPTIONS': db_options,
     }
 
     DATABASES = {
         'default': writer_db_config,
-        #'Reader': {
+        # 'Reader': {
         #    'ENGINE': 'django.db.backends.mysql',
         #    'NAME': RDS_DB_NAME,
         #    'USER': RDS_USERNAME,
@@ -386,7 +384,7 @@ else:
         #    'HOST': RDS_HOSTNAME_READER,
         #    'PORT': RDS_PORT,
         #    'OPTIONS': db_options,
-        #}
+        # }
     }
 
     #DATABASE_ROUTERS = ['django_replicated.router.ReplicationRouter']
@@ -395,9 +393,9 @@ else:
 
     #MIDDLEWARE.append('django_replicated.middleware.ReplicationMiddleware', )
 
-    #REPLICATED_VIEWS_OVERRIDES = {
+    # REPLICATED_VIEWS_OVERRIDES = {
     #    '/admin/*': 'master',
-    #}
+    # }
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -566,7 +564,7 @@ PROFILE_AVATAR_MAX_SIZE = int(os.environ.get('PROFILE_AVATAR_MAX_SIZE', '1048576
 PROFILE_AVATAR_URL_MAX_LENGTH = 500
 PROFILE_COVER_MAX_SIZE = int(os.environ.get('PROFILE_COVER_MAX_SIZE', '10485760'))
 PROFILE_COVER_URL_MAX_LENGTH = 500
-WORLD_CIRCLE_ID = "00000000-0000-0000-0000-000000000001"
+WORLD_CIRCLE_ID = 1
 PASSWORD_RESET_TIMEOUT_DAYS = 1
 COMMUNITY_NAME_MAX_LENGTH = 32
 COMMUNITY_TITLE_MAX_LENGTH = 32
@@ -640,7 +638,7 @@ if TESTING:
 if not TESTING:
     DEFAULT_FILE_STORAGE = 'openbook.storage_imagekit_io.ImagekitIoStorage'
 
-if False:# IS_PRODUCTION:
+if False: # IS_PRODUCTION:
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
     AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
@@ -648,15 +646,15 @@ if False:# IS_PRODUCTION:
     AWS_S3_ENCRYPTION = True
     AWS_S3_SIGNATURE_VERSION = 's3v4'
     AWS_S3_HOST = os.environ.get('AWS_S3_HOST', 's3.amazonaws.com')
-    AWS_S3_CUSTOM_DOMAIN = '%s.%s' % (AWS_STORAGE_BUCKET_NAME, AWS_S3_HOST)
+    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.{AWS_S3_HOST}'
 
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',
     }
 
-    STATIC_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, AWS_STATIC_LOCATION)
+    STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_STATIC_LOCATION}/"
 
-    MEDIA_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, AWS_PUBLIC_MEDIA_LOCATION)
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_PUBLIC_MEDIA_LOCATION}/"
 
     STATICFILES_STORAGE = 'openbook.storage_backends.S3StaticStorage'
 
@@ -681,4 +679,6 @@ IMAGEKIT_URL = os.environ.get('IMAGEKIT_URL', 'https://ik.imagekit.io/holi')
 # HOLI model config settings
 
 INSIGHT_TITLE_MAX_LENGTH = 128
-INSIGHT_HEADER_IMAGE_URL_MAX_LENGTH = 500
+IMAGE_URL_MAX_LENGTH = 500
+
+SPACE_TITLE_MAX_LENGTH = 128

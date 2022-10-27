@@ -70,7 +70,7 @@ class Format(ModelWithUUID):
         verbose_name_plural = _("Formats")
 
     def __str__(self):
-        return '{} ({:d}%)'.format(self.file.name, self.progress)
+        return f'{self.file.name} ({self.progress:d}%)'
 
     def unicode(self):
         return self.__str__()

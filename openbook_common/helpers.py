@@ -35,7 +35,8 @@ def get_language_for_text(text):
 
 def get_supported_translation_language(language_code):
     Language = get_language_model()
-    supported_translation_code = translation_strategy.get_supported_translation_language_code(language_code)
+    supported_translation_code = translation_strategy.get_supported_translation_language_code(
+        language_code)
 
     return Language.objects.get(code=supported_translation_code)
 
@@ -89,13 +90,6 @@ def send_alert_to_channel(alert):
 
 def create_upload_filename(object_type, object_id, filename, username=None):
     if username is None:
-        return '{type}/{id}/{filename}'.format(
-            type=object_type,
-            id=object_id,
-            filename=filename)
+        return f'{object_type}/{object_id}/{filename}'
 
-    return '{type}/{id}/{filename}/{username}'.format(
-        type=object_type,
-        id=object_id,
-        filename=filename,
-        username=username)
+    return f'{object_type}/{object_id}/{filename}/{username}'

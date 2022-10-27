@@ -25,8 +25,8 @@ fake = Faker()
 
 def make_authentication_headers_for_user(user):
     return {
-        'X-Holi-User-ID': '%s' % user.username,
-        'X-Holi-User-Email': '%s' % user.email,
+        'X-Holi-User-ID': f'{user.username}',
+        'X-Holi-User-Email': f'{user.email}',
     }
 
 

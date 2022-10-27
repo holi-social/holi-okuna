@@ -1054,7 +1054,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         post_hashtags = []
 
         for i in range(0, settings.POST_MAX_HASHTAGS + 1):
-            hashtag = '#%s' % make_hashtag_name()
+            hashtag = f'#{make_hashtag_name()}'
             post_hashtags.append(hashtag)
 
         new_post_text = ' '.join(post_hashtags)
@@ -2666,7 +2666,7 @@ class GetPostParticipantsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, "%s" % response)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"{response}")
 
         response_participants = json.loads(response.content)
 
@@ -2747,11 +2747,11 @@ class PublishPostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers, format='multipart')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, "status_code=%s" % response.status_code)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"status_code={response.status_code}")
 
         post = Post.objects.get(pk=post.pk)
 
-        self.assertEqual(post.status, Post.STATUS_PROCESSING, "status=%s" % post.status)
+        self.assertEqual(post.status, Post.STATUS_PROCESSING, f"status={post.status}")
 
         # Run the process handled by a worker
         get_worker('high', worker_class=SimpleWorker).work(burst=True)
@@ -2780,11 +2780,11 @@ class PublishPostAPITests(OpenbookAPITestCase):
                 response = self.client.post(url, **headers, format='multipart')
 
                 self.assertEqual(response.status_code, status.HTTP_200_OK,
-                                 "status_code=%s body=%s" % (response.status_code, response.body))
+                                 f"status_code={response.status_code} body={response.body}")
 
                 post = Post.objects.get(pk=post.pk)
 
-                self.assertEqual(post.status, Post.STATUS_PROCESSING, "status=%s" % post.status)
+                self.assertEqual(post.status, Post.STATUS_PROCESSING, f"status={post.status}")
 
                 # Run the process handled by a worker
                 get_worker('high', worker_class=SimpleWorker).work(burst=True)
@@ -2942,7 +2942,7 @@ class PublishPostAPITests(OpenbookAPITestCase):
 
         hashtag_name = make_hashtag_name()
 
-        post_text = '#%s' % hashtag_name
+        post_text = f'#{hashtag_name}'
 
         post = user.create_public_post(text=post_text, image=ImageFile(tmp_file), is_draft=True)
 

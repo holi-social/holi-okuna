@@ -17,7 +17,6 @@ from rest_framework.authtoken.models import Token
 from django.db.models import Q, F, Count, JSONField
 from django.core.mail import EmailMultiAlternatives
 
-from openbook.settings import USERNAME_MAX_LENGTH
 from openbook_auth.helpers import upload_to_user_avatar_directory, upload_to_user_cover_directory
 from openbook_common.peekalink_client import peekalink_client
 from openbook_hashtags.queries import make_search_hashtag_query_for_user_with_id, \
@@ -42,6 +41,7 @@ from openbook_common.utils.model_loaders import get_connection_model, get_circle
 from openbook_common.validators import name_characters_validator
 from openbook_notifications import helpers
 from openbook_auth.checkers import *
+
 
 class UserConnectionStatus:
     NOT_CONNECTED = 'NOT_CONNECTED'
@@ -98,10 +98,10 @@ class User(AbstractUser):
         _('username'),
         blank=False,
         null=False,
-        max_length=USERNAME_MAX_LENGTH,
+        max_length=settings.USERNAME_MAX_LENGTH,
         unique=True,
         help_text=_('Required. %(username_max_length)d characters or fewer. Letters, digits and _ only.' % {
-            'username_max_length': USERNAME_MAX_LENGTH}),
+            'username_max_length': settings.USERNAME_MAX_LENGTH}),
         validators=[username_validator],
         error_messages={
             'unique': _("A user with that username already exists."),
@@ -116,7 +116,7 @@ class User(AbstractUser):
 
     @property
     def avatar_default_color(self):
-        color_count = len(User.DEFAULT_AVATAR_COLORS) -1
+        color_count = len(User.DEFAULT_AVATAR_COLORS) - 1
         color = sum(list(self.username.encode('utf8'))) % color_count
         return User.DEFAULT_AVATAR_COLORS[color]
 
@@ -616,7 +616,7 @@ class User(AbstractUser):
             profile.sdgs = sdgs
         if skills is not None:
             profile.skills = skills
-        
+
         # TODO integrate our image provider service in order to delete previous avatars (extending delete_profile_avatar)
         if update_avatar:
             self.update_profile_avatar(avatar, save=False)
@@ -759,18 +759,18 @@ class User(AbstractUser):
         UserNotificationsSubscription = get_user_notifications_subscription_model()
         return UserNotificationsSubscription. \
             are_new_post_notifications_enabled_for_user_with_username_and_target_with_username(
-            username=self.username,
-            target_username=user.username
-        )
+                username=self.username,
+                target_username=user.username
+            )
 
     def are_new_post_notifications_enabled_for_community(self, community):
         CommunityNotificationsSubscription = get_community_notifications_subscription_model()
 
         return CommunityNotificationsSubscription. \
             are_new_post_notifications_enabled_for_user_with_username_and_community_with_name(
-            username=self.username,
-            community_name=community.name
-        )
+                username=self.username,
+                community_name=community.name
+            )
 
     def is_world_circle_id(self, id):
         world_circle_id = self._get_world_circle_id()
@@ -1350,9 +1350,9 @@ class User(AbstractUser):
                         notification_message = {
                             "en": _(
                                 '%(post_commenter_name)s · @%(post_commenter_username)s commented on a post you also commented on.') % {
-                                      'post_commenter_username': post_commenter.username,
-                                      'post_commenter_name': post_commenter.profile.name,
-                                  }}
+                                    'post_commenter_username': post_commenter.username,
+                                    'post_commenter_name': post_commenter.profile.name,
+                                }}
 
                     self._send_post_comment_push_notification(post_comment=post_comment,
                                                               notification_message=notification_message,
@@ -3490,7 +3490,7 @@ class User(AbstractUser):
         return peekalink_client.peek(link=link)
 
     def _generate_password_reset_link(self, token):
-        return '{0}/api/auth/password/verify?token={1}'.format(settings.EMAIL_HOST, token)
+        return f'{settings.EMAIL_HOST}/api/auth/password/verify?token={token}'
 
     def _send_password_reset_email_with_token(self, password_reset_token):
         mail_subject = _('Reset your password for Okuna')
@@ -3927,6 +3927,7 @@ def bootstrap_circles(sender, instance=None, created=False, **kwargs):
     if created:
         bootstrap_user_circles(instance)
 
+
 class EngagementLevelChoice(models.TextChoices):
     ENGAGED = 'ENGAGED',
     INTERESTED = 'INTERESTED',
@@ -3970,7 +3971,7 @@ class UserProfile(ModelWithUUID):
         index_together = [
             ('id', 'user'),
         ]
-        
+
         # Django's Choices don't constrain other values in the db, it needs to be set here:
         constraints = [
             models.CheckConstraint(
@@ -3980,7 +3981,7 @@ class UserProfile(ModelWithUUID):
         ]
 
     def __repr__(self):
-        return '<UserProfile %s>' % self.user.username
+        return f'<UserProfile {self.user.username}>'
 
     def __str__(self):
         return self.user.username

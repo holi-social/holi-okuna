@@ -40,11 +40,11 @@ class Community(ModelWithUUID):
                              null=True)
     avatar = ProcessedImageField(verbose_name=_('avatar'), blank=False, null=True, format='JPEG',
                                  options={'quality': 90}, processors=[ResizeToFill(500, 500)],
-                                 upload_to=upload_to_community_avatar_directory, max_length=500)
+                                 upload_to=upload_to_community_avatar_directory, max_length=settings.IMAGE_URL_MAX_LENGTH)
     cover = ProcessedImageField(verbose_name=_('cover'), blank=False, null=True, format='JPEG',
                                 options={'quality': 90},
                                 upload_to=upload_to_community_cover_directory,
-                                processors=[ResizeToFit(width=1024, upscale=False)], max_length=500)
+                                processors=[ResizeToFit(width=1024, upscale=False)], max_length=settings.IMAGE_URL_MAX_LENGTH)
     created = models.DateTimeField(editable=False)
     starrers = models.ManyToManyField(User, related_name='favorite_communities')
     banned_users = models.ManyToManyField(User, related_name='banned_of_communities')

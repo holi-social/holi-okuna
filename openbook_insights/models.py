@@ -1,5 +1,6 @@
 import uuid
 
+from django.conf import settings
 from django.db import models
 from django.core.files.storage import default_storage
 from django.utils.translation import gettext_lazy as _
@@ -8,7 +9,6 @@ from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFit
 
 # Create your models here.
-from openbook.settings import INSIGHT_TITLE_MAX_LENGTH, INSIGHT_HEADER_IMAGE_URL_MAX_LENGTH
 from openbook_auth.models import User
 from openbook_common.models import ModelWithUUID
 from openbook_insights.helpers import upload_to_insight_directory
@@ -19,7 +19,8 @@ insight_image_storage = default_storage
 
 
 class Insight(ModelWithUUID):
-    title = models.CharField(max_length=INSIGHT_TITLE_MAX_LENGTH, blank=False)
+    title = models.CharField(
+        max_length=settings.INSIGHT_TITLE_MAX_LENGTH, blank=False)
     description = models.TextField(blank=False)
     curator = models.ForeignKey(User, on_delete=models.SET_NULL,
                                 related_name='curated_insights', blank=True, null=True)
@@ -27,6 +28,9 @@ class Insight(ModelWithUUID):
     header_image = ProcessedImageField(verbose_name=_('header_image'), storage=insight_image_storage,
                                        upload_to=upload_to_insight_directory,
                                        blank=False, null=True, format='JPEG', options={'quality': 80},
-                                       processors=[ResizeToFit(width=1024, upscale=False)],
-                                       max_length=500)  # constrain to maximum width
-    posts = models.ManyToManyField(related_name='insights', to='openbook_posts.Post')
+                                       # constrain to maximum width
+                                       processors=[ResizeToFit(
+                                           width=1024, upscale=False)],
+                                       max_length=settings.IMAGE_URL_MAX_LENGTH)
+    posts = models.ManyToManyField(
+        related_name='insights', to='openbook_posts.Post')

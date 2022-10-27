@@ -25,7 +25,7 @@ class Command(BaseCommand):
             try:
                 post._process_post_hashtags()
             except Exception as e:
-                logger.info('Error processing with error %s' % str(e))
+                logger.info(f'Error processing with error {str(e)}')
             logger.info('Processed hashtags for post with id:' + str(post.pk))
             migrated_posts = migrated_posts + 1
 
