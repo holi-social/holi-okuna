@@ -80,7 +80,7 @@ class Post(models.Model):
         _('public reactions'), default=True, editable=False, null=False)
     community = models.ForeignKey('openbook_communities.Community', on_delete=models.CASCADE, related_name='posts',
                                   null=True,
-                                  blank=False)
+                                  blank=True)
     language = models.ForeignKey(
         Language, on_delete=models.SET_NULL, null=True, related_name='posts')
     is_edited = models.BooleanField(default=False)
