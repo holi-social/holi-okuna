@@ -2183,6 +2183,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(len(response_posts), 0)
 
+    @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_get_all_public_posts_for_public_visibility_user_unauthenticated_with_max_id_and_count(self):
         """
         should be able to retrieve all the public posts of an specific public visibility user
