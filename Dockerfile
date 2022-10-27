@@ -24,6 +24,7 @@ RUN chmod +x /entrypoint.sh
 RUN chmod +x /wait-for-it.sh
 
 WORKDIR /opt/okuna-api
+# SECRET_KEY must be set, but the value is never used
 run ENVIRONMENT=build SECRET_KEY=foo python manage.py collectstatic
 
 ENTRYPOINT ["/entrypoint.sh"]
