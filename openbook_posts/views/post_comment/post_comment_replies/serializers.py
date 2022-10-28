@@ -17,7 +17,7 @@ class CommentRepliesPostSerializer(serializers.Serializer):
         validators=[post_uuid_exists],
         required=True,
     )
-    post_comment_id = serializers.CharField(max_length=36,
+    post_comment_id = serializers.UUIDField(
         validators=[post_comment_id_exists],
         required=True,
     )
@@ -97,7 +97,7 @@ class GetPostCommentRepliesSerializer(serializers.Serializer):
         validators=[post_uuid_exists],
         required=True,
     )
-    post_comment_id = serializers.CharField(max_length=36,
+    post_comment_id = serializers.UUIDField(
         validators=[post_comment_id_exists],
         required=True,
     )

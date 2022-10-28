@@ -15,6 +15,7 @@ import random
 from openbook_common.tests.helpers import make_authentication_headers_for_user, make_fake_post_text, \
     make_fake_post_comment_text, make_user, make_circle, make_community, make_private_community, \
     make_moderation_category, get_test_usernames, make_hashtag_name, make_hashtag
+from openbook_common.utils.test import uuid_id_parser
 from openbook_hashtags.models import Hashtag
 from openbook_moderation.models import ModeratedObject
 from openbook_notifications.models import PostCommentNotification, PostCommentReplyNotification, \
@@ -57,7 +58,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_comments = json.loads(response.content)
+        response_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comments), amount_of_comments)
 
@@ -93,7 +94,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_comments = json.loads(response.content)
+        response_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comments), amount_of_comments)
 
@@ -129,7 +130,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_comments = json.loads(response.content)
+        response_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comments), amount_of_comments)
 
@@ -171,7 +172,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_comments = json.loads(response.content)
+        response_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comments), amount_of_comments)
 
@@ -232,7 +233,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_comments = json.loads(response.content)
+        response_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comments), amount_of_comments)
 
@@ -263,7 +264,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_comments = json.loads(response.content)
+        response_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comments), amount_of_comments)
 
@@ -292,7 +293,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_comments = json.loads(response.content)
+        response_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comments), amount_of_comments)
 
@@ -324,7 +325,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_comments = json.loads(response.content)
+        response_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comments), amount_of_comments)
 
@@ -361,7 +362,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_comments = json.loads(response.content)
+        response_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comments), amount_of_comments)
 
@@ -415,7 +416,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_comments = json.loads(response.content)
+        response_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comments), 0)
 
@@ -441,7 +442,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_comments = json.loads(response.content)
+        response_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comments), 0)
 
@@ -469,7 +470,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_comments = json.loads(response.content)
+        response_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comments), 0)
 
@@ -497,7 +498,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_comments = json.loads(response.content)
+        response_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comments), 0)
 
@@ -525,7 +526,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_comments = json.loads(response.content)
+        response_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(1, len(response_comments))
 
@@ -555,7 +556,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_comments = json.loads(response.content)
+        response_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(1, len(response_comments))
 
@@ -1147,7 +1148,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         url = self._get_url(post)
         response = self.client.put(url, data, **headers)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         response_id = parsed_response['id']
         post_comment = PostComment.objects.get(post_id=post.pk, text=post_comment_text, commenter=admin)
@@ -1177,7 +1178,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         url = self._get_url(post)
         headers = make_authentication_headers_for_user(moderator)
         response = self.client.put(url, data, **headers)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         response_id = parsed_response['id']
         post_comment = PostComment.objects.get(post_id=post.pk, text=post_comment_text, commenter=moderator)
@@ -1253,7 +1254,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         url = self._get_url(post)
         headers = make_authentication_headers_for_user(moderator)
         response = self.client.put(url, data, **headers)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         response_id = parsed_response['id']
         post_comment = PostComment.objects.get(post_id=post.pk, text=post_comment_text, commenter=moderator)
@@ -1279,7 +1280,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         url = self._get_url(post)
         response = self.client.put(url, data, **headers)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         response_id = parsed_response['id']
         post_comment = PostComment.objects.get(post_id=post.pk, text=post_comment_text, commenter=admin)
@@ -1634,7 +1635,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         url = self._get_url(post)
         response = self.client.get(url, **headers)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         response_ids = [comment['id'] for comment in parsed_response]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1660,7 +1661,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         url = self._get_url(post)
         response = self.client.get(url, {'sort': 'ASC'}, **headers)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         response_ids = [comment['id'] for comment in parsed_response]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1692,7 +1693,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.get(url, {
             'max_id': max_id
         }, **headers)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         response_ids = [comment['id'] for comment in parsed_response]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1722,7 +1723,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.get(url, {
             'min_id': min_id
         }, **headers)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         response_ids = [comment['id'] for comment in parsed_response]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1758,7 +1759,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
             'count_max': count_max,
             'count_min': count_min
         }, **headers)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         response_ids = [comment['id'] for comment in parsed_response]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1798,7 +1799,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
             'count_min': count_min,
             'sort': 'ASC'
         }, **headers)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         response_ids = [comment['id'] for comment in parsed_response]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1878,7 +1879,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_post_comment_comments = json.loads(response.content)
+        response_post_comment_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(0, len(response_post_comment_comments))
 
@@ -1903,7 +1904,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_post_comment_comments = json.loads(response.content)
+        response_post_comment_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(0, len(response_post_comment_comments))
 
@@ -1934,7 +1935,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_post_comment_comments = json.loads(response.content)
+        response_post_comment_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(0, len(response_post_comment_comments))
 
@@ -1974,7 +1975,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_post_comments = json.loads(response.content)
+        response_post_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(0, len(response_post_comments))
 
@@ -2014,7 +2015,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_post_comments = json.loads(response.content)
+        response_post_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(post_comments_ids), len(response_post_comments))
 
@@ -2054,7 +2055,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_post_comments = json.loads(response.content)
+        response_post_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(post_comments_ids), len(response_post_comments))
 
@@ -2098,7 +2099,7 @@ class PostCommentsEnableAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.post(url, **headers)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertTrue(response.status_code, status.HTTP_200_OK)
         post.refresh_from_db()
@@ -2122,7 +2123,7 @@ class PostCommentsEnableAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(admin)
         response = self.client.post(url, **headers)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertTrue(response.status_code, status.HTTP_200_OK)
         post.refresh_from_db()
@@ -2200,7 +2201,7 @@ class PostCommentsDisableAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.post(url, **headers)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertTrue(response.status_code, status.HTTP_200_OK)
         post.refresh_from_db()
@@ -2222,7 +2223,7 @@ class PostCommentsDisableAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(admin)
         response = self.client.post(url, **headers)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertTrue(response.status_code, status.HTTP_200_OK)
         post.refresh_from_db()

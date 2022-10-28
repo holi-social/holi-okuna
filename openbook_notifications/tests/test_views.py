@@ -7,6 +7,7 @@ from rest_framework import status
 from openbook_common.tests.models import OpenbookAPITestCase
 
 from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, make_notification
+from openbook_common.utils.test import uuid_id_parser
 from openbook_notifications.models import Notification
 
 fake = Faker()
@@ -36,7 +37,7 @@ class NotificationsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_notifications = json.loads(response.content)
+        response_notifications = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_notifications), len(notifications_ids))
 
@@ -70,7 +71,7 @@ class NotificationsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_notifications = json.loads(response.content)
+        response_notifications = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_notifications), len(valid_types))
 
@@ -351,7 +352,7 @@ class UnreadNotificationsCountAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {}, **headers)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -382,7 +383,7 @@ class UnreadNotificationsCountAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         print(parsed_response['count'])
 
@@ -416,7 +417,7 @@ class UnreadNotificationsCountAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(parsed_response['count'], len(valid_ids))
 

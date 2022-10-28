@@ -83,7 +83,7 @@ class ModeratedObject(ModelWithUUID):
 
     # Generic relation types
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.CharField(max_length=36)
+    object_id = models.UUIDField()
     content_object = GenericForeignKey()
 
     class Meta:
@@ -397,7 +397,7 @@ class ModeratedObjectLog(ModelWithUUID):
 
     # Generic relation types
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.CharField(max_length=36)
+    object_id = models.UUIDField()
     content_object = GenericForeignKey()
 
     moderated_object = models.ForeignKey(ModeratedObject, on_delete=models.CASCADE, related_name='logs')

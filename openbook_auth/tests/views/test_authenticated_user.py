@@ -19,6 +19,7 @@ from openbook_auth.views.authenticated_user.views import AuthenticatedUserSettin
 from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, make_user_about_me, \
     make_user_location, make_user_avatar, make_user_cover, make_random_language, make_user_skills, make_user_sdgs, \
     make_user_interests, make_user_engagement_level, make_user_pronouns, make_user_last_name, make_user_name
+from openbook_common.utils.test import uuid_id_parser
 
 fake = Faker()
 
@@ -48,7 +49,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertIn('username', parsed_response)
         response_username = parsed_response['username']
@@ -824,7 +825,7 @@ class AuthenticatedUserNotificationsSettingsTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertIn('id', parsed_response)
         response_id = parsed_response['id']
@@ -941,7 +942,7 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
         }
 
         response = self.client.patch(self.url, data, **headers)
-        parsed_reponse = json.loads(response.content)
+        parsed_reponse = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(parsed_reponse['username'], user.username)
@@ -1075,7 +1076,7 @@ class AuthenticatedUserLanguageAPI(OpenbookAPITestCase):
         response = self.client.get(self.url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertTrue(len(parsed_response), 25)
 
     def test_can_set_language(self):

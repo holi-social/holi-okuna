@@ -12,6 +12,7 @@ from openbook_common.tests.models import OpenbookAPITestCase
 import logging
 import json
 
+from openbook_common.utils.test import uuid_id_parser
 from openbook_moderation.models import ModeratedObject
 
 logger = logging.getLogger(__name__)
@@ -46,7 +47,7 @@ class SearchHashtagsAPITests(OpenbookAPITestCase):
                 'query': final_query
             }, **headers)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            parsed_response = json.loads(response.content)
+            parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertEqual(len(parsed_response), 1)
             retrieved_hashtag = parsed_response[0]
             self.assertEqual(retrieved_hashtag['name'], hashtag_name.lower())
@@ -73,7 +74,7 @@ class SearchHashtagsAPITests(OpenbookAPITestCase):
         }, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(len(parsed_response), 1)
 
     def test_cant_search_for_reported_hashtag(self):
@@ -95,7 +96,7 @@ class SearchHashtagsAPITests(OpenbookAPITestCase):
         }, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(len(parsed_response), 0)
 
     def test_cant_search_for_reported_and_approved_hashtag(self):
@@ -125,7 +126,7 @@ class SearchHashtagsAPITests(OpenbookAPITestCase):
         }, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(len(parsed_response), 0)
 
     def _get_url(self):

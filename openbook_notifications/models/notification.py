@@ -48,7 +48,7 @@ class Notification(ModelWithUUID):
 
     # Generic relation types
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.CharField(max_length=36)
+    object_id = models.UUIDField()
     content_object = GenericForeignKey()
 
     @classmethod

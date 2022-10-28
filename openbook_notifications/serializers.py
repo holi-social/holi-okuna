@@ -465,10 +465,10 @@ class GetNotificationsNotificationSerializer(serializers.ModelSerializer):
 
 
 class DeleteNotificationSerializer(serializers.Serializer):
-    notification_id = serializers.CharField(max_length=36, required=True,
+    notification_id = serializers.UUIDField(required=True,
                                                validators=[notification_id_exists])
 
 
 class ReadNotificationSerializer(serializers.Serializer):
-    notification_id = serializers.CharField(max_length=36, required=True,
+    notification_id = serializers.UUIDField(required=True,
                                                validators=[notification_id_exists])

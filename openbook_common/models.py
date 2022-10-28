@@ -21,16 +21,16 @@ def uuid_as_str():
 
 
 class ModelWithUUID(models.Model):
-    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    id = models.CharField(primary_key=True, default=uuid_as_str, editable=False, max_length=36)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # id = models.CharField(primary_key=True, default=uuid_as_str, editable=False, max_length=36)
 
     class Meta:
         abstract = True
 
 
 class OrderedModelWithUUID(OrderedModel):
-    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    id = models.CharField(primary_key=True, default=uuid_as_str, editable=False, max_length=36)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # id = models.CharField(primary_key=True, default=uuid_as_str, editable=False, max_length=36)
 
     class Meta:
         abstract = True

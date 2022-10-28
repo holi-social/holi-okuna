@@ -7,6 +7,7 @@ from rest_framework import status
 from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, make_hashtag, \
     make_fake_post_text, make_community, make_circle, make_moderation_category, make_global_moderator
 from openbook_common.tests.models import OpenbookAPITestCase
+from openbook_common.utils.test import uuid_id_parser
 from openbook_communities.models import Community
 from openbook_moderation.models import ModeratedObject
 
@@ -34,7 +35,7 @@ class HashtagAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertIn('name', parsed_response)
         response_name = parsed_response['name']
@@ -60,7 +61,7 @@ class HashtagAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertIn('name', parsed_response)
         response_name = parsed_response['name']
@@ -134,7 +135,7 @@ class HashtagAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertIn('posts_count', parsed_response)
         posts_count = parsed_response['posts_count']
@@ -175,7 +176,7 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(parsed_response), 1)
 
@@ -202,7 +203,7 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(parsed_response), 1)
 
@@ -235,7 +236,7 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(parsed_response), 0)
 
@@ -269,7 +270,7 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(parsed_response), 0)
 
@@ -294,7 +295,7 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(parsed_response), 0)
 
@@ -320,7 +321,7 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(parsed_response), 0)
 
@@ -346,7 +347,7 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(parsed_response), 0)
 

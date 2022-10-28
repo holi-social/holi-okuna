@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from django.db import models
 
@@ -47,7 +49,7 @@ class Circle(ModelWithUUID):
 
     @classmethod
     def create_world_circle(cls):
-        circle = cls.objects.create(name="World", color="#023ca7", id=settings.WORLD_CIRCLE_ID)
+        circle = cls.objects.create(name="World", color="#023ca7", id=uuid.UUID(settings.WORLD_CIRCLE_ID))
         return circle
 
     @classmethod

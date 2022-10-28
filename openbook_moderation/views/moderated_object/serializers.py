@@ -13,39 +13,39 @@ from openbook_moderation.views.validators import moderated_object_id_exists, mod
 class UpdateModeratedObjectSerializer(serializers.Serializer):
     description = serializers.CharField(max_length=settings.MODERATED_OBJECT_DESCRIPTION_MAX_LENGTH, required=False,
                                         allow_blank=False)
-    moderated_object_id = serializers.CharField(max_length=36,
+    moderated_object_id = serializers.UUIDField(
         validators=[moderated_object_id_exists],
         required=True,
     )
-    category_id = serializers.CharField(max_length=36,
+    category_id = serializers.UUIDField(
         validators=[moderation_category_id_exists],
         required=False
     )
 
 
 class ApproveModeratedObjectSerializer(serializers.Serializer):
-    moderated_object_id = serializers.CharField(max_length=36,
+    moderated_object_id = serializers.UUIDField(
         validators=[moderated_object_id_exists],
         required=True,
     )
 
 
 class RejectModeratedObjectSerializer(serializers.Serializer):
-    moderated_object_id = serializers.CharField(max_length=36,
+    moderated_object_id = serializers.UUIDField(
         validators=[moderated_object_id_exists],
         required=True,
     )
 
 
 class VerifyModeratedObjectSerializer(serializers.Serializer):
-    moderated_object_id = serializers.CharField(max_length=36,
+    moderated_object_id = serializers.UUIDField(
         validators=[moderated_object_id_exists],
         required=True,
     )
 
 
 class UnverifyModeratedObjectSerializer(serializers.Serializer):
-    moderated_object_id = serializers.CharField(max_length=36,
+    moderated_object_id = serializers.UUIDField(
         validators=[moderated_object_id_exists],
         required=True,
     )
@@ -59,7 +59,7 @@ class GetModeratedObjectLogsSerializer(serializers.Serializer):
     max_id = serializers.IntegerField(
         required=False,
     )
-    moderated_object_id = serializers.CharField(max_length=36,
+    moderated_object_id = serializers.UUIDField(
         validators=[moderated_object_id_exists],
         required=True,
     )
@@ -198,7 +198,7 @@ class GetModeratedObjectReportsSerializer(serializers.Serializer):
     max_id = serializers.IntegerField(
         required=False,
     )
-    moderated_object_id = serializers.CharField(max_length=36,
+    moderated_object_id = serializers.UUIDField(
         validators=[moderated_object_id_exists],
         required=True,
     )

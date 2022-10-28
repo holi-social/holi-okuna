@@ -11,6 +11,8 @@ from openbook_common.models import Badge, ModelWithUUID
 from openbook_common.utils.model_loaders import get_user_invite_model
 from rest_framework.exceptions import ValidationError
 
+from openbook_common.uuid_encoder import UUIDEncoder
+
 
 class UserInvite(ModelWithUUID):
     invited_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='invited_users',
@@ -145,7 +147,7 @@ class UserInvite(ModelWithUUID):
         self.save()
 
     def generate_token(self):
-        token_bytes = jwt.encode({'id': self.id}, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+        token_bytes = jwt.encode({'id': self.id}, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM, json_encoder=UUIDEncoder)
         return token_bytes.decode('UTF-8')
 
     def _generate_one_time_link(self):

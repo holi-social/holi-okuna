@@ -20,11 +20,11 @@ from openbook_posts.validators import post_text_validators
 class GetPostsSerializer(serializers.Serializer):
     circle_id = serializers.ListField(
         required=False,
-        child=serializers.CharField(max_length=36, validators=[circle_id_exists]),
+        child=serializers.UUIDField(validators=[circle_id_exists]),
     )
     list_id = serializers.ListField(
         required=False,
-        child=serializers.CharField(max_length=36, validators=[list_id_exists])
+        child=serializers.UUIDField(validators=[list_id_exists])
     )
     max_id = serializers.IntegerField(
         required=False,
@@ -85,7 +85,7 @@ class CreatePostSerializer(serializers.Serializer):
                                     max_upload_size=settings.POST_MEDIA_MAX_SIZE)
     circle_id = serializers.ListField(
         required=False,
-        child=serializers.CharField(max_length=36, validators=[circle_id_exists]),
+        child=serializers.UUIDField(validators=[circle_id_exists]),
     )
     is_draft = serializers.BooleanField(
         default=False)

@@ -12,7 +12,7 @@ class DeletePostReactionSerializer(serializers.Serializer):
         validators=[post_uuid_exists],
         required=True,
     )
-    post_reaction_id = serializers.CharField(max_length=36,
+    post_reaction_id = serializers.UUIDField(
         validators=[post_reaction_id_exists],
         required=True,
     )

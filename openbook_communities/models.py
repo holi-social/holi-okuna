@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
@@ -141,7 +143,7 @@ class Community(ModelWithUUID):
 
     @classmethod
     def get_new_user_suggested_communities(cls):
-        community_ids = [community_id for community_id in settings.NEW_USER_SUGGESTED_COMMUNITIES.split(',')]
+        community_ids = [uuid.UUID(community_id) for community_id in settings.NEW_USER_SUGGESTED_COMMUNITIES.split(',')]
         return cls.objects.filter(id__in=community_ids, type=cls.COMMUNITY_TYPE_PUBLIC)
 
     @classmethod

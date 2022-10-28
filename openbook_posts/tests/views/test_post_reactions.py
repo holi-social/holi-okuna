@@ -9,6 +9,7 @@ import logging
 from openbook_common.tests.helpers import make_authentication_headers_for_user, make_fake_post_text, \
     make_fake_post_comment_text, make_user, make_circle, make_emoji, make_emoji_group, make_reactions_emoji_group, \
     make_community
+from openbook_common.utils.test import uuid_id_parser
 from openbook_notifications.models import PostReactionNotification
 from openbook_posts.models import PostReaction
 
@@ -641,7 +642,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_emojis_counts = json.loads(response.content)
+        response_emojis_counts = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertTrue(len(response_emojis_counts), len(emojis_to_react_with))
 
@@ -678,7 +679,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_reactions = json.loads(response.content)
+        response_reactions = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_reactions), 0)
 
@@ -706,7 +707,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_reactions = json.loads(response.content)
+        response_reactions = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_reactions), 0)
 
@@ -736,7 +737,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_reactions = json.loads(response.content)
+        response_reactions = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_reactions), 0)
 
@@ -766,7 +767,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_reactions = json.loads(response.content)
+        response_reactions = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_reactions), 0)
 
@@ -796,7 +797,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_emoji_counts = json.loads(response.content)
+        response_emoji_counts = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(1, len(response_emoji_counts))
 
@@ -834,7 +835,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_emoji_counts = json.loads(response.content)
+        response_emoji_counts = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(1, len(response_emoji_counts))
 
@@ -875,7 +876,7 @@ class TestPostReactionEmojiGroups(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
         self.assertTrue(response.status_code, status.HTTP_200_OK)
 
-        response_groups = json.loads(response.content)
+        response_groups = json.loads(response.content, object_hook=uuid_id_parser)
         response_groups_ids = [group['id'] for group in response_groups]
 
         self.assertEqual(len(response_groups), len(group_ids))
@@ -901,7 +902,7 @@ class TestPostReactionEmojiGroups(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
         self.assertTrue(response.status_code, status.HTTP_200_OK)
 
-        response_groups = json.loads(response.content)
+        response_groups = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_groups), 0)
 

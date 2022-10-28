@@ -1,6 +1,8 @@
 import tempfile
 
 import random
+import uuid
+
 from PIL import Image
 from django.contrib.contenttypes.models import ContentType
 from faker import Faker
@@ -253,9 +255,10 @@ def make_private_community(creator):
 def make_notification(owner, notification_type=None):
     content_type = ContentType.objects.filter(app_label__startswith="openbook_")[0]
     if notification_type:
-        return mixer.blend(Notification, owner=owner, notification_type=notification_type, content_type=content_type)
+        return mixer.blend(Notification, owner=owner, notification_type=notification_type, content_type=content_type,
+                           object_id=uuid.uuid4())
     else:
-        return mixer.blend(Notification, owner=owner, content_type=content_type)
+        return mixer.blend(Notification, owner=owner, content_type=content_type, object_id=uuid.uuid4())
 
 
 def make_device(owner):

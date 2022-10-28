@@ -12,6 +12,7 @@ import json
 
 from openbook_circles.models import Circle
 from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, make_circle
+from openbook_common.utils.test import uuid_id_parser
 from openbook_notifications.models import ConnectionConfirmedNotification, ConnectionRequestNotification, Notification
 
 logger = logging.getLogger(__name__)
@@ -48,7 +49,7 @@ class ConnectionsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_connections = json.loads(response.content)
+        response_connections = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_connections), len(users_to_connect))
 

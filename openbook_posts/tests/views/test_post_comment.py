@@ -10,6 +10,7 @@ import logging
 from openbook_common.tests.helpers import make_authentication_headers_for_user, make_fake_post_text, \
     make_fake_post_comment_text, make_user, make_circle, make_community, make_hashtag_name, make_hashtag
 from openbook_common.utils.model_loaders import get_language_model
+from openbook_common.utils.test import uuid_id_parser
 from openbook_communities.models import Community
 from openbook_hashtags.models import Hashtag
 from openbook_notifications.models import PostCommentNotification, Notification, PostCommentReplyNotification, \
@@ -2622,7 +2623,7 @@ class TranslatePostCommentAPITests(OpenbookAPITestCase):
         response = self.client.post(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_post = json.loads(response.content)
+        response_post = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(response_post['translated_text'], 'I am a man 😀. You\'re a woman.')
 

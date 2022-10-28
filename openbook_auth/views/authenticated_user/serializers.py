@@ -196,7 +196,7 @@ class UpdateAuthenticatedUserSettingsSerializer(serializers.Serializer):
 
 
 class AuthenticatedUserLanguageSerializer(serializers.Serializer):
-    language_id = serializers.CharField(max_length=36, validators=[language_id_exists], required=True)
+    language_id = serializers.UUIDField(validators=[language_id_exists], required=True)
 
 
 class AuthenticatedUserAllLanguagesSerializer(serializers.ModelSerializer):

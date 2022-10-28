@@ -8,6 +8,7 @@ import logging
 import json
 
 from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user
+from openbook_common.utils.test import uuid_id_parser
 
 fake = Faker()
 
@@ -40,7 +41,7 @@ class FollowersAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_followers = json.loads(response.content)
+        response_followers = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_followers), amount_of_followers)
 
@@ -67,7 +68,7 @@ class FollowersAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_followers = json.loads(response.content)
+        response_followers = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(0, len(response_followers))
 
@@ -108,7 +109,7 @@ class SearchFollowersAPITests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_followers = json.loads(response.content)
+            response_followers = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_followers)
 
             self.assertEqual(response_members_count, 1)
@@ -145,7 +146,7 @@ class SearchFollowersAPITests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_followers = json.loads(response.content)
+            response_followers = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_followers)
 
             self.assertEqual(response_members_count, 1)
@@ -183,7 +184,7 @@ class SearchFollowersAPITests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_followers = json.loads(response.content)
+            response_followers = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_followers)
 
             self.assertEqual(0, response_members_count)
