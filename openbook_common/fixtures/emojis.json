@@ -4,7 +4,7 @@
     "pk": "6d3f88b8-c2dd-4f77-a58a-c7defa8244d4",
     "fields": {
       "order": 9,
-      "group_id": 2,
+      "group_id": "33c4d0bd-aaa1-4d77-9351-964f7e5d6be0",
       "keyword": "waw",
       "keyword_en": "Waw",
       "color": "#f1b01b",
@@ -23,7 +23,7 @@
     "model": "openbook_common.Emoji",
     "pk": "42b008b5-d05c-4882-b4c5-2d2590b44c28",
     "fields": {
-      "group_id": 2,
+      "group_id": "33c4d0bd-aaa1-4d77-9351-964f7e5d6be0",
       "order": 8,
       "keyword": "party",
       "keyword_en": "Party!",
@@ -43,7 +43,7 @@
     "model": "openbook_common.Emoji",
     "pk": "612f4f6c-cf7a-4074-a3d1-9c1f9a91efaf",
     "fields": {
-      "group_id": 1,
+      "group_id": "19f0b6fa-a67f-48f9-bd40-92b039550b3f",
       "order": 1,
       "keyword": "love",
       "keyword_en": "Love it",
@@ -63,7 +63,7 @@
     "model": "openbook_common.Emoji",
     "pk": "bf1a8328-91f3-4260-9c76-1c4c2091b304",
     "fields": {
-      "group_id": 1,
+      "group_id": "19f0b6fa-a67f-48f9-bd40-92b039550b3f",
       "order": 4,
       "keyword": "sad",
       "keyword_en": "Sad",
@@ -83,7 +83,7 @@
     "model": "openbook_common.Emoji",
     "pk": "abbaa77f-67ae-421c-8ff0-00b7c607904f",
     "fields": {
-      "group_id": 2,
+      "group_id": "33c4d0bd-aaa1-4d77-9351-964f7e5d6be0",
       "order": 7,
       "keyword": "lit",
       "keyword_en": "Lit",
@@ -103,7 +103,7 @@
     "model": "openbook_common.Emoji",
     "pk": "bf30ca27-5d98-41ad-8892-90249a6322ad",
     "fields": {
-      "group_id": 2,
+      "group_id": "33c4d0bd-aaa1-4d77-9351-964f7e5d6be0",
       "order": 6,
       "keyword": "hooray",
       "keyword_en": "Hooray!",
@@ -123,7 +123,7 @@
     "model": "openbook_common.Emoji",
     "pk": "07e85b84-4da2-43e7-99f8-c506731e7e41",
     "fields": {
-      "group_id": 1,
+      "group_id": "19f0b6fa-a67f-48f9-bd40-92b039550b3f",
       "order": 5,
       "keyword": "hehe",
       "keyword_en": "Hehe",
@@ -143,7 +143,7 @@
     "model": "openbook_common.Emoji",
     "pk": "da502e3c-1fb5-4b09-b342-a2f57c0680cf",
     "fields": {
-      "group_id": 1,
+      "group_id": "19f0b6fa-a67f-48f9-bd40-92b039550b3f",
       "order": 3,
       "keyword": "wow",
       "keyword_en": "Wow",
@@ -163,7 +163,7 @@
     "model": "openbook_common.Emoji",
     "pk": "4fb91608-f791-422c-80de-5d34c239eeb5",
     "fields": {
-      "group_id": 1,
+      "group_id": "19f0b6fa-a67f-48f9-bd40-92b039550b3f",
       "order": 2,
       "keyword": "haha",
       "keyword_en": "Haha",
@@ -183,7 +183,7 @@
     "model": "openbook_common.Emoji",
     "pk": "61946ca0-766c-41d5-9115-a583adedfdc2",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "alarm",
       "keyword_en": "Alarm",
@@ -203,7 +203,7 @@
     "model": "openbook_common.Emoji",
     "pk": "38f6feda-ace1-4980-8cc1-8e6d00c774af",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "computer",
       "keyword_en": "Computer",
@@ -223,7 +223,7 @@
     "model": "openbook_common.Emoji",
     "pk": "8631450f-8629-488a-a617-baeb1806a019",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "game",
       "keyword_en": "Game",
@@ -236,7 +236,7 @@
     "model": "openbook_common.Emoji",
     "pk": "7a0420d2-36c5-4b51-af3c-55d334cb3f04",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "football",
       "keyword_en": "Football",
@@ -256,7 +256,7 @@
     "model": "openbook_common.Emoji",
     "pk": "99599f7d-88b0-40d6-97f6-ad5fc08b3ea1",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "lighting",
       "keyword_en": "Lighting",
@@ -276,7 +276,7 @@
     "model": "openbook_common.Emoji",
     "pk": "4467551f-b53d-42ea-b6f4-04bfebca08e8",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "lock",
       "keyword_en": "Lock",
@@ -296,7 +296,7 @@
     "model": "openbook_common.Emoji",
     "pk": "1b45d8de-ad09-48b7-ae96-e66d629885f2",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "money",
       "keyword_en": "Money",
@@ -316,7 +316,7 @@
     "model": "openbook_common.Emoji",
     "pk": "bd12aeaf-b768-497f-9346-ac8b67230357",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "pencil",
       "keyword_en": "Pencil",
@@ -336,7 +336,7 @@
     "model": "openbook_common.Emoji",
     "pk": "bfe16df9-ea38-4405-9207-6ab18dc097f6",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "speaker",
       "keyword_en": "Speaker",
@@ -356,7 +356,7 @@
     "model": "openbook_common.Emoji",
     "pk": "43fab761-f6b4-4fe8-b653-b508d55da00f",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "camera",
       "keyword_en": "Camera",
@@ -376,7 +376,7 @@
     "model": "openbook_common.Emoji",
     "pk": "4334c9b1-9a90-406c-961e-efc3bc989822",
     "fields": {
-      "group_id": 2,
+      "group_id": "33c4d0bd-aaa1-4d77-9351-964f7e5d6be0",
       "order": 2,
       "keyword": "bravo",
       "keyword_en": "Bravo!",
@@ -396,7 +396,7 @@
     "model": "openbook_common.Emoji",
     "pk": "791685fb-deff-4a26-abed-39def9469a78",
     "fields": {
-      "group_id": 1,
+      "group_id": "19f0b6fa-a67f-48f9-bd40-92b039550b3f",
       "order": 98,
       "keyword": "cool",
       "keyword_en": "Cool",
@@ -416,7 +416,7 @@
     "model": "openbook_common.Emoji",
     "pk": "92dcd97e-e9f6-4803-940f-c26f2dc21d4b",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "news",
       "keyword_en": "News",
@@ -436,7 +436,7 @@
     "model": "openbook_common.Emoji",
     "pk": "fd379479-50bc-460f-8158-bb1754ac563c",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "earth",
       "keyword_en": "Earth",
@@ -456,7 +456,7 @@
     "model": "openbook_common.Emoji",
     "pk": "334fa75c-132c-411e-ad04-7a04e9738413",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "book",
       "keyword_en": "Book",
@@ -476,7 +476,7 @@
     "model": "openbook_common.Emoji",
     "pk": "474b2192-8dc7-46eb-aba4-ba65f9413cf8",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "science",
       "keyword_en": "Science",
@@ -496,7 +496,7 @@
     "model": "openbook_common.Emoji",
     "pk": "f38a0bc4-ec1c-4766-a700-3d9e8688f267",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "bulb",
       "keyword_en": "Bulb",
@@ -516,7 +516,7 @@
     "model": "openbook_common.Emoji",
     "pk": "8de0c28d-7a46-4525-aa10-291156f43429",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "fancyhat",
       "keyword_en": "Fancy hat",
@@ -536,7 +536,7 @@
     "model": "openbook_common.Emoji",
     "pk": "dd2c8268-1b2b-401f-a25b-f16f962388d9",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "heart",
       "keyword_en": "Heart",
@@ -556,7 +556,7 @@
     "model": "openbook_common.Emoji",
     "pk": "473fd053-031c-4c33-af46-f7e6a65e2b81",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "star",
       "keyword_en": "Star",
@@ -576,7 +576,7 @@
     "model": "openbook_common.Emoji",
     "pk": "ee588596-dcdc-4786-b40c-37bad0294397",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "trophy",
       "keyword_en": "Trophy",
@@ -596,7 +596,7 @@
     "model": "openbook_common.Emoji",
     "pk": "efec5343-be33-44b1-8f92-90a487f70394",
     "fields": {
-      "group_id": 2,
+      "group_id": "33c4d0bd-aaa1-4d77-9351-964f7e5d6be0",
       "order": 2,
       "keyword": "omg",
       "keyword_en": "OMG",
@@ -616,7 +616,7 @@
     "model": "openbook_common.Emoji",
     "pk": "a834af6c-9c00-4662-a3e3-caa2cb436e4f",
     "fields": {
-      "group_id": 2,
+      "group_id": "33c4d0bd-aaa1-4d77-9351-964f7e5d6be0",
       "order": 2,
       "keyword": "thankful",
       "keyword_en": "Thankful",
@@ -636,7 +636,7 @@
     "model": "openbook_common.Emoji",
     "pk": "a6980ab3-f963-4b97-9430-4ed0b0ded874",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "music",
       "keyword_en": "Music",
@@ -656,7 +656,7 @@
     "model": "openbook_common.Emoji",
     "pk": "5bed57ea-0f03-4d3a-9f7b-70c4141d2a83",
     "fields": {
-      "group_id": 2,
+      "group_id": "33c4d0bd-aaa1-4d77-9351-964f7e5d6be0",
       "order": 2,
       "keyword": "wohoo",
       "keyword_en": "Wohoo!",
@@ -676,7 +676,7 @@
     "model": "openbook_common.Emoji",
     "pk": "f53d9e2d-feb0-4908-8b6d-f02e22fc18b3",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "palette",
       "keyword_en": "Palette",
@@ -696,7 +696,7 @@
     "model": "openbook_common.Emoji",
     "pk": "5d1540c8-333c-41b5-93b9-e82c5487c938",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "alien",
       "keyword_en": "Alien",
@@ -716,7 +716,7 @@
     "model": "openbook_common.Emoji",
     "pk": "b810c106-e4fb-41bc-9726-67378ed7c0c5",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "airplane",
       "keyword_en": "Airplane",
@@ -736,7 +736,7 @@
     "model": "openbook_common.Emoji",
     "pk": "a579d220-dbd7-410a-8484-5f4015fddb5e",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "rocket",
       "keyword_en": "Rocket",
@@ -756,7 +756,7 @@
     "model": "openbook_common.Emoji",
     "pk": "434fdd17-50a9-4d3c-92fe-e0c308081275",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "lipstick",
       "keyword_en": "Lipstick",
@@ -776,7 +776,7 @@
     "model": "openbook_common.Emoji",
     "pk": "c4803a40-f987-4096-af2f-9fcb1f430899",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "crown",
       "keyword_en": "Crown",
@@ -796,7 +796,7 @@
     "model": "openbook_common.Emoji",
     "pk": "39c779d1-30e4-4b1f-bfb4-a1dc15cbd544",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 2,
       "keyword": "map",
       "keyword_en": "Map",
@@ -816,7 +816,7 @@
     "model": "openbook_common.Emoji",
     "pk": "bc2d57b1-dad8-46cc-b54f-844ae34617dc",
     "fields": {
-      "group_id": 1,
+      "group_id": "19f0b6fa-a67f-48f9-bd40-92b039550b3f",
       "order": 99,
       "keyword": "likey",
       "keyword_en": "Likey",
@@ -836,7 +836,7 @@
     "model": "openbook_common.Emoji",
     "pk": "31042a68-f45e-40e4-9b9d-cb79d692a16b",
     "fields": {
-      "group_id": 2,
+      "group_id": "33c4d0bd-aaa1-4d77-9351-964f7e5d6be0",
       "order": 100,
       "keyword": "pride",
       "keyword_en": "Pride",
@@ -856,7 +856,7 @@
     "model": "openbook_common.Emoji",
     "pk": "09eaa044-02a5-4a38-afce-9b69f2427802",
     "fields": {
-      "group_id": 2,
+      "group_id": "33c4d0bd-aaa1-4d77-9351-964f7e5d6be0",
       "order": 100,
       "keyword": "whoop",
       "keyword_en": "Whoop!",
@@ -876,7 +876,7 @@
     "model": "openbook_common.Emoji",
     "pk": "a30e7850-5b9f-4109-bf68-d0959f43cba2",
     "fields": {
-      "group_id": 1,
+      "group_id": "19f0b6fa-a67f-48f9-bd40-92b039550b3f",
       "order": 96,
       "keyword": "hmm",
       "keyword_en": "Hmm",
@@ -896,7 +896,7 @@
     "model": "openbook_common.Emoji",
     "pk": "bd8c75c2-13b2-412e-b3cc-b849b93c11d8",
     "fields": {
-      "group_id": 2,
+      "group_id": "33c4d0bd-aaa1-4d77-9351-964f7e5d6be0",
       "order": 100,
       "keyword": "yummy",
       "keyword_en": "Yummy",
@@ -916,7 +916,7 @@
     "model": "openbook_common.Emoji",
     "pk": "bc89a8b0-b2ce-433f-a67f-6e37ad73feba",
     "fields": {
-      "group_id": 1,
+      "group_id": "19f0b6fa-a67f-48f9-bd40-92b039550b3f",
       "order": 100,
       "keyword": "Ehh",
       "keyword_en": "Ehh",
@@ -936,7 +936,7 @@
     "model": "openbook_common.Emoji",
     "pk": "86c9df40-f5f3-48f2-b55c-91dbe0b7b536",
     "fields": {
-      "group_id": 1,
+      "group_id": "19f0b6fa-a67f-48f9-bd40-92b039550b3f",
       "order": 100,
       "keyword": "Hug",
       "keyword_en": "Hug",
@@ -956,7 +956,7 @@
     "model": "openbook_common.Emoji",
     "pk": "d9e0fc79-d156-4602-9ea5-07a3a76dfe6f",
     "fields": {
-      "group_id": 2,
+      "group_id": "33c4d0bd-aaa1-4d77-9351-964f7e5d6be0",
       "order": 2,
       "keyword": "Cheers!",
       "keyword_en": "Cheers!",
@@ -976,7 +976,7 @@
     "model": "openbook_common.Emoji",
     "pk": "90404a2a-dc0a-421f-b6cb-5f66b11ece4e",
     "fields": {
-      "group_id": 2,
+      "group_id": "33c4d0bd-aaa1-4d77-9351-964f7e5d6be0",
       "order": 200,
       "keyword": "Hoot!",
       "keyword_en": "Hoot!",
@@ -996,7 +996,7 @@
     "model": "openbook_common.Emoji",
     "pk": "0002c236-e879-4c65-89ac-efae19744c06",
     "fields": {
-      "group_id": 2,
+      "group_id": "33c4d0bd-aaa1-4d77-9351-964f7e5d6be0",
       "order": 200,
       "keyword": "Spooky",
       "keyword_en": "Spooky",
@@ -1016,7 +1016,7 @@
     "model": "openbook_common.Emoji",
     "pk": "21ed81cc-698c-4c5b-8657-ef254b298c3b",
     "fields": {
-      "group_id": 2,
+      "group_id": "33c4d0bd-aaa1-4d77-9351-964f7e5d6be0",
       "order": 200,
       "keyword": "Yeah!",
       "keyword_en": "Yeah!",
@@ -1036,7 +1036,7 @@
     "model": "openbook_common.Emoji",
     "pk": "50a2db8f-8ca5-49a6-b6b6-93c7f803da02",
     "fields": {
-      "group_id": 3,
+      "group_id": "861069a0-463a-406b-a5ec-8d9921d15d38",
       "order": 200,
       "keyword": "Christmas",
       "keyword_en": "Christmas",
