@@ -1,5 +1,6 @@
 from django.contrib.auth.validators import UnicodeUsernameValidator, ASCIIUsernameValidator
 from django.core.mail import EmailMultiAlternatives
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
@@ -10,8 +11,6 @@ from openbook.settings import USERNAME_MAX_LENGTH, PROFILE_NAME_MAX_LENGTH
 from openbook_common.models import Badge, ModelWithUUID
 from openbook_common.utils.model_loaders import get_user_invite_model
 from rest_framework.exceptions import ValidationError
-
-from openbook_common.uuid_encoder import UUIDEncoder
 
 
 class UserInvite(ModelWithUUID):
@@ -45,7 +44,6 @@ class UserInvite(ModelWithUUID):
 
     def __str__(self):
         return 'UserInvite'
-
 
     @classmethod
     def is_token_valid(cls, token):
@@ -147,9 +145,9 @@ class UserInvite(ModelWithUUID):
         self.save()
 
     def generate_token(self):
-        token_bytes = jwt.encode({'id': self.id}, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM, json_encoder=UUIDEncoder)
+        token_bytes = jwt.encode({'id': self.id}, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM,
+                                 json_encoder=DjangoJSONEncoder)
         return token_bytes.decode('UTF-8')
 
     def _generate_one_time_link(self):
         return f'{settings.EMAIL_HOST}/api/auth/invite?token={self.token}'
-
