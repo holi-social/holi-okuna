@@ -2,9 +2,10 @@ from django.db import models
 
 # Create your models here.
 from openbook_auth.models import User
+from openbook_common.models import ModelWithUUID
 
 
-class Follow(models.Model):
+class Follow(ModelWithUUID):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='follows')
     followed_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='followers', null=False)
 
@@ -24,7 +25,7 @@ class Follow(models.Model):
         return follow
 
 
-class FollowRequest(models.Model):
+class FollowRequest(ModelWithUUID):
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_follow_requests')
     target_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_follow_requests', null=False)
 

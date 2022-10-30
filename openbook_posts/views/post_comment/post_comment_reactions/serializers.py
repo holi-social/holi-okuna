@@ -27,11 +27,11 @@ class ReactToPostCommentSerializer(serializers.Serializer):
         validators=[post_uuid_exists],
         required=True,
     )
-    post_comment_id = serializers.IntegerField(
+    post_comment_id = serializers.UUIDField(
         validators=[post_comment_id_exists],
         required=True,
     )
-    emoji_id = serializers.IntegerField(
+    emoji_id = serializers.UUIDField(
         validators=[emoji_id_exists],
         required=True,
     )
@@ -46,7 +46,7 @@ class GetPostCommentReactionsEmojiCountSerializer(serializers.Serializer):
         validators=[post_uuid_exists],
         required=True,
     )
-    post_comment_id = serializers.IntegerField(
+    post_comment_id = serializers.UUIDField(
         validators=[post_comment_id_exists],
         required=True,
     )
@@ -61,7 +61,7 @@ class GetPostCommentReactionsSerializer(serializers.Serializer):
         validators=[post_uuid_exists],
         required=True,
     )
-    post_comment_id = serializers.IntegerField(
+    post_comment_id = serializers.UUIDField(
         validators=[post_comment_id_exists],
         required=True,
     )
@@ -72,7 +72,7 @@ class GetPostCommentReactionsSerializer(serializers.Serializer):
         required=False,
         max_value=20
     )
-    emoji_id = serializers.IntegerField(
+    emoji_id = serializers.UUIDField(
         validators=[emoji_id_exists],
         required=False,
     )

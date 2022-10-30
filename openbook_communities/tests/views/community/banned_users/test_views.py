@@ -10,6 +10,7 @@ import json
 
 from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, \
     make_community
+from openbook_common.utils.test import uuid_id_parser
 
 logger = logging.getLogger(__name__)
 fake = Faker()
@@ -110,7 +111,7 @@ class Communitybanned_usersAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_banned_users = json.loads(response.content)
+        response_banned_users = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_banned_users), len(banned_users_ids))
 
@@ -148,7 +149,7 @@ class Communitybanned_usersAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_banned_users = json.loads(response.content)
+        response_banned_users = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_banned_users), len(banned_users_ids))
 
@@ -542,7 +543,7 @@ class SearchCommunityBannedUsersAPITests(OpenbookAPITestCase):
                 'query': final_query
             }, **headers)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            response_banned_users = json.loads(response.content)
+            response_banned_users = json.loads(response.content, object_hook=uuid_id_parser)
             response_banned_users_count = len(response_banned_users)
             if response_banned_users_count == 1:
                 # Our community creator was not retrieved
@@ -585,7 +586,7 @@ class SearchCommunityBannedUsersAPITests(OpenbookAPITestCase):
                 'query': final_query
             }, **headers)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            response_banned_users = json.loads(response.content)
+            response_banned_users = json.loads(response.content, object_hook=uuid_id_parser)
             response_banned_users_count = len(response_banned_users)
             if response_banned_users_count == 1:
                 # Our community creator was not retrieved

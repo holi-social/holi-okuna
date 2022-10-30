@@ -5,6 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from openbook_common.models import ModelWithUUID
 from .fields import VideoField
 from .manager import FormatManager
 
@@ -16,10 +17,8 @@ def upload_format_to(i, f):
         splitext(f)[1].lower())
 
 
-class Format(models.Model):
-    object_id = models.PositiveIntegerField(
-        editable=False,
-    )
+class Format(ModelWithUUID):
+    object_id = models.CharField(editable=False, max_length=36)
     content_type = models.ForeignKey(
         ContentType,
         editable=False,

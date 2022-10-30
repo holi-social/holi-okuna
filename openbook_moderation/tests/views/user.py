@@ -7,6 +7,7 @@ from openbook_common.tests.models import OpenbookAPITestCase
 
 from openbook_common.tests.helpers import make_user, make_moderation_category, \
     make_authentication_headers_for_user, make_moderation_penalty, make_community, make_fake_post_text
+from openbook_common.utils.test import uuid_id_parser
 
 fake = Faker()
 
@@ -37,7 +38,7 @@ class UserModerationPenaltiesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderation_penalties = json.loads(response.content)
+        response_moderation_penalties = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_moderation_penalties), len(moderation_penalties_ids))
 
@@ -67,7 +68,7 @@ class UserModerationPenaltiesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderation_penalties = json.loads(response.content)
+        response_moderation_penalties = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_moderation_penalties), 0)
 
@@ -116,7 +117,7 @@ class UserPendingModeratedObjectsCommunitiesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_communities = json.loads(response.content)
+        response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_communities), len(moderated_commmunities_ids))
 
@@ -158,7 +159,7 @@ class UserPendingModeratedObjectsCommunitiesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_communities = json.loads(response.content)
+        response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(0, len(response_communities))
 
@@ -198,7 +199,7 @@ class UserPendingModeratedObjectsCommunitiesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_communities = json.loads(response.content)
+        response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_communities), len(moderated_commmunities_ids))
 
@@ -240,7 +241,7 @@ class UserPendingModeratedObjectsCommunitiesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_communities = json.loads(response.content)
+        response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(0, len(response_communities))
 

@@ -183,7 +183,7 @@ post_notifications_patterns = [
 post_comment_reactions_patterns = [
     path('', PostCommentReactions.as_view(), name='post-comment-reactions'),
     path('emoji-count/', PostCommentReactionsEmojiCount.as_view(), name='post-comment-reactions-emoji-count'),
-    path('<int:post_comment_reaction_id>/', PostCommentReactionItem.as_view(), name='post-comment-reaction'), ]
+    path('<uuid:post_comment_reaction_id>/', PostCommentReactionItem.as_view(), name='post-comment-reaction'), ]
 
 post_comment_notifications_patterns = [
     path('mute/', MutePostComment.as_view(), name='mute-post-comment'),
@@ -213,10 +213,10 @@ post_patterns = [
     path('comments/', PostComments.as_view(), name='post-comments'),
     path('comments/disable/', PostCommentsDisable.as_view(), name='disable-post-comments'),
     path('comments/enable/', PostCommentsEnable.as_view(), name='enable-post-comments'),
-    path('comments/<int:post_comment_id>/', include(post_comment_patterns)),
+    path('comments/<uuid:post_comment_id>/', include(post_comment_patterns)),
     path('reactions/', PostReactions.as_view(), name='post-reactions'),
     path('reactions/emoji-count/', PostReactionsEmojiCount.as_view(), name='post-reactions-emoji-count'),
-    path('reactions/<int:post_reaction_id>/', PostReactionItem.as_view(), name='post-reaction'),
+    path('reactions/<uuid:post_reaction_id>/', PostReactionItem.as_view(), name='post-reaction'),
     path('close/', PostClose.as_view(), name='close-post'),
     path('open/', PostOpen.as_view(), name='open-post'),
     path('report/', ReportPost.as_view(), name='report-post'),
@@ -360,13 +360,13 @@ connections_patterns = [
 circles_patterns = [
     path('', Circles.as_view(), name='circles'),
     path('name-check/', CircleNameCheck.as_view(), name='circle-name-check'),
-    path('<int:circle_id>/', CircleItem.as_view(), name='circle'),
+    path('<uuid:circle_id>/', CircleItem.as_view(), name='circle'),
 ]
 
 lists_patterns = [
     path('', Lists.as_view(), name='lists'),
     path('name-check/', ListNameCheck.as_view(), name='list-name-check'),
-    path('<int:list_id>/', ListItem.as_view(), name='list'),
+    path('<uuid:list_id>/', ListItem.as_view(), name='list'),
 ]
 
 follow_requests_patterns = [
@@ -401,7 +401,7 @@ notifications_patterns = [
     path('', Notifications.as_view(), name='notifications'),
     path('read/', ReadNotifications.as_view(), name='read-notifications'),
     path('unread/count/', UnreadNotificationsCount.as_view(), name='unread-notifications-count'),
-    path('<int:notification_id>/', include(notification_patterns)),
+    path('<uuid:notification_id>/', include(notification_patterns)),
 ]
 
 devices_patterns = [
@@ -427,7 +427,7 @@ moderation_moderated_object_patterns = [
 ]
 
 moderation_moderated_objects_patterns = [
-    path('<int:moderated_object_id>/', include(moderation_moderated_object_patterns)),
+    path('<uuid:moderated_object_id>/', include(moderation_moderated_object_patterns)),
     path('global/', GlobalModeratedObjects.as_view(), name='global-moderated-objects')
 ]
 

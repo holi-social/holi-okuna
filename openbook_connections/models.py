@@ -2,9 +2,10 @@ from django.db import models
 
 # Create your models here.
 from openbook_auth.models import User
+from openbook_common.models import ModelWithUUID
 
 
-class Connection(models.Model):
+class Connection(ModelWithUUID):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='connections')
     target_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='targeted_connections', null=False)
     target_connection = models.OneToOneField('self', on_delete=models.CASCADE, null=True)

@@ -21,6 +21,7 @@ from openbook_common.utils.model_loaders import get_user_new_post_notification_m
     get_post_reaction_notification_model, get_post_user_mention_model, get_post_user_mention_notification_model, \
     get_community_invite_notification_model, get_follow_notification_model, get_connection_request_notification_model, \
     get_connection_confirmed_notification_model
+from openbook_common.utils.test import uuid_id_parser
 from openbook_communities.models import Community
 from openbook_moderation.models import ModeratedObject, ModeratedObjectDescriptionChangedLog, \
     ModeratedObjectCategoryChangedLog, ModerationPenalty, ModerationCategory, ModeratedObjectStatusChangedLog, \
@@ -4440,7 +4441,7 @@ class ModeratedObjectLogs(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderation_categories = json.loads(response.content)
+        response_moderation_categories = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_moderation_categories), len(moderated_object_logs_ids))
 
@@ -4493,7 +4494,7 @@ class ModeratedObjectLogs(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderation_categories = json.loads(response.content)
+        response_moderation_categories = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_moderation_categories), len(moderated_object_logs_ids))
 
@@ -4558,7 +4559,7 @@ class ModeratedObjectReports(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderation_categories = json.loads(response.content)
+        response_moderation_categories = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_moderation_categories), len(moderated_object_reports_ids))
 
@@ -4611,7 +4612,7 @@ class ModeratedObjectReports(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderation_categories = json.loads(response.content)
+        response_moderation_categories = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_moderation_categories), len(moderated_object_reports_ids))
 

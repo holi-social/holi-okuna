@@ -8,6 +8,7 @@ import json
 
 from openbook_common.tests.helpers import make_emoji_group, make_user, make_authentication_headers_for_user, \
     make_fake_post_text, make_proxy_blacklisted_domain
+from openbook_common.utils.test import uuid_id_parser
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +26,7 @@ class TimeAPITests(OpenbookAPITestCase):
         timezone_to_set = 'America/Mexico_City'
         header = {'HTTP_TIME_ZONE': timezone_to_set}
         response = self.client.get(url, **header)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(parsed_response['timezone'], timezone_to_set)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -68,7 +69,7 @@ class TestEmojiGroups(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
         self.assertTrue(response.status_code, status.HTTP_200_OK)
 
-        response_groups = json.loads(response.content)
+        response_groups = json.loads(response.content, object_hook=uuid_id_parser)
         response_groups_ids = [group['id'] for group in response_groups]
 
         self.assertEqual(len(response_groups), len(group_ids))
@@ -94,7 +95,7 @@ class TestEmojiGroups(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
         self.assertTrue(response.status_code, status.HTTP_200_OK)
 
-        response_groups = json.loads(response.content)
+        response_groups = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_groups), 0)
 

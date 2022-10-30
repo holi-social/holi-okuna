@@ -5,10 +5,11 @@ from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 
 from openbook_auth.models import User
+from openbook_common.models import ModelWithUUID
 from openbook_notifications.models.notification import Notification
 
 
-class ConnectionConfirmedNotification(models.Model):
+class ConnectionConfirmedNotification(ModelWithUUID):
     notification = GenericRelation(Notification)
     connection_confirmator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+')
 
