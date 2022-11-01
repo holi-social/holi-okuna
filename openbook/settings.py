@@ -310,7 +310,7 @@ else:
         '--cover-package=.',
         '--with-spec',
         '--spec-color',
-        # '--with-coverage',
+        '--with-coverage',
         '--cover-html',
         '--cover-html-dir=reports/cover',
         '--verbosity=1',
