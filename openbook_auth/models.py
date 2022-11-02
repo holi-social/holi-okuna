@@ -3698,7 +3698,7 @@ class User(AbstractUser):
 
     def _get_world_circle_id(self):
         Circle = get_circle_model()
-        return Circle.get_world_circle().pk
+        return Circle.get_world_circle_id()
 
     def _get_default_connection_circles(self):
         """

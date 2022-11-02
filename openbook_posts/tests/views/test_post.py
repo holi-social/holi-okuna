@@ -2100,7 +2100,8 @@ class TranslatePostAPITests(OpenbookAPITestCase):
     """
 
     fixtures = [
-        'openbook_common/fixtures/languages.json'
+        'openbook_common/fixtures/languages.json',
+        'openbook_circles/fixtures/circles.json'
     ]
 
     def test_translate_post_text(self):
