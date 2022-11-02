@@ -257,7 +257,6 @@ class User(AbstractUser):
         Post = get_post_model()
         Circle = get_circle_model()
         ModeratedObject = get_moderated_object_model()
-        world_circle_id = Circle.get_world_circle_id()
 
         user_query = Q(creator__username=username)
 
@@ -282,7 +281,7 @@ class User(AbstractUser):
         exclude_deleted_posts_query = Q(is_deleted=False, status=Post.STATUS_PUBLISHED)
 
         # Get user world circle posts
-
+        world_circle_id = Circle.get_world_circle_id()
         world_circle_posts_query = Q(circles__id=world_circle_id)
 
         world_circle_posts = Post.objects.prefetch_related(*posts_prefetch_related) \
@@ -334,11 +333,6 @@ class User(AbstractUser):
         Post = get_post_model()
         Circle = get_circle_model()
         ModeratedObject = get_moderated_object_model()
-        world_circle_id = Circle.get_world_circle_id()
-
-        posts_prefetch_related = 'circles'
-
-        posts_only = 'id'
 
         user_query = Q(creator_id=user.pk)
 
@@ -352,9 +346,11 @@ class User(AbstractUser):
         exclude_deleted_posts_query = Q(is_deleted=False, status=Post.STATUS_PUBLISHED)
 
         # Get user world circle posts
-
+        world_circle_id = Circle.get_world_circle_id()
         world_circle_posts_query = Q(creator__id=user.pk, circles__id=world_circle_id)
 
+        posts_prefetch_related = 'circles'
+        posts_only = 'id'
         world_circle_posts = Post.objects.prefetch_related(posts_prefetch_related) \
             .only(posts_only) \
             .filter(
@@ -3702,7 +3698,7 @@ class User(AbstractUser):
 
     def _get_world_circle_id(self):
         Circle = get_circle_model()
-        return Circle.get_world_circle().pk
+        return Circle.get_world_circle_id()
 
     def _get_default_connection_circles(self):
         """

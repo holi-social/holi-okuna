@@ -746,6 +746,10 @@ class PostCommentReactionsEmojiCountAPITests(OpenbookAPITestCase):
     PostCommentReactionsEmojiCountAPI
     """
 
+    fixtures = [
+        'openbook_circles/fixtures/circles.json'
+    ]
+
     def test_can_retrieve_post_comment_reactions_emoji_count(self):
         """
         should be able to retrieve a valid post comment reactions emoji count and return 200
