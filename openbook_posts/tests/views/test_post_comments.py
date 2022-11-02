@@ -1605,7 +1605,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         post = post_creator.create_public_post(text=make_fake_post_text())
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk, post_uuid=post.uuid,
+        user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk, post_id=post.id,
                                                          text=make_fake_post_comment_text())
 
         comment_text = make_fake_post_comment_text()
@@ -2071,7 +2071,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post):
         return reverse('post-comments', kwargs={
-            'post_uuid': post.uuid,
+            'post_id': post.id,
         })
 
 
@@ -2175,7 +2175,7 @@ class PostCommentsEnableAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post):
         return reverse('enable-post-comments', kwargs={
-            'post_uuid': post.uuid
+            'post_id': post.id
         })
 
 
@@ -2271,5 +2271,5 @@ class PostCommentsDisableAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post):
         return reverse('disable-post-comments', kwargs={
-            'post_uuid': post.uuid
+            'post_id': post.id
         })

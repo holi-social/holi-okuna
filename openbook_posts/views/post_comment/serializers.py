@@ -9,8 +9,8 @@ from openbook_common.serializers_fields.post_comment import PostCommenterField, 
     PostCommentReactionField, PostCommentIsMutedField, RepliesCountField
 from openbook_communities.models import CommunityMembership
 from openbook_posts.models import PostComment, PostCommentReaction
-from openbook_posts.validators import post_comment_id_exists, post_uuid_exists, \
-    post_comment_id_exists_for_post_with_uuid
+from openbook_posts.validators import post_comment_id_exists, post_id_exists, \
+    post_comment_id_exists_for_post_with_id
 from openbook_posts.views.posts.serializers import PostLanguageSerializer
 
 
@@ -30,8 +30,8 @@ class EditPostCommentSerializer(serializers.ModelSerializer):
 
 
 class DeletePostCommentSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
     post_comment_id = serializers.UUIDField(
@@ -41,8 +41,8 @@ class DeletePostCommentSerializer(serializers.Serializer):
 
 
 class GetPostCommentRequestSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
     post_comment_id = serializers.UUIDField(
@@ -52,8 +52,8 @@ class GetPostCommentRequestSerializer(serializers.Serializer):
 
 
 class UpdatePostCommentSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
     post_comment_id = serializers.UUIDField(
@@ -64,8 +64,8 @@ class UpdatePostCommentSerializer(serializers.Serializer):
 
 
 class MutePostCommentSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
     post_comment_id = serializers.UUIDField(
@@ -74,7 +74,7 @@ class MutePostCommentSerializer(serializers.Serializer):
     )
 
     def validate(self, data):
-        post_comment_id_exists_for_post_with_uuid(post_comment_id=data['post_comment_id'], post_uuid=data['post_uuid'])
+        post_comment_id_exists_for_post_with_id(post_comment_id=data['post_comment_id'], post_id=data['post_id'])
         return data
 
 
@@ -83,8 +83,8 @@ class UnmutePostCommentSerializer(MutePostCommentSerializer):
 
 
 class TranslatePostCommentSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
     post_comment_id = serializers.UUIDField(

@@ -13,7 +13,6 @@ from openbook_auth.images import store_avatar, delete_avatar
 from openbook_insights.models import Insight as InsightModel
 from openbook_posts.models import Post as PostModel, PostComment as PostCommentModel
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
-from openbook_posts.views.post_comments.views import get_post_id_for_post_uuid
 from openbook_spaces.models import Space as SpaceModel
 
 from logging import getLogger
@@ -113,12 +112,6 @@ class Space(DjangoObjectType):
 class Post(DjangoObjectType):
     class Meta:
         model = PostModel
-        exclude = ("uuid",)
-
-    id = graphene.UUID
-
-    def resolve_id(self, info):
-        return self.uuid
 
 
 class PostComment(DjangoObjectType):
@@ -289,7 +282,7 @@ class UpdateConnectionWithUserMutation(graphene.Mutation):
 
 
 class CreatePostCommentInput(graphene.InputObjectType):
-    post_uuid = graphene.String()
+    post_id = graphene.String()
     text = graphene.String()
 
 
@@ -311,8 +304,7 @@ class CreatePostCommentMutation(graphene.Mutation):
         data = serializer.validated_data
 
         comment_text = data.get('text')
-        post_uuid = data.get('post_uuid')
-        post_id = get_post_id_for_post_uuid(post_uuid)
+        post_id = data.get('post_id')
 
         authenticated_user = info.context.user
 

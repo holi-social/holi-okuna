@@ -57,7 +57,6 @@ class CommunityPostSerializer(serializers.ModelSerializer):
         model = Post
         fields = (
             'id',
-            'uuid',
             'comments_count',
             'comments_enabled',
             'reactions_emoji_counts',

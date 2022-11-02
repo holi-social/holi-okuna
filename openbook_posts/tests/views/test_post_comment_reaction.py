@@ -461,7 +461,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post, post_comment, post_comment_reaction):
         return reverse('post-comment-reaction', kwargs={
-            'post_uuid': post.uuid,
+            'post_id': post.id,
             'post_comment_id': post_comment.pk,
             'post_comment_reaction_id': post_comment_reaction.pk
         })

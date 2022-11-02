@@ -6,7 +6,6 @@ from rest_framework.views import APIView
 from django.utils.translation import gettext_lazy as _
 
 from openbook_common.responses import ApiMessageResponse
-from openbook_common.utils.helpers import get_post_id_for_post_uuid
 from openbook_moderation.permissions import IsNotSuspended
 from openbook_posts.views.post_comment.serializers import DeletePostCommentSerializer, UpdatePostCommentSerializer, \
     EditPostCommentSerializer, MutePostCommentSerializer, UnmutePostCommentSerializer, TranslatePostCommentSerializer, \
@@ -18,37 +17,36 @@ from openbook_translation.strategies.base import UnsupportedLanguagePairExceptio
 class PostCommentItem(APIView):
     permission_classes = (IsAuthenticated, IsNotSuspended)
 
-    def get(self, request, post_uuid, post_comment_id):
+    def get(self, request, post_id, post_comment_id):
         serializer = GetPostCommentRequestSerializer(data={
-            'post_uuid': post_uuid,
+            'post_id': post_id,
             'post_comment_id': post_comment_id
         })
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
-        post_uuid = data.get('post_uuid')
+        post_id = data.get('post_id')
         post_comment_id = data.get('post_comment_id')
 
         user = request.user
 
-        post_comment = user.get_comment_with_id_for_post_with_uuid(post_comment_id=post_comment_id,
-                                                                   post_uuid=post_uuid)
+        post_comment = user.get_comment_with_id_for_post_with_id(post_comment_id=post_comment_id,
+                                                                   post_id=post_id)
 
         post_comment_serializer = GetPostCommentSerializer(post_comment, context={"request": request})
         return Response(post_comment_serializer.data, status=status.HTTP_200_OK)
 
-    def delete(self, request, post_uuid, post_comment_id):
-        request_data = self._get_request_data(request, post_uuid, post_comment_id)
+    def delete(self, request, post_id, post_comment_id):
+        request_data = self._get_request_data(request, post_id, post_comment_id)
 
         serializer = DeletePostCommentSerializer(data=request_data)
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
-        post_uuid = data.get('post_uuid')
+        post_id = data.get('post_id')
         post_comment_id = data.get('post_comment_id')
 
         user = request.user
-        post_id = get_post_id_for_post_uuid(post_uuid)
 
         with transaction.atomic():
             user.delete_comment_with_id_for_post_with_id(post_comment_id=post_comment_id, post_id=post_id)
@@ -57,19 +55,18 @@ class PostCommentItem(APIView):
             'message': _('Comment deleted')
         }, status=status.HTTP_200_OK)
 
-    def patch(self, request, post_uuid, post_comment_id):
-        request_data = self._get_request_data(request, post_uuid, post_comment_id)
+    def patch(self, request, post_id, post_comment_id):
+        request_data = self._get_request_data(request, post_id, post_comment_id)
 
         serializer = UpdatePostCommentSerializer(data=request_data)
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
         comment_text = data.get('text')
-        post_uuid = data.get('post_uuid')
+        post_id = data.get('post_id')
         post_comment_id = data.get('post_comment_id')
 
         user = request.user
-        post_id = get_post_id_for_post_uuid(post_uuid)
 
         with transaction.atomic():
             post_comment = user.update_comment_with_id_for_post_with_id(post_comment_id=post_comment_id,
@@ -78,9 +75,9 @@ class PostCommentItem(APIView):
         post_comment_serializer = EditPostCommentSerializer(post_comment, context={"request": request})
         return Response(post_comment_serializer.data, status=status.HTTP_200_OK)
 
-    def _get_request_data(self, request, post_uuid, post_comment_id):
+    def _get_request_data(self, request, post_id, post_comment_id):
         request_data = request.data.copy()
-        request_data['post_uuid'] = post_uuid
+        request_data['post_id'] = post_id
         request_data['post_comment_id'] = post_comment_id
         return request_data
 
@@ -88,9 +85,9 @@ class PostCommentItem(APIView):
 class MutePostComment(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request, post_uuid, post_comment_id):
+    def post(self, request, post_id, post_comment_id):
         serializer = MutePostCommentSerializer(data={
-            'post_uuid': post_uuid,
+            'post_id': post_id,
             'post_comment_id': post_comment_id,
         })
         serializer.is_valid(raise_exception=True)
@@ -106,9 +103,9 @@ class MutePostComment(APIView):
 class UnmutePostComment(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request, post_uuid, post_comment_id):
+    def post(self, request, post_id, post_comment_id):
         serializer = UnmutePostCommentSerializer(data={
-            'post_uuid': post_uuid,
+            'post_id': post_id,
             'post_comment_id': post_comment_id,
         })
         serializer.is_valid(raise_exception=True)
@@ -124,9 +121,9 @@ class UnmutePostComment(APIView):
 class TranslatePostComment(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request, post_uuid, post_comment_id):
+    def post(self, request, post_id, post_comment_id):
         request_data = request.data.copy()
-        request_data['post_uuid'] = post_uuid
+        request_data['post_id'] = post_id
         request_data['post_comment_id'] = post_comment_id
 
         serializer = TranslatePostCommentSerializer(data=request_data)

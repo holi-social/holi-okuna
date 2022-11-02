@@ -45,8 +45,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(
-                post_uuid=post.uuid,
+            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(
+                post_id=post.id,
                 post_comment_id=post_comment.pk,
                 text=make_fake_post_comment_text())
             reply_ids.append(post_comment_reply.pk)
@@ -84,8 +84,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                       post_uuid=post.uuid,
+            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                       post_id=post.id,
                                                                                        text=make_fake_post_comment_text())
             reply_ids.append(post_comment_reply.pk)
 
@@ -124,8 +124,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                       post_uuid=post.uuid,
+            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                       post_id=post.id,
                                                                                        text=make_fake_post_comment_text())
             reply_ids.append(post_comment_reply.pk)
 
@@ -170,8 +170,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                       post_uuid=post.uuid,
+            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                       post_id=post.id,
                                                                                        text=make_fake_post_comment_text())
             reply_ids.append(post_comment_reply.pk)
 
@@ -208,8 +208,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                       post_uuid=post.uuid,
+            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                       post_id=post.id,
                                                                                        text=make_fake_post_comment_text())
             reply_ids.append(post_comment_reply.pk)
 
@@ -241,8 +241,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                       post_uuid=post.uuid,
+            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                       post_id=post.id,
                                                                                        text=make_fake_post_comment_text())
             reply_ids.append(post_comment_reply.pk)
 
@@ -276,8 +276,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                       post_uuid=post.uuid,
+            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                       post_id=post.id,
                                                                                        text=make_fake_post_comment_text())
             reply_ids.append(post_comment_reply.pk)
 
@@ -309,8 +309,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                       post_uuid=post.uuid,
+            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                       post_id=post.id,
                                                                                        text=make_fake_post_comment_text())
             reply_ids.append(post_comment_reply.pk)
 
@@ -345,8 +345,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                       post_uuid=post.uuid,
+            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                       post_id=post.id,
                                                                                        text=make_fake_post_comment_text())
             reply_ids.append(post_comment_reply.pk)
 
@@ -385,8 +385,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                       post_uuid=post.uuid,
+            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                       post_id=post.id,
                                                                                        text=make_fake_post_comment_text())
             reply_ids.append(post_comment_reply.pk)
 
@@ -421,8 +421,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                  post_uuid=post.uuid,
+            commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                  post_id=post.id,
                                                                   text=make_fake_post_comment_text())
 
         url = self._get_url(post, post_comment)
@@ -444,8 +444,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post = post_creator.create_public_post(text=make_fake_post_text())
 
         post_comment = blocked_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        blocked_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        blocked_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
 
         user.block_user_with_id(user_id=blocked_user.pk)
@@ -473,8 +473,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post = post_creator.create_public_post(text=make_fake_post_text())
 
         post_comment = blocking_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        blocking_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                  post_uuid=post.uuid,
+        blocking_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                  post_id=post.id,
                                                                   text=make_fake_post_comment_text())
         blocking_user.block_user_with_id(user_id=user.pk)
 
@@ -503,8 +503,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
         post_comment = blocked_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        blocked_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        blocked_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
 
         user.block_user_with_id(user_id=blocked_user.pk)
@@ -534,8 +534,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
         post_comment = blocking_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        blocking_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                  post_uuid=post.uuid,
+        blocking_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                  post_id=post.id,
                                                                   text=make_fake_post_comment_text())
 
         blocking_user.block_user_with_id(user_id=user.pk)
@@ -565,8 +565,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
         post_comment = blocked_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        post_comment_reply = blocked_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                      post_uuid=post.uuid,
+        post_comment_reply = blocked_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                      post_id=post.id,
                                                                                       text=make_fake_post_comment_text())
 
         user.block_user_with_id(user_id=blocked_user.pk)
@@ -598,8 +598,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
         post_comment = blocking_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        post_comment_reply = blocking_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                       post_uuid=post.uuid,
+        post_comment_reply = blocking_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                       post_id=post.id,
                                                                                        text=make_fake_post_comment_text())
 
         blocking_user.block_user_with_id(user_id=user.pk)
@@ -645,8 +645,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                              post_uuid=post.uuid,
+        post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                              post_id=post.id,
                                                                               text=make_fake_post_comment_text())
 
         reply_comment_text = make_fake_post_comment_text()
@@ -1307,8 +1307,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         post = foreign_user.create_public_post(text=make_fake_post_text())
         post_comment = foreign_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                         post_uuid=post.uuid,
+        user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                         post_id=post.id,
                                                          text=make_fake_post_comment_text())
 
         reply_comment_text = make_fake_post_comment_text()
@@ -1329,8 +1329,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                         post_uuid=post.uuid,
+        user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                         post_id=post.id,
                                                          text=make_fake_post_comment_text())
 
         reply_comment_text = make_fake_post_comment_text()
@@ -1356,8 +1356,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         post = post_creator.create_public_post(text=make_fake_post_text())
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
 
         reply_comment_text = make_fake_post_comment_text()
@@ -1384,8 +1384,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post = post_creator.create_public_post(text=make_fake_post_text())
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
-        foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
         foreign_user.mute_post_with_id(post_id=post.pk)
 
@@ -1413,8 +1413,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         foreign_user.join_community_with_name(community_name=community.name)
         post_comment = post_creator.comment_post(post=post, text=make_fake_post_text())
         # subscribe to notifications
-        foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
         # post will be closed now
         post.is_closed = True
@@ -1442,8 +1442,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         post_comment = post_creator.comment_post(post=post, text=make_fake_post_text())
         # subscribe to notifications
-        post_creator.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        post_creator.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
         # post will be closed now
         post.is_closed = True
@@ -1480,8 +1480,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = post_owner.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         # Comment Reply so we "subscribe" for notifications
-        foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
 
         # Remove them from the circles
@@ -1513,8 +1513,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         post = post_creator.create_public_post(text=make_fake_post_text())
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
 
         foreign_user.mute_post(post=post)
@@ -1552,8 +1552,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         post = post_creator.create_public_post(text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
 
         foreign_user.mute_post(post=post)
@@ -1592,8 +1592,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         post = post_creator.create_public_post(text=make_fake_post_text())
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
 
         post_creator.mute_post(post=post)
@@ -1635,8 +1635,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         post_creator.mute_post_comment_with_id(post_comment_id=post_comment.pk)
 
-        foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
         foreign_user.mute_post_comment_with_id(post_comment_id=post_comment.pk)
 
@@ -1669,8 +1669,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         post_creator.mute_post_with_id(post_id=post.pk)
 
-        foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
         foreign_user.mute_post_with_id(post_id=post.pk)
 
@@ -1700,8 +1700,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post = post_creator.create_public_post(text=make_fake_post_text())
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
-        blocking_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        blocking_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
 
         # Block user
@@ -1734,8 +1734,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post = post_creator.create_public_post(text=make_fake_post_text())
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
-        blocking_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                  post_uuid=post.uuid,
+        blocking_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                  post_id=post.id,
                                                                   text=make_fake_post_comment_text())
 
         # Block user
@@ -1888,8 +1888,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         for i in range(amount_of_replies):
-            post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                  post_uuid=post.uuid,
+            post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                  post_id=post.id,
                                                                                   text=make_fake_post_comment_text())
             comment_replies.append(post_comment_reply)
 
@@ -1918,8 +1918,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         for i in range(amount_of_replies):
-            post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                  post_uuid=post.uuid,
+            post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                  post_id=post.id,
                                                                                   text=make_fake_post_comment_text())
             comment_replies.append(post_comment_reply)
 
@@ -1949,8 +1949,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         for i in range(amount_of_replies):
-            post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                  post_uuid=post.uuid,
+            post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                  post_id=post.id,
                                                                                   text=make_fake_post_comment_text())
             comment_replies.append(post_comment_reply)
 
@@ -1983,8 +1983,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         for i in range(amount_of_replies):
-            post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                  post_uuid=post.uuid,
+            post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                  post_id=post.id,
                                                                                   text=make_fake_post_comment_text())
             comment_replies.append(post_comment_reply)
 
@@ -2017,8 +2017,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         for i in range(amount_of_replies):
-            post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                  post_uuid=post.uuid,
+            post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                  post_id=post.id,
                                                                                   text=make_fake_post_comment_text())
             comment_replies.append(post_comment_reply)
 
@@ -2060,8 +2060,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         for i in range(amount_of_replies):
-            post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                  post_uuid=post.uuid,
+            post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                  post_id=post.id,
                                                                                   text=make_fake_post_comment_text())
             comment_replies.append(post_comment_reply)
 
@@ -2097,6 +2097,6 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post, post_comment):
         return reverse('post-comment-replies', kwargs={
-            'post_uuid': post.uuid,
+            'post_id': post.id,
             'post_comment_id': post_comment.pk
         })

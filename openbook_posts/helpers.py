@@ -18,5 +18,5 @@ def upload_to_post_video_directory(post_video, filename):
 def _upload_to_post_directory_directory(post, filename):
     return create_upload_filename(username=post.creator.username,
                                   object_type="post",
-                                  object_id=str(post.uuid),
+                                  object_id=str(post.id),
                                   filename=filename)

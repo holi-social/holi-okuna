@@ -969,5 +969,5 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post):
         return reverse('post-media', kwargs={
-            'post_uuid': post.uuid
+            'post_id': post.id
         })

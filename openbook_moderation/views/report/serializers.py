@@ -5,12 +5,12 @@ from openbook_auth.validators import username_characters_validator, user_usernam
 from openbook_communities.validators import community_name_exists, community_name_characters_validator
 from openbook_hashtags.validators import hashtag_name_validator, hashtag_name_exists
 from openbook_moderation.views.validators import moderation_category_id_exists, moderated_object_id_exists
-from openbook_posts.validators import post_uuid_exists, post_comment_id_exists
+from openbook_posts.validators import post_id_exists, post_comment_id_exists
 
 
 class ReportPostSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
     category_id = serializers.UUIDField(validators=[moderation_category_id_exists], required=True)
@@ -23,8 +23,8 @@ class ReportPostCommentSerializer(serializers.Serializer):
         validators=[post_comment_id_exists],
         required=True,
     )
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
     category_id = serializers.UUIDField(validators=[moderation_category_id_exists], required=True)

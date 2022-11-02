@@ -3424,8 +3424,8 @@ class PostsAPITests(OpenbookAPITestCase):
 
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
-        replier.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                            post_uuid=post.uuid,
+        replier.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                            post_id=post.id,
                                                             text=make_fake_post_comment_text())
 
         url = self._get_url()

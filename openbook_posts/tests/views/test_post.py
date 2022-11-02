@@ -1300,7 +1300,7 @@ class PostItemAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post):
         return reverse('post', kwargs={
-            'post_uuid': post.uuid
+            'post_id': post.id
         })
 
 
@@ -1551,7 +1551,7 @@ class MutePostAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post):
         return reverse('mute-post', kwargs={
-            'post_uuid': post.uuid
+            'post_id': post.id
         })
 
 
@@ -1696,7 +1696,7 @@ class UnmutePostAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post):
         return reverse('unmute-post', kwargs={
-            'post_uuid': post.uuid
+            'post_id': post.id
         })
 
 
@@ -1986,7 +1986,7 @@ class PostCloseAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post):
         return reverse('close-post', kwargs={
-            'post_uuid': post.uuid
+            'post_id': post.id
         })
 
 
@@ -2090,7 +2090,7 @@ class PostOpenAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post):
         return reverse('open-post', kwargs={
-            'post_uuid': post.uuid
+            'post_id': post.id
         })
 
 
@@ -2205,7 +2205,7 @@ class TranslatePostAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post):
         return reverse('translate-post', kwargs={
-            'post_uuid': post.uuid
+            'post_id': post.id
         })
 
 
@@ -2617,7 +2617,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post):
         return reverse('search-post-participants', kwargs={
-            'post_uuid': post.uuid
+            'post_id': post.id
         })
 
 
@@ -2715,7 +2715,7 @@ class GetPostParticipantsAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post):
         return reverse('get-post-participants', kwargs={
-            'post_uuid': post.uuid
+            'post_id': post.id
         })
 
 
@@ -2970,7 +2970,7 @@ class PublishPostAPITests(OpenbookAPITestCase):
     @staticmethod
     def _get_publish_post_url(post):
         return reverse('publish-post', kwargs={
-            'post_uuid': post.uuid
+            'post_id': post.id
         })
 
 
@@ -3026,5 +3026,5 @@ class PostStatusAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post):
         return reverse('post-status', kwargs={
-            'post_uuid': post.uuid
+            'post_id': post.id
         })

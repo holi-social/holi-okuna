@@ -269,7 +269,7 @@ class User(AbstractUser):
         posts_prefetch_related = (
             'circles', 'creator', 'creator__profile__badges', 'hashtags', 'community')
 
-        posts_only = ('text', 'id', 'uuid', 'created',
+        posts_only = ('text', 'id', 'created',
                       'creator__username', 'creator__id', 'creator__profile__name',
                       'creator__profile__avatar', 'creator__profile__badges__id',
                       'language', 'media_height', 'media_width', 'media_thumbnail', 'public_reactions',
@@ -1254,12 +1254,12 @@ class User(AbstractUser):
         PostComment = get_post_comment_model()
         return PostComment.objects.filter(comments_query)
 
-    def get_comment_replies_for_comment_with_id_with_post_with_uuid(self, post_comment_id, post_uuid, min_id=None,
+    def get_comment_replies_for_comment_with_id_with_post_with_id(self, post_comment_id, post_id, min_id=None,
                                                                     max_id=None):
         PostComment = get_post_comment_model()
         Post = get_post_model()
         post_comment = PostComment.objects.get(pk=post_comment_id)
-        post = Post.objects.get(uuid=post_uuid)
+        post = Post.objects.get(id=post_id)
         return self.get_comment_replies_for_comment_with_post(post=post, post_comment=post_comment, min_id=min_id,
                                                               max_id=max_id)
 
@@ -1279,9 +1279,9 @@ class User(AbstractUser):
     def get_replies_count_for_post_comment(self, post_comment):
         return post_comment.count_replies_with_user(user=self)
 
-    def get_status_for_post_with_uuid(self, post_uuid):
+    def get_status_for_post_with_id(self, post_id):
         Post = get_post_model()
-        post = Post.objects.get(uuid=post_uuid)
+        post = Post.objects.get(id=post_id)
         return self.get_status_for_post(post=post)
 
     def get_status_for_post(self, post):
@@ -1367,10 +1367,10 @@ class User(AbstractUser):
 
         return post_comment
 
-    def reply_to_comment_with_id_for_post_with_uuid(self, post_comment_id, post_uuid, text):
+    def reply_to_comment_with_id_for_post_with_id(self, post_comment_id, post_id, text):
         PostComment = get_post_comment_model()
         Post = get_post_model()
-        post = Post.objects.get(uuid=post_uuid)
+        post = Post.objects.get(id=post_id)
         post_comment = PostComment.objects.get(pk=post_comment_id)
         return self.reply_to_comment_for_post(post_comment=post_comment, text=text, post=post)
 
@@ -1459,9 +1459,9 @@ class User(AbstractUser):
         post_comment.update_comment(text)
         return post_comment
 
-    def get_comment_with_id_for_post_with_uuid(self, post_comment_id, post_uuid):
+    def get_comment_with_id_for_post_with_id(self, post_comment_id, post_id):
         Post = get_post_model()
-        post = Post.objects.get(uuid=post_uuid)
+        post = Post.objects.get(id=post_id)
 
         PostComment = get_post_comment_model()
         post_comment = PostComment.objects.get(pk=post_comment_id)
@@ -2240,9 +2240,9 @@ class User(AbstractUser):
 
         return post
 
-    def update_post_with_uuid(self, post_uuid, text=None):
+    def update_post_with_id(self, post_id, text=None):
         Post = get_post_model()
-        post = Post.objects.get(uuid=post_uuid)
+        post = Post.objects.get(id=post_id)
         return self.update_post(post=post, text=text)
 
     def update_post(self, post, text=None):
@@ -2258,18 +2258,18 @@ class User(AbstractUser):
 
         return post
 
-    def get_media_for_post_with_uuid(self, post_uuid):
+    def get_media_for_post_with_id(self, post_id):
         Post = get_post_model()
-        post = Post.objects.get(uuid=post_uuid)
+        post = Post.objects.get(id=post_id)
         return self.get_media_for_post(post=post)
 
     def get_media_for_post(self, post):
         check_can_get_media_for_post(user=self, post=post)
         return post.get_media()
 
-    def add_media_to_post_with_uuid(self, file, post_uuid, order):
+    def add_media_to_post_with_id(self, file, post_id, order):
         Post = get_post_model()
-        post = Post.objects.get(uuid=post_uuid)
+        post = Post.objects.get(id=post_id)
         return self.add_media_to_post(post=post, file=file, order=order)
 
     def add_media_to_post(self, file, post, order=None):
@@ -2277,9 +2277,9 @@ class User(AbstractUser):
         post.add_media(file=file, order=order)
         return post
 
-    def publish_post_with_uuid(self, post_uuid):
+    def publish_post_with_id(self, post_id):
         Post = get_post_model()
-        post = Post.objects.get(uuid=post_uuid)
+        post = Post.objects.get(id=post_id)
         return self.publish_post(post=post)
 
     def publish_post(self, post):
@@ -2287,9 +2287,9 @@ class User(AbstractUser):
         post.publish()
         return post
 
-    def delete_post_with_uuid(self, post_uuid):
+    def delete_post_with_id(self, post_id):
         Post = get_post_model()
-        post = Post.objects.get(uuid=post_uuid)
+        post = Post.objects.get(id=post_id)
         return self.delete_post(post=post)
 
     def delete_post(self, post):
@@ -2483,7 +2483,7 @@ class User(AbstractUser):
         posts_prefetch_related = (
             'circles', 'creator', 'creator__profile__badges', 'hashtags', 'community')
 
-        posts_only = ('text', 'id', 'uuid', 'created',
+        posts_only = ('text', 'id', 'created',
                       'creator__username', 'creator__id', 'creator__profile__name',
                       'creator__profile__avatar', 'creator__profile__badges__id',
                       'language', 'media_height', 'media_width', 'media_thumbnail', 'public_reactions',
@@ -2566,7 +2566,7 @@ class User(AbstractUser):
         posts_prefetch_related = ('post__circles', 'post__creator__profile__badges')
 
         posts_only = ('id',
-                      'post__text', 'post__id', 'post__uuid', 'post__created', 'post__image__width',
+                      'post__text', 'post__id', 'post__created', 'post__image__width',
                       'post__image__height', 'post__image__image',
                       'post__creator__username', 'post__creator__id', 'post__creator__profile__name',
                       'post__creator__profile__avatar',
@@ -2677,7 +2677,7 @@ class User(AbstractUser):
 
         posts_prefetch_related = ('circles', 'creator__profile__badges')
 
-        posts_only = ('text', 'id', 'uuid', 'created', 'image__width', 'image__height', 'image__image',
+        posts_only = ('text', 'id', 'created', 'image__width', 'image__height', 'image__image',
                       'creator__username', 'creator__id', 'creator__profile__name', 'creator__profile__avatar',
                       'creator__profile__badges__id', 'creator__profile__badges__keyword',
                       'creator__profile__id', 'community__id', 'community__name', 'community__avatar',
@@ -3293,12 +3293,12 @@ class User(AbstractUser):
         self.user_blocks.filter(blocked_user_id=user_id).delete()
         return User.objects.get(pk=user_id)
 
-    def report_comment_with_id_for_post_with_uuid(self, post_comment_id, post_uuid, category_id, description=None):
+    def report_comment_with_id_for_post_with_id(self, post_comment_id, post_id, category_id, description=None):
         PostComment = get_post_comment_model()
         post_comment = PostComment.objects.get(id=post_comment_id)
 
         Post = get_post_model()
-        post = Post.objects.get(uuid=post_uuid)
+        post = Post.objects.get(id=post_id)
 
         return self.report_comment_for_post(post_comment=post_comment, category_id=category_id, description=description,
                                             post=post)
@@ -3312,9 +3312,9 @@ class User(AbstractUser):
                                                                description=description)
         post_comment.delete_notifications_for_user(user=self)
 
-    def report_post_with_uuid(self, post_uuid, category_id, description=None):
+    def report_post_with_id(self, post_id, category_id, description=None):
         Post = get_post_model()
-        post = Post.objects.get(uuid=post_uuid)
+        post = Post.objects.get(id=post_id)
         return self.report_post(post=post, category_id=category_id, description=description)
 
     def report_post(self, post, category_id, description=None):
@@ -3464,9 +3464,9 @@ class User(AbstractUser):
                                                    category_id=category_id)
         return moderated_object
 
-    def search_participants_for_post_with_uuid(self, post_uuid, query):
+    def search_participants_for_post_with_id(self, post_id, query):
         Post = get_post_model()
-        post = Post.objects.get(uuid=post_uuid)
+        post = Post.objects.get(id=post_id)
         return self.search_participants_for_post(post=post, query=query)
 
     def search_participants_for_post(self, post, query):
@@ -3478,9 +3478,9 @@ class User(AbstractUser):
 
         return User.objects.filter(search_users_query)
 
-    def get_participants_for_post_with_uuid(self, post_uuid):
+    def get_participants_for_post_with_id(self, post_id):
         Post = get_post_model()
-        post = Post.objects.get(uuid=post_uuid)
+        post = Post.objects.get(id=post_id)
         return self.get_participants_for_post(post=post)
 
     def get_participants_for_post(self, post):

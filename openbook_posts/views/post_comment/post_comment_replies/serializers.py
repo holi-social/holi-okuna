@@ -6,15 +6,15 @@ from openbook_common.serializers import CommonHashtagSerializer
 from openbook_common.serializers_fields.post_comment import PostCommenterField, PostCommentReactionsEmojiCountField, \
     PostCommentReactionField, PostCommentIsMutedField
 from openbook_posts.models import PostComment, PostCommentReaction
-from openbook_posts.validators import post_comment_id_exists, post_uuid_exists, post_comment_text_validators
+from openbook_posts.validators import post_comment_id_exists, post_id_exists, post_comment_text_validators
 
 from openbook_posts.views.post_comments.serializers import PostCommentCommenterSerializer, \
     PostCommenterCommunityMembershipSerializer, PostCommentLanguageSerializer
 
 
 class CommentRepliesPostSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
     post_comment_id = serializers.UUIDField(
@@ -93,8 +93,8 @@ class PostCommentReplySerializer(serializers.ModelSerializer):
 
 
 class GetPostCommentRepliesSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
     post_comment_id = serializers.UUIDField(

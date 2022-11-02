@@ -1314,8 +1314,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment_reply_text = make_fake_post_comment_text()
 
         post_comment = commenter.comment_post_with_id(post.pk, text=make_fake_post_comment_text())
-        post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                   post_uuid=post.uuid,
+        post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                   post_id=post.id,
                                                                                    text=post_comment_reply_text)
 
         url = self._get_url(post_comment=post_comment_reply, post=post)
@@ -1349,8 +1349,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment = community_post_commentator.comment_post_with_id(text=make_fake_post_comment_text(),
                                                                        post_id=post.pk)
         post_comment_reply = \
-            community_post_commentator.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                   post_uuid=post.uuid,
+            community_post_commentator.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                   post_id=post.id,
                                                                                    text=make_fake_post_comment_text())
 
         url = self._get_url(post_comment=post_comment_reply, post=post)
@@ -1384,8 +1384,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment = community_post_commentator.comment_post_with_id(text=make_fake_post_comment_text(),
                                                                        post_id=post.pk)
         post_comment_reply = \
-            community_post_commentator.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                   post_uuid=post.uuid,
+            community_post_commentator.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                   post_id=post.id,
                                                                                    text=make_fake_post_comment_text())
 
         url = self._get_url(post_comment=post_comment_reply, post=post)
@@ -1417,8 +1417,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post_with_id(text=make_fake_post_comment_text(),
                                                       post_id=post.pk)
         post_comment_reply = \
-            commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                  post_uuid=post.uuid,
+            commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                  post_id=post.id,
                                                                   text=make_fake_post_comment_text())
 
         post.comments_enabled = False
@@ -1455,8 +1455,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment = community_post_commentator.comment_post_with_id(text=make_fake_post_comment_text(),
                                                                        post_id=post.pk)
         post_comment_reply = \
-            community_post_commentator.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                   post_uuid=post.uuid,
+            community_post_commentator.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                   post_id=post.id,
                                                                                    text=make_fake_post_comment_text())
 
         post.comments_enabled = False
@@ -1493,8 +1493,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment = community_post_commentator.comment_post_with_id(text=make_fake_post_comment_text(),
                                                                        post_id=post.pk)
         post_comment_reply = \
-            community_post_commentator.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                   post_uuid=post.uuid,
+            community_post_commentator.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                   post_id=post.id,
                                                                                    text=make_fake_post_comment_text())
 
         post.comments_enabled = False
@@ -1531,8 +1531,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment = community_post_commentator.comment_post_with_id(text=make_fake_post_comment_text(),
                                                                        post_id=post.pk)
         post_comment_reply = \
-            community_post_commentator.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                   post_uuid=post.uuid,
+            community_post_commentator.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                   post_id=post.id,
                                                                                    text=make_fake_post_comment_text())
 
         post.is_closed = True
@@ -1569,8 +1569,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment = community_post_commentator.comment_post_with_id(text=make_fake_post_comment_text(),
                                                                        post_id=post.pk)
         post_comment_reply = \
-            community_post_commentator.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                   post_uuid=post.uuid,
+            community_post_commentator.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                   post_id=post.id,
                                                                                    text=make_fake_post_comment_text())
 
         post.is_closed = True
@@ -1605,8 +1605,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post_with_id(text=make_fake_post_comment_text(),
                                                       post_id=post.pk)
         post_comment_reply = \
-            commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                  post_uuid=post.uuid,
+            commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                  post_id=post.id,
                                                                   text=make_fake_post_comment_text())
 
         post.is_closed = True
@@ -1638,8 +1638,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment = community_post_creator.comment_post_with_id(text=make_fake_post_comment_text(),
                                                                    post_id=post.pk)
         post_comment_reply = \
-            community_post_creator.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                               post_uuid=post.uuid,
+            community_post_creator.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                               post_id=post.id,
                                                                                text=make_fake_post_comment_text())
 
         post.is_closed = True
@@ -1676,8 +1676,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment = community_post_commentator.comment_post_with_id(text=make_fake_post_comment_text(),
                                                                        post_id=post.pk)
         post_comment_reply = \
-            community_post_commentator.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                   post_uuid=post.uuid,
+            community_post_commentator.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                   post_id=post.id,
                                                                                    text=make_fake_post_comment_text())
 
         url = self._get_url(post_comment=post_comment_reply, post=post)
@@ -1703,8 +1703,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment_text = make_fake_post_comment_text()
 
         post_comment = user.comment_post_with_id(post.pk, text=post_comment_text)
-        post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                              post_uuid=post.uuid,
+        post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                              post_id=post.id,
                                                                               text=make_fake_post_comment_text())
 
         url = self._get_url(post_comment=post_comment_reply, post=post)
@@ -1728,8 +1728,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment_text = make_fake_post_comment_text()
 
         post_comment = foreign_user.comment_post_with_id(post.pk, text=post_comment_text)
-        post_comment_reply = foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                      post_uuid=post.uuid,
+        post_comment_reply = foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                      post_id=post.id,
                                                                                       text=make_fake_post_comment_text())
 
         url = self._get_url(post_comment=post_comment_reply, post=post)
@@ -1756,8 +1756,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment_text = make_fake_post_comment_text()
 
         post_comment = user.comment_post_with_id(post.pk, text=post_comment_text)
-        post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                              post_uuid=post.uuid,
+        post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                              post_id=post.id,
                                                                               text=make_fake_post_comment_text())
 
         url = self._get_url(post_comment=post_comment_reply, post=post)
@@ -1786,8 +1786,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment_text = make_fake_post_comment_text()
 
         post_comment = foreign_user.comment_post_with_id(post.pk, text=post_comment_text)
-        post_comment_reply = foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                      post_uuid=post.uuid,
+        post_comment_reply = foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                      post_id=post.id,
                                                                                       text=make_fake_post_comment_text())
 
         url = self._get_url(post_comment=post_comment_reply, post=post)
@@ -1815,8 +1815,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment_text = make_fake_post_comment_text()
 
         post_comment = user.comment_post_with_id(post.pk, text=post_comment_text)
-        post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                              post_uuid=post.uuid,
+        post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                              post_id=post.id,
                                                                               text=make_fake_post_comment_text())
 
         url = self._get_url(post_comment=post_comment_reply, post=post)
@@ -1848,8 +1848,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment_text = make_fake_post_comment_text()
 
         post_comment = foreign_user.comment_post_with_id(post.pk, text=post_comment_text)
-        post_comment_reply = foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                      post_uuid=post.uuid,
+        post_comment_reply = foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                      post_id=post.id,
                                                                                       text=make_fake_post_comment_text())
 
         url = self._get_url(post_comment=post_comment_reply, post=post)
@@ -1878,8 +1878,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment_text = make_fake_post_comment_text()
 
         post_comment = foreign_user.comment_post_with_id(post.pk, text=post_comment_text)
-        post_comment_reply = foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                      post_uuid=post.uuid,
+        post_comment_reply = foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                      post_id=post.id,
                                                                                       text=make_fake_post_comment_text())
 
         url = self._get_url(post_comment=post_comment_reply, post=post)
@@ -1905,8 +1905,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment_text = make_fake_post_comment_text()
 
         post_comment = user.comment_post_with_id(post.pk, text=post_comment_text)
-        post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                              post_uuid=post.uuid,
+        post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                              post_id=post.id,
                                                                               text=make_fake_post_comment_text())
 
         url = self._get_url(post_comment=post_comment_reply, post=post)
@@ -1934,8 +1934,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment_text = make_fake_post_comment_text()
 
         post_comment = foreign_user.comment_post_with_id(post.pk, text=post_comment_text)
-        post_comment_reply = foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                      post_uuid=post.uuid,
+        post_comment_reply = foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                      post_id=post.id,
                                                                                       text=make_fake_post_comment_text())
 
         url = self._get_url(post_comment=post_comment_reply, post=post)
@@ -1966,8 +1966,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment_text = make_fake_post_comment_text()
 
         post_comment = foreign_user.comment_post_with_id(post.pk, text=post_comment_text)
-        post_comment_reply = foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                      post_uuid=post.uuid,
+        post_comment_reply = foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                      post_id=post.id,
                                                                                       text=make_fake_post_comment_text())
 
         url = self._get_url(post_comment=post_comment_reply, post=post)
@@ -1991,8 +1991,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_comment_text = make_fake_post_comment_text()
 
         post_comment = user.comment_post_with_id(post.pk, text=post_comment_text)
-        post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                   post_uuid=post.uuid,
+        post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                   post_id=post.id,
                                                                                    text=make_fake_post_comment_text())
 
         post_comment_reply_notification = PostCommentReplyNotification.objects.get(post_comment=post_comment_reply,
@@ -2017,8 +2017,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         user = make_user()
         post = user.create_public_post(text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post.pk, text=make_fake_post_comment_text())
-        post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                              post_uuid=post.uuid,
+        post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                              post_id=post.id,
                                                                               text=make_fake_post_comment_text())
 
         url = self._get_url(post_comment=post_comment_reply, post=post)
@@ -2044,8 +2044,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_creator = make_user()
         post = post_creator.create_public_post(text=make_fake_post_text())
         post_comment = post_creator.comment_post_with_id(post.pk, text=make_fake_post_comment_text())
-        post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                              post_uuid=post.uuid,
+        post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                              post_id=post.id,
                                                                               text=make_fake_post_comment_text())
 
         url = self._get_url(post_comment=post_comment_reply, post=post)
@@ -2071,8 +2071,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post = user.create_public_post(text=make_fake_post_text())
         original_post_comment_reply_text = make_fake_post_comment_text()
         post_comment = commenter.comment_post_with_id(post.pk, text=make_fake_post_comment_text())
-        post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                   post_uuid=post.uuid,
+        post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                   post_id=post.id,
                                                                                    text=original_post_comment_reply_text)
 
         url = self._get_url(post_comment=post_comment_reply, post=post)
@@ -2102,8 +2102,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         original_post_comment_reply_text = make_fake_post_comment_text()
         post_comment = user.comment_post_with_id(post.pk, text=make_fake_post_comment_text())
-        post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                              post_uuid=post.uuid,
+        post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                              post_id=post.id,
                                                                               text=original_post_comment_reply_text)
 
         post.comments_enabled = False
@@ -2136,8 +2136,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         original_post_comment_reply_text = make_fake_post_comment_text()
         post_comment = user.comment_post_with_id(post.pk, text=make_fake_post_comment_text())
-        post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                              post_uuid=post.uuid,
+        post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                              post_id=post.id,
                                                                               text=original_post_comment_reply_text)
 
         post.is_closed = True
@@ -2159,7 +2159,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post, post_comment):
         return reverse('post-comment', kwargs={
-            'post_uuid': post.uuid,
+            'post_id': post.id,
             'post_comment_id': post_comment.pk
         })
 
@@ -2436,7 +2436,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post, post_comment):
         return reverse('mute-post-comment', kwargs={
-            'post_uuid': post.uuid,
+            'post_id': post.id,
             'post_comment_id': post_comment.id,
         })
 
@@ -2592,7 +2592,7 @@ class UnmutePostCommentAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post, post_comment):
         return reverse('unmute-post-comment', kwargs={
-            'post_uuid': post.uuid,
+            'post_id': post.id,
             'post_comment_id': post_comment.id,
         })
 
@@ -2715,6 +2715,6 @@ class TranslatePostCommentAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post, post_comment):
         return reverse('translate-post-comment', kwargs={
-            'post_uuid': post.uuid,
+            'post_id': post.id,
             'post_comment_id': post_comment.id,
         })

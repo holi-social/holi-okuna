@@ -12,9 +12,9 @@ from openbook_posts.views.post_comment.post_comment_reaction.serializers import 
 class PostCommentReactionItem(APIView):
     permission_classes = (IsAuthenticated, IsNotSuspended)
 
-    def delete(self, request, post_uuid, post_comment_id, post_comment_reaction_id):
+    def delete(self, request, post_id, post_comment_id, post_comment_reaction_id):
         request_data = {
-            'post_uuid': post_uuid,
+            'post_id': post_id,
             'post_comment_reaction_id': post_comment_reaction_id,
             'post_comment_id': post_comment_id,
         }

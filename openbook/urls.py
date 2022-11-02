@@ -253,7 +253,7 @@ posts_links_patterns = [
 ]
 
 posts_patterns = [
-    path('<uuid:post_uuid>/', include(post_patterns)),
+    path('<uuid:post_id>/', include(post_patterns)),
     path('', Posts.as_view(), name='posts'),
     path('trending/', TrendingPosts.as_view(), name='trending-posts'),
     path('trending/new/', TrendingPostsNew.as_view(), name='trending-posts-new'),

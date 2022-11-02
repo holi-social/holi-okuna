@@ -64,7 +64,6 @@ post_image_storage = default_storage
 
 class Post(ModelWithUUID):
     moderated_object = GenericRelation(ModeratedObject, related_query_name='posts')
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     text = models.TextField(_('text'), max_length=settings.POST_MAX_LENGTH, blank=False, null=True,
                             validators=post_text_validators)
     created = models.DateTimeField(editable=False, db_index=True)
@@ -100,11 +99,6 @@ class Post(ModelWithUUID):
         index_together = [
             ('creator', 'community'),
         ]
-
-    @classmethod
-    def get_post_id_for_post_with_uuid(cls, post_uuid):
-        post = cls.objects.values('id').get(uuid=post_uuid)
-        return post['id']
 
     @classmethod
     def post_with_id_has_public_reactions(cls, post_id):
@@ -171,7 +165,7 @@ class Post(ModelWithUUID):
         posts_prefetch_related = ('post__circles', 'post__creator__profile__badges', 'post__reactions__reactor')
 
         posts_only = ('id',
-                      'post__text', 'post__id', 'post__uuid', 'post__created', 'post__image__width',
+                      'post__text', 'post__id', 'post__created', 'post__image__width',
                       'post__image__height', 'post__image__image',
                       'post__creator__username', 'post__creator__id', 'post__creator__profile__name',
                       'post__creator__profile__avatar',
@@ -1296,7 +1290,6 @@ class PostCommentMute(ModelWithUUID):
 
 
 class PostLink(ModelWithUUID):
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='links')
     link = models.TextField(max_length=settings.POST_MAX_LENGTH)
     has_preview = models.BooleanField(default=False)
