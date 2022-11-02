@@ -49,8 +49,7 @@ class Circle(ModelWithUUID):
 
     @classmethod
     def create_world_circle(cls):
-        circle = cls.objects.create(name="World", color="#023ca7", id=uuid.UUID(settings.WORLD_CIRCLE_ID))
-        return circle
+        return cls.objects.create(name="World", color="#023ca7", id=uuid.UUID(settings.WORLD_CIRCLE_ID))
 
     @classmethod
     def bootstrap_circles_for_user(cls, user):
@@ -72,8 +71,6 @@ class Circle(ModelWithUUID):
             return Circle.objects.get(pk=cls.get_world_circle_id())
         except (Circle.DoesNotExist):
             return cls.create_world_circle()
-
-
 
     @classmethod
     def get_world_circle_id(cls):
