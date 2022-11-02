@@ -18,12 +18,8 @@ def upload_format_to(i, f):
 
 
 class Format(ModelWithUUID):
-    object_id = models.CharField(editable=False, max_length=36)
-    content_type = models.ForeignKey(
-        ContentType,
-        editable=False,
-        on_delete=models.CASCADE
-    )
+    content_type = models.ForeignKey(ContentType, editable=False, on_delete=models.CASCADE)
+    object_id = models.UUIDField(editable=False)
     video = GenericForeignKey()
     field_name = models.CharField(
         max_length=255,

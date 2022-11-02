@@ -154,5 +154,5 @@ class UpdateFollowSerializer(serializers.Serializer):
     )
     lists_ids = serializers.ListSerializer(
         required=False,
-        child=serializers.CharField(max_length=36, validators=[list_id_exists])
+        child=serializers.UUIDField(validators=[list_id_exists])
     )
