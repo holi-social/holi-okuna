@@ -4,9 +4,10 @@ from django.db import models
 from django.utils import timezone
 
 from openbook_auth.models import User
+from openbook_common.models import ModelWithUUID
 
 
-class Notification(models.Model):
+class Notification(ModelWithUUID):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     created = models.DateTimeField(editable=False, db_index=True)
     read = models.BooleanField(default=False)
@@ -47,7 +48,7 @@ class Notification(models.Model):
 
     # Generic relation types
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
+    object_id = models.UUIDField()
     content_object = GenericForeignKey()
 
     @classmethod
@@ -59,8 +60,8 @@ class Notification(models.Model):
         return [a for (a, b) in Notification.NOTIFICATION_TYPES]
 
     def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id and not self.created:
+        """ On save, update timestamps """
+        if not self.created:
             self.created = timezone.now()
 
         return super(Notification, self).save(*args, **kwargs)

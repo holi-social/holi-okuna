@@ -13,6 +13,7 @@ import logging
 import json
 
 from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user
+from openbook_common.utils.test import uuid_id_parser
 from openbook_lists.models import List
 from openbook_follows.models import Follow, FollowRequest
 from openbook_notifications.models import FollowNotification, Notification, FollowRequestNotification, \
@@ -44,7 +45,7 @@ class ReceivedFollowRequestsAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_follow_requests = json.loads(response.content)
+        response_follow_requests = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_follow_requests), number_of_own_follow_requests)
 
@@ -70,7 +71,7 @@ class ReceivedFollowRequestsAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_follow_requests = json.loads(response.content)
+        response_follow_requests = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_follow_requests), max_number_of_own_follow_requests)
 
@@ -91,7 +92,7 @@ class ReceivedFollowRequestsAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_follow_requests = json.loads(response.content)
+        response_follow_requests = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_follow_requests), 0)
 

@@ -10,6 +10,7 @@ import logging
 from openbook_common.tests.helpers import make_authentication_headers_for_user, make_fake_post_text, \
     make_fake_post_comment_text, make_user, make_circle, make_community, make_hashtag_name, make_hashtag
 from openbook_common.utils.model_loaders import get_language_model
+from openbook_common.utils.test import uuid_id_parser
 from openbook_communities.models import Community
 from openbook_hashtags.models import Hashtag
 from openbook_notifications.models import PostCommentNotification, Notification, PostCommentReplyNotification, \
@@ -79,7 +80,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         user = make_user()
 
         post_creator = make_user()
-        circle = make_user()
+        circle = post_creator.connections_circle
 
         post_creator.connect_with_user_with_id(user.pk)
         user.confirm_connection_with_user_with_id(post_creator.pk)
@@ -109,7 +110,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         user = make_user()
 
         post_creator = make_user()
-        circle = make_user()
+        circle = post_creator.connections_circle
 
         commenter = make_user()
 
@@ -1111,7 +1112,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
             should update language of comment when editing post comment
         """
         Language = get_language_model()
-        get_language_for_text_call.return_value = Language.objects.get(id=1)
+        get_language_for_text_call.return_value = Language.objects.get(code="en")
         user = make_user()
         post = user.create_public_post(text=make_fake_post_text())
         original_post_comment_text = make_fake_post_comment_text()
@@ -2602,7 +2603,8 @@ class TranslatePostCommentAPITests(OpenbookAPITestCase):
     """
 
     fixtures = [
-        'openbook_common/fixtures/languages.json'
+        'openbook_common/fixtures/languages.json',
+        'openbook_circles/fixtures/circles.json'
     ]
 
     def test_translate_post_comment_text(self):
@@ -2622,7 +2624,7 @@ class TranslatePostCommentAPITests(OpenbookAPITestCase):
         response = self.client.post(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_post = json.loads(response.content)
+        response_post = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(response_post['translated_text'], 'I am a man 😀. You\'re a woman.')
 

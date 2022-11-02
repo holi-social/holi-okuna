@@ -20,6 +20,7 @@ import logging
 
 from openbook_common.tests.helpers import make_authentication_headers_for_user, make_fake_post_text, \
     make_user, get_test_videos, get_test_image, get_test_video, make_circle, make_community, get_test_images
+from openbook_common.utils.test import uuid_id_parser
 from openbook_communities.models import Community
 from openbook_posts.models import PostMedia, Post
 
@@ -310,7 +311,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(parsed_response), 0)
 
@@ -336,7 +337,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_media = json.loads(response.content)
+        response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
         post.refresh_from_db()
 
@@ -368,7 +369,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_media = json.loads(response.content)
+        response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
         post.refresh_from_db()
 
@@ -403,7 +404,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_media = json.loads(response.content)
+        response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
         post.refresh_from_db()
 
@@ -436,7 +437,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_media = json.loads(response.content)
+        response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
         post.refresh_from_db()
 
@@ -471,7 +472,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_media = json.loads(response.content)
+        response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
         post.refresh_from_db()
 
@@ -506,7 +507,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_media = json.loads(response.content)
+        response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
         post.refresh_from_db()
 
@@ -541,7 +542,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_media = json.loads(response.content)
+        response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
         post.refresh_from_db()
 
@@ -576,7 +577,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_media = json.loads(response.content)
+        response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
         post.refresh_from_db()
 
@@ -615,7 +616,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_media = json.loads(response.content)
+        response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
         post.refresh_from_db()
 
@@ -655,7 +656,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_media = json.loads(response.content)
+        response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
         post.refresh_from_db()
 
@@ -747,7 +748,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_media = json.loads(response.content)
+        response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
         post.refresh_from_db()
 
@@ -785,7 +786,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_media = json.loads(response.content)
+        response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
         post.refresh_from_db()
 
@@ -825,7 +826,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_media = json.loads(response.content)
+        response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
         post.refresh_from_db()
 
@@ -865,7 +866,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_media = json.loads(response.content)
+        response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
         post.refresh_from_db()
 

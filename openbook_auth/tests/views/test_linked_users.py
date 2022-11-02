@@ -8,6 +8,7 @@ import logging
 import json
 
 from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user
+from openbook_common.utils.test import uuid_id_parser
 
 fake = Faker()
 
@@ -48,7 +49,7 @@ class LinkedUsersAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_linked_users = json.loads(response.content)
+        response_linked_users = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_linked_users), amount_of_linked_users)
 
@@ -93,7 +94,7 @@ class SearchLinkedUsersAPITests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_linked_users = json.loads(response.content)
+            response_linked_users = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_linked_users)
 
             self.assertEqual(response_members_count, 1)
@@ -130,7 +131,7 @@ class SearchLinkedUsersAPITests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_linked_users = json.loads(response.content)
+            response_linked_users = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_linked_users)
 
             self.assertEqual(response_members_count, 1)

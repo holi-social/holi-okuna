@@ -2,10 +2,11 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 
 from openbook_auth.models import User
+from openbook_common.models import ModelWithUUID
 from openbook_notifications.models.notification import Notification
 
 
-class FollowNotification(models.Model):
+class FollowNotification(ModelWithUUID):
     notification = GenericRelation(Notification)
     follower = models.ForeignKey(User, on_delete=models.CASCADE)
 

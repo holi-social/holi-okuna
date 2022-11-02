@@ -1,7 +1,7 @@
 [
   {
     "model": "openbook_common.EmojiGroup",
-    "pk": 1,
+    "pk": "19f0b6fa-a67f-48f9-bd40-92b039550b3f",
     "fields": {
       "order": 1,
       "keyword": "primary",
@@ -20,7 +20,7 @@
   },
   {
     "model": "openbook_common.EmojiGroup",
-    "pk": 2,
+    "pk": "33c4d0bd-aaa1-4d77-9351-964f7e5d6be0",
     "fields": {
       "order": 2,
       "keyword": "obgold",
@@ -39,7 +39,7 @@
   },
   {
     "model": "openbook_common.EmojiGroup",
-    "pk": 3,
+    "pk": "861069a0-463a-406b-a5ec-8d9921d15d38",
     "fields": {
       "order": 2,
       "keyword": "objects",

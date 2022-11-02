@@ -6,11 +6,12 @@ from django.utils import timezone
 from openbook_auth.models import User
 from django.utils.translation import gettext_lazy as _
 
+from openbook_common.models import ModelWithUUID
 from openbook_common.validators import hex_color_validator
 from openbook_communities.models import Community
 
 
-class Category(models.Model):
+class Category(ModelWithUUID):
     creator = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='created_categories', null=True)
     name = models.CharField(_('name'), max_length=settings.CATEGORY_NAME_MAX_LENGTH, blank=False, null=False,
                             unique=True)
@@ -33,7 +34,7 @@ class Category(models.Model):
         return category
 
     def save(self, *args, **kwargs):
-        if not self.id:
+        if not self.created:
             self.created = timezone.now()
         return super(Category, self).save(*args, **kwargs)
 

@@ -11,6 +11,7 @@ from openbook_common.tests.models import OpenbookAPITestCase
 
 from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, \
     make_community
+from openbook_common.utils.test import uuid_id_parser
 from openbook_communities.models import Community, CommunityNotificationsSubscription
 from openbook_notifications.models import CommunityInviteNotification, Notification
 
@@ -45,7 +46,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_members = json.loads(response.content)
+        response_members = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_members), len(community_members_ids))
 
@@ -121,7 +122,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_members = json.loads(response.content)
+        response_members = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_members), len(community_members_ids))
 
@@ -160,7 +161,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_members = json.loads(response.content)
+        response_members = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(count, len(response_members))
 
@@ -202,7 +203,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_members = json.loads(response.content)
+        response_members = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_members), len(community_members_ids))
 
@@ -246,7 +247,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_members = json.loads(response.content)
+        response_members = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_members), len(community_members_ids))
 
@@ -297,7 +298,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_members = json.loads(response.content)
+        response_members = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_members), len(community_members_ids))
 
@@ -667,7 +668,7 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
                 'query': final_query
             }, **headers)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            response_members = json.loads(response.content)
+            response_members = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_members)
             if response_members_count == 1:
                 # Our community creator was not retrieved
@@ -707,7 +708,7 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
                 'query': final_query
             }, **headers)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            response_members = json.loads(response.content)
+            response_members = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_members)
             if response_members_count == 1:
                 # Our community creator was not retrieved
@@ -731,20 +732,21 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         similar_username = fake.user_name()
+        fake_words = fake.words(4, unique=True)
 
-        community_creator = make_user(username=similar_username + fake.word())
+        community_creator = make_user(username=similar_username + fake_words[0])
         community = make_community(creator=community_creator, type='P')
         community_name = community.name
 
-        community_member = make_user(username=similar_username + fake.word())
+        community_member = make_user(username=similar_username + fake_words[1])
         community_member.join_community_with_name(community_name=community_name)
 
-        community_moderator = make_user(username=similar_username + fake.word())
+        community_moderator = make_user(username=similar_username + fake_words[2])
         community_moderator.join_community_with_name(community_name=community_name)
         community_creator.add_moderator_with_username_to_community_with_name(username=community_moderator.username,
                                                                              community_name=community.name)
 
-        community_administrator = make_user(username=similar_username + fake.word())
+        community_administrator = make_user(username=similar_username + fake_words[3])
         community_administrator.join_community_with_name(community_name=community_name)
         community_creator.add_administrator_with_username_to_community_with_name(
             username=community_administrator.username,
@@ -768,7 +770,7 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
 
-        response_members = json.loads(response.content)
+        response_members = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_members), len(expected_members))
 
@@ -820,7 +822,7 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
 
-        response_members = json.loads(response.content)
+        response_members = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_members), len(expected_members))
 
@@ -868,7 +870,7 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
 
-        response_members = json.loads(response.content)
+        response_members = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_members), len(expected_members))
 
