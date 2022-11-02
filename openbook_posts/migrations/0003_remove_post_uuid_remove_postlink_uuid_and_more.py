@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('openbook_posts', '0001_initial'),
+        ('openbook_posts', '0002_alter_postmedia_object_id'),
     ]
 
     operations = [
