@@ -1,7 +1,7 @@
 [
   {
     "model": "openbook_common.Language",
-    "pk": 1,
+    "pk": "660fd6bd-46e2-4bfb-9a23-bbf8a07d2a68",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Acholi",
@@ -10,7 +10,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 2,
+    "pk": "bfb0a277-f3a1-4feb-ad2e-9970a9ec150a",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Afar",
@@ -19,7 +19,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 3,
+    "pk": "e1800560-e3c1-4edc-8b05-7fb9e05d1b4c",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Afrikaans",
@@ -28,7 +28,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 4,
+    "pk": "42a9aa03-cc97-42c4-96a8-241b8c653011",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Akan",
@@ -37,7 +37,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 5,
+    "pk": "cf7e6358-529c-4d4e-a2b6-1e7adbb0848f",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Akan, Twi",
@@ -46,7 +46,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 6,
+    "pk": "776851b0-64e9-4f21-98ca-365abb47ff61",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Albanian",
@@ -55,7 +55,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 7,
+    "pk": "5ad37649-7e5e-4f80-b7f0-94f293b9f031",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Amharic",
@@ -64,7 +64,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 8,
+    "pk": "8c515083-316b-4e9a-9340-fa1aed849043",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Arabic",
@@ -73,7 +73,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 9,
+    "pk": "070bf9ca-93bc-4fc0-ab36-e9fb0a0f76fb",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Arabic, Bahrain",
@@ -82,7 +82,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 10,
+    "pk": "75484170-2252-4847-8fba-99f592e99026",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Arabic, Egypt",
@@ -91,7 +91,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 11,
+    "pk": "2187f6e1-61c3-433c-a3d7-14d76262f184",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Arabic, Saudi Arabia",
@@ -100,7 +100,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 12,
+    "pk": "b816b2e3-1535-4aa9-bd83-a148cbc0ab52",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Arabic, Yemen",
@@ -109,7 +109,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 13,
+    "pk": "93bcbb5c-c343-4543-baf1-686d3810fda3",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Aragonese",
@@ -118,7 +118,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 14,
+    "pk": "11693c0c-18a9-452b-bf9f-3abaf784ddfe",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Armenian",
@@ -127,7 +127,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 15,
+    "pk": "76095fce-e273-4d30-aba5-30a2c8c5fb22",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Arpitan",
@@ -136,7 +136,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 16,
+    "pk": "534b461f-b2c4-433f-99a8-c779569a7e32",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Assamese",
@@ -145,7 +145,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 17,
+    "pk": "3a8e861a-20b6-4157-8acb-424b82ec072a",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Asturian",
@@ -154,7 +154,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 18,
+    "pk": "89c002c8-69ac-4726-aabe-fe0f9eb7751e",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Atayal",
@@ -163,7 +163,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 19,
+    "pk": "07128b16-0dde-4c43-a3dc-2f253c845608",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Avaric",
@@ -172,7 +172,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 20,
+    "pk": "02f9ab9a-6f3b-4835-9f61-43d759edb267",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Avestan",
@@ -181,7 +181,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 21,
+    "pk": "043c9aa8-f5fb-4d0d-abb2-65f5f76fd1e9",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Aymara",
@@ -190,7 +190,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 22,
+    "pk": "23373a11-8723-43eb-9ace-e858aae97876",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Azerbaijani",
@@ -199,7 +199,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 23,
+    "pk": "fb407b37-6ab0-4aff-9380-0bf9bf0bc909",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Balinese",
@@ -208,7 +208,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 24,
+    "pk": "f722c64e-506a-4bcb-9595-f18159c6ab9c",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Balochi",
@@ -217,7 +217,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 25,
+    "pk": "1a48a69b-f76c-4f0b-a9cb-ad96f4fbb3ef",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Bambara",
@@ -226,7 +226,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 26,
+    "pk": "13a48d05-58dd-4037-9300-955fe74a2068",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Bashkir",
@@ -235,7 +235,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 27,
+    "pk": "08d8b51e-f878-45a4-b4d9-871a9e7f18b0",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Basque",
@@ -244,7 +244,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 28,
+    "pk": "9e604899-f498-4a33-ae1a-2a019f0b4c10",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Belarusian",
@@ -253,7 +253,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 29,
+    "pk": "cf889ab7-9e12-4749-b03e-60dd0571d9aa",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Bengali",
@@ -262,7 +262,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 30,
+    "pk": "057480fb-8713-445c-b986-07dbe0a5f46f",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Bengali, India",
@@ -271,7 +271,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 31,
+    "pk": "5f884717-a3a1-404d-b41c-b73de73aab44",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Berber",
@@ -280,7 +280,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 32,
+    "pk": "594c6543-bc08-4a22-a00d-4483c3539010",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Bihari",
@@ -289,7 +289,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 33,
+    "pk": "3676d0aa-f331-4b1b-8722-2e5933cc9246",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Birifor",
@@ -298,7 +298,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 34,
+    "pk": "42d9f453-091a-4680-a46b-69c4639a10ad",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Bislama",
@@ -307,7 +307,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 35,
+    "pk": "c1f67c08-e557-49fe-926c-cf057103819b",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Bosnian",
@@ -316,7 +316,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 36,
+    "pk": "135ce520-54ad-48d8-a195-c2c823ecd14d",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Breton",
@@ -325,7 +325,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 37,
+    "pk": "2af3e7c4-814d-475a-a152-62c1f808c8cc",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Bulgarian",
@@ -334,7 +334,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 38,
+    "pk": "4266db67-7ccc-4650-8f3c-feac9e03be91",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Burmese",
@@ -343,7 +343,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 39,
+    "pk": "6701fcdd-7416-4b15-8ac5-8b0bb7196b07",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Catalan",
@@ -352,7 +352,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 40,
+    "pk": "95607837-7134-4a11-aee0-235ae641aaba",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Cebuano",
@@ -361,7 +361,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 41,
+    "pk": "ed79f225-d7b9-4a31-8acf-1948b9d8e42c",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Chamorro",
@@ -370,7 +370,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 42,
+    "pk": "fe6aba89-447d-42fa-aa41-c5dad79936b8",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Chechen",
@@ -379,7 +379,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 43,
+    "pk": "68cade35-2eda-4cae-9acd-1dd75d717858",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Cherokee",
@@ -388,7 +388,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 44,
+    "pk": "2112b089-55a6-439f-b837-052db0a9715c",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Chewa",
@@ -397,7 +397,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 45,
+    "pk": "b05d35ed-c197-4fbb-9350-a80ae3b1cd96",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Chinese Simplified",
@@ -406,7 +406,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 46,
+    "pk": "a058c29e-925c-4f4e-8bfd-3782195e3377",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Chinese Traditional",
@@ -415,7 +415,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 47,
+    "pk": "24a9ade9-bdf7-498f-82f5-16270fab2f62",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Chinese Traditional, Hong Kong",
@@ -424,7 +424,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 48,
+    "pk": "15f7dbbf-003c-4a0e-ac2f-a02e44bf90eb",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Chinese Traditional, Macau",
@@ -433,7 +433,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 49,
+    "pk": "ce6e1bec-7d28-42a9-b7c4-9272f908a314",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Chinese Traditional, Singapore",
@@ -442,7 +442,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 50,
+    "pk": "79eabc93-bfee-4425-b298-b87941dd9836",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Chuvash",
@@ -451,7 +451,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 51,
+    "pk": "6e982290-73e6-4416-a4ce-9bd48ee4cf5b",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Cornish",
@@ -460,7 +460,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 52,
+    "pk": "cb21714b-aa6b-4718-b7d8-5daefd5ff458",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Corsican",
@@ -469,7 +469,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 53,
+    "pk": "b5ef37c5-9677-4828-b1fe-5beb7dcc8c01",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Cree",
@@ -478,7 +478,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 54,
+    "pk": "41376574-7a8a-4180-a09c-be696cebbcfa",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Croatian",
@@ -487,7 +487,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 55,
+    "pk": "81ae4e44-ea3c-4310-8943-edf5ef60296f",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Czech",
@@ -496,7 +496,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 56,
+    "pk": "f29e72f1-efff-40e5-9118-dc9f2ac1ecda",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Danish",
@@ -505,7 +505,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 57,
+    "pk": "35fc7102-a27d-4333-bc00-0db5462a73e8",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Dari",
@@ -514,7 +514,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 58,
+    "pk": "2f98f7a6-d5c0-4569-a331-72c6bef3f532",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Dhivehi",
@@ -523,7 +523,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 59,
+    "pk": "207e1cf4-7fbc-45f5-a609-1e4eb6d3303d",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Dutch",
@@ -532,7 +532,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 60,
+    "pk": "9ce10b96-2da8-4f73-a558-01361c3dee0f",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Dutch, Belgium",
@@ -541,7 +541,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 61,
+    "pk": "b2797510-2a86-4969-bafa-a8e6a348701d",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Dutch, Suriname",
@@ -550,7 +550,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 62,
+    "pk": "f4249018-1163-4b82-ac5b-4e9c0b6fd1d9",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Dzongkha",
@@ -559,7 +559,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 63,
+    "pk": "7bbed6ec-c280-46aa-a5f3-97889d31da6c",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English",
@@ -568,7 +568,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 64,
+    "pk": "7c43a4d1-aa96-4616-adb7-8514341c2b90",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English (upside down)",
@@ -577,7 +577,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 65,
+    "pk": "65743cf8-3fce-4bf6-bb2a-8c67633818c7",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, Arabia",
@@ -586,7 +586,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 66,
+    "pk": "9ebe8418-d65a-43be-873e-a98fd1e91e08",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, Australia",
@@ -595,7 +595,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 67,
+    "pk": "74066aeb-92bb-40ec-8f01-7c66ddaff7a4",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, Belize",
@@ -604,7 +604,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 68,
+    "pk": "09003ba2-47b8-487a-99d7-30924046c9f4",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, Canada",
@@ -613,7 +613,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 69,
+    "pk": "6701e088-0e36-4a0a-8cb6-a032fa344488",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, Caribbean",
@@ -622,7 +622,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 70,
+    "pk": "ad048749-fc09-43e1-836c-298f82a795d6",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, China",
@@ -631,7 +631,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 71,
+    "pk": "b6ede16c-f310-4f6f-bdd0-143dfbb6cc0b",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, Denmark",
@@ -640,7 +640,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 72,
+    "pk": "3926a824-4e42-46db-a67b-912e1a395f35",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, Hong Kong",
@@ -649,7 +649,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 73,
+    "pk": "8b06ff33-c707-4b8c-8c27-578cfefca09d",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, India",
@@ -658,7 +658,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 74,
+    "pk": "3d2e8a2a-7b65-4974-9f7b-d22a987d316a",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, Indonesia",
@@ -667,7 +667,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 75,
+    "pk": "cbbb01da-fdf5-4e6e-983c-daaf189f757f",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, Ireland",
@@ -676,7 +676,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 76,
+    "pk": "c184ea2a-9e87-4b9e-a863-ed8872e6fc4c",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, Jamaica",
@@ -685,7 +685,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 77,
+    "pk": "be79fca9-df65-4872-9f53-f5b1b162f20e",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, Japan",
@@ -694,7 +694,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 78,
+    "pk": "f7b0a9a7-e32b-4824-b763-cf10c87212e9",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, Malaysia",
@@ -703,7 +703,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 79,
+    "pk": "19c8f44f-6945-4b5f-9743-0ed436b8eea8",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, New Zealand",
@@ -712,7 +712,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 80,
+    "pk": "0d23f3b6-3806-46be-bb16-d0843a3af9d5",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, Norway",
@@ -721,7 +721,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 81,
+    "pk": "4dae7c0c-af95-4219-a1ab-388d3d48c30b",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, Philippines",
@@ -730,7 +730,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 82,
+    "pk": "33dddfe7-2cd1-4261-bec2-b4036c02c0cc",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, Puerto Rico",
@@ -739,7 +739,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 83,
+    "pk": "6790e8e5-b711-4be4-8e7a-9dc393339eb7",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, Singapore",
@@ -748,7 +748,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 84,
+    "pk": "e9bcc46b-543e-451d-9b03-8ee3953bc3fa",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, South Africa",
@@ -757,7 +757,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 85,
+    "pk": "194510a1-6ceb-4a9e-b401-b16783753395",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, Sweden",
@@ -766,7 +766,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 86,
+    "pk": "9a251cbc-8a50-460d-a39a-9204d1c9c341",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, United Kingdom",
@@ -775,7 +775,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 87,
+    "pk": "a24264eb-c568-42be-bf83-31588fbf0e31",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, United States",
@@ -784,7 +784,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 88,
+    "pk": "09c0abc9-b079-470e-bd38-8f962f35a146",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "English, Zimbabwe",
@@ -793,7 +793,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 89,
+    "pk": "31c6e8ed-ec5f-48f4-ad6e-8ebd1e2f90ce",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Esperanto",
@@ -802,7 +802,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 90,
+    "pk": "804eac0b-abec-41f8-89d8-3ff5c02b881a",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Estonian",
@@ -811,7 +811,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 91,
+    "pk": "e56b2001-d50b-45ec-9070-7371e414a315",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Ewe",
@@ -820,7 +820,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 92,
+    "pk": "0b303a0c-50e6-4441-88fb-5cd39341d8b8",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Faroese",
@@ -829,7 +829,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 93,
+    "pk": "846fa5a4-7c6b-4e4e-a1cd-5970f8f1d118",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Fijian",
@@ -838,7 +838,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 94,
+    "pk": "e9d0a3c6-c5f1-4380-91a7-6409db63424c",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Filipino",
@@ -847,7 +847,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 95,
+    "pk": "575955d0-a999-4dbf-bafb-a61366b73208",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Finnish",
@@ -856,7 +856,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 96,
+    "pk": "af997f72-b18e-4c69-8a6c-8568df02d887",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Flemish",
@@ -865,7 +865,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 97,
+    "pk": "b40ca7b0-bdbf-4901-bd3f-fd061efce731",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Franconian",
@@ -874,7 +874,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 98,
+    "pk": "16c0b7d6-5262-4a37-bc31-9caf2a6deec1",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "French",
@@ -883,7 +883,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 99,
+    "pk": "4c22fdff-57a1-48c5-bc92-81fdbd4de7d6",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "French, Belgium",
@@ -892,7 +892,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 100,
+    "pk": "b46abfad-87e0-4d9c-88df-b45b8467c770",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "French, Canada",
@@ -901,7 +901,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 101,
+    "pk": "882f054a-3551-4b15-9a88-15e8e5e16597",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "French, Luxembourg",
@@ -910,7 +910,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 102,
+    "pk": "cbc7236c-429c-4d47-a2d2-43f1e87fa2ae",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "French, Quebec",
@@ -919,7 +919,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 103,
+    "pk": "22d714b4-447b-4d4b-8a41-f105893a0437",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "French, Switzerland",
@@ -928,7 +928,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 104,
+    "pk": "85d2974c-76c2-416a-a838-b6bca498ecb4",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Frisian",
@@ -937,7 +937,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 105,
+    "pk": "5dbd9172-f9a1-419e-8bd4-cb96e991a751",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Friulian",
@@ -946,7 +946,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 106,
+    "pk": "975b53c9-9a79-4214-9f0b-bef0d4b5a706",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Fula",
@@ -955,7 +955,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 107,
+    "pk": "e2309489-1de4-41b8-9075-45fe6ebc569b",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Ga",
@@ -964,7 +964,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 108,
+    "pk": "0d225b16-f360-4fc5-9b8b-33eaf609d6f8",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Galician",
@@ -973,7 +973,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 109,
+    "pk": "4c2a9ab0-7f28-4cd5-84f4-a43d818ec3ab",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Georgian",
@@ -982,7 +982,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 110,
+    "pk": "19e057bd-e20c-43ef-9d2d-0d9fbb9bfd1e",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "German",
@@ -991,7 +991,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 111,
+    "pk": "97585f09-2ba8-48b8-a1ff-f80217f9c8e9",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "German, Austria",
@@ -1000,7 +1000,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 112,
+    "pk": "f1b6711b-10d8-4d01-a0d8-fbb1a5f496a5",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "German, Belgium",
@@ -1009,7 +1009,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 113,
+    "pk": "50ed4048-eec4-4182-8b3d-3621b2986703",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "German, Liechtenstein",
@@ -1018,7 +1018,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 114,
+    "pk": "3312baf0-a86a-4459-bc0a-143119f5ffc0",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "German, Luxembourg",
@@ -1027,7 +1027,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 115,
+    "pk": "24f4735f-0584-44e2-82ab-79bb20d6293c",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "German, Switzerland",
@@ -1036,7 +1036,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 116,
+    "pk": "4ecb1954-b09d-4f6b-b8ea-be1b85d04cc1",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Gothic",
@@ -1045,7 +1045,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 117,
+    "pk": "9d51ec8a-6a83-493a-a0ba-39d03aa88eba",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Greek",
@@ -1054,7 +1054,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 118,
+    "pk": "fd5b07dc-e331-430c-9931-78e136fc9d69",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Greek, Cyprus",
@@ -1063,7 +1063,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 119,
+    "pk": "3820d683-5790-46c8-8e1f-8a2a41837f1f",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Greenlandic",
@@ -1072,7 +1072,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 120,
+    "pk": "5e7a0e25-39d2-43a2-b421-19bc00b234f0",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Guarani",
@@ -1081,7 +1081,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 121,
+    "pk": "7fd1d42b-acb3-49da-8882-4cfc4003b473",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Gujarati",
@@ -1090,7 +1090,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 122,
+    "pk": "8ac376e1-d152-4013-95b4-0135be12bc9f",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Haitian Creole",
@@ -1099,7 +1099,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 123,
+    "pk": "8cbf6f5e-218b-4a83-b0f5-6257da015bc2",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Hausa",
@@ -1108,7 +1108,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 124,
+    "pk": "0756d519-4cc7-4a70-a03d-3b92a7737edb",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Hawaiian",
@@ -1117,7 +1117,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 125,
+    "pk": "218a2c77-6633-49ea-85ee-875840a78ada",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Hebrew",
@@ -1126,7 +1126,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 126,
+    "pk": "bc3571f7-fa39-42e7-b5e4-f86e92076ae2",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Herero",
@@ -1135,7 +1135,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 127,
+    "pk": "58bd0746-0e50-40b5-bfd0-6c310cd5a42c",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Hiligaynon",
@@ -1144,7 +1144,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 128,
+    "pk": "0dab82c3-9878-45ae-9a5f-5ca865d0695d",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Hindi",
@@ -1153,7 +1153,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 129,
+    "pk": "c74d4050-7793-4236-b93c-539fa2896707",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Hiri Motu",
@@ -1162,7 +1162,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 130,
+    "pk": "65f1b7fc-485d-4555-925a-6a223d2d6b76",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Hmong",
@@ -1171,7 +1171,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 131,
+    "pk": "a1967733-efd3-42fa-a231-cb796090a7a6",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Hungarian",
@@ -1180,7 +1180,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 132,
+    "pk": "6761a5a9-0a36-46a2-89e2-f6cacf07e424",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Icelandic",
@@ -1189,7 +1189,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 133,
+    "pk": "d0286333-7c9c-4390-894c-4a805afe92b3",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Ido",
@@ -1198,7 +1198,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 134,
+    "pk": "2b8b19cf-9fbf-44d2-959d-951f134893ec",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Igbo",
@@ -1207,7 +1207,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 135,
+    "pk": "e39fcb20-9e26-4f8f-9fef-0c042d994143",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Ilokano",
@@ -1216,7 +1216,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 136,
+    "pk": "6f404003-8508-43ec-8c32-261c557e7587",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Indonesian",
@@ -1225,7 +1225,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 137,
+    "pk": "2eeb5ae8-7d6b-4068-9e75-89b534282bbd",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Inuktitut",
@@ -1234,7 +1234,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 138,
+    "pk": "2a3bc598-8339-4373-a4ef-60cfe49440d6",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Irish",
@@ -1243,7 +1243,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 139,
+    "pk": "699f454f-e021-4bdc-9d60-32d314706b56",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Italian",
@@ -1252,7 +1252,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 140,
+    "pk": "c1b4d027-31d7-448c-9c6a-1e17c7f0a289",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Italian, Switzerland",
@@ -1261,7 +1261,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 141,
+    "pk": "8fb5bf2d-320d-4b83-a82c-702a00c1b361",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Japanese",
@@ -1270,7 +1270,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 142,
+    "pk": "c3d7685b-4c0a-4e6e-bab1-af9202e946f2",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Javanese",
@@ -1279,7 +1279,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 143,
+    "pk": "8f89d421-7416-4aa1-bd5d-e13fba522495",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "K'iche'",
@@ -1288,7 +1288,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 144,
+    "pk": "1ae8a432-324a-46ed-a5a4-68260e2926bd",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Kabyle",
@@ -1297,7 +1297,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 145,
+    "pk": "122c512a-3cbd-47eb-b193-f75919a20bd8",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Kannada",
@@ -1306,7 +1306,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 146,
+    "pk": "d8bb05c3-5409-4357-a326-bb0e3a5bcc66",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Kapampangan",
@@ -1315,7 +1315,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 147,
+    "pk": "8ed3a10c-e84d-4041-b41c-61e273d89988",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Kashmiri",
@@ -1324,7 +1324,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 148,
+    "pk": "cd3956b8-1d4c-4385-ad81-37909f187295",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Kashmiri, Pakistan",
@@ -1333,7 +1333,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 149,
+    "pk": "0effa6cf-ce9d-4cd9-a6d0-f705866c53ac",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Kashubian",
@@ -1342,7 +1342,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 150,
+    "pk": "13127d11-16c6-445c-a392-95c7febeb029",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Kazakh",
@@ -1351,7 +1351,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 151,
+    "pk": "f1c37508-f00e-4c3f-98d8-67e3ff3e2c8a",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Khmer",
@@ -1360,7 +1360,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 152,
+    "pk": "4e252b4e-bbab-4a52-8bda-bca0b759bdac",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Kinyarwanda",
@@ -1369,7 +1369,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 153,
+    "pk": "e7f5601e-759c-4a44-bdd5-0e386918a8b4",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Klingon",
@@ -1378,7 +1378,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 154,
+    "pk": "3a3533fc-ce71-4942-a83b-388d5af6417d",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Komi",
@@ -1387,7 +1387,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 155,
+    "pk": "bed40d5e-2a07-49e7-aa61-835e86ef364e",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Kongo",
@@ -1396,7 +1396,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 156,
+    "pk": "ba8a92c8-f7ca-4514-9047-c35fa4b96799",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Konkani",
@@ -1405,7 +1405,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 157,
+    "pk": "cdbf1fee-f9cd-4e27-b2da-acbc44d06e1d",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Korean",
@@ -1414,7 +1414,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 158,
+    "pk": "a8932a46-8794-4f7a-aac0-af8496c00a4a",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Kurdish",
@@ -1423,7 +1423,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 159,
+    "pk": "fbb6b3ff-1a7a-4526-86b3-7fc6c3455638",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Kurmanji (Kurdish)",
@@ -1432,7 +1432,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 160,
+    "pk": "2c49540f-fd66-43e9-81ec-7eed7c2ed1aa",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Kwanyama",
@@ -1441,7 +1441,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 161,
+    "pk": "54f14540-9ff8-438b-aedf-f655920c43d9",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Kyrgyz",
@@ -1450,7 +1450,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 162,
+    "pk": "f7ae76aa-34e2-4565-bda2-f0cb0647d96d",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "LOLCAT",
@@ -1459,7 +1459,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 163,
+    "pk": "97bab17f-3199-40d5-a5c1-aca0e5b037c2",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Lao",
@@ -1468,7 +1468,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 164,
+    "pk": "724b5b7c-58c1-4738-beee-b5d110051cfd",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Latin",
@@ -1477,7 +1477,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 165,
+    "pk": "bf926fc2-6e7a-464f-8b60-d02b883b6425",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Latvian",
@@ -1486,7 +1486,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 166,
+    "pk": "491ac12b-9a59-4c62-ba8d-b30007a73aaa",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Ligurian",
@@ -1495,7 +1495,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 167,
+    "pk": "c1a4eb2e-3bd1-4d7f-a56f-0bc3d413cb03",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Limburgish",
@@ -1504,7 +1504,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 168,
+    "pk": "80107f32-3718-4919-900f-5981d4504260",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Lingala",
@@ -1513,7 +1513,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 169,
+    "pk": "b6039e70-447f-4a9c-b059-3a248372d4cf",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Lithuanian",
@@ -1522,7 +1522,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 170,
+    "pk": "7ba9e8b8-d16d-446d-9a30-6c11bd102c34",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Lojban",
@@ -1531,7 +1531,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 171,
+    "pk": "d87dd8a6-16df-40e3-94a4-eaa8680b2138",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Low German",
@@ -1540,7 +1540,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 172,
+    "pk": "a923b0fd-4f11-42b8-a817-2d16ab93c3c5",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Lower Sorbian",
@@ -1549,7 +1549,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 173,
+    "pk": "2be5a51c-c441-4b2f-9279-ab2df46fa0e7",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Luganda",
@@ -1558,7 +1558,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 174,
+    "pk": "c25838a8-d09d-4d6c-a0f2-429c67d99d5a",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Luhya",
@@ -1567,7 +1567,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 175,
+    "pk": "ec9f06b1-de83-4284-8285-46c7425b9068",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Luxembourgish",
@@ -1576,7 +1576,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 176,
+    "pk": "846bf223-a6a2-4895-9cb2-97dd2a2d391c",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Macedonian",
@@ -1585,7 +1585,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 177,
+    "pk": "22cfd4d0-d30e-42b8-87a1-18c282e605d2",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Maithili",
@@ -1594,7 +1594,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 178,
+    "pk": "cdb1d62f-32b2-45c7-ace1-10a7290e9a6e",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Malagasy",
@@ -1603,7 +1603,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 179,
+    "pk": "8e81074a-1405-47bb-a447-1b9fcb012029",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Malay",
@@ -1612,7 +1612,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 180,
+    "pk": "8495a09e-69be-4cb7-afbc-4479b7eb4276",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Malay, Brunei",
@@ -1621,7 +1621,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 181,
+    "pk": "a36a6117-1632-490d-afeb-8afba3fdeab2",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Malayalam",
@@ -1630,7 +1630,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 182,
+    "pk": "4914e823-c99c-4786-9bb3-a1ca99f5718b",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Maltese",
@@ -1639,7 +1639,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 183,
+    "pk": "6f7ca25d-3932-4b91-9533-3b3d0455bfd8",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Manx",
@@ -1648,7 +1648,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 184,
+    "pk": "4fe8f6b9-c0f6-4373-bbfd-f8e3b739e019",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Maori",
@@ -1657,7 +1657,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 185,
+    "pk": "3a04d9bd-325f-41d4-b3ce-381932e9ad4c",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Mapudungun",
@@ -1666,7 +1666,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 186,
+    "pk": "da38f76a-a104-4aaa-8011-d39208cff91a",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Marathi",
@@ -1675,7 +1675,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 187,
+    "pk": "bea03664-3d57-4580-93cd-52e4e3bb8284",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Marshallese",
@@ -1684,7 +1684,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 188,
+    "pk": "9b1e14ec-eb82-4f16-806e-d5517c6aaa8c",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Mohawk",
@@ -1693,7 +1693,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 189,
+    "pk": "e6137815-d063-40a8-bf84-60e4dd582c02",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Mongolian",
@@ -1702,7 +1702,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 190,
+    "pk": "82624a8f-098a-46df-85d5-d56fa06343ff",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Montenegrin (Cyrillic)",
@@ -1711,7 +1711,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 191,
+    "pk": "016d072d-1848-4144-86a8-aa44a00beca0",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Montenegrin (Latin)",
@@ -1720,7 +1720,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 192,
+    "pk": "e7626f69-be10-43e1-9316-3527aca5c859",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Mossi",
@@ -1729,7 +1729,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 193,
+    "pk": "c528662b-c4ec-4f75-a069-e1b46bdcf65b",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Nauru",
@@ -1738,7 +1738,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 194,
+    "pk": "4a4a1f4b-ad4d-43cc-8b01-bc95b00d8874",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Ndonga",
@@ -1747,7 +1747,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 195,
+    "pk": "523580a7-d5c8-41a2-985b-c2b1ee55f364",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Nepali",
@@ -1756,7 +1756,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 196,
+    "pk": "416baaf8-075c-482c-bee4-e40a36dd7845",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Nepali, India",
@@ -1765,7 +1765,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 197,
+    "pk": "04566a2a-3857-4fad-bee4-bc0cc8e43aac",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Nigerian Pidgin",
@@ -1774,7 +1774,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 198,
+    "pk": "712d0ffd-2af7-4d9f-bff7-bd710455ac95",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Northern Sami",
@@ -1783,7 +1783,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 199,
+    "pk": "dd775961-ca0c-4a22-a1aa-1437a1b739be",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Northern Sotho",
@@ -1792,7 +1792,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 200,
+    "pk": "6c436092-ca39-430b-8a6b-49f9c1e4d119",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Norwegian",
@@ -1801,7 +1801,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 201,
+    "pk": "e016fac3-9e37-467f-a5f6-765817ddd27a",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Norwegian Bokmal",
@@ -1810,7 +1810,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 202,
+    "pk": "7e2447fb-9b7e-40e6-b5cd-9c1b38147c54",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Norwegian Nynorsk",
@@ -1819,7 +1819,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 203,
+    "pk": "a1d80a32-9530-490b-bb45-8799cea6be73",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Occitan",
@@ -1828,7 +1828,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 204,
+    "pk": "8d2cc2f0-97cf-40d5-abe8-c12b502cf17e",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Ojibwe",
@@ -1837,7 +1837,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 205,
+    "pk": "d21ce562-bd0d-4254-bc1e-73dede30d062",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Oriya",
@@ -1846,7 +1846,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 206,
+    "pk": "16f8cf3a-b409-428f-87b9-792a926bedf5",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Oromo",
@@ -1855,7 +1855,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 207,
+    "pk": "94da6fb3-7393-48e7-9d57-5f3b47a79d08",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Ossetian",
@@ -1864,7 +1864,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 208,
+    "pk": "1dce2b25-8734-4fe2-8c15-72b2cfad54ab",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Pali",
@@ -1873,7 +1873,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 209,
+    "pk": "c23dc49a-e8d4-48d4-9249-88c67d8ce853",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Papiamento",
@@ -1882,7 +1882,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 210,
+    "pk": "e2c6a016-31af-49a4-adde-0b4970c079a4",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Pashto",
@@ -1891,7 +1891,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 211,
+    "pk": "4d09a14a-667e-4bc8-9db5-d4880346e51e",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Persian",
@@ -1900,7 +1900,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 212,
+    "pk": "c5eff8ab-ab94-48bc-97cc-a81d08eee946",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Pirate English",
@@ -1909,7 +1909,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 213,
+    "pk": "28bc7c33-7eb3-4f24-a2ec-c69768a83619",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Polish",
@@ -1918,7 +1918,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 214,
+    "pk": "ffbef9d4-d6db-428b-bb11-fbe07f25ceb0",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Portuguese",
@@ -1927,7 +1927,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 215,
+    "pk": "ba1adbde-4644-4620-b767-ea7e7db2c1c3",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Portuguese, Brazilian",
@@ -1936,7 +1936,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 216,
+    "pk": "a8822c6d-3854-444a-a962-25c735af45dc",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Punjabi",
@@ -1945,7 +1945,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 217,
+    "pk": "31c635c2-2fb1-4606-b379-d4a6b2244f11",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Punjabi, Pakistan",
@@ -1954,7 +1954,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 218,
+    "pk": "05437f46-6fab-4f83-81b6-3a7fe7c260eb",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Quechua",
@@ -1963,7 +1963,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 219,
+    "pk": "e1bc24bd-7e4e-4cf0-9633-0305e2cc1f5a",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Quenya",
@@ -1972,7 +1972,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 220,
+    "pk": "0735f69f-98db-4b62-a008-ffc6e11ad2c0",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Romanian",
@@ -1981,7 +1981,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 221,
+    "pk": "c97171b3-81c2-4223-9437-e31c0e492bba",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Romansh",
@@ -1990,7 +1990,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 222,
+    "pk": "218b2ca2-3f21-449c-b22e-03bc28899e9b",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Rundi",
@@ -1999,7 +1999,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 223,
+    "pk": "aed4f89c-4672-4785-8f12-943633b3281d",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Russian",
@@ -2008,7 +2008,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 224,
+    "pk": "a5abdf0a-6877-4538-8c03-5fbc09e467cc",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Russian, Belarus",
@@ -2017,7 +2017,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 225,
+    "pk": "a1dfab32-5136-45e8-999d-f39a237d5af1",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Russian, Moldova",
@@ -2026,7 +2026,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 226,
+    "pk": "54893385-c373-43d3-ba74-487909e20a99",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Russian, Ukraine",
@@ -2035,7 +2035,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 227,
+    "pk": "67ba2f43-2174-4d38-b410-96d14617e6fe",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Rusyn",
@@ -2044,7 +2044,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 228,
+    "pk": "66014c68-f421-47af-a73a-032be1f462ac",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Sakha",
@@ -2053,7 +2053,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 229,
+    "pk": "d739584c-c640-4208-8316-8be86d4cbdcf",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Sango",
@@ -2062,7 +2062,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 230,
+    "pk": "d690d39a-1f0b-4c38-a28f-4262ffd9d644",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Sanskrit",
@@ -2071,7 +2071,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 231,
+    "pk": "4034b564-074c-4d8c-bebb-2e408deddb5a",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Santali",
@@ -2080,7 +2080,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 232,
+    "pk": "033b3c3f-ecdc-4ad8-80d9-2035a329b91b",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Sardinian",
@@ -2089,7 +2089,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 233,
+    "pk": "8b0ba886-354a-41cc-bdb4-3f05c2012c28",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Scots",
@@ -2098,7 +2098,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 234,
+    "pk": "8a9e9b3e-0da4-4938-91b9-02979eeeec5b",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Scottish Gaelic",
@@ -2107,7 +2107,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 235,
+    "pk": "910abad3-5fb8-4168-8e47-2da2198b89d1",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Serbian (Cyrillic)",
@@ -2116,7 +2116,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 236,
+    "pk": "bb56e837-b3bd-497a-9d60-878088148eb5",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Serbian (Latin)",
@@ -2125,7 +2125,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 237,
+    "pk": "f846e1e3-1c44-4c70-9bcb-0e590997c7fb",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Serbo-Croatian",
@@ -2134,7 +2134,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 238,
+    "pk": "3a246ce9-5b8d-4a7b-81db-c0bbb4c294a7",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Seychellois Creole",
@@ -2143,7 +2143,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 239,
+    "pk": "334cc6ae-388d-4e92-91b3-14f635405e1e",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Shona",
@@ -2152,7 +2152,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 240,
+    "pk": "525333e1-6857-4521-84d0-d742ad4a61b9",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Sichuan Yi",
@@ -2161,7 +2161,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 241,
+    "pk": "cd8da346-e549-4a33-8acb-e17afb26df8e",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Sindhi",
@@ -2170,7 +2170,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 242,
+    "pk": "22dc445c-60ae-4bf5-9296-9870b076cb66",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Sinhala",
@@ -2179,7 +2179,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 243,
+    "pk": "bf6a1f22-4bab-44ff-9fc9-0608d1605910",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Slovak",
@@ -2188,7 +2188,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 244,
+    "pk": "2aab50e1-8d4c-4a6f-a953-a1b212cc7768",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Slovenian",
@@ -2197,7 +2197,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 245,
+    "pk": "7f504209-2d67-4af8-a6e1-28b18d13c7ce",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Somali",
@@ -2206,7 +2206,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 246,
+    "pk": "050f6652-6cec-4776-be34-363c33f50fdc",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Songhay",
@@ -2215,7 +2215,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 247,
+    "pk": "bc628730-3320-4502-b697-6a22fd12ccd8",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Sorani (Kurdish)",
@@ -2224,7 +2224,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 248,
+    "pk": "60cb5628-57b0-4526-933b-6926b71578cb",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Southern Ndebele",
@@ -2233,7 +2233,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 249,
+    "pk": "b13cf407-91f7-4951-97cf-6fcacdc4b733",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Southern Sami",
@@ -2242,7 +2242,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 250,
+    "pk": "bf0a049d-0959-47af-914b-08f4a43639fd",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Southern Sotho",
@@ -2251,7 +2251,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 251,
+    "pk": "30ea655a-ebc5-4f36-9950-e685bee3fa5b",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish",
@@ -2260,7 +2260,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 252,
+    "pk": "55105ec7-c924-48a7-ac93-d94b3ddd7b0d",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish (Modern)",
@@ -2269,7 +2269,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 253,
+    "pk": "c71530b5-0c12-4c38-9e48-7c4a6f37ab79",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish, Argentina",
@@ -2278,7 +2278,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 254,
+    "pk": "e398fc8d-39fe-4e57-b357-37aa377fa76b",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish, Bolivia",
@@ -2287,7 +2287,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 255,
+    "pk": "cfeba88b-82ed-4d7d-95e5-135ab71b7553",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish, Chile",
@@ -2296,7 +2296,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 256,
+    "pk": "45905071-70f8-4e0c-a037-d27e51683680",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish, Colombia",
@@ -2305,7 +2305,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 257,
+    "pk": "225b9c9b-e621-4452-af7c-30e0939e8bcd",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish, Costa Rica",
@@ -2314,7 +2314,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 258,
+    "pk": "38ca9ae8-6345-476b-a6c2-d669d46c638d",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish, Dominican Republic",
@@ -2323,7 +2323,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 259,
+    "pk": "32620755-83a5-4fc1-a7e4-03f13ef4a5ba",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish, Ecuador",
@@ -2332,7 +2332,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 260,
+    "pk": "fcda1578-b73a-456c-b52d-a25839287900",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish, El Salvador",
@@ -2341,7 +2341,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 261,
+    "pk": "22ae437e-0b8e-4b85-8c09-8ba351591765",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish, Guatemala",
@@ -2350,7 +2350,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 262,
+    "pk": "937d8cfc-efad-40bb-baf6-dfeab6981a2c",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish, Honduras",
@@ -2359,7 +2359,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 263,
+    "pk": "80d520f4-a623-42d2-b125-7508ddff77e0",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish, Mexico",
@@ -2368,7 +2368,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 264,
+    "pk": "b07992b2-353e-40f5-b3ba-a08705d9452e",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish, Nicaragua",
@@ -2377,7 +2377,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 265,
+    "pk": "b19bc9a1-c226-497a-ae88-a43eb00bd27b",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish, Panama",
@@ -2386,7 +2386,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 266,
+    "pk": "0a71cc41-343b-42bd-b5f4-08f29385b76a",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish, Paraguay",
@@ -2395,7 +2395,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 267,
+    "pk": "090b626d-eabc-4c55-b5fe-426f8ce8e23d",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish, Peru",
@@ -2404,7 +2404,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 268,
+    "pk": "71b10045-2b95-4df7-8e76-88176f053aa6",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish, Puerto Rico",
@@ -2413,7 +2413,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 269,
+    "pk": "4a1d1a25-7b5c-4911-9e4a-feafbdb979ec",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish, United States",
@@ -2422,7 +2422,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 270,
+    "pk": "ec0f3823-d4f8-4ed1-8738-3218a94a848a",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish, Uruguay",
@@ -2431,7 +2431,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 271,
+    "pk": "95bd1eb4-b231-4951-a833-58d3cdfd5680",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish, Venezuela",
@@ -2440,7 +2440,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 272,
+    "pk": "60850f77-7a0a-4c00-9782-2f44d0d65f16",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Sundanese",
@@ -2449,7 +2449,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 273,
+    "pk": "cca9f496-55b4-4b7d-8b75-a54bb414351f",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Swahili",
@@ -2458,7 +2458,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 274,
+    "pk": "a8353bb9-6cec-4347-b8b0-be0832e48551",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Swahili, Kenya",
@@ -2467,7 +2467,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 275,
+    "pk": "50c1055a-0b93-4b00-8d54-0eacd5503dcd",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Swahili, Tanzania",
@@ -2476,7 +2476,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 276,
+    "pk": "b95485a5-a645-435c-9892-67663b0e3c87",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Swati",
@@ -2485,7 +2485,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 277,
+    "pk": "e1d14a8f-5501-4ce2-adf0-bcbbc1408fa6",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Swedish",
@@ -2494,7 +2494,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 278,
+    "pk": "b5408d2b-4ee5-4950-8f13-05f50037fe9f",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Swedish, Finland",
@@ -2503,7 +2503,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 279,
+    "pk": "ff1eb11c-5052-4185-b3d5-100dfca9e36a",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Syriac",
@@ -2512,7 +2512,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 280,
+    "pk": "9a3481a2-6109-4074-a549-5c50a8eb8ca7",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Tagalog",
@@ -2521,7 +2521,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 281,
+    "pk": "4c8fa091-7076-41c4-94e8-3d09e946dd46",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Tahitian",
@@ -2530,7 +2530,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 282,
+    "pk": "ac75603d-22bd-43b1-923b-43abee81bbbe",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Tajik",
@@ -2539,7 +2539,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 283,
+    "pk": "e51888b3-05f6-4880-9594-df9954010301",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Talossan",
@@ -2548,7 +2548,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 284,
+    "pk": "d5ff1cea-e550-46b3-9147-b6f0bc9b6572",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Tamil",
@@ -2557,7 +2557,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 285,
+    "pk": "39d149b1-62ed-49e4-9ab1-a1c6408cf5c6",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Tatar",
@@ -2566,7 +2566,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 286,
+    "pk": "55c8d2f3-7751-4473-9a78-554f2617a59f",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Telugu",
@@ -2575,7 +2575,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 287,
+    "pk": "d4ef60d2-510b-4907-8b66-e24f4c0dd716",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Tem (Kotokoli)",
@@ -2584,7 +2584,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 288,
+    "pk": "8942071f-9b74-439c-ad8e-dba0396f6e7b",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Thai",
@@ -2593,7 +2593,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 289,
+    "pk": "1d105fd3-303b-41e8-b3aa-b1b8a5d9ded0",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Tibetan",
@@ -2602,7 +2602,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 290,
+    "pk": "1a933a02-d536-4bf6-ab83-98964d9d69cc",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Tigrinya",
@@ -2611,7 +2611,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 291,
+    "pk": "80fafbbd-0499-45d9-8bb4-03cd9cd7d11e",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Tsonga",
@@ -2620,7 +2620,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 292,
+    "pk": "6806b488-7d02-4f6d-be14-366b94bde0f0",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Tswana",
@@ -2629,7 +2629,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 293,
+    "pk": "027660e4-0bbd-444f-bfc3-e8c3a7543c1c",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Turkish",
@@ -2638,7 +2638,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 294,
+    "pk": "c970128d-47d0-4d7a-8e11-6e3eed0335e4",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Turkish, Cyprus",
@@ -2647,7 +2647,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 295,
+    "pk": "eb1694eb-dc5e-4e64-8e33-53c89932e364",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Turkmen",
@@ -2656,7 +2656,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 296,
+    "pk": "6a78767a-3294-4dc3-8fb9-ed65c7dae4b6",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Ukrainian",
@@ -2665,7 +2665,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 297,
+    "pk": "49b67f72-7a45-4d5d-86cf-462801ffe5c6",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Upper Sorbian",
@@ -2674,7 +2674,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 298,
+    "pk": "62bd1563-c577-4108-ae90-f240f7aba347",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Urdu (India)",
@@ -2683,7 +2683,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 299,
+    "pk": "e28c429f-3459-43ad-80b0-d6af2e05f2b6",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Urdu (Pakistan)",
@@ -2692,7 +2692,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 300,
+    "pk": "1c340847-6339-44ec-b848-76b76a5616fe",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Uyghur",
@@ -2701,7 +2701,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 301,
+    "pk": "929cafd5-e8b5-48a7-b3e9-6106177a9d53",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Uzbek",
@@ -2710,7 +2710,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 302,
+    "pk": "680ddcbf-4274-45bf-b6e8-6a66fdcedbd0",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Valencian",
@@ -2719,7 +2719,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 303,
+    "pk": "50c3a84b-9bd7-4677-a0c0-efc23e530621",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Venda",
@@ -2728,7 +2728,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 304,
+    "pk": "e5bd614d-0517-4c4b-afd0-b3a081e49419",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Venetian",
@@ -2737,7 +2737,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 305,
+    "pk": "ccfa58a0-f738-4b6e-b068-5e61680f7e3f",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Vietnamese",
@@ -2746,7 +2746,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 306,
+    "pk": "1d74285b-a5de-443f-b047-a08f22873503",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Walloon",
@@ -2755,7 +2755,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 307,
+    "pk": "3ba53e80-1178-451c-b692-8d8b8a840dbe",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Welsh",
@@ -2764,7 +2764,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 308,
+    "pk": "c591a22e-5078-4ef9-adc9-7f3b0a9c8722",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Wolof",
@@ -2773,7 +2773,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 309,
+    "pk": "78ac0845-c224-4b48-971c-b34a313af3c0",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Xhosa",
@@ -2782,7 +2782,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 310,
+    "pk": "beb39519-6429-4ebb-87a7-571acd97665e",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Yiddish",
@@ -2791,7 +2791,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 311,
+    "pk": "90e45c70-6bbf-46c3-934d-11c50212275a",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Yoruba",
@@ -2800,7 +2800,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 312,
+    "pk": "923951b0-5ec3-4d15-a350-7f1ecec45dc6",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Zeelandic",
@@ -2809,7 +2809,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 313,
+    "pk": "901ff824-c3f1-4763-88c9-13937e542cfc",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Zulu",
@@ -2818,7 +2818,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 314,
+    "pk": "52b97e0e-3cf9-44f3-bd1d-3b27e79abe04",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Spanish",
@@ -2827,7 +2827,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 315,
+    "pk": "0b43d378-0db1-4ca0-b63c-bfbbca70f267",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Swedish",
@@ -2836,7 +2836,7 @@
   },
   {
     "model": "openbook_common.Language",
-    "pk": 316,
+    "pk": "52bc88eb-29e7-402e-ba01-b98e6ada8298",
     "fields": {
       "created": "2018-10-22 12:23:30.382913+00:00",
       "name_en": "Portuguese",

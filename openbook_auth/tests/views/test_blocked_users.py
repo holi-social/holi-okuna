@@ -8,6 +8,7 @@ import logging
 import json
 
 from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user
+from openbook_common.utils.test import uuid_id_parser
 
 fake = Faker()
 
@@ -39,7 +40,7 @@ class BlockedUsersAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_blocked_users = json.loads(response.content)
+        response_blocked_users = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_blocked_users), amount_of_blocked_users)
 
@@ -84,7 +85,7 @@ class SearchBlockedUsersAPITests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_blocked_users = json.loads(response.content)
+            response_blocked_users = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_blocked_users)
 
             self.assertEqual(response_members_count, 1)
@@ -121,7 +122,7 @@ class SearchBlockedUsersAPITests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_blocked_users = json.loads(response.content)
+            response_blocked_users = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_blocked_users)
 
             self.assertEqual(response_members_count, 1)

@@ -17,6 +17,7 @@ import json
 
 from openbook_circles.models import Circle
 from openbook_common.tests.helpers import make_user, make_badge, make_authentication_headers_for_user
+from openbook_common.utils.test import uuid_id_parser
 from openbook_invitations.models import UserInvite
 
 fake = Faker()
@@ -95,7 +96,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         data = {'name': 'Joel Hernandez', 'password': 'secretPassword123',
                 'is_of_legal_age': 'true', 'email': 'user@email.com', 'are_guidelines_accepted': True}
         response = self.client.post(url, data, format='multipart')
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertIn('token', parsed_response)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -146,7 +147,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
                 'token': token
             }
             response = self.client.post(url, data, format='multipart')
-            parsed_response = json.loads(response.content)
+            parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertIn('name', parsed_response)
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -168,7 +169,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
                 'token': token
             }
             response = self.client.post(url, data, format='multipart')
-            parsed_response = json.loads(response.content)
+            parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertIn('username', parsed_response)
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -181,7 +182,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         data = {'email': 'user@mail.com', 'password': 'secretPassword123',
                 'is_of_legal_age': 'true', 'token': token, 'are_guidelines_accepted': True}
         response = self.client.post(url, data, format='multipart')
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertIn('name', parsed_response)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -194,7 +195,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         data = {'name': 'Joel Hernandez', 'password': 'secretPassword123',
                 'is_of_legal_age': 'true', 'token': token, 'are_guidelines_accepted': True}
         response = self.client.post(url, data, format='multipart')
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertIn('email', parsed_response)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -260,7 +261,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
                                'password': 'woahpassword123', 'is_of_legal_age': 'true', 'token': token2,
                                'are_guidelines_accepted': True}
         response = self.client.post(url, second_request_data, format='multipart')
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertIn('email', parsed_response)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -275,7 +276,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
                               'password': 'secretPassword123', 'is_of_legal_age': True, 'token': token,
                               'are_guidelines_accepted': True}
         response = self.client.post(url, first_request_data, format='multipart')
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('username', parsed_response)
@@ -347,7 +348,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
                               'password': 'secretPassword123', 'is_of_legal_age': True, 'token': token,
                               'are_guidelines_accepted': True}
         response = self.client.post(url, first_request_data, format='multipart')
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -400,7 +401,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         for user_data_item in users_data:
             response = self.client.post(url, user_data_item, format='multipart')
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-            parsed_response = json.loads(response.content)
+            parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertIn('token', parsed_response)
             response_auth_token = parsed_response['token']
             user = User.objects.get(email=user_data_item['email'])
@@ -653,7 +654,7 @@ class UsernameCheckAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.post(url, request_data, format='json')
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertIn('username', parsed_response)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -669,7 +670,7 @@ class UsernameCheckAPITests(OpenbookAPITestCase):
                 'username': username
             }
             response = self.client.post(url, data, format='json')
-            parsed_response = json.loads(response.content)
+            parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertIn('username', parsed_response)
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -715,7 +716,7 @@ class EmailCheckAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.post(url, request_data, format='json')
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertIn('email', parsed_response)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -731,7 +732,7 @@ class EmailCheckAPITests(OpenbookAPITestCase):
                 'email': email
             }
             response = self.client.post(url, data, format='json')
-            parsed_response = json.loads(response.content)
+            parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertIn('email', parsed_response)
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -778,7 +779,7 @@ class LoginAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertIn('token', parsed_response)
         response_token = parsed_response['token']

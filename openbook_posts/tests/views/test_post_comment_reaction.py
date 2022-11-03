@@ -40,7 +40,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
 
         post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
 
-        post_comment_reaction = reactor.react_to_post_comment_with_id(post.pk,
+        post_comment_reaction = reactor.react_to_post_comment_with_id(post_comment.pk,
                                                                       emoji_id=post_comment_reaction_emoji_id, )
         url = self._get_url(post_comment_reaction=post_comment_reaction, post=post, post_comment=post_comment)
 
@@ -65,7 +65,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
 
         post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
 
-        post_comment_reaction = user.react_to_post_comment_with_id(post.pk, emoji_id=post_comment_reaction_emoji_id,
+        post_comment_reaction = user.react_to_post_comment_with_id(post_comment.pk, emoji_id=post_comment_reaction_emoji_id,
                                                                    )
 
         url = self._get_url(post_comment_reaction=post_comment_reaction, post=post, post_comment=post_comment)
@@ -91,7 +91,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
 
         post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
 
-        post_comment_reaction = foreign_user.react_to_post_comment_with_id(post.pk,
+        post_comment_reaction = foreign_user.react_to_post_comment_with_id(post_comment.pk,
                                                                            emoji_id=post_comment_reaction_emoji_id,
                                                                            )
 
@@ -123,7 +123,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
 
         post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
 
-        post_comment_reaction = user.react_to_post_comment_with_id(community_post.pk,
+        post_comment_reaction = user.react_to_post_comment_with_id(post_comment.pk,
                                                                    emoji_id=post_comment_reaction_emoji_id,
                                                                    )
         # now close the post
@@ -158,7 +158,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
 
         post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
 
-        post_comment_reaction = user.react_to_post_comment_with_id(community_post.pk,
+        post_comment_reaction = user.react_to_post_comment_with_id(post_comment.pk,
                                                                    emoji_id=post_comment_reaction_emoji_id,
                                                                    )
         # now close the post
@@ -191,7 +191,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
 
         post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
 
-        post_comment_reaction = user.react_to_post_comment_with_id(post.pk, emoji_id=post_comment_reaction_emoji_id,
+        post_comment_reaction = user.react_to_post_comment_with_id(post_comment.pk, emoji_id=post_comment_reaction_emoji_id,
                                                                    )
 
         url = self._get_url(post_comment_reaction=post_comment_reaction, post=post, post_comment=post_comment)
@@ -222,7 +222,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
 
         post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
 
-        post_comment_reaction = foreign_user.react_to_post_comment_with_id(post.pk,
+        post_comment_reaction = foreign_user.react_to_post_comment_with_id(post_comment.pk,
                                                                            emoji_id=post_comment_reaction_emoji_id,
                                                                            )
 
@@ -253,7 +253,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
 
         post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
 
-        post_comment_reaction = user.react_to_post_comment_with_id(post.pk, emoji_id=post_comment_reaction_emoji_id,
+        post_comment_reaction = user.react_to_post_comment_with_id(post_comment.pk, emoji_id=post_comment_reaction_emoji_id,
                                                                    )
 
         url = self._get_url(post_comment_reaction=post_comment_reaction, post=post, post_comment=post_comment)
@@ -287,7 +287,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
 
         post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
 
-        post_comment_reaction = foreign_user.react_to_post_comment_with_id(post.pk,
+        post_comment_reaction = foreign_user.react_to_post_comment_with_id(post_comment.pk,
                                                                            emoji_id=post_comment_reaction_emoji_id,
                                                                            )
 
@@ -319,7 +319,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
 
         post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
 
-        post_comment_reaction = foreign_user.react_to_post_comment_with_id(post.pk,
+        post_comment_reaction = foreign_user.react_to_post_comment_with_id(post_comment.pk,
                                                                            emoji_id=post_comment_reaction_emoji_id,
                                                                            )
 
@@ -348,7 +348,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
 
         post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
 
-        post_comment_reaction = user.react_to_post_comment_with_id(post.pk, emoji_id=post_comment_reaction_emoji_id,
+        post_comment_reaction = user.react_to_post_comment_with_id(post_comment.pk, emoji_id=post_comment_reaction_emoji_id,
                                                                    )
 
         url = self._get_url(post_comment_reaction=post_comment_reaction, post=post, post_comment=post_comment)
@@ -378,7 +378,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
 
         post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
 
-        post_comment_reaction = foreign_user.react_to_post_comment_with_id(post.pk,
+        post_comment_reaction = foreign_user.react_to_post_comment_with_id(post_comment.pk,
                                                                            emoji_id=post_comment_reaction_emoji_id,
                                                                            )
 
@@ -412,7 +412,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
 
         post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
 
-        post_comment_reaction = foreign_user.react_to_post_comment_with_id(post.pk,
+        post_comment_reaction = foreign_user.react_to_post_comment_with_id(post_comment.pk,
                                                                            emoji_id=post_comment_reaction_emoji_id,
                                                                            )
 
@@ -439,7 +439,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
 
         post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
 
-        post_comment_reaction = reactor.react_to_post_comment_with_id(post.pk, emoji_id=post_comment_reaction_emoji_id,
+        post_comment_reaction = reactor.react_to_post_comment_with_id(post_comment.pk, emoji_id=post_comment_reaction_emoji_id,
                                                                       )
 
         post_comment_reaction_notification = PostCommentReactionNotification.objects.get(
@@ -461,7 +461,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post, post_comment, post_comment_reaction):
         return reverse('post-comment-reaction', kwargs={
-            'post_uuid': post.uuid,
+            'post_id': post.id,
             'post_comment_id': post_comment.pk,
             'post_comment_reaction_id': post_comment_reaction.pk
         })

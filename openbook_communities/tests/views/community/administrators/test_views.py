@@ -10,6 +10,7 @@ import json
 
 from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, \
     make_community
+from openbook_common.utils.test import uuid_id_parser
 
 logger = logging.getLogger(__name__)
 fake = Faker()
@@ -50,7 +51,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_administrators = json.loads(response.content)
+        response_administrators = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_administrators), len(administrators_ids))
 
@@ -90,7 +91,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_administrators = json.loads(response.content)
+        response_administrators = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_administrators), len(administrators_ids))
 
@@ -128,7 +129,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_administrators = json.loads(response.content)
+        response_administrators = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_administrators), len(administrators_ids))
 
@@ -441,7 +442,7 @@ class SearchCommunityAdministratorsAPITests(OpenbookAPITestCase):
                 'query': final_query
             }, **headers)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            response_administrators = json.loads(response.content)
+            response_administrators = json.loads(response.content, object_hook=uuid_id_parser)
             response_administrators_count = len(response_administrators)
             if response_administrators_count == 1:
                 # Our community creator was not retrieved
@@ -484,7 +485,7 @@ class SearchCommunityAdministratorsAPITests(OpenbookAPITestCase):
                 'query': final_query
             }, **headers)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            response_administrators = json.loads(response.content)
+            response_administrators = json.loads(response.content, object_hook=uuid_id_parser)
             response_administrators_count = len(response_administrators)
             if response_administrators_count == 1:
                 # Our community creator was not retrieved

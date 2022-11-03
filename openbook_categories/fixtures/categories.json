@@ -1,7 +1,7 @@
 [
   {
     "model": "openbook_categories.Category",
-    "pk": 1,
+    "pk": "edb0481c-f4c9-4bc0-86aa-9106a9501726",
     "fields": {
       "order": "8",
       "name": "education",
@@ -28,7 +28,7 @@
   },
   {
     "model": "openbook_categories.Category",
-    "pk": 2,
+    "pk": "7ef9f7e8-34ac-4520-b3b7-2192a5476127",
     "fields": {
       "order": "1",
       "name": "fun",
@@ -55,7 +55,7 @@
   },
   {
     "model": "openbook_categories.Category",
-    "pk": 3,
+    "pk": "76560867-0b0e-48e0-af9c-5b4bd970b2a1",
     "fields": {
       "order": "3",
       "name": "technology",
@@ -82,7 +82,7 @@
   },
   {
     "model": "openbook_categories.Category",
-    "pk": 4,
+    "pk": "09783dee-1f09-4a58-812c-ff1049503ada",
     "fields": {
       "order": "5",
       "name": "sports",
@@ -109,7 +109,7 @@
   },
   {
     "model": "openbook_categories.Category",
-    "pk": 5,
+    "pk": "ba8ea05a-7f6c-445e-8efc-68f801bdde86",
     "fields": {
       "order": "4",
       "name": "nature",
@@ -136,7 +136,7 @@
   },
   {
     "model": "openbook_categories.Category",
-    "pk": 5,
+    "pk": "55a6b427-9029-405e-ab86-ca9eeda193a1",
     "fields": {
       "order": "2",
       "name": "travel",
@@ -163,7 +163,7 @@
   },
   {
     "model": "openbook_categories.Category",
-    "pk": 5,
+    "pk": "e7411e07-cd7c-4295-bf2f-c9207c95c835",
     "fields": {
       "order": "6",
       "name": "art",
@@ -190,7 +190,7 @@
   },
   {
     "model": "openbook_categories.Category",
-    "pk": 6,
+    "pk": "fe7c1e0a-032e-4d12-b04d-0dc4dbcfd64b",
     "fields": {
       "order": "7",
       "name": "lifestyle",
@@ -217,7 +217,7 @@
   },
   {
     "model": "openbook_categories.Category",
-    "pk": 7,
+    "pk": "83f3f513-3c53-44b4-860b-08a1fa5b36fe",
     "fields": {
       "order": "8",
       "name": "entertainment",
@@ -244,7 +244,7 @@
   },
   {
     "model": "openbook_categories.Category",
-    "pk": 8,
+    "pk": "25311db4-4925-49c3-a670-67925e7d4236",
     "fields": {
       "order": "9",
       "name": "places",
@@ -271,7 +271,7 @@
   },
   {
     "model": "openbook_categories.Category",
-    "pk": 9,
+    "pk": "4514353f-31d7-4213-8664-10e675e462fa",
     "fields": {
       "order": "9",
       "name": "food",
@@ -298,7 +298,7 @@
   },
   {
     "model": "openbook_categories.Category",
-    "pk": 10,
+    "pk": "fa067e6d-ec4d-48c2-9aa1-6c09863a978e",
     "fields": {
       "order": "7",
       "name": "animals",
@@ -311,7 +311,7 @@
   },
   {
     "model": "openbook_categories.Category",
-    "pk": 11,
+    "pk": "e674cb08-a921-4020-be10-eb8656b56c80",
     "fields": {
       "order": "9",
       "name": "science",

@@ -14,9 +14,9 @@ from openbook_posts.views.post_comment.post_comment_reactions.serializers import
 class PostCommentReactions(APIView):
     permission_classes = (IsAuthenticated, IsNotSuspended)
 
-    def get(self, request, post_uuid, post_comment_id):
+    def get(self, request, post_id, post_comment_id):
         request_data = request.query_params.dict()
-        request_data['post_uuid'] = post_uuid
+        request_data['post_id'] = post_id
         request_data['post_comment_id'] = post_comment_id
 
         serializer = GetPostCommentReactionsSerializer(data=request_data)
@@ -39,10 +39,10 @@ class PostCommentReactions(APIView):
 
         return Response(post_reactions_serializer.data, status=status.HTTP_200_OK)
 
-    def put(self, request, post_uuid, post_comment_id):
+    def put(self, request, post_id, post_comment_id):
         request_data = normalise_request_data(request.data)
         request_data.update(request.query_params.dict())
-        request_data['post_uuid'] = post_uuid
+        request_data['post_id'] = post_id
         request_data['post_comment_id'] = post_comment_id
 
         serializer = ReactToPostCommentSerializer(data=request_data)
@@ -64,9 +64,9 @@ class PostCommentReactions(APIView):
 class PostCommentReactionsEmojiCount(APIView):
     permission_classes = (IsAuthenticated, IsNotSuspended)
 
-    def get(self, request, post_uuid, post_comment_id):
+    def get(self, request, post_id, post_comment_id):
         request_data = {
-            'post_uuid': post_uuid,
+            'post_id': post_id,
             'post_comment_id': post_comment_id
         }
 

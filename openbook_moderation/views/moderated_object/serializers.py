@@ -17,7 +17,7 @@ class UpdateModeratedObjectSerializer(serializers.Serializer):
         validators=[moderated_object_id_exists],
         required=True,
     )
-    category_id = serializers.IntegerField(
+    category_id = serializers.UUIDField(
         validators=[moderation_category_id_exists],
         required=False
     )

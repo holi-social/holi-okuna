@@ -1,7 +1,7 @@
 [
   {
     "model": "openbook_auth.User",
-    "pk": 1,
+    "pk": "46c136a6-9bc4-41b4-b2d2-34b9085b693e",
     "fields": {
       "username": "9ebfc2c2-2d2b-413d-8bfd-ec30af1b7d49",
       "password": "F0OB4R",
@@ -20,7 +20,7 @@
   },
   {
     "model": "openbook_auth.UserProfile",
-    "pk": 1,
+    "pk": "9829b4fb-9c99-44b5-8568-476be3ae01f9",
     "fields": {
       "user_id": 1,
       "followers_count_visible": false,
@@ -37,7 +37,7 @@
   },
   {
     "model": "openbook_auth.User",
-    "pk": 2,
+    "pk": "9f8b4173-dc22-4c29-a035-d16a4ce4d1a5",
     "fields": {
       "username": "5846dd02-e2c9-4350-9e68-e4c79bf02e02",
       "password": "F0OB4R",
@@ -56,7 +56,7 @@
   },
   {
     "model": "openbook_auth.UserProfile",
-    "pk": 2,
+    "pk": "4ee7305e-ef9b-42ec-9b85-a4602f01a72e",
     "fields": {
       "user_id": 2,
       "followers_count_visible": false,
@@ -69,7 +69,7 @@
   },
   {
     "model": "openbook_auth.User",
-    "pk": 3,
+    "pk": "8e8213ac-fa3d-424a-9248-0cd48b068044",
     "fields": {
       "username": "a09124b7-cdaf-4922-9c02-10b40b3b1530",
       "password": "F0OB4R",
@@ -88,7 +88,7 @@
   },
   {
     "model": "openbook_auth.UserProfile",
-    "pk": 3,
+    "pk": "46fd9173-5895-4c3e-997d-568f0838ab24",
     "fields": {
       "user_id": 3,
       "followers_count_visible": false,
@@ -105,7 +105,7 @@
   },
   {
     "model": "openbook_auth.User",
-    "pk": 4,
+    "pk": "9f411e50-5903-4801-8c15-53449ee55376",
     "fields": {
       "username": "d2384748-0151-40d6-8527-0fe182112a6c",
       "password": "F0OB4R",
@@ -124,7 +124,7 @@
   },
   {
     "model": "openbook_auth.UserProfile",
-    "pk": 4,
+    "pk": "ac17e49d-7eeb-4e8f-a34d-dc4ee0921c67",
     "fields": {
       "user_id": 4,
       "followers_count_visible": false,

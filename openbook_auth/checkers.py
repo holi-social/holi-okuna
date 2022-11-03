@@ -1211,7 +1211,7 @@ def check_can_get_comments_for_post(user, post):
 def check_can_get_comment_replies_for_post_and_comment(user, post, post_comment):
     if post_comment.post_id != post.id:
         raise ValidationError(
-            _('No comment found with given id for post with given uuid')
+            _('No comment found with given id for post with given id')
         )
     check_can_see_post(user=user, post=post_comment.post)
 
@@ -1224,7 +1224,7 @@ def check_can_comment_in_post(user, post):
 def check_can_reply_to_post_comment_for_post(user, post_comment, post):
     if post_comment.post_id != post.id:
         raise ValidationError(
-            _('No comment found with given id for post with given uuid')
+            _('No comment found with given id for post with given id')
         )
 
     check_can_comment_in_post(user=user, post=post)

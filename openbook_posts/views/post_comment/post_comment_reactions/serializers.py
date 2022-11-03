@@ -2,8 +2,8 @@ from rest_framework import serializers
 
 from openbook_common.models import Emoji, EmojiGroup
 from openbook_common.validators import emoji_id_exists
-from openbook_posts.validators import post_uuid_exists, post_comment_id_exists, \
-    post_comment_id_exists_for_post_with_uuid
+from openbook_posts.validators import post_id_exists, post_comment_id_exists, \
+    post_comment_id_exists_for_post_with_id
 
 
 class PostCommentReactionEmojiSerializer(serializers.ModelSerializer):
@@ -23,45 +23,45 @@ class PostCommentEmojiCountSerializer(serializers.Serializer):
 
 
 class ReactToPostCommentSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
-    post_comment_id = serializers.IntegerField(
+    post_comment_id = serializers.UUIDField(
         validators=[post_comment_id_exists],
         required=True,
     )
-    emoji_id = serializers.IntegerField(
+    emoji_id = serializers.UUIDField(
         validators=[emoji_id_exists],
         required=True,
     )
 
     def validate(self, data):
-        post_comment_id_exists_for_post_with_uuid(post_comment_id=data['post_comment_id'], post_uuid=data['post_uuid'])
+        post_comment_id_exists_for_post_with_id(post_comment_id=data['post_comment_id'], post_id=data['post_id'])
         return data
 
 
 class GetPostCommentReactionsEmojiCountSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
-    post_comment_id = serializers.IntegerField(
+    post_comment_id = serializers.UUIDField(
         validators=[post_comment_id_exists],
         required=True,
     )
 
     def validate(self, data):
-        post_comment_id_exists_for_post_with_uuid(post_comment_id=data['post_comment_id'], post_uuid=data['post_uuid'])
+        post_comment_id_exists_for_post_with_id(post_comment_id=data['post_comment_id'], post_id=data['post_id'])
         return data
 
 
 class GetPostCommentReactionsSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
-    post_comment_id = serializers.IntegerField(
+    post_comment_id = serializers.UUIDField(
         validators=[post_comment_id_exists],
         required=True,
     )
@@ -72,13 +72,13 @@ class GetPostCommentReactionsSerializer(serializers.Serializer):
         required=False,
         max_value=20
     )
-    emoji_id = serializers.IntegerField(
+    emoji_id = serializers.UUIDField(
         validators=[emoji_id_exists],
         required=False,
     )
 
     def validate(self, data):
-        post_comment_id_exists_for_post_with_uuid(post_comment_id=data['post_comment_id'], post_uuid=data['post_uuid'])
+        post_comment_id_exists_for_post_with_id(post_comment_id=data['post_comment_id'], post_id=data['post_id'])
         return data
 
 

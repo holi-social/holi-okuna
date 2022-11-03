@@ -6,6 +6,7 @@ from rest_framework import status
 from openbook_common.tests.models import OpenbookAPITestCase
 
 from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, make_category
+from openbook_common.utils.test import uuid_id_parser
 
 fake = Faker()
 
@@ -34,7 +35,7 @@ class CategoriesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_categories = json.loads(response.content)
+        response_categories = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_categories), len(categories_ids))
 

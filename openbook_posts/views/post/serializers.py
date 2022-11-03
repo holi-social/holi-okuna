@@ -9,37 +9,37 @@ from openbook_common.serializers_fields.post import PostCreatorField, PostReacti
     CommentsCountField, CirclesField, PostIsMutedField, IsEncircledField
 from openbook_communities.models import CommunityMembership, Community
 from openbook_communities.serializers_fields import CommunityMembershipsField
-from openbook_posts.models import PostImage, Post, PostLink
-from openbook_posts.validators import post_uuid_exists, post_text_validators
+from openbook_posts.models import PostImage, Post
+from openbook_posts.validators import post_id_exists, post_text_validators
 
 from openbook_posts.views.post_reaction.serializers import PostReactionSerializer
 from openbook_posts.views.post_reactions.serializers import PostEmojiCountSerializer
 
 
 class DeletePostSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
 
 
 class GetPostSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
 
 
 class MutePostSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
 
 
 class UnmutePostSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
 
@@ -147,7 +147,6 @@ class GetPostPostSerializer(serializers.ModelSerializer):
         model = Post
         fields = (
             'id',
-            'uuid',
             'comments_count',
             'reactions_emoji_counts',
             'created',
@@ -174,8 +173,8 @@ class GetPostPostSerializer(serializers.ModelSerializer):
 class EditPostSerializer(serializers.Serializer):
     text = serializers.CharField(max_length=settings.POST_MAX_LENGTH, required=False, allow_blank=True,
                                  validators=post_text_validators)
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
 
@@ -188,7 +187,6 @@ class AuthenticatedUserEditPostSerializer(serializers.ModelSerializer):
         model = Post
         fields = (
             'id',
-            'uuid',
             'text',
             'language',
             'is_edited',
@@ -197,29 +195,29 @@ class AuthenticatedUserEditPostSerializer(serializers.ModelSerializer):
 
 
 class ClosePostSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
 
 
 class OpenPostSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
 
 
 class TranslatePostSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
 
 
 class SearchPostParticipantsSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
     query = serializers.CharField(
@@ -234,8 +232,8 @@ class SearchPostParticipantsSerializer(serializers.Serializer):
 
 
 class GetPostParticipantsSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
     count = serializers.IntegerField(
@@ -275,20 +273,19 @@ class OpenClosePostSerializer(serializers.ModelSerializer):
         model = Post
         fields = (
             'id',
-            'uuid',
             'is_closed',
         )
 
 
 class PublishPostSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
 
 
 class GetPostStatusSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )

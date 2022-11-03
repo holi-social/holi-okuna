@@ -6,6 +6,7 @@ from rest_framework import status
 from openbook_common.tests.models import OpenbookAPITestCase
 
 from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, make_device
+from openbook_common.utils.test import uuid_id_parser
 from openbook_devices.models import Device
 
 fake = Faker()
@@ -78,7 +79,7 @@ class DevicesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_devices = json.loads(response.content)
+        response_devices = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_devices), len(devices_ids))
 
@@ -132,7 +133,7 @@ class DeviceItemAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_device = json.loads(response.content)
+        response_device = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(response_device['uuid'], str(device.uuid))
 

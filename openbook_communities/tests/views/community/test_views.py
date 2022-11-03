@@ -12,6 +12,7 @@ from openbook_common.tests.helpers import make_user, make_authentication_headers
     make_community_title, make_community_rules, make_community_description, make_community_user_adjective, \
     make_community_users_adjective, make_community_avatar, make_community_cover, make_category, make_global_moderator, \
     make_moderation_category
+from openbook_common.utils.test import uuid_id_parser
 from openbook_communities.models import Community, CommunityNotificationsSubscription
 from openbook_moderation.models import ModeratedObject
 
@@ -40,7 +41,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertIn('name', parsed_response)
         response_name = parsed_response['name']
@@ -63,7 +64,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertIn('name', parsed_response)
         response_name = parsed_response['name']

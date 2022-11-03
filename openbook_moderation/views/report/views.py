@@ -13,23 +13,23 @@ from django.utils.translation import gettext_lazy as _
 class ReportPost(APIView):
     permission_classes = (IsAuthenticated, IsNotSuspended)
 
-    def post(self, request, post_uuid):
+    def post(self, request, post_id):
         request_data = request.data.copy()
-        request_data['post_uuid'] = post_uuid
+        request_data['post_id'] = post_id
 
         serializer = ReportPostSerializer(data=request_data)
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
 
-        post_uuid = data.get('post_uuid')
+        post_id = data.get('post_id')
         description = data.get('description')
         category_id = data.get('category_id')
 
         user = request.user
 
         with transaction.atomic():
-            user.report_post_with_uuid(post_uuid=post_uuid, category_id=category_id, description=description)
+            user.report_post_with_id(post_id=post_id, category_id=category_id, description=description)
 
         return ApiMessageResponse(_('Post reported, thanks!'), status=status.HTTP_201_CREATED)
 
@@ -37,17 +37,17 @@ class ReportPost(APIView):
 class ReportPostComment(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request, post_uuid, post_comment_id):
+    def post(self, request, post_id, post_comment_id):
         request_data = request.data.copy()
         request_data['post_comment_id'] = post_comment_id
-        request_data['post_uuid'] = post_uuid
+        request_data['post_id'] = post_id
 
         serializer = ReportPostCommentSerializer(data=request_data)
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
 
-        post_uuid = data.get('post_uuid')
+        post_id = data.get('post_id')
         post_comment_id = data.get('post_comment_id')
         description = data.get('description')
         category_id = data.get('category_id')
@@ -55,7 +55,7 @@ class ReportPostComment(APIView):
         user = request.user
 
         with transaction.atomic():
-            user.report_comment_with_id_for_post_with_uuid(post_comment_id=post_comment_id, post_uuid=post_uuid,
+            user.report_comment_with_id_for_post_with_id(post_comment_id=post_comment_id, post_id=post_id,
                                                            category_id=category_id,
                                                            description=description)
 

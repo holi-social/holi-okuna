@@ -1,7 +1,7 @@
 [
   {
     "model": "openbook_circles.Circle",
-    "pk": 1,
+    "pk": "00000000-0000-0000-0000-000000000001",
     "fields": {
       "name": "World",
       "color": "#023ca7",

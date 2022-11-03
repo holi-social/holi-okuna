@@ -18,15 +18,6 @@ def post_id_exists(post_id):
         )
 
 
-def post_uuid_exists(post_uuid):
-    Post = get_post_model()
-
-    if not Post.objects.filter(uuid=post_uuid).exists():
-        raise NotFound(
-            _('The post does not exist.'),
-        )
-
-
 def post_comment_id_exists(post_comment_id):
     PostComment = get_post_comment_model()
 
@@ -36,21 +27,21 @@ def post_comment_id_exists(post_comment_id):
         )
 
 
-def post_comment_id_exists_for_post_with_uuid(post_comment_id, post_uuid):
+def post_comment_id_exists_for_post_with_id(post_comment_id, post_id):
     PostComment = get_post_comment_model()
 
-    if not PostComment.objects.filter(id=post_comment_id, post__uuid=post_uuid).exists():
+    if not PostComment.objects.filter(id=post_comment_id, post__id=post_id).exists():
         raise ValidationError(
             _('The post comment does not exist.'),
         )
 
 
-def post_comment_reaction_id_exists_for_post_with_uuid_and_comment_with_id(post_comment_reaction_id, post_comment_id,
-                                                                           post_uuid):
+def post_comment_reaction_id_exists_for_post_with_id_and_comment_with_id(post_comment_reaction_id, post_comment_id,
+                                                                           post_id):
     PostCommentReaction = get_post_comment_reaction_model()
 
     if not PostCommentReaction.objects.filter(id=post_comment_reaction_id, post_comment_id=post_comment_id,
-                                              post_comment__post__uuid=post_uuid).exists():
+                                              post_comment__post__id=post_id).exists():
         raise ValidationError(
             _('The post comment reaction does not exist.'),
         )

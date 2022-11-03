@@ -401,7 +401,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post):
         return reverse('report-post', kwargs={
-            'post_uuid': post.uuid
+            'post_id': post.id
         })
 
 
@@ -811,7 +811,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
     def _get_url(self, post, post_comment):
         return reverse('report-post-comment', kwargs={
             'post_comment_id': post_comment.pk,
-            'post_uuid': str(post.uuid)
+            'post_id': str(post.id)
         })
 
 

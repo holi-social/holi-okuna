@@ -5,10 +5,11 @@ from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 
 from openbook_auth.models import User
+from openbook_common.models import ModelWithUUID
 from openbook_notifications.models.notification import Notification
 
 
-class ConnectionRequestNotification(models.Model):
+class ConnectionRequestNotification(ModelWithUUID):
     notification = GenericRelation(Notification)
     connection_requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+')
 
@@ -27,5 +28,3 @@ class ConnectionRequestNotification(models.Model):
         notification_query.add(Q(connection_requester_id=user_b_id, notification__owner_id=user_a_id), Q.OR)
 
         cls.objects.filter(notification_query).delete()
-
-
