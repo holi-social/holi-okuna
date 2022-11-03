@@ -1,6 +1,7 @@
 # Create your tests here.
 import json
 import random
+import unittest
 from unittest import mock
 from unittest.mock import ANY
 
@@ -13,6 +14,7 @@ import logging
 
 from openbook_common.tests.helpers import make_authentication_headers_for_user, make_fake_post_text, \
     make_fake_post_comment_text, make_user, make_circle, make_community, make_private_community
+from openbook_common.utils.test import uuid_id_parser
 from openbook_notifications.models import PostCommentReplyNotification
 from openbook_posts.models import PostComment, PostCommentUserMention
 
@@ -43,8 +45,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(
-                post_uuid=post.uuid,
+            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(
+                post_id=post.id,
                 post_comment_id=post_comment.pk,
                 text=make_fake_post_comment_text())
             reply_ids.append(post_comment_reply.pk)
@@ -54,7 +56,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_comment_replies = json.loads(response.content)
+        response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), amount_of_replies)
 
@@ -82,8 +84,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                       post_uuid=post.uuid,
+            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                       post_id=post.id,
                                                                                        text=make_fake_post_comment_text())
             reply_ids.append(post_comment_reply.pk)
 
@@ -94,7 +96,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_comment_replies = json.loads(response.content)
+        response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), amount_of_replies)
 
@@ -122,8 +124,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                       post_uuid=post.uuid,
+            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                       post_id=post.id,
                                                                                        text=make_fake_post_comment_text())
             reply_ids.append(post_comment_reply.pk)
 
@@ -134,7 +136,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_comment_replies = json.loads(response.content)
+        response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), amount_of_replies)
 
@@ -168,8 +170,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                       post_uuid=post.uuid,
+            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                       post_id=post.id,
                                                                                        text=make_fake_post_comment_text())
             reply_ids.append(post_comment_reply.pk)
 
@@ -180,7 +182,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_comment_replies = json.loads(response.content)
+        response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), amount_of_replies)
 
@@ -206,8 +208,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                       post_uuid=post.uuid,
+            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                       post_id=post.id,
                                                                                        text=make_fake_post_comment_text())
             reply_ids.append(post_comment_reply.pk)
 
@@ -239,8 +241,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                       post_uuid=post.uuid,
+            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                       post_id=post.id,
                                                                                        text=make_fake_post_comment_text())
             reply_ids.append(post_comment_reply.pk)
 
@@ -249,7 +251,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_comment_replies = json.loads(response.content)
+        response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), amount_of_replies)
 
@@ -274,8 +276,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                       post_uuid=post.uuid,
+            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                       post_id=post.id,
                                                                                        text=make_fake_post_comment_text())
             reply_ids.append(post_comment_reply.pk)
 
@@ -284,7 +286,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_comment_replies = json.loads(response.content)
+        response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), amount_of_replies)
 
@@ -307,8 +309,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                       post_uuid=post.uuid,
+            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                       post_id=post.id,
                                                                                        text=make_fake_post_comment_text())
             reply_ids.append(post_comment_reply.pk)
 
@@ -317,7 +319,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_comment_replies = json.loads(response.content)
+        response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), amount_of_replies)
 
@@ -343,8 +345,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                       post_uuid=post.uuid,
+            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                       post_id=post.id,
                                                                                        text=make_fake_post_comment_text())
             reply_ids.append(post_comment_reply.pk)
 
@@ -353,7 +355,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_comment_replies = json.loads(response.content)
+        response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), amount_of_replies)
 
@@ -383,8 +385,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                       post_uuid=post.uuid,
+            post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                       post_id=post.id,
                                                                                        text=make_fake_post_comment_text())
             reply_ids.append(post_comment_reply.pk)
 
@@ -394,7 +396,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_comment_replies = json.loads(response.content)
+        response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), amount_of_replies)
 
@@ -419,8 +421,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
 
         for i in range(0, amount_of_replies):
-            commenter.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                  post_uuid=post.uuid,
+            commenter.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                  post_id=post.id,
                                                                   text=make_fake_post_comment_text())
 
         url = self._get_url(post, post_comment)
@@ -442,8 +444,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post = post_creator.create_public_post(text=make_fake_post_text())
 
         post_comment = blocked_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        blocked_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        blocked_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
 
         user.block_user_with_id(user_id=blocked_user.pk)
@@ -455,7 +457,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_comment_replies = json.loads(response.content)
+        response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), 0)
 
@@ -471,8 +473,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post = post_creator.create_public_post(text=make_fake_post_text())
 
         post_comment = blocking_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        blocking_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                  post_uuid=post.uuid,
+        blocking_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                  post_id=post.id,
                                                                   text=make_fake_post_comment_text())
         blocking_user.block_user_with_id(user_id=user.pk)
 
@@ -483,7 +485,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_comment_replies = json.loads(response.content)
+        response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), 0)
 
@@ -501,8 +503,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
         post_comment = blocked_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        blocked_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        blocked_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
 
         user.block_user_with_id(user_id=blocked_user.pk)
@@ -514,7 +516,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_comment_replies = json.loads(response.content)
+        response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), 0)
 
@@ -532,8 +534,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
         post_comment = blocking_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        blocking_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                  post_uuid=post.uuid,
+        blocking_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                  post_id=post.id,
                                                                   text=make_fake_post_comment_text())
 
         blocking_user.block_user_with_id(user_id=user.pk)
@@ -545,7 +547,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_comment_replies = json.loads(response.content)
+        response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), 0)
 
@@ -563,8 +565,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
         post_comment = blocked_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        post_comment_reply = blocked_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                      post_uuid=post.uuid,
+        post_comment_reply = blocked_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                      post_id=post.id,
                                                                                       text=make_fake_post_comment_text())
 
         user.block_user_with_id(user_id=blocked_user.pk)
@@ -576,7 +578,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_comment_replies = json.loads(response.content)
+        response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(1, len(response_comment_replies))
 
@@ -596,8 +598,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
         post_comment = blocking_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        post_comment_reply = blocking_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                       post_uuid=post.uuid,
+        post_comment_reply = blocking_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                       post_id=post.id,
                                                                                        text=make_fake_post_comment_text())
 
         blocking_user.block_user_with_id(user_id=user.pk)
@@ -609,7 +611,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_comment_replies = json.loads(response.content)
+        response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(1, len(response_comment_replies))
 
@@ -643,8 +645,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                              post_uuid=post.uuid,
+        post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                              post_id=post.id,
                                                                               text=make_fake_post_comment_text())
 
         reply_comment_text = make_fake_post_comment_text()
@@ -946,7 +948,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         url = self._get_url(post, post_comment)
         response = self.client.put(url, data, **headers)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         response_id = parsed_response['id']
         post_comment_reply = PostComment.objects.get(post_id=post.pk,
@@ -982,7 +984,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(post, post_comment)
         headers = make_authentication_headers_for_user(moderator)
         response = self.client.put(url, data, **headers)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         response_id = parsed_response['id']
         post_comment_reply = PostComment.objects.get(post_id=post.pk,
@@ -1069,7 +1071,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(post, post_comment)
         headers = make_authentication_headers_for_user(moderator)
         response = self.client.put(url, data, **headers)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         response_id = parsed_response['id']
         post_comment_reply = PostComment.objects.get(post_id=post.pk,
@@ -1101,7 +1103,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         url = self._get_url(post, post_comment)
         response = self.client.put(url, data, **headers)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         response_id = parsed_response['id']
         post_comment_reply = PostComment.objects.get(post_id=post.pk,
@@ -1305,8 +1307,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         post = foreign_user.create_public_post(text=make_fake_post_text())
         post_comment = foreign_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                         post_uuid=post.uuid,
+        user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                         post_id=post.id,
                                                          text=make_fake_post_comment_text())
 
         reply_comment_text = make_fake_post_comment_text()
@@ -1327,8 +1329,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                         post_uuid=post.uuid,
+        user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                         post_id=post.id,
                                                          text=make_fake_post_comment_text())
 
         reply_comment_text = make_fake_post_comment_text()
@@ -1354,8 +1356,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         post = post_creator.create_public_post(text=make_fake_post_text())
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
 
         reply_comment_text = make_fake_post_comment_text()
@@ -1382,8 +1384,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post = post_creator.create_public_post(text=make_fake_post_text())
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
-        foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
         foreign_user.mute_post_with_id(post_id=post.pk)
 
@@ -1411,8 +1413,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         foreign_user.join_community_with_name(community_name=community.name)
         post_comment = post_creator.comment_post(post=post, text=make_fake_post_text())
         # subscribe to notifications
-        foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
         # post will be closed now
         post.is_closed = True
@@ -1440,8 +1442,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         post_comment = post_creator.comment_post(post=post, text=make_fake_post_text())
         # subscribe to notifications
-        post_creator.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        post_creator.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
         # post will be closed now
         post.is_closed = True
@@ -1478,8 +1480,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = post_owner.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         # Comment Reply so we "subscribe" for notifications
-        foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
 
         # Remove them from the circles
@@ -1511,8 +1513,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         post = post_creator.create_public_post(text=make_fake_post_text())
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
 
         foreign_user.mute_post(post=post)
@@ -1550,8 +1552,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         post = post_creator.create_public_post(text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
 
         foreign_user.mute_post(post=post)
@@ -1590,8 +1592,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         post = post_creator.create_public_post(text=make_fake_post_text())
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
 
         post_creator.mute_post(post=post)
@@ -1633,8 +1635,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         post_creator.mute_post_comment_with_id(post_comment_id=post_comment.pk)
 
-        foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
         foreign_user.mute_post_comment_with_id(post_comment_id=post_comment.pk)
 
@@ -1667,8 +1669,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         post_creator.mute_post_with_id(post_id=post.pk)
 
-        foreign_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        foreign_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
         foreign_user.mute_post_with_id(post_id=post.pk)
 
@@ -1698,8 +1700,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post = post_creator.create_public_post(text=make_fake_post_text())
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
-        blocking_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                 post_uuid=post.uuid,
+        blocking_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                 post_id=post.id,
                                                                  text=make_fake_post_comment_text())
 
         # Block user
@@ -1732,8 +1734,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post = post_creator.create_public_post(text=make_fake_post_text())
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
-        blocking_user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                  post_uuid=post.uuid,
+        blocking_user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                  post_id=post.id,
                                                                   text=make_fake_post_comment_text())
 
         # Block user
@@ -1886,14 +1888,14 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         for i in range(amount_of_replies):
-            post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                  post_uuid=post.uuid,
+            post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                  post_id=post.id,
                                                                                   text=make_fake_post_comment_text())
             comment_replies.append(post_comment_reply)
 
         url = self._get_url(post, post_comment)
         response = self.client.get(url, **headers)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         response_ids = [reply['id'] for reply in parsed_response]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1916,14 +1918,14 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         for i in range(amount_of_replies):
-            post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                  post_uuid=post.uuid,
+            post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                  post_id=post.id,
                                                                                   text=make_fake_post_comment_text())
             comment_replies.append(post_comment_reply)
 
         url = self._get_url(post, post_comment)
         response = self.client.get(url, {'sort': 'ASC'}, **headers)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         response_ids = [reply['id'] for reply in parsed_response]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1932,6 +1934,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         for comment in comment_replies:
             self.assertTrue(comment.pk in response_ids)
 
+    @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_retrieve_comment_replies_less_than_max_id_on_post(self):
         """
         should retrieve comment replies less than max id for post if param is present
@@ -1946,8 +1949,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         for i in range(amount_of_replies):
-            post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                  post_uuid=post.uuid,
+            post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                  post_id=post.id,
                                                                                   text=make_fake_post_comment_text())
             comment_replies.append(post_comment_reply)
 
@@ -1958,13 +1961,14 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         response = self.client.get(url, {
             'max_id': max_id
         }, **headers)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         response_ids = [reply['id'] for reply in parsed_response]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for returned_id in response_ids:
             self.assertTrue(returned_id < max_id)
 
+    @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_retrieve_comment_replies_greater_than_or_equal_to_min_id(self):
         """
         should retrieve comment replies greater than or equal to min_id for post if param is present
@@ -1979,8 +1983,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         for i in range(amount_of_replies):
-            post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                  post_uuid=post.uuid,
+            post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                  post_id=post.id,
                                                                                   text=make_fake_post_comment_text())
             comment_replies.append(post_comment_reply)
 
@@ -1991,13 +1995,14 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         response = self.client.get(url, {
             'min_id': min_id
         }, **headers)
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         response_ids = [reply['id'] for reply in parsed_response]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for returned_id in response_ids:
             self.assertTrue(returned_id >= min_id)
 
+    @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_retrieve_comment_replies_slice_for_min_id_and_max_id(self):
         """
         should retrieve comment replies slice for post comments taking into account min_id and max_id
@@ -2012,8 +2017,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         for i in range(amount_of_replies):
-            post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                  post_uuid=post.uuid,
+            post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                  post_id=post.id,
                                                                                   text=make_fake_post_comment_text())
             comment_replies.append(post_comment_reply)
 
@@ -2030,8 +2035,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
             'count_max': count_max,
             'count_min': count_min
         }, **headers)
-        parsed_response = json.loads(response.content)
-        response_ids = [int(reply['id']) for reply in parsed_response]
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
+        response_ids = [reply['id'] for reply in parsed_response]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(len(parsed_response) == (count_max + count_min))
@@ -2040,6 +2045,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         self.assertTrue(len(replies_after_min_id) == count_min)
         self.assertTrue(len(replies_before_max_id) == count_max)
 
+    @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_retrieve_comment_replies_slice_with_sort_for_min_id_and_max_id(self):
         """
         should retrieve comment replies slice sorted ascending for post comments taking into account min_id and max_id
@@ -2054,8 +2060,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         for i in range(amount_of_replies):
-            post_comment_reply = user.reply_to_comment_with_id_for_post_with_uuid(post_comment_id=post_comment.pk,
-                                                                                  post_uuid=post.uuid,
+            post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(post_comment_id=post_comment.pk,
+                                                                                  post_id=post.id,
                                                                                   text=make_fake_post_comment_text())
             comment_replies.append(post_comment_reply)
 
@@ -2073,8 +2079,8 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
             'count_min': count_min,
             'sort': 'ASC'
         }, **headers)
-        parsed_response = json.loads(response.content)
-        response_ids = [int(reply['id']) for reply in parsed_response]
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
+        response_ids = [reply['id'] for reply in parsed_response]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(len(parsed_response) == (count_max + count_min))
@@ -2091,6 +2097,6 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
     def _get_url(self, post, post_comment):
         return reverse('post-comment-replies', kwargs={
-            'post_uuid': post.uuid,
+            'post_id': post.id,
             'post_comment_id': post_comment.pk
         })

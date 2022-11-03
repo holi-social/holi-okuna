@@ -1,11 +1,13 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
+
+from openbook_common.models import ModelWithUUID
 from openbook_communities.models import CommunityNotificationsSubscription
 from openbook_notifications.models.notification import Notification
 from openbook_posts.models import Post
 
 
-class CommunityNewPostNotification(models.Model):
+class CommunityNewPostNotification(ModelWithUUID):
     notification = GenericRelation(Notification)
     community_notifications_subscription = models.ForeignKey(CommunityNotificationsSubscription, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)

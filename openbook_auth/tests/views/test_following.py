@@ -8,6 +8,7 @@ import logging
 import json
 
 from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user
+from openbook_common.utils.test import uuid_id_parser
 
 fake = Faker()
 
@@ -40,7 +41,7 @@ class FollowingsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_followings = json.loads(response.content)
+        response_followings = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_followings), amount_of_followings)
 
@@ -70,7 +71,7 @@ class FollowingsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_followings = json.loads(response.content)
+        response_followings = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(0, len(response_followings))
 
@@ -111,7 +112,7 @@ class SearchFollowingsAPITests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_followings = json.loads(response.content)
+            response_followings = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_followings)
 
             self.assertEqual(response_members_count, 1)
@@ -148,7 +149,7 @@ class SearchFollowingsAPITests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_followings = json.loads(response.content)
+            response_followings = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_followings)
 
             self.assertEqual(response_members_count, 1)
@@ -186,7 +187,7 @@ class SearchFollowingsAPITests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_followings = json.loads(response.content)
+            response_followings = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_followings)
 
             self.assertEqual(0, response_members_count)

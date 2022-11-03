@@ -104,11 +104,6 @@ def _sha256sum(file):
     return h.hexdigest()
 
 
-def get_post_id_for_post_uuid(post_uuid):
-    Post = get_post_model()
-    return Post.get_post_id_for_post_with_uuid(post_uuid=post_uuid)
-
-
 # Same as flutter app
 usernames_regexp = re.compile('@[^\s]+')
 

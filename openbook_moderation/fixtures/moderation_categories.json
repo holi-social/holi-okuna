@@ -1,7 +1,7 @@
 [
   {
     "model": "openbook_moderation.ModerationCategory",
-    "pk": 1,
+    "pk": "d6cdb8e3-a85d-4c39-a1c6-1bf8593974ce",
     "fields": {
       "name": "spam",
       "severity": "M",
@@ -27,7 +27,7 @@
   },
   {
     "model": "openbook_moderation.ModerationCategory",
-    "pk": 2,
+    "pk": "6cdfce25-bcd1-4b8c-90e7-27491ba712a8",
     "fields": {
       "name": "pornography",
       "severity": "H",
@@ -53,7 +53,7 @@
   },
   {
     "model": "openbook_moderation.ModerationCategory",
-    "pk": 3,
+    "pk": "db05d328-0ae3-4d47-a16b-16feab490f4c",
     "fields": {
       "name": "hatred_bullying",
       "severity": "H",
@@ -79,7 +79,7 @@
   },
   {
     "model": "openbook_moderation.ModerationCategory",
-    "pk": 4,
+    "pk": "66190f99-f7aa-488e-ab31-9e73954d8bc1",
     "fields": {
       "name": "self_harm",
       "severity": "H",
@@ -105,7 +105,7 @@
   },
   {
     "model": "openbook_moderation.ModerationCategory",
-    "pk": 5,
+    "pk": "99d42727-a8da-46de-a16b-8f1b51b57b9f",
     "fields": {
       "name": "violence",
       "severity": "H",
@@ -131,7 +131,7 @@
   },
   {
     "model": "openbook_moderation.ModerationCategory",
-    "pk": 6,
+    "pk": "741833cb-a957-45da-b535-07db9f969a5c",
     "fields": {
       "name": "child_exploitation",
       "severity": "C",
@@ -157,7 +157,7 @@
   },
   {
     "model": "openbook_moderation.ModerationCategory",
-    "pk": 7,
+    "pk": "4ef6b7b3-6b85-4ab9-9348-3effdc73d61f",
     "fields": {
       "name": "illegal",
       "severity": "C",
@@ -183,7 +183,7 @@
   },
   {
     "model": "openbook_moderation.ModerationCategory",
-    "pk": 8,
+    "pk": "37aacad4-a8a1-4136-afa0-581f0240b816",
     "fields": {
       "name": "deceptive",
       "severity": "H",
@@ -209,7 +209,7 @@
   },
   {
     "model": "openbook_moderation.ModerationCategory",
-    "pk": 9,
+    "pk": "c0b6018b-3816-49a2-9861-e6948db46485",
     "fields": {
       "name": "copyright",
       "severity": "H",
@@ -235,7 +235,7 @@
   },
   {
     "model": "openbook_moderation.ModerationCategory",
-    "pk": 10,
+    "pk": "0d80efc2-c894-452e-a0c6-fea59aeafdcc",
     "fields": {
       "name": "abuse",
       "severity": "H",
@@ -261,7 +261,7 @@
   },
   {
     "model": "openbook_moderation.ModerationCategory",
-    "pk": 11,
+    "pk": "3756c452-9c01-4084-b47f-cb6c57e0ea95",
     "fields": {
       "name": "community",
       "severity": "L",
@@ -287,7 +287,7 @@
   },
   {
     "model": "openbook_moderation.ModerationCategory",
-    "pk": 12,
+    "pk": "f85fed7a-9d73-4843-a04b-ba7225316ba7",
     "fields": {
       "name": "other",
       "severity": "L",

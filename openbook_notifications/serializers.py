@@ -109,7 +109,6 @@ class NotificationPostSerializer(serializers.ModelSerializer):
         model = Post
         fields = (
             'id',
-            'uuid',
             'text',
             'creator',
             'created',
@@ -465,10 +464,10 @@ class GetNotificationsNotificationSerializer(serializers.ModelSerializer):
 
 
 class DeleteNotificationSerializer(serializers.Serializer):
-    notification_id = serializers.IntegerField(required=True,
+    notification_id = serializers.UUIDField(required=True,
                                                validators=[notification_id_exists])
 
 
 class ReadNotificationSerializer(serializers.Serializer):
-    notification_id = serializers.IntegerField(required=True,
+    notification_id = serializers.UUIDField(required=True,
                                                validators=[notification_id_exists])

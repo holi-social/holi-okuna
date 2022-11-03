@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from openbook_common.models import Emoji, EmojiGroup
 from openbook_common.validators import emoji_id_exists
-from openbook_posts.validators import post_uuid_exists
+from openbook_posts.validators import post_id_exists
 
 
 class PostReactionEmojiSerializer(serializers.ModelSerializer):
@@ -22,26 +22,26 @@ class PostEmojiCountSerializer(serializers.Serializer):
 
 
 class ReactToPostSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
-    emoji_id = serializers.IntegerField(
+    emoji_id = serializers.UUIDField(
         validators=[emoji_id_exists],
         required=True,
     )
 
 
 class GetPostReactionsEmojiCountSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
 
 
 class GetPostReactionsSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
     max_id = serializers.IntegerField(
@@ -51,7 +51,7 @@ class GetPostReactionsSerializer(serializers.Serializer):
         required=False,
         max_value=20
     )
-    emoji_id = serializers.IntegerField(
+    emoji_id = serializers.UUIDField(
         validators=[emoji_id_exists],
         required=False,
     )

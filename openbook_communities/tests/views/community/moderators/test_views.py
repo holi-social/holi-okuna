@@ -10,6 +10,7 @@ import json
 
 from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, \
     make_community
+from openbook_common.utils.test import uuid_id_parser
 
 logger = logging.getLogger(__name__)
 fake = Faker()
@@ -48,7 +49,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderators = json.loads(response.content)
+        response_moderators = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_moderators), len(moderators_ids))
 
@@ -88,7 +89,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderators = json.loads(response.content)
+        response_moderators = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_moderators), len(moderators_ids))
 
@@ -125,7 +126,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderators = json.loads(response.content)
+        response_moderators = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_moderators), len(moderators_ids))
 
@@ -469,7 +470,7 @@ class SearchCommunityModeratorsAPITests(OpenbookAPITestCase):
                 'query': final_query
             }, **headers)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            response_moderators = json.loads(response.content)
+            response_moderators = json.loads(response.content, object_hook=uuid_id_parser)
             response_moderators_count = len(response_moderators)
             if response_moderators_count == 1:
                 # Our community creator was not retrieved
@@ -512,7 +513,7 @@ class SearchCommunityModeratorsAPITests(OpenbookAPITestCase):
                 'query': final_query
             }, **headers)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            response_moderators = json.loads(response.content)
+            response_moderators = json.loads(response.content, object_hook=uuid_id_parser)
             response_moderators_count = len(response_moderators)
             if response_moderators_count == 1:
                 # Our community creator was not retrieved

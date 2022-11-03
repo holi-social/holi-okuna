@@ -13,6 +13,7 @@ import json
 from openbook_common.models import Emoji
 from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, make_emoji, \
     make_fake_list_name
+from openbook_common.utils.test import uuid_id_parser
 from openbook_lists.models import List
 
 logger = logging.getLogger(__name__)
@@ -65,7 +66,7 @@ class ListsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_lists = json.loads(response.content)
+        response_lists = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_lists), len(lists_ids))
 
@@ -95,7 +96,7 @@ class ListItemAPITests(OpenbookAPITestCase):
         url = self._get_url(list_id)
         response = self.client.get(url, **headers)
 
-        response_list = json.loads(response.content)
+        response_list = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response_list['id'] == list_id)

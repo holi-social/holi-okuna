@@ -4,11 +4,12 @@ from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 
 from openbook_auth.models import User
+from openbook_common.models import ModelWithUUID
 from openbook_communities.models import CommunityInvite
 from openbook_notifications.models.notification import Notification
 
 
-class CommunityInviteNotification(models.Model):
+class CommunityInviteNotification(ModelWithUUID):
     notification = GenericRelation(Notification)
     community_invite = models.ForeignKey(CommunityInvite, on_delete=models.CASCADE)
 

@@ -7,6 +7,7 @@ import logging
 import json
 from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, make_fake_post_text
 from openbook_common.utils.model_loaders import get_user_notifications_subscription_model
+from openbook_common.utils.test import uuid_id_parser
 
 fake = Faker()
 
@@ -47,7 +48,7 @@ class SearchUsersAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(parsed_response), len(lil_users))
 
@@ -71,7 +72,7 @@ class SearchUsersAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(parsed_response), 0)
 
@@ -90,7 +91,7 @@ class SearchUsersAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(parsed_response), 0)
 
@@ -112,7 +113,7 @@ class SearchUsersAPITests(OpenbookAPITestCase):
             'count': limited_users
         }, **headers)
 
-        parsed_reponse = json.loads(response.content)
+        parsed_reponse = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(parsed_reponse), limited_users)
 
@@ -128,7 +129,7 @@ class SearchUsersAPITests(OpenbookAPITestCase):
             'query': user_to_search_for,
         }, **headers)
 
-        parsed_reponse = json.loads(response.content)
+        parsed_reponse = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(0, len(parsed_reponse))
 
@@ -154,7 +155,7 @@ class GetUserAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertIn('username', parsed_response)
         response_username = parsed_response['username']
@@ -562,6 +563,11 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
 
 
 class GetUserPostsCountAPITests(OpenbookAPITestCase):
+
+    fixtures = [
+        'openbook_circles/fixtures/circles.json'
+    ]
+
     def test_can_retrieve_posts_count(self):
         """
         should be able to retrieve the posts count and return 200
@@ -584,7 +590,7 @@ class GetUserPostsCountAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        parsed_response = json.loads(response.content)
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertIn('posts_count', parsed_response)
         response_posts_count = parsed_response['posts_count']

@@ -13,18 +13,18 @@ from openbook_common.models import Language
 from openbook_communities.models import Community, CommunityMembership
 from openbook_communities.serializers_fields import CommunityMembershipsField
 from openbook_lists.validators import list_id_exists
-from openbook_posts.models import PostImage, Post, PostReaction, TopPost, TrendingPost, PostLink
+from openbook_posts.models import PostImage, Post, PostReaction, TopPost, TrendingPost
 from openbook_posts.validators import post_text_validators
 
 
 class GetPostsSerializer(serializers.Serializer):
     circle_id = serializers.ListField(
         required=False,
-        child=serializers.IntegerField(validators=[circle_id_exists]),
+        child=serializers.UUIDField(validators=[circle_id_exists]),
     )
     list_id = serializers.ListField(
         required=False,
-        child=serializers.IntegerField(validators=[list_id_exists])
+        child=serializers.UUIDField(validators=[list_id_exists])
     )
     max_id = serializers.IntegerField(
         required=False,
@@ -77,15 +77,15 @@ class GetTrendingPostsSerializer(serializers.Serializer):
 class CreatePostSerializer(serializers.Serializer):
     text = serializers.CharField(max_length=settings.POST_MAX_LENGTH, required=False, allow_blank=False,
                                  validators=post_text_validators)
-    # Prefer adding images with post/uuid/images
+    # Prefer adding images with post/id/images
     image = RestrictedImageFileSizeField(allow_empty_file=False, required=False,
                                          max_upload_size=settings.POST_MEDIA_MAX_SIZE)
-    # Prefer adding videos with post/uuid/videos
+    # Prefer adding videos with post/id/videos
     video = RestrictedFileSizeField(allow_empty_file=False, required=False,
                                     max_upload_size=settings.POST_MEDIA_MAX_SIZE)
     circle_id = serializers.ListField(
         required=False,
-        child=serializers.IntegerField(validators=[circle_id_exists]),
+        child=serializers.UUIDField(validators=[circle_id_exists]),
     )
     is_draft = serializers.BooleanField(
         default=False)
@@ -214,7 +214,6 @@ class AuthenticatedUserPostSerializer(serializers.ModelSerializer):
         model = Post
         fields = (
             'id',
-            'uuid',
             'comments_count',
             'reactions_emoji_counts',
             'created',
@@ -275,7 +274,6 @@ class UnauthenticatedUserPostSerializer(serializers.ModelSerializer):
         model = Post
         fields = (
             'id',
-            'uuid',
             'comments_count',
             'reactions_emoji_counts',
             'created',

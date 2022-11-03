@@ -8,6 +8,7 @@ from openbook_common.tests.models import OpenbookAPITestCase
 from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, \
     make_community, make_fake_post_text, make_global_moderator, make_moderation_category, \
     make_fake_post_comment_text, make_hashtag
+from openbook_common.utils.test import uuid_id_parser
 from openbook_moderation.models import ModeratedObject
 
 fake = Faker()
@@ -42,7 +43,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(posts_ids), len(response_moderated_objects))
 
@@ -76,7 +77,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(hashtags_ids), len(response_moderated_objects))
 
@@ -112,7 +113,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(post_comments_ids), len(response_moderated_objects))
 
@@ -146,7 +147,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(users_ids), len(response_moderated_objects))
 
@@ -181,7 +182,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(communities_ids), len(response_moderated_objects))
 
@@ -222,7 +223,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_moderated_objects), len(approved_moderated_objects_posts_ids))
 
@@ -264,7 +265,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_moderated_objects), len(pending_moderated_objects_posts_ids))
 
@@ -305,7 +306,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_moderated_objects), len(rejected_moderated_objects_posts_ids))
 
@@ -347,7 +348,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_moderated_objects), len(verified_moderated_objects_posts_ids))
 
@@ -390,7 +391,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_moderated_objects), len(unverified_moderated_objects_posts_ids))
 
@@ -425,7 +426,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(1, len(response_moderated_objects))
 
@@ -462,7 +463,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(1, len(response_moderated_objects))
 
@@ -498,7 +499,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(1, len(response_moderated_objects))
 
@@ -534,7 +535,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(1, len(response_moderated_objects))
 
@@ -638,7 +639,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(posts_ids), len(response_moderated_objects))
 
@@ -681,7 +682,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(post_comments_ids), len(response_moderated_objects))
 
@@ -721,7 +722,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(0, len(response_moderated_objects))
 
@@ -752,7 +753,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(0, len(response_moderated_objects))
 
@@ -794,7 +795,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_moderated_objects), len(approved_moderated_objects_posts_ids))
 
@@ -844,7 +845,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_moderated_objects), len(pending_moderated_objects_posts_ids))
 
@@ -893,7 +894,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_moderated_objects), len(rejected_moderated_objects_posts_ids))
 
@@ -944,7 +945,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_moderated_objects), len(verified_moderated_objects_posts_ids))
 
@@ -997,7 +998,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_moderated_objects), len(unverified_moderated_objects_posts_ids))
 
@@ -1041,7 +1042,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(1, len(response_moderated_objects))
 
@@ -1086,7 +1087,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderated_objects = json.loads(response.content)
+        response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(1, len(response_moderated_objects))
 

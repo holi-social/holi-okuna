@@ -94,7 +94,7 @@ def make_only_public_community_posts_query():
 
 def make_only_world_circle_posts_query():
     Circle = get_circle_model()
-    world_circle_id = Circle.get_world_circle().pk
+    world_circle_id = Circle.get_world_circle_id()
     return Q(circles__id=world_circle_id)
 
 

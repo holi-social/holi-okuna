@@ -8,7 +8,7 @@ from openbook_common.serializers_fields.post_comment import PostCommenterField, 
     PostCommentReactionsEmojiCountField, PostCommentReactionField, PostCommentIsMutedField
 from openbook_communities.models import CommunityMembership
 from openbook_posts.models import PostComment, Post, PostCommentReaction
-from openbook_posts.validators import post_uuid_exists, post_comment_text_validators
+from openbook_posts.validators import post_id_exists, post_comment_text_validators
 from openbook_posts.views.post_comments.serializer_fields import RepliesField
 
 
@@ -155,8 +155,8 @@ class PostCommentSerializer(serializers.ModelSerializer):
 
 
 class CommentPostSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
     text = serializers.CharField(max_length=settings.POST_COMMENT_MAX_LENGTH, required=True, allow_blank=False,
@@ -164,8 +164,8 @@ class CommentPostSerializer(serializers.Serializer):
 
 
 class GetPostCommentsSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
     max_id = serializers.IntegerField(
@@ -193,20 +193,19 @@ class EnableDisableCommentsPostSerializer(serializers.ModelSerializer):
         model = Post
         fields = (
             'id',
-            'uuid',
             'comments_enabled'
         )
 
 
 class DisableCommentsPostSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
 
 
 class EnableCommentsPostSerializer(serializers.Serializer):
-    post_uuid = serializers.UUIDField(
-        validators=[post_uuid_exists],
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
         required=True,
     )
