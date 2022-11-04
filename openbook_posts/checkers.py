@@ -8,15 +8,13 @@ from openbook_common.utils.model_loaders import get_post_model
 def check_can_be_updated(post, text=None):
     if post.is_text_only_post() and not text:
         raise ValidationError(
-            _('Cannot remove the text of a text only post. Try deleting it instead.')
+            _("Cannot remove the text of a text only post. Try deleting it instead.")
         )
 
 
 def check_is_draft(post):
     if not post.is_draft():
-        raise ValidationError(
-            _('Post is not a draft')
-        )
+        raise ValidationError(_("Post is not a draft"))
 
 
 def check_can_add_media(post):
@@ -24,26 +22,24 @@ def check_can_add_media(post):
     existing_media_count = post.count_media()
 
     if existing_media_count >= settings.POST_MEDIA_MAX_ITEMS:
-        raise ValidationError(
-            _('Maximum amount of post media items reached')
-        )
+        raise ValidationError(_("Maximum amount of post media items reached"))
 
 
 def check_is_not_processing(post):
     Post = get_post_model()
     if post.status == Post.STATUS_PROCESSING:
-        raise ValidationError(_('The post is being processed'))
+        raise ValidationError(_("The post is being processed"))
 
 
 def check_is_not_published(post):
     Post = get_post_model()
     if post.status == Post.STATUS_PUBLISHED:
-        raise ValidationError(_('The post is already published'))
+        raise ValidationError(_("The post is already published"))
 
 
 def check_is_not_empty(post):
     if post.is_empty():
-        raise ValidationError(_('The post is empty. Try adding text or media.'))
+        raise ValidationError(_("The post is empty. Try adding text or media."))
 
 
 def check_can_be_published(post):
@@ -53,4 +49,6 @@ def check_can_be_published(post):
 
 def check_mimetype_is_supported_media_mimetypes(mimetype):
     if not mimetype in settings.SUPPORTED_MEDIA_MIMETYPES:
-        raise ValidationError(_('%s is not a supported mimetype') % mimetype, )
+        raise ValidationError(
+            _("%s is not a supported mimetype") % mimetype,
+        )

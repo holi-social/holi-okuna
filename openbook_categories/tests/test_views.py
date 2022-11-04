@@ -5,7 +5,11 @@ from faker import Faker
 from rest_framework import status
 from openbook_common.tests.models import OpenbookAPITestCase
 
-from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, make_category
+from openbook_common.tests.helpers import (
+    make_user,
+    make_authentication_headers_for_user,
+    make_category,
+)
 from openbook_common.utils.test import uuid_id_parser
 
 fake = Faker()
@@ -40,8 +44,8 @@ class CategoriesAPITests(OpenbookAPITestCase):
         self.assertEqual(len(response_categories), len(categories_ids))
 
         for response_category in response_categories:
-            response_category_id = response_category.get('id')
+            response_category_id = response_category.get("id")
             self.assertIn(response_category_id, categories_ids)
 
     def _get_url(self):
-        return reverse('categories')
+        return reverse("categories")

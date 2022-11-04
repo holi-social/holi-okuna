@@ -36,30 +36,36 @@ def normalise_request_data(request_data):
 
 
 def nomalize_usernames_in_request_data(request_data):
-    normalize_list_value_in_request_data(list_name='usernames', request_data=request_data)
+    normalize_list_value_in_request_data(
+        list_name="usernames", request_data=request_data
+    )
 
 
 def normalize_list_value_in_request_data(list_name, request_data):
     """Checks if a list value is a list. If its a string, splits it and makes it a list"""
     list = request_data.get(list_name, None)
     if isinstance(list, str):
-        list = list.split(',')
+        list = list.split(",")
         list_items_count = len(list)
-        if list_items_count == 1 and list[0] == '':
+        if list_items_count == 1 and list[0] == "":
             list = []
         request_data[list_name] = list
 
 
 def generate_random_hex_color():
-    return f'#{r():02X}{r():02X}{r():02X}'
+    return f"#{r():02X}{r():02X}{r():02X}"
 
 
 def get_random_pastel_color():
     # Its a random color jeez, we dont need cryptographically secure randomness
-    h, s, l = random.random(), 0.5 + random.random() / 2.0, 0.4 + random.random() / 5.0  # nosec
+    h, s, l = (
+        random.random(),
+        0.5 + random.random() / 2.0,
+        0.4 + random.random() / 5.0,
+    )  # nosec
     r, g, b = [int(256 * i) for i in colorsys.hls_to_rgb(h, l, s)]
-    hex_color = f'#{r:02x}{g:02x}{b:02x}'
-    #color = spectra.html(hex_color).darken(amount=20)
+    hex_color = f"#{r:02x}{g:02x}{b:02x}"
+    # color = spectra.html(hex_color).darken(amount=20)
     return hex_color
 
 
@@ -86,12 +92,12 @@ def delete_file_field(filefield):
 
 def sha256sum(filename=None, file=None):
     if filename:
-        with open(filename, 'rb', buffering=0) as f:
+        with open(filename, "rb", buffering=0) as f:
             return _sha256sum(file=f)
     elif file:
         return _sha256sum(file=file)
     else:
-        raise Exception('file or filename are required')
+        raise Exception("file or filename are required")
 
 
 def _sha256sum(file):
@@ -105,7 +111,7 @@ def _sha256sum(file):
 
 
 # Same as flutter app
-usernames_regexp = re.compile('@[^\s]+')
+usernames_regexp = re.compile("@[^\s]+")
 
 
 def extract_usernames_from_string(string):
@@ -113,7 +119,7 @@ def extract_usernames_from_string(string):
     return [username[1:] for username in usernames]
 
 
-hashtags_regexp = re.compile(r'\B#\w*[a-zA-Z]+\w*')
+hashtags_regexp = re.compile(r"\B#\w*[a-zA-Z]+\w*")
 
 
 def extract_hashtags_from_string(string):
@@ -134,7 +140,7 @@ def write_in_memory_file_to_disk(in_memory_file):
 
     tmp_file = tempfile.mkstemp(suffix=extension)
     tmp_file_path = tmp_file[1]
-    tmp_file = open(tmp_file_path, 'wb')
+    tmp_file = open(tmp_file_path, "wb")
     # Was read for the magic headers thing
     tmp_file.write(in_memory_file.read())
     tmp_file.seek(0)
@@ -142,12 +148,12 @@ def write_in_memory_file_to_disk(in_memory_file):
     return tmp_file
 
 
-def normalize_url(url, default_scheme='http', scheme=None):
+def normalize_url(url, default_scheme="http", scheme=None):
     normalized_url = url_normalize(url, default_scheme=scheme or default_scheme)
     if scheme:
         parsed_url = urlparse(normalized_url)
         if parsed_url.scheme != scheme:
-            normalized_url = normalized_url.replace('http://', 'https://')
+            normalized_url = normalized_url.replace("http://", "https://")
             parsed_url = urlparse(normalized_url)
             normalized_url = parsed_url.geturl()
 

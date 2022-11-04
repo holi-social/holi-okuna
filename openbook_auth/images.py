@@ -9,8 +9,8 @@ def store_avatar(username, image_file):
     to clean up old avatar images for the user.
     """
     return default_storage.save(
-        name=f"{username}/avatar/{username}/{image_file.name})",
-        content=image_file)
+        name=f"{username}/avatar/{username}/{image_file.name})", content=image_file
+    )
 
 
 def delete_avatar(url):

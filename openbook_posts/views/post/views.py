@@ -8,14 +8,29 @@ from webpreview import URLUnreachable, URLNotFound
 
 from openbook_common.responses import ApiMessageResponse
 from openbook_moderation.permissions import IsNotSuspended
-from openbook_posts.views.post.serializers import DeletePostSerializer, GetPostSerializer, GetPostPostSerializer, \
-    UnmutePostSerializer, MutePostSerializer, EditPostSerializer, AuthenticatedUserEditPostSerializer, \
-    OpenClosePostSerializer, \
-    OpenPostSerializer, ClosePostSerializer, TranslatePostSerializer, \
-    SearchPostParticipantsSerializer, PostParticipantSerializer, GetPostParticipantsSerializer, PublishPostSerializer, \
-    GetPostStatusSerializer
-from openbook_translation.strategies.base import TranslationClientError, UnsupportedLanguagePairException, \
-    MaxTextLengthExceededError
+from openbook_posts.views.post.serializers import (
+    DeletePostSerializer,
+    GetPostSerializer,
+    GetPostPostSerializer,
+    UnmutePostSerializer,
+    MutePostSerializer,
+    EditPostSerializer,
+    AuthenticatedUserEditPostSerializer,
+    OpenClosePostSerializer,
+    OpenPostSerializer,
+    ClosePostSerializer,
+    TranslatePostSerializer,
+    SearchPostParticipantsSerializer,
+    PostParticipantSerializer,
+    GetPostParticipantsSerializer,
+    PublishPostSerializer,
+    GetPostStatusSerializer,
+)
+from openbook_translation.strategies.base import (
+    TranslationClientError,
+    UnsupportedLanguagePairException,
+    MaxTextLengthExceededError,
+)
 
 
 class PostItem(APIView):
@@ -28,32 +43,36 @@ class PostItem(APIView):
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
-        post_id = data.get('post_id')
+        post_id = data.get("post_id")
 
         user = request.user
 
         post = user.get_post_with_id(post_id)
 
-        post_comments_serializer = GetPostPostSerializer(post, context={"request": request})
+        post_comments_serializer = GetPostPostSerializer(
+            post, context={"request": request}
+        )
 
         return Response(post_comments_serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, post_id):
         request_data = request.data.dict()
 
-        request_data['post_id'] = post_id
+        request_data["post_id"] = post_id
         serializer = EditPostSerializer(data=request_data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        text = data.get('text', None)
-        post_id = data.get('post_id')
+        text = data.get("text", None)
+        post_id = data.get("post_id")
         user = request.user
 
         with transaction.atomic():
             post = user.update_post_with_id(post_id=post_id, text=text)
 
-        post_serializer = AuthenticatedUserEditPostSerializer(post, context={"request": request})
+        post_serializer = AuthenticatedUserEditPostSerializer(
+            post, context={"request": request}
+        )
 
         return Response(post_serializer.data, status=status.HTTP_200_OK)
 
@@ -63,20 +82,18 @@ class PostItem(APIView):
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
-        post_id = data.get('post_id')
+        post_id = data.get("post_id")
 
         user = request.user
 
         with transaction.atomic():
             user.delete_post_with_id(post_id=post_id)
 
-        return Response({
-            'message': _('Post deleted')
-        }, status=status.HTTP_200_OK)
+        return Response({"message": _("Post deleted")}, status=status.HTTP_200_OK)
 
     def _get_request_data(self, request, post_id):
         request_data = request.data.copy()
-        request_data['post_id'] = post_id
+        request_data["post_id"] = post_id
         return request_data
 
 
@@ -84,20 +101,20 @@ class MutePost(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, post_id):
-        serializer = MutePostSerializer(data={
-            'post_id': post_id
-        })
+        serializer = MutePostSerializer(data={"post_id": post_id})
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
-        post_id = data.get('post_id')
+        post_id = data.get("post_id")
 
         user = request.user
 
         with transaction.atomic():
             muted_post = user.mute_post_with_id(post_id=post_id)
 
-        post_comments_serializer = GetPostPostSerializer(muted_post, context={"request": request})
+        post_comments_serializer = GetPostPostSerializer(
+            muted_post, context={"request": request}
+        )
 
         return Response(post_comments_serializer.data, status=status.HTTP_200_OK)
 
@@ -106,20 +123,20 @@ class UnmutePost(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, post_id):
-        serializer = UnmutePostSerializer(data={
-            'post_id': post_id
-        })
+        serializer = UnmutePostSerializer(data={"post_id": post_id})
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
-        post_id = data.get('post_id')
+        post_id = data.get("post_id")
 
         user = request.user
 
         with transaction.atomic():
             muted_post = user.unmute_post_with_id(post_id=post_id)
 
-        post_comments_serializer = GetPostPostSerializer(muted_post, context={"request": request})
+        post_comments_serializer = GetPostPostSerializer(
+            muted_post, context={"request": request}
+        )
 
         return Response(post_comments_serializer.data, status=status.HTTP_200_OK)
 
@@ -129,19 +146,19 @@ class PostClose(APIView):
 
     def post(self, request, post_id):
         request_data = request.data.copy()
-        request_data['post_id'] = post_id
+        request_data["post_id"] = post_id
 
         serializer = ClosePostSerializer(data=request_data)
         serializer.is_valid(raise_exception=True)
 
         user = request.user
         data = serializer.validated_data
-        post_id = data.get('post_id')
+        post_id = data.get("post_id")
 
         with transaction.atomic():
             post = user.close_post_with_id(post_id=post_id)
 
-        post_serializer = OpenClosePostSerializer(post, context={'request': request})
+        post_serializer = OpenClosePostSerializer(post, context={"request": request})
 
         return Response(post_serializer.data, status=status.HTTP_200_OK)
 
@@ -151,19 +168,19 @@ class PostOpen(APIView):
 
     def post(self, request, post_id):
         request_data = request.data.copy()
-        request_data['post_id'] = post_id
+        request_data["post_id"] = post_id
 
         serializer = OpenPostSerializer(data=request_data)
         serializer.is_valid(raise_exception=True)
 
         user = request.user
         data = serializer.validated_data
-        post_id = data.get('post_id')
+        post_id = data.get("post_id")
 
         with transaction.atomic():
             post = user.open_post_with_id(post_id=post_id)
 
-        post_serializer = OpenClosePostSerializer(post, context={'request': request})
+        post_serializer = OpenClosePostSerializer(post, context={"request": request})
 
         return Response(post_serializer.data, status=status.HTTP_200_OK)
 
@@ -173,28 +190,34 @@ class TranslatePost(APIView):
 
     def post(self, request, post_id):
         request_data = request.data.copy()
-        request_data['post_id'] = post_id
+        request_data["post_id"] = post_id
 
         serializer = TranslatePostSerializer(data=request_data)
         serializer.is_valid(raise_exception=True)
 
         user = request.user
         data = serializer.validated_data
-        post_id = data.get('post_id')
+        post_id = data.get("post_id")
 
         try:
             post, translated_text = user.translate_post_with_id(post_id=post_id)
         except UnsupportedLanguagePairException:
-            return ApiMessageResponse(_('Translation between these languages is not supported.'),
-                                      status=status.HTTP_400_BAD_REQUEST)
+            return ApiMessageResponse(
+                _("Translation between these languages is not supported."),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except TranslationClientError:
-            return ApiMessageResponse(_('Translation service returned an error'),
-                                      status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return ApiMessageResponse(
+                _("Translation service returned an error"),
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
         except MaxTextLengthExceededError:
-            return ApiMessageResponse(_('Max length of translation text exceeded.'),
-                                      status=status.HTTP_400_BAD_REQUEST)
+            return ApiMessageResponse(
+                _("Max length of translation text exceeded."),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        return Response({'translated_text': translated_text}, status=status.HTTP_200_OK)
+        return Response({"translated_text": translated_text}, status=status.HTTP_200_OK)
 
 
 class GetPostParticipants(APIView):
@@ -203,7 +226,7 @@ class GetPostParticipants(APIView):
     def get(self, request, post_id):
         request_data = request.query_params.dict()
 
-        request_data['post_id'] = post_id
+        request_data["post_id"] = post_id
 
         serializer = GetPostParticipantsSerializer(data=request_data)
         serializer.is_valid(raise_exception=True)
@@ -211,12 +234,16 @@ class GetPostParticipants(APIView):
         user = request.user
         data = serializer.validated_data
 
-        post_id = data['post_id']
-        count = data['count']
+        post_id = data["post_id"]
+        count = data["count"]
 
-        post_participants = user.get_participants_for_post_with_id(post_id=post_id)[:count]
+        post_participants = user.get_participants_for_post_with_id(post_id=post_id)[
+            :count
+        ]
 
-        serialized_participants = PostParticipantSerializer(post_participants, many=True, context={'request': request})
+        serialized_participants = PostParticipantSerializer(
+            post_participants, many=True, context={"request": request}
+        )
 
         return Response(serialized_participants.data, status=status.HTTP_200_OK)
 
@@ -226,7 +253,7 @@ class SearchPostParticipants(APIView):
 
     def post(self, request, post_id):
         request_data = request.data.copy()
-        request_data['post_id'] = post_id
+        request_data["post_id"] = post_id
 
         serializer = SearchPostParticipantsSerializer(data=request_data)
         serializer.is_valid(raise_exception=True)
@@ -234,13 +261,17 @@ class SearchPostParticipants(APIView):
         user = request.user
         data = serializer.validated_data
 
-        query = data['query']
-        post_id = data['post_id']
-        count = data['count']
+        query = data["query"]
+        post_id = data["post_id"]
+        count = data["count"]
 
-        post_participants = user.search_participants_for_post_with_id(post_id=post_id, query=query)[:count]
+        post_participants = user.search_participants_for_post_with_id(
+            post_id=post_id, query=query
+        )[:count]
 
-        serialized_participants = PostParticipantSerializer(post_participants, many=True, context={'request': request})
+        serialized_participants = PostParticipantSerializer(
+            post_participants, many=True, context={"request": request}
+        )
 
         return Response(serialized_participants.data, status=status.HTTP_200_OK)
 
@@ -249,20 +280,20 @@ class PublishPost(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, post_id):
-        serializer = PublishPostSerializer(data={
-            'post_id': post_id
-        })
+        serializer = PublishPostSerializer(data={"post_id": post_id})
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
-        post_id = data.get('post_id')
+        post_id = data.get("post_id")
 
         user = request.user
 
         with transaction.atomic():
             published_post = user.publish_post_with_id(post_id=post_id)
 
-        post_comments_serializer = GetPostPostSerializer(published_post, context={"request": request})
+        post_comments_serializer = GetPostPostSerializer(
+            published_post, context={"request": request}
+        )
 
         return Response(post_comments_serializer.data, status=status.HTTP_200_OK)
 
@@ -271,21 +302,17 @@ class PostStatus(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, post_id):
-        serializer = GetPostStatusSerializer(data={
-            'post_id': post_id
-        })
+        serializer = GetPostStatusSerializer(data={"post_id": post_id})
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
-        post_id = data.get('post_id')
+        post_id = data.get("post_id")
 
         user = request.user
 
         post_status = user.get_status_for_post_with_id(post_id=post_id)
 
-        return Response({
-            'status': post_status
-        }, status=status.HTTP_200_OK)
+        return Response({"status": post_status}, status=status.HTTP_200_OK)
 
 
 class PostPreviewLinkData(APIView):
@@ -293,23 +320,26 @@ class PostPreviewLinkData(APIView):
 
     def get(self, request, post_id):
         request_data = request.data.copy()
-        request_data['post_id'] = post_id
+        request_data["post_id"] = post_id
 
         serializer = GetPostSerializer(data=request_data)
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
-        post_id = data.get('post_id')
+        post_id = data.get("post_id")
 
         user = request.user
         try:
             preview_link_data = user.get_preview_link_data_for_post_with_id(post_id)
         except URLNotFound:
-            return ApiMessageResponse(_('The linked url associated for preview was not found.'),
-                                      status=status.HTTP_400_BAD_REQUEST)
+            return ApiMessageResponse(
+                _("The linked url associated for preview was not found."),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except URLUnreachable:
-            return ApiMessageResponse(_('The linked url associated for preview was not reachable.'),
-                                      status=status.HTTP_400_BAD_REQUEST)
+            return ApiMessageResponse(
+                _("The linked url associated for preview was not reachable."),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         return Response(preview_link_data, status=status.HTTP_200_OK)
-

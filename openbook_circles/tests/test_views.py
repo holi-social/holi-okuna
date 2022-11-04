@@ -11,7 +11,11 @@ import logging
 import json
 
 from openbook_circles.models import Circle
-from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, make_fake_circle_name
+from openbook_common.tests.helpers import (
+    make_user,
+    make_authentication_headers_for_user,
+    make_fake_circle_name,
+)
 from openbook_common.utils.test import uuid_id_parser
 
 logger = logging.getLogger(__name__)
@@ -35,18 +39,20 @@ class CirclesAPITests(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user)
 
-        data = {
-            'name': circle_name,
-            'color': circle_color
-        }
+        data = {"name": circle_name, "color": circle_color}
 
         url = self._get_url()
 
-        response = self.client.put(url, data, **headers, format='multipart')
+        response = self.client.put(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(Circle.objects.filter(name=circle_name, color=circle_color, creator_id=user.pk).count() == 1)
+        self.assertTrue(
+            Circle.objects.filter(
+                name=circle_name, color=circle_color, creator_id=user.pk
+            ).count()
+            == 1
+        )
 
     def test_retrieve_own_circles(self):
         """
@@ -71,20 +77,19 @@ class CirclesAPITests(OpenbookAPITestCase):
         self.assertEqual(len(response_circles), len(circles_ids))
 
         for response_circle in response_circles:
-            response_circle_id = response_circle.get('id')
+            response_circle_id = response_circle.get("id")
             self.assertIn(response_circle_id, circles_ids)
 
     def _get_url(self):
-        return reverse('circles')
+        return reverse("circles")
 
 
 class CircleItemAPITests(OpenbookAPITestCase):
     """
     CircleItemAPI
     """
-    fixtures = [
-        'openbook_circles/fixtures/circles.json'
-    ]
+
+    fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_delete_own_circle(self):
         """
@@ -168,16 +173,18 @@ class CircleItemAPITests(OpenbookAPITestCase):
         new_circle_name = fake.name()
         new_circle_color = fake.hex_color()
 
-        data = {
-            'name': new_circle_name,
-            'color': new_circle_color
-        }
+        data = {"name": new_circle_name, "color": new_circle_color}
 
         url = self._get_url(circle_id)
         response = self.client.patch(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(Circle.objects.filter(name=new_circle_name, id=circle_id, color=new_circle_color).count() == 1)
+        self.assertTrue(
+            Circle.objects.filter(
+                name=new_circle_name, id=circle_id, color=new_circle_color
+            ).count()
+            == 1
+        )
 
     def test_can_update_own_circle_users(self):
         """
@@ -192,7 +199,9 @@ class CircleItemAPITests(OpenbookAPITestCase):
 
         for i in range(users_to_connect_with_in_circle):
             user_to_connect_with = make_user()
-            user.connect_with_user_with_id(user_to_connect_with.pk, circles_ids=[circle_id])
+            user.connect_with_user_with_id(
+                user_to_connect_with.pk, circles_ids=[circle_id]
+            )
 
         new_users_to_connect_with_in_circle_amount = 2
         new_users_to_connect_with_in_circle = []
@@ -201,10 +210,14 @@ class CircleItemAPITests(OpenbookAPITestCase):
         for i in range(new_users_to_connect_with_in_circle_amount):
             user_to_connect_with = make_user()
             new_users_to_connect_with_in_circle.append(user_to_connect_with)
-            new_users_to_connect_with_in_circle_usernames.append(user_to_connect_with.username)
+            new_users_to_connect_with_in_circle_usernames.append(
+                user_to_connect_with.username
+            )
 
         data = {
-            'usernames': ','.join(map(str, new_users_to_connect_with_in_circle_usernames))
+            "usernames": ",".join(
+                map(str, new_users_to_connect_with_in_circle_usernames)
+            )
         }
 
         url = self._get_url(circle_id)
@@ -215,7 +228,10 @@ class CircleItemAPITests(OpenbookAPITestCase):
 
         for new_user_to_connect_with in new_users_to_connect_with_in_circle:
             self.assertTrue(
-                user.is_connected_with_user_with_id_in_circle_with_id(new_user_to_connect_with.pk, circle_id))
+                user.is_connected_with_user_with_id_in_circle_with_id(
+                    new_user_to_connect_with.pk, circle_id
+                )
+            )
 
     def test_can_update_own_circle_users_to_none(self):
         """
@@ -230,11 +246,11 @@ class CircleItemAPITests(OpenbookAPITestCase):
 
         for i in range(users_to_connect_with_in_circle):
             user_to_connect_with = make_user()
-            user.connect_with_user_with_id(user_to_connect_with.pk, circles_ids=[circle_id])
+            user.connect_with_user_with_id(
+                user_to_connect_with.pk, circles_ids=[circle_id]
+            )
 
-        data = {
-            'usernames': ''
-        }
+        data = {"usernames": ""}
 
         url = self._get_url(circle_id)
         headers = make_authentication_headers_for_user(user)
@@ -262,16 +278,18 @@ class CircleItemAPITests(OpenbookAPITestCase):
         new_circle_name = fake.name()
         new_circle_color = fake.hex_color()
 
-        data = {
-            'name': new_circle_name,
-            'color': new_circle_color
-        }
+        data = {"name": new_circle_name, "color": new_circle_color}
 
         url = self._get_url(circle_id)
         response = self.client.patch(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(Circle.objects.filter(name=new_circle_name, id=circle_id, color=new_circle_color).count() == 0)
+        self.assertTrue(
+            Circle.objects.filter(
+                name=new_circle_name, id=circle_id, color=new_circle_color
+            ).count()
+            == 0
+        )
 
     def test_cannot_update_world_circle(self):
         """
@@ -286,16 +304,18 @@ class CircleItemAPITests(OpenbookAPITestCase):
         new_circle_name = fake.name()
         new_circle_color = fake.hex_color()
 
-        data = {
-            'name': new_circle_name,
-            'color': new_circle_color
-        }
+        data = {"name": new_circle_name, "color": new_circle_color}
 
         url = self._get_url(circle_id)
         response = self.client.patch(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(Circle.objects.filter(name=new_circle_name, id=circle_id, color=new_circle_color).count() == 0)
+        self.assertTrue(
+            Circle.objects.filter(
+                name=new_circle_name, id=circle_id, color=new_circle_color
+            ).count()
+            == 0
+        )
 
     def test_cannot_update_connections_circle(self):
         """
@@ -310,21 +330,21 @@ class CircleItemAPITests(OpenbookAPITestCase):
         new_circle_name = fake.name()
         new_circle_color = fake.hex_color()
 
-        data = {
-            'name': new_circle_name,
-            'color': new_circle_color
-        }
+        data = {"name": new_circle_name, "color": new_circle_color}
 
         url = self._get_url(circle_id)
         response = self.client.patch(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(Circle.objects.filter(name=new_circle_name, id=circle_id, color=new_circle_color).count() == 0)
+        self.assertTrue(
+            Circle.objects.filter(
+                name=new_circle_name, id=circle_id, color=new_circle_color
+            ).count()
+            == 0
+        )
 
     def _get_url(self, circle_id):
-        return reverse('circle', kwargs={
-            'circle_id': circle_id
-        })
+        return reverse("circle", kwargs={"circle_id": circle_id})
 
 
 class CircleNameCheckAPITests(OpenbookAPITestCase):
@@ -340,11 +360,11 @@ class CircleNameCheckAPITests(OpenbookAPITestCase):
         user = make_user()
 
         circle_name = make_fake_circle_name()
-        request_data = {'name': circle_name}
+        request_data = {"name": circle_name}
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
-        response = self.client.post(url, request_data, format='json', **headers)
+        response = self.client.post(url, request_data, format="json", **headers)
 
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
@@ -357,14 +377,14 @@ class CircleNameCheckAPITests(OpenbookAPITestCase):
 
         circle = user.create_circle(name=make_fake_circle_name(), color=color)
 
-        request_data = {'name': circle.name}
+        request_data = {"name": circle.name}
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
 
-        response = self.client.post(url, request_data, format='json', **headers)
+        response = self.client.post(url, request_data, format="json", **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def _get_url(self):
-        return reverse('circle-name-check')
+        return reverse("circle-name-check")

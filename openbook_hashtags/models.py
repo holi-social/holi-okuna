@@ -22,42 +22,61 @@ from openbook_posts.models import Post, PostComment
 from openbook_posts.queries import make_only_public_posts_query
 
 # TODO Think about what to do for storage backend
-#hashtag_image_storage = S3PrivateMediaStorage() if settings.IS_PRODUCTION else default_storage
+# hashtag_image_storage = S3PrivateMediaStorage() if settings.IS_PRODUCTION else default_storage
 hashtag_image_storage = default_storage
 
 
 class Hashtag(ModelWithUUID):
 
     moderated_object = GenericRelation(
-        'openbook_moderation.ModeratedObject', related_query_name='hashtags')
+        "openbook_moderation.ModeratedObject", related_query_name="hashtags"
+    )
 
-    name = models.CharField(_('name'), max_length=settings.HASHTAG_NAME_MAX_LENGTH, blank=False, null=False,
-                            validators=[hashtag_name_validator],
-                            unique=True)
-    color = models.CharField(_('color'), max_length=settings.COLOR_ATTR_MAX_LENGTH, blank=False, null=False,
-                             validators=[hex_color_validator])
-    text_color = models.CharField(_('text color'), max_length=settings.COLOR_ATTR_MAX_LENGTH, blank=False, null=False,
-                                  validators=[hex_color_validator], default='#ffffff')
+    name = models.CharField(
+        _("name"),
+        max_length=settings.HASHTAG_NAME_MAX_LENGTH,
+        blank=False,
+        null=False,
+        validators=[hashtag_name_validator],
+        unique=True,
+    )
+    color = models.CharField(
+        _("color"),
+        max_length=settings.COLOR_ATTR_MAX_LENGTH,
+        blank=False,
+        null=False,
+        validators=[hex_color_validator],
+    )
+    text_color = models.CharField(
+        _("text color"),
+        max_length=settings.COLOR_ATTR_MAX_LENGTH,
+        blank=False,
+        null=False,
+        validators=[hex_color_validator],
+        default="#ffffff",
+    )
     created = models.DateTimeField(editable=False)
-    posts = models.ManyToManyField(Post, related_name='hashtags')
-    insights = models.ManyToManyField(
-        Insight, related_name='hashtags', blank=True)
-    post_comments = models.ManyToManyField(
-        PostComment, related_name='hashtags')
+    posts = models.ManyToManyField(Post, related_name="hashtags")
+    insights = models.ManyToManyField(Insight, related_name="hashtags", blank=True)
+    post_comments = models.ManyToManyField(PostComment, related_name="hashtags")
     width = models.PositiveIntegerField(editable=False, null=True, blank=False)
-    height = models.PositiveIntegerField(
-        editable=False, null=True, blank=False)
-    image = ProcessedImageField(verbose_name=_('image'),
-                                storage=hashtag_image_storage,
-                                upload_to=upload_to_hashtags_directory,
-                                width_field='width',
-                                height_field='height',
-                                blank=True, null=True, format='JPEG', options={'quality': 60},
-                                processors=[ResizeToFit(
-                                    width=1024, upscale=False)],
-                                max_length=settings.IMAGE_URL_MAX_LENGTH)
+    height = models.PositiveIntegerField(editable=False, null=True, blank=False)
+    image = ProcessedImageField(
+        verbose_name=_("image"),
+        storage=hashtag_image_storage,
+        upload_to=upload_to_hashtags_directory,
+        width_field="width",
+        height_field="height",
+        blank=True,
+        null=True,
+        format="JPEG",
+        options={"quality": 60},
+        processors=[ResizeToFit(width=1024, upscale=False)],
+        max_length=settings.IMAGE_URL_MAX_LENGTH,
+    )
     emoji = models.ForeignKey(
-        Emoji, on_delete=models.SET_NULL, related_name='hashtags', null=True, blank=True)
+        Emoji, on_delete=models.SET_NULL, related_name="hashtags", null=True, blank=True
+    )
 
     @classmethod
     def create_hashtag(cls, name, color=None, image=None):
@@ -86,7 +105,7 @@ class Hashtag(ModelWithUUID):
         return cls.objects.filter(name=hashtag_name).exists()
 
     def __str__(self):
-        return f'#{self.name}'
+        return f"#{self.name}"
 
     def save(self, *args, **kwargs):
         if not self.created:
@@ -105,7 +124,8 @@ class Hashtag(ModelWithUUID):
             post_first_media_image = post.get_first_media_image()
             if post_first_media_image:
                 image_copy = ContentFile(
-                    post_first_media_image.content_object.image.read())
+                    post_first_media_image.content_object.image.read()
+                )
                 image_copy.name = post_first_media_image.content_object.image.name
                 self.image.save(image_copy.name, image_copy)
                 self.save()
@@ -119,7 +139,7 @@ class Hashtag(ModelWithUUID):
             delete_file_field(self.image)
 
     def has_image(self):
-        if hasattr(self, 'image'):
+        if hasattr(self, "image"):
 
             if self.image:
                 return True

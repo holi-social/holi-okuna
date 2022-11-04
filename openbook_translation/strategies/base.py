@@ -20,11 +20,12 @@ class UnsupportedLanguagePairException(Exception):
 
 
 class BaseTranslationStrategy(ABC):
-
     def __init__(self, params):
-        if 'TEXT_MAX_LENGTH' in params:
-            self.text_max_length = int(params.pop('TEXT_MAX_LENGTH'))
-            self.default_translation_language_code = params.pop('DEFAULT_TRANSLATION_LANGUAGE_CODE')
+        if "TEXT_MAX_LENGTH" in params:
+            self.text_max_length = int(params.pop("TEXT_MAX_LENGTH"))
+            self.default_translation_language_code = params.pop(
+                "DEFAULT_TRANSLATION_LANGUAGE_CODE"
+            )
         super().__init__()
 
     @abstractmethod
@@ -38,4 +39,3 @@ class BaseTranslationStrategy(ABC):
     @abstractmethod
     def translate_text(self, *args, **kwargs):
         pass
-

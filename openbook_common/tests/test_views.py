@@ -6,8 +6,13 @@ from openbook_common.tests.models import OpenbookAPITestCase
 import logging
 import json
 
-from openbook_common.tests.helpers import make_emoji_group, make_user, make_authentication_headers_for_user, \
-    make_fake_post_text, make_proxy_blacklisted_domain
+from openbook_common.tests.helpers import (
+    make_emoji_group,
+    make_user,
+    make_authentication_headers_for_user,
+    make_fake_post_text,
+    make_proxy_blacklisted_domain,
+)
 from openbook_common.utils.test import uuid_id_parser
 
 logger = logging.getLogger(__name__)
@@ -23,15 +28,15 @@ class TimeAPITests(OpenbookAPITestCase):
         should set the timezone provided in the Time-Zone header
         """
         url = self._get_url()
-        timezone_to_set = 'America/Mexico_City'
-        header = {'HTTP_TIME_ZONE': timezone_to_set}
+        timezone_to_set = "America/Mexico_City"
+        header = {"HTTP_TIME_ZONE": timezone_to_set}
         response = self.client.get(url, **header)
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
-        self.assertEqual(parsed_response['timezone'], timezone_to_set)
+        self.assertEqual(parsed_response["timezone"], timezone_to_set)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def _get_url(self):
-        return reverse('time')
+        return reverse("time")
 
 
 class TestHealth(OpenbookAPITestCase):
@@ -39,7 +44,7 @@ class TestHealth(OpenbookAPITestCase):
     Health API
     """
 
-    url = reverse('health')
+    url = reverse("health")
 
     def test_should_say_hello(self):
         response = self.client.get(self.url)
@@ -53,7 +58,7 @@ class TestEmojiGroups(OpenbookAPITestCase):
 
     def test_can_retrieve_non_reaction_emoji_groups(self):
         """
-         should be able to retrieve non post reaction emoji groups
+        should be able to retrieve non post reaction emoji groups
         """
         user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -70,7 +75,7 @@ class TestEmojiGroups(OpenbookAPITestCase):
         self.assertTrue(response.status_code, status.HTTP_200_OK)
 
         response_groups = json.loads(response.content, object_hook=uuid_id_parser)
-        response_groups_ids = [group['id'] for group in response_groups]
+        response_groups_ids = [group["id"] for group in response_groups]
 
         self.assertEqual(len(response_groups), len(group_ids))
 
@@ -79,7 +84,7 @@ class TestEmojiGroups(OpenbookAPITestCase):
 
     def test_cannot_retrieve_reactions_emoji_groups(self):
         """
-         should not able to retrieve post reaction emoji groups
+        should not able to retrieve post reaction emoji groups
         """
         user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -100,7 +105,7 @@ class TestEmojiGroups(OpenbookAPITestCase):
         self.assertEqual(len(response_groups), 0)
 
     def _get_url(self):
-        return reverse('emoji-groups')
+        return reverse("emoji-groups")
 
 
 class ProxyDomainCheckAPITests(OpenbookAPITestCase):
@@ -114,11 +119,11 @@ class ProxyDomainCheckAPITests(OpenbookAPITestCase):
         """
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        request_url = 'www.okuna.io'
+        request_url = "www.okuna.io"
         url = self._get_url()
-        make_proxy_blacklisted_domain(domain='okuna.io')
+        make_proxy_blacklisted_domain(domain="okuna.io")
 
-        response = self.client.get(url, {'url': request_url}, **headers)
+        response = self.client.get(url, {"url": request_url}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -128,11 +133,11 @@ class ProxyDomainCheckAPITests(OpenbookAPITestCase):
         """
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        request_url = 'test.blogspot.com'
+        request_url = "test.blogspot.com"
         url = self._get_url()
-        make_proxy_blacklisted_domain(domain='blogspot.com')
+        make_proxy_blacklisted_domain(domain="blogspot.com")
 
-        response = self.client.get(url, {'url': request_url}, **headers)
+        response = self.client.get(url, {"url": request_url}, **headers)
 
         self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
 
@@ -142,11 +147,11 @@ class ProxyDomainCheckAPITests(OpenbookAPITestCase):
         """
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        request_url = 'test.blogspot.com'
+        request_url = "test.blogspot.com"
         url = self._get_url()
-        make_proxy_blacklisted_domain(domain='test.blogspot.com')
+        make_proxy_blacklisted_domain(domain="test.blogspot.com")
 
-        response = self.client.get(url, {'url': request_url}, **headers)
+        response = self.client.get(url, {"url": request_url}, **headers)
 
         self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
 
@@ -156,11 +161,11 @@ class ProxyDomainCheckAPITests(OpenbookAPITestCase):
         """
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        request_url = 'blogspot.com'
+        request_url = "blogspot.com"
         url = self._get_url()
-        make_proxy_blacklisted_domain(domain='test.blogspot.com')
+        make_proxy_blacklisted_domain(domain="test.blogspot.com")
 
-        response = self.client.get(url, {'url': request_url}, **headers)
+        response = self.client.get(url, {"url": request_url}, **headers)
 
         self.assertEqual(status.HTTP_202_ACCEPTED, response.status_code)
 
@@ -170,10 +175,10 @@ class ProxyDomainCheckAPITests(OpenbookAPITestCase):
         """
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        preview_url = 'https://www.techcrunch.com'
+        preview_url = "https://www.techcrunch.com"
         url = self._get_url()
 
-        response = self.client.get(url, {'url': preview_url}, **headers)
+        response = self.client.get(url, {"url": preview_url}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
@@ -183,12 +188,12 @@ class ProxyDomainCheckAPITests(OpenbookAPITestCase):
         """
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        request_url = 'invalid.potato'
+        request_url = "invalid.potato"
         url = self._get_url()
 
-        response = self.client.get(url, {'url': request_url}, **headers)
+        response = self.client.get(url, {"url": request_url}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def _get_url(self):
-        return reverse('proxy-domain-check')
+        return reverse("proxy-domain-check")

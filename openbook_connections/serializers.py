@@ -6,8 +6,14 @@ from openbook_auth.validators import user_username_exists, username_characters_v
 from openbook_circles.models import Circle
 from openbook_circles.validators import circle_id_exists
 from openbook_common.models import Badge
-from openbook_common.serializers_fields.user import IsConnectedField, ConnectedCirclesField, IsFollowingField, \
-    IsPendingConnectionConfirmation, IsFullyConnectedField, AreNewPostNotificationsEnabledForUserField
+from openbook_common.serializers_fields.user import (
+    IsConnectedField,
+    ConnectedCirclesField,
+    IsFollowingField,
+    IsPendingConnectionConfirmation,
+    IsFullyConnectedField,
+    AreNewPostNotificationsEnabledForUserField,
+)
 
 from openbook_connections.models import Connection
 
@@ -17,26 +23,18 @@ class UpdateConnectionWithUserSerializer(serializers.Serializer):
     user_id = serializers.CharField(
         max_length=settings.USERNAME_MAX_LENGTH,
         allow_blank=False,
-        validators=[
-            username_characters_validator,
-            user_username_exists
-        ],
-        required=True
+        validators=[username_characters_validator, user_username_exists],
+        required=True,
     )
-    action = serializers.CharField(
-        allow_blank=False,
-        required=True
-    )
+    action = serializers.CharField(allow_blank=False, required=True)
+
 
 class ConnectWithUserSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=settings.USERNAME_MAX_LENGTH,
         allow_blank=False,
-        validators=[
-            username_characters_validator,
-            user_username_exists
-        ],
-        required=False
+        validators=[username_characters_validator, user_username_exists],
+        required=False,
     )
     circles_ids = serializers.ListSerializer(
         child=serializers.UUIDField(required=True, validators=[circle_id_exists])
@@ -46,10 +44,7 @@ class ConnectWithUserSerializer(serializers.Serializer):
 class ConnectionUserProfileBadgeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Badge
-        fields = (
-            'keyword',
-            'keyword_description'
-        )
+        fields = ("keyword", "keyword_description")
 
 
 class ConnectionUserProfileSerializer(serializers.ModelSerializer):
@@ -57,22 +52,13 @@ class ConnectionUserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = (
-            'name',
-            'avatar',
-            'badges'
-        )
+        fields = ("name", "avatar", "badges")
 
 
 class ConnectionUserCircleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Circle
-        fields = (
-            'id',
-            'name',
-            'color',
-            'users_count'
-        )
+        fields = ("id", "name", "color", "users_count")
 
 
 class ConnectionUserSerializer(serializers.ModelSerializer):
@@ -80,22 +66,24 @@ class ConnectionUserSerializer(serializers.ModelSerializer):
     is_connected = IsConnectedField()
     is_following = IsFollowingField()
     are_new_post_notifications_enabled = AreNewPostNotificationsEnabledForUserField()
-    connected_circles = ConnectedCirclesField(circle_serializer=ConnectionUserCircleSerializer)
+    connected_circles = ConnectedCirclesField(
+        circle_serializer=ConnectionUserCircleSerializer
+    )
     is_pending_connection_confirmation = IsPendingConnectionConfirmation()
     is_fully_connected = IsFullyConnectedField()
 
     class Meta:
         model = User
         fields = (
-            'id',
-            'username',
-            'profile',
-            'is_connected',
-            'is_fully_connected',
-            'is_following',
-            'are_new_post_notifications_enabled',
-            'connected_circles',
-            'is_pending_connection_confirmation'
+            "id",
+            "username",
+            "profile",
+            "is_connected",
+            "is_fully_connected",
+            "is_following",
+            "are_new_post_notifications_enabled",
+            "connected_circles",
+            "is_pending_connection_confirmation",
         )
 
 
@@ -105,10 +93,10 @@ class ConnectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Connection
         fields = (
-            'id',
-            'user',
-            'circles',
-            'target_user',
+            "id",
+            "user",
+            "circles",
+            "target_user",
         )
 
 
@@ -116,11 +104,8 @@ class DisconnectFromUserSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=settings.USERNAME_MAX_LENGTH,
         allow_blank=False,
-        validators=[
-            username_characters_validator,
-            user_username_exists
-        ],
-        required=False
+        validators=[username_characters_validator, user_username_exists],
+        required=False,
     )
 
 
@@ -128,11 +113,8 @@ class UpdateConnectionSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=settings.USERNAME_MAX_LENGTH,
         allow_blank=False,
-        validators=[
-            username_characters_validator,
-            user_username_exists
-        ],
-        required=False
+        validators=[username_characters_validator, user_username_exists],
+        required=False,
     )
     circles_ids = serializers.ListSerializer(
         child=serializers.UUIDField(required=True, validators=[circle_id_exists])
@@ -143,13 +125,9 @@ class ConfirmConnectionSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=settings.USERNAME_MAX_LENGTH,
         allow_blank=False,
-        validators=[
-            username_characters_validator,
-            user_username_exists
-        ],
-        required=False
+        validators=[username_characters_validator, user_username_exists],
+        required=False,
     )
     circles_ids = serializers.ListSerializer(
-        required=False,
-        child=serializers.UUIDField(validators=[circle_id_exists])
+        required=False, child=serializers.UUIDField(validators=[circle_id_exists])
     )

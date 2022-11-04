@@ -9,5 +9,5 @@ def circle_id_exists(circle_id):
 
     if count == 0:
         raise ValidationError(
-            _('The circle does not exist.'),
+            _("The circle does not exist."),
         )

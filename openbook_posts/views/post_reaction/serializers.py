@@ -4,7 +4,9 @@ from openbook_auth.models import UserProfile, User
 from openbook_common.models import Emoji
 from openbook_posts.models import PostReaction
 from openbook_posts.validators import post_id_exists, post_reaction_id_exists
-from openbook_posts.views.post_comment.post_comment_reaction.serializers import PostReactorProfileBadgeSerializer
+from openbook_posts.views.post_comment.post_comment_reaction.serializers import (
+    PostReactorProfileBadgeSerializer,
+)
 
 
 class DeletePostReactionSerializer(serializers.Serializer):
@@ -23,10 +25,7 @@ class PostReactorProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = (
-            'avatar',
-            'badges'
-        )
+        fields = ("avatar", "badges")
 
 
 class PostReactionReactorSerializer(serializers.ModelSerializer):
@@ -34,21 +33,17 @@ class PostReactionReactorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = (
-            'username',
-            'profile',
-            'id'
-        )
+        fields = ("username", "profile", "id")
 
 
 class PostReactionEmojiSerializer(serializers.ModelSerializer):
     class Meta:
         model = Emoji
         fields = (
-            'id',
-            'keyword',
-            'image',
-            'created',
+            "id",
+            "keyword",
+            "image",
+            "created",
         )
 
 
@@ -58,9 +53,4 @@ class PostReactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PostReaction
-        fields = (
-            'reactor',
-            'created',
-            'emoji',
-            'id'
-        )
+        fields = ("reactor", "created", "emoji", "id")

@@ -12,7 +12,10 @@ from faker import Faker
 import logging
 import json
 
-from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user
+from openbook_common.tests.helpers import (
+    make_user,
+    make_authentication_headers_for_user,
+)
 from openbook_common.utils.test import uuid_id_parser
 from openbook_invitations.models import UserInvite
 
@@ -33,9 +36,7 @@ class UserInvitesAPITests(OpenbookAPITestCase):
         original_invite_count = 5
         user = make_user(invite_count=original_invite_count)
         nickname = fake.name()
-        data = {
-            'nickname': nickname
-        }
+        data = {"nickname": nickname}
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
@@ -45,10 +46,12 @@ class UserInvitesAPITests(OpenbookAPITestCase):
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         user.refresh_from_db()
 
-        invite_id = parsed_response['id']
+        invite_id = parsed_response["id"]
 
         self.assertEqual(user.invite_count, (original_invite_count - 1))
-        self.assertTrue(UserInvite.objects.filter(invited_by=user, nickname=nickname).exists())
+        self.assertTrue(
+            UserInvite.objects.filter(invited_by=user, nickname=nickname).exists()
+        )
         invite = UserInvite.objects.get(invited_by=user, nickname=nickname)
         self.assertEqual(invite.id, invite_id)
 
@@ -58,16 +61,16 @@ class UserInvitesAPITests(OpenbookAPITestCase):
         """
         user = make_user()
         nickname = fake.name()
-        data = {
-            'nickname': nickname
-        }
+        data = {"nickname": nickname}
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertFalse(UserInvite.objects.filter(invited_by=user, nickname=nickname).exists())
+        self.assertFalse(
+            UserInvite.objects.filter(invited_by=user, nickname=nickname).exists()
+        )
 
     def test_cannot_create_invite_without_nickname(self):
         """
@@ -105,7 +108,7 @@ class UserInvitesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(total_invites, len(response_invites))
         for response_invite in response_invites:
-            response_invite_id = response_invite.get('id')
+            response_invite_id = response_invite.get("id")
             self.assertIn(response_invite_id, invited_ids)
         user.refresh_from_db()
         self.assertEqual(user.invite_count, original_invite_count - total_invites)
@@ -128,16 +131,14 @@ class UserInvitesAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
-        response = self.client.get(url, {
-            'pending': False
-        }, **headers)
+        response = self.client.get(url, {"pending": False}, **headers)
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(len(parsed_response) == 1)
         invite.refresh_from_db()
-        self.assertTrue(invite.pk == parsed_response[0]['id'])
+        self.assertTrue(invite.pk == parsed_response[0]["id"])
 
     def test_get_invites_with_status_pending(self):
         """
@@ -159,16 +160,14 @@ class UserInvitesAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
-        response = self.client.get(url, {
-            'pending': True
-        }, **headers)
+        response = self.client.get(url, {"pending": True}, **headers)
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(len(parsed_response) == 4)
         for invite in parsed_response:
-            self.assertIn(invite['id'], pending_invited_ids)
+            self.assertIn(invite["id"], pending_invited_ids)
 
     @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_get_invites_count_offset(self):
@@ -189,27 +188,23 @@ class UserInvitesAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
-        response = self.client.get(url, {
-            'count': count,
-            'offset': offset
-        }, **headers)
+        response = self.client.get(url, {"count": count, "offset": offset}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_invites = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_invites), count)
         for response_invite in response_invites:
-            response_invite_id = response_invite.get('id')
+            response_invite_id = response_invite.get("id")
             self.assertIn(response_invite_id, offset_invited_ids)
         user.refresh_from_db()
         self.assertEqual(user.invite_count, original_invite_count - total_invites)
 
     def _get_url(self):
-        return reverse('invites')
+        return reverse("invites")
 
 
 class UserInviteSearchAPITests(OpenbookAPITestCase):
-
     def test_get_search_invites(self):
         """
         should be able to get invites with search
@@ -227,19 +222,17 @@ class UserInviteSearchAPITests(OpenbookAPITestCase):
         search = invites[0].nickname
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
-        response = self.client.get(url, {
-            'query': search,
-            'pending': True
-        }, **headers)
+        response = self.client.get(url, {"query": search, "pending": True}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_invites = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertTrue(len(response_invites) == 1)
-        self.assertEqual(response_invites[0]['id'], invites[0].id)
+        self.assertEqual(response_invites[0]["id"], invites[0].id)
 
     def _get_url(self):
-        return reverse('search-invites')
+        return reverse("search-invites")
+
 
 class UserInviteItemAPITests(OpenbookAPITestCase):
     """
@@ -296,25 +289,31 @@ class UserInviteItemAPITests(OpenbookAPITestCase):
         url = self._get_url(invite.pk)
         headers = make_authentication_headers_for_user(user)
         new_nickname = fake.name()
-        response = self.client.patch(url, {
-            'nickname': new_nickname
-        }, **headers)
+        response = self.client.patch(url, {"nickname": new_nickname}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         invite.refresh_from_db()
         self.assertEqual(invite.nickname, new_nickname)
 
     def _get_url(self, invite_id):
-        return reverse('invite', kwargs={
-            'invite_id': invite_id
-        })
+        return reverse("invite", kwargs={"invite_id": invite_id})
 
 
 class MockEmailMultiAlternatives:
-
-    def __init__(self, subject='', body='', from_email=None, to=None, bcc=None,
-                 connection=None, attachments=None, headers=None, alternatives=None,
-                 cc=None, reply_to=None):
+    def __init__(
+        self,
+        subject="",
+        body="",
+        from_email=None,
+        to=None,
+        bcc=None,
+        connection=None,
+        attachments=None,
+        headers=None,
+        alternatives=None,
+        cc=None,
+        reply_to=None,
+    ):
         pass
 
     def attach_alternative(self, content, mimetype):
@@ -328,6 +327,7 @@ class UserInviteItemEmailAPI(OpenbookAPITestCase):
     """
     UserInviteItemEmail API
     """
+
     def test_can_send_email_to_invitee(self):
         """
         should be able to send invite email to invitee
@@ -338,16 +338,15 @@ class UserInviteItemEmailAPI(OpenbookAPITestCase):
 
         url = self._get_url(invite.pk)
         headers = make_authentication_headers_for_user(user)
-        with patch('django.core.mail.EmailMultiAlternatives', return_value=MockEmailMultiAlternatives):
-            response = self.client.post(url, {
-                'email': fake.email()
-            }, **headers)
+        with patch(
+            "django.core.mail.EmailMultiAlternatives",
+            return_value=MockEmailMultiAlternatives,
+        ):
+            response = self.client.post(url, {"email": fake.email()}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         invite.refresh_from_db()
         self.assertTrue(invite.is_invite_email_sent)
 
     def _get_url(self, invite_id):
-        return reverse('send-invite-email', kwargs={
-            'invite_id': invite_id
-        })
+        return reverse("send-invite-email", kwargs={"invite_id": invite_id})

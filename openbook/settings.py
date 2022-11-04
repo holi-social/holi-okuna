@@ -30,6 +30,7 @@ from openbook_common.utils.environment import EnvironmentChecker
 #  the force_text method back into django so graphene-django can work. should be updated once released
 import django
 from django.utils.encoding import force_str
+
 django.utils.encoding.force_text = force_str
 
 # Python 3.10 moved collections.Callable to collections.abc.Callable. This is a patch to make old libs work (in particular nose)
@@ -38,46 +39,48 @@ collections.Callable = collections.abc.Callable
 # based on https://github.com/graphql-python/graphene/issues/513
 class GraphQLLogFilter(logging.Filter):
     def filter(self, record):
-        if record.msg and 'GraphQLError' in record.msg:
+        if record.msg and "GraphQLError" in record.msg:
             return None
         return True
 
 
 LOGGING_CONFIG = None
-logging.config.dictConfig({
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'console': {
-            # exact format is not important, this is the minimum information
-            'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-        }
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'console',
-        }
-    },
-    # Prevent intentional graphql exceptions from displaying in log
-    'filters': {
-        'graphql_log_filter': {
-            '()': GraphQLLogFilter,
-        }
-    },
-    'loggers': {
-        # root logger
-        '': {
-            'level': 'INFO',
-            'handlers': ['console'],
+logging.config.dictConfig(
+    {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "console": {
+                # exact format is not important, this is the minimum information
+                "format": "%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
+            }
         },
-        'graphql.execution.utils': {
-            'level': 'WARNING',
-            'handlers': ['console'],
-            'filters': ['graphql_log_filter'],
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "formatter": "console",
+            }
         },
-    },
-})
+        # Prevent intentional graphql exceptions from displaying in log
+        "filters": {
+            "graphql_log_filter": {
+                "()": GraphQLLogFilter,
+            }
+        },
+        "loggers": {
+            # root logger
+            "": {
+                "level": "INFO",
+                "handlers": ["console"],
+            },
+            "graphql.execution.utils": {
+                "level": "WARNING",
+                "handlers": ["console"],
+                "filters": ["graphql_log_filter"],
+            },
+        },
+    }
+)
 
 logger = logging.getLogger(__name__)
 
@@ -85,23 +88,25 @@ logger = logging.getLogger(__name__)
 load_dotenv(verbose=True, dotenv_path=find_dotenv())
 
 # The current execution environment
-ENVIRONMENT = os.environ.get('ENVIRONMENT')
-ENVIRONMENT_ID = os.environ.get('ENVIRONMENT_ID', 'local')
+ENVIRONMENT = os.environ.get("ENVIRONMENT")
+ENVIRONMENT_ID = os.environ.get("ENVIRONMENT_ID", "local")
 
 if not ENVIRONMENT:
-    if 'test' in sys.argv:
-        logger.info('No ENVIRONMENT variable found but test detected. Setting ENVIRONMENT=TEST_VALUE')
+    if "test" in sys.argv:
+        logger.info(
+            "No ENVIRONMENT variable found but test detected. Setting ENVIRONMENT=TEST_VALUE"
+        )
         ENVIRONMENT = EnvironmentChecker.TEST_VALUE
     else:
-        raise NameError('ENVIRONMENT environment variable is required')
+        raise NameError("ENVIRONMENT environment variable is required")
 
 environment_checker = EnvironmentChecker(environment_value=ENVIRONMENT)
 
 # Django SECRET_KEY
-SECRET_KEY = os.environ.get('SECRET_KEY')
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 if not SECRET_KEY:
-    raise NameError('SECRET_KEY environment variable is required')
+    raise NameError("SECRET_KEY environment variable is required")
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -110,82 +115,84 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEBUG = environment_checker.is_debug()
 IS_PRODUCTION = environment_checker.is_production()
 IS_BUILD = environment_checker.is_build()
-TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
+TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS')
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS")
 if IS_PRODUCTION:
     if not ALLOWED_HOSTS:
-        raise NameError('ALLOWED_HOSTS environment variable is required when running on a production environment')
-    ALLOWED_HOSTS = [allowed_host.strip() for allowed_host in ALLOWED_HOSTS.split(',')]
+        raise NameError(
+            "ALLOWED_HOSTS environment variable is required when running on a production environment"
+        )
+    ALLOWED_HOSTS = [allowed_host.strip() for allowed_host in ALLOWED_HOSTS.split(",")]
 else:
     if ALLOWED_HOSTS:
-        logger.info('ALLOWED_HOSTS environment variable ignored.')
-    ALLOWED_HOSTS = ['*']
+        logger.info("ALLOWED_HOSTS environment variable ignored.")
+    ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
 INSTALLED_APPS = [
     # Has to be before contrib admin
     # See https://django-modeltranslation.readthedocs.io/en/latest/installation.html#required-settings
-    'corsheaders',
-    'modeltranslation',
-    'django.contrib.admin',
-    'django.contrib.humanize',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'rest_framework',
-    'rest_framework.authtoken',
-    'django_nose',
-    'ordered_model',
-    'storages',
-    'video_encoding',
-    'imagekit',
-    'django_media_fixtures',
-    'cacheops',
-    'django_rq',
-    'scheduler',
-    'django_extensions',
-    'graphene_django',
-    'openbook_common',
-    'openbook_auth',
-    'openbook_posts',
-    'openbook_circles',
-    'openbook_connections',
-    'openbook_importer',
-    'openbook_insights',
-    'openbook_lists',
-    'openbook_follows',
-    'openbook_communities',
-    'openbook_invitations',
-    'openbook_tags',
-    'openbook_hashtags',
-    'openbook_categories',
-    'openbook_notifications',
-    'openbook_devices',
-    'openbook_moderation',
-    'openbook_translation',
-    'openbook_spaces',
+    "corsheaders",
+    "modeltranslation",
+    "django.contrib.admin",
+    "django.contrib.humanize",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "rest_framework",
+    "rest_framework.authtoken",
+    "django_nose",
+    "ordered_model",
+    "storages",
+    "video_encoding",
+    "imagekit",
+    "django_media_fixtures",
+    "cacheops",
+    "django_rq",
+    "scheduler",
+    "django_extensions",
+    "graphene_django",
+    "openbook_common",
+    "openbook_auth",
+    "openbook_posts",
+    "openbook_circles",
+    "openbook_connections",
+    "openbook_importer",
+    "openbook_insights",
+    "openbook_lists",
+    "openbook_follows",
+    "openbook_communities",
+    "openbook_invitations",
+    "openbook_tags",
+    "openbook_hashtags",
+    "openbook_categories",
+    "openbook_notifications",
+    "openbook_devices",
+    "openbook_moderation",
+    "openbook_translation",
+    "openbook_spaces",
 ]
 
-MODELTRANSLATION_FALLBACK_LANGUAGES = ('en',)
+MODELTRANSLATION_FALLBACK_LANGUAGES = ("en",)
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.RemoteUserMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'openbook_common.middleware.TimezoneMiddleware',
-    'openbook_common.middleware.ChunkedContentLengthMiddleware'
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.auth.middleware.RemoteUserMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "openbook_common.middleware.TimezoneMiddleware",
+    "openbook_common.middleware.ChunkedContentLengthMiddleware",
 ]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
@@ -195,169 +202,156 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 CORS_ALLOW_CREDENTIALS = True
 
 # Needed for using the /admin interface for editing insights, HOLI-1562
-CSRF_TRUSTED_ORIGINS = ['https://0kuna-adm1n.project-holi.org', ]
-
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.RemoteUserBackend',
-    'django.contrib.auth.backends.ModelBackend', # needs to be here for /admin to work
+CSRF_TRUSTED_ORIGINS = [
+    "https://0kuna-adm1n.project-holi.org",
 ]
 
-ROOT_URLCONF = 'openbook.urls'
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.RemoteUserBackend",
+    "django.contrib.auth.backends.ModelBackend",  # needs to be here for /admin to work
+]
 
-AUTH_USER_MODEL = 'openbook_auth.User'
+ROOT_URLCONF = "openbook.urls"
 
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+AUTH_USER_MODEL = "openbook_auth.User"
 
-JWT_ALGORITHM = os.environ.get('JWT_ALGORITHM', 'HS256')
+TEST_RUNNER = "django_nose.NoseTestSuiteRunner"
+
+JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 
 # TODO Think about what to do for cache backend
-REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
-REDIS_PORT = int(os.environ.get('REDIS_PORT', '6379'))
-REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
+REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.environ.get("REDIS_PORT", "6379"))
+REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD")
 
-redis_protocol = 'redis://' # 'rediss://' if IS_PRODUCTION else 'redis://'
+redis_protocol = "redis://"  # 'rediss://' if IS_PRODUCTION else 'redis://'
 
-redis_password = '' if not REDIS_PASSWORD else f':{REDIS_PASSWORD}'
+redis_password = "" if not REDIS_PASSWORD else f":{REDIS_PASSWORD}"
 
-REDIS_LOCATION = f'{redis_protocol}{redis_password}@{REDIS_HOST}:{REDIS_PORT}'
+REDIS_LOCATION = f"{redis_protocol}{redis_password}@{REDIS_HOST}:{REDIS_PORT}"
 
 RQ_SHOW_ADMIN_LINK = False
 
-REDIS_DEFAULT_CACHE_LOCATION = f'{REDIS_LOCATION}/0'
-REDIS_RQ_DEFAULT_JOBS_CACHE_LOCATION = f'{REDIS_LOCATION}/1'
-REDIS_RQ_HIGH_JOBS_CACHE_LOCATION = f'{REDIS_LOCATION}/2'
-REDIS_RQ_LOW_JOBS_CACHE_LOCATION = f'{REDIS_LOCATION}/3'
+REDIS_DEFAULT_CACHE_LOCATION = f"{REDIS_LOCATION}/0"
+REDIS_RQ_DEFAULT_JOBS_CACHE_LOCATION = f"{REDIS_LOCATION}/1"
+REDIS_RQ_HIGH_JOBS_CACHE_LOCATION = f"{REDIS_LOCATION}/2"
+REDIS_RQ_LOW_JOBS_CACHE_LOCATION = f"{REDIS_LOCATION}/3"
 
 CACHES = {
-    'default': {
+    "default": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_DEFAULT_CACHE_LOCATION,
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient"
-        },
-        "KEY_PREFIX": "ob-api-" + ENVIRONMENT_ID + "-"
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+        "KEY_PREFIX": "ob-api-" + ENVIRONMENT_ID + "-",
     },
-    'rq-default-jobs': {
+    "rq-default-jobs": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_RQ_DEFAULT_JOBS_CACHE_LOCATION,
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient"
-        },
-        "KEY_PREFIX": "ob-api-rq-default-job-" + ENVIRONMENT_ID + "-"
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+        "KEY_PREFIX": "ob-api-rq-default-job-" + ENVIRONMENT_ID + "-",
     },
-    'rq-high-jobs': {
+    "rq-high-jobs": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_RQ_HIGH_JOBS_CACHE_LOCATION,
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient"
-        },
-        "KEY_PREFIX": "ob-api-rq-high-job-" + ENVIRONMENT_ID + "-"
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+        "KEY_PREFIX": "ob-api-rq-high-job-" + ENVIRONMENT_ID + "-",
     },
-    'rq-low-jobs': {
+    "rq-low-jobs": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_RQ_LOW_JOBS_CACHE_LOCATION,
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient"
-        },
-        "KEY_PREFIX": "ob-api-rq-low-job-" + ENVIRONMENT_ID + "-"
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+        "KEY_PREFIX": "ob-api-rq-low-job-" + ENVIRONMENT_ID + "-",
     },
 }
 
-CACHEOPS_REDIS_DB = int(os.environ.get('CACHEOPS_REDIS_DB', '1'))
+CACHEOPS_REDIS_DB = int(os.environ.get("CACHEOPS_REDIS_DB", "1"))
 
-CACHEOPS_REDIS = f'{REDIS_LOCATION}/{CACHEOPS_REDIS_DB}'
+CACHEOPS_REDIS = f"{REDIS_LOCATION}/{CACHEOPS_REDIS_DB}"
 
-CACHEOPS_DEFAULTS = {
-    'timeout': 60 * 60
-}
+CACHEOPS_DEFAULTS = {"timeout": 60 * 60}
 
 CACHEOPS = {
     # Don't cache anything automatically
-    '*.*': {},
+    "*.*": {},
 }
 
 RQ_QUEUES = {
-    'default': {
-        'USE_REDIS_CACHE': 'rq-default-jobs',
+    "default": {
+        "USE_REDIS_CACHE": "rq-default-jobs",
     },
-    'high': {
-        'USE_REDIS_CACHE': 'rq-high-jobs',
+    "high": {
+        "USE_REDIS_CACHE": "rq-high-jobs",
     },
-    'low': {
-        'USE_REDIS_CACHE': 'rq-low-jobs',
+    "low": {
+        "USE_REDIS_CACHE": "rq-low-jobs",
     },
 }
 
 # FYI: NOSE is a (deprecated) unit testing library
 if IS_BUILD:
     NOSE_ARGS = [
-        '--cover-erase',
-        '--cover-package=.',
-        '--with-spec',
-        '--spec-color',
-        '--with-coverage',
-        '--cover-xml',
-        '--verbosity=1',
-        '--nologcapture'
+        "--cover-erase",
+        "--cover-package=.",
+        "--with-spec",
+        "--spec-color",
+        "--with-coverage",
+        "--cover-xml",
+        "--verbosity=1",
+        "--nologcapture",
     ]
 elif environment_checker.is_quicktest():
-    NOSE_ARGS = [
-        '--nologcapture'
-    ]
+    NOSE_ARGS = ["--nologcapture"]
 else:
     NOSE_ARGS = [
-        '--cover-erase',
-        '--cover-package=.',
-        '--with-spec',
-        '--spec-color',
-        '--with-coverage',
-        '--cover-html',
-        '--cover-html-dir=reports/cover',
-        '--verbosity=1',
-        '--nologcapture',
-        '--nocapture'
+        "--cover-erase",
+        "--cover-package=.",
+        "--with-spec",
+        "--spec-color",
+        "--with-coverage",
+        "--cover-html",
+        "--cover-html-dir=reports/cover",
+        "--verbosity=1",
+        "--nologcapture",
+        "--nocapture",
     ]
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'openbook.wsgi.application'
+WSGI_APPLICATION = "openbook.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 if IS_BUILD or TESTING:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': 'open-book-api'
-        }
+        "default": {"ENGINE": "django.db.backends.sqlite3", "NAME": "open-book-api"}
     }
 else:
     # FYI: RDS is Amazons fully managed DB (which we don't have to use), somebody just chose this var name here
-    RDS_DB_NAME = os.environ.get('RDS_DB_NAME')
-    RDS_USERNAME = os.environ.get('RDS_USERNAME')
-    RDS_PASSWORD = os.environ.get('RDS_PASSWORD')
-    RDS_PORT = os.environ.get('RDS_PORT')
-    RDS_HOSTNAME = os.environ.get('RDS_HOSTNAME')
+    RDS_DB_NAME = os.environ.get("RDS_DB_NAME")
+    RDS_USERNAME = os.environ.get("RDS_USERNAME")
+    RDS_PASSWORD = os.environ.get("RDS_PASSWORD")
+    RDS_PORT = os.environ.get("RDS_PORT")
+    RDS_HOSTNAME = os.environ.get("RDS_HOSTNAME")
 
-    RDS_HOSTNAME_WRITER = os.environ.get('RDS_HOSTNAME_WRITER', RDS_HOSTNAME)
-    RDS_HOSTNAME_READER = os.environ.get('RDS_HOSTNAME_READER', RDS_HOSTNAME_WRITER)
+    RDS_HOSTNAME_WRITER = os.environ.get("RDS_HOSTNAME_WRITER", RDS_HOSTNAME)
+    RDS_HOSTNAME_READER = os.environ.get("RDS_HOSTNAME_READER", RDS_HOSTNAME_WRITER)
 
     # db_options = {
     #    'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
@@ -365,17 +359,17 @@ else:
     # }
 
     writer_db_config = {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': RDS_DB_NAME,
-        'USER': RDS_USERNAME,
-        'PASSWORD': RDS_PASSWORD,
-        'HOST': RDS_HOSTNAME_WRITER,
-        'PORT': RDS_PORT,
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": RDS_DB_NAME,
+        "USER": RDS_USERNAME,
+        "PASSWORD": RDS_PASSWORD,
+        "HOST": RDS_HOSTNAME_WRITER,
+        "PORT": RDS_PORT,
         # 'OPTIONS': db_options,
     }
 
     DATABASES = {
-        'default': writer_db_config,
+        "default": writer_db_config,
         # 'Reader': {
         #    'ENGINE': 'django.db.backends.mysql',
         #    'NAME': RDS_DB_NAME,
@@ -387,11 +381,11 @@ else:
         # }
     }
 
-    #DATABASE_ROUTERS = ['django_replicated.router.ReplicationRouter']
+    # DATABASE_ROUTERS = ['django_replicated.router.ReplicationRouter']
 
-    #REPLICATED_DATABASE_SLAVES = ['Reader', ]
+    # REPLICATED_DATABASE_SLAVES = ['Reader', ]
 
-    #MIDDLEWARE.append('django_replicated.middleware.ReplicationMiddleware', )
+    # MIDDLEWARE.append('django_replicated.middleware.ReplicationMiddleware', )
 
     # REPLICATED_VIEWS_OVERRIDES = {
     #    '/admin/*': 'master',
@@ -402,76 +396,73 @@ else:
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
 # REST Framework config
 
 REST_FRAMEWORK = {
-    'DEFAULT_PARSER_CLASSES': (
-        'rest_framework.parsers.MultiPartParser',
-        'rest_framework.parsers.FormParser',
-        'rest_framework.parsers.JSONParser',
+    "DEFAULT_PARSER_CLASSES": (
+        "rest_framework.parsers.MultiPartParser",
+        "rest_framework.parsers.FormParser",
+        "rest_framework.parsers.JSONParser",
     ),
-    'DEFAULT_RENDERER_CLASSES': (
-        'rest_framework.renderers.JSONRenderer',
+    "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "openbook_auth.oathkeeper.HoliOathkeeperAuthentication",
     ),
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'openbook_auth.oathkeeper.HoliOathkeeperAuthentication',
-    ),
-    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.AcceptHeaderVersioning',
-    'DEFAULT_THROTTLE_RATES': {
-        'link_preview': '300/hour',
-    }
+    "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.AcceptHeaderVersioning",
+    "DEFAULT_THROTTLE_RATES": {
+        "link_preview": "300/hour",
+    },
 }
 
 # AWS Translate
-AWS_TRANSLATE_REGION = os.environ.get('AWS_TRANSLATE_REGION', 'eu-central-1')
-AWS_TRANSLATE_MAX_LENGTH = os.environ.get('AWS_TRANSLATE_MAX_LENGTH', 10000)
-OS_TRANSLATION_STRATEGY_NAME = 'default'
+AWS_TRANSLATE_REGION = os.environ.get("AWS_TRANSLATE_REGION", "eu-central-1")
+AWS_TRANSLATE_MAX_LENGTH = os.environ.get("AWS_TRANSLATE_MAX_LENGTH", 10000)
+OS_TRANSLATION_STRATEGY_NAME = "default"
 OS_TRANSLATION_CONFIG = {
-    'default': {
-        'STRATEGY': 'openbook_translation.strategies.amazon.AmazonTranslate',
-        'TEXT_MAX_LENGTH': AWS_TRANSLATE_MAX_LENGTH,
-        'DEFAULT_TRANSLATION_LANGUAGE_CODE': 'en'
+    "default": {
+        "STRATEGY": "openbook_translation.strategies.amazon.AmazonTranslate",
+        "TEXT_MAX_LENGTH": AWS_TRANSLATE_MAX_LENGTH,
+        "DEFAULT_TRANSLATION_LANGUAGE_CODE": "en",
     },
-    'testing': {
-        'STRATEGY': 'openbook_translation.strategies.tests.MockAmazonTranslate',
-        'TEXT_MAX_LENGTH': 40,
-        'DEFAULT_TRANSLATION_LANGUAGE_CODE': 'en'
-    }
+    "testing": {
+        "STRATEGY": "openbook_translation.strategies.tests.MockAmazonTranslate",
+        "TEXT_MAX_LENGTH": 40,
+        "DEFAULT_TRANSLATION_LANGUAGE_CODE": "en",
+    },
 }
 
 UNICODE_JSON = True
 
 # The sentry DSN for error reporting
-SENTRY_DSN = os.environ.get('SENTRY_DSN')
+SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if IS_PRODUCTION:
     if not SENTRY_DSN:
-        raise NameError('SENTRY_DSN environment variable is required when running on a production environment')
-    sentry_sdk.init(
-        dsn=SENTRY_DSN,
-        integrations=[DjangoIntegration(), RqIntegration()]
-    )
+        raise NameError(
+            "SENTRY_DSN environment variable is required when running on a production environment"
+        )
+    sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration(), RqIntegration()])
 else:
     if SENTRY_DSN:
-        logger.info('SENTRY_DSN environment variable ignored.')
+        logger.info("SENTRY_DSN environment variable ignored.")
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
 
-TIME_ZONE = 'Europe/Amsterdam'
+TIME_ZONE = "Europe/Amsterdam"
 
 USE_I18N = True
 
@@ -479,71 +470,85 @@ USE_L10N = True
 
 USE_TZ = True
 
-LOCALE_PATHS = (
-    os.path.join(BASE_DIR, 'locale'),
-)
+LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 
 LANGUAGES = [
-    ('es', _('Spanish')),
-    ('en', _('English')),
-    ('de', _('German')),
-    ('nl', _('Dutch')),
-    ('da', _('Danish')),
-    ('hu', _('Hungarian')),
-    ('sv', _('Swedish')),
-    ('fr', _('French')),
-    ('it', _('Italian')),
-    ('tr', _('Turkish')),
-    ('pt-br', _('Portuguese, Brazilian')),
+    ("es", _("Spanish")),
+    ("en", _("English")),
+    ("de", _("German")),
+    ("nl", _("Dutch")),
+    ("da", _("Danish")),
+    ("hu", _("Hungarian")),
+    ("sv", _("Swedish")),
+    ("fr", _("French")),
+    ("it", _("Italian")),
+    ("tr", _("Turkish")),
+    ("pt-br", _("Portuguese, Brazilian")),
 ]
 
-LANGUAGE_CODE = 'en'
+LANGUAGE_CODE = "en"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
-STATIC_URL = '/static/'
+STATIC_URL = "/static/"
 
-MEDIA_ROOT = os.environ.get('MEDIA_ROOT', './media')
+MEDIA_ROOT = os.environ.get("MEDIA_ROOT", "./media")
 
-MEDIA_URL = os.environ.get('MEDIA_URL', '/media/')
+MEDIA_URL = os.environ.get("MEDIA_URL", "/media/")
 
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'openbook/static'),
-)
+STATICFILES_DIRS = (os.path.join(BASE_DIR, "openbook/static"),)
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 # Video encoding
 
 VIDEO_ENCODING_FORMATS = {
-    'FFmpeg': [
+    "FFmpeg": [
         {
-            'name': 'mp4_sd',
-            'extension': 'mp4',
-            'params': [
-                '-codec:v', 'libx264', '-crf', '20', '-preset', 'medium',
-                '-b:v', '1000k', '-maxrate', '1000k', '-bufsize', '2000k',
-                '-vf', 'scale=-2:480',  # http://superuser.com/a/776254
-                '-codec:a', 'aac', '-b:a', '128k', '-strict', '-2', '-preset', 'veryfast'
+            "name": "mp4_sd",
+            "extension": "mp4",
+            "params": [
+                "-codec:v",
+                "libx264",
+                "-crf",
+                "20",
+                "-preset",
+                "medium",
+                "-b:v",
+                "1000k",
+                "-maxrate",
+                "1000k",
+                "-bufsize",
+                "2000k",
+                "-vf",
+                "scale=-2:480",  # http://superuser.com/a/776254
+                "-codec:a",
+                "aac",
+                "-b:a",
+                "128k",
+                "-strict",
+                "-2",
+                "-preset",
+                "veryfast",
             ],
         },
     ]
 }
 
-PROXY_URL = os.environ.get('PROXY_URL', '')
+PROXY_URL = os.environ.get("PROXY_URL", "")
 
 # Openbook config
 USERNAME_MAX_LENGTH = 36
-USER_MAX_FOLLOWS = int(os.environ.get('USER_MAX_FOLLOWS', '1500'))
-USER_MAX_CONNECTIONS = int(os.environ.get('USER_MAX_CONNECTIONS', '1500'))
+USER_MAX_FOLLOWS = int(os.environ.get("USER_MAX_FOLLOWS", "1500"))
+USER_MAX_CONNECTIONS = int(os.environ.get("USER_MAX_CONNECTIONS", "1500"))
 USER_MAX_COMMUNITIES = 200
-POST_MAX_LENGTH = int(os.environ.get('POST_MAX_LENGTH', '5000'))
-POST_MAX_HASHTAGS = int(os.environ.get('POST_MAX_HASHTAGS', '3'))
-POST_COMMENT_MAX_HASHTAGS = int(os.environ.get('POST_COMMENT_MAX_HASHTAGS', '3'))
-POST_COMMENT_MAX_LENGTH = int(os.environ.get('POST_MAX_LENGTH', '1500'))
-POST_MEDIA_MAX_SIZE = int(os.environ.get('POST_MEDIA_MAX_SIZE', '10485760'))
-POST_LINK_MAX_DOMAIN_LENGTH = int(os.environ.get('POST_LINK_MAX_DOMAIN_LENGTH', '126'))
-POST_MEDIA_MAX_ITEMS = int(os.environ.get('POST_MEDIA_MAX_ITEMS', '1'))
+POST_MAX_LENGTH = int(os.environ.get("POST_MAX_LENGTH", "5000"))
+POST_MAX_HASHTAGS = int(os.environ.get("POST_MAX_HASHTAGS", "3"))
+POST_COMMENT_MAX_HASHTAGS = int(os.environ.get("POST_COMMENT_MAX_HASHTAGS", "3"))
+POST_COMMENT_MAX_LENGTH = int(os.environ.get("POST_MAX_LENGTH", "1500"))
+POST_MEDIA_MAX_SIZE = int(os.environ.get("POST_MEDIA_MAX_SIZE", "10485760"))
+POST_LINK_MAX_DOMAIN_LENGTH = int(os.environ.get("POST_LINK_MAX_DOMAIN_LENGTH", "126"))
+POST_MEDIA_MAX_ITEMS = int(os.environ.get("POST_MEDIA_MAX_ITEMS", "1"))
 PASSWORD_MIN_LENGTH = 10
 PASSWORD_MAX_LENGTH = 100
 CIRCLE_MAX_LENGTH = 100
@@ -559,10 +564,10 @@ PROFILE_SDG_MAX_LENGTH = 64
 PROFILE_SDGS_MAX_COUNT = 64
 PROFILE_SKILL_MAX_LENGTH = 64
 PROFILE_SKILLS_MAX_COUNT = 64
-PROFILE_ABOUT_ME_MAX_LENGTH = int(os.environ.get('PROFILE_ABOUT_ME_MAX_LENGTH', '3000'))
-PROFILE_AVATAR_MAX_SIZE = int(os.environ.get('PROFILE_AVATAR_MAX_SIZE', '10485760'))
+PROFILE_ABOUT_ME_MAX_LENGTH = int(os.environ.get("PROFILE_ABOUT_ME_MAX_LENGTH", "3000"))
+PROFILE_AVATAR_MAX_SIZE = int(os.environ.get("PROFILE_AVATAR_MAX_SIZE", "10485760"))
 PROFILE_AVATAR_URL_MAX_LENGTH = 500
-PROFILE_COVER_MAX_SIZE = int(os.environ.get('PROFILE_COVER_MAX_SIZE', '10485760'))
+PROFILE_COVER_MAX_SIZE = int(os.environ.get("PROFILE_COVER_MAX_SIZE", "10485760"))
 PROFILE_COVER_URL_MAX_LENGTH = 500
 WORLD_CIRCLE_ID = "00000000-0000-0000-0000-000000000001"
 PASSWORD_RESET_TIMEOUT_DAYS = 1
@@ -571,11 +576,11 @@ COMMUNITY_TITLE_MAX_LENGTH = 32
 COMMUNITY_DESCRIPTION_MAX_LENGTH = 500
 COMMUNITY_USER_ADJECTIVE_MAX_LENGTH = 16
 COMMUNITY_USERS_ADJECTIVE_MAX_LENGTH = 16
-COMMUNITY_RULES_MAX_LENGTH = int(os.environ.get('COMMUNITY_RULES_MAX_LENGTH', '5000'))
+COMMUNITY_RULES_MAX_LENGTH = int(os.environ.get("COMMUNITY_RULES_MAX_LENGTH", "5000"))
 COMMUNITY_CATEGORIES_MAX_AMOUNT = 3
 COMMUNITY_CATEGORIES_MIN_AMOUNT = 1
-COMMUNITY_AVATAR_MAX_SIZE = int(os.environ.get('COMMUNITY_AVATAR_MAX_SIZE', '10485760'))
-COMMUNITY_COVER_MAX_SIZE = int(os.environ.get('COMMUNITY_COVER_MAX_SIZE', '10485760'))
+COMMUNITY_AVATAR_MAX_SIZE = int(os.environ.get("COMMUNITY_AVATAR_MAX_SIZE", "10485760"))
+COMMUNITY_COVER_MAX_SIZE = int(os.environ.get("COMMUNITY_COVER_MAX_SIZE", "10485760"))
 HASHTAG_NAME_MAX_LENGTH = 32
 CATEGORY_NAME_MAX_LENGTH = 32
 CATEGORY_TITLE_MAX_LENGTH = 64
@@ -583,52 +588,64 @@ CATEGORY_DESCRIPTION_MAX_LENGTH = 64
 DEVICE_NAME_MAX_LENGTH = 32
 DEVICE_UUID_MAX_LENGTH = 64
 SEARCH_QUERIES_MAX_LENGTH = 120
-FEATURE_IMPORTER_ENABLED = os.environ.get('FEATURE_IMPORTER_ENABLED', 'True') == 'True'
+FEATURE_IMPORTER_ENABLED = os.environ.get("FEATURE_IMPORTER_ENABLED", "True") == "True"
 MODERATION_REPORT_DESCRIPTION_MAX_LENGTH = 1000
 MODERATED_OBJECT_DESCRIPTION_MAX_LENGTH = 1000
-GLOBAL_HIDE_CONTENT_AFTER_REPORTS_AMOUNT = int(os.environ.get('GLOBAL_HIDE_CONTENT_AFTER_REPORTS_AMOUNT', '20'))
-MODERATORS_COMMUNITY_NAME = os.environ.get('MODERATORS_COMMUNITY_NAME', 'mods')
+GLOBAL_HIDE_CONTENT_AFTER_REPORTS_AMOUNT = int(
+    os.environ.get("GLOBAL_HIDE_CONTENT_AFTER_REPORTS_AMOUNT", "20")
+)
+MODERATORS_COMMUNITY_NAME = os.environ.get("MODERATORS_COMMUNITY_NAME", "mods")
 PROXY_BLACKLIST_DOMAIN_MAX_LENGTH = 150
-LINK_PREVIEW_TIMEOUT_IN_SECONDS = int(os.environ.get('GLOBAL_HIDE_CONTENT_AFTER_REPORTS_AMOUNT', 8))
+LINK_PREVIEW_TIMEOUT_IN_SECONDS = int(
+    os.environ.get("GLOBAL_HIDE_CONTENT_AFTER_REPORTS_AMOUNT", 8)
+)
 
 SUPPORTED_MEDIA_MIMETYPES = [
-    'video/mp4',
-    'video/quicktime',
-    'video/3gpp',
-    'image/gif',
-    'image/jpeg',
-    'image/png',
+    "video/mp4",
+    "video/quicktime",
+    "video/3gpp",
+    "image/gif",
+    "image/jpeg",
+    "image/png",
 ]
-NEW_USER_SUGGESTED_COMMUNITIES = os.environ.get('NEW_USER_SUGGESTED_COMMUNITIES', '00000000-0000-0000-0000-000000000002')
+NEW_USER_SUGGESTED_COMMUNITIES = os.environ.get(
+    "NEW_USER_SUGGESTED_COMMUNITIES", "00000000-0000-0000-0000-000000000002"
+)
 
 FAILED_JOB_THRESHOLD = 20
 ACTIVE_JOB_THRESHOLD = 50
 ACTIVE_WORKER_THRESHOLD = 5
-ALERT_HOOK_URL = os.environ.get('ALERT_HOOK_URL')
+ALERT_HOOK_URL = os.environ.get("ALERT_HOOK_URL")
 
-MIN_UNIQUE_TOP_POST_REACTIONS_COUNT = int(os.environ.get('MIN_UNIQUE_TOP_POST_REACTIONS_COUNT', '5'))
-MIN_UNIQUE_TOP_POST_COMMENTS_COUNT = int(os.environ.get('MIN_UNIQUE_TOP_POST_COMMENTS_COUNT', '5'))
-MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT = int(os.environ.get('MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT', '5'))
+MIN_UNIQUE_TOP_POST_REACTIONS_COUNT = int(
+    os.environ.get("MIN_UNIQUE_TOP_POST_REACTIONS_COUNT", "5")
+)
+MIN_UNIQUE_TOP_POST_COMMENTS_COUNT = int(
+    os.environ.get("MIN_UNIQUE_TOP_POST_COMMENTS_COUNT", "5")
+)
+MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT = int(
+    os.environ.get("MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT", "5")
+)
 
 # Email Config
 
-EMAIL_BACKEND = 'django_amazon_ses.EmailBackend'
-AWS_SES_REGION = os.environ.get('AWS_SES_REGION')
-AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-SERVICE_EMAIL_ADDRESS = os.environ.get('SERVICE_EMAIL_ADDRESS')
-EMAIL_HOST = os.environ.get('EMAIL_HOST')
+EMAIL_BACKEND = "django_amazon_ses.EmailBackend"
+AWS_SES_REGION = os.environ.get("AWS_SES_REGION")
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+SERVICE_EMAIL_ADDRESS = os.environ.get("SERVICE_EMAIL_ADDRESS")
+EMAIL_HOST = os.environ.get("EMAIL_HOST")
 
 # AWS Storage config
 
-AWS_PUBLIC_MEDIA_LOCATION = os.environ.get('AWS_PUBLIC_MEDIA_LOCATION')
-AWS_STATIC_LOCATION = 'static'
-AWS_PRIVATE_MEDIA_LOCATION = os.environ.get('AWS_PRIVATE_MEDIA_LOCATION')
+AWS_PUBLIC_MEDIA_LOCATION = os.environ.get("AWS_PUBLIC_MEDIA_LOCATION")
+AWS_STATIC_LOCATION = "static"
+AWS_PRIVATE_MEDIA_LOCATION = os.environ.get("AWS_PRIVATE_MEDIA_LOCATION")
 AWS_DEFAULT_ACL = None
 
 # Testing overrides
 if TESTING:
-    OS_TRANSLATION_STRATEGY_NAME = 'testing'
+    OS_TRANSLATION_STRATEGY_NAME = "testing"
     MIN_UNIQUE_TOP_POST_REACTIONS_COUNT = 1
     MIN_UNIQUE_TOP_POST_COMMENTS_COUNT = 1
     MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT = 1
@@ -636,45 +653,45 @@ if TESTING:
 # TODO Think about what to do for storage backend
 
 if not TESTING:
-    DEFAULT_FILE_STORAGE = 'openbook.storage_imagekit_io.ImagekitIoStorage'
+    DEFAULT_FILE_STORAGE = "openbook.storage_imagekit_io.ImagekitIoStorage"
 
-if False: # IS_PRODUCTION:
-    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-    AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
-    AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME')
+if False:  # IS_PRODUCTION:
+    AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+    AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
+    AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME")
     AWS_S3_ENCRYPTION = True
-    AWS_S3_SIGNATURE_VERSION = 's3v4'
-    AWS_S3_HOST = os.environ.get('AWS_S3_HOST', 's3.amazonaws.com')
-    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.{AWS_S3_HOST}'
+    AWS_S3_SIGNATURE_VERSION = "s3v4"
+    AWS_S3_HOST = os.environ.get("AWS_S3_HOST", "s3.amazonaws.com")
+    AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.{AWS_S3_HOST}"
 
     AWS_S3_OBJECT_PARAMETERS = {
-        'CacheControl': 'max-age=86400',
+        "CacheControl": "max-age=86400",
     }
 
     STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_STATIC_LOCATION}/"
 
     MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_PUBLIC_MEDIA_LOCATION}/"
 
-    STATICFILES_STORAGE = 'openbook.storage_backends.S3StaticStorage'
+    STATICFILES_STORAGE = "openbook.storage_backends.S3StaticStorage"
 
-    DEFAULT_FILE_STORAGE = 'openbook.storage_backends.S3PublicMediaStorage'
+    DEFAULT_FILE_STORAGE = "openbook.storage_backends.S3PublicMediaStorage"
 
-    PRIVATE_FILE_STORAGE = 'openbook.storage_backends.S3PrivateMediaStorage'
+    PRIVATE_FILE_STORAGE = "openbook.storage_backends.S3PrivateMediaStorage"
 
 # ONE SIGNAL
-ONE_SIGNAL_APP_ID = os.environ.get('ONE_SIGNAL_APP_ID')
-ONE_SIGNAL_API_KEY = os.environ.get('ONE_SIGNAL_API_KEY')
+ONE_SIGNAL_APP_ID = os.environ.get("ONE_SIGNAL_APP_ID")
+ONE_SIGNAL_API_KEY = os.environ.get("ONE_SIGNAL_API_KEY")
 
 # Peekalink
 
-PEEKALINK_API_KEY = os.environ.get('PEEKALINK_API_KEY', None)
+PEEKALINK_API_KEY = os.environ.get("PEEKALINK_API_KEY", None)
 
 # ImageKit Config
 
-IMAGEKIT_PUBLIC_KEY = os.environ.get('IMAGEKIT_PUBLIC_KEY', 'none')
-IMAGEKIT_PRIVATE_KEY = os.environ.get('IMAGEKIT_PRIVATE_KEY', 'none')
-IMAGEKIT_URL = os.environ.get('IMAGEKIT_URL', 'https://ik.imagekit.io/holi')
+IMAGEKIT_PUBLIC_KEY = os.environ.get("IMAGEKIT_PUBLIC_KEY", "none")
+IMAGEKIT_PRIVATE_KEY = os.environ.get("IMAGEKIT_PRIVATE_KEY", "none")
+IMAGEKIT_URL = os.environ.get("IMAGEKIT_URL", "https://ik.imagekit.io/holi")
 
 # HOLI model config settings
 

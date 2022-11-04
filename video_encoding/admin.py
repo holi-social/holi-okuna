@@ -5,7 +5,7 @@ from .models import Format
 
 class FormatInline(admin.GenericTabularInline):
     model = Format
-    fields = ('format', 'progress', 'file', 'width', 'height', 'duration')
+    fields = ("format", "progress", "file", "width", "height", "duration")
     readonly_fields = fields
     extra = 0
     max_num = 0

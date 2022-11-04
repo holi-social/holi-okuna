@@ -17,19 +17,21 @@ url_validator = URLValidator()
 
 
 class Command(BaseCommand):
-    help = 'Imports a list of proxy blacklisted domains'
+    help = "Imports a list of proxy blacklisted domains"
 
     def add_arguments(self, parser):
-        parser.add_argument('--file', type=str, help='The file to import the blacklisted domains from')
+        parser.add_argument(
+            "--file", type=str, help="The file to import the blacklisted domains from"
+        )
 
     def handle(self, *args, **options):
 
         imported_domains = 0
         already_existing_domains = 0
 
-        file_path = options.get('file', None)
+        file_path = options.get("file", None)
 
-        with open(file_path, newline='') as file:
+        with open(file_path, newline="") as file:
             line = file.readline()
 
             while line:
@@ -37,28 +39,40 @@ class Command(BaseCommand):
                 line = file.readline()
 
                 if not urlparse(url).scheme:
-                    url = 'http://' + line
+                    url = "http://" + line
 
                 # This uses a list of public suffixes
                 tld_extract_result = tldextract.extract(url)
 
                 if tld_extract_result.subdomain:
-                    url_full_domain = '.'.join(
-                        [tld_extract_result.subdomain, tld_extract_result.domain, tld_extract_result.suffix])
+                    url_full_domain = ".".join(
+                        [
+                            tld_extract_result.subdomain,
+                            tld_extract_result.domain,
+                            tld_extract_result.suffix,
+                        ]
+                    )
                 elif tld_extract_result.suffix:
-                    url_full_domain = '.'.join(
-                        [tld_extract_result.domain, tld_extract_result.suffix])
+                    url_full_domain = ".".join(
+                        [tld_extract_result.domain, tld_extract_result.suffix]
+                    )
                 else:
                     url_full_domain = tld_extract_result.domain
 
-                if ProxyBlacklistedDomain.objects.filter(domain=url_full_domain).exists():
-                    logger.info(f'Domain {url_full_domain} already exists, not importing.')
+                if ProxyBlacklistedDomain.objects.filter(
+                    domain=url_full_domain
+                ).exists():
+                    logger.info(
+                        f"Domain {url_full_domain} already exists, not importing."
+                    )
                     already_existing_domains += 1
                     continue
 
                 ProxyBlacklistedDomain.objects.create(domain=url_full_domain)
-                logger.info(f'Imported domain {url_full_domain} successfully.')
+                logger.info(f"Imported domain {url_full_domain} successfully.")
                 imported_domains += 1
 
-            logger.info('Finished. Imported %d domains and skipped %d as they already existed' % (
-                imported_domains, already_existing_domains))
+            logger.info(
+                "Finished. Imported %d domains and skipped %d as they already existed"
+                % (imported_domains, already_existing_domains)
+            )

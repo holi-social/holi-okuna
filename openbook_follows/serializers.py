@@ -15,11 +15,8 @@ class RequestToFollowUserSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=settings.USERNAME_MAX_LENGTH,
         allow_blank=False,
-        validators=[
-            username_characters_validator,
-            user_username_exists
-        ],
-        required=False
+        validators=[username_characters_validator, user_username_exists],
+        required=False,
     )
 
 
@@ -27,11 +24,8 @@ class ApproveUserFollowRequestSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=settings.USERNAME_MAX_LENGTH,
         allow_blank=False,
-        validators=[
-            username_characters_validator,
-            user_username_exists
-        ],
-        required=False
+        validators=[username_characters_validator, user_username_exists],
+        required=False,
     )
 
 
@@ -39,11 +33,8 @@ class RejectUserFollowRequestSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=settings.USERNAME_MAX_LENGTH,
         allow_blank=False,
-        validators=[
-            username_characters_validator,
-            user_username_exists
-        ],
-        required=False
+        validators=[username_characters_validator, user_username_exists],
+        required=False,
     )
 
 
@@ -51,25 +42,18 @@ class FollowUserRequestSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=settings.USERNAME_MAX_LENGTH,
         allow_blank=False,
-        validators=[
-            username_characters_validator,
-            user_username_exists
-        ],
-        required=False
+        validators=[username_characters_validator, user_username_exists],
+        required=False,
     )
     lists_ids = serializers.ListSerializer(
-        required=False,
-        child=serializers.UUIDField(validators=[list_id_exists])
+        required=False, child=serializers.UUIDField(validators=[list_id_exists])
     )
 
 
 class UserProfileBadgeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Badge
-        fields = (
-            'keyword',
-            'keyword_description'
-        )
+        fields = ("keyword", "keyword_description")
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -77,19 +61,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = (
-            'name',
-            'avatar',
-            'badges'
-        )
+        fields = ("name", "avatar", "badges")
 
 
 class FollowUserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = List
         fields = (
-            'id',
-            'name',
+            "id",
+            "name",
         )
 
 
@@ -99,12 +79,7 @@ class FollowUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = (
-            'id',
-            'username',
-            'is_following',
-            'follow_lists'
-        )
+        fields = ("id", "username", "is_following", "follow_lists")
 
 
 class FollowSerializer(serializers.ModelSerializer):
@@ -113,10 +88,10 @@ class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follow
         fields = (
-            'id',
-            'user',
-            'lists',
-            'followed_user',
+            "id",
+            "user",
+            "lists",
+            "followed_user",
         )
 
 
@@ -124,21 +99,15 @@ class ReceivedFollowRequestsRequestSerializer(serializers.Serializer):
     max_id = serializers.IntegerField(
         required=False,
     )
-    count = serializers.IntegerField(
-        required=False,
-        max_value=20
-    )
+    count = serializers.IntegerField(required=False, max_value=20)
 
 
 class DeleteFollowSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=settings.USERNAME_MAX_LENGTH,
         allow_blank=False,
-        validators=[
-            username_characters_validator,
-            user_username_exists
-        ],
-        required=False
+        validators=[username_characters_validator, user_username_exists],
+        required=False,
     )
 
 
@@ -146,13 +115,9 @@ class UpdateFollowSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=settings.USERNAME_MAX_LENGTH,
         allow_blank=False,
-        validators=[
-            username_characters_validator,
-            user_username_exists
-        ],
-        required=False
+        validators=[username_characters_validator, user_username_exists],
+        required=False,
     )
     lists_ids = serializers.ListSerializer(
-        required=False,
-        child=serializers.UUIDField(validators=[list_id_exists])
+        required=False, child=serializers.UUIDField(validators=[list_id_exists])
     )

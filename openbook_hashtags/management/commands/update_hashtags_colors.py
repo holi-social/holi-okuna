@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Update the hashtags colors'
+    help = "Update the hashtags colors"
 
     def handle(self, *args, **options):
         Hashtag = get_hashtag_model()
@@ -23,7 +23,7 @@ class Command(BaseCommand):
                 hashtag.color = new_color
                 hashtag.save()
 
-            logger.info('Processed hashtags for post with name:' + str(hashtag.name))
+            logger.info("Processed hashtags for post with name:" + str(hashtag.name))
             processed_hashtags = processed_hashtags + 1
 
-        logger.info('Updated %d hashtags colors' % processed_hashtags)
+        logger.info("Updated %d hashtags colors" % processed_hashtags)

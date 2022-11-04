@@ -35,18 +35,24 @@ class OrderedModelWithUUID(OrderedModel):
 
 
 class EmojiGroup(ModelWithUUID):
-    keyword = models.CharField(_('keyword'), max_length=32, blank=False, null=False)
-    color = models.CharField(_('color'), max_length=COLOR_ATTR_MAX_LENGTH, blank=False, null=False,
-                             validators=[hex_color_validator], unique=False)
+    keyword = models.CharField(_("keyword"), max_length=32, blank=False, null=False)
+    color = models.CharField(
+        _("color"),
+        max_length=COLOR_ATTR_MAX_LENGTH,
+        blank=False,
+        null=False,
+        validators=[hex_color_validator],
+        unique=False,
+    )
     order = models.IntegerField(unique=False, default=100)
     created = models.DateTimeField(editable=False)
-    is_reaction_group = models.BooleanField(_('is reaction group'), default=False)
+    is_reaction_group = models.BooleanField(_("is reaction group"), default=False)
 
     def __str__(self):
-        return 'EmojiGroup: ' + self.keyword
+        return "EmojiGroup: " + self.keyword
 
     def save(self, *args, **kwargs):
-        """ On save, update timestamps """
+        """On save, update timestamps"""
         if not self.created:
             self.created = timezone.now()
         return super(EmojiGroup, self).save(*args, **kwargs)
@@ -56,18 +62,30 @@ class EmojiGroup(ModelWithUUID):
 
 
 class Emoji(ModelWithUUID):
-    group = models.ForeignKey(EmojiGroup, on_delete=models.CASCADE, related_name='emojis', null=True)
-    keyword = models.CharField(_('keyword'), max_length=16, blank=False, null=False)
+    group = models.ForeignKey(
+        EmojiGroup, on_delete=models.CASCADE, related_name="emojis", null=True
+    )
+    keyword = models.CharField(_("keyword"), max_length=16, blank=False, null=False)
     # Hex colour. #FFFFFF
-    color = models.CharField(_('color'), max_length=COLOR_ATTR_MAX_LENGTH, blank=False, null=False,
-                             validators=[hex_color_validator], unique=False)
-    image = models.ImageField(_('image'), blank=False, null=False)
+    color = models.CharField(
+        _("color"),
+        max_length=COLOR_ATTR_MAX_LENGTH,
+        blank=False,
+        null=False,
+        validators=[hex_color_validator],
+        unique=False,
+    )
+    image = models.ImageField(_("image"), blank=False, null=False)
     created = models.DateTimeField(editable=False)
     order = models.IntegerField(unique=False, default=100)
 
     @classmethod
-    def get_emoji_counts_for_post_comment_with_id(cls, post_comment_id, emoji_id=None, reactor_id=None):
-        emoji_query = Q(post_comment_reactions__post_comment_id=post_comment_id, )
+    def get_emoji_counts_for_post_comment_with_id(
+        cls, post_comment_id, emoji_id=None, reactor_id=None
+    ):
+        emoji_query = Q(
+            post_comment_reactions__post_comment_id=post_comment_id,
+        )
 
         if emoji_id:
             emoji_query.add(Q(post_comment_reactions__emoji_id=emoji_id), Q.AND)
@@ -75,14 +93,25 @@ class Emoji(ModelWithUUID):
         if reactor_id:
             emoji_query.add(Q(post_comment_reactions__reactor_id=reactor_id), Q.AND)
 
-        emojis = Emoji.objects.filter(emoji_query).annotate(Count('post_comment_reactions')).distinct().order_by(
-            '-post_comment_reactions__count').cache().all()
+        emojis = (
+            Emoji.objects.filter(emoji_query)
+            .annotate(Count("post_comment_reactions"))
+            .distinct()
+            .order_by("-post_comment_reactions__count")
+            .cache()
+            .all()
+        )
 
-        return [{'emoji': emoji, 'count': emoji.post_comment_reactions__count} for emoji in emojis]
+        return [
+            {"emoji": emoji, "count": emoji.post_comment_reactions__count}
+            for emoji in emojis
+        ]
 
     @classmethod
     def get_emoji_counts_for_post_with_id(cls, post_id, emoji_id=None, reactor_id=None):
-        emoji_query = Q(post_reactions__post_id=post_id, )
+        emoji_query = Q(
+            post_reactions__post_id=post_id,
+        )
 
         if emoji_id:
             emoji_query.add(Q(post_reactions__emoji_id=emoji_id), Q.AND)
@@ -90,16 +119,24 @@ class Emoji(ModelWithUUID):
         if reactor_id:
             emoji_query.add(Q(post_reactions__reactor_id=reactor_id), Q.AND)
 
-        emojis = Emoji.objects.filter(emoji_query).annotate(Count('post_reactions')).distinct().order_by(
-            '-post_reactions__count').cache().all()
+        emojis = (
+            Emoji.objects.filter(emoji_query)
+            .annotate(Count("post_reactions"))
+            .distinct()
+            .order_by("-post_reactions__count")
+            .cache()
+            .all()
+        )
 
-        return [{'emoji': emoji, 'count': emoji.post_reactions__count} for emoji in emojis]
+        return [
+            {"emoji": emoji, "count": emoji.post_reactions__count} for emoji in emojis
+        ]
 
     def __str__(self):
-        return 'Emoji: ' + self.keyword
+        return "Emoji: " + self.keyword
 
     def save(self, *args, **kwargs):
-        """ On save, update timestamps """
+        """On save, update timestamps"""
         if not self.created:
             self.created = timezone.now()
         return super(Emoji, self).save(*args, **kwargs)
@@ -107,7 +144,9 @@ class Emoji(ModelWithUUID):
 
 class Badge(ModelWithUUID):
     keyword = models.CharField(max_length=16, blank=False, null=False, unique=True)
-    keyword_description = models.CharField(_('keyword_description'), max_length=64, blank=True, null=True, unique=True)
+    keyword_description = models.CharField(
+        _("keyword_description"), max_length=64, blank=True, null=True, unique=True
+    )
     created = models.DateTimeField(editable=False)
 
     def save(self, *args, **kwargs):
@@ -117,12 +156,12 @@ class Badge(ModelWithUUID):
 
 
 class Language(ModelWithUUID):
-    code = models.CharField(_('code'), max_length=12, blank=False, null=False)
-    name = models.CharField(_('name'), max_length=64, blank=False, null=False)
+    code = models.CharField(_("code"), max_length=12, blank=False, null=False)
+    name = models.CharField(_("name"), max_length=64, blank=False, null=False)
     created = models.DateTimeField(editable=False)
 
     def __str__(self):
-        return 'Language: ' + self.code
+        return "Language: " + self.code
 
     def save(self, *args, **kwargs):
         if not self.created:
@@ -131,14 +170,16 @@ class Language(ModelWithUUID):
 
 
 class ProxyBlacklistedDomain(ModelWithUUID):
-    domain = models.CharField(max_length=settings.PROXY_BLACKLIST_DOMAIN_MAX_LENGTH, unique=True)
+    domain = models.CharField(
+        max_length=settings.PROXY_BLACKLIST_DOMAIN_MAX_LENGTH, unique=True
+    )
 
     @classmethod
     def is_url_domain_blacklisted(cls, url):
         url = url.lower()
 
         if not urlparse(url).scheme:
-            url = 'http://' + url
+            url = "http://" + url
 
         # This uses a list of public suffixes
         tld_extract_result = tldextract.extract(url)
@@ -146,9 +187,19 @@ class ProxyBlacklistedDomain(ModelWithUUID):
         # given test.blogspot.com
 
         # blogspot.com
-        url_root_domain = '.'.join([tld_extract_result.domain, tld_extract_result.suffix])
+        url_root_domain = ".".join(
+            [tld_extract_result.domain, tld_extract_result.suffix]
+        )
 
         # test.blogspot.com
-        url_full_domain = '.'.join([tld_extract_result.subdomain, tld_extract_result.domain, tld_extract_result.suffix])
+        url_full_domain = ".".join(
+            [
+                tld_extract_result.subdomain,
+                tld_extract_result.domain,
+                tld_extract_result.suffix,
+            ]
+        )
 
-        return cls.objects.filter(Q(domain=url_root_domain) | Q(domain=url_full_domain)).exists()
+        return cls.objects.filter(
+            Q(domain=url_root_domain) | Q(domain=url_full_domain)
+        ).exists()

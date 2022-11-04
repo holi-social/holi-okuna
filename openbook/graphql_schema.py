@@ -6,7 +6,9 @@ from graphql import GraphQLError
 from graphene_file_upload.scalars import Upload
 
 from openbook_auth.models import UserConnectionStatus, User as UserModel
-from openbook_auth.views.authenticated_user.serializers import UpdateAuthenticatedUserSerializer
+from openbook_auth.views.authenticated_user.serializers import (
+    UpdateAuthenticatedUserSerializer,
+)
 from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_auth.images import store_avatar, delete_avatar
 
@@ -23,13 +25,13 @@ logger = getLogger(__name__)
 
 
 class ErrorCodes:
-    NOT_FOUND = 'NOT_FOUND'
-    UNAUTHORIZED = 'UNAUTHORIZED'
+    NOT_FOUND = "NOT_FOUND"
+    UNAUTHORIZED = "UNAUTHORIZED"
 
 
 class UpdateConnectionWithUserAction:
-    CONNECT = 'CONNECT'
-    DISCONNECT = 'DISCONNECT'
+    CONNECT = "CONNECT"
+    DISCONNECT = "DISCONNECT"
 
 
 class User(DjangoObjectType):
@@ -37,7 +39,7 @@ class User(DjangoObjectType):
     # user.profile instead of user directly, so we have to write custom resolvers.
     class Meta:
         model = UserModel
-        fields = ['id']
+        fields = ["id"]
 
     id = graphene.String()
     avatar = graphene.String()
@@ -125,8 +127,9 @@ class Query(graphene.ObjectType):
     user_suggestions = graphene.List(User, numberOfItems=graphene.Int())
     last_insights = graphene.List(Insight, numberOfItems=graphene.Int())
     insight_by_id = graphene.Field(Insight, id=graphene.String())
-    spaces = graphene.List(Space, offset=graphene.Int(
-        default_value=0), limit=graphene.Int(default_value=5))
+    spaces = graphene.List(
+        Space, offset=graphene.Int(default_value=0), limit=graphene.Int(default_value=5)
+    )
     space_by_id = graphene.Field(Space, id=graphene.String())
 
     def resolve_authenticated_user(self, info):
@@ -138,36 +141,40 @@ class Query(graphene.ObjectType):
         try:
             return UserModel.objects.get(username=id)
         except UserModel.DoesNotExist:
-            raise GraphQLError('User not found', extensions={
-                "code": ErrorCodes.NOT_FOUND
-            })
+            raise GraphQLError(
+                "User not found", extensions={"code": ErrorCodes.NOT_FOUND}
+            )
 
     def resolve_user_suggestions(self, info, numberOfItems=graphene.Int()):
         if info.context.user.id:
-            return UserModel.objects.exclude(id=info.context.user.id).order_by('-date_joined')[:numberOfItems]
-        return UserModel.objects.order_by('-date_joined')[:numberOfItems]
+            return UserModel.objects.exclude(id=info.context.user.id).order_by(
+                "-date_joined"
+            )[:numberOfItems]
+        return UserModel.objects.order_by("-date_joined")[:numberOfItems]
 
     def resolve_last_insights(self, info, numberOfItems=graphene.Int()):
-        return InsightModel.objects.filter(date_published__lte=datetime.now()).order_by('-date_published')[:numberOfItems]
+        return InsightModel.objects.filter(date_published__lte=datetime.now()).order_by(
+            "-date_published"
+        )[:numberOfItems]
 
     def resolve_insight_by_id(self, info, id):
         try:
             return InsightModel.objects.get(id=id)
         except InsightModel.DoesNotExist:
-            raise GraphQLError('Insight not found', extensions={
-                "code": ErrorCodes.NOT_FOUND
-            })
+            raise GraphQLError(
+                "Insight not found", extensions={"code": ErrorCodes.NOT_FOUND}
+            )
 
     def resolve_spaces(self, info, offset=graphene.Int(), limit=graphene.Int()):
-        return SpaceModel.objects.order_by('-created')[offset:offset+limit]
+        return SpaceModel.objects.order_by("-created")[offset : offset + limit]
 
     def resolve_space_by_id(self, info, id):
         try:
             return SpaceModel.objects.get(id=id)
         except SpaceModel.DoesNotExist:
-            raise GraphQLError('Space not found', extensions={
-                "code": ErrorCodes.NOT_FOUND
-            })
+            raise GraphQLError(
+                "Space not found", extensions={"code": ErrorCodes.NOT_FOUND}
+            )
 
 
 class UpdateAuthenticatedUserInput(graphene.InputObjectType):
@@ -194,15 +201,16 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
         authenticated_user = info.context.user
         update_avatar = False
 
-        if 'avatar' in input:
-            if input['avatar'] in ("", {}, None):
+        if "avatar" in input:
+            if input["avatar"] in ("", {}, None):
                 raise GraphQLError(
-                    f"Attribute 'avatar' should be missing or contain a file, but was: '{input['avatar']}'")
+                    f"Attribute 'avatar' should be missing or contain a file, but was: '{input['avatar']}'"
+                )
             else:
                 update_avatar = True
 
-        if 'first_name' in input:
-            input['name'] = input.pop('first_name')
+        if "first_name" in input:
+            input["name"] = input.pop("first_name")
 
         serializer = UpdateAuthenticatedUserSerializer(data=input)
         serializer.is_valid(raise_exception=True)
@@ -210,22 +218,22 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
 
         try:
             authenticated_user.update(
-                name=data.get('name'),
-                last_name=data.get('last_name'),
-                about_me=data.get('about_me'),
-                pronouns=data.get('pronouns'),
-                location=data.get('location'),
-                engagement_level=data.get('engagement_level'),
-                interests=data.get('interests'),
-                sdgs=data.get('sdgs'),
-                skills=data.get('skills'),
-                avatar=data.get('avatar'),
+                name=data.get("name"),
+                last_name=data.get("last_name"),
+                about_me=data.get("about_me"),
+                pronouns=data.get("pronouns"),
+                location=data.get("location"),
+                engagement_level=data.get("engagement_level"),
+                interests=data.get("interests"),
+                sdgs=data.get("sdgs"),
+                skills=data.get("skills"),
+                avatar=data.get("avatar"),
                 update_avatar=update_avatar,
                 save=True,
             )
         except Error:
             if update_avatar:
-                delete_avatar(data['avatar'])
+                delete_avatar(data["avatar"])
             raise
 
         return UpdateAuthenticatedUserMutation(authenticated_user=authenticated_user)
@@ -249,34 +257,44 @@ class UpdateConnectionWithUserMutation(graphene.Mutation):
         data = serializer.validated_data
 
         if info.context.user.is_anonymous:
-            raise GraphQLError('Unauthorized', extensions={
-                "code": ErrorCodes.UNAUTHORIZED
-            })
+            raise GraphQLError(
+                "Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED}
+            )
 
         authenticated_user = info.context.user
 
         userToUpdateConnection = authenticated_user.get_user_with_username(
-            username=data.get('user_id'))
+            username=data.get("user_id")
+        )
 
-        current_connection_status = authenticated_user.get_connection_status_with_user_id(
-            user_id=userToUpdateConnection.id)
+        current_connection_status = (
+            authenticated_user.get_connection_status_with_user_id(
+                user_id=userToUpdateConnection.id
+            )
+        )
 
         # Connect action
-        if data.get('action') == UpdateConnectionWithUserAction.CONNECT:
+        if data.get("action") == UpdateConnectionWithUserAction.CONNECT:
             # if current user needs to confirm connection, run confirm_connection_with_user_with_id
             if current_connection_status == UserConnectionStatus.PENDING_CONFIRMATION:
                 authenticated_user.confirm_connection_with_user_with_id(
-                    user_id=userToUpdateConnection.id)
+                    user_id=userToUpdateConnection.id
+                )
 
             # if there is no connection yet (no requests or pending confirmation), run connect_with_user_with_id
             if current_connection_status == UserConnectionStatus.NOT_CONNECTED:
                 authenticated_user.connect_with_user_with_id(
-                    user_id=userToUpdateConnection.id)
+                    user_id=userToUpdateConnection.id
+                )
 
         # Disconnect action (only run if current connection status is different than NOT_CONNECTED)
-        elif data.get('action') == UpdateConnectionWithUserAction.DISCONNECT and current_connection_status != UserConnectionStatus.NOT_CONNECTED:
+        elif (
+            data.get("action") == UpdateConnectionWithUserAction.DISCONNECT
+            and current_connection_status != UserConnectionStatus.NOT_CONNECTED
+        ):
             authenticated_user.disconnect_from_user_with_id(
-                user_id=userToUpdateConnection.id)
+                user_id=userToUpdateConnection.id
+            )
 
         return UpdateConnectionWithUserMutation(user_by_id=userToUpdateConnection)
 
@@ -295,22 +313,23 @@ class CreatePostCommentMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         if info.context.user.is_anonymous:
-            raise GraphQLError('Unauthorized', extensions={
-                "code": ErrorCodes.UNAUTHORIZED
-            })
+            raise GraphQLError(
+                "Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED}
+            )
 
         serializer = CommentPostSerializer(data=input)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        comment_text = data.get('text')
-        post_id = data.get('post_id')
+        comment_text = data.get("text")
+        post_id = data.get("post_id")
 
         authenticated_user = info.context.user
 
         with transaction.atomic():
             post_comment = authenticated_user.comment_post_with_id(
-                post_id=post_id, text=comment_text)
+                post_id=post_id, text=comment_text
+            )
 
         return CreatePostCommentMutation(post_comment=post_comment)
 

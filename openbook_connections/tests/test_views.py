@@ -11,9 +11,17 @@ import logging
 import json
 
 from openbook_circles.models import Circle
-from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, make_circle
+from openbook_common.tests.helpers import (
+    make_user,
+    make_authentication_headers_for_user,
+    make_circle,
+)
 from openbook_common.utils.test import uuid_id_parser
-from openbook_notifications.models import ConnectionConfirmedNotification, ConnectionRequestNotification, Notification
+from openbook_notifications.models import (
+    ConnectionConfirmedNotification,
+    ConnectionRequestNotification,
+    Notification,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -25,9 +33,7 @@ class ConnectionsAPITests(OpenbookAPITestCase):
     ConnectionsAPI
     """
 
-    fixtures = [
-        'openbook_circles/fixtures/circles.json'
-    ]
+    fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_retrieve_own_connections(self):
         """
@@ -39,7 +45,9 @@ class ConnectionsAPITests(OpenbookAPITestCase):
         circle = mixer.blend(Circle, creator=user)
 
         users_to_connect = mixer.cycle(5).blend(User)
-        user_to_connect_ids = [user_to_connect.pk for user_to_connect in users_to_connect]
+        user_to_connect_ids = [
+            user_to_connect.pk for user_to_connect in users_to_connect
+        ]
 
         for user_to_connect in users_to_connect:
             user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[circle.pk])
@@ -54,18 +62,16 @@ class ConnectionsAPITests(OpenbookAPITestCase):
         self.assertEqual(len(response_connections), len(users_to_connect))
 
         for response_connection in response_connections:
-            target_user = response_connection.get('target_user')
-            target_user_id = target_user.get('id')
+            target_user = response_connection.get("target_user")
+            target_user_id = target_user.get("id")
             self.assertIn(target_user_id, user_to_connect_ids)
 
     def _get_url(self):
-        return reverse('connections')
+        return reverse("connections")
 
 
 class ConnectAPITests(OpenbookAPITestCase):
-    fixtures = [
-        'openbook_circles/fixtures/circles.json'
-    ]
+    fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_connect(self):
         """
@@ -79,19 +85,24 @@ class ConnectAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         data = {
-            'username': user_to_connect.username,
-            'circles_ids': circle_to_connect.pk
+            "username": user_to_connect.username,
+            "circles_ids": circle_to_connect.pk,
         }
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(user.is_connected_with_user_in_circle(user_to_connect, circle_to_connect))
         self.assertTrue(
-            user.is_connected_with_user_with_id_in_circle_with_id(user_to_connect.pk, user.connections_circle_id))
+            user.is_connected_with_user_in_circle(user_to_connect, circle_to_connect)
+        )
+        self.assertTrue(
+            user.is_connected_with_user_with_id_in_circle_with_id(
+                user_to_connect.pk, user.connections_circle_id
+            )
+        )
 
     def test_connect_autofollows(self):
         """
@@ -105,13 +116,13 @@ class ConnectAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         data = {
-            'username': user_to_connect.username,
-            'circles_ids': circle_to_connect.pk
+            "username": user_to_connect.username,
+            "circles_ids": circle_to_connect.pk,
         }
 
         url = self._get_url()
 
-        self.client.post(url, data, **headers, format='multipart')
+        self.client.post(url, data, **headers, format="multipart")
 
         self.assertTrue(user.is_following_user_with_id(user_to_connect.pk))
 
@@ -132,24 +143,31 @@ class ConnectAPITests(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user)
 
-        stringified_circles_ids = ','.join(map(str, circles_to_connect_ids))
+        stringified_circles_ids = ",".join(map(str, circles_to_connect_ids))
 
         data = {
-            'username': user_to_connect.username,
-            'circles_ids': stringified_circles_ids
+            "username": user_to_connect.username,
+            "circles_ids": stringified_circles_ids,
         }
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         for circle_id in circles_to_connect_ids:
-            self.assertTrue(user.is_connected_with_user_with_id_in_circle_with_id(user_to_connect, circle_id))
+            self.assertTrue(
+                user.is_connected_with_user_with_id_in_circle_with_id(
+                    user_to_connect, circle_id
+                )
+            )
 
         self.assertTrue(
-            user.is_connected_with_user_with_id_in_circle_with_id(user_to_connect.pk, user.connections_circle_id))
+            user.is_connected_with_user_with_id_in_circle_with_id(
+                user_to_connect.pk, user.connections_circle_id
+            )
+        )
 
     def test_cannot_connect_with_existing_connection(self):
         """
@@ -160,18 +178,20 @@ class ConnectAPITests(OpenbookAPITestCase):
         circle_to_connect = mixer.blend(Circle, creator=user)
         user_to_connect = make_user()
 
-        user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[circle_to_connect.pk])
+        user.connect_with_user_with_id(
+            user_to_connect.pk, circles_ids=[circle_to_connect.pk]
+        )
 
         headers = make_authentication_headers_for_user(user)
 
         data = {
-            'username': user_to_connect.username,
-            'circles_ids': circle_to_connect.pk
+            "username": user_to_connect.username,
+            "circles_ids": circle_to_connect.pk,
         }
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -186,13 +206,13 @@ class ConnectAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         data = {
-            'username': user_to_connect.username,
-            'circles_ids': Circle.get_world_circle()
+            "username": user_to_connect.username,
+            "circles_ids": Circle.get_world_circle(),
         }
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -208,18 +228,22 @@ class ConnectAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         data = {
-            'username': user_to_connect.username,
-            'circles_ids': [circle_to_connect.pk]
+            "username": user_to_connect.username,
+            "circles_ids": [circle_to_connect.pk],
         }
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(ConnectionRequestNotification.objects.filter(notification__owner_id=user_to_connect.pk,
-                                                                     connection_requester_id=user.pk).exists())
+        self.assertTrue(
+            ConnectionRequestNotification.objects.filter(
+                notification__owner_id=user_to_connect.pk,
+                connection_requester_id=user.pk,
+            ).exists()
+        )
 
     def test_cannot_connect_with_private_visibility_user_without_following(self):
         """
@@ -232,17 +256,19 @@ class ConnectAPITests(OpenbookAPITestCase):
         user_to_connect = make_user(visibility=User.VISIBILITY_TYPE_PRIVATE)
 
         data = {
-            'username': user_to_connect.username,
-            'circles_ids': circle_to_connect.pk
+            "username": user_to_connect.username,
+            "circles_ids": circle_to_connect.pk,
         }
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(user_to_connect.is_connected_with_user_with_id(user_id=user.pk))
+        self.assertFalse(
+            user_to_connect.is_connected_with_user_with_id(user_id=user.pk)
+        )
 
     def test_can_connect_with_private_visibility_user_previously_following(self):
         """
@@ -258,13 +284,13 @@ class ConnectAPITests(OpenbookAPITestCase):
         user_to_connect.approve_follow_request_from_user(user=user)
 
         data = {
-            'username': user_to_connect.username,
-            'circles_ids': circle_to_connect.pk
+            "username": user_to_connect.username,
+            "circles_ids": circle_to_connect.pk,
         }
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -281,26 +307,24 @@ class ConnectAPITests(OpenbookAPITestCase):
         user_to_connect = make_user(visibility=User.VISIBILITY_TYPE_PUBLIC)
 
         data = {
-            'username': user_to_connect.username,
-            'circles_ids': circle_to_connect.pk
+            "username": user_to_connect.username,
+            "circles_ids": circle_to_connect.pk,
         }
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         self.assertTrue(user_to_connect.is_connected_with_user_with_id(user_id=user.pk))
 
     def _get_url(self):
-        return reverse('connect-with-user')
+        return reverse("connect-with-user")
 
 
 class DisconnectAPITest(OpenbookAPITestCase):
-    fixtures = [
-        'openbook_circles/fixtures/circles.json'
-    ]
+    fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_disconnect(self):
         """
@@ -311,21 +335,23 @@ class DisconnectAPITest(OpenbookAPITestCase):
         circle_to_connect = mixer.blend(Circle, creator=user)
         user_to_connect = make_user()
 
-        user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[circle_to_connect.pk])
+        user.connect_with_user_with_id(
+            user_to_connect.pk, circles_ids=[circle_to_connect.pk]
+        )
 
         headers = make_authentication_headers_for_user(user)
 
-        data = {
-            'username': user_to_connect.username
-        }
+        data = {"username": user_to_connect.username}
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertFalse(user.is_connected_with_user_in_circle(user_to_connect, circle_to_connect))
+        self.assertFalse(
+            user.is_connected_with_user_in_circle(user_to_connect, circle_to_connect)
+        )
 
     def test_disconnect_unfollows(self):
         """
@@ -336,18 +362,18 @@ class DisconnectAPITest(OpenbookAPITestCase):
         circle_to_connect = mixer.blend(Circle, creator=user)
         user_to_connect = make_user()
 
-        user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[circle_to_connect.pk])
+        user.connect_with_user_with_id(
+            user_to_connect.pk, circles_ids=[circle_to_connect.pk]
+        )
         user_to_connect.confirm_connection_with_user_with_id(user.pk)
 
         headers = make_authentication_headers_for_user(user)
 
-        data = {
-            'username': user_to_connect.username
-        }
+        data = {"username": user_to_connect.username}
 
         url = self._get_url()
 
-        self.client.post(url, data, **headers, format='multipart')
+        self.client.post(url, data, **headers, format="multipart")
 
         self.assertFalse(user.is_following_user_with_id(user_to_connect.pk))
 
@@ -361,13 +387,11 @@ class DisconnectAPITest(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user)
 
-        data = {
-            'username': not_connected_user.username
-        }
+        data = {"username": not_connected_user.username}
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -385,24 +409,27 @@ class DisconnectAPITest(OpenbookAPITestCase):
         user_to_connect.confirm_connection_with_user_with_id(user.pk)
 
         connection_confirmed_notification = ConnectionConfirmedNotification.objects.get(
-            connection_confirmator=user_to_connect,
-            notification__owner=user)
-        notification = Notification.objects.get(notification_type=Notification.CONNECTION_CONFIRMED,
-                                                object_id=connection_confirmed_notification.pk)
+            connection_confirmator=user_to_connect, notification__owner=user
+        )
+        notification = Notification.objects.get(
+            notification_type=Notification.CONNECTION_CONFIRMED,
+            object_id=connection_confirmed_notification.pk,
+        )
 
         headers = make_authentication_headers_for_user(user)
 
-        data = {
-            'username': user_to_connect.username
-        }
+        data = {"username": user_to_connect.username}
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertFalse(
-            ConnectionConfirmedNotification.objects.filter(pk=connection_confirmed_notification.pk).exists())
+            ConnectionConfirmedNotification.objects.filter(
+                pk=connection_confirmed_notification.pk
+            ).exists()
+        )
         self.assertFalse(Notification.objects.filter(pk=notification.pk).exists())
 
     def test_disconnect_should_delete_foreign_connection_confirmed_notification(self):
@@ -415,27 +442,33 @@ class DisconnectAPITest(OpenbookAPITestCase):
         user_to_connect.connect_with_user_with_id(user.pk)
         user.confirm_connection_with_user_with_id(user_to_connect.pk)
 
-        connection_confirmed_notification = ConnectionConfirmedNotification.objects.get(connection_confirmator=user,
-                                                                                        notification__owner=user_to_connect)
-        notification = Notification.objects.get(notification_type=Notification.CONNECTION_CONFIRMED,
-                                                object_id=connection_confirmed_notification.pk)
+        connection_confirmed_notification = ConnectionConfirmedNotification.objects.get(
+            connection_confirmator=user, notification__owner=user_to_connect
+        )
+        notification = Notification.objects.get(
+            notification_type=Notification.CONNECTION_CONFIRMED,
+            object_id=connection_confirmed_notification.pk,
+        )
 
         headers = make_authentication_headers_for_user(user)
 
-        data = {
-            'username': user_to_connect.username
-        }
+        data = {"username": user_to_connect.username}
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertFalse(
-            ConnectionConfirmedNotification.objects.filter(pk=connection_confirmed_notification.pk).exists())
+            ConnectionConfirmedNotification.objects.filter(
+                pk=connection_confirmed_notification.pk
+            ).exists()
+        )
         self.assertFalse(Notification.objects.filter(pk=notification.pk).exists())
 
-    def test_disconnect_from_unconfirmed_connection_should_delete_own_connection_request_notification(self):
+    def test_disconnect_from_unconfirmed_connection_should_delete_own_connection_request_notification(
+        self,
+    ):
         """
         should delete own connection request notification when the user disconnects from a unconfirmed connection
         """
@@ -445,34 +478,36 @@ class DisconnectAPITest(OpenbookAPITestCase):
         user_to_connect.connect_with_user_with_id(user.pk)
 
         connection_request_notification = ConnectionRequestNotification.objects.get(
-            connection_requester=user_to_connect)
-        notification = Notification.objects.get(owner=user,
-                                                notification_type=Notification.CONNECTION_REQUEST,
-                                                object_id=connection_request_notification.pk)
+            connection_requester=user_to_connect
+        )
+        notification = Notification.objects.get(
+            owner=user,
+            notification_type=Notification.CONNECTION_REQUEST,
+            object_id=connection_request_notification.pk,
+        )
 
         headers = make_authentication_headers_for_user(user)
 
-        data = {
-            'username': user_to_connect.username
-        }
+        data = {"username": user_to_connect.username}
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertFalse(
-            ConnectionRequestNotification.objects.filter(pk=connection_request_notification.pk).exists())
+            ConnectionRequestNotification.objects.filter(
+                pk=connection_request_notification.pk
+            ).exists()
+        )
         self.assertFalse(Notification.objects.filter(pk=notification.pk).exists())
 
     def _get_url(self):
-        return reverse('disconnect-from-user')
+        return reverse("disconnect-from-user")
 
 
 class UpdateConnectionAPITest(OpenbookAPITestCase):
-    fixtures = [
-        'openbook_circles/fixtures/circles.json'
-    ]
+    fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_update_connection(self):
         """
@@ -483,27 +518,33 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
         circle_to_connect = mixer.blend(Circle, creator=user)
         user_to_connect = make_user()
 
-        user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[circle_to_connect.pk])
+        user.connect_with_user_with_id(
+            user_to_connect.pk, circles_ids=[circle_to_connect.pk]
+        )
 
         new_circle = mixer.blend(Circle, creator=user)
 
         headers = make_authentication_headers_for_user(user)
 
-        data = {
-            'username': user_to_connect.username,
-            'circles_ids': new_circle.pk
-        }
+        data = {"username": user_to_connect.username, "circles_ids": new_circle.pk}
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(user.is_connected_with_user_in_circle(user_to_connect, new_circle))
-        self.assertFalse(user.is_connected_with_user_in_circle(user_to_connect, circle_to_connect))
         self.assertTrue(
-            user.is_connected_with_user_with_id_in_circle_with_id(user_to_connect.pk, user.connections_circle_id))
+            user.is_connected_with_user_in_circle(user_to_connect, new_circle)
+        )
+        self.assertFalse(
+            user.is_connected_with_user_in_circle(user_to_connect, circle_to_connect)
+        )
+        self.assertTrue(
+            user.is_connected_with_user_with_id_in_circle_with_id(
+                user_to_connect.pk, user.connections_circle_id
+            )
+        )
 
     def test_update_connect_multiple_circles(self):
         """
@@ -514,7 +555,9 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
 
         initial_circle_to_connect_in = mixer.blend(Circle, creator=user)
 
-        user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[initial_circle_to_connect_in.pk])
+        user.connect_with_user_with_id(
+            user_to_connect.pk, circles_ids=[initial_circle_to_connect_in.pk]
+        )
 
         amount_of_circles = 4
         new_circles_to_connect_ids = []
@@ -525,16 +568,16 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user)
 
-        stringified_circles_ids = ','.join(map(str, new_circles_to_connect_ids))
+        stringified_circles_ids = ",".join(map(str, new_circles_to_connect_ids))
 
         data = {
-            'username': user_to_connect.username,
-            'circles_ids': stringified_circles_ids
+            "username": user_to_connect.username,
+            "circles_ids": stringified_circles_ids,
         }
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -542,13 +585,18 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
         connection_circles_ids = [circle.pk for circle in connection.circles.all()]
 
         # Plus one because the connections circle will be there
-        self.assertEqual(len(new_circles_to_connect_ids) + 1, len(connection_circles_ids))
+        self.assertEqual(
+            len(new_circles_to_connect_ids) + 1, len(connection_circles_ids)
+        )
 
         for circle_id in new_circles_to_connect_ids:
             self.assertIn(circle_id, connection_circles_ids)
 
         self.assertTrue(
-            user.is_connected_with_user_with_id_in_circle_with_id(user_to_connect.pk, user.connections_circle_id))
+            user.is_connected_with_user_with_id_in_circle_with_id(
+                user_to_connect.pk, user.connections_circle_id
+            )
+        )
 
     def test_cannot_update_unexisting_connection(self):
         """
@@ -562,25 +610,20 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user)
 
-        data = {
-            'username': not_connected_user.username,
-            'circles_ids': new_circle.pk
-        }
+        data = {"username": not_connected_user.username, "circles_ids": new_circle.pk}
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def _get_url(self):
-        return reverse('update-connection')
+        return reverse("update-connection")
 
 
 class ConfirmConnectionAPITest(OpenbookAPITestCase):
-    fixtures = [
-        'openbook_circles/fixtures/circles.json'
-    ]
+    fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_confirm_connection(self):
         """
@@ -594,13 +637,11 @@ class ConfirmConnectionAPITest(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user_to_connect)
 
-        data = {
-            'username': user.username
-        }
+        data = {"username": user.username}
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -609,7 +650,9 @@ class ConfirmConnectionAPITest(OpenbookAPITestCase):
 
         # Check user got automatically added to connections circle
         connection = user_to_connect.get_connection_for_user_with_id(user.pk)
-        self.assertTrue(connection.circles.filter(id=user_to_connect.connections_circle_id).exists())
+        self.assertTrue(
+            connection.circles.filter(id=user_to_connect.connections_circle_id).exists()
+        )
 
     def test_confirm_connection_autofollows(self):
         """
@@ -623,13 +666,11 @@ class ConfirmConnectionAPITest(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user_to_connect)
 
-        data = {
-            'username': user.username
-        }
+        data = {"username": user.username}
 
         url = self._get_url()
 
-        self.client.post(url, data, **headers, format='multipart')
+        self.client.post(url, data, **headers, format="multipart")
 
         self.assertTrue(user.is_following_user_with_id(user_to_connect.pk))
 
@@ -646,14 +687,11 @@ class ConfirmConnectionAPITest(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user_to_connect)
 
-        data = {
-            'username': user.username,
-            'circles_ids': circle.pk
-        }
+        data = {"username": user.username, "circles_ids": circle.pk}
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -673,13 +711,11 @@ class ConfirmConnectionAPITest(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user_to_connect)
 
-        data = {
-            'username': user.username
-        }
+        data = {"username": user.username}
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -698,18 +734,20 @@ class ConfirmConnectionAPITest(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user_to_connect)
 
-        data = {
-            'username': user.username
-        }
+        data = {"username": user.username}
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ConnectionConfirmedNotification.objects.filter(notification__owner_id=user.pk,
-                                                                       connection_confirmator_id=user_to_connect.pk).exists())
+        self.assertTrue(
+            ConnectionConfirmedNotification.objects.filter(
+                notification__owner_id=user.pk,
+                connection_confirmator_id=user_to_connect.pk,
+            ).exists()
+        )
 
     def test_confirm_connection_should_delete_connection_request_notification(self):
         """
@@ -723,18 +761,20 @@ class ConfirmConnectionAPITest(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user_to_connect)
 
-        data = {
-            'username': user.username
-        }
+        data = {"username": user.username}
 
         url = self._get_url()
 
-        response = self.client.post(url, data, **headers, format='multipart')
+        response = self.client.post(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertFalse(ConnectionRequestNotification.objects.filter(notification__owner_id=user_to_connect.pk,
-                                                                      connection_requester_id=user_to_connect.pk).exists())
+        self.assertFalse(
+            ConnectionRequestNotification.objects.filter(
+                notification__owner_id=user_to_connect.pk,
+                connection_requester_id=user_to_connect.pk,
+            ).exists()
+        )
 
     def _get_url(self):
-        return reverse('confirm-connection')
+        return reverse("confirm-connection")

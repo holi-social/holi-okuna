@@ -5,7 +5,11 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 import logging
 
-from openbook_common.tests.helpers import make_authentication_headers_for_user, make_user, make_proxy_blacklisted_domain
+from openbook_common.tests.helpers import (
+    make_authentication_headers_for_user,
+    make_user,
+    make_proxy_blacklisted_domain,
+)
 
 fake = Faker()
 
@@ -35,7 +39,7 @@ class ProxyAuthAPITests(APITestCase):
         url = self._get_url()
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        headers['HTTP_X_PROXY_URL'] = 'https://notblacklisted.com'
+        headers["HTTP_X_PROXY_URL"] = "https://notblacklisted.com"
         response = self.client.get(url, **headers)
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
@@ -46,8 +50,8 @@ class ProxyAuthAPITests(APITestCase):
         url = self._get_url()
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        headers['HTTP_X_PROXY_URL'] = 'https://www.techcrunch.com'
-        make_proxy_blacklisted_domain(domain='techcrunch.com')
+        headers["HTTP_X_PROXY_URL"] = "https://www.techcrunch.com"
+        make_proxy_blacklisted_domain(domain="techcrunch.com")
         response = self.client.get(url, **headers)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -58,7 +62,7 @@ class ProxyAuthAPITests(APITestCase):
         url = self._get_url()
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        headers['HTTP_X_PROXY_URL'] = 'https://wwwinvalic.poptaer'
+        headers["HTTP_X_PROXY_URL"] = "https://wwwinvalic.poptaer"
         response = self.client.get(url, **headers)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -69,9 +73,9 @@ class ProxyAuthAPITests(APITestCase):
         url = self._get_url()
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        make_proxy_blacklisted_domain(domain='blogspot.com')
+        make_proxy_blacklisted_domain(domain="blogspot.com")
 
-        headers['HTTP_X_PROXY_URL'] = 'test.blogspot.com'
+        headers["HTTP_X_PROXY_URL"] = "test.blogspot.com"
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -83,9 +87,9 @@ class ProxyAuthAPITests(APITestCase):
         url = self._get_url()
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        make_proxy_blacklisted_domain(domain='test.blogspot.com')
+        make_proxy_blacklisted_domain(domain="test.blogspot.com")
 
-        headers['HTTP_X_PROXY_URL'] = 'test.blogspot.com'
+        headers["HTTP_X_PROXY_URL"] = "test.blogspot.com"
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -97,12 +101,12 @@ class ProxyAuthAPITests(APITestCase):
         url = self._get_url()
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        make_proxy_blacklisted_domain(domain='test.blogspot.com')
+        make_proxy_blacklisted_domain(domain="test.blogspot.com")
 
-        headers['HTTP_X_PROXY_URL'] = 'blogspot.com'
+        headers["HTTP_X_PROXY_URL"] = "blogspot.com"
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
     def _get_url(self):
-        return reverse('proxy-auth')
+        return reverse("proxy-auth")

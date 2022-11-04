@@ -11,14 +11,17 @@ from .manager import FormatManager
 
 
 def upload_format_to(i, f):
-    return 'formats/%s/%s%s' % (
+    return "formats/%s/%s%s" % (
         i.format,
         splitext(getattr(i.video, i.field_name).name)[0],  # keep path
-        splitext(f)[1].lower())
+        splitext(f)[1].lower(),
+    )
 
 
 class Format(ModelWithUUID):
-    content_type = models.ForeignKey(ContentType, editable=False, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(
+        ContentType, editable=False, on_delete=models.CASCADE
+    )
     object_id = models.UUIDField(editable=False)
     video = GenericForeignKey()
     field_name = models.CharField(
@@ -36,12 +39,13 @@ class Format(ModelWithUUID):
         verbose_name=_("Format"),
     )
     file = VideoField(
-        duration_field='duration',
+        duration_field="duration",
         editable=False,
         max_length=2048,
         upload_to=upload_format_to,
         verbose_name=_("File"),
-        width_field='width', height_field='height',
+        width_field="width",
+        height_field="height",
     )
     width = models.PositiveIntegerField(
         editable=False,
@@ -66,7 +70,7 @@ class Format(ModelWithUUID):
         verbose_name_plural = _("Formats")
 
     def __str__(self):
-        return f'{self.file.name} ({self.progress:d}%)'
+        return f"{self.file.name} ({self.progress:d}%)"
 
     def unicode(self):
         return self.__str__()

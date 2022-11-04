@@ -7,13 +7,13 @@ from openbook_posts.models import PostReaction, PostCommentReaction
 
 class ReactionField(Field):
     def __init__(self, reaction_serializer=None, **kwargs):
-        kwargs['source'] = '*'
-        kwargs['read_only'] = True
+        kwargs["source"] = "*"
+        kwargs["read_only"] = True
         self.reaction_serializer = reaction_serializer
         super(ReactionField, self).__init__(**kwargs)
 
     def to_representation(self, post):
-        request = self.context.get('request')
+        request = self.context.get("request")
         request_user = request.user
 
         serialized_reaction = None
@@ -21,7 +21,9 @@ class ReactionField(Field):
         if not request_user.is_anonymous:
             try:
                 reaction = request_user.get_reaction_for_post_with_id(post.pk)
-                serialized_reaction = self.reaction_serializer(reaction, context={'request': request}).data
+                serialized_reaction = self.reaction_serializer(
+                    reaction, context={"request": request}
+                ).data
             except PostReaction.DoesNotExist:
                 pass
 
@@ -30,12 +32,12 @@ class ReactionField(Field):
 
 class CommentsCountField(Field):
     def __init__(self, **kwargs):
-        kwargs['source'] = '*'
-        kwargs['read_only'] = True
+        kwargs["source"] = "*"
+        kwargs["read_only"] = True
         super(CommentsCountField, self).__init__(**kwargs)
 
     def to_representation(self, post):
-        request = self.context.get('request')
+        request = self.context.get("request")
         request_user = request.user
 
         comments_count = None
@@ -47,15 +49,16 @@ class CommentsCountField(Field):
 
         return comments_count
 
+
 class PostReactionsEmojiCountField(Field):
     def __init__(self, emoji_count_serializer=None, **kwargs):
-        kwargs['source'] = '*'
-        kwargs['read_only'] = True
+        kwargs["source"] = "*"
+        kwargs["read_only"] = True
         self.emoji_count_serializer = emoji_count_serializer
         super(PostReactionsEmojiCountField, self).__init__(**kwargs)
 
     def to_representation(self, post):
-        request = self.context.get('request')
+        request = self.context.get("request")
         request_user = request.user
 
         reaction_emoji_count = []
@@ -65,57 +68,68 @@ class PostReactionsEmojiCountField(Field):
                 Post = get_post_model()
                 reaction_emoji_count = Post.get_emoji_counts_for_post_with_id(post.pk)
         else:
-            reaction_emoji_count = request_user.get_emoji_counts_for_post_with_id(post.pk)
+            reaction_emoji_count = request_user.get_emoji_counts_for_post_with_id(
+                post.pk
+            )
 
-        post_reactions_serializer = self.emoji_count_serializer(reaction_emoji_count, many=True,
-                                                                context={"request": request, 'post': post})
+        post_reactions_serializer = self.emoji_count_serializer(
+            reaction_emoji_count, many=True, context={"request": request, "post": post}
+        )
 
         return post_reactions_serializer.data
 
 
 class CirclesField(Field):
     def __init__(self, circle_serializer=None, **kwargs):
-        kwargs['source'] = '*'
-        kwargs['read_only'] = True
+        kwargs["source"] = "*"
+        kwargs["read_only"] = True
         self.circle_serializer = circle_serializer
         super(CirclesField, self).__init__(**kwargs)
 
     def to_representation(self, post):
-        request = self.context.get('request')
+        request = self.context.get("request")
         request_user = request.user
         circles = []
 
         if post.creator_id == request_user.pk:
             circles = post.circles
 
-        return self.circle_serializer(circles, many=True, context={"request": request, 'post': post}).data
+        return self.circle_serializer(
+            circles, many=True, context={"request": request, "post": post}
+        ).data
 
 
 class PostCreatorField(Field):
-    def __init__(self, community_membership_serializer, post_creator_serializer, **kwargs):
-        kwargs['source'] = '*'
-        kwargs['read_only'] = True
+    def __init__(
+        self, community_membership_serializer, post_creator_serializer, **kwargs
+    ):
+        kwargs["source"] = "*"
+        kwargs["read_only"] = True
         self.community_membership_serializer = community_membership_serializer
         self.post_creator_serializer = post_creator_serializer
         super(PostCreatorField, self).__init__(**kwargs)
 
     def to_representation(self, post):
-        request = self.context.get('request')
+        request = self.context.get("request")
 
         post_creator = post.creator
         post_community = post.community
 
-        post_creator_serializer = self.post_creator_serializer(post_creator, context={"request": request}).data
+        post_creator_serializer = self.post_creator_serializer(
+            post_creator, context={"request": request}
+        ).data
 
         if post_community:
             try:
-                post_creator_membership = post_community.memberships.get(user_id=post_creator.pk)
-                post_creator_serializer['communities_memberships'] = [
+                post_creator_membership = post_community.memberships.get(
+                    user_id=post_creator.pk
+                )
+                post_creator_serializer["communities_memberships"] = [
                     self.community_membership_serializer(
                         post_creator_membership,
                         many=False,
-                        context={
-                            "request": request}).data
+                        context={"request": request},
+                    ).data
                 ]
             except CommunityMembership.DoesNotExist:
                 pass
@@ -125,12 +139,12 @@ class PostCreatorField(Field):
 
 class PostIsMutedField(Field):
     def __init__(self, **kwargs):
-        kwargs['source'] = '*'
-        kwargs['read_only'] = True
+        kwargs["source"] = "*"
+        kwargs["read_only"] = True
         super(PostIsMutedField, self).__init__(**kwargs)
 
     def to_representation(self, post):
-        request = self.context.get('request')
+        request = self.context.get("request")
         request_user = request.user
 
         is_muted = False
@@ -143,12 +157,12 @@ class PostIsMutedField(Field):
 
 class IsEncircledField(Field):
     def __init__(self, **kwargs):
-        kwargs['source'] = '*'
-        kwargs['read_only'] = True
+        kwargs["source"] = "*"
+        kwargs["read_only"] = True
         super(IsEncircledField, self).__init__(**kwargs)
 
     def to_representation(self, post):
-        request = self.context.get('request')
+        request = self.context.get("request")
         request_user = request.user
 
         is_encircled = False

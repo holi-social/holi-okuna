@@ -15,7 +15,7 @@ logger = getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Check worker health'
+    help = "Check worker health"
 
     def verify_worker_health(self):
         # iterate through all configured queues
@@ -30,18 +30,20 @@ class Command(BaseCommand):
 
             if active_job_count >= ACTIVE_JOB_THRESHOLD:
                 send_alert_to_channel(
-                        f"*UH-OH: we have way too many active jobs "
-                        f"in {env}:{queue} right now: {active_job_count}!!*"
-                                      )
+                    f"*UH-OH: we have way too many active jobs "
+                    f"in {env}:{queue} right now: {active_job_count}!!*"
+                )
                 print(f"{queue} has too many jobs {active_job_count}")
                 self.retval += 1
 
             active_worker_count = rq_stats.get_active_worker_count()
 
             if active_worker_count >= ACTIVE_WORKER_THRESHOLD:
-                send_alert_to_channel(f"*Hmm, we are not supposed to have "
-                                      f"{active_worker_count} workers in "
-                                      f"{env}:{queue}*")
+                send_alert_to_channel(
+                    f"*Hmm, we are not supposed to have "
+                    f"{active_worker_count} workers in "
+                    f"{env}:{queue}*"
+                )
                 print(f"{queue} has too many workers {active_worker_count}")
 
                 self.retval += 1
@@ -55,9 +57,7 @@ class Command(BaseCommand):
 
         except Exception as e:
             exception = str(e)
-            send_alert_to_channel(
-                               f"worker_health_check failed with {exception}"
-                            )
+            send_alert_to_channel(f"worker_health_check failed with {exception}")
 
             raise e
 

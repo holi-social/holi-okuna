@@ -7,7 +7,10 @@ from openbook_common.tests.models import OpenbookAPITestCase
 import logging
 import json
 
-from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user
+from openbook_common.tests.helpers import (
+    make_user,
+    make_authentication_headers_for_user,
+)
 from openbook_common.utils.test import uuid_id_parser
 
 fake = Faker()
@@ -16,9 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class FollowersAPITests(OpenbookAPITestCase):
-    fixtures = [
-        'openbook_circles/fixtures/circles.json'
-    ]
+    fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_can_retrieve_followers(self):
         """
@@ -46,7 +47,7 @@ class FollowersAPITests(OpenbookAPITestCase):
         self.assertEqual(len(response_followers), amount_of_followers)
 
         for response_member in response_followers:
-            response_member_id = response_member.get('id')
+            response_member_id = response_member.get("id")
             self.assertIn(response_member_id, followers_ids)
 
     def test_cant_retrieve_soft_deleted_followers(self):
@@ -73,7 +74,7 @@ class FollowersAPITests(OpenbookAPITestCase):
         self.assertEqual(0, len(response_followers))
 
     def _get_url(self):
-        return reverse('followers')
+        return reverse("followers")
 
 
 class SearchFollowersAPITests(OpenbookAPITestCase):
@@ -97,25 +98,27 @@ class SearchFollowersAPITests(OpenbookAPITestCase):
             follower_name = follower.profile.name
             amount_of_characters_to_query = random.randint(1, len(follower_name))
             query = follower_name[0:amount_of_characters_to_query]
-            final_query = ''
+            final_query = ""
             for character in query:
-                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
+                final_query = final_query + (
+                    character.upper() if fake.boolean() else character.lower()
+                )
 
             url = self._get_url()
 
-            response = self.client.get(url, {
-                'query': final_query
-            }, **headers)
+            response = self.client.get(url, {"query": final_query}, **headers)
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_followers = json.loads(response.content, object_hook=uuid_id_parser)
+            response_followers = json.loads(
+                response.content, object_hook=uuid_id_parser
+            )
             response_members_count = len(response_followers)
 
             self.assertEqual(response_members_count, 1)
             retrieved_linked_member = response_followers[0]
 
-            self.assertEqual(retrieved_linked_member['id'], follower.id)
+            self.assertEqual(retrieved_linked_member["id"], follower.id)
             follower.unfollow_user_with_id(user.pk)
 
     def test_can_search_followers_by_username(self):
@@ -134,25 +137,27 @@ class SearchFollowersAPITests(OpenbookAPITestCase):
             follower_username = follower.username
             amount_of_characters_to_query = random.randint(1, len(follower_username))
             query = follower_username[0:amount_of_characters_to_query]
-            final_query = ''
+            final_query = ""
             for character in query:
-                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
+                final_query = final_query + (
+                    character.upper() if fake.boolean() else character.lower()
+                )
 
             url = self._get_url()
 
-            response = self.client.get(url, {
-                'query': final_query
-            }, **headers)
+            response = self.client.get(url, {"query": final_query}, **headers)
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_followers = json.loads(response.content, object_hook=uuid_id_parser)
+            response_followers = json.loads(
+                response.content, object_hook=uuid_id_parser
+            )
             response_members_count = len(response_followers)
 
             self.assertEqual(response_members_count, 1)
             retrieved_linked_member = response_followers[0]
 
-            self.assertEqual(retrieved_linked_member['id'], follower.id)
+            self.assertEqual(retrieved_linked_member["id"], follower.id)
             follower.unfollow_user_with_id(user.pk)
 
     def test_cant_search_soft_deleted_followers(self):
@@ -172,23 +177,24 @@ class SearchFollowersAPITests(OpenbookAPITestCase):
             follower_username = follower.username
             amount_of_characters_to_query = random.randint(1, len(follower_username))
             query = follower_username[0:amount_of_characters_to_query]
-            final_query = ''
+            final_query = ""
             for character in query:
-                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
+                final_query = final_query + (
+                    character.upper() if fake.boolean() else character.lower()
+                )
 
             url = self._get_url()
 
-            response = self.client.get(url, {
-                'query': final_query
-            }, **headers)
+            response = self.client.get(url, {"query": final_query}, **headers)
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_followers = json.loads(response.content, object_hook=uuid_id_parser)
+            response_followers = json.loads(
+                response.content, object_hook=uuid_id_parser
+            )
             response_members_count = len(response_followers)
 
             self.assertEqual(0, response_members_count)
 
-
     def _get_url(self):
-        return reverse('search-followers')
+        return reverse("search-followers")

@@ -5,8 +5,14 @@ from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 
-from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, make_hashtag_name, \
-    make_hashtag, make_moderation_category, make_global_moderator
+from openbook_common.tests.helpers import (
+    make_user,
+    make_authentication_headers_for_user,
+    make_hashtag_name,
+    make_hashtag,
+    make_moderation_category,
+    make_global_moderator,
+)
 from openbook_common.tests.models import OpenbookAPITestCase
 
 import logging
@@ -38,19 +44,19 @@ class SearchHashtagsAPITests(OpenbookAPITestCase):
             hashtag = make_hashtag(name=hashtag_name)
             amount_of_characters_to_query = random.randint(1, len(hashtag_name))
             query = hashtag_name[0:amount_of_characters_to_query]
-            final_query = ''
+            final_query = ""
             for character in query:
-                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
+                final_query = final_query + (
+                    character.upper() if fake.boolean() else character.lower()
+                )
 
             url = self._get_url()
-            response = self.client.get(url, {
-                'query': final_query
-            }, **headers)
+            response = self.client.get(url, {"query": final_query}, **headers)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertEqual(len(parsed_response), 1)
             retrieved_hashtag = parsed_response[0]
-            self.assertEqual(retrieved_hashtag['name'], hashtag_name.lower())
+            self.assertEqual(retrieved_hashtag["name"], hashtag_name.lower())
             hashtag.delete()
 
     def test_can_search_for_foreign_user_reported_hashtag(self):
@@ -66,12 +72,12 @@ class SearchHashtagsAPITests(OpenbookAPITestCase):
         hashtag = make_hashtag(name=hashtag_name)
 
         report_category = make_moderation_category()
-        reporter.report_hashtag_with_name(hashtag_name=hashtag_name, category_id=report_category.pk)
+        reporter.report_hashtag_with_name(
+            hashtag_name=hashtag_name, category_id=report_category.pk
+        )
 
         url = self._get_url()
-        response = self.client.get(url, {
-            'query': hashtag.name
-        }, **headers)
+        response = self.client.get(url, {"query": hashtag.name}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
@@ -88,12 +94,12 @@ class SearchHashtagsAPITests(OpenbookAPITestCase):
         hashtag = make_hashtag(name=hashtag_name)
 
         report_category = make_moderation_category()
-        user.report_hashtag_with_name(hashtag_name=hashtag_name, category_id=report_category.pk)
+        user.report_hashtag_with_name(
+            hashtag_name=hashtag_name, category_id=report_category.pk
+        )
 
         url = self._get_url()
-        response = self.client.get(url, {
-            'query': hashtag.name
-        }, **headers)
+        response = self.client.get(url, {"query": hashtag.name}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
@@ -112,22 +118,23 @@ class SearchHashtagsAPITests(OpenbookAPITestCase):
         hashtag = make_hashtag(name=hashtag_name)
 
         report_category = make_moderation_category()
-        reporter.report_hashtag_with_name(hashtag_name=hashtag_name, category_id=report_category.pk)
+        reporter.report_hashtag_with_name(
+            hashtag_name=hashtag_name, category_id=report_category.pk
+        )
 
         global_moderator = make_global_moderator()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_hashtag(hashtag=hashtag,
-                                                                                      category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_hashtag(
+            hashtag=hashtag, category_id=report_category.pk
+        )
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
         url = self._get_url()
-        response = self.client.get(url, {
-            'query': hashtag.name
-        }, **headers)
+        response = self.client.get(url, {"query": hashtag.name}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(len(parsed_response), 0)
 
     def _get_url(self):
-        return reverse('search-hashtags')
+        return reverse("search-hashtags")

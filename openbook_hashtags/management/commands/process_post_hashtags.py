@@ -10,23 +10,26 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Process the Posts\'s hashtags'
+    help = "Process the Posts's hashtags"
 
     def handle(self, *args, **options):
         Post = get_post_model()
 
-        posts_to_process = Post.objects.filter(hashtags__isnull=True,
-                                               text__isnull=False,
-                                               text__icontains='#'
-                                               ).only('id', 'text').all()
+        posts_to_process = (
+            Post.objects.filter(
+                hashtags__isnull=True, text__isnull=False, text__icontains="#"
+            )
+            .only("id", "text")
+            .all()
+        )
         migrated_posts = 0
 
         for post in _chunked_queryset_iterator(posts_to_process, 100):
             try:
                 post._process_post_hashtags()
             except Exception as e:
-                logger.info(f'Error processing with error {str(e)}')
-            logger.info('Processed hashtags for post with id:' + str(post.pk))
+                logger.info(f"Error processing with error {str(e)}")
+            logger.info("Processed hashtags for post with id:" + str(post.pk))
             migrated_posts = migrated_posts + 1
 
-        logger.info('Processed %d posts for hashtags' % migrated_posts)
+        logger.info("Processed %d posts for hashtags" % migrated_posts)

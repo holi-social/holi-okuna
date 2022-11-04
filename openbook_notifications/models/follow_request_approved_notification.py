@@ -13,9 +13,11 @@ class FollowRequestApprovedNotification(ModelWithUUID):
     @classmethod
     def create_follow_request_approved_notification(cls, follow_id, owner_id):
         follow_request_approved_notification = cls.objects.create(follow_id=follow_id)
-        Notification.create_notification(type=Notification.FOLLOW_REQUEST_APPROVED,
-                                         content_object=follow_request_approved_notification,
-                                         owner_id=owner_id)
+        Notification.create_notification(
+            type=Notification.FOLLOW_REQUEST_APPROVED,
+            content_object=follow_request_approved_notification,
+            owner_id=owner_id,
+        )
         return follow_request_approved_notification
 
     # No delete method because this will be auto-deleted when the follow is deleted.

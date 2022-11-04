@@ -17,8 +17,13 @@ from openbook_communities.models import Community
 from openbook_devices.models import Device
 from openbook_hashtags.models import Hashtag
 from openbook_lists.models import List
-from openbook_moderation.models import ModerationCategory, ModeratedObjectLog, ModeratedObject, ModerationReport, \
-    ModerationPenalty
+from openbook_moderation.models import (
+    ModerationCategory,
+    ModeratedObjectLog,
+    ModeratedObject,
+    ModerationReport,
+    ModerationPenalty,
+)
 from openbook_notifications.models import Notification
 from openbook_common.models import ProxyBlacklistedDomain
 
@@ -27,8 +32,8 @@ fake = Faker()
 
 def make_authentication_headers_for_user(user):
     return {
-        'X-Holi-User-ID': f'{user.username}',
-        'X-Holi-User-Email': f'{user.email}',
+        "X-Holi-User-ID": f"{user.username}",
+        "X-Holi-User-Email": f"{user.email}",
     }
 
 
@@ -40,9 +45,13 @@ def make_fake_post_comment_text():
     return fake.text(max_nb_chars=settings.POST_COMMENT_MAX_LENGTH)
 
 
-def make_user(username=None, invite_count=None, name=None, visibility=User.VISIBILITY_TYPE_OKUNA):
+def make_user(
+    username=None, invite_count=None, name=None, visibility=User.VISIBILITY_TYPE_OKUNA
+):
     if username and invite_count:
-        user = mixer.blend(User, username=username, invite_count=invite_count, visibility=visibility)
+        user = mixer.blend(
+            User, username=username, invite_count=invite_count, visibility=visibility
+        )
     elif username:
         user = mixer.blend(User, username=username, visibility=visibility)
     elif invite_count:
@@ -129,11 +138,15 @@ def make_user_engagement_level():
 
 
 def make_user_interests():
-    return [fake.text(max_nb_chars=settings.PROFILE_INTEREST_MAX_LENGTH) for x in range(10)]
+    return [
+        fake.text(max_nb_chars=settings.PROFILE_INTEREST_MAX_LENGTH) for x in range(10)
+    ]
 
 
 def make_user_skills():
-    return [fake.text(max_nb_chars=settings.PROFILE_SKILL_MAX_LENGTH) for x in range(10)]
+    return [
+        fake.text(max_nb_chars=settings.PROFILE_SKILL_MAX_LENGTH) for x in range(10)
+    ]
 
 
 def make_user_sdgs():
@@ -141,8 +154,8 @@ def make_user_sdgs():
 
 
 def make_user_avatar():
-    image = Image.new('RGB', (100, 100))
-    tmp_file = tempfile.NamedTemporaryFile(suffix='.jpg')
+    image = Image.new("RGB", (100, 100))
+    tmp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
     image.save(tmp_file)
     tmp_file.seek(0)
     return tmp_file
@@ -153,16 +166,16 @@ def make_category():
 
 
 def make_user_cover():
-    image = Image.new('RGB', (100, 100))
-    tmp_file = tempfile.NamedTemporaryFile(suffix='.jpg')
+    image = Image.new("RGB", (100, 100))
+    tmp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
     image.save(tmp_file)
     tmp_file.seek(0)
     return tmp_file
 
 
 def make_post_image():
-    image = Image.new('RGB', (100, 100))
-    tmp_file = tempfile.NamedTemporaryFile(suffix='.jpg')
+    image = Image.new("RGB", (100, 100))
+    tmp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
     image.save(tmp_file)
     tmp_file.seek(0)
     return tmp_file
@@ -177,16 +190,16 @@ def make_fake_circle_name():
 
 
 def make_community_avatar():
-    community_avatar = Image.new('RGB', (100, 100))
-    tmp_file = tempfile.NamedTemporaryFile(suffix='.jpg')
+    community_avatar = Image.new("RGB", (100, 100))
+    tmp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
     community_avatar.save(tmp_file)
     tmp_file.seek(0)
     return tmp_file
 
 
 def make_community_cover():
-    community_cover = Image.new('RGB', (100, 100))
-    tmp_file = tempfile.NamedTemporaryFile(suffix='.jpg')
+    community_cover = Image.new("RGB", (100, 100))
+    tmp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
     community_cover.save(tmp_file)
     tmp_file.seek(0)
     return tmp_file
@@ -224,7 +237,9 @@ def make_community_invites_enabled():
     return fake.boolean()
 
 
-def make_community(creator=None, type=Community.COMMUNITY_TYPE_PUBLIC, name=None, title=None):
+def make_community(
+    creator=None, type=Community.COMMUNITY_TYPE_PUBLIC, name=None, title=None
+):
     if not creator:
         creator = make_user()
 
@@ -234,18 +249,29 @@ def make_community(creator=None, type=Community.COMMUNITY_TYPE_PUBLIC, name=None
     if not title:
         title = make_community_title()
 
-    community = creator.create_community(name=name, title=title, type=type,
-                                         color=fake.hex_color(), description=make_community_description(),
-                                         rules=make_community_rules(), user_adjective=make_community_user_adjective(),
-                                         users_adjective=make_community_users_adjective(),
-                                         categories_names=[make_category().name],
-                                         invites_enabled=make_community_invites_enabled())
+    community = creator.create_community(
+        name=name,
+        title=title,
+        type=type,
+        color=fake.hex_color(),
+        description=make_community_description(),
+        rules=make_community_rules(),
+        user_adjective=make_community_user_adjective(),
+        users_adjective=make_community_users_adjective(),
+        categories_names=[make_category().name],
+        invites_enabled=make_community_invites_enabled(),
+    )
     return community
 
 
-def make_moderators_community(creator, ):
-    return make_community(name=settings.MODERATORS_COMMUNITY_NAME, creator=creator,
-                          type=Community.COMMUNITY_TYPE_PRIVATE)
+def make_moderators_community(
+    creator,
+):
+    return make_community(
+        name=settings.MODERATORS_COMMUNITY_NAME,
+        creator=creator,
+        type=Community.COMMUNITY_TYPE_PRIVATE,
+    )
 
 
 def make_private_community(creator):
@@ -255,10 +281,17 @@ def make_private_community(creator):
 def make_notification(owner, notification_type=None):
     content_type = ContentType.objects.filter(app_label__startswith="openbook_")[0]
     if notification_type:
-        return mixer.blend(Notification, owner=owner, notification_type=notification_type, content_type=content_type,
-                           object_id=uuid.uuid4())
+        return mixer.blend(
+            Notification,
+            owner=owner,
+            notification_type=notification_type,
+            content_type=content_type,
+            object_id=uuid.uuid4(),
+        )
     else:
-        return mixer.blend(Notification, owner=owner, content_type=content_type, object_id=uuid.uuid4())
+        return mixer.blend(
+            Notification, owner=owner, content_type=content_type, object_id=uuid.uuid4()
+        )
 
 
 def make_device(owner):
@@ -281,7 +314,9 @@ def make_list(creator):
     return mixer.blend(List, creator=creator)
 
 
-def make_moderated_object(community=None, ):
+def make_moderated_object(
+    community=None,
+):
     return mixer.blend(ModeratedObject, community=community)
 
 
@@ -306,95 +341,90 @@ def make_proxy_blacklisted_domain(domain):
 
 
 def get_test_usernames():
-    return [
-        'j_oel',
-        'j.o.e.l',
-        'j03l',
-        'j'
-    ]
+    return ["j_oel", "j.o.e.l", "j03l", "j"]
 
 
 def get_test_valid_hashtags():
     return [
-        '1337test',
-        'hello',
-        'thisisasomewhatmoderateword',
-        'thisisatest123',
-        'hello_123',
-        '_heythere',
-        'osmaodmoasmdoasodasdasdasdsassaa'
+        "1337test",
+        "hello",
+        "thisisasomewhatmoderateword",
+        "thisisatest123",
+        "hello_123",
+        "_heythere",
+        "osmaodmoasmdoasodasdasdasdsassaa",
     ]
 
 
 def get_test_invalid_hashtags():
     return [
-        '1337',
-        '',
-        '!@#!@a',
-        '.',
+        "1337",
+        "",
+        "!@#!@a",
+        ".",
     ]
 
 
 def get_test_videos():
     return [
         {
-            'path': 'openbook_common/tests/files/test_video.mp4',
-            'duration': 5.312,
-            'width': 1280,
-            'height': 720
+            "path": "openbook_common/tests/files/test_video.mp4",
+            "duration": 5.312,
+            "width": 1280,
+            "height": 720,
         },
         {
-            'path': 'openbook_common/tests/files/test_video.3gp',
-            'duration': 40.667,
-            'width': 176,
-            'height': 144
+            "path": "openbook_common/tests/files/test_video.3gp",
+            "duration": 40.667,
+            "width": 176,
+            "height": 144,
         },
         {
-            'path': 'openbook_common/tests/files/test_gif_medium.gif',
-            'duration': 1.5,
-            'width': 312,
-            'height': 312
+            "path": "openbook_common/tests/files/test_gif_medium.gif",
+            "duration": 1.5,
+            "width": 312,
+            "height": 312,
         },
         {
-            'path': 'openbook_common/tests/files/test_gif_tiny.gif',
-            'duration': 0.771,
-            'width': 256,
-            'height': 256
-        }
+            "path": "openbook_common/tests/files/test_gif_tiny.gif",
+            "duration": 0.771,
+            "width": 256,
+            "height": 256,
+        },
     ]
 
 
 def get_test_images():
     return [
         {
-            'path': 'openbook_common/tests/files/test_image_tiny.png',
-            'width': 272,
-            'height': 170
+            "path": "openbook_common/tests/files/test_image_tiny.png",
+            "width": 272,
+            "height": 170,
         },
         {
-            'path': 'openbook_common/tests/files/test_image_small.png',
-            'width': 912,
-            'height': 513
+            "path": "openbook_common/tests/files/test_image_small.png",
+            "width": 912,
+            "height": 513,
         },
         {
-            'path': 'openbook_common/tests/files/test_image_medium.png',
-            'width': 5891,
-            'height': 2271
+            "path": "openbook_common/tests/files/test_image_medium.png",
+            "width": 5891,
+            "height": 2271,
         },
         {
-            'path': 'openbook_common/tests/files/test_image_tiny.jpg',
-            'width': 300,
-            'height': 300
+            "path": "openbook_common/tests/files/test_image_tiny.jpg",
+            "width": 300,
+            "height": 300,
         },
         {
-            'path': 'openbook_common/tests/files/test_image_small.jpg',
-            'width': 2192,
-            'height': 2921
+            "path": "openbook_common/tests/files/test_image_small.jpg",
+            "width": 2192,
+            "height": 2921,
         },
         {
-            'path': 'openbook_common/tests/files/test_image_medium.jpg',
-            'width': 10751,
-            'height': 4287
+            "path": "openbook_common/tests/files/test_image_medium.jpg",
+            "width": 10751,
+            "height": 4287,
         },
     ]
 
@@ -409,10 +439,10 @@ def get_test_video():
 
 def get_post_links():
     return [
-        'https://www.okuna.io/',
-        'www.techcrunch.com/',
-        'https://bbc.co.uk/',
-        'google.com?filter=evil/',
-        'www.blablacar.com/i/rest/results/',
-        'https://longwebsite.social/?url=https%3A%2F%2Ftest.com%3Fyes%3Dtrue'
+        "https://www.okuna.io/",
+        "www.techcrunch.com/",
+        "https://bbc.co.uk/",
+        "google.com?filter=evil/",
+        "www.blablacar.com/i/rest/results/",
+        "https://longwebsite.social/?url=https%3A%2F%2Ftest.com%3Fyes%3Dtrue",
     ]

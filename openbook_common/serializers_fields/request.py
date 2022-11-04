@@ -8,8 +8,8 @@ from django.forms import ImageField as DjangoImageField
 class FriendlyUrlField(URLField):
     def to_internal_value(self, data):
         if isinstance(data, str):
-            if 'https://' not in data and 'http://' not in data:
-                data = 'https://' + data
+            if "https://" not in data and "http://" not in data:
+                data = "https://" + data
         return data
 
 
@@ -37,22 +37,25 @@ class RestrictedFileSizeField(FileField):
 
         size = data.size
         if size > self.max_upload_size:
-            raise ValidationError(_('Please keep filesize under %s. Current filesize %s' % (
-            filesizeformat(self.max_upload_size), filesizeformat(size))
-                                    ))
+            raise ValidationError(
+                _(
+                    "Please keep filesize under %s. Current filesize %s"
+                    % (filesizeformat(self.max_upload_size), filesizeformat(size))
+                )
+            )
 
         return data
 
 
 class RestrictedImageFileSizeField(RestrictedFileSizeField):
     default_error_messages = {
-        'invalid_image': _(
-            'Upload a valid image. The file you uploaded was either not an image or a corrupted image.'
+        "invalid_image": _(
+            "Upload a valid image. The file you uploaded was either not an image or a corrupted image."
         ),
     }
 
     def __init__(self, *args, **kwargs):
-        self._DjangoImageField = kwargs.pop('_DjangoImageField', DjangoImageField)
+        self._DjangoImageField = kwargs.pop("_DjangoImageField", DjangoImageField)
         super().__init__(*args, **kwargs)
 
     def to_internal_value(self, data):

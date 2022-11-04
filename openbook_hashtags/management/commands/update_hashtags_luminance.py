@@ -10,14 +10,16 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Update the hashtags luminance'
+    help = "Update the hashtags luminance"
 
     def add_arguments(self, parser):
-        parser.add_argument('--luminance', type=int, help='The luminance to change')
+        parser.add_argument("--luminance", type=int, help="The luminance to change")
 
     def handle(self, *args, **options):
-        raise Exception('This function is not available due to removed dependency on spectra.')
-         # luminance = options.get('luminance', None)
+        raise Exception(
+            "This function is not available due to removed dependency on spectra."
+        )
+        # luminance = options.get('luminance', None)
         #
         # if not luminance:
         #     raise Exception('--luminance is required')

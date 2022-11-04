@@ -7,8 +7,11 @@ from rest_framework.views import APIView
 from django.utils.translation import gettext_lazy as _
 
 from openbook_moderation.permissions import IsNotSuspended
-from openbook_posts.views.post_media.serializers import AddPostMediaSerializer, GetPostMediaSerializer, \
-    PostMediaSerializer
+from openbook_posts.views.post_media.serializers import (
+    AddPostMediaSerializer,
+    GetPostMediaSerializer,
+    PostMediaSerializer,
+)
 
 
 class PostMedia(APIView):
@@ -16,7 +19,7 @@ class PostMedia(APIView):
 
     def put(self, request, post_id):
         request_data = request.data.dict()
-        request_data['post_id'] = post_id
+        request_data["post_id"] = post_id
 
         serializer = AddPostMediaSerializer(data=request_data)
         serializer.is_valid(raise_exception=True)
@@ -24,31 +27,31 @@ class PostMedia(APIView):
         data = serializer.validated_data
 
         user = request.user
-        post_id = data.get('post_id')
-        file = data.get('file')
-        order = data.get('order')
+        post_id = data.get("post_id")
+        file = data.get("file")
+        order = data.get("order")
 
         with transaction.atomic():
             user.add_media_to_post_with_id(post_id=post_id, file=file, order=order)
 
-        return Response({
-            'message': _('Media added successfully to post')
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {"message": _("Media added successfully to post")},
+            status=status.HTTP_200_OK,
+        )
 
     def get(self, request, post_id):
-        serializer = GetPostMediaSerializer(data={
-            'post_id': post_id
-        })
+        serializer = GetPostMediaSerializer(data={"post_id": post_id})
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
-        post_id = data.get('post_id')
+        post_id = data.get("post_id")
 
         user = request.user
 
-        post_media = user.get_media_for_post_with_id(post_id=post_id).order_by(
-            'order')
+        post_media = user.get_media_for_post_with_id(post_id=post_id).order_by("order")
 
-        post_media_serializer = PostMediaSerializer(post_media, many=True, context={"request": request})
+        post_media_serializer = PostMediaSerializer(
+            post_media, many=True, context={"request": request}
+        )
 
         return Response(post_media_serializer.data, status=status.HTTP_200_OK)

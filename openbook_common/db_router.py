@@ -3,13 +3,13 @@ class DBRouter(object):
         """
         All reads are routed to Reader
         """
-        return 'Reader'
+        return "Reader"
 
     def db_for_write(self, model, **hints):
         """
         All writes are routed to Writer
         """
-        return 'Writer'
+        return "Writer"
 
     def allow_relation(self, obj1, obj2, **hints):
         """

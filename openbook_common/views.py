@@ -7,8 +7,10 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from openbook_common.checkers import check_url_can_be_proxied
-from openbook_common.serializers import CommonEmojiGroupSerializer, \
-    ProxyDomainCheckSerializer
+from openbook_common.serializers import (
+    CommonEmojiGroupSerializer,
+    ProxyDomainCheckSerializer,
+)
 from openbook_common.utils.model_loaders import get_emoji_group_model
 
 
@@ -21,10 +23,9 @@ class Time(APIView):
         time = timezone.localtime(timezone.now())
         time_zone = get_current_timezone()
 
-        return Response({
-            'time': time,
-            'timezone': str(time_zone)
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {"time": time, "timezone": str(time_zone)}, status=status.HTTP_200_OK
+        )
 
 
 class Health(APIView):
@@ -33,9 +34,7 @@ class Health(APIView):
     """
 
     def get(self, request):
-        return Response({
-            'message': 'Todo muy bueno!'
-        })
+        return Response({"message": "Todo muy bueno!"})
 
 
 class EmojiGroups(APIView):
@@ -43,8 +42,12 @@ class EmojiGroups(APIView):
 
     def get(self, request):
         EmojiGroup = get_emoji_group_model()
-        emoji_groups = EmojiGroup.objects.filter(is_reaction_group=False).all().order_by('order')
-        serializer = CommonEmojiGroupSerializer(emoji_groups, many=True, context={'request': request})
+        emoji_groups = (
+            EmojiGroup.objects.filter(is_reaction_group=False).all().order_by("order")
+        )
+        serializer = CommonEmojiGroupSerializer(
+            emoji_groups, many=True, context={"request": request}
+        )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -58,8 +61,10 @@ class ProxyDomainCheck(APIView):
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
-        url = data.get('url')
+        url = data.get("url")
 
         check_url_can_be_proxied(url)
 
-        return Response(_('Domain is okay to be proxied'), status=status.HTTP_202_ACCEPTED)
+        return Response(
+            _("Domain is okay to be proxied"), status=status.HTTP_202_ACCEPTED
+        )

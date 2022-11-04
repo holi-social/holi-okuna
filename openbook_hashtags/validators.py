@@ -9,12 +9,12 @@ def hashtag_name_exists(hashtag_name):
     Hashtag = get_hashtag_model()
     if not Hashtag.hashtag_with_name_exists(hashtag_name=hashtag_name):
         raise NotFound(
-            _('No hashtag with the provided name exists.'),
+            _("No hashtag with the provided name exists."),
         )
 
 
 def hashtag_name_validator(hashtag_name):
-    if not hashtags_regexp.match(f'#{hashtag_name}'):
+    if not hashtags_regexp.match(f"#{hashtag_name}"):
         raise NotFound(
-            _('Hashtags must to be alphanumerical and up to 32 characters.'),
+            _("Hashtags must to be alphanumerical and up to 32 characters."),
         )

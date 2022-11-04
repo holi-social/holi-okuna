@@ -11,14 +11,26 @@ from openbook_communities.models import Community
 
 # Create your models here.
 class Device(ModelWithUUID):
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='devices', null=False)
-    uuid = models.CharField(_('uuid'), null=False, editable=False, unique=False,
-                            max_length=settings.DEVICE_UUID_MAX_LENGTH)
-    name = models.CharField(_('name'), max_length=settings.DEVICE_NAME_MAX_LENGTH, blank=False, null=True)
+    owner = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="devices", null=False
+    )
+    uuid = models.CharField(
+        _("uuid"),
+        null=False,
+        editable=False,
+        unique=False,
+        max_length=settings.DEVICE_UUID_MAX_LENGTH,
+    )
+    name = models.CharField(
+        _("name"), max_length=settings.DEVICE_NAME_MAX_LENGTH, blank=False, null=True
+    )
     created = models.DateTimeField(editable=False)
 
     class Meta:
-        unique_together = ('owner', 'uuid',)
+        unique_together = (
+            "owner",
+            "uuid",
+        )
 
     @classmethod
     def create_device(cls, owner, uuid, name=None):

@@ -5,7 +5,11 @@ from faker import Faker
 from rest_framework import status
 from openbook_common.tests.models import OpenbookAPITestCase
 
-from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, make_device
+from openbook_common.tests.helpers import (
+    make_user,
+    make_authentication_headers_for_user,
+    make_device,
+)
 from openbook_common.utils.test import uuid_id_parser
 from openbook_devices.models import Device
 
@@ -26,7 +30,7 @@ class DevicesAPITests(OpenbookAPITestCase):
         device_uuid = fake.uuid4()
 
         request_body = {
-            'uuid': device_uuid,
+            "uuid": device_uuid,
         }
 
         url = self._get_url()
@@ -47,8 +51,8 @@ class DevicesAPITests(OpenbookAPITestCase):
         device_name = fake.user_name()
 
         request_body = {
-            'uuid': device_uuid,
-            'name': device_name,
+            "uuid": device_uuid,
+            "name": device_name,
         }
 
         url = self._get_url()
@@ -57,8 +61,7 @@ class DevicesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(
-            Device.objects.filter(uuid=device_uuid, owner=user).exists())
+        self.assertTrue(Device.objects.filter(uuid=device_uuid, owner=user).exists())
 
     def test_can_retrieve_devices(self):
         """
@@ -84,7 +87,7 @@ class DevicesAPITests(OpenbookAPITestCase):
         self.assertEqual(len(response_devices), len(devices_ids))
 
         for response_device in response_devices:
-            response_device_uuid = response_device.get('uuid')
+            response_device_uuid = response_device.get("uuid")
             self.assertIn(response_device_uuid, devices_ids)
 
     def test_can_delete_devices(self):
@@ -109,7 +112,7 @@ class DevicesAPITests(OpenbookAPITestCase):
         self.assertFalse(Device.objects.filter(owner=user).exists())
 
     def _get_url(self):
-        return reverse('devices')
+        return reverse("devices")
 
 
 class DeviceItemAPITests(OpenbookAPITestCase):
@@ -135,7 +138,7 @@ class DeviceItemAPITests(OpenbookAPITestCase):
 
         response_device = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(response_device['uuid'], str(device.uuid))
+        self.assertEqual(response_device["uuid"], str(device.uuid))
 
     def test_cant_retrieve_foreign_device(self):
         """
@@ -201,9 +204,7 @@ class DeviceItemAPITests(OpenbookAPITestCase):
 
         new_device_name = fake.user_name()
 
-        request_body = {
-            'name': new_device_name
-        }
+        request_body = {"name": new_device_name}
 
         url = self._get_url(device_uuid=device.uuid)
         headers = make_authentication_headers_for_user(user)
@@ -211,7 +212,9 @@ class DeviceItemAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(Device.objects.filter(uuid=device.uuid, name=new_device_name).exists())
+        self.assertTrue(
+            Device.objects.filter(uuid=device.uuid, name=new_device_name).exists()
+        )
 
     def test_can_update_a_device_updatable_arguments_at_once(self):
         """
@@ -224,7 +227,7 @@ class DeviceItemAPITests(OpenbookAPITestCase):
         new_name = fake.user_name()
 
         request_body = {
-            'name': new_name,
+            "name": new_name,
         }
 
         url = self._get_url(device_uuid=device.uuid)
@@ -234,8 +237,11 @@ class DeviceItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertTrue(
-            Device.objects.filter(uuid=device.uuid,
-                                  name=new_name, ).exists())
+            Device.objects.filter(
+                uuid=device.uuid,
+                name=new_name,
+            ).exists()
+        )
 
     def test_cant_update_a_foreign_device(self):
         """
@@ -249,7 +255,7 @@ class DeviceItemAPITests(OpenbookAPITestCase):
         new_name = fake.user_name()
 
         request_body = {
-            'name': new_name,
+            "name": new_name,
         }
 
         url = self._get_url(device_uuid=device.uuid)
@@ -259,10 +265,11 @@ class DeviceItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         self.assertFalse(
-            Device.objects.filter(uuid=device.uuid,
-                                  name=new_name, ).exists())
+            Device.objects.filter(
+                uuid=device.uuid,
+                name=new_name,
+            ).exists()
+        )
 
     def _get_url(self, device_uuid):
-        return reverse('device', kwargs={
-            'device_uuid': device_uuid
-        })
+        return reverse("device", kwargs={"device_uuid": device_uuid})

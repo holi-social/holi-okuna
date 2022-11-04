@@ -5,30 +5,36 @@ from openbook_auth.models import UserProfile, User
 from openbook_auth.validators import username_characters_validator, user_username_exists
 from openbook_circles.models import Circle
 from openbook_common.models import Badge, Emoji
-from openbook_common.serializers_fields.user import FollowersCountField, FollowingCountField, UserPostsCountField, \
-    IsFollowingField, IsConnectedField, IsFullyConnectedField, ConnectedCirclesField, FollowListsField, \
-    IsPendingConnectionConfirmation, IsBlockedField, IsUserReportedField, IsFollowedField, \
-    AreNewPostNotificationsEnabledForUserField, IsPendingFollowRequestApproval, IsFollowRequested
+from openbook_common.serializers_fields.user import (
+    FollowersCountField,
+    FollowingCountField,
+    UserPostsCountField,
+    IsFollowingField,
+    IsConnectedField,
+    IsFullyConnectedField,
+    ConnectedCirclesField,
+    FollowListsField,
+    IsPendingConnectionConfirmation,
+    IsBlockedField,
+    IsUserReportedField,
+    IsFollowedField,
+    AreNewPostNotificationsEnabledForUserField,
+    IsPendingFollowRequestApproval,
+    IsFollowRequested,
+)
 from openbook_lists.models import List
 
 
 class GetUserUserProfileBadgeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Badge
-        fields = (
-            'keyword',
-            'keyword_description'
-        )
+        fields = ("keyword", "keyword_description")
 
 
 class GetUserUserListEmojiSerializer(serializers.ModelSerializer):
     class Meta:
         model = Emoji
-        fields = (
-            'id',
-            'image',
-            'keyword'
-        )
+        fields = ("id", "image", "keyword")
 
 
 class GetUserUserListSerializer(serializers.ModelSerializer):
@@ -36,18 +42,16 @@ class GetUserUserListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = List
-        fields = (
-            'id',
-            'name',
-            'emoji'
-        )
+        fields = ("id", "name", "emoji")
 
 
 class GetUserSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=settings.USERNAME_MAX_LENGTH,
-                                     allow_blank=False,
-                                     validators=[username_characters_validator, user_username_exists],
-                                     required=True)
+    username = serializers.CharField(
+        max_length=settings.USERNAME_MAX_LENGTH,
+        allow_blank=False,
+        validators=[username_characters_validator, user_username_exists],
+        required=True,
+    )
 
 
 class GetUserUserProfileSerializer(serializers.ModelSerializer):
@@ -55,36 +59,19 @@ class GetUserUserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = (
-            'name',
-            'avatar',
-            'location',
-            'cover',
-            'about_me',
-            'url',
-            'badges'
-        )
+        fields = ("name", "avatar", "location", "cover", "about_me", "url", "badges")
 
 
 class GetUserUserCircleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Circle
-        fields = (
-            'id',
-            'name',
-            'color',
-            'users_count'
-        )
+        fields = ("id", "name", "color", "users_count")
 
 
 class GetUserUserListEmojiSerializer(serializers.ModelSerializer):
     class Meta:
         model = Emoji
-        fields = (
-            'id',
-            'image',
-            'keyword'
-        )
+        fields = ("id", "image", "keyword")
 
 
 class GetUserUserListSerializer(serializers.ModelSerializer):
@@ -92,11 +79,7 @@ class GetUserUserListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = List
-        fields = (
-            'id',
-            'name',
-            'emoji'
-        )
+        fields = ("id", "name", "emoji")
 
 
 class GetUserUserSerializer(serializers.ModelSerializer):
@@ -108,7 +91,9 @@ class GetUserUserSerializer(serializers.ModelSerializer):
     are_new_post_notifications_enabled = AreNewPostNotificationsEnabledForUserField()
     is_connected = IsConnectedField()
     is_fully_connected = IsFullyConnectedField()
-    connected_circles = ConnectedCirclesField(circle_serializer=GetUserUserCircleSerializer)
+    connected_circles = ConnectedCirclesField(
+        circle_serializer=GetUserUserCircleSerializer
+    )
     follow_lists = FollowListsField(list_serializer=GetUserUserListSerializer)
     is_pending_connection_confirmation = IsPendingConnectionConfirmation()
     is_pending_follow_request_approval = IsPendingFollowRequestApproval()
@@ -118,24 +103,24 @@ class GetUserUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id',
-            'username',
-            'profile',
-            'followers_count',
-            'following_count',
-            'is_following',
-            'is_followed',
-            'is_follow_requested',
-            'are_new_post_notifications_enabled',
-            'is_connected',
-            'is_reported',
-            'is_fully_connected',
-            'connected_circles',
-            'follow_lists',
-            'date_joined',
-            'is_pending_connection_confirmation',
-            'is_pending_follow_request_approval',
-            'visibility'
+            "id",
+            "username",
+            "profile",
+            "followers_count",
+            "following_count",
+            "is_following",
+            "is_followed",
+            "is_follow_requested",
+            "are_new_post_notifications_enabled",
+            "is_connected",
+            "is_reported",
+            "is_fully_connected",
+            "connected_circles",
+            "follow_lists",
+            "date_joined",
+            "is_pending_connection_confirmation",
+            "is_pending_follow_request_approval",
+            "visibility",
         )
 
 
@@ -150,7 +135,9 @@ class LegacyGetUserUserSerializer(serializers.ModelSerializer):
     are_new_post_notifications_enabled = AreNewPostNotificationsEnabledForUserField()
     is_connected = IsConnectedField()
     is_fully_connected = IsFullyConnectedField()
-    connected_circles = ConnectedCirclesField(circle_serializer=GetUserUserCircleSerializer)
+    connected_circles = ConnectedCirclesField(
+        circle_serializer=GetUserUserCircleSerializer
+    )
     follow_lists = FollowListsField(list_serializer=GetUserUserListSerializer)
     is_pending_connection_confirmation = IsPendingConnectionConfirmation()
     is_pending_follow_request_approval = IsPendingFollowRequestApproval()
@@ -159,25 +146,25 @@ class LegacyGetUserUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id',
-            'username',
-            'profile',
-            'followers_count',
-            'following_count',
-            'posts_count',
-            'is_following',
-            'is_followed',
-            'is_follow_requested',
-            'are_new_post_notifications_enabled',
-            'is_connected',
-            'is_reported',
-            'is_fully_connected',
-            'connected_circles',
-            'follow_lists',
-            'date_joined',
-            'is_pending_connection_confirmation',
-            'is_pending_follow_request_approval',
-            'visibility'
+            "id",
+            "username",
+            "profile",
+            "followers_count",
+            "following_count",
+            "posts_count",
+            "is_following",
+            "is_followed",
+            "is_follow_requested",
+            "are_new_post_notifications_enabled",
+            "is_connected",
+            "is_reported",
+            "is_fully_connected",
+            "connected_circles",
+            "follow_lists",
+            "date_joined",
+            "is_pending_connection_confirmation",
+            "is_pending_follow_request_approval",
+            "visibility",
         )
 
 
@@ -191,30 +178,26 @@ class GetBlockedUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id',
-            'is_blocked',
-            'is_following',
-            'are_new_post_notifications_enabled',
-            'is_connected',
-            'is_fully_connected'
+            "id",
+            "is_blocked",
+            "is_following",
+            "are_new_post_notifications_enabled",
+            "is_connected",
+            "is_fully_connected",
         )
 
 
 class SearchUsersSerializer(serializers.Serializer):
-    query = serializers.CharField(max_length=settings.SEARCH_QUERIES_MAX_LENGTH, required=True)
-    count = serializers.IntegerField(
-        required=False,
-        max_value=10
+    query = serializers.CharField(
+        max_length=settings.SEARCH_QUERIES_MAX_LENGTH, required=True
     )
+    count = serializers.IntegerField(required=False, max_value=10)
 
 
 class SearchUsersUserProfileBadgeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Badge
-        fields = (
-            'keyword',
-            'keyword_description'
-        )
+        fields = ("keyword", "keyword_description")
 
 
 class SearchUsersUserProfileSerializer(serializers.ModelSerializer):
@@ -222,12 +205,7 @@ class SearchUsersUserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = (
-            'id',
-            'avatar',
-            'name',
-            'badges'
-        )
+        fields = ("id", "avatar", "name", "badges")
 
 
 class SearchUsersUserSerializer(serializers.ModelSerializer):
@@ -239,13 +217,13 @@ class SearchUsersUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id',
-            'profile',
-            'username',
-            'is_following',
-            'are_new_post_notifications_enabled',
-            'is_connected',
-            'visibility',
+            "id",
+            "profile",
+            "username",
+            "is_following",
+            "are_new_post_notifications_enabled",
+            "is_connected",
+            "visibility",
         )
 
 
@@ -255,8 +233,8 @@ class SubscribeToUserNewPostNotificationsUserSerializer(serializers.ModelSeriali
     class Meta:
         model = User
         fields = (
-            'id',
-            'are_new_post_notifications_enabled',
+            "id",
+            "are_new_post_notifications_enabled",
         )
 
 
@@ -266,6 +244,6 @@ class GetUserPostsCountUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id',
-            'posts_count',
+            "id",
+            "posts_count",
         )

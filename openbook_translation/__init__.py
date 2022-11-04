@@ -13,11 +13,10 @@ from django.conf import settings
 from django.utils.module_loading import import_string
 from openbook_translation.strategies.base import InvalidTranslationStrategyError
 
-DEFAULT_STRATEGY_ALIAS = 'default'
+DEFAULT_STRATEGY_ALIAS = "default"
 
 
 class TranslationStrategyManager:
-
     def __init__(self, config_name=DEFAULT_STRATEGY_ALIAS):
         if config_name not in settings.OS_TRANSLATION_CONFIG:
             raise InvalidTranslationStrategyError(
@@ -30,11 +29,12 @@ class TranslationStrategyManager:
             # Try to get the OS_TRANSLATION_CONFIG entry for the given name first
             conf = settings.OS_TRANSLATION_CONFIG[name]
             params = {**conf, **kwargs}
-            strategy = params.pop('STRATEGY')
+            strategy = params.pop("STRATEGY")
             strategy_cls = import_string(strategy)
         except ImportError as e:
             raise InvalidTranslationStrategyError(
-                f"Could not find strategy '{strategy}': {e}")
+                f"Could not find strategy '{strategy}': {e}"
+            )
 
         return strategy_cls(params)
 
@@ -42,4 +42,6 @@ class TranslationStrategyManager:
         return self.strategy_instance
 
 
-translation_strategy = TranslationStrategyManager(settings.OS_TRANSLATION_STRATEGY_NAME).get_instance()
+translation_strategy = TranslationStrategyManager(
+    settings.OS_TRANSLATION_STRATEGY_NAME
+).get_instance()

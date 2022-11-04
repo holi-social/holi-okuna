@@ -24,7 +24,7 @@ class ImportItem(APIView):
         serializer = ZipfileSerializer(data=request.FILES)
         serializer.is_valid(raise_exception=True)
 
-        zipfile = request.FILES['file']
+        zipfile = request.FILES["file"]
 
         try:
             p = zip_parser(zipfile)
@@ -41,9 +41,7 @@ class ImportItem(APIView):
         if p.profile.posts:
             self.save_posts(p.profile.posts, request.user)
 
-        return Response({
-            'message': _('done')
-        }, status=status.HTTP_200_OK)
+        return Response({"message": _("done")}, status=status.HTTP_200_OK)
 
     def save_posts(self, posts, user):
 
@@ -51,25 +49,27 @@ class ImportItem(APIView):
             image = None
             images = None
             text = None
-            timestamp = post['timestamp']
+            timestamp = post["timestamp"]
             created = datetime.fromtimestamp(timestamp)
-            created = parse_datetime(created.strftime('%Y-%m-%d %T+00:00'))
+            created = parse_datetime(created.strftime("%Y-%m-%d %T+00:00"))
 
-            if 'attachments' in post.keys():
+            if "attachments" in post.keys():
                 images = self._get_media_content(post)
 
-            if 'data' in post.keys() and len(post['data']) != 0:
-                text = post['data'][0]['post']
+            if "data" in post.keys() and len(post["data"]) != 0:
+                text = post["data"][0]["post"]
 
             if images:
                 image = images[0]
 
-                if 'text' in image.keys():
-                    text = image['text']
+                if "text" in image.keys():
+                    text = image["text"]
 
-                image = ImageFile(image['file'])
+                image = ImageFile(image["file"])
 
-            if not Post.objects.filter(creator=user.pk, text=text, created=created).exists():
+            if not Post.objects.filter(
+                creator=user.pk, text=text, created=created
+            ).exists():
                 user.create_public_post(text=text, image=image, created=created)
 
     def _get_media_content(self, post):
@@ -77,12 +77,12 @@ class ImportItem(APIView):
         images = []
         image = {}
 
-        for attachment in post['attachments']:
-            for data in attachment['data']:
-                image['file'] = data['media']['uri'][1]
+        for attachment in post["attachments"]:
+            for data in attachment["data"]:
+                image["file"] = data["media"]["uri"][1]
 
-                if 'description' in data['media'].keys():
-                    image['text'] = data['media']['description']
+                if "description" in data["media"].keys():
+                    image["text"] = data["media"]["description"]
 
                 images.append(image)
                 image = {}
@@ -91,14 +91,14 @@ class ImportItem(APIView):
 
     def _return_invalid(self):
 
-        return Response({
-            'message':_('invalid archive')
-        }, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"message": _("invalid archive")}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     def _return_malicious(self):
         # TODO LOG MALICIOUS ATTEMPT
-        print('---- POTENTIALLY MALICIOUS UPLOAD!!!')
+        print("---- POTENTIALLY MALICIOUS UPLOAD!!!")
 
-        return Response({
-            'message':_('invalid archive')
-        }, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"message": _("invalid archive")}, status=status.HTTP_400_BAD_REQUEST
+        )

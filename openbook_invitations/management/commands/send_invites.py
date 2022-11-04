@@ -7,7 +7,7 @@ from openbook_invitations.models import UserInvite
 
 
 class Command(BaseCommand):
-    help = 'Sends invitation emails for populated UserInvite models'
+    help = "Sends invitation emails for populated UserInvite models"
 
     def handle(self, *args, **options):
         user_invites = UserInvite.objects.filter(is_invite_email_sent=False)
@@ -18,5 +18,5 @@ class Command(BaseCommand):
                     try:
                         user.send_invite_email()
                     except Exception as e:
-                        self.stderr.write('Exception occurred during send_invite_email')
-        self.stdout.write(self.style.SUCCESS('Successfully sent invitation emails'))
+                        self.stderr.write("Exception occurred during send_invite_email")
+        self.stdout.write(self.style.SUCCESS("Successfully sent invitation emails"))

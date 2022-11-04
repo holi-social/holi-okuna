@@ -19,18 +19,26 @@ insight_image_storage = default_storage
 
 
 class Insight(ModelWithUUID):
-    title = models.CharField(
-        max_length=settings.INSIGHT_TITLE_MAX_LENGTH, blank=False)
+    title = models.CharField(max_length=settings.INSIGHT_TITLE_MAX_LENGTH, blank=False)
     description = models.TextField(blank=False)
-    curator = models.ForeignKey(User, on_delete=models.SET_NULL,
-                                related_name='curated_insights', blank=True, null=True)
+    curator = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name="curated_insights",
+        blank=True,
+        null=True,
+    )
     date_published = models.DateField(blank=False)
-    header_image = ProcessedImageField(verbose_name=_('header_image'), storage=insight_image_storage,
-                                       upload_to=upload_to_insight_directory,
-                                       blank=False, null=True, format='JPEG', options={'quality': 80},
-                                       # constrain to maximum width
-                                       processors=[ResizeToFit(
-                                           width=1024, upscale=False)],
-                                       max_length=settings.IMAGE_URL_MAX_LENGTH)
-    posts = models.ManyToManyField(
-        related_name='insights', to='openbook_posts.Post')
+    header_image = ProcessedImageField(
+        verbose_name=_("header_image"),
+        storage=insight_image_storage,
+        upload_to=upload_to_insight_directory,
+        blank=False,
+        null=True,
+        format="JPEG",
+        options={"quality": 80},
+        # constrain to maximum width
+        processors=[ResizeToFit(width=1024, upscale=False)],
+        max_length=settings.IMAGE_URL_MAX_LENGTH,
+    )
+    posts = models.ManyToManyField(related_name="insights", to="openbook_posts.Post")

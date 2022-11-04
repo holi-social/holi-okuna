@@ -5,7 +5,7 @@ import six
 
 class BaseEncodingBackend(six.with_metaclass(abc.ABCMeta)):
     # used as key to get all defined formats from `VIDEO_ENCODING_FORMATS`
-    name = 'undefined'
+    name = "undefined"
 
     @classmethod
     def check(cls):

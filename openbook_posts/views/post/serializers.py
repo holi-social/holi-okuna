@@ -4,9 +4,20 @@ from django.conf import settings
 from openbook_auth.models import UserProfile, User
 from openbook_circles.models import Circle
 from openbook_common.models import Badge, Language
-from openbook_common.serializers import CommonHashtagSerializer, CommonPublicUserSerializer, CommonPostLinkSerializer
-from openbook_common.serializers_fields.post import PostCreatorField, PostReactionsEmojiCountField, ReactionField, \
-    CommentsCountField, CirclesField, PostIsMutedField, IsEncircledField
+from openbook_common.serializers import (
+    CommonHashtagSerializer,
+    CommonPublicUserSerializer,
+    CommonPostLinkSerializer,
+)
+from openbook_common.serializers_fields.post import (
+    PostCreatorField,
+    PostReactionsEmojiCountField,
+    ReactionField,
+    CommentsCountField,
+    CirclesField,
+    PostIsMutedField,
+    IsEncircledField,
+)
 from openbook_communities.models import CommunityMembership, Community
 from openbook_communities.serializers_fields import CommunityMembershipsField
 from openbook_posts.models import PostImage, Post
@@ -47,19 +58,16 @@ class UnmutePostSerializer(serializers.Serializer):
 class PostCreatorProfileBadgeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Badge
-        fields = (
-            'keyword',
-            'keyword_description'
-        )
+        fields = ("keyword", "keyword_description")
 
 
 class PostLanguageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Language
         fields = (
-            'id',
-            'code',
-            'name',
+            "id",
+            "code",
+            "name",
         )
 
 
@@ -68,12 +76,7 @@ class PostCreatorProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = (
-            'avatar',
-            'cover',
-            'badges',
-            'name'
-        )
+        fields = ("avatar", "cover", "badges", "name")
 
 
 class PostImageSerializer(serializers.ModelSerializer):
@@ -81,41 +84,38 @@ class PostImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PostImage
-        fields = (
-            'image',
-            'thumbnail',
-            'width',
-            'height'
-        )
+        fields = ("image", "thumbnail", "width", "height")
 
 
 class CommunityMembershipSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommunityMembership
         fields = (
-            'id',
-            'user_id',
-            'community_id',
-            'is_administrator',
-            'is_moderator',
+            "id",
+            "user_id",
+            "community_id",
+            "is_administrator",
+            "is_moderator",
         )
 
 
 class PostCommunitySerializer(serializers.ModelSerializer):
-    memberships = CommunityMembershipsField(community_membership_serializer=CommunityMembershipSerializer)
+    memberships = CommunityMembershipsField(
+        community_membership_serializer=CommunityMembershipSerializer
+    )
 
     class Meta:
         model = Community
         fields = (
-            'id',
-            'name',
-            'title',
-            'color',
-            'avatar',
-            'cover',
-            'user_adjective',
-            'users_adjective',
-            'memberships',
+            "id",
+            "name",
+            "title",
+            "color",
+            "avatar",
+            "cover",
+            "user_adjective",
+            "users_adjective",
+            "memberships",
         )
 
 
@@ -123,16 +123,20 @@ class PostCircleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Circle
         fields = (
-            'id',
-            'name',
-            'color',
+            "id",
+            "name",
+            "color",
         )
 
 
 class GetPostPostSerializer(serializers.ModelSerializer):
-    creator = PostCreatorField(post_creator_serializer=CommonPublicUserSerializer,
-                               community_membership_serializer=CommunityMembershipSerializer)
-    reactions_emoji_counts = PostReactionsEmojiCountField(emoji_count_serializer=PostEmojiCountSerializer)
+    creator = PostCreatorField(
+        post_creator_serializer=CommonPublicUserSerializer,
+        community_membership_serializer=CommunityMembershipSerializer,
+    )
+    reactions_emoji_counts = PostReactionsEmojiCountField(
+        emoji_count_serializer=PostEmojiCountSerializer
+    )
     reaction = ReactionField(reaction_serializer=PostReactionSerializer)
     comments_count = CommentsCountField()
     circles = CirclesField(circle_serializer=PostCircleSerializer)
@@ -146,33 +150,37 @@ class GetPostPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = (
-            'id',
-            'comments_count',
-            'reactions_emoji_counts',
-            'created',
-            'text',
-            'creator',
-            'reaction',
-            'language',
-            'comments_enabled',
-            'public_reactions',
-            'circles',
-            'community',
-            'hashtags',
-            'links',
-            'is_muted',
-            'is_edited',
-            'is_closed',
-            'is_encircled',
-            'media_height',
-            'media_width',
-            'media_thumbnail',
+            "id",
+            "comments_count",
+            "reactions_emoji_counts",
+            "created",
+            "text",
+            "creator",
+            "reaction",
+            "language",
+            "comments_enabled",
+            "public_reactions",
+            "circles",
+            "community",
+            "hashtags",
+            "links",
+            "is_muted",
+            "is_edited",
+            "is_closed",
+            "is_encircled",
+            "media_height",
+            "media_width",
+            "media_thumbnail",
         )
 
 
 class EditPostSerializer(serializers.Serializer):
-    text = serializers.CharField(max_length=settings.POST_MAX_LENGTH, required=False, allow_blank=True,
-                                 validators=post_text_validators)
+    text = serializers.CharField(
+        max_length=settings.POST_MAX_LENGTH,
+        required=False,
+        allow_blank=True,
+        validators=post_text_validators,
+    )
     post_id = serializers.UUIDField(
         validators=[post_id_exists],
         required=True,
@@ -185,13 +193,7 @@ class AuthenticatedUserEditPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = (
-            'id',
-            'text',
-            'language',
-            'is_edited',
-            'hashtags'
-        )
+        fields = ("id", "text", "language", "is_edited", "hashtags")
 
 
 class ClosePostSerializer(serializers.Serializer):
@@ -221,14 +223,9 @@ class SearchPostParticipantsSerializer(serializers.Serializer):
         required=True,
     )
     query = serializers.CharField(
-        max_length=settings.SEARCH_QUERIES_MAX_LENGTH,
-        required=True
+        max_length=settings.SEARCH_QUERIES_MAX_LENGTH, required=True
     )
-    count = serializers.IntegerField(
-        required=False,
-        default=10,
-        max_value=10
-    )
+    count = serializers.IntegerField(required=False, default=10, max_value=10)
 
 
 class GetPostParticipantsSerializer(serializers.Serializer):
@@ -236,11 +233,7 @@ class GetPostParticipantsSerializer(serializers.Serializer):
         validators=[post_id_exists],
         required=True,
     )
-    count = serializers.IntegerField(
-        required=False,
-        default=10,
-        max_value=20
-    )
+    count = serializers.IntegerField(required=False, default=10, max_value=20)
 
 
 class PostParticipantProfileSerializer(serializers.ModelSerializer):
@@ -248,12 +241,7 @@ class PostParticipantProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = (
-            'avatar',
-            'cover',
-            'badges',
-            'name'
-        )
+        fields = ("avatar", "cover", "badges", "name")
 
 
 class PostParticipantSerializer(serializers.ModelSerializer):
@@ -261,19 +249,15 @@ class PostParticipantSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = (
-            'id',
-            'profile',
-            'username'
-        )
+        fields = ("id", "profile", "username")
 
 
 class OpenClosePostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = (
-            'id',
-            'is_closed',
+            "id",
+            "is_closed",
         )
 
 

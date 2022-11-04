@@ -8,8 +8,14 @@ from rest_framework import status
 import logging
 import json
 
-from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, \
-    make_community, make_fake_post_text, make_post_image, make_moderation_category
+from openbook_common.tests.helpers import (
+    make_user,
+    make_authentication_headers_for_user,
+    make_community,
+    make_fake_post_text,
+    make_post_image,
+    make_moderation_category,
+)
 from openbook_common.utils.test import uuid_id_parser
 from openbook_communities.models import Community, CommunityNotificationsSubscription
 from openbook_moderation.models import ModeratedObject
@@ -30,7 +36,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         other_user = make_user()
-        community = make_community(creator=other_user, type='P')
+        community = make_community(creator=other_user, type="P")
         community_name = community.name
 
         amount_of_community_posts = 5
@@ -39,8 +45,9 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         for i in range(0, amount_of_community_posts):
             community_member = make_user()
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(community_name=community.name,
-                                                                           text=make_fake_post_text())
+            community_member_post = community_member.create_community_post(
+                community_name=community.name, text=make_fake_post_text()
+            )
             community_posts_ids.append(community_member_post.pk)
 
         url = self._get_url(community_name=community.name)
@@ -53,7 +60,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(len(response_posts), len(community_posts_ids))
 
         for response_post in response_posts:
-            response_post_id = response_post.get('id')
+            response_post_id = response_post.get("id")
             self.assertIn(response_post_id, community_posts_ids)
 
     @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
@@ -65,7 +72,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         other_user = make_user()
-        community = make_community(creator=other_user, type='P')
+        community = make_community(creator=other_user, type="P")
         community_name = community.name
 
         amount_of_community_posts = 10
@@ -76,15 +83,13 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         for i in range(0, amount_of_community_posts):
             community_member = make_user()
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(community_name=community.name,
-                                                                           text=make_fake_post_text())
+            community_member_post = community_member.create_community_post(
+                community_name=community.name, text=make_fake_post_text()
+            )
             community_posts_ids.append(community_member_post.pk)
 
         url = self._get_url(community_name=community.name)
-        response = self.client.get(url, {
-            'count': count,
-            'max_id': max_id
-        }, **headers)
+        response = self.client.get(url, {"count": count, "max_id": max_id}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -93,7 +98,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(count, len(response_posts))
 
         for response_post in response_posts:
-            response_post_id = response_post.get('id')
+            response_post_id = response_post.get("id")
             self.assertTrue(response_post_id < max_id)
 
     def test_can_retrieve_posts_from_private_community_member_of(self):
@@ -104,11 +109,12 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         other_user = make_user()
-        community = make_community(creator=other_user, type='P')
+        community = make_community(creator=other_user, type="P")
         community_name = community.name
 
-        other_user.invite_user_with_username_to_community_with_name(username=user.username,
-                                                                    community_name=community_name)
+        other_user.invite_user_with_username_to_community_with_name(
+            username=user.username, community_name=community_name
+        )
         user.join_community_with_name(community_name)
 
         amount_of_community_posts = 5
@@ -116,11 +122,13 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
 
         for i in range(0, amount_of_community_posts):
             community_member = make_user()
-            other_user.invite_user_with_username_to_community_with_name(username=community_member.username,
-                                                                        community_name=community_name)
+            other_user.invite_user_with_username_to_community_with_name(
+                username=community_member.username, community_name=community_name
+            )
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(community_name=community.name,
-                                                                           text=make_fake_post_text())
+            community_member_post = community_member.create_community_post(
+                community_name=community.name, text=make_fake_post_text()
+            )
             community_posts_ids.append(community_member_post.pk)
 
         url = self._get_url(community_name=community.name)
@@ -133,7 +141,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(len(response_posts), len(community_posts_ids))
 
         for response_post in response_posts:
-            response_post_id = response_post.get('id')
+            response_post_id = response_post.get("id")
             self.assertIn(response_post_id, community_posts_ids)
 
     def test_cannot_retrieve_posts_from_private_community_not_part_of(self):
@@ -144,10 +152,11 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         other_user = make_user()
-        community = make_community(creator=other_user, type='T')
+        community = make_community(creator=other_user, type="T")
 
-        other_user.create_community_post(community_name=community.name,
-                                         text=make_fake_post_text())
+        other_user.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
@@ -162,7 +171,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         other_user = make_user()
-        community = make_community(creator=other_user, type='P')
+        community = make_community(creator=other_user, type="P")
         community_name = community.name
 
         amount_of_community_posts = 5
@@ -170,8 +179,9 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         for i in range(0, amount_of_community_posts):
             community_member = make_user()
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(community_name=community.name,
-                                                                           text=make_fake_post_text())
+            community_member_post = community_member.create_community_post(
+                community_name=community.name, text=make_fake_post_text()
+            )
             community_member_post.soft_delete()
 
         url = self._get_url(community_name=community.name)
@@ -191,11 +201,12 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         community_creator = make_user()
-        community = make_community(creator=community_creator, type='P')
+        community = make_community(creator=community_creator, type="P")
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
-        community_creator.add_moderator_with_username_to_community_with_name(username=community_moderator.username,
-                                                                             community_name=community.name)
+        community_creator.add_moderator_with_username_to_community_with_name(
+            username=community_moderator.username, community_name=community.name
+        )
 
         community_name = community.name
         post_reporter = make_user()
@@ -205,15 +216,21 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         for i in range(0, amount_of_community_posts):
             community_member = make_user()
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(community_name=community.name,
-                                                                           text=make_fake_post_text())
+            community_member_post = community_member.create_community_post(
+                community_name=community.name, text=make_fake_post_text()
+            )
             moderation_category = make_moderation_category()
-            post_reporter.report_post(post=community_member_post, category_id=moderation_category.pk)
+            post_reporter.report_post(
+                post=community_member_post, category_id=moderation_category.pk
+            )
 
-            moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(post=community_member_post,
-                                                                                       category_id=moderation_category.pk)
+            moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
+                post=community_member_post, category_id=moderation_category.pk
+            )
 
-            community_moderator.approve_moderated_object(moderated_object=moderated_object)
+            community_moderator.approve_moderated_object(
+                moderated_object=moderated_object
+            )
 
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
@@ -242,10 +259,13 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         for i in range(0, amount_of_community_posts):
             community_member = make_user()
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(community_name=community.name,
-                                                                           text=make_fake_post_text())
+            community_member_post = community_member.create_community_post(
+                community_name=community.name, text=make_fake_post_text()
+            )
             moderation_category = make_moderation_category()
-            user.report_post(post=community_member_post, category_id=moderation_category.pk)
+            user.report_post(
+                post=community_member_post, category_id=moderation_category.pk
+            )
 
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
@@ -264,11 +284,12 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         community_creator = make_user()
-        community = make_community(creator=community_creator, type='P')
+        community = make_community(creator=community_creator, type="P")
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
-        community_creator.add_moderator_with_username_to_community_with_name(username=community_moderator.username,
-                                                                             community_name=community.name)
+        community_creator.add_moderator_with_username_to_community_with_name(
+            username=community_moderator.username, community_name=community.name
+        )
 
         community_name = community.name
         post_reporter = make_user()
@@ -279,16 +300,22 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         for i in range(0, amount_of_community_posts):
             community_member = make_user()
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(community_name=community.name,
-                                                                           text=make_fake_post_text())
+            community_member_post = community_member.create_community_post(
+                community_name=community.name, text=make_fake_post_text()
+            )
             community_posts_ids.append(community_member_post.pk)
             moderation_category = make_moderation_category()
-            post_reporter.report_post(post=community_member_post, category_id=moderation_category.pk)
+            post_reporter.report_post(
+                post=community_member_post, category_id=moderation_category.pk
+            )
 
-            moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(post=community_member_post,
-                                                                                       category_id=moderation_category.pk)
+            moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
+                post=community_member_post, category_id=moderation_category.pk
+            )
 
-            community_moderator.reject_moderated_object(moderated_object=moderated_object)
+            community_moderator.reject_moderated_object(
+                moderated_object=moderated_object
+            )
 
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
@@ -300,7 +327,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(len(response_posts), len(community_posts_ids))
 
         for response_post in response_posts:
-            response_post_id = response_post.get('id')
+            response_post_id = response_post.get("id")
             self.assertIn(response_post_id, community_posts_ids)
 
     def test_can_retrieve_moderated_pending_posts_from_community(self):
@@ -311,7 +338,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         community_creator = make_user()
-        community = make_community(creator=community_creator, type='P')
+        community = make_community(creator=community_creator, type="P")
 
         community_name = community.name
         post_reporter = make_user()
@@ -322,11 +349,14 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         for i in range(0, amount_of_community_posts):
             community_member = make_user()
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(community_name=community.name,
-                                                                           text=make_fake_post_text())
+            community_member_post = community_member.create_community_post(
+                community_name=community.name, text=make_fake_post_text()
+            )
             community_posts_ids.append(community_member_post.pk)
             moderation_category = make_moderation_category()
-            post_reporter.report_post(post=community_member_post, category_id=moderation_category.pk)
+            post_reporter.report_post(
+                post=community_member_post, category_id=moderation_category.pk
+            )
 
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
@@ -338,7 +368,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(len(response_posts), len(community_posts_ids))
 
         for response_post in response_posts:
-            response_post_id = response_post.get('id')
+            response_post_id = response_post.get("id")
             self.assertIn(response_post_id, community_posts_ids)
 
     def test_cannot_retrieve_posts_from_community_banned_from(self):
@@ -351,13 +381,15 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         community_owner = make_user()
         community = make_community(creator=community_owner)
 
-        community_owner.create_community_post(community_name=community.name,
-                                              text=make_fake_post_text())
+        community_owner.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         user.join_community_with_name(community_name=community.name)
 
-        community_owner.ban_user_with_username_from_community_with_name(username=user.username,
-                                                                        community_name=community.name)
+        community_owner.ban_user_with_username_from_community_with_name(
+            username=user.username, community_name=community.name
+        )
 
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
@@ -378,8 +410,9 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
 
         user_to_block.join_community_with_name(community_name=community.name)
 
-        user_to_block.create_community_post(community_name=community.name,
-                                            text=make_fake_post_text())
+        user_to_block.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         user.block_user_with_id(user_id=user_to_block.pk)
 
@@ -406,8 +439,9 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
 
         user_to_block.join_community_with_name(community_name=community.name)
 
-        user_to_block.create_community_post(community_name=community.name,
-                                            text=make_fake_post_text())
+        user_to_block.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         user_to_block.block_user_with_id(user_id=user.pk)
 
@@ -430,8 +464,9 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         community_owner = make_user()
         community = make_community(creator=community_owner)
 
-        post = community_owner.create_community_post(community_name=community.name,
-                                                     text=make_fake_post_text())
+        post = community_owner.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         user.block_user_with_id(user_id=community_owner.pk)
 
@@ -446,7 +481,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
 
         response_post = response_posts[0]
 
-        response_post_id = response_post.get('id')
+        response_post_id = response_post.get("id")
         self.assertEqual(response_post_id, post.pk)
 
     def test_can_retrieve_posts_from_blocking_staff_member(self):
@@ -459,8 +494,9 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         community_owner = make_user()
         community = make_community(creator=community_owner)
 
-        post = community_owner.create_community_post(community_name=community.name,
-                                                     text=make_fake_post_text())
+        post = community_owner.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         community_owner.block_user_with_id(user_id=user.pk)
 
@@ -475,7 +511,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
 
         response_post = response_posts[0]
 
-        response_post_id = response_post.get('id')
+        response_post_id = response_post.get("id")
         self.assertEqual(response_post_id, post.pk)
 
     def test_can_retrieve_posts_from_blocking_member_if_staff(self):
@@ -488,8 +524,9 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         community = make_community(creator=community_owner)
 
         user.join_community_with_name(community_name=community.name)
-        post = user.create_community_post(community_name=community.name,
-                                          text=make_fake_post_text())
+        post = user.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         user.block_user_with_id(user_id=community_owner.pk)
 
@@ -505,7 +542,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
 
         response_post = response_posts[0]
 
-        response_post_id = response_post.get('id')
+        response_post_id = response_post.get("id")
         self.assertEqual(response_post_id, post.pk)
 
     def test_can_retrieve_posts_from_blocked_member_if_staff(self):
@@ -518,8 +555,9 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         community = make_community(creator=community_owner)
 
         user.join_community_with_name(community_name=community.name)
-        post = user.create_community_post(community_name=community.name,
-                                          text=make_fake_post_text())
+        post = user.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         community_owner.block_user_with_id(user_id=user.pk)
 
@@ -535,7 +573,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
 
         response_post = response_posts[0]
 
-        response_post_id = response_post.get('id')
+        response_post_id = response_post.get("id")
         self.assertEqual(response_post_id, post.pk)
 
     def test_can_create_community_text_post_part_of(self):
@@ -544,7 +582,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         """
         user = make_user()
         community_creator = make_user()
-        community = make_community(creator=community_creator, type='P')
+        community = make_community(creator=community_creator, type="P")
 
         user.join_community_with_name(community_name=community.name)
 
@@ -552,9 +590,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
 
         post_text = make_fake_post_text()
         headers = make_authentication_headers_for_user(user)
-        response = self.client.put(url, {
-            'text': post_text
-        }, **headers)
+        response = self.client.put(url, {"text": post_text}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(Post.objects.filter(text=post_text).exists())
@@ -565,7 +601,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         """
         user = make_user()
         community_creator = make_user()
-        community = make_community(creator=community_creator, type='P')
+        community = make_community(creator=community_creator, type="P")
 
         user.join_community_with_name(community_name=community.name)
 
@@ -574,9 +610,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         post_image = make_post_image()
 
         headers = make_authentication_headers_for_user(user)
-        response = self.client.put(url, {
-            'image': post_image
-        }, **headers)
+        response = self.client.put(url, {"image": post_image}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(Post.objects.filter(image__isnull=False).exists())
@@ -587,7 +621,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         """
         user = make_user()
         community_creator = make_user()
-        community = make_community(creator=community_creator, type='P')
+        community = make_community(creator=community_creator, type="P")
 
         user.join_community_with_name(community_name=community.name)
 
@@ -596,13 +630,14 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         post_text = make_fake_post_text()
 
         headers = make_authentication_headers_for_user(user)
-        response = self.client.put(url, {
-            'text': post_text,
-            'is_draft': True
-        }, **headers)
+        response = self.client.put(
+            url, {"text": post_text, "is_draft": True}, **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(user.posts.filter(text=post_text, status=Post.STATUS_DRAFT).count(), 1)
+        self.assertEqual(
+            user.posts.filter(text=post_text, status=Post.STATUS_DRAFT).count(), 1
+        )
 
     def test_cant_create_community_post_not_part_of(self):
         """
@@ -610,16 +645,14 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         """
         user = make_user()
         community_creator = make_user()
-        community = make_community(creator=community_creator, type='P')
+        community = make_community(creator=community_creator, type="P")
 
         url = self._get_url(community_name=community.name)
 
         post_text = make_fake_post_text()
 
         headers = make_authentication_headers_for_user(user)
-        response = self.client.put(url, {
-            'text': post_text
-        }, **headers)
+        response = self.client.put(url, {"text": post_text}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(Post.objects.filter(text=post_text).exists())
@@ -637,20 +670,26 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         mentioned_user = make_user()
         user.join_community_with_name(community_name=community.name)
 
-        post_text = 'Hello @' + mentioned_user.username
+        post_text = "Hello @" + mentioned_user.username
 
         data = {
-            'text': post_text,
+            "text": post_text,
         }
 
         url = self._get_url(community_name=community.name)
-        response = self.client.put(url, data, **headers, format='multipart')
+        response = self.client.put(url, data, **headers, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
-        self.assertTrue(PostUserMention.objects.filter(post_id=post.pk, user_id=mentioned_user.pk).exists())
+        self.assertTrue(
+            PostUserMention.objects.filter(
+                post_id=post.pk, user_id=mentioned_user.pk
+            ).exists()
+        )
 
-    def test_create_private_community_post_does_not_detects_mention_if_not_part_of(self):
+    def test_create_private_community_post_does_not_detects_mention_if_not_part_of(
+        self,
+    ):
         """
         should not detect mentions when creating a private community post not part of
         """
@@ -659,25 +698,32 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user=user)
 
         community_owner = make_user()
-        community = make_community(type=Community.COMMUNITY_TYPE_PRIVATE, creator=community_owner)
+        community = make_community(
+            type=Community.COMMUNITY_TYPE_PRIVATE, creator=community_owner
+        )
 
         mentioned_user = make_user()
-        community_owner.invite_user_with_username_to_community_with_name(username=user.username,
-                                                                         community_name=community.name)
+        community_owner.invite_user_with_username_to_community_with_name(
+            username=user.username, community_name=community.name
+        )
         user.join_community_with_name(community_name=community.name)
 
-        post_text = 'Hello @' + mentioned_user.username
+        post_text = "Hello @" + mentioned_user.username
 
         data = {
-            'text': post_text,
+            "text": post_text,
         }
 
         url = self._get_url(community_name=community.name)
-        response = self.client.put(url, data, **headers, format='multipart')
+        response = self.client.put(url, data, **headers, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
-        self.assertFalse(PostUserMention.objects.filter(post_id=post.pk, user_id=mentioned_user.pk).exists())
+        self.assertFalse(
+            PostUserMention.objects.filter(
+                post_id=post.pk, user_id=mentioned_user.pk
+            ).exists()
+        )
 
     def test_create_private_community_post_detects_mention_if_part_of(self):
         """
@@ -688,30 +734,38 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user=user)
 
         community_owner = make_user()
-        community = make_community(type=Community.COMMUNITY_TYPE_PRIVATE, creator=community_owner)
+        community = make_community(
+            type=Community.COMMUNITY_TYPE_PRIVATE, creator=community_owner
+        )
 
         mentioned_user = make_user()
 
-        community_owner.invite_user_with_username_to_community_with_name(username=user.username,
-                                                                         community_name=community.name)
+        community_owner.invite_user_with_username_to_community_with_name(
+            username=user.username, community_name=community.name
+        )
         user.join_community_with_name(community_name=community.name)
 
-        community_owner.invite_user_with_username_to_community_with_name(username=mentioned_user.username,
-                                                                         community_name=community.name)
+        community_owner.invite_user_with_username_to_community_with_name(
+            username=mentioned_user.username, community_name=community.name
+        )
         mentioned_user.join_community_with_name(community_name=community.name)
 
-        post_text = 'Hello @' + mentioned_user.username
+        post_text = "Hello @" + mentioned_user.username
 
         data = {
-            'text': post_text,
+            "text": post_text,
         }
 
         url = self._get_url(community_name=community.name)
-        response = self.client.put(url, data, **headers, format='multipart')
+        response = self.client.put(url, data, **headers, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
-        self.assertTrue(PostUserMention.objects.filter(post_id=post.pk, user_id=mentioned_user.pk).exists())
+        self.assertTrue(
+            PostUserMention.objects.filter(
+                post_id=post.pk, user_id=mentioned_user.pk
+            ).exists()
+        )
 
     def test_create_community_post_notifies_subscribers(self):
         """
@@ -720,26 +774,32 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         user = make_user()
 
         community_admin = make_user()
-        community = make_community(creator=community_admin, type='P')
+        community = make_community(creator=community_admin, type="P")
 
         user.join_community_with_name(community_name=community.name)
-        user.enable_new_post_notifications_for_community_with_name(community_name=community.name)
+        user.enable_new_post_notifications_for_community_with_name(
+            community_name=community.name
+        )
 
         headers = make_authentication_headers_for_user(community_admin)
         url = self._get_url(community_name=community.name)
-        data = {
-            'text': make_fake_post_text()
-        }
-        response = self.client.put(url, data, **headers, format='multipart')
+        data = {"text": make_fake_post_text()}
+        response = self.client.put(url, data, **headers, format="multipart")
 
-        community_notifications_subscription = CommunityNotificationsSubscription.objects.get(subscriber=user,
-                                                                                              community=community)
+        community_notifications_subscription = (
+            CommunityNotificationsSubscription.objects.get(
+                subscriber=user, community=community
+            )
+        )
 
-        self.assertEqual(CommunityNewPostNotification.objects.filter(
-            community_notifications_subscription_id=community_notifications_subscription.pk,
-            notification__owner_id=user.pk,
-            notification__notification_type=Notification.COMMUNITY_NEW_POST).count(),
-                         1)
+        self.assertEqual(
+            CommunityNewPostNotification.objects.filter(
+                community_notifications_subscription_id=community_notifications_subscription.pk,
+                notification__owner_id=user.pk,
+                notification__notification_type=Notification.COMMUNITY_NEW_POST,
+            ).count(),
+            1,
+        )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -751,29 +811,37 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         blocking_user = make_user()
 
         community_admin = make_user()
-        community = make_community(creator=community_admin, type='P')
+        community = make_community(creator=community_admin, type="P")
 
         user.join_community_with_name(community_name=community.name)
         blocking_user.join_community_with_name(community_name=community.name)
 
-        user.enable_new_post_notifications_for_community_with_name(community_name=community.name)
-        blocking_user.enable_new_post_notifications_for_community_with_name(community_name=community.name)
+        user.enable_new_post_notifications_for_community_with_name(
+            community_name=community.name
+        )
+        blocking_user.enable_new_post_notifications_for_community_with_name(
+            community_name=community.name
+        )
 
         blocking_user.block_user_with_id(user_id=user.pk)
 
         headers = make_authentication_headers_for_user(user)
         url = self._get_url(community_name=community.name)
-        data = {
-            'text': make_fake_post_text()
-        }
-        response = self.client.put(url, data, **headers, format='multipart')
+        data = {"text": make_fake_post_text()}
+        response = self.client.put(url, data, **headers, format="multipart")
 
-        community_notifications_subscription = CommunityNotificationsSubscription.objects.get(subscriber=blocking_user,
-                                                                                              community=community)
-        self.assertFalse(CommunityNewPostNotification.objects.filter(
-            community_notifications_subscription_id=community_notifications_subscription.pk,
-            notification__owner_id=blocking_user.pk,
-            notification__notification_type=Notification.COMMUNITY_NEW_POST).exists())
+        community_notifications_subscription = (
+            CommunityNotificationsSubscription.objects.get(
+                subscriber=blocking_user, community=community
+            )
+        )
+        self.assertFalse(
+            CommunityNewPostNotification.objects.filter(
+                community_notifications_subscription_id=community_notifications_subscription.pk,
+                notification__owner_id=blocking_user.pk,
+                notification__notification_type=Notification.COMMUNITY_NEW_POST,
+            ).exists()
+        )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -784,90 +852,111 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         user = make_user()
 
         community_admin = make_user()
-        community = make_community(creator=community_admin, type='P')
+        community = make_community(creator=community_admin, type="P")
 
         user.join_community_with_name(community_name=community.name)
 
-        user.enable_new_post_notifications_for_community_with_name(community_name=community.name)
-        community_admin.enable_new_post_notifications_for_community_with_name(community_name=community.name)
+        user.enable_new_post_notifications_for_community_with_name(
+            community_name=community.name
+        )
+        community_admin.enable_new_post_notifications_for_community_with_name(
+            community_name=community.name
+        )
 
         community_admin.block_user_with_id(user_id=user.pk)
 
         headers = make_authentication_headers_for_user(user)
         url = self._get_url(community_name=community.name)
-        data = {
-            'text': make_fake_post_text()
-        }
-        response = self.client.put(url, data, **headers, format='multipart')
+        data = {"text": make_fake_post_text()}
+        response = self.client.put(url, data, **headers, format="multipart")
 
-        community_notifications_subscription = CommunityNotificationsSubscription.objects.get(
-            subscriber=community_admin,
-            community=community)
-        self.assertTrue(CommunityNewPostNotification.objects.filter(
-            community_notifications_subscription_id=community_notifications_subscription.pk,
-            notification__owner_id=community_admin.pk,
-            notification__notification_type=Notification.COMMUNITY_NEW_POST).exists())
+        community_notifications_subscription = (
+            CommunityNotificationsSubscription.objects.get(
+                subscriber=community_admin, community=community
+            )
+        )
+        self.assertTrue(
+            CommunityNewPostNotification.objects.filter(
+                community_notifications_subscription_id=community_notifications_subscription.pk,
+                notification__owner_id=community_admin.pk,
+                notification__notification_type=Notification.COMMUNITY_NEW_POST,
+            ).exists()
+        )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_community_post_for_one_community_does_not_notify_admin_for_all_communities_they_are_subscribed_to(
-            self):
+        self,
+    ):
         """
         should notify admins who are subscribers only once for the community in which the post was created
         """
         user = make_user(username="user")
 
         post_creator = make_user(username="post_creator")
-        user_community = make_community(creator=user, type='P', name="user_community")
-        post_creator_community = make_community(creator=post_creator, type='P', name="post_creator_community")
-        other_community = make_community(creator=make_user(username="other_user"), type='P', name="other_community")
+        user_community = make_community(creator=user, type="P", name="user_community")
+        post_creator_community = make_community(
+            creator=post_creator, type="P", name="post_creator_community"
+        )
+        other_community = make_community(
+            creator=make_user(username="other_user"), type="P", name="other_community"
+        )
 
         user.join_community_with_name(community_name=post_creator_community.name)
         user.join_community_with_name(community_name=other_community.name)
 
         # susbcribe to all three communities
-        user.enable_new_post_notifications_for_community_with_name(community_name=post_creator_community.name)
-        user.enable_new_post_notifications_for_community_with_name(community_name=other_community.name)
-        user.enable_new_post_notifications_for_community_with_name(community_name=user_community.name)
+        user.enable_new_post_notifications_for_community_with_name(
+            community_name=post_creator_community.name
+        )
+        user.enable_new_post_notifications_for_community_with_name(
+            community_name=other_community.name
+        )
+        user.enable_new_post_notifications_for_community_with_name(
+            community_name=user_community.name
+        )
 
         headers = make_authentication_headers_for_user(post_creator)
 
         # post is created in post_creator_community
         url = self._get_url(community_name=post_creator_community.name)
-        data = {
-            'text': make_fake_post_text()
-        }
-        response = self.client.put(url, data, **headers, format='multipart')
+        data = {"text": make_fake_post_text()}
+        response = self.client.put(url, data, **headers, format="multipart")
 
         # notification should only be for community subscribed to
-        self.assertEqual(CommunityNewPostNotification.objects.filter(
-            notification__owner_id=user.pk,
-            notification__notification_type=Notification.COMMUNITY_NEW_POST).count(), 1)
+        self.assertEqual(
+            CommunityNewPostNotification.objects.filter(
+                notification__owner_id=user.pk,
+                notification__notification_type=Notification.COMMUNITY_NEW_POST,
+            ).count(),
+            1,
+        )
 
-        community_notifications_subscription = CommunityNotificationsSubscription.objects.get(subscriber=user,
-                                                                                              community=post_creator_community)
+        community_notifications_subscription = (
+            CommunityNotificationsSubscription.objects.get(
+                subscriber=user, community=post_creator_community
+            )
+        )
         retrieved_notifications_subscription = CommunityNewPostNotification.objects.get(
             notification__owner_id=user.pk,
-            notification__notification_type=Notification.COMMUNITY_NEW_POST)
+            notification__notification_type=Notification.COMMUNITY_NEW_POST,
+        )
 
         # self.assertEqual(retrieved_notifications_subscription.pk, community_notifications_subscription.pk)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def _get_url(self, community_name):
-        return reverse('community-posts', kwargs={
-            'community_name': community_name
-        })
+        return reverse("community-posts", kwargs={"community_name": community_name})
 
 
 class CommunityClosedPostsAPITest(OpenbookAPITestCase):
-
     def test_can_retrieve_closed_posts_from_community_if_administrator(self):
         """
         should be able to retrieve closed posts for a community if administrator
         """
 
         admin = make_user()
-        community = make_community(creator=admin, type='P')
+        community = make_community(creator=admin, type="P")
         community_name = community.name
 
         amount_of_community_posts = 5
@@ -876,8 +965,9 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
         for i in range(0, amount_of_community_posts):
             community_member = make_user()
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(community_name=community.name,
-                                                                           text=make_fake_post_text())
+            community_member_post = community_member.create_community_post(
+                community_name=community.name, text=make_fake_post_text()
+            )
             community_member_post.is_closed = True
             community_member_post.save()
             community_posts_ids.append(community_member_post.pk)
@@ -893,7 +983,7 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(len(response_posts), len(community_posts_ids))
 
         for response_post in response_posts:
-            response_post_id = response_post.get('id')
+            response_post_id = response_post.get("id")
             self.assertIn(response_post_id, community_posts_ids)
 
     def test_can_retrieve_closed_posts_from_community_if_moderator(self):
@@ -903,11 +993,12 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
 
         moderator = make_user()
         admin = make_user()
-        community = make_community(creator=admin, type='P')
+        community = make_community(creator=admin, type="P")
 
         moderator.join_community_with_name(community_name=community.name)
-        admin.add_moderator_with_username_to_community_with_name(username=moderator.username,
-                                                                 community_name=community.name)
+        admin.add_moderator_with_username_to_community_with_name(
+            username=moderator.username, community_name=community.name
+        )
 
         community_name = community.name
 
@@ -917,8 +1008,9 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
         for i in range(0, amount_of_community_posts):
             community_member = make_user()
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(community_name=community.name,
-                                                                           text=make_fake_post_text())
+            community_member_post = community_member.create_community_post(
+                community_name=community.name, text=make_fake_post_text()
+            )
             community_member_post.is_closed = True
             community_member_post.save()
             community_posts_ids.append(community_member_post.pk)
@@ -934,7 +1026,7 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(len(response_posts), len(community_posts_ids))
 
         for response_post in response_posts:
-            response_post_id = response_post.get('id')
+            response_post_id = response_post.get("id")
             self.assertIn(response_post_id, community_posts_ids)
 
     @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
@@ -943,7 +1035,7 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
         should be able to retrieve community closed posts with a max id and count if administrator/moderator
         """
         admin = make_user()
-        community = make_community(creator=admin, type='P')
+        community = make_community(creator=admin, type="P")
         community_name = community.name
 
         amount_of_community_posts = 10
@@ -954,18 +1046,16 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
         for i in range(0, amount_of_community_posts):
             community_member = make_user()
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(community_name=community.name,
-                                                                           text=make_fake_post_text())
+            community_member_post = community_member.create_community_post(
+                community_name=community.name, text=make_fake_post_text()
+            )
             community_member_post.is_closed = True
             community_member_post.save()
             community_posts_ids.append(community_member_post.pk)
 
         url = self._get_url(community_name=community.name)
         headers = make_authentication_headers_for_user(admin)
-        response = self.client.get(url, {
-            'count': count,
-            'max_id': max_id
-        }, **headers)
+        response = self.client.get(url, {"count": count, "max_id": max_id}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -974,7 +1064,7 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(count, len(response_posts))
 
         for response_post in response_posts:
-            response_post_id = response_post.get('id')
+            response_post_id = response_post.get("id")
             self.assertTrue(response_post_id < max_id)
 
     def test_cannot_retrieve_closed_posts_from_community_if_member(self):
@@ -983,7 +1073,7 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
         """
 
         admin = make_user()
-        community = make_community(creator=admin, type='P')
+        community = make_community(creator=admin, type="P")
 
         community_name = community.name
 
@@ -994,8 +1084,9 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
         community_posts_ids = []
 
         for i in range(0, amount_of_community_posts):
-            community_member_post = community_member.create_community_post(community_name=community.name,
-                                                                           text=make_fake_post_text())
+            community_member_post = community_member.create_community_post(
+                community_name=community.name, text=make_fake_post_text()
+            )
             community_member_post.is_closed = True
             community_member_post.save()
             community_posts_ids.append(community_member_post.pk)
@@ -1007,9 +1098,9 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def _get_url(self, community_name):
-        return reverse('closed-community-posts', kwargs={
-            'community_name': community_name
-        })
+        return reverse(
+            "closed-community-posts", kwargs={"community_name": community_name}
+        )
 
 
 class GetCommunityPostsCountAPITests(OpenbookAPITestCase):
@@ -1039,12 +1130,12 @@ class GetCommunityPostsCountAPITests(OpenbookAPITestCase):
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertIn('posts_count', parsed_response)
-        response_posts_count = parsed_response['posts_count']
+        self.assertIn("posts_count", parsed_response)
+        response_posts_count = parsed_response["posts_count"]
 
         self.assertEqual(response_posts_count, amount_of_posts)
 
     def _get_url(self, community_name):
-        return reverse('community-posts-count', kwargs={
-            'community_name': community_name
-        })
+        return reverse(
+            "community-posts-count", kwargs={"community_name": community_name}
+        )

@@ -7,11 +7,22 @@ from faker import Faker
 from rest_framework import status
 from openbook_common.tests.models import OpenbookAPITestCase
 
-from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, \
-    make_community_name, make_community, \
-    make_community_title, make_community_rules, make_community_description, make_community_user_adjective, \
-    make_community_users_adjective, make_community_avatar, make_community_cover, make_category, make_global_moderator, \
-    make_moderation_category
+from openbook_common.tests.helpers import (
+    make_user,
+    make_authentication_headers_for_user,
+    make_community_name,
+    make_community,
+    make_community_title,
+    make_community_rules,
+    make_community_description,
+    make_community_user_adjective,
+    make_community_users_adjective,
+    make_community_avatar,
+    make_community_cover,
+    make_category,
+    make_global_moderator,
+    make_moderation_category,
+)
 from openbook_common.utils.test import uuid_id_parser
 from openbook_communities.models import Community, CommunityNotificationsSubscription
 from openbook_moderation.models import ModeratedObject
@@ -32,7 +43,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         other_user = make_user()
-        community = make_community(creator=other_user, type='P')
+        community = make_community(creator=other_user, type="P")
         community_name = community.name
 
         url = self._get_url(community_name=community_name)
@@ -43,8 +54,8 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertIn('name', parsed_response)
-        response_name = parsed_response['name']
+        self.assertIn("name", parsed_response)
+        response_name = parsed_response["name"]
         self.assertEqual(response_name, community_name)
 
     def test_can_retrieve_private_community(self):
@@ -55,7 +66,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         other_user = make_user()
-        community = make_community(creator=other_user, type='T')
+        community = make_community(creator=other_user, type="T")
         community_name = community.name
 
         url = self._get_url(community_name=community_name)
@@ -66,8 +77,8 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertIn('name', parsed_response)
-        response_name = parsed_response['name']
+        self.assertIn("name", parsed_response)
+        response_name = parsed_response["name"]
         self.assertEqual(response_name, community_name)
 
     def test_cannot_retrieve_community_banned_from(self):
@@ -83,8 +94,9 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         user.join_community_with_name(community_name=community.name)
 
-        community_owner.ban_user_with_username_from_community_with_name(username=user.username,
-                                                                        community_name=community.name)
+        community_owner.ban_user_with_username_from_community_with_name(
+            username=user.username, community_name=community.name
+        )
         url = self._get_url(community_name=community_name)
 
         response = self.client.get(url, **headers)
@@ -103,9 +115,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         new_community_name = make_community_name()
 
-        data = {
-            'name': new_community_name
-        }
+        data = {"name": new_community_name}
 
         url = self._get_url(community_name=community.name)
 
@@ -131,9 +141,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         new_community_name = make_community_name()
 
-        data = {
-            'name': new_community_name
-        }
+        data = {"name": new_community_name}
 
         url = self._get_url(community_name=community.name)
 
@@ -157,14 +165,13 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         user.join_community_with_name(community_name=community.name)
 
-        other_user.add_moderator_with_username_to_community_with_name(username=user.username,
-                                                                      community_name=community.name)
+        other_user.add_moderator_with_username_to_community_with_name(
+            username=user.username, community_name=community.name
+        )
 
         new_community_name = make_community_name()
 
-        data = {
-            'name': new_community_name
-        }
+        data = {"name": new_community_name}
 
         url = self._get_url(community_name=community.name)
 
@@ -186,9 +193,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         community = make_community(creator=user)
         new_community_name = make_community_name()
 
-        data = {
-            'name': new_community_name
-        }
+        data = {"name": new_community_name}
 
         url = self._get_url(community_name=community.name)
 
@@ -210,9 +215,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         other_community = make_community(creator=other_user)
         community = make_community(creator=user)
 
-        data = {
-            'name': other_community.name
-        }
+        data = {"name": other_community.name}
 
         headers = make_authentication_headers_for_user(user)
 
@@ -233,12 +236,10 @@ class CommunityAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        community = make_community(creator=user, type='P')
-        new_community_type = 'T'
+        community = make_community(creator=user, type="P")
+        new_community_type = "T"
 
-        data = {
-            'type': new_community_type
-        }
+        data = {"type": new_community_type}
 
         url = self._get_url(community_name=community.name)
 
@@ -257,12 +258,10 @@ class CommunityAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        community = make_community(creator=user, type='T')
-        new_community_type = 'P'
+        community = make_community(creator=user, type="T")
+        new_community_type = "P"
 
-        data = {
-            'type': new_community_type
-        }
+        data = {"type": new_community_type}
 
         url = self._get_url(community_name=community.name)
 
@@ -271,7 +270,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         community.refresh_from_db()
 
-        self.assertEqual(community.type, 'T')
+        self.assertEqual(community.type, "T")
 
     def test_can_update_administrated_community_title(self):
         """
@@ -283,9 +282,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         community = make_community(creator=user)
         new_community_title = make_community_title()
 
-        data = {
-            'title': new_community_title
-        }
+        data = {"title": new_community_title}
 
         url = self._get_url(community_name=community.name)
 
@@ -307,9 +304,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         community = make_community(creator=user)
         new_community_users_adjective = make_community_users_adjective()
 
-        data = {
-            'users_adjective': new_community_users_adjective
-        }
+        data = {"users_adjective": new_community_users_adjective}
 
         url = self._get_url(community_name=community.name)
 
@@ -334,9 +329,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         new_community_users_adjective = not community.invites_enabled
 
-        data = {
-            'invites_enabled': new_community_users_adjective
-        }
+        data = {"invites_enabled": new_community_users_adjective}
 
         url = self._get_url(community_name=community.name)
 
@@ -358,9 +351,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         community = make_community(creator=user)
         new_community_user_adjective = make_community_user_adjective()
 
-        data = {
-            'user_adjective': new_community_user_adjective
-        }
+        data = {"user_adjective": new_community_user_adjective}
 
         url = self._get_url(community_name=community.name)
 
@@ -382,9 +373,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         community = make_community(creator=user)
         new_community_color = fake.hex_color()
 
-        data = {
-            'color': new_community_color
-        }
+        data = {"color": new_community_color}
 
         url = self._get_url(community_name=community.name)
 
@@ -406,9 +395,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         community = make_community(creator=user)
         new_community_description = make_community_description()
 
-        data = {
-            'description': new_community_description
-        }
+        data = {"description": new_community_description}
 
         url = self._get_url(community_name=community.name)
 
@@ -430,10 +417,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         community = make_community(creator=user)
         new_community_description = make_community_description()
 
-        data = {
-            'description': new_community_description,
-            'type': 'P'
-        }
+        data = {"description": new_community_description, "type": "P"}
 
         url = self._get_url(community_name=community.name)
 
@@ -455,9 +439,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         community = make_community(creator=user)
         new_community_rules = make_community_rules()
 
-        data = {
-            'rules': new_community_rules
-        }
+        data = {"rules": new_community_rules}
 
         url = self._get_url(community_name=community.name)
 
@@ -478,9 +460,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         community = make_community(creator=user)
 
-        data = {
-            'description': ''
-        }
+        data = {"description": ""}
 
         url = self._get_url(community_name=community.name)
 
@@ -501,9 +481,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         community = make_community(creator=user)
 
-        data = {
-            'rules': ''
-        }
+        data = {"rules": ""}
 
         url = self._get_url(community_name=community.name)
 
@@ -524,9 +502,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         community = make_community(creator=user)
 
-        data = {
-            'user_adjective': ''
-        }
+        data = {"user_adjective": ""}
 
         url = self._get_url(community_name=community.name)
 
@@ -547,9 +523,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         community = make_community(creator=user)
 
-        data = {
-            'users_adjective': ''
-        }
+        data = {"users_adjective": ""}
 
         url = self._get_url(community_name=community.name)
 
@@ -571,12 +545,17 @@ class CommunityAPITests(OpenbookAPITestCase):
         community = make_community(creator=user)
         new_categories = []
 
-        for i in range(settings.COMMUNITY_CATEGORIES_MIN_AMOUNT, settings.COMMUNITY_CATEGORIES_MAX_AMOUNT):
+        for i in range(
+            settings.COMMUNITY_CATEGORIES_MIN_AMOUNT,
+            settings.COMMUNITY_CATEGORIES_MAX_AMOUNT,
+        ):
             category = make_category()
             new_categories.append(category)
 
         data = {
-            'categories': ','.join(map(str, [category.name for category in new_categories]))
+            "categories": ",".join(
+                map(str, [category.name for category in new_categories])
+            )
         }
 
         url = self._get_url(community_name=community.name)
@@ -604,9 +583,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         community = make_community(creator=user)
 
-        data = {
-            'categories': ''
-        }
+        data = {"categories": ""}
 
         url = self._get_url(community_name=community.name)
 
@@ -649,8 +626,9 @@ class CommunityAPITests(OpenbookAPITestCase):
         community_name = community.name
 
         user.join_community_with_name(community_name=community_name)
-        other_user.add_administrator_with_username_to_community_with_name(username=user.username,
-                                                                          community_name=community_name)
+        other_user.add_administrator_with_username_to_community_with_name(
+            username=user.username, community_name=community_name
+        )
 
         url = self._get_url(community_name=community_name)
 
@@ -673,8 +651,9 @@ class CommunityAPITests(OpenbookAPITestCase):
         community_name = community.name
 
         user.join_community_with_name(community_name=community_name)
-        other_user.add_moderator_with_username_to_community_with_name(username=user.username,
-                                                                      community_name=community_name)
+        other_user.add_moderator_with_username_to_community_with_name(
+            username=user.username, community_name=community_name
+        )
 
         url = self._get_url(community_name=community_name)
 
@@ -741,10 +720,13 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         community_reporter = make_user()
         moderation_category = make_moderation_category()
-        community_reporter.report_community(community=community, category_id=moderation_category.pk)
+        community_reporter.report_community(
+            community=community, category_id=moderation_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                        category_id=moderation_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(
+            community=community, category_id=moderation_category.pk
+        )
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
         global_moderator.verify_moderated_object(moderated_object=moderated_object)
 
@@ -755,9 +737,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def _get_url(self, community_name):
-        return reverse('community', kwargs={
-            'community_name': community_name
-        })
+        return reverse("community", kwargs={"community_name": community_name})
 
 
 class CommunityAvatarAPITests(OpenbookAPITestCase):
@@ -778,13 +758,11 @@ class CommunityAvatarAPITests(OpenbookAPITestCase):
 
         new_avatar = make_community_avatar()
 
-        data = {
-            'avatar': new_avatar
-        }
+        data = {"avatar": new_avatar}
 
         url = self._get_url(community_name=community.name)
 
-        response = self.client.put(url, data, **headers, format='multipart')
+        response = self.client.put(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -800,11 +778,11 @@ class CommunityAvatarAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         community = make_community(creator=user)
-        community.avatar.save('avatar.jpg', File(make_community_avatar()))
+        community.avatar.save("avatar.jpg", File(make_community_avatar()))
 
         url = self._get_url(community_name=community.name)
 
-        response = self.client.delete(url, **headers, format='multipart')
+        response = self.client.delete(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -813,9 +791,7 @@ class CommunityAvatarAPITests(OpenbookAPITestCase):
         self.assertTrue(not community.avatar)
 
     def _get_url(self, community_name):
-        return reverse('community-avatar', kwargs={
-            'community_name': community_name
-        })
+        return reverse("community-avatar", kwargs={"community_name": community_name})
 
 
 class CommunityCoverAPITests(OpenbookAPITestCase):
@@ -836,13 +812,11 @@ class CommunityCoverAPITests(OpenbookAPITestCase):
 
         new_cover = make_community_cover()
 
-        data = {
-            'cover': new_cover
-        }
+        data = {"cover": new_cover}
 
         url = self._get_url(community_name=community.name)
 
-        response = self.client.put(url, data, **headers, format='multipart')
+        response = self.client.put(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -858,11 +832,11 @@ class CommunityCoverAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         community = make_community(creator=user)
-        community.cover.save('cover.jpg', File(make_community_cover()))
+        community.cover.save("cover.jpg", File(make_community_cover()))
 
         url = self._get_url(community_name=community.name)
 
-        response = self.client.delete(url, **headers, format='multipart')
+        response = self.client.delete(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -871,9 +845,7 @@ class CommunityCoverAPITests(OpenbookAPITestCase):
         self.assertTrue(not community.cover)
 
     def _get_url(self, community_name):
-        return reverse('community-cover', kwargs={
-            'community_name': community_name
-        })
+        return reverse("community-cover", kwargs={"community_name": community_name})
 
 
 class FavoriteCommunityAPITests(OpenbookAPITestCase):
@@ -894,7 +866,7 @@ class FavoriteCommunityAPITests(OpenbookAPITestCase):
 
         url = self._get_url(community_name=community.name)
 
-        response = self.client.put(url, **headers, format='multipart')
+        response = self.client.put(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -914,7 +886,7 @@ class FavoriteCommunityAPITests(OpenbookAPITestCase):
 
         url = self._get_url(community_name=community.name)
 
-        response = self.client.put(url, **headers, format='multipart')
+        response = self.client.put(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -935,7 +907,7 @@ class FavoriteCommunityAPITests(OpenbookAPITestCase):
 
         url = self._get_url(community_name=community.name)
 
-        response = self.client.put(url, **headers, format='multipart')
+        response = self.client.put(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -956,7 +928,7 @@ class FavoriteCommunityAPITests(OpenbookAPITestCase):
 
         url = self._get_url(community_name=community.name)
 
-        response = self.client.delete(url, **headers, format='multipart')
+        response = self.client.delete(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -976,16 +948,14 @@ class FavoriteCommunityAPITests(OpenbookAPITestCase):
 
         url = self._get_url(community_name=community.name)
 
-        response = self.client.delete(url, **headers, format='multipart')
+        response = self.client.delete(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         self.assertFalse(user.has_favorite_community_with_name(community.name))
 
     def _get_url(self, community_name):
-        return reverse('favorite-community', kwargs={
-            'community_name': community_name
-        })
+        return reverse("favorite-community", kwargs={"community_name": community_name})
 
 
 class ExcludeTopPostsCommunityAPITests(OpenbookAPITestCase):
@@ -1005,10 +975,14 @@ class ExcludeTopPostsCommunityAPITests(OpenbookAPITestCase):
 
         url = self._get_url(community_name=community.name)
 
-        response = self.client.put(url, **headers, format='multipart')
+        response = self.client.put(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        self.assertTrue(user.has_excluded_community_with_name_from_top_posts(community_name=community.name))
+        self.assertTrue(
+            user.has_excluded_community_with_name_from_top_posts(
+                community_name=community.name
+            )
+        )
 
     def test_cannot_exclude_private_community(self):
         """
@@ -1018,14 +992,20 @@ class ExcludeTopPostsCommunityAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         other_user = make_user()
-        community = make_community(creator=other_user, type=Community.COMMUNITY_TYPE_PRIVATE)
+        community = make_community(
+            creator=other_user, type=Community.COMMUNITY_TYPE_PRIVATE
+        )
 
         url = self._get_url(community_name=community.name)
 
-        response = self.client.put(url, **headers, format='multipart')
+        response = self.client.put(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertFalse(user.has_excluded_community_with_name_from_top_posts(community_name=community.name))
+        self.assertFalse(
+            user.has_excluded_community_with_name_from_top_posts(
+                community_name=community.name
+            )
+        )
 
     def test_cannot_exclude_community_already_excluded(self):
         """
@@ -1040,10 +1020,14 @@ class ExcludeTopPostsCommunityAPITests(OpenbookAPITestCase):
 
         url = self._get_url(community_name=community.name)
 
-        response = self.client.put(url, **headers, format='multipart')
+        response = self.client.put(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(user.has_excluded_community_with_name_from_top_posts(community_name=community.name))
+        self.assertTrue(
+            user.has_excluded_community_with_name_from_top_posts(
+                community_name=community.name
+            )
+        )
 
     def test_can_remove_excluded_community(self):
         """
@@ -1058,10 +1042,14 @@ class ExcludeTopPostsCommunityAPITests(OpenbookAPITestCase):
 
         url = self._get_url(community_name=community.name)
 
-        response = self.client.delete(url, **headers, format='multipart')
+        response = self.client.delete(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        self.assertFalse(user.has_excluded_community_with_name_from_top_posts(community_name=community.name))
+        self.assertFalse(
+            user.has_excluded_community_with_name_from_top_posts(
+                community_name=community.name
+            )
+        )
 
     def test_cannot_remove_exclusion_for_community_if_not_excluded(self):
         """
@@ -1075,25 +1063,29 @@ class ExcludeTopPostsCommunityAPITests(OpenbookAPITestCase):
 
         url = self._get_url(community_name=community.name)
 
-        response = self.client.delete(url, **headers, format='multipart')
+        response = self.client.delete(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertFalse(user.has_excluded_community_with_name_from_top_posts(community_name=community.name))
+        self.assertFalse(
+            user.has_excluded_community_with_name_from_top_posts(
+                community_name=community.name
+            )
+        )
 
     def _get_url(self, community_name):
-        return reverse('legacy-exclude-community-from-top-posts', kwargs={
-            'community_name': community_name
-        })
+        return reverse(
+            "legacy-exclude-community-from-top-posts",
+            kwargs={"community_name": community_name},
+        )
 
 
 class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
-
     def test_should_be_able_to_subscribe_to_notifications_for_community_if_member(self):
         """
         should be able to subscribe to community posts for a community a member
         """
         admin = make_user()
-        community = make_community(creator=admin, type='P')
+        community = make_community(creator=admin, type="P")
 
         community_member = make_user()
         community_member.join_community_with_name(community_name=community.name)
@@ -1103,16 +1095,20 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        subscription = CommunityNotificationsSubscription.objects.get(subscriber=community_member)
+        subscription = CommunityNotificationsSubscription.objects.get(
+            subscriber=community_member
+        )
         self.assertEqual(subscription.community.name, community.name)
         self.assertTrue(subscription.new_post_notifications)
 
-    def test_should_not_be_able_to_subscribe_to_notifications_for_community_if_not_member(self):
+    def test_should_not_be_able_to_subscribe_to_notifications_for_community_if_not_member(
+        self,
+    ):
         """
         should not be able to subscribe to community posts for a community if not member
         """
         admin = make_user()
-        community = make_community(creator=admin, type='P')
+        community = make_community(creator=admin, type="P")
 
         user = make_user()
 
@@ -1122,18 +1118,21 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_should_not_be_able_to_subscribe_to_notifications_for_community_if_banned(self):
+    def test_should_not_be_able_to_subscribe_to_notifications_for_community_if_banned(
+        self,
+    ):
         """
         should not be able to subscribe to community posts for a community if banned
         """
         admin = make_user()
-        community = make_community(creator=admin, type='P')
+        community = make_community(creator=admin, type="P")
 
         user = make_user()
         user.join_community_with_name(community_name=community.name)
 
-        admin.ban_user_with_username_from_community_with_name(username=user.username,
-                                                              community_name=community.name)
+        admin.ban_user_with_username_from_community_with_name(
+            username=user.username, community_name=community.name
+        )
 
         headers = make_authentication_headers_for_user(user)
         url = self._get_url(community_name=community.name)
@@ -1141,50 +1140,65 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_should_not_be_able_to_subscribe_to_notifications_for_community_if_already_subscribed(self):
+    def test_should_not_be_able_to_subscribe_to_notifications_for_community_if_already_subscribed(
+        self,
+    ):
         """
         should not be able to subscribe to community posts for a community if already subscribed
         """
         admin = make_user()
-        community = make_community(creator=admin, type='P')
+        community = make_community(creator=admin, type="P")
 
         community_member = make_user()
         community_member.join_community_with_name(community_name=community.name)
-        community_member.enable_new_post_notifications_for_community_with_name(community_name=community.name)
+        community_member.enable_new_post_notifications_for_community_with_name(
+            community_name=community.name
+        )
 
         headers = make_authentication_headers_for_user(community_member)
         url = self._get_url(community_name=community.name)
         response = self.client.put(url, **headers)
 
-        subscriptions = CommunityNotificationsSubscription.objects.filter(subscriber=community_member, community=community)
+        subscriptions = CommunityNotificationsSubscription.objects.filter(
+            subscriber=community_member, community=community
+        )
         self.assertEqual(len(subscriptions), 1)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_should_be_able_to_unsubscribe_to_notifications_for_community_if_member(self):
+    def test_should_be_able_to_unsubscribe_to_notifications_for_community_if_member(
+        self,
+    ):
         """
         should be able to unsubscribe to community posts for a community a member
         """
         admin = make_user()
-        community = make_community(creator=admin, type='P')
+        community = make_community(creator=admin, type="P")
 
         community_member = make_user()
         community_member.join_community_with_name(community_name=community.name)
-        community_member.enable_new_post_notifications_for_community_with_name(community_name=community.name)
+        community_member.enable_new_post_notifications_for_community_with_name(
+            community_name=community.name
+        )
 
         headers = make_authentication_headers_for_user(community_member)
         url = self._get_url(community_name=community.name)
         response = self.client.delete(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(CommunityNotificationsSubscription.objects.get(
-            subscriber=community_member, community=community).new_post_notifications)
+        self.assertFalse(
+            CommunityNotificationsSubscription.objects.get(
+                subscriber=community_member, community=community
+            ).new_post_notifications
+        )
 
-    def test_should_not_be_able_to_unsubscribe_to_notifications_for_community_if_not_member(self):
+    def test_should_not_be_able_to_unsubscribe_to_notifications_for_community_if_not_member(
+        self,
+    ):
         """
         should not be able to unsubscribe to community posts for a community if not member
         """
         admin = make_user()
-        community = make_community(creator=admin, type='P')
+        community = make_community(creator=admin, type="P")
 
         user = make_user()
 
@@ -1194,19 +1208,24 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_should_not_be_able_to_unsubscribe_to_notifications_for_community_if_banned(self):
+    def test_should_not_be_able_to_unsubscribe_to_notifications_for_community_if_banned(
+        self,
+    ):
         """
         should not be able to unsubscribe to community posts for a community if banned
         """
         admin = make_user()
-        community = make_community(creator=admin, type='P')
+        community = make_community(creator=admin, type="P")
 
         user = make_user()
         user.join_community_with_name(community_name=community.name)
-        user.enable_new_post_notifications_for_community_with_name(community_name=community.name)
+        user.enable_new_post_notifications_for_community_with_name(
+            community_name=community.name
+        )
 
-        admin.ban_user_with_username_from_community_with_name(username=user.username,
-                                                              community_name=community.name)
+        admin.ban_user_with_username_from_community_with_name(
+            username=user.username, community_name=community.name
+        )
 
         headers = make_authentication_headers_for_user(user)
         url = self._get_url(community_name=community.name)
@@ -1214,12 +1233,14 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_should_not_be_able_to_unsubscribe_to_notifications_for_community_if_already_subscribed(self):
+    def test_should_not_be_able_to_unsubscribe_to_notifications_for_community_if_already_subscribed(
+        self,
+    ):
         """
         should not be able to unsubscribe to community posts for a community if already unsubscribed
         """
         admin = make_user()
-        community = make_community(creator=admin, type='P')
+        community = make_community(creator=admin, type="P")
 
         community_member = make_user()
         community_member.join_community_with_name(community_name=community.name)
@@ -1229,11 +1250,13 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
         response = self.client.delete(url, **headers)
 
         subscriptions = CommunityNotificationsSubscription.objects.filter(
-            subscriber=community_member, community=community)
+            subscriber=community_member, community=community
+        )
         self.assertEqual(len(subscriptions), 0)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def _get_url(self, community_name):
-        return reverse('subscribe-community-new-post-notifications', kwargs={
-            'community_name': community_name
-        })
+        return reverse(
+            "subscribe-community-new-post-notifications",
+            kwargs={"community_name": community_name},
+        )

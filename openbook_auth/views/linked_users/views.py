@@ -3,8 +3,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from openbook_auth.views.linked_users.serializers import GetLinkedUsersSerializer, \
-    SearchLinkedUsersSerializer, LinkedUsersUserSerializer
+from openbook_auth.views.linked_users.serializers import (
+    GetLinkedUsersSerializer,
+    SearchLinkedUsersSerializer,
+    LinkedUsersUserSerializer,
+)
 
 
 class LinkedUsers(APIView):
@@ -17,17 +20,18 @@ class LinkedUsers(APIView):
 
         data = serializer.validated_data
 
-        count = data.get('count', 10)
-        max_id = data.get('max_id')
-        with_community = data.get('with_community')
+        count = data.get("count", 10)
+        max_id = data.get("max_id")
+        with_community = data.get("with_community")
 
         user = request.user
-        users = user.get_linked_users(max_id=max_id).order_by(
-            '-id')[:count]
+        users = user.get_linked_users(max_id=max_id).order_by("-id")[:count]
 
-        users_serializer = LinkedUsersUserSerializer(users, many=True, context={'request': request,
-                                                                                'communities_names': [
-                                                                                    with_community]})
+        users_serializer = LinkedUsersUserSerializer(
+            users,
+            many=True,
+            context={"request": request, "communities_names": [with_community]},
+        )
 
         return Response(users_serializer.data, status=status.HTTP_200_OK)
 
@@ -42,15 +46,17 @@ class SearchLinkedUsers(APIView):
 
         data = serializer.validated_data
 
-        count = data.get('count', 10)
-        query = data.get('query')
-        with_community = data.get('with_community')
+        count = data.get("count", 10)
+        query = data.get("query")
+        with_community = data.get("with_community")
 
         user = request.user
         users = user.search_linked_users_with_query(query=query)[:count]
 
-        users_serializer = LinkedUsersUserSerializer(users, many=True, context={'request': request,
-                                                                                'communities_names': [
-                                                                                    with_community]})
+        users_serializer = LinkedUsersUserSerializer(
+            users,
+            many=True,
+            context={"request": request, "communities_names": [with_community]},
+        )
 
         return Response(users_serializer.data, status=status.HTTP_200_OK)

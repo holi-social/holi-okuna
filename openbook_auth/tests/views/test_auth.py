@@ -16,7 +16,11 @@ import logging
 import json
 
 from openbook_circles.models import Circle
-from openbook_common.tests.helpers import make_user, make_badge, make_authentication_headers_for_user
+from openbook_common.tests.helpers import (
+    make_user,
+    make_badge,
+    make_authentication_headers_for_user,
+)
 from openbook_common.utils.test import uuid_id_parser
 from openbook_invitations.models import UserInvite
 
@@ -38,11 +42,15 @@ class OathkeeperAuthTest(OpenbookAPITestCase):
         user_email = fake.email()
         url = self._get_user_profile_url(user_id)
         headers = {
-            'X-Holi-User-ID': f'{user_id}',
-            'X-Holi-User-Email': f'{user_email}',
+            "X-Holi-User-ID": f"{user_id}",
+            "X-Holi-User-Email": f"{user_email}",
         }
-        response = self.client.get(url, format='json', **headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"status_code={response.status_code}")
+        response = self.client.get(url, format="json", **headers)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            f"status_code={response.status_code}",
+        )
 
     def test_requires_holi_user_id_for_non_existing_user(self):
         """
@@ -52,10 +60,14 @@ class OathkeeperAuthTest(OpenbookAPITestCase):
         user_email = fake.email()
         url = self._get_user_profile_url(user_id)
         headers = {
-            'X-Holi-User-Email': f'{user_email}',
+            "X-Holi-User-Email": f"{user_email}",
         }
-        response = self.client.get(url, format='json', **headers)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"status_code={response.status_code}")
+        response = self.client.get(url, format="json", **headers)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN,
+            f"status_code={response.status_code}",
+        )
 
     def test_requires_holi_user_email_for_non_existing_user(self):
         """
@@ -64,22 +76,32 @@ class OathkeeperAuthTest(OpenbookAPITestCase):
         user_id = fake.user_name()
         url = self._get_user_profile_url(user_id)
         headers = {
-            'X-Holi-User-ID': f'{user_id}',
+            "X-Holi-User-ID": f"{user_id}",
         }
-        response = self.client.get(url, format='json', **headers)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"status_code={response.status_code}")
+        response = self.client.get(url, format="json", **headers)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN,
+            f"status_code={response.status_code}",
+        )
 
     def test_allows_anonymous_requests(self):
         """
         should allow anonymous requests
         """
-        url = reverse('username-check')  # just a random endpoint that doesn't require authentication
-        data = {'username': fake.user_name()}
-        response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, f"status_code={response.status_code}")
+        url = reverse(
+            "username-check"
+        )  # just a random endpoint that doesn't require authentication
+        data = {"username": fake.user_name()}
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_202_ACCEPTED,
+            f"status_code={response.status_code}",
+        )
 
     def _get_user_profile_url(self, user_id):
-        return reverse('authenticated-user')
+        return reverse("authenticated-user")
 
 
 @unittest.skip("TODO HOLI-1722 most likely remove completely")
@@ -93,11 +115,16 @@ class RegistrationAPITests(OpenbookAPITestCase):
         should return 400 if the token is not present
         """
         url = self._get_url()
-        data = {'name': 'Joel Hernandez', 'password': 'secretPassword123',
-                'is_of_legal_age': 'true', 'email': 'user@email.com', 'are_guidelines_accepted': True}
-        response = self.client.post(url, data, format='multipart')
+        data = {
+            "name": "Joel Hernandez",
+            "password": "secretPassword123",
+            "is_of_legal_age": "true",
+            "email": "user@email.com",
+            "are_guidelines_accepted": True,
+        }
+        response = self.client.post(url, data, format="multipart")
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
-        self.assertIn('token', parsed_response)
+        self.assertIn("token", parsed_response)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_token_can_be_used_once(self):
@@ -106,14 +133,24 @@ class RegistrationAPITests(OpenbookAPITestCase):
         """
         url = self._get_url()
         token = self._make_user_invite_token()
-        first_request_data = {'name': 'Joel Hernandez', 'email': 'joel@open-book.org',
-                              'password': 'secretPassword123', 'is_of_legal_age': 'true', 'token': token,
-                              'are_guidelines_accepted': True}
-        self.client.post(url, first_request_data, format='multipart')
-        second_request_data = {'name': 'Juan Taramera', 'email': 'joel2@open-book.org',
-                               'password': 'woahpassword123', 'is_of_legal_age': 'true', 'token': token,
-                               'are_guidelines_accepted': True}
-        response = self.client.post(url, second_request_data, format='multipart')
+        first_request_data = {
+            "name": "Joel Hernandez",
+            "email": "joel@open-book.org",
+            "password": "secretPassword123",
+            "is_of_legal_age": "true",
+            "token": token,
+            "are_guidelines_accepted": True,
+        }
+        self.client.post(url, first_request_data, format="multipart")
+        second_request_data = {
+            "name": "Juan Taramera",
+            "email": "joel2@open-book.org",
+            "password": "woahpassword123",
+            "is_of_legal_age": "true",
+            "token": token,
+            "are_guidelines_accepted": True,
+        }
+        response = self.client.post(url, second_request_data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_token_should_be_valid(self):
@@ -122,10 +159,15 @@ class RegistrationAPITests(OpenbookAPITestCase):
         """
         url = self._get_url()
         token = uuid.uuid4()
-        first_request_data = {'name': 'Joel Hernandez', 'email': 'joel@open-book.org',
-                              'password': 'secretPassword123', 'is_of_legal_age': 'true', 'token': token,
-                              'are_guidelines_accepted': True}
-        response = self.client.post(url, first_request_data, format='multipart')
+        first_request_data = {
+            "name": "Joel Hernandez",
+            "email": "joel@open-book.org",
+            "password": "secretPassword123",
+            "is_of_legal_age": "true",
+            "token": token,
+            "are_guidelines_accepted": True,
+        }
+        response = self.client.post(url, first_request_data, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -134,21 +176,25 @@ class RegistrationAPITests(OpenbookAPITestCase):
         should return 400 if the name is not valid
         """
         url = self._get_url()
-        invalid_names = ('Joel<', '<>', '',)
+        invalid_names = (
+            "Joel<",
+            "<>",
+            "",
+        )
         token = self._make_user_invite_token()
         for name in invalid_names:
             data = {
-                'username': 'lifenautjoe',
-                'name': name,
-                'email': 'user@mail.com',
-                'password': 'secretPassword123',
-                'is_of_legal_age': 'true',
-                'are_guidelines_accepted': True,
-                'token': token
+                "username": "lifenautjoe",
+                "name": name,
+                "email": "user@mail.com",
+                "password": "secretPassword123",
+                "is_of_legal_age": "true",
+                "are_guidelines_accepted": True,
+                "token": token,
             }
-            response = self.client.post(url, data, format='multipart')
+            response = self.client.post(url, data, format="multipart")
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
-            self.assertIn('name', parsed_response)
+            self.assertIn("name", parsed_response)
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_invalid_username(self):
@@ -156,21 +202,26 @@ class RegistrationAPITests(OpenbookAPITestCase):
         should return 400 if the username is not valid
         """
         url = self._get_url()
-        invalid_usernames = ('joel<;<', '<>', ' shantanu space ', 'greater_than_30_characters_username_is_not_valid',)
+        invalid_usernames = (
+            "joel<;<",
+            "<>",
+            " shantanu space ",
+            "greater_than_30_characters_username_is_not_valid",
+        )
         token = self._make_user_invite_token()
         for username in invalid_usernames:
             data = {
-                'username': username,
-                'name': 'Shantanu',
-                'email': 'user@mail.com',
-                'password': 'secretPassword123',
-                'is_of_legal_age': 'true',
-                'are_guidelines_accepted': True,
-                'token': token
+                "username": username,
+                "name": "Shantanu",
+                "email": "user@mail.com",
+                "password": "secretPassword123",
+                "is_of_legal_age": "true",
+                "are_guidelines_accepted": True,
+                "token": token,
             }
-            response = self.client.post(url, data, format='multipart')
+            response = self.client.post(url, data, format="multipart")
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
-            self.assertIn('username', parsed_response)
+            self.assertIn("username", parsed_response)
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_name_required(self):
@@ -179,11 +230,16 @@ class RegistrationAPITests(OpenbookAPITestCase):
         """
         url = self._get_url()
         token = self._make_user_invite_token()
-        data = {'email': 'user@mail.com', 'password': 'secretPassword123',
-                'is_of_legal_age': 'true', 'token': token, 'are_guidelines_accepted': True}
-        response = self.client.post(url, data, format='multipart')
+        data = {
+            "email": "user@mail.com",
+            "password": "secretPassword123",
+            "is_of_legal_age": "true",
+            "token": token,
+            "are_guidelines_accepted": True,
+        }
+        response = self.client.post(url, data, format="multipart")
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
-        self.assertIn('name', parsed_response)
+        self.assertIn("name", parsed_response)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_email_required(self):
@@ -192,11 +248,16 @@ class RegistrationAPITests(OpenbookAPITestCase):
         """
         url = self._get_url()
         token = self._make_user_invite_token()
-        data = {'name': 'Joel Hernandez', 'password': 'secretPassword123',
-                'is_of_legal_age': 'true', 'token': token, 'are_guidelines_accepted': True}
-        response = self.client.post(url, data, format='multipart')
+        data = {
+            "name": "Joel Hernandez",
+            "password": "secretPassword123",
+            "is_of_legal_age": "true",
+            "token": token,
+            "are_guidelines_accepted": True,
+        }
+        response = self.client.post(url, data, format="multipart")
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
-        self.assertIn('email', parsed_response)
+        self.assertIn("email", parsed_response)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_is_of_legal_age_required(self):
@@ -205,9 +266,14 @@ class RegistrationAPITests(OpenbookAPITestCase):
         """
         url = self._get_url()
         token = self._make_user_invite_token()
-        data = {'name': 'Joel Hernandez', 'email': 'user2@mail.com',
-                'password': 'secretPassword123', 'token': token, 'are_guidelines_accepted': True}
-        response = self.client.post(url, data, format='multipart')
+        data = {
+            "name": "Joel Hernandez",
+            "email": "user2@mail.com",
+            "password": "secretPassword123",
+            "token": token,
+            "are_guidelines_accepted": True,
+        }
+        response = self.client.post(url, data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_is_of_legal_age_true_required(self):
@@ -216,10 +282,15 @@ class RegistrationAPITests(OpenbookAPITestCase):
         """
         url = self._get_url()
         token = self._make_user_invite_token()
-        data = {'name': 'Joel Hernandez', 'email': 'user@mail.com',
-                'password': 'secretPassword123', 'is_of_legal_age': 'false', 'token': token,
-                'are_guidelines_accepted': True}
-        response = self.client.post(url, data, format='multipart')
+        data = {
+            "name": "Joel Hernandez",
+            "email": "user@mail.com",
+            "password": "secretPassword123",
+            "is_of_legal_age": "false",
+            "token": token,
+            "are_guidelines_accepted": True,
+        }
+        response = self.client.post(url, data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_are_guidelines_accepted_required(self):
@@ -228,9 +299,14 @@ class RegistrationAPITests(OpenbookAPITestCase):
         """
         url = self._get_url()
         token = self._make_user_invite_token()
-        data = {'name': 'Joel Hernandez', 'email': 'user2@mail.com',
-                'password': 'secretPassword123', 'token': token, 'is_of_legal_age': True}
-        response = self.client.post(url, data, format='multipart')
+        data = {
+            "name": "Joel Hernandez",
+            "email": "user2@mail.com",
+            "password": "secretPassword123",
+            "token": token,
+            "is_of_legal_age": True,
+        }
+        response = self.client.post(url, data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_are_guidelines_accepted_true_required(self):
@@ -239,10 +315,15 @@ class RegistrationAPITests(OpenbookAPITestCase):
         """
         url = self._get_url()
         token = self._make_user_invite_token()
-        data = {'name': 'Joel Hernandez', 'email': 'user@mail.com',
-                'password': 'secretPassword123', 'is_of_legal_age': True, 'are_guidelines_accepted': False,
-                'token': token}
-        response = self.client.post(url, data, format='multipart')
+        data = {
+            "name": "Joel Hernandez",
+            "email": "user@mail.com",
+            "password": "secretPassword123",
+            "is_of_legal_age": True,
+            "are_guidelines_accepted": False,
+            "token": token,
+        }
+        response = self.client.post(url, data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_email_taken(self):
@@ -251,18 +332,28 @@ class RegistrationAPITests(OpenbookAPITestCase):
         """
         url = self._get_url()
         token = self._make_user_invite_token()
-        email = 'joel@open-book.org'
-        first_request_data = {'name': 'Joel Hernandez', 'email': email,
-                              'password': 'secretPassword123', 'is_of_legal_age': 'true', 'token': token,
-                              'are_guidelines_accepted': True}
-        self.client.post(url, first_request_data, format='multipart')
+        email = "joel@open-book.org"
+        first_request_data = {
+            "name": "Joel Hernandez",
+            "email": email,
+            "password": "secretPassword123",
+            "is_of_legal_age": "true",
+            "token": token,
+            "are_guidelines_accepted": True,
+        }
+        self.client.post(url, first_request_data, format="multipart")
         token2 = self._make_user_invite_token()
-        second_request_data = {'name': 'Juan Taramera', 'email': email,
-                               'password': 'woahpassword123', 'is_of_legal_age': 'true', 'token': token2,
-                               'are_guidelines_accepted': True}
-        response = self.client.post(url, second_request_data, format='multipart')
+        second_request_data = {
+            "name": "Juan Taramera",
+            "email": email,
+            "password": "woahpassword123",
+            "is_of_legal_age": "true",
+            "token": token2,
+            "are_guidelines_accepted": True,
+        }
+        response = self.client.post(url, second_request_data, format="multipart")
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
-        self.assertIn('email', parsed_response)
+        self.assertIn("email", parsed_response)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_user_created(self):
@@ -272,14 +363,19 @@ class RegistrationAPITests(OpenbookAPITestCase):
         url = self._get_url()
         token = self._make_user_invite_token()
         email = fake.email()
-        first_request_data = {'name': 'Joel Hernandez', 'email': email,
-                              'password': 'secretPassword123', 'is_of_legal_age': True, 'token': token,
-                              'are_guidelines_accepted': True}
-        response = self.client.post(url, first_request_data, format='multipart')
+        first_request_data = {
+            "name": "Joel Hernandez",
+            "email": email,
+            "password": "secretPassword123",
+            "is_of_legal_age": True,
+            "token": token,
+            "are_guidelines_accepted": True,
+        }
+        response = self.client.post(url, first_request_data, format="multipart")
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertIn('username', parsed_response)
+        self.assertIn("username", parsed_response)
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(User.objects.filter(email=email).exists(), True)
 
@@ -290,13 +386,19 @@ class RegistrationAPITests(OpenbookAPITestCase):
         url = self._get_url()
         token = self._make_user_invite_token()
         email = fake.email()
-        request_data = {'token': token, 'name': 'Joel Hernandez', 'email': email,
-                        'password': 'secretPassword123', 'is_of_legal_age': 'true', 'are_guidelines_accepted': True}
-        response = self.client.post(url, request_data, format='multipart')
+        request_data = {
+            "token": token,
+            "name": "Joel Hernandez",
+            "email": email,
+            "password": "secretPassword123",
+            "is_of_legal_age": "true",
+            "are_guidelines_accepted": True,
+        }
+        response = self.client.post(url, request_data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(UserProfile.objects.count(), 1)
         user = User.objects.get(email=email)
-        self.assertTrue(hasattr(user, 'profile'))
+        self.assertTrue(hasattr(user, "profile"))
 
     def test_user_profile_has_badges(self):
         """
@@ -306,13 +408,19 @@ class RegistrationAPITests(OpenbookAPITestCase):
         badge = make_badge()
         token = self._make_user_invite_token_with_badge(badge)
         email = fake.email()
-        request_data = {'token': token, 'name': 'Joel Hernandez', 'email': email,
-                        'password': 'secretPassword123', 'is_of_legal_age': 'true', 'are_guidelines_accepted': True}
-        response = self.client.post(url, request_data, format='multipart')
+        request_data = {
+            "token": token,
+            "name": "Joel Hernandez",
+            "email": email,
+            "password": "secretPassword123",
+            "is_of_legal_age": "true",
+            "are_guidelines_accepted": True,
+        }
+        response = self.client.post(url, request_data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(UserProfile.objects.count(), 1)
         user = User.objects.get(email=email)
-        self.assertTrue(hasattr(user.profile, 'badges'))
+        self.assertTrue(hasattr(user.profile, "badges"))
         badges = user.profile.badges.all()
         self.assertTrue(badges[0].keyword, badge.keyword)
 
@@ -323,19 +431,27 @@ class RegistrationAPITests(OpenbookAPITestCase):
         url = self._get_url()
         token = self._make_user_invite_token()
         email = fake.email()
-        request_data = {'token': token, 'name': 'Joel Hernandez', 'email': email,
-                        'password': 'secretPassword123', 'is_of_legal_age': 'true', 'are_guidelines_accepted': True}
-        response = self.client.post(url, request_data, format='multipart')
+        request_data = {
+            "token": token,
+            "name": "Joel Hernandez",
+            "email": email,
+            "password": "secretPassword123",
+            "is_of_legal_age": "true",
+            "are_guidelines_accepted": True,
+        }
+        response = self.client.post(url, request_data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Circle.objects.count(), 1)
 
         user = User.objects.get(email=email)
 
         # Check we created the connections circle
-        self.assertTrue(Circle.objects.filter(id__in=(user.connections_circle_id,)).count() == 1)
+        self.assertTrue(
+            Circle.objects.filter(id__in=(user.connections_circle_id,)).count() == 1
+        )
 
         # Check we have a circles related manager
-        self.assertTrue(hasattr(user, 'circles'))
+        self.assertTrue(hasattr(user, "circles"))
 
     def test_user_guidelines_are_accepted(self):
         """
@@ -344,15 +460,20 @@ class RegistrationAPITests(OpenbookAPITestCase):
         url = self._get_url()
         token = self._make_user_invite_token()
         email = fake.email()
-        first_request_data = {'name': 'Joel Hernandez', 'email': email,
-                              'password': 'secretPassword123', 'is_of_legal_age': True, 'token': token,
-                              'are_guidelines_accepted': True}
-        response = self.client.post(url, first_request_data, format='multipart')
+        first_request_data = {
+            "name": "Joel Hernandez",
+            "email": email,
+            "password": "secretPassword123",
+            "is_of_legal_age": True,
+            "token": token,
+            "are_guidelines_accepted": True,
+        }
+        response = self.client.post(url, first_request_data, format="multipart")
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        username = parsed_response['username']
+        username = parsed_response["username"]
 
         user = User.objects.get(username=username)
         self.assertTrue(user.are_guidelines_accepted)
@@ -361,20 +482,26 @@ class RegistrationAPITests(OpenbookAPITestCase):
         """
         Should accept an avatar file and store it on the UserProfile
         """
-        image = Image.new('RGB', (100, 100))
-        tmp_file = tempfile.NamedTemporaryFile(suffix='.jpg')
+        image = Image.new("RGB", (100, 100))
+        tmp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
         image.save(tmp_file)
         tmp_file.seek(0)
         email = fake.email()
         token = self._make_user_invite_token()
-        request_data = {'token': token, 'name': 'Joel Hernandez', 'email': email,
-                        'password': 'secretPassword123', 'is_of_legal_age': 'true', 'avatar': tmp_file,
-                        'are_guidelines_accepted': True}
+        request_data = {
+            "token": token,
+            "name": "Joel Hernandez",
+            "email": email,
+            "password": "secretPassword123",
+            "is_of_legal_age": "true",
+            "avatar": tmp_file,
+            "are_guidelines_accepted": True,
+        }
         url = self._get_url()
-        response = self.client.post(url, request_data, format='multipart')
+        response = self.client.post(url, request_data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         user = User.objects.get(email=email)
-        self.assertTrue(hasattr(user.profile, 'avatar'))
+        self.assertTrue(hasattr(user.profile, "avatar"))
 
     def test_user_status(self):
         """
@@ -385,30 +512,42 @@ class RegistrationAPITests(OpenbookAPITestCase):
         token3 = self._make_user_invite_token()
         users_data = (
             {
-                'token': token1, 'name': 'Joel Hernandez', 'email': 'hi@ohmy.com',
-                'password': 'askdnaoisd!', 'is_of_legal_age': 'true', 'are_guidelines_accepted': True
+                "token": token1,
+                "name": "Joel Hernandez",
+                "email": "hi@ohmy.com",
+                "password": "askdnaoisd!",
+                "is_of_legal_age": "true",
+                "are_guidelines_accepted": True,
             },
             {
-                'token': token2, 'name': 'Terry Crews', 'email': 'terry@oldsp.ie',
-                'password': 'secretPassword123', 'is_of_legal_age': 'true', 'are_guidelines_accepted': True
+                "token": token2,
+                "name": "Terry Crews",
+                "email": "terry@oldsp.ie",
+                "password": "secretPassword123",
+                "is_of_legal_age": "true",
+                "are_guidelines_accepted": True,
             },
             {
-                'token': token3, 'name': 'Mike Johnson', 'email': 'mike@chowchow.com',
-                'password': 'OhGoDwEnEEdFixTurES!', 'is_of_legal_age': 'true', 'are_guidelines_accepted': True
-            }
+                "token": token3,
+                "name": "Mike Johnson",
+                "email": "mike@chowchow.com",
+                "password": "OhGoDwEnEEdFixTurES!",
+                "is_of_legal_age": "true",
+                "are_guidelines_accepted": True,
+            },
         )
         url = self._get_url()
         for user_data_item in users_data:
-            response = self.client.post(url, user_data_item, format='multipart')
+            response = self.client.post(url, user_data_item, format="multipart")
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
-            self.assertIn('token', parsed_response)
-            response_auth_token = parsed_response['token']
-            user = User.objects.get(email=user_data_item['email'])
+            self.assertIn("token", parsed_response)
+            response_auth_token = parsed_response["token"]
+            user = User.objects.get(email=user_data_item["email"])
             self.assertEqual(response_auth_token, user.auth_token.key)
 
     def _get_url(self):
-        return reverse('register-user')
+        return reverse("register-user")
 
 
 @unittest.skip("TODO HOLI-1722 most likely remove completely")
@@ -423,8 +562,8 @@ class VerifyRegistrationTokenAPITests(OpenbookAPITestCase):
         """
         url = self._get_url()
         token = uuid.uuid4()
-        request_data = {'token': token}
-        response = self.client.post(url, request_data, format='json')
+        request_data = {"token": token}
+        response = self.client.post(url, request_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -434,8 +573,8 @@ class VerifyRegistrationTokenAPITests(OpenbookAPITestCase):
         """
         url = self._get_url()
         token = self._make_user_invite_token()
-        request_data = {'token': token}
-        response = self.client.post(url, request_data, format='json')
+        request_data = {"token": token}
+        response = self.client.post(url, request_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
@@ -454,17 +593,25 @@ class VerifyRegistrationTokenAPITests(OpenbookAPITestCase):
             username = User.get_temporary_username(email)
 
         # create a user
-        new_user = User.create_user(username=username, email=email, password=password, name=name, avatar=None,
-                                    is_of_legal_age=True, badge=user_invite.badge, are_guidelines_accepted=True)
+        new_user = User.create_user(
+            username=username,
+            email=email,
+            password=password,
+            name=name,
+            avatar=None,
+            is_of_legal_age=True,
+            badge=user_invite.badge,
+            are_guidelines_accepted=True,
+        )
         user_invite.created_user = new_user
         user_invite.save()
 
-        request_data = {'token': token}
-        response = self.client.post(url, request_data, format='json')
+        request_data = {"token": token}
+        response = self.client.post(url, request_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def _get_url(self):
-        return reverse('verify-register-token')
+        return reverse("verify-register-token")
 
     def _make_user_invite_token(self):
         user_invite = UserInvite.create_invite(email=fake.email())
@@ -473,18 +620,17 @@ class VerifyRegistrationTokenAPITests(OpenbookAPITestCase):
 
 @unittest.skip("TODO HOLI-1722 most likely remove completely")
 class RequestPasswordResetAPITests(OpenbookAPITestCase):
-
     def test_cannot_request_password_reset_with_invalid_email(self):
         """
         Should not be able to request password reset if no valid email exists
         """
         email = fake.email()
-        request_data = {
-            'email': email
-        }
+        request_data = {"email": email}
         url = self._get_url()
-        with mock.patch.object(User, '_send_password_reset_email_with_token', return_value=None):
-            response = self.client.post(url, request_data, format='multipart')
+        with mock.patch.object(
+            User, "_send_password_reset_email_with_token", return_value=None
+        ):
+            response = self.client.post(url, request_data, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -493,25 +639,22 @@ class RequestPasswordResetAPITests(OpenbookAPITestCase):
         Should generate request password reset token for email  and send mail
         """
         user = make_user()
-        request_data = {
-            'email': user.email
-        }
+        request_data = {"email": user.email}
 
         url = self._get_url()
-        response = self.client.post(url, request_data, format='multipart')
+        response = self.client.post(url, request_data, format="multipart")
         email_message = mail.outbox[0]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(email_message.to[0], user.email)
-        self.assertEqual(email_message.subject, 'Reset your password for Okuna')
+        self.assertEqual(email_message.subject, "Reset your password for Okuna")
 
     def _get_url(self):
-        return reverse('request-password-reset')
+        return reverse("request-password-reset")
 
 
 @unittest.skip("TODO HOLI-1722 most likely remove completely")
 class VerifyResetPasswordAPITests(OpenbookAPITestCase):
-
     def test_can_update_password_with_valid_token(self):
         """
         Should update password with valid token
@@ -523,13 +666,13 @@ class VerifyResetPasswordAPITests(OpenbookAPITestCase):
         url = self._get_url()
 
         password_reset_token = user.request_password_reset()
-        new_password = 'testing12345'
+        new_password = "testing12345"
         request_data = {
-            'new_password': new_password,
-            'token': password_reset_token,
+            "new_password": new_password,
+            "token": password_reset_token,
         }
 
-        response = self.client.post(url, request_data, format='multipart')
+        response = self.client.post(url, request_data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # cannot authenticate with old password
         user = authenticate(username=username, password=old_password)
@@ -548,13 +691,10 @@ class VerifyResetPasswordAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
 
-        new_password = 'testing12345'
-        request_data = {
-            'new_password': new_password,
-            'token': fake.text()
-        }
+        new_password = "testing12345"
+        request_data = {"new_password": new_password, "token": fake.text()}
 
-        response = self.client.post(url, request_data, format='multipart')
+        response = self.client.post(url, request_data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         user_db = User.objects.get(email=user_email)
         self.assertEqual(user_db.password, old_password)
@@ -570,11 +710,9 @@ class VerifyResetPasswordAPITests(OpenbookAPITestCase):
         url = self._get_url()
 
         password_reset_token = user.request_password_reset()
-        request_data = {
-            'token': password_reset_token
-        }
+        request_data = {"token": password_reset_token}
 
-        response = self.client.post(url, request_data, format='multipart')
+        response = self.client.post(url, request_data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         user_db = User.objects.get(email=user_email)
         self.assertEqual(user_db.password, old_password)
@@ -589,12 +727,12 @@ class VerifyResetPasswordAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
 
-        new_password = 'testing12345'
+        new_password = "testing12345"
         request_data = {
-            'new_password': new_password,
+            "new_password": new_password,
         }
 
-        response = self.client.post(url, request_data, format='multipart')
+        response = self.client.post(url, request_data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         user_db = User.objects.get(email=user_email)
         self.assertEqual(user_db.password, old_password)
@@ -610,13 +748,13 @@ class VerifyResetPasswordAPITests(OpenbookAPITestCase):
         url = self._get_url()
 
         password_reset_token = user.request_password_reset()
-        new_password = 'testing12345'
+        new_password = "testing12345"
         request_data = {
-            'new_password': new_password,
-            'token': password_reset_token,
+            "new_password": new_password,
+            "token": password_reset_token,
         }
 
-        response = self.client.post(url, request_data, format='multipart')
+        response = self.client.post(url, request_data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # can authenticate with new password
         user = authenticate(username=username, password=new_password)
@@ -626,7 +764,7 @@ class VerifyResetPasswordAPITests(OpenbookAPITestCase):
         self.assertFalse(Token.objects.filter(key=original_auth_token_key).exists())
 
     def _get_url(self):
-        return reverse('verify-reset-password')
+        return reverse("verify-reset-password")
 
 
 class UsernameCheckAPITests(OpenbookAPITestCase):
@@ -638,25 +776,27 @@ class UsernameCheckAPITests(OpenbookAPITestCase):
         """
         should return status 202 if username is not taken.
         """
-        username = 'lifenautjoe'
-        request_data = {'username': username}
+        username = "lifenautjoe"
+        request_data = {"username": username}
         url = self._get_url()
-        response = self.client.post(url, request_data, format='json')
+        response = self.client.post(url, request_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
     def test_username_taken(self):
         """
         should return status 400 if the username is taken
         """
-        username = 'lifenautjoe'
-        User.objects.create_user(username=username, password='SuChSeCuRiTyWow!', email='lifenautjoe@mail.com')
-        request_data = {'username': username}
+        username = "lifenautjoe"
+        User.objects.create_user(
+            username=username, password="SuChSeCuRiTyWow!", email="lifenautjoe@mail.com"
+        )
+        request_data = {"username": username}
         url = self._get_url()
-        response = self.client.post(url, request_data, format='json')
+        response = self.client.post(url, request_data, format="json")
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertIn('username', parsed_response)
+        self.assertIn("username", parsed_response)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_invalid_username(self):
@@ -664,14 +804,12 @@ class UsernameCheckAPITests(OpenbookAPITestCase):
         should return 400 if the username is not a valid one
         """
         url = self._get_url()
-        usernames = ('lifenau!', '', '.a!', 'dexter@', '🤷‍♂️')
+        usernames = ("lifenau!", "", ".a!", "dexter@", "🤷‍♂️")
         for username in usernames:
-            data = {
-                'username': username
-            }
-            response = self.client.post(url, data, format='json')
+            data = {"username": username}
+            response = self.client.post(url, data, format="json")
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
-            self.assertIn('username', parsed_response)
+            self.assertIn("username", parsed_response)
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_valid_username(self):
@@ -679,16 +817,14 @@ class UsernameCheckAPITests(OpenbookAPITestCase):
         should return 202 if the username is a valid username
         """
         url = self._get_url()
-        usernames = ('lifenautjoe', 'shantanu_123', 'm4k3l0v3n0tw4r', 'o_0')
+        usernames = ("lifenautjoe", "shantanu_123", "m4k3l0v3n0tw4r", "o_0")
         for username in usernames:
-            data = {
-                'username': username
-            }
-            response = self.client.post(url, data, format='json')
+            data = {"username": username}
+            response = self.client.post(url, data, format="json")
             self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
     def _get_url(self):
-        return reverse('username-check')
+        return reverse("username-check")
 
 
 class EmailCheckAPITests(OpenbookAPITestCase):
@@ -700,25 +836,27 @@ class EmailCheckAPITests(OpenbookAPITestCase):
         """
         should return status 202 if email is not taken.
         """
-        email = 'joel@open-book.org'
-        request_data = {'email': email}
+        email = "joel@open-book.org"
+        request_data = {"email": email}
         url = self._get_url()
-        response = self.client.post(url, request_data, format='json')
+        response = self.client.post(url, request_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
     def test_email_taken(self):
         """
         should return status 400 if the email is taken
         """
-        email = 'joel@open-book.org'
-        User.objects.create_user(email=email, password='SuChSeCuRiTyWow!', username='lifenautjoe')
-        request_data = {'email': email}
+        email = "joel@open-book.org"
+        User.objects.create_user(
+            email=email, password="SuChSeCuRiTyWow!", username="lifenautjoe"
+        )
+        request_data = {"email": email}
         url = self._get_url()
-        response = self.client.post(url, request_data, format='json')
+        response = self.client.post(url, request_data, format="json")
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertIn('email', parsed_response)
+        self.assertIn("email", parsed_response)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_invalid_email(self):
@@ -726,14 +864,18 @@ class EmailCheckAPITests(OpenbookAPITestCase):
         should return 400 if the email is not a valid one
         """
         url = self._get_url()
-        emails = ('not-a-valid-email.com', 'fake-email.com', 'joel hernandez', 'omelette@dufromage', 'test_data!asd')
+        emails = (
+            "not-a-valid-email.com",
+            "fake-email.com",
+            "joel hernandez",
+            "omelette@dufromage",
+            "test_data!asd",
+        )
         for email in emails:
-            data = {
-                'email': email
-            }
-            response = self.client.post(url, data, format='json')
+            data = {"email": email}
+            response = self.client.post(url, data, format="json")
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
-            self.assertIn('email', parsed_response)
+            self.assertIn("email", parsed_response)
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_valid_email(self):
@@ -741,16 +883,19 @@ class EmailCheckAPITests(OpenbookAPITestCase):
         should return 202 if the email is a valid email
         """
         url = self._get_url()
-        emails = ('joel@open-book.org', 'gerald@rivia.com', 'obi@wan.com', 'c3po@robot.me')
+        emails = (
+            "joel@open-book.org",
+            "gerald@rivia.com",
+            "obi@wan.com",
+            "c3po@robot.me",
+        )
         for email in emails:
-            data = {
-                'email': email
-            }
-            response = self.client.post(url, data, format='json')
+            data = {"email": email}
+            response = self.client.post(url, data, format="json")
             self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
     def _get_url(self):
-        return reverse('email-check')
+        return reverse("email-check")
 
 
 @unittest.skip("TODO HOLI-1722 most likely remove completely")
@@ -763,26 +908,25 @@ class LoginAPITests(OpenbookAPITestCase):
         """
         should return 200 and the user token when sending correct credentials
         """
-        username = 'mike_waswski'
-        password = 'boo_scary!'
+        username = "mike_waswski"
+        password = "boo_scary!"
 
-        user = User.objects.create_user(username=username, password=password, email='lifenautjoe@mail.com')
+        user = User.objects.create_user(
+            username=username, password=password, email="lifenautjoe@mail.com"
+        )
 
         url = self._get_url()
 
-        request_data = {
-            'username': username,
-            'password': password
-        }
+        request_data = {"username": username, "password": password}
 
-        response = self.client.post(url, request_data, format='json')
+        response = self.client.post(url, request_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertIn('token', parsed_response)
-        response_token = parsed_response['token']
+        self.assertIn("token", parsed_response)
+        response_token = parsed_response["token"]
         user_token = user.auth_token
 
         self.assertEqual(response_token, user_token.key)
@@ -791,28 +935,26 @@ class LoginAPITests(OpenbookAPITestCase):
         """
         should return 401 when sending incorrect credentials
         """
-        username = 'pauly_d'
-        password = 'theW0rstDJEv4'
+        username = "pauly_d"
+        password = "theW0rstDJEv4"
 
-        User.objects.create_user(username=username, password=password, email='pauly@mail.com')
+        User.objects.create_user(
+            username=username, password=password, email="pauly@mail.com"
+        )
 
         url = self._get_url()
 
-        request_data = {
-            'username': username,
-            'password': password + '!'
-        }
+        request_data = {"username": username, "password": password + "!"}
 
-        response = self.client.post(url, request_data, format='json')
+        response = self.client.post(url, request_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def _get_url(self):
-        return reverse('login-user')
+        return reverse("login-user")
 
 
 class VerifyChangeEmailAPITests(OpenbookAPITestCase):
-
     def test_can_verify_email_token_successfully(self):
         """
         should be able to verify the authenticated user email with token
@@ -823,7 +965,9 @@ class VerifyChangeEmailAPITests(OpenbookAPITestCase):
         new_email = fake.email()
         token = user.request_email_update(new_email)
 
-        response = self.client.post(self._get_verify_email_url(), {'token': token}, **headers)
+        response = self.client.post(
+            self._get_verify_email_url(), {"token": token}, **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -843,7 +987,9 @@ class VerifyChangeEmailAPITests(OpenbookAPITestCase):
         user.request_email_update(new_email)
         headers = make_authentication_headers_for_user(user)
 
-        response = self.client.post(self._get_verify_email_url(), {'token': foreign_token}, **headers)
+        response = self.client.post(
+            self._get_verify_email_url(), {"token": foreign_token}, **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -853,4 +999,4 @@ class VerifyChangeEmailAPITests(OpenbookAPITestCase):
         self.assertTrue(user.email == original_email)
 
     def _get_verify_email_url(self):
-        return reverse('email-verify')
+        return reverse("email-verify")

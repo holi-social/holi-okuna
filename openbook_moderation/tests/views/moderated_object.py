@@ -10,22 +10,49 @@ from rest_framework import status
 from openbook_common.tests.models import OpenbookAPITestCase
 
 from openbook_auth.models import User
-from openbook_common.tests.helpers import make_global_moderator, make_user, make_moderation_category, \
-    make_authentication_headers_for_user, make_moderated_object_description, \
-    make_community, make_fake_post_text, make_fake_post_comment_text, make_moderated_object, make_moderated_object_log, \
-    make_moderated_object_report, make_reactions_emoji_group, make_emoji, make_circle
-from openbook_common.utils.model_loaders import get_user_new_post_notification_model, \
-    get_community_new_post_notification_model, get_post_comment_notification_model, \
-    get_post_comment_reaction_notification_model, get_post_comment_reply_notification_model, \
-    get_post_comment_user_mention_notification_model, get_post_comment_user_mention_model, \
-    get_post_reaction_notification_model, get_post_user_mention_model, get_post_user_mention_notification_model, \
-    get_community_invite_notification_model, get_follow_notification_model, get_connection_request_notification_model, \
-    get_connection_confirmed_notification_model
+from openbook_common.tests.helpers import (
+    make_global_moderator,
+    make_user,
+    make_moderation_category,
+    make_authentication_headers_for_user,
+    make_moderated_object_description,
+    make_community,
+    make_fake_post_text,
+    make_fake_post_comment_text,
+    make_moderated_object,
+    make_moderated_object_log,
+    make_moderated_object_report,
+    make_reactions_emoji_group,
+    make_emoji,
+    make_circle,
+)
+from openbook_common.utils.model_loaders import (
+    get_user_new_post_notification_model,
+    get_community_new_post_notification_model,
+    get_post_comment_notification_model,
+    get_post_comment_reaction_notification_model,
+    get_post_comment_reply_notification_model,
+    get_post_comment_user_mention_notification_model,
+    get_post_comment_user_mention_model,
+    get_post_reaction_notification_model,
+    get_post_user_mention_model,
+    get_post_user_mention_notification_model,
+    get_community_invite_notification_model,
+    get_follow_notification_model,
+    get_connection_request_notification_model,
+    get_connection_confirmed_notification_model,
+)
 from openbook_common.utils.test import uuid_id_parser
 from openbook_communities.models import Community
-from openbook_moderation.models import ModeratedObject, ModeratedObjectDescriptionChangedLog, \
-    ModeratedObjectCategoryChangedLog, ModerationPenalty, ModerationCategory, ModeratedObjectStatusChangedLog, \
-    ModeratedObjectVerifiedChangedLog
+from openbook_moderation.models import (
+    ModeratedObject,
+    ModeratedObjectDescriptionChangedLog,
+    ModeratedObjectCategoryChangedLog,
+    ModerationPenalty,
+    ModerationCategory,
+    ModeratedObjectStatusChangedLog,
+    ModeratedObjectVerifiedChangedLog,
+)
 from openbook_posts.models import Post, PostComment
 
 fake = Faker()
@@ -47,28 +74,37 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            category_id=new_report_category.pk,
-            description=new_moderated_object_description,
-            object_id=user.pk,
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                category_id=new_report_category.pk,
+                description=new_moderated_object_description,
+                object_id=user.pk,
+            ).exists()
+        )
 
     def test_can_update_user_moderated_object_if_approved(self):
         """
@@ -81,29 +117,38 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            category_id=new_report_category.pk,
-            description=new_moderated_object_description,
-            object_id=user.pk,
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                category_id=new_report_category.pk,
+                description=new_moderated_object_description,
+                object_id=user.pk,
+            ).exists()
+        )
 
     def test_can_update_user_moderated_object_if_rejected(self):
         """
@@ -116,29 +161,38 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
         global_moderator.reject_moderated_object(moderated_object=moderated_object)
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            category_id=new_report_category.pk,
-            description=new_moderated_object_description,
-            object_id=user.pk,
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                category_id=new_report_category.pk,
+                description=new_moderated_object_description,
+                object_id=user.pk,
+            ).exists()
+        )
 
     def test_cant_update_moderated_object_if_verified(self):
         """
@@ -151,31 +205,44 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
-        global_moderator.approve_moderated_object_with_id(moderated_object_id=moderated_object.pk)
-        global_moderator.verify_moderated_object_with_id(moderated_object_id=moderated_object.pk)
+        global_moderator.approve_moderated_object_with_id(
+            moderated_object_id=moderated_object.pk
+        )
+        global_moderator.verify_moderated_object_with_id(
+            moderated_object_id=moderated_object.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            category_id=report_category.pk,
-            description__isnull=True,
-            object_id=user.pk,
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                category_id=report_category.pk,
+                description__isnull=True,
+                object_id=user.pk,
+            ).exists()
+        )
 
     def test_cant_update_user_moderated_object_if_not_global_moderator(self):
         """
@@ -188,28 +255,37 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(non_global_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(ModeratedObject.objects.filter(
-            category_id=new_report_category.pk,
-            description=new_moderated_object_description,
-            object_id=user.pk,
-        ).exists())
+        self.assertFalse(
+            ModeratedObject.objects.filter(
+                category_id=new_report_category.pk,
+                description=new_moderated_object_description,
+                object_id=user.pk,
+            ).exists()
+        )
 
     def test_cant_update_user_moderated_object_if_community_moderator(self):
         """
@@ -221,8 +297,9 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
 
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
-        community_creator.add_moderator_with_username_to_community_with_name(username=community_moderator.username,
-                                                                             community_name=community.name)
+        community_creator.add_moderator_with_username_to_community_with_name(
+            username=community_moderator.username, community_name=community.name
+        )
 
         user = make_user()
         user.join_community_with_name(community_name=community.name)
@@ -230,28 +307,37 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(community_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(ModeratedObject.objects.filter(
-            category_id=new_report_category.pk,
-            description=new_moderated_object_description,
-            object_id=user.pk,
-        ).exists())
+        self.assertFalse(
+            ModeratedObject.objects.filter(
+                category_id=new_report_category.pk,
+                description=new_moderated_object_description,
+                object_id=user.pk,
+            ).exists()
+        )
 
     def test_creates_description_changed_log_on_update(self):
         """
@@ -264,27 +350,37 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
         new_moderated_object_description = make_moderated_object_description()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(1, ModeratedObjectDescriptionChangedLog.objects.filter(
-            changed_from__isnull=True,
-            changed_to=new_moderated_object_description,
-            log__actor_id=global_moderator.pk,
-            log__moderated_object__object_id=user.pk
-        ).count())
+        self.assertEqual(
+            1,
+            ModeratedObjectDescriptionChangedLog.objects.filter(
+                changed_from__isnull=True,
+                changed_to=new_moderated_object_description,
+                log__actor_id=global_moderator.pk,
+                log__moderated_object__object_id=user.pk,
+            ).count(),
+        )
 
     def test_creates_category_changed_log_on_update(self):
         """
@@ -297,27 +393,37 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
         new_moderated_object_category = make_moderation_category()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
-        response = self.client.patch(url, data={
-            'category_id': new_moderated_object_category.pk,
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "category_id": new_moderated_object_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(1, ModeratedObjectCategoryChangedLog.objects.filter(
-            changed_from=report_category,
-            changed_to=new_moderated_object_category,
-            log__actor_id=global_moderator.pk,
-            log__moderated_object__object_id=user.pk
-        ).count())
+        self.assertEqual(
+            1,
+            ModeratedObjectCategoryChangedLog.objects.filter(
+                changed_from=report_category,
+                changed_to=new_moderated_object_category,
+                log__actor_id=global_moderator.pk,
+                log__moderated_object__object_id=user.pk,
+            ).count(),
+        )
 
     def test_can_update_community_moderated_object_if_global_moderator(self):
         """
@@ -330,28 +436,37 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_community_with_name(community_name=community.name, category_id=report_category.pk)
+        reporter_user.report_community_with_name(
+            community_name=community.name, category_id=report_category.pk
+        )
 
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                        category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(
+            community=community, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            category_id=new_report_category.pk,
-            description=new_moderated_object_description,
-            object_id=community.pk,
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                category_id=new_report_category.pk,
+                description=new_moderated_object_description,
+                object_id=community.pk,
+            ).exists()
+        )
 
     def test_cant_update_community_moderated_object_if_not_global_moderator(self):
         """
@@ -363,29 +478,37 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
 
         report_category = make_moderation_category()
 
-        non_global_moderator.report_community_with_name(community_name=community.name,
-                                                        category_id=report_category.pk)
+        non_global_moderator.report_community_with_name(
+            community_name=community.name, category_id=report_category.pk
+        )
 
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                        category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(
+            community=community, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(non_global_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(ModeratedObject.objects.filter(
-            category_id=new_report_category.pk,
-            description=new_moderated_object_description,
-            object_id=community.pk,
-        ).exists())
+        self.assertFalse(
+            ModeratedObject.objects.filter(
+                category_id=new_report_category.pk,
+                description=new_moderated_object_description,
+                object_id=community.pk,
+            ).exists()
+        )
 
     def test_cant_update_community_moderated_object_if_community_moderator(self):
         """
@@ -398,8 +521,8 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
         community_creator.add_moderator_with_username_to_community_with_name(
-            username=community_moderator.username,
-            community_name=community.name)
+            username=community_moderator.username, community_name=community.name
+        )
 
         user = make_user()
         user.join_community_with_name(community_name=community.name)
@@ -407,29 +530,37 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_community_with_name(community_name=community.name,
-                                                 category_id=report_category.pk)
+        reporter_user.report_community_with_name(
+            community_name=community.name, category_id=report_category.pk
+        )
 
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                        category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(
+            community=community, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(community_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(ModeratedObject.objects.filter(
-            category_id=new_report_category.pk,
-            description=new_moderated_object_description,
-            object_id=community.pk,
-        ).exists())
+        self.assertFalse(
+            ModeratedObject.objects.filter(
+                category_id=new_report_category.pk,
+                description=new_moderated_object_description,
+                object_id=community.pk,
+            ).exists()
+        )
 
     def test_can_update_community_post_moderated_object_if_global_moderator(self):
         """
@@ -441,7 +572,9 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         post_creator = make_user()
 
         post_creator.join_community_with_name(community_name=community.name)
-        post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = post_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         reporter_user = make_user()
         report_category = make_moderation_category()
@@ -451,23 +584,30 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(post=post,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
+            post=post, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            category_id=new_report_category.pk,
-            description=new_moderated_object_description,
-            object_id=post.pk,
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                category_id=new_report_category.pk,
+                description=new_moderated_object_description,
+                object_id=post.pk,
+            ).exists()
+        )
 
     def test_can_update_community_post_moderated_object_if_community_moderator(self):
         """
@@ -478,13 +618,16 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
 
-        community_creator.add_moderator_with_username_to_community_with_name(username=community_moderator.username,
-                                                                             community_name=community.name)
+        community_creator.add_moderator_with_username_to_community_with_name(
+            username=community_moderator.username, community_name=community.name
+        )
 
         post_creator = make_user()
 
         post_creator.join_community_with_name(community_name=community.name)
-        post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = post_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         reporter_user = make_user()
         report_category = make_moderation_category()
@@ -494,25 +637,34 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(post=post,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
+            post=post, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(community_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            category_id=new_report_category.pk,
-            description=new_moderated_object_description,
-            object_id=post.pk,
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                category_id=new_report_category.pk,
+                description=new_moderated_object_description,
+                object_id=post.pk,
+            ).exists()
+        )
 
-    def test_cant_update_community_post_moderated_object_if_not_global_nor_community_moderator(self):
+    def test_cant_update_community_post_moderated_object_if_not_global_nor_community_moderator(
+        self,
+    ):
         """
         should not be able to update a community post moderated object if not global nor community moderator
         """
@@ -523,7 +675,9 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         post_creator = make_user()
 
         post_creator.join_community_with_name(community_name=community.name)
-        post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = post_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         reporter_user = make_user()
         report_category = make_moderation_category()
@@ -533,25 +687,34 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(post=post,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
+            post=post, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(non_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(ModeratedObject.objects.filter(
-            category_id=new_report_category.pk,
-            description=new_moderated_object_description,
-            object_id=post.pk,
-        ).exists())
+        self.assertFalse(
+            ModeratedObject.objects.filter(
+                category_id=new_report_category.pk,
+                description=new_moderated_object_description,
+                object_id=post.pk,
+            ).exists()
+        )
 
-    def test_community_moderator_cant_update_community_post_moderated_object_if_verified(self):
+    def test_community_moderator_cant_update_community_post_moderated_object_if_verified(
+        self,
+    ):
         """
         community moderator should not be able to update a community post moderated object if already verified
         """
@@ -561,13 +724,16 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         community_moderator = make_user()
 
         community_moderator.join_community_with_name(community_name=community.name)
-        community_creator.add_moderator_with_username_to_community_with_name(community_name=community.name,
-                                                                             username=community_moderator.username)
+        community_creator.add_moderator_with_username_to_community_with_name(
+            community_name=community.name, username=community_moderator.username
+        )
 
         post_creator = make_user()
 
         post_creator.join_community_with_name(community_name=community.name)
-        post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = post_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         reporter_user = make_user()
         report_category = make_moderation_category()
@@ -577,28 +743,37 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(post=post,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
+            post=post, category_id=report_category.pk
+        )
 
         global_moderator.reject_moderated_object(moderated_object=moderated_object)
         global_moderator.verify_moderated_object(moderated_object=moderated_object)
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(community_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(ModeratedObject.objects.filter(
-            category_id=new_report_category.pk,
-            description=new_moderated_object_description,
-            object_id=post.pk,
-        ).exists())
+        self.assertFalse(
+            ModeratedObject.objects.filter(
+                category_id=new_report_category.pk,
+                description=new_moderated_object_description,
+                object_id=post.pk,
+            ).exists()
+        )
 
-    def test_community_moderator_cant_update_community_post_moderated_object_if_approved(self):
+    def test_community_moderator_cant_update_community_post_moderated_object_if_approved(
+        self,
+    ):
         """
         community moderator should not be able to update a community post moderated object if status is approved
         """
@@ -607,43 +782,57 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         community_moderator = make_user()
 
         community_moderator.join_community_with_name(community_name=community.name)
-        community_creator.add_moderator_with_username_to_community_with_name(community_name=community.name,
-                                                                             username=community_moderator.username)
+        community_creator.add_moderator_with_username_to_community_with_name(
+            community_name=community.name, username=community_moderator.username
+        )
 
         post_creator = make_user()
 
         post_creator.join_community_with_name(community_name=community.name)
-        post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = post_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         reporter_user = make_user()
         report_category = make_moderation_category()
 
         reporter_user.report_post(post=post, category_id=report_category.pk)
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(post=post,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
+            post=post, category_id=report_category.pk
+        )
 
-        community_moderator.approve_moderated_object_with_id(moderated_object_id=moderated_object.pk)
+        community_moderator.approve_moderated_object_with_id(
+            moderated_object_id=moderated_object.pk
+        )
 
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(community_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertFalse(ModeratedObject.objects.filter(
-            category_id=new_report_category.pk,
-            description=new_moderated_object_description,
-            object_id=post.pk,
-        ).exists())
+        self.assertFalse(
+            ModeratedObject.objects.filter(
+                category_id=new_report_category.pk,
+                description=new_moderated_object_description,
+                object_id=post.pk,
+            ).exists()
+        )
 
-    def test_community_moderator_cant_update_community_post_moderated_object_if_rejected(self):
+    def test_community_moderator_cant_update_community_post_moderated_object_if_rejected(
+        self,
+    ):
         """
         community moderator should not be able to update a community post moderated object if status is rejected
         """
@@ -652,43 +841,57 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         community_moderator = make_user()
 
         community_moderator.join_community_with_name(community_name=community.name)
-        community_creator.add_moderator_with_username_to_community_with_name(community_name=community.name,
-                                                                             username=community_moderator.username)
+        community_creator.add_moderator_with_username_to_community_with_name(
+            community_name=community.name, username=community_moderator.username
+        )
 
         post_creator = make_user()
 
         post_creator.join_community_with_name(community_name=community.name)
-        post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = post_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         reporter_user = make_user()
         report_category = make_moderation_category()
 
         reporter_user.report_post(post=post, category_id=report_category.pk)
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(post=post,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
+            post=post, category_id=report_category.pk
+        )
 
-        community_moderator.reject_moderated_object_with_id(moderated_object_id=moderated_object.pk)
+        community_moderator.reject_moderated_object_with_id(
+            moderated_object_id=moderated_object.pk
+        )
 
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(community_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertFalse(ModeratedObject.objects.filter(
-            category_id=new_report_category.pk,
-            description=new_moderated_object_description,
-            object_id=post.pk,
-        ).exists())
+        self.assertFalse(
+            ModeratedObject.objects.filter(
+                category_id=new_report_category.pk,
+                description=new_moderated_object_description,
+                object_id=post.pk,
+            ).exists()
+        )
 
-    def test_can_update_community_post_comment_moderated_object_if_global_moderator(self):
+    def test_can_update_community_post_comment_moderated_object_if_global_moderator(
+        self,
+    ):
         """
         should be able to update a community post_comment moderated object if global moderator
         """
@@ -698,37 +901,53 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         post_comment_creator = make_user()
 
         post_comment_creator.join_community_with_name(community_name=community.name)
-        post = post_comment_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
-        post_comment = post_comment_creator.comment_post(text=make_fake_post_comment_text(),
-                                                         post=post)
+        post = post_comment_creator.create_community_post(
+            text=make_fake_post_text(), community_name=community.name
+        )
+        post_comment = post_comment_creator.comment_post(
+            text=make_fake_post_comment_text(), post=post
+        )
 
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_comment_for_post(post=post, post_comment=post_comment, category_id=report_category.pk)
+        reporter_user.report_comment_for_post(
+            post=post, post_comment=post_comment, category_id=report_category.pk
+        )
 
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(post_comment=post_comment,
-                                                                                           category_id=report_category.pk)
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=post_comment, category_id=report_category.pk
+            )
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            category_id=new_report_category.pk,
-            description=new_moderated_object_description,
-            object_id=post_comment.pk,
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                category_id=new_report_category.pk,
+                description=new_moderated_object_description,
+                object_id=post_comment.pk,
+            ).exists()
+        )
 
-    def test_can_update_community_post_comment_moderated_object_if_community_moderator(self):
+    def test_can_update_community_post_comment_moderated_object_if_community_moderator(
+        self,
+    ):
         """
         should be able to update a community post_comment moderated object if community moderator
         """
@@ -737,43 +956,60 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
 
-        community_creator.add_moderator_with_username_to_community_with_name(username=community_moderator.username,
-                                                                             community_name=community.name)
+        community_creator.add_moderator_with_username_to_community_with_name(
+            username=community_moderator.username, community_name=community.name
+        )
 
         post_comment_creator = make_user()
 
         post_comment_creator.join_community_with_name(community_name=community.name)
-        post = post_comment_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
-        post_comment = post_comment_creator.comment_post(text=make_fake_post_comment_text(),
-                                                         post=post)
+        post = post_comment_creator.create_community_post(
+            text=make_fake_post_text(), community_name=community.name
+        )
+        post_comment = post_comment_creator.comment_post(
+            text=make_fake_post_comment_text(), post=post
+        )
 
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_comment_for_post(post=post, post_comment=post_comment, category_id=report_category.pk)
+        reporter_user.report_comment_for_post(
+            post=post, post_comment=post_comment, category_id=report_category.pk
+        )
 
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(post_comment=post_comment,
-                                                                                           category_id=report_category.pk)
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=post_comment, category_id=report_category.pk
+            )
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(community_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            category_id=new_report_category.pk,
-            description=new_moderated_object_description,
-            object_id=post_comment.pk,
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                category_id=new_report_category.pk,
+                description=new_moderated_object_description,
+                object_id=post_comment.pk,
+            ).exists()
+        )
 
-    def test_cant_update_community_post_comment_moderated_object_if_not_global_nor_community_moderator(self):
+    def test_cant_update_community_post_comment_moderated_object_if_not_global_nor_community_moderator(
+        self,
+    ):
         """
         should not be able to update a community post_comment moderated object if not global nor community moderator
         """
@@ -783,37 +1019,53 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         post_comment_creator = make_user()
 
         post_comment_creator.join_community_with_name(community_name=community.name)
-        post = post_comment_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
-        post_comment = post_comment_creator.comment_post(text=make_fake_post_comment_text(),
-                                                         post=post)
+        post = post_comment_creator.create_community_post(
+            text=make_fake_post_text(), community_name=community.name
+        )
+        post_comment = post_comment_creator.comment_post(
+            text=make_fake_post_comment_text(), post=post
+        )
 
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_comment_for_post(post=post, post_comment=post_comment, category_id=report_category.pk)
+        reporter_user.report_comment_for_post(
+            post=post, post_comment=post_comment, category_id=report_category.pk
+        )
 
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(post_comment=post_comment,
-                                                                                           category_id=report_category.pk)
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=post_comment, category_id=report_category.pk
+            )
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(non_global_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(ModeratedObject.objects.filter(
-            category_id=new_report_category.pk,
-            description=new_moderated_object_description,
-            object_id=post_comment.pk,
-        ).exists())
+        self.assertFalse(
+            ModeratedObject.objects.filter(
+                category_id=new_report_category.pk,
+                description=new_moderated_object_description,
+                object_id=post_comment.pk,
+            ).exists()
+        )
 
-    def test_community_moderator_cant_update_community_post_comment_moderated_object_if_verified(self):
+    def test_community_moderator_cant_update_community_post_comment_moderated_object_if_verified(
+        self,
+    ):
         """
         community moderator should not be able to update a community post_comment moderated object if already verified
         """
@@ -823,46 +1075,63 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         community_moderator = make_user()
 
         community_moderator.join_community_with_name(community_name=community.name)
-        community_creator.add_moderator_with_username_to_community_with_name(community_name=community.name,
-                                                                             username=community_moderator.username)
+        community_creator.add_moderator_with_username_to_community_with_name(
+            community_name=community.name, username=community_moderator.username
+        )
 
         post_comment_creator = make_user()
 
         post_comment_creator.join_community_with_name(community_name=community.name)
-        post = post_comment_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
-        post_comment = post_comment_creator.comment_post(post=post,
-                                                         text=make_fake_post_comment_text())
+        post = post_comment_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
+        post_comment = post_comment_creator.comment_post(
+            post=post, text=make_fake_post_comment_text()
+        )
 
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_comment_for_post(post=post, post_comment=post_comment, category_id=report_category.pk)
+        reporter_user.report_comment_for_post(
+            post=post, post_comment=post_comment, category_id=report_category.pk
+        )
 
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(post_comment=post_comment,
-                                                                                           category_id=report_category.pk)
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=post_comment, category_id=report_category.pk
+            )
+        )
 
         global_moderator.reject_moderated_object(moderated_object=moderated_object)
         global_moderator.verify_moderated_object(moderated_object=moderated_object)
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(community_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(ModeratedObject.objects.filter(
-            category_id=new_report_category.pk,
-            description=new_moderated_object_description,
-            object_id=post_comment.pk,
-        ).exists())
+        self.assertFalse(
+            ModeratedObject.objects.filter(
+                category_id=new_report_category.pk,
+                description=new_moderated_object_description,
+                object_id=post_comment.pk,
+            ).exists()
+        )
 
-    def test_community_moderator_cant_update_community_post_comment_moderated_object_if_approved(self):
+    def test_community_moderator_cant_update_community_post_comment_moderated_object_if_approved(
+        self,
+    ):
         """
         community moderator should not be able to update a community post_comment moderated object if status is approved
         """
@@ -871,45 +1140,62 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         community_moderator = make_user()
 
         community_moderator.join_community_with_name(community_name=community.name)
-        community_creator.add_moderator_with_username_to_community_with_name(community_name=community.name,
-                                                                             username=community_moderator.username)
+        community_creator.add_moderator_with_username_to_community_with_name(
+            community_name=community.name, username=community_moderator.username
+        )
 
         post_comment_creator = make_user()
 
         post_comment_creator.join_community_with_name(community_name=community.name)
-        post = post_comment_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
-        post_comment = post_comment_creator.comment_post(post=post,
-                                                         text=make_fake_post_comment_text())
+        post = post_comment_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
+        post_comment = post_comment_creator.comment_post(
+            post=post, text=make_fake_post_comment_text()
+        )
 
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_comment_for_post(post=post, post_comment=post_comment, category_id=report_category.pk)
+        reporter_user.report_comment_for_post(
+            post=post, post_comment=post_comment, category_id=report_category.pk
+        )
 
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(post_comment=post_comment,
-                                                                                           category_id=report_category.pk)
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=post_comment, category_id=report_category.pk
+            )
+        )
 
         community_moderator.approve_moderated_object(moderated_object=moderated_object)
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(community_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertFalse(ModeratedObject.objects.filter(
-            category_id=new_report_category.pk,
-            description=new_moderated_object_description,
-            object_id=post_comment.pk,
-        ).exists())
+        self.assertFalse(
+            ModeratedObject.objects.filter(
+                category_id=new_report_category.pk,
+                description=new_moderated_object_description,
+                object_id=post_comment.pk,
+            ).exists()
+        )
 
-    def test_community_moderator_cant_update_community_post_comment_moderated_object_if_rejected(self):
+    def test_community_moderator_cant_update_community_post_comment_moderated_object_if_rejected(
+        self,
+    ):
         """
         community moderator should not be able to update a community post_comment moderated object if status is rejected
         """
@@ -918,48 +1204,63 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         community_moderator = make_user()
 
         community_moderator.join_community_with_name(community_name=community.name)
-        community_creator.add_moderator_with_username_to_community_with_name(community_name=community.name,
-                                                                             username=community_moderator.username)
+        community_creator.add_moderator_with_username_to_community_with_name(
+            community_name=community.name, username=community_moderator.username
+        )
 
         post_comment_creator = make_user()
 
         post_comment_creator.join_community_with_name(community_name=community.name)
-        post = post_comment_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
-        post_comment = post_comment_creator.comment_post(post=post,
-                                                         text=make_fake_post_comment_text())
+        post = post_comment_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
+        post_comment = post_comment_creator.comment_post(
+            post=post, text=make_fake_post_comment_text()
+        )
 
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_comment_for_post(post=post, post_comment=post_comment, category_id=report_category.pk)
+        reporter_user.report_comment_for_post(
+            post=post, post_comment=post_comment, category_id=report_category.pk
+        )
 
         new_moderated_object_description = make_moderated_object_description()
         new_report_category = make_moderation_category()
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(post_comment=post_comment,
-                                                                                           category_id=report_category.pk)
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=post_comment, category_id=report_category.pk
+            )
+        )
 
         community_moderator.reject_moderated_object(moderated_object=moderated_object)
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(community_moderator)
-        response = self.client.patch(url, data={
-            'description': new_moderated_object_description,
-            'category_id': new_report_category.pk
-        }, **headers)
+        response = self.client.patch(
+            url,
+            data={
+                "description": new_moderated_object_description,
+                "category_id": new_report_category.pk,
+            },
+            **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertFalse(ModeratedObject.objects.filter(
-            category_id=new_report_category.pk,
-            description=new_moderated_object_description,
-            object_id=post_comment.pk,
-        ).exists())
+        self.assertFalse(
+            ModeratedObject.objects.filter(
+                category_id=new_report_category.pk,
+                description=new_moderated_object_description,
+                object_id=post_comment.pk,
+            ).exists()
+        )
 
     def _get_url(self, moderated_object):
-        return reverse('moderated-object', kwargs={
-            'moderated_object_id': moderated_object.pk
-        })
+        return reverse(
+            "moderated-object", kwargs={"moderated_object_id": moderated_object.pk}
+        )
 
 
 class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
@@ -978,10 +1279,13 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -989,12 +1293,15 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=user.pk,
-            status=ModeratedObject.STATUS_APPROVED
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=user.pk, status=ModeratedObject.STATUS_APPROVED
+            ).exists()
+        )
 
-    def test_approving_user_moderated_object_for_severity_critical_deletes_user_new_post_notifications(self):
+    def test_approving_user_moderated_object_for_severity_critical_deletes_user_new_post_notifications(
+        self,
+    ):
         """
         should remove all user new post notifications on approval of a user moderated object for severity critical
         """
@@ -1004,14 +1311,21 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         reporter_user = make_user()
         # subscribe to notifications
-        reporter_user.enable_new_post_notifications_for_user_with_username(username=user.username)
+        reporter_user.enable_new_post_notifications_for_user_with_username(
+            username=user.username
+        )
         post = user.create_public_post(text=make_fake_post_text())
 
-        report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_CRITICAL)
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        report_category = make_moderation_category(
+            severity=ModerationCategory.SEVERITY_CRITICAL
+        )
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -1021,7 +1335,9 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         UserNewPostNotification = get_user_new_post_notification_model()
         self.assertFalse(UserNewPostNotification.objects.filter(post=post).exists())
 
-    def test_approving_user_moderated_object_for_severity_critical_deletes_user_follow_notifications(self):
+    def test_approving_user_moderated_object_for_severity_critical_deletes_user_follow_notifications(
+        self,
+    ):
         """
         should remove all user follow notifications on approval of a user moderated object for severity critical
         """
@@ -1033,11 +1349,16 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         user.follow_user(user=followed_user)
 
-        report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_CRITICAL)
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        report_category = make_moderation_category(
+            severity=ModerationCategory.SEVERITY_CRITICAL
+        )
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -1047,7 +1368,9 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         FollowNotification = get_follow_notification_model()
         self.assertFalse(FollowNotification.objects.filter(follower=user).exists())
 
-    def test_approving_user_moderated_object_for_severity_critical_deletes_user_connection_request_notifications(self):
+    def test_approving_user_moderated_object_for_severity_critical_deletes_user_connection_request_notifications(
+        self,
+    ):
         """
         should remove all user connection request notifications on approval of a user moderated object for severity critical
         """
@@ -1059,11 +1382,16 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         user.connect_with_user_with_id(requested_user.pk)
 
-        report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_CRITICAL)
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        report_category = make_moderation_category(
+            severity=ModerationCategory.SEVERITY_CRITICAL
+        )
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -1071,9 +1399,15 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         ConnectionRequestNotification = get_connection_request_notification_model()
-        self.assertFalse(ConnectionRequestNotification.objects.filter(connection_requester=user).exists())
+        self.assertFalse(
+            ConnectionRequestNotification.objects.filter(
+                connection_requester=user
+            ).exists()
+        )
 
-    def test_approving_user_moderated_object_for_severity_critical_deletes_user_connection_confirmed_notifications(self):
+    def test_approving_user_moderated_object_for_severity_critical_deletes_user_connection_confirmed_notifications(
+        self,
+    ):
         """
         should remove all user connection confirmed notifications on approval of a user moderated object for severity critical
         """
@@ -1085,15 +1419,26 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         connection_requester = make_user()
 
         connection_requester.connect_with_user_with_id(user.pk)
-        user.confirm_connection_with_user_with_id(user_id=connection_requester.pk, circles_ids=[circle.pk])
+        user.confirm_connection_with_user_with_id(
+            user_id=connection_requester.pk, circles_ids=[circle.pk]
+        )
         ConnectionConfirmedNotification = get_connection_confirmed_notification_model()
-        self.assertTrue(ConnectionConfirmedNotification.objects.filter(connection_confirmator=user).exists())
+        self.assertTrue(
+            ConnectionConfirmedNotification.objects.filter(
+                connection_confirmator=user
+            ).exists()
+        )
 
-        report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_CRITICAL)
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        report_category = make_moderation_category(
+            severity=ModerationCategory.SEVERITY_CRITICAL
+        )
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -1101,7 +1446,11 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertFalse(ConnectionConfirmedNotification.objects.filter(connection_confirmator=user).exists())
+        self.assertFalse(
+            ConnectionConfirmedNotification.objects.filter(
+                connection_confirmator=user
+            ).exists()
+        )
 
     def test_cant_approve_user_moderated_object_if_community_moderator(self):
         """
@@ -1111,19 +1460,22 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community(creator=community_creator)
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
-        community_creator.add_moderator_with_username_to_community_with_name(community_name=community.name,
-                                                                             username=community_moderator.username
-                                                                             )
+        community_creator.add_moderator_with_username_to_community_with_name(
+            community_name=community.name, username=community_moderator.username
+        )
 
         user = make_user()
 
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(community_moderator)
@@ -1131,10 +1483,11 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=user.pk,
-            status=ModeratedObject.STATUS_PENDING
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=user.pk, status=ModeratedObject.STATUS_PENDING
+            ).exists()
+        )
 
     def test_cant_approve_user_moderated_object_if_regular_user(self):
         """
@@ -1147,10 +1500,13 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(regular_user)
@@ -1158,10 +1514,11 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=user.pk,
-            status=ModeratedObject.STATUS_PENDING
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=user.pk, status=ModeratedObject.STATUS_PENDING
+            ).exists()
+        )
 
     def test_can_approve_community_moderated_object_if_global_moderator(self):
         """
@@ -1174,11 +1531,13 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_community = make_user()
         report_category = make_moderation_category()
 
-        reporter_community.report_community(community=community,
-                                            category_id=report_category.pk)
+        reporter_community.report_community(
+            community=community, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                        category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(
+            community=community, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -1186,12 +1545,15 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community.pk,
-            status=ModeratedObject.STATUS_APPROVED
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community.pk, status=ModeratedObject.STATUS_APPROVED
+            ).exists()
+        )
 
-    def test_approving_community_moderated_object_deleted_community_new_post_notifications(self):
+    def test_approving_community_moderated_object_deleted_community_new_post_notifications(
+        self,
+    ):
         """
         should remove community new post notifications on approving a community moderated object
         """
@@ -1202,16 +1564,22 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         reporter_community = make_user()
         reporter_community.join_community_with_name(community_name=community.name)
-        reporter_community.enable_new_post_notifications_for_community_with_name(community_name=community.name)
+        reporter_community.enable_new_post_notifications_for_community_with_name(
+            community_name=community.name
+        )
 
-        post = community_admin.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = community_admin.create_community_post(
+            text=make_fake_post_text(), community_name=community.name
+        )
 
         report_category = make_moderation_category()
-        reporter_community.report_community(community=community,
-                                            category_id=report_category.pk)
+        reporter_community.report_community(
+            community=community, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                        category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(
+            community=community, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -1219,9 +1587,13 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         CommunityNewPostNotification = get_community_new_post_notification_model()
-        self.assertFalse(CommunityNewPostNotification.objects.filter(post=post).exists())
+        self.assertFalse(
+            CommunityNewPostNotification.objects.filter(post=post).exists()
+        )
 
-    def test_approving_community_moderated_object_deleted_community_invite_notifications(self):
+    def test_approving_community_moderated_object_deleted_community_invite_notifications(
+        self,
+    ):
         """
         should remove community invite notifications on approving a community moderated object
         """
@@ -1234,15 +1606,19 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         reporter_community = make_user()
         report_category = make_moderation_category()
-        reporter_community.report_community(community=community,
-                                            category_id=report_category.pk)
+        reporter_community.report_community(
+            community=community, category_id=report_category.pk
+        )
 
-        community_invite = community_admin.invite_user_with_username_to_community_with_name(
-            username=community_invitee.username,
-            community_name=community.name)
+        community_invite = (
+            community_admin.invite_user_with_username_to_community_with_name(
+                username=community_invitee.username, community_name=community.name
+            )
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                        category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(
+            community=community, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -1251,7 +1627,11 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         CommunityInviteNotification = get_community_invite_notification_model()
-        self.assertFalse(CommunityInviteNotification.objects.filter(community_invite=community_invite).exists())
+        self.assertFalse(
+            CommunityInviteNotification.objects.filter(
+                community_invite=community_invite
+            ).exists()
+        )
 
     def test_cant_approve_community_moderated_object_if_community_moderator(self):
         """
@@ -1261,20 +1641,22 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community(creator=community_creator)
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
-        community_creator.add_moderator_with_username_to_community_with_name(community_name=community.name,
-                                                                             username=community_moderator.username
-                                                                             )
+        community_creator.add_moderator_with_username_to_community_with_name(
+            community_name=community.name, username=community_moderator.username
+        )
 
         community = make_community()
 
         reporter_community = make_user()
         report_category = make_moderation_category()
 
-        reporter_community.report_community(community=community,
-                                            category_id=report_category.pk)
+        reporter_community.report_community(
+            community=community, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                        category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(
+            community=community, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(community_moderator)
@@ -1282,10 +1664,11 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community.pk,
-            status=ModeratedObject.STATUS_PENDING
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community.pk, status=ModeratedObject.STATUS_PENDING
+            ).exists()
+        )
 
     def test_cant_approve_community_moderated_object_if_regular_community(self):
         """
@@ -1298,11 +1681,13 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_community = make_user()
         report_category = make_moderation_category()
 
-        reporter_community.report_community(community=community,
-                                            category_id=report_category.pk)
+        reporter_community.report_community(
+            community=community, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                        category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(
+            community=community, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(regular_community)
@@ -1310,10 +1695,11 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community.pk,
-            status=ModeratedObject.STATUS_PENDING
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community.pk, status=ModeratedObject.STATUS_PENDING
+            ).exists()
+        )
 
     def test_can_approve_community_post_moderated_object_if_global_moderator(self):
         """
@@ -1325,18 +1711,20 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(community_name=community.name,
-                                                                      text=make_fake_post_text())
+        community_post = community_post_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post.report_post(post=community_post,
-                                            category_id=report_category.pk)
+        reporter_community_post.report_post(
+            post=community_post, category_id=report_category.pk
+        )
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
-            post=community_post,
-            category_id=report_category.pk)
+            post=community_post, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -1344,12 +1732,15 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post.pk,
-            status=ModeratedObject.STATUS_APPROVED
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post.pk, status=ModeratedObject.STATUS_APPROVED
+            ).exists()
+        )
 
-    def test_approving_community_post_moderated_object_deletes_post_reaction_notifications(self):
+    def test_approving_community_post_moderated_object_deletes_post_reaction_notifications(
+        self,
+    ):
         """
         should delete post reaction notifications on approving a community_post moderated object
         """
@@ -1363,22 +1754,25 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_post_creator.join_community_with_name(community_name=community.name)
         community_post_reactor.join_community_with_name(community_name=community.name)
 
-        community_post = community_post_creator.create_community_post(community_name=community.name,
-                                                                      text=make_fake_post_text())
+        community_post = community_post_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
         emoji_group = make_reactions_emoji_group()
         emoji_id = make_emoji(group=emoji_group).pk
         community_post_reaction = community_post_reactor.react_to_post(
-            post=community_post, emoji_id=emoji_id)
+            post=community_post, emoji_id=emoji_id
+        )
 
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post.report_post(post=community_post,
-                                            category_id=report_category.pk)
+        reporter_community_post.report_post(
+            post=community_post, category_id=report_category.pk
+        )
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
-            post=community_post,
-            category_id=report_category.pk)
+            post=community_post, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -1387,9 +1781,15 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         PostReactionNotification = get_post_reaction_notification_model()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(PostReactionNotification.objects.filter(post_reaction=community_post_reaction))
+        self.assertFalse(
+            PostReactionNotification.objects.filter(
+                post_reaction=community_post_reaction
+            )
+        )
 
-    def test_approving_community_post_moderated_object_deletes_comment_notifications(self):
+    def test_approving_community_post_moderated_object_deletes_comment_notifications(
+        self,
+    ):
         """
         should delete comment notifications on approving community_post moderated object
         """
@@ -1406,21 +1806,22 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_post_replier.join_community_with_name(community_name=community.name)
 
         community_post = community_post_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_commenter.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post.report_post(post=community_post,
-                                            category_id=report_category.pk)
+        reporter_community_post.report_post(
+            post=community_post, category_id=report_category.pk
+        )
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
-            post=community_post,
-            category_id=report_category.pk)
+            post=community_post, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -1429,10 +1830,15 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         PostCommentNotification = get_post_comment_notification_model()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(PostCommentNotification.objects.filter(
-            post_comment=community_post_comment).exists())
+        self.assertFalse(
+            PostCommentNotification.objects.filter(
+                post_comment=community_post_comment
+            ).exists()
+        )
 
-    def test_approving_community_post_moderated_object_deletes_comment_reply_notifications(self):
+    def test_approving_community_post_moderated_object_deletes_comment_reply_notifications(
+        self,
+    ):
         """
         should delete comment reply notifications on approving community_post moderated object
         """
@@ -1443,32 +1849,36 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_post_comment_creator = make_user()
         community_post_replier = make_user()
 
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
         community_post_replier.join_community_with_name(community_name=community.name)
 
         # create community post and comment
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         # create reply
         community_post_comment_reply = community_post_replier.reply_to_comment_for_post(
             post_comment=community_post_comment,
             post=community_post,
-            text=make_fake_post_comment_text())
+            text=make_fake_post_comment_text(),
+        )
 
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post.report_post(post=community_post,
-                                            category_id=report_category.pk)
+        reporter_community_post.report_post(
+            post=community_post, category_id=report_category.pk
+        )
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
-            post=community_post,
-            category_id=report_category.pk)
+            post=community_post, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -1477,10 +1887,15 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         PostCommentReplyNotification = get_post_comment_reply_notification_model()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(PostCommentReplyNotification.objects.filter(
-            post_comment=community_post_comment_reply).exists())
+        self.assertFalse(
+            PostCommentReplyNotification.objects.filter(
+                post_comment=community_post_comment_reply
+            ).exists()
+        )
 
-    def test_approving_community_post_moderated_object_deletes_comment_reaction_notifications(self):
+    def test_approving_community_post_moderated_object_deletes_comment_reaction_notifications(
+        self,
+    ):
         """
         should delete comment reaction notifications on approving community_post moderated object
         """
@@ -1491,33 +1906,40 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_post_comment_creator = make_user()
         community_post_comment_reactor = make_user()
 
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
-        community_post_comment_reactor.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
+        community_post_comment_reactor.join_community_with_name(
+            community_name=community.name
+        )
 
         # create community post and comment
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         # react to comment
         emoji_group = make_reactions_emoji_group()
         emoji = make_emoji(group=emoji_group)
-        community_post_comment_reaction = community_post_comment_reactor.react_to_post_comment(
-            post_comment=community_post_comment,
-            emoji_id=emoji.pk)
+        community_post_comment_reaction = (
+            community_post_comment_reactor.react_to_post_comment(
+                post_comment=community_post_comment, emoji_id=emoji.pk
+            )
+        )
 
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post.report_post(post=community_post,
-                                            category_id=report_category.pk)
+        reporter_community_post.report_post(
+            post=community_post, category_id=report_category.pk
+        )
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
-            post=community_post,
-            category_id=report_category.pk)
+            post=community_post, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -1526,10 +1948,15 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(PostCommentReactionNotification.objects.filter(
-            post_comment_reaction=community_post_comment_reaction).exists())
+        self.assertFalse(
+            PostCommentReactionNotification.objects.filter(
+                post_comment_reaction=community_post_comment_reaction
+            ).exists()
+        )
 
-    def test_approving_community_post_moderated_object_deletes_comment_reply_reaction_notifications(self):
+    def test_approving_community_post_moderated_object_deletes_comment_reply_reaction_notifications(
+        self,
+    ):
         """
         should delete comments reply reactions notifications on approving community_post moderated object
         """
@@ -1541,40 +1968,52 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_post_comment_replier = make_user()
         community_post_comment_reply_reactor = make_user()
 
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
-        community_post_comment_replier.join_community_with_name(community_name=community.name)
-        community_post_comment_reply_reactor.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
+        community_post_comment_replier.join_community_with_name(
+            community_name=community.name
+        )
+        community_post_comment_reply_reactor.join_community_with_name(
+            community_name=community.name
+        )
 
         # create community post and comment
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         # create reply
-        community_post_comment_reply = community_post_comment_replier.reply_to_comment_for_post(
-            post_comment=community_post_comment,
-            post=community_post,
-            text=make_fake_post_comment_text())
+        community_post_comment_reply = (
+            community_post_comment_replier.reply_to_comment_for_post(
+                post_comment=community_post_comment,
+                post=community_post,
+                text=make_fake_post_comment_text(),
+            )
+        )
 
         # react to reply
         emoji_group = make_reactions_emoji_group()
         emoji = make_emoji(group=emoji_group)
-        community_post_comment_reply_reaction = community_post_comment_reply_reactor.react_to_post_comment(
-            post_comment=community_post_comment_reply,
-            emoji_id=emoji.pk)
+        community_post_comment_reply_reaction = (
+            community_post_comment_reply_reactor.react_to_post_comment(
+                post_comment=community_post_comment_reply, emoji_id=emoji.pk
+            )
+        )
 
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post.report_post(post=community_post,
-                                            category_id=report_category.pk)
+        reporter_community_post.report_post(
+            post=community_post, category_id=report_category.pk
+        )
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
-            post=community_post,
-            category_id=report_category.pk)
+            post=community_post, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -1583,10 +2022,15 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(PostCommentReactionNotification.objects.filter(
-            post_comment_reaction=community_post_comment_reply_reaction).exists())
+        self.assertFalse(
+            PostCommentReactionNotification.objects.filter(
+                post_comment_reaction=community_post_comment_reply_reaction
+            ).exists()
+        )
 
-    def test_approving_community_post_moderated_object_deletes_post_comment_user_mention_notifications(self):
+    def test_approving_community_post_moderated_object_deletes_post_comment_user_mention_notifications(
+        self,
+    ):
         """
         should delete comment user mention notifications on approving community_post moderated object
         """
@@ -1595,45 +2039,57 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community()
 
         community_post_comment_creator = make_user()
-        mmentioned_user = make_user(username='joelito')
-        post_comment_text = 'Hello @joelito'
+        mmentioned_user = make_user(username="joelito")
+        post_comment_text = "Hello @joelito"
 
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
         mmentioned_user.join_community_with_name(community_name=community.name)
 
         # create community post and comment with mention
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=post_comment_text)
+            post=community_post, text=post_comment_text
+        )
 
         # get user mention
         PostCommentUserMention = get_post_comment_user_mention_model()
-        community_post_comment_user_mention = PostCommentUserMention.objects.get(post_comment=community_post_comment)
+        community_post_comment_user_mention = PostCommentUserMention.objects.get(
+            post_comment=community_post_comment
+        )
 
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post.report_post(post=community_post,
-                                            category_id=report_category.pk)
+        reporter_community_post.report_post(
+            post=community_post, category_id=report_category.pk
+        )
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
-            post=community_post,
-            category_id=report_category.pk)
+            post=community_post, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        PostCommentUserMentionNotification = get_post_comment_user_mention_notification_model()
+        PostCommentUserMentionNotification = (
+            get_post_comment_user_mention_notification_model()
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(PostCommentUserMentionNotification.objects.filter(
-            post_comment_user_mention=community_post_comment_user_mention).exists())
+        self.assertFalse(
+            PostCommentUserMentionNotification.objects.filter(
+                post_comment_user_mention=community_post_comment_user_mention
+            ).exists()
+        )
 
-    def test_approving_community_post_moderated_object_deletes_post_user_mention_notifications(self):
+    def test_approving_community_post_moderated_object_deletes_post_user_mention_notifications(
+        self,
+    ):
         """
         should delete post user mention notifications on approving community_post moderated object
         """
@@ -1642,16 +2098,18 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community()
 
         community_post_comment_creator = make_user()
-        mmentioned_user = make_user(username='joelito')
-        post_text = 'Hello @joelito'
+        mmentioned_user = make_user(username="joelito")
+        post_text = "Hello @joelito"
 
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
         mmentioned_user.join_community_with_name(community_name=community.name)
 
         # create community post with mention
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=post_text)
+            community_name=community.name, text=post_text
+        )
 
         # get user mention
         PostUserMention = get_post_user_mention_model()
@@ -1660,12 +2118,13 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post.report_post(post=community_post,
-                                            category_id=report_category.pk)
+        reporter_community_post.report_post(
+            post=community_post, category_id=report_category.pk
+        )
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
-            post=community_post,
-            category_id=report_category.pk)
+            post=community_post, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -1674,10 +2133,15 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         PostUserMentionNotification = get_post_user_mention_notification_model()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(PostUserMentionNotification.objects.filter(
-            post_user_mention=community_post_user_mention).exists())
+        self.assertFalse(
+            PostUserMentionNotification.objects.filter(
+                post_user_mention=community_post_user_mention
+            ).exists()
+        )
 
-    def test_can_approve_community_post_moderated_object_if_community_post_moderator(self):
+    def test_can_approve_community_post_moderated_object_if_community_post_moderator(
+        self,
+    ):
         """
         should be able to approve a community_post moderated object if community_post moderator
         """
@@ -1687,23 +2151,24 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
         community_creator.add_moderator_with_username_to_community_with_name(
-            community_name=community.name,
-            username=community_moderator.username
+            community_name=community.name, username=community_moderator.username
         )
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(community_name=community.name,
-                                                                      text=make_fake_post_text())
+        community_post = community_post_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post.report_post(post=community_post,
-                                            category_id=report_category.pk)
+        reporter_community_post.report_post(
+            post=community_post, category_id=report_category.pk
+        )
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
-            post=community_post,
-            category_id=report_category.pk)
+            post=community_post, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(community_moderator)
@@ -1711,10 +2176,11 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post.pk,
-            status=ModeratedObject.STATUS_APPROVED
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post.pk, status=ModeratedObject.STATUS_APPROVED
+            ).exists()
+        )
 
     def test_cant_approve_community_post_moderated_object_if_regular_user(self):
         """
@@ -1726,18 +2192,20 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(community_name=community.name,
-                                                                      text=make_fake_post_text())
+        community_post = community_post_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post.report_post(post=community_post,
-                                            category_id=report_category.pk)
+        reporter_community_post.report_post(
+            post=community_post, category_id=report_category.pk
+        )
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
-            post=community_post,
-            category_id=report_category.pk)
+            post=community_post, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(regular_user)
@@ -1745,12 +2213,15 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post.pk,
-            status=ModeratedObject.STATUS_PENDING
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post.pk, status=ModeratedObject.STATUS_PENDING
+            ).exists()
+        )
 
-    def test_can_approve_community_post_comment_moderated_object_if_global_moderator(self):
+    def test_can_approve_community_post_comment_moderated_object_if_global_moderator(
+        self,
+    ):
         """
         should be able to approve a community_post_comment moderated object if global moderator
         """
@@ -1759,24 +2230,30 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community()
 
         community_post_comment_creator = make_user()
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         reporter_community_post_comment = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post_comment.report_comment_for_post(post=community_post,
-                                                                post_comment=community_post_comment,
-                                                                category_id=report_category.pk)
-
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
+        reporter_community_post_comment.report_comment_for_post(
+            post=community_post,
             post_comment=community_post_comment,
-            category_id=report_category.pk)
+            category_id=report_category.pk,
+        )
+
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=community_post_comment, category_id=report_category.pk
+            )
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -1784,12 +2261,16 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post_comment.pk,
-            status=ModeratedObject.STATUS_APPROVED
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post_comment.pk,
+                status=ModeratedObject.STATUS_APPROVED,
+            ).exists()
+        )
 
-    def test_approving_community_post_comment_moderated_object_deletes_comment_notifications(self):
+    def test_approving_community_post_comment_moderated_object_deletes_comment_notifications(
+        self,
+    ):
         """
         should delete comment notifications on approving community_post_comment moderated object
         """
@@ -1801,30 +2282,38 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_post_another_commenter = make_user()
         community_post_replier = make_user()
 
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
-        community_post_another_commenter.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
+        community_post_another_commenter.join_community_with_name(
+            community_name=community.name
+        )
         community_post_replier.join_community_with_name(community_name=community.name)
 
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
         community_post_second_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         reporter_community_post_comment = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post_comment.report_comment_for_post(post=community_post,
-                                                                post_comment=community_post_comment,
-                                                                category_id=report_category.pk)
-
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
+        reporter_community_post_comment.report_comment_for_post(
+            post=community_post,
             post_comment=community_post_comment,
-            category_id=report_category.pk)
+            category_id=report_category.pk,
+        )
+
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=community_post_comment, category_id=report_category.pk
+            )
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -1833,12 +2322,20 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         PostCommentNotification = get_post_comment_notification_model()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(PostCommentNotification.objects.filter(
-            post_comment=community_post_comment).exists())
-        self.assertFalse(PostCommentNotification.objects.filter(
-            post_comment=community_post_second_comment).exists())
+        self.assertFalse(
+            PostCommentNotification.objects.filter(
+                post_comment=community_post_comment
+            ).exists()
+        )
+        self.assertFalse(
+            PostCommentNotification.objects.filter(
+                post_comment=community_post_second_comment
+            ).exists()
+        )
 
-    def test_approving_community_post_comment_moderated_object_deletes_comment_reply_notifications(self):
+    def test_approving_community_post_comment_moderated_object_deletes_comment_reply_notifications(
+        self,
+    ):
         """
         should delete comment reply notifications on approving community_post_comment moderated object
         """
@@ -1849,33 +2346,40 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_post_comment_creator = make_user()
         community_post_replier = make_user()
 
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
         community_post_replier.join_community_with_name(community_name=community.name)
 
         # create community post and comment
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         # create reply
         community_post_comment_reply = community_post_replier.reply_to_comment_for_post(
             post_comment=community_post_comment,
             post=community_post,
-            text=make_fake_post_comment_text())
+            text=make_fake_post_comment_text(),
+        )
 
         reporter_community_post_comment = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post_comment.report_comment_for_post(post=community_post,
-                                                                post_comment=community_post_comment,
-                                                                category_id=report_category.pk)
-
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
+        reporter_community_post_comment.report_comment_for_post(
+            post=community_post,
             post_comment=community_post_comment,
-            category_id=report_category.pk)
+            category_id=report_category.pk,
+        )
+
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=community_post_comment, category_id=report_category.pk
+            )
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -1884,10 +2388,15 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         PostCommentReplyNotification = get_post_comment_reply_notification_model()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(PostCommentReplyNotification.objects.filter(
-            post_comment=community_post_comment_reply).exists())
+        self.assertFalse(
+            PostCommentReplyNotification.objects.filter(
+                post_comment=community_post_comment_reply
+            ).exists()
+        )
 
-    def test_approving_community_post_comment_moderated_object_that_is_reply_deletes_comment_reply_notifications(self):
+    def test_approving_community_post_comment_moderated_object_that_is_reply_deletes_comment_reply_notifications(
+        self,
+    ):
         """
         should delete comment reply notifications on approving community_post_comment (that is a reply) moderated object
         """
@@ -1898,34 +2407,41 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_post_comment_creator = make_user()
         community_post_replier = make_user()
 
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
         community_post_replier.join_community_with_name(community_name=community.name)
 
         # create community post and comment
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         # create reply
         community_post_comment_reply = community_post_replier.reply_to_comment_for_post(
             post_comment=community_post_comment,
             post=community_post,
-            text=make_fake_post_comment_text())
+            text=make_fake_post_comment_text(),
+        )
 
         reporter_community_post_comment = make_user()
         report_category = make_moderation_category()
 
         # report the reply
-        reporter_community_post_comment.report_comment_for_post(post=community_post,
-                                                                post_comment=community_post_comment_reply,
-                                                                category_id=report_category.pk)
+        reporter_community_post_comment.report_comment_for_post(
+            post=community_post,
+            post_comment=community_post_comment_reply,
+            category_id=report_category.pk,
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
-            post_comment=community_post_comment,
-            category_id=report_category.pk)
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=community_post_comment, category_id=report_category.pk
+            )
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -1934,10 +2450,15 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         PostCommentReplyNotification = get_post_comment_reply_notification_model()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(PostCommentReplyNotification.objects.filter(
-            post_comment=community_post_comment_reply).exists())
+        self.assertFalse(
+            PostCommentReplyNotification.objects.filter(
+                post_comment=community_post_comment_reply
+            ).exists()
+        )
 
-    def test_approving_community_post_comment_moderated_object_deletes_comment_reaction_notifications(self):
+    def test_approving_community_post_comment_moderated_object_deletes_comment_reaction_notifications(
+        self,
+    ):
         """
         should delete comment reaction notifications on approving community_post_comment moderated object
         """
@@ -1948,34 +2469,44 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_post_comment_creator = make_user()
         community_post_comment_reactor = make_user()
 
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
-        community_post_comment_reactor.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
+        community_post_comment_reactor.join_community_with_name(
+            community_name=community.name
+        )
 
         # create community post and comment
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         # react to comment
         emoji_group = make_reactions_emoji_group()
         emoji = make_emoji(group=emoji_group)
-        community_post_comment_reaction = community_post_comment_reactor.react_to_post_comment(
-            post_comment=community_post_comment,
-            emoji_id=emoji.pk)
+        community_post_comment_reaction = (
+            community_post_comment_reactor.react_to_post_comment(
+                post_comment=community_post_comment, emoji_id=emoji.pk
+            )
+        )
 
         reporter_community_post_comment = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post_comment.report_comment_for_post(post=community_post,
-                                                                post_comment=community_post_comment,
-                                                                category_id=report_category.pk)
-
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
+        reporter_community_post_comment.report_comment_for_post(
+            post=community_post,
             post_comment=community_post_comment,
-            category_id=report_category.pk)
+            category_id=report_category.pk,
+        )
+
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=community_post_comment, category_id=report_category.pk
+            )
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -1984,10 +2515,15 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(PostCommentReactionNotification.objects.filter(
-            post_comment_reaction=community_post_comment_reaction).exists())
+        self.assertFalse(
+            PostCommentReactionNotification.objects.filter(
+                post_comment_reaction=community_post_comment_reaction
+            ).exists()
+        )
 
-    def test_approving_community_post_comment_moderated_object_deletes_comment_reply_reaction_notifications(self):
+    def test_approving_community_post_comment_moderated_object_deletes_comment_reply_reaction_notifications(
+        self,
+    ):
         """
         should delete comments reply reactions notifications on approving community_post_comment moderated object
         """
@@ -1999,41 +2535,56 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_post_comment_replier = make_user()
         community_post_comment_reply_reactor = make_user()
 
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
-        community_post_comment_replier.join_community_with_name(community_name=community.name)
-        community_post_comment_reply_reactor.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
+        community_post_comment_replier.join_community_with_name(
+            community_name=community.name
+        )
+        community_post_comment_reply_reactor.join_community_with_name(
+            community_name=community.name
+        )
 
         # create community post and comment
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         # create reply
-        community_post_comment_reply = community_post_comment_replier.reply_to_comment_for_post(
-            post_comment=community_post_comment,
-            post=community_post,
-            text=make_fake_post_comment_text())
+        community_post_comment_reply = (
+            community_post_comment_replier.reply_to_comment_for_post(
+                post_comment=community_post_comment,
+                post=community_post,
+                text=make_fake_post_comment_text(),
+            )
+        )
 
         # react to reply
         emoji_group = make_reactions_emoji_group()
         emoji = make_emoji(group=emoji_group)
-        community_post_comment_reply_reaction = community_post_comment_reply_reactor.react_to_post_comment(
-            post_comment=community_post_comment_reply,
-            emoji_id=emoji.pk)
+        community_post_comment_reply_reaction = (
+            community_post_comment_reply_reactor.react_to_post_comment(
+                post_comment=community_post_comment_reply, emoji_id=emoji.pk
+            )
+        )
 
         reporter_community_post_comment = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post_comment.report_comment_for_post(post=community_post,
-                                                                post_comment=community_post_comment,
-                                                                category_id=report_category.pk)
-
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
+        reporter_community_post_comment.report_comment_for_post(
+            post=community_post,
             post_comment=community_post_comment,
-            category_id=report_category.pk)
+            category_id=report_category.pk,
+        )
+
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=community_post_comment, category_id=report_category.pk
+            )
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -2042,10 +2593,15 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(PostCommentReactionNotification.objects.filter(
-            post_comment_reaction=community_post_comment_reply_reaction).exists())
+        self.assertFalse(
+            PostCommentReactionNotification.objects.filter(
+                post_comment_reaction=community_post_comment_reply_reaction
+            ).exists()
+        )
 
-    def test_approving_community_post_comment_moderated_object_deletes_user_mention_notifications(self):
+    def test_approving_community_post_comment_moderated_object_deletes_user_mention_notifications(
+        self,
+    ):
         """
         should delete user mention notifications on approving community_post_comment moderated object
         """
@@ -2054,46 +2610,61 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community()
 
         community_post_comment_creator = make_user()
-        mmentioned_user = make_user(username='joelito')
-        post_comment_text = 'Hello @joelito'
+        mmentioned_user = make_user(username="joelito")
+        post_comment_text = "Hello @joelito"
 
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
         mmentioned_user.join_community_with_name(community_name=community.name)
 
         # create community post and comment with mention
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=post_comment_text)
+            post=community_post, text=post_comment_text
+        )
 
         # get user mention
         PostCommentUserMention = get_post_comment_user_mention_model()
-        community_post_comment_user_mention = PostCommentUserMention.objects.get(post_comment=community_post_comment)
+        community_post_comment_user_mention = PostCommentUserMention.objects.get(
+            post_comment=community_post_comment
+        )
 
         reporter_community_post_comment = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post_comment.report_comment_for_post(post=community_post,
-                                                                post_comment=community_post_comment,
-                                                                category_id=report_category.pk)
-
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
+        reporter_community_post_comment.report_comment_for_post(
+            post=community_post,
             post_comment=community_post_comment,
-            category_id=report_category.pk)
+            category_id=report_category.pk,
+        )
+
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=community_post_comment, category_id=report_category.pk
+            )
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        PostCommentUserMentionNotification = get_post_comment_user_mention_notification_model()
+        PostCommentUserMentionNotification = (
+            get_post_comment_user_mention_notification_model()
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(PostCommentUserMentionNotification.objects.filter(
-            post_comment_user_mention=community_post_comment_user_mention).exists())
+        self.assertFalse(
+            PostCommentUserMentionNotification.objects.filter(
+                post_comment_user_mention=community_post_comment_user_mention
+            ).exists()
+        )
 
-    def test_can_approve_community_post_comment_moderated_object_if_community_post_comment_moderator(self):
+    def test_can_approve_community_post_comment_moderated_object_if_community_post_comment_moderator(
+        self,
+    ):
         """
         should be able to approve a community_post_comment moderated object if community_post_comment moderator
         """
@@ -2103,29 +2674,34 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
         community_creator.add_moderator_with_username_to_community_with_name(
-            community_name=community.name,
-            username=community_moderator.username
+            community_name=community.name, username=community_moderator.username
         )
 
         community_post_comment_creator = make_user()
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         reporter_community_post_comment = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post_comment.report_comment_for_post(post=community_post,
-                                                                post_comment=community_post_comment,
-                                                                category_id=report_category.pk)
-
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
+        reporter_community_post_comment.report_comment_for_post(
+            post=community_post,
             post_comment=community_post_comment,
-            category_id=report_category.pk)
+            category_id=report_category.pk,
+        )
+
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=community_post_comment, category_id=report_category.pk
+            )
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(community_moderator)
@@ -2133,12 +2709,16 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post_comment.pk,
-            status=ModeratedObject.STATUS_APPROVED
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post_comment.pk,
+                status=ModeratedObject.STATUS_APPROVED,
+            ).exists()
+        )
 
-    def test_cant_approve_community_post_comment_moderated_object_if_regular_community_post_comment(self):
+    def test_cant_approve_community_post_comment_moderated_object_if_regular_community_post_comment(
+        self,
+    ):
         """
         should not be able to approve a community_post_comment moderated object if regular community_post_comment
         """
@@ -2147,24 +2727,30 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community()
 
         community_post_comment_creator = make_user()
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         reporter_community_post_comment = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post_comment.report_comment_for_post(post=community_post,
-                                                                post_comment=community_post_comment,
-                                                                category_id=report_category.pk)
-
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
+        reporter_community_post_comment.report_comment_for_post(
+            post=community_post,
             post_comment=community_post_comment,
-            category_id=report_category.pk)
+            category_id=report_category.pk,
+        )
+
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=community_post_comment, category_id=report_category.pk
+            )
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(regular_user)
@@ -2172,10 +2758,12 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post_comment.pk,
-            status=ModeratedObject.STATUS_PENDING
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post_comment.pk,
+                status=ModeratedObject.STATUS_PENDING,
+            ).exists()
+        )
 
     def test_creates_approved_changed_log_on_update(self):
         """
@@ -2188,10 +2776,13 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -2199,17 +2790,21 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(1, ModeratedObjectStatusChangedLog.objects.filter(
-            changed_from=ModeratedObject.STATUS_PENDING,
-            changed_to=ModeratedObject.STATUS_APPROVED,
-            log__actor_id=global_moderator.pk,
-            log__moderated_object__object_id=user.pk
-        ).count())
+        self.assertEqual(
+            1,
+            ModeratedObjectStatusChangedLog.objects.filter(
+                changed_from=ModeratedObject.STATUS_PENDING,
+                changed_to=ModeratedObject.STATUS_APPROVED,
+                log__actor_id=global_moderator.pk,
+                log__moderated_object__object_id=user.pk,
+            ).count(),
+        )
 
     def _get_url(self, moderated_object):
-        return reverse('approve-moderated-object', kwargs={
-            'moderated_object_id': moderated_object.pk
-        })
+        return reverse(
+            "approve-moderated-object",
+            kwargs={"moderated_object_id": moderated_object.pk},
+        )
 
 
 class RejectModeratedObjectApiTests(OpenbookAPITestCase):
@@ -2228,10 +2823,13 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -2239,10 +2837,11 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=user.pk,
-            status=ModeratedObject.STATUS_REJECTED
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=user.pk, status=ModeratedObject.STATUS_REJECTED
+            ).exists()
+        )
 
     def test_cant_reject_user_moderated_object_if_community_moderator(self):
         """
@@ -2252,19 +2851,22 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community(creator=community_creator)
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
-        community_creator.add_moderator_with_username_to_community_with_name(community_name=community.name,
-                                                                             username=community_moderator.username
-                                                                             )
+        community_creator.add_moderator_with_username_to_community_with_name(
+            community_name=community.name, username=community_moderator.username
+        )
 
         user = make_user()
 
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(community_moderator)
@@ -2272,10 +2874,11 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=user.pk,
-            status=ModeratedObject.STATUS_PENDING
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=user.pk, status=ModeratedObject.STATUS_PENDING
+            ).exists()
+        )
 
     def test_cant_reject_user_moderated_object_if_regular_user(self):
         """
@@ -2288,10 +2891,13 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(regular_user)
@@ -2299,10 +2905,11 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=user.pk,
-            status=ModeratedObject.STATUS_PENDING
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=user.pk, status=ModeratedObject.STATUS_PENDING
+            ).exists()
+        )
 
     def test_can_reject_community_moderated_object_if_global_moderator(self):
         """
@@ -2315,11 +2922,13 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_community = make_user()
         report_category = make_moderation_category()
 
-        reporter_community.report_community(community=community,
-                                            category_id=report_category.pk)
+        reporter_community.report_community(
+            community=community, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                        category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(
+            community=community, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -2327,10 +2936,11 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community.pk,
-            status=ModeratedObject.STATUS_REJECTED
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community.pk, status=ModeratedObject.STATUS_REJECTED
+            ).exists()
+        )
 
     def test_cant_reject_community_moderated_object_if_community_moderator(self):
         """
@@ -2340,20 +2950,22 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community(creator=community_creator)
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
-        community_creator.add_moderator_with_username_to_community_with_name(community_name=community.name,
-                                                                             username=community_moderator.username
-                                                                             )
+        community_creator.add_moderator_with_username_to_community_with_name(
+            community_name=community.name, username=community_moderator.username
+        )
 
         community = make_community()
 
         reporter_community = make_user()
         report_category = make_moderation_category()
 
-        reporter_community.report_community(community=community,
-                                            category_id=report_category.pk)
+        reporter_community.report_community(
+            community=community, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                        category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(
+            community=community, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(community_moderator)
@@ -2361,10 +2973,11 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community.pk,
-            status=ModeratedObject.STATUS_PENDING
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community.pk, status=ModeratedObject.STATUS_PENDING
+            ).exists()
+        )
 
     def test_cant_reject_community_moderated_object_if_regular_community(self):
         """
@@ -2377,11 +2990,13 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_community = make_user()
         report_category = make_moderation_category()
 
-        reporter_community.report_community(community=community,
-                                            category_id=report_category.pk)
+        reporter_community.report_community(
+            community=community, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                        category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(
+            community=community, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(regular_community)
@@ -2389,10 +3004,11 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community.pk,
-            status=ModeratedObject.STATUS_PENDING
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community.pk, status=ModeratedObject.STATUS_PENDING
+            ).exists()
+        )
 
     def test_can_reject_community_post_moderated_object_if_global_moderator(self):
         """
@@ -2404,18 +3020,20 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(community_name=community.name,
-                                                                      text=make_fake_post_text())
+        community_post = community_post_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post.report_post(post=community_post,
-                                            category_id=report_category.pk)
+        reporter_community_post.report_post(
+            post=community_post, category_id=report_category.pk
+        )
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
-            post=community_post,
-            category_id=report_category.pk)
+            post=community_post, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -2423,12 +3041,15 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post.pk,
-            status=ModeratedObject.STATUS_REJECTED
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post.pk, status=ModeratedObject.STATUS_REJECTED
+            ).exists()
+        )
 
-    def test_can_reject_community_post_moderated_object_if_community_post_moderator(self):
+    def test_can_reject_community_post_moderated_object_if_community_post_moderator(
+        self,
+    ):
         """
         should be able to reject a community_post moderated object if community_post moderator
         """
@@ -2438,23 +3059,24 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
         community_creator.add_moderator_with_username_to_community_with_name(
-            community_name=community.name,
-            username=community_moderator.username
+            community_name=community.name, username=community_moderator.username
         )
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(community_name=community.name,
-                                                                      text=make_fake_post_text())
+        community_post = community_post_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post.report_post(post=community_post,
-                                            category_id=report_category.pk)
+        reporter_community_post.report_post(
+            post=community_post, category_id=report_category.pk
+        )
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
-            post=community_post,
-            category_id=report_category.pk)
+            post=community_post, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(community_moderator)
@@ -2462,12 +3084,15 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post.pk,
-            status=ModeratedObject.STATUS_REJECTED
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post.pk, status=ModeratedObject.STATUS_REJECTED
+            ).exists()
+        )
 
-    def test_cant_reject_community_post_moderated_object_if_regular_community_post(self):
+    def test_cant_reject_community_post_moderated_object_if_regular_community_post(
+        self,
+    ):
         """
         should not be able to reject a community_post moderated object if regular community_post
         """
@@ -2477,18 +3102,20 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(community_name=community.name,
-                                                                      text=make_fake_post_text())
+        community_post = community_post_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post.report_post(post=community_post,
-                                            category_id=report_category.pk)
+        reporter_community_post.report_post(
+            post=community_post, category_id=report_category.pk
+        )
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
-            post=community_post,
-            category_id=report_category.pk)
+            post=community_post, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(regular_user)
@@ -2496,12 +3123,15 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post.pk,
-            status=ModeratedObject.STATUS_PENDING
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post.pk, status=ModeratedObject.STATUS_PENDING
+            ).exists()
+        )
 
-    def test_can_reject_community_post_comment_moderated_object_if_global_moderator(self):
+    def test_can_reject_community_post_comment_moderated_object_if_global_moderator(
+        self,
+    ):
         """
         should be able to reject a community_post_comment moderated object if global moderator
         """
@@ -2510,24 +3140,30 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community()
 
         community_post_comment_creator = make_user()
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         reporter_community_post_comment = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post_comment.report_comment_for_post(post=community_post,
-                                                                post_comment=community_post_comment,
-                                                                category_id=report_category.pk)
-
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
+        reporter_community_post_comment.report_comment_for_post(
+            post=community_post,
             post_comment=community_post_comment,
-            category_id=report_category.pk)
+            category_id=report_category.pk,
+        )
+
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=community_post_comment, category_id=report_category.pk
+            )
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -2535,12 +3171,16 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post_comment.pk,
-            status=ModeratedObject.STATUS_REJECTED
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post_comment.pk,
+                status=ModeratedObject.STATUS_REJECTED,
+            ).exists()
+        )
 
-    def test_can_reject_community_post_comment_moderated_object_if_community_post_comment_moderator(self):
+    def test_can_reject_community_post_comment_moderated_object_if_community_post_comment_moderator(
+        self,
+    ):
         """
         should be able to reject a community_post_comment moderated object if community_post_comment moderator
         """
@@ -2550,29 +3190,34 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
         community_creator.add_moderator_with_username_to_community_with_name(
-            community_name=community.name,
-            username=community_moderator.username
+            community_name=community.name, username=community_moderator.username
         )
 
         community_post_comment_creator = make_user()
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         reporter_community_post_comment = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post_comment.report_comment_for_post(post=community_post,
-                                                                post_comment=community_post_comment,
-                                                                category_id=report_category.pk)
-
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
+        reporter_community_post_comment.report_comment_for_post(
+            post=community_post,
             post_comment=community_post_comment,
-            category_id=report_category.pk)
+            category_id=report_category.pk,
+        )
+
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=community_post_comment, category_id=report_category.pk
+            )
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(community_moderator)
@@ -2580,12 +3225,16 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post_comment.pk,
-            status=ModeratedObject.STATUS_REJECTED
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post_comment.pk,
+                status=ModeratedObject.STATUS_REJECTED,
+            ).exists()
+        )
 
-    def test_cant_reject_community_post_comment_moderated_object_if_regular_community_post_comment(self):
+    def test_cant_reject_community_post_comment_moderated_object_if_regular_community_post_comment(
+        self,
+    ):
         """
         should not be able to reject a community_post_comment moderated object if regular community_post_comment
         """
@@ -2594,24 +3243,30 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community()
 
         community_post_comment_creator = make_user()
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         reporter_community_post_comment = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post_comment.report_comment_for_post(post=community_post,
-                                                                post_comment=community_post_comment,
-                                                                category_id=report_category.pk)
-
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
+        reporter_community_post_comment.report_comment_for_post(
+            post=community_post,
             post_comment=community_post_comment,
-            category_id=report_category.pk)
+            category_id=report_category.pk,
+        )
+
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=community_post_comment, category_id=report_category.pk
+            )
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(regular_user)
@@ -2619,10 +3274,12 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post_comment.pk,
-            status=ModeratedObject.STATUS_PENDING
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post_comment.pk,
+                status=ModeratedObject.STATUS_PENDING,
+            ).exists()
+        )
 
     def test_creates_rejected_changed_log_on_update(self):
         """
@@ -2635,10 +3292,13 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -2646,17 +3306,21 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(1, ModeratedObjectStatusChangedLog.objects.filter(
-            changed_from=ModeratedObject.STATUS_PENDING,
-            changed_to=ModeratedObject.STATUS_REJECTED,
-            log__actor_id=global_moderator.pk,
-            log__moderated_object__object_id=user.pk
-        ).count())
+        self.assertEqual(
+            1,
+            ModeratedObjectStatusChangedLog.objects.filter(
+                changed_from=ModeratedObject.STATUS_PENDING,
+                changed_to=ModeratedObject.STATUS_REJECTED,
+                log__actor_id=global_moderator.pk,
+                log__moderated_object__object_id=user.pk,
+            ).count(),
+        )
 
     def _get_url(self, moderated_object):
-        return reverse('reject-moderated-object', kwargs={
-            'moderated_object_id': moderated_object.pk
-        })
+        return reverse(
+            "reject-moderated-object",
+            kwargs={"moderated_object_id": moderated_object.pk},
+        )
 
 
 class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
@@ -2665,7 +3329,8 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
     """
 
     def test_verifying_approved_low_severity_moderated_object_places_exponential_minutes_suspension_penalty(
-            self):
+        self,
+    ):
         """
         verifying an approved low severity moderated object should place an exponential minutes suspension penalty
         """
@@ -2680,12 +3345,15 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         for i in range(0, number_of_reported_items):
             post = user.create_public_post(text=make_fake_post_text())
 
-            report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_LOW)
+            report_category = make_moderation_category(
+                severity=ModerationCategory.SEVERITY_LOW
+            )
 
             reporter_user.report_post(post=post, category_id=report_category.pk)
 
-            moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(post=post,
-                                                                                       category_id=report_category.pk)
+            moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
+                post=post, category_id=report_category.pk
+            )
 
             global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -2696,21 +3364,32 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
             penalties_count = user.count_moderation_penalties_for_moderation_severity(
-                moderation_severity=ModerationCategory.SEVERITY_LOW)
+                moderation_severity=ModerationCategory.SEVERITY_LOW
+            )
 
-            expected_expiration_date = (timezone.now() + timezone.timedelta(minutes=penalties_count ** 2))
+            expected_expiration_date = timezone.now() + timezone.timedelta(
+                minutes=penalties_count**2
+            )
             moderation_penalty = ModerationPenalty.objects.get(
                 moderated_object_id=moderated_object.pk,
-                user_id=user.pk, )
+                user_id=user.pk,
+            )
 
             moderation_penalty_expiration = moderation_penalty.expiration
 
-            self.assertEqual(expected_expiration_date.date(), moderation_penalty_expiration.date())
-            self.assertEqual(expected_expiration_date.hour, moderation_penalty_expiration.hour)
-            self.assertEqual(expected_expiration_date.minute, moderation_penalty_expiration.minute)
+            self.assertEqual(
+                expected_expiration_date.date(), moderation_penalty_expiration.date()
+            )
+            self.assertEqual(
+                expected_expiration_date.hour, moderation_penalty_expiration.hour
+            )
+            self.assertEqual(
+                expected_expiration_date.minute, moderation_penalty_expiration.minute
+            )
 
     def test_verifying_approved_medium_severity_moderated_object_places_exponential_hours_suspension_penalty(
-            self):
+        self,
+    ):
         """
         verifying an approved medium severity moderated object should place an exponential hours suspension penalty
         """
@@ -2725,12 +3404,15 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         for i in range(0, number_of_reported_items):
             post = user.create_public_post(text=make_fake_post_text())
 
-            report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_MEDIUM)
+            report_category = make_moderation_category(
+                severity=ModerationCategory.SEVERITY_MEDIUM
+            )
 
             reporter_user.report_post(post=post, category_id=report_category.pk)
 
-            moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(post=post,
-                                                                                       category_id=report_category.pk)
+            moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
+                post=post, category_id=report_category.pk
+            )
 
             global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -2741,20 +3423,31 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
             penalties_count = user.count_moderation_penalties_for_moderation_severity(
-                moderation_severity=ModerationCategory.SEVERITY_MEDIUM)
+                moderation_severity=ModerationCategory.SEVERITY_MEDIUM
+            )
 
-            expected_expiration_date = timezone.now() + timezone.timedelta(hours=penalties_count ** 3)
+            expected_expiration_date = timezone.now() + timezone.timedelta(
+                hours=penalties_count**3
+            )
             moderation_penalty = ModerationPenalty.objects.get(
                 moderated_object_id=moderated_object.pk,
-                user_id=user.pk, )
+                user_id=user.pk,
+            )
             moderation_penalty_expiration = moderation_penalty.expiration
 
-            self.assertEqual(expected_expiration_date.date(), moderation_penalty_expiration.date())
-            self.assertEqual(expected_expiration_date.hour, moderation_penalty_expiration.hour)
-            self.assertEqual(expected_expiration_date.minute, moderation_penalty_expiration.minute)
+            self.assertEqual(
+                expected_expiration_date.date(), moderation_penalty_expiration.date()
+            )
+            self.assertEqual(
+                expected_expiration_date.hour, moderation_penalty_expiration.hour
+            )
+            self.assertEqual(
+                expected_expiration_date.minute, moderation_penalty_expiration.minute
+            )
 
     def test_verifying_approved_high_severity_moderated_object_places_exponential_days_suspension_penalty(
-            self):
+        self,
+    ):
         """
         verifying an approved high severity moderated object should place an exponential days suspension penalty
         """
@@ -2769,12 +3462,15 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         for i in range(0, number_of_reported_items):
             post = user.create_public_post(text=make_fake_post_text())
 
-            report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_HIGH)
+            report_category = make_moderation_category(
+                severity=ModerationCategory.SEVERITY_HIGH
+            )
 
             reporter_user.report_post(post=post, category_id=report_category.pk)
 
-            moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(post=post,
-                                                                                       category_id=report_category.pk)
+            moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
+                post=post, category_id=report_category.pk
+            )
 
             global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -2785,17 +3481,25 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
             penalties_count = user.count_moderation_penalties_for_moderation_severity(
-                moderation_severity=ModerationCategory.SEVERITY_HIGH)
+                moderation_severity=ModerationCategory.SEVERITY_HIGH
+            )
 
-            expected_expiration_date = (timezone.now() + timezone.timedelta(days=penalties_count ** 4)).date()
+            expected_expiration_date = (
+                timezone.now() + timezone.timedelta(days=penalties_count**4)
+            ).date()
             moderation_penalty = ModerationPenalty.objects.get(
                 moderated_object_id=moderated_object.pk,
-                user_id=user.pk, )
+                user_id=user.pk,
+            )
             moderation_penalty_expiration_date = moderation_penalty.expiration.date()
 
-            self.assertEqual(expected_expiration_date, moderation_penalty_expiration_date)
+            self.assertEqual(
+                expected_expiration_date, moderation_penalty_expiration_date
+            )
 
-    def test_verifying_approved_critical_severity_moderated_object_places_5000_weeks_suspension_penalty(self):
+    def test_verifying_approved_critical_severity_moderated_object_places_5000_weeks_suspension_penalty(
+        self,
+    ):
         """
         verifying an approved critical severity moderated object should place a 5000 weeks suspension penalty
         """
@@ -2805,12 +3509,15 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         user = make_user()
 
-        report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_CRITICAL)
+        report_category = make_moderation_category(
+            severity=ModerationCategory.SEVERITY_CRITICAL
+        )
 
         reporter_user.report_user(user=user, category_id=report_category.pk)
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -2820,14 +3527,19 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        expected_expiration_date = (timezone.now() + timezone.timedelta(weeks=5000)).date()
+        expected_expiration_date = (
+            timezone.now() + timezone.timedelta(weeks=5000)
+        ).date()
         moderation_penalty = ModerationPenalty.objects.get(
-            user_id=user.pk, )
+            user_id=user.pk,
+        )
         moderation_penalty_expiration_date = moderation_penalty.expiration.date()
 
         self.assertEqual(expected_expiration_date, moderation_penalty_expiration_date)
 
-    def test_verifying_approved_any_severity_post_comment_moderated_object_soft_deletes_it(self):
+    def test_verifying_approved_any_severity_post_comment_moderated_object_soft_deletes_it(
+        self,
+    ):
         """
         verifying an approved any severity post_comment moderated object should soft delete it
         """
@@ -2839,15 +3551,23 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         for moderation_category_severity in moderation_category_severities:
             post_comment_creator = make_user()
             post = post_comment_creator.create_public_post(text=make_fake_post_text())
-            post_comment = post_comment_creator.comment_post(post=post, text=make_fake_post_comment_text())
+            post_comment = post_comment_creator.comment_post(
+                post=post, text=make_fake_post_comment_text()
+            )
 
-            report_category = make_moderation_category(severity=moderation_category_severity)
+            report_category = make_moderation_category(
+                severity=moderation_category_severity
+            )
 
-            reporter_user.report_comment_for_post(post_comment=post_comment, post=post, category_id=report_category.pk)
+            reporter_user.report_comment_for_post(
+                post_comment=post_comment, post=post, category_id=report_category.pk
+            )
 
-            moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
-                post_comment=post_comment,
-                category_id=report_category.pk)
+            moderated_object = (
+                ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                    post_comment=post_comment, category_id=report_category.pk
+                )
+            )
 
             global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -2857,12 +3577,16 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            self.assertTrue(PostComment.objects.filter(
-                pk=post_comment.pk,
-                is_deleted=True,
-            ).exists())
+            self.assertTrue(
+                PostComment.objects.filter(
+                    pk=post_comment.pk,
+                    is_deleted=True,
+                ).exists()
+            )
 
-    def test_verifying_approved_any_severity_community_moderated_object_soft_deletes_it(self):
+    def test_verifying_approved_any_severity_community_moderated_object_soft_deletes_it(
+        self,
+    ):
         """
         verifying an approved any severity community moderated object should soft delete it
         """
@@ -2875,12 +3599,19 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
             community_creator = make_user()
             community = make_community(creator=community_creator)
 
-            report_category = make_moderation_category(severity=moderation_category_severity)
+            report_category = make_moderation_category(
+                severity=moderation_category_severity
+            )
 
-            reporter_user.report_community(community=community, category_id=report_category.pk)
+            reporter_user.report_community(
+                community=community, category_id=report_category.pk
+            )
 
-            moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                            category_id=report_category.pk)
+            moderated_object = (
+                ModeratedObject.get_or_create_moderated_object_for_community(
+                    community=community, category_id=report_category.pk
+                )
+            )
 
             global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -2890,12 +3621,16 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            self.assertTrue(Community.objects.filter(
-                pk=community.pk,
-                is_deleted=True,
-            ).exists())
+            self.assertTrue(
+                Community.objects.filter(
+                    pk=community.pk,
+                    is_deleted=True,
+                ).exists()
+            )
 
-    def test_verifying_approved_any_severity_post_moderated_object_soft_deletes_it(self):
+    def test_verifying_approved_any_severity_post_moderated_object_soft_deletes_it(
+        self,
+    ):
         """
         verifying an approved any severity post moderated object should soft delete it
         """
@@ -2908,12 +3643,15 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
             post_creator = make_user()
             post = post_creator.create_public_post(text=make_fake_post_text())
 
-            report_category = make_moderation_category(severity=moderation_category_severity)
+            report_category = make_moderation_category(
+                severity=moderation_category_severity
+            )
 
             reporter_user.report_post(post=post, category_id=report_category.pk)
 
-            moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(post=post,
-                                                                                       category_id=report_category.pk)
+            moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
+                post=post, category_id=report_category.pk
+            )
 
             global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -2923,12 +3661,16 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            self.assertTrue(Post.objects.filter(
-                pk=post.pk,
-                is_deleted=True,
-            ).exists())
+            self.assertTrue(
+                Post.objects.filter(
+                    pk=post.pk,
+                    is_deleted=True,
+                ).exists()
+            )
 
-    def test_verifying_approved_critical_severity_user_moderated_object_soft_deletes_its_comments_and_communities(self):
+    def test_verifying_approved_critical_severity_user_moderated_object_soft_deletes_its_comments_and_communities(
+        self,
+    ):
         """
         verifying an approved critical severity user moderated object should soft delete its posts and communities
         """
@@ -2940,15 +3682,20 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         post = user.create_public_post(text=make_fake_post_text())
 
         post_commenter = make_user()
-        post_comment = post_commenter.comment_post(post=post, text=make_fake_post_comment_text())
+        post_comment = post_commenter.comment_post(
+            post=post, text=make_fake_post_comment_text()
+        )
 
         community = make_community(creator=user)
 
-        report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_CRITICAL)
+        report_category = make_moderation_category(
+            severity=ModerationCategory.SEVERITY_CRITICAL
+        )
 
         reporter_user.report_user(user=user, category_id=report_category.pk)
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
         url = self._get_url(moderated_object=moderated_object)
@@ -2966,7 +3713,8 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         self.assertTrue(post_comment.is_deleted)
 
     def test_verifying_rejected_critical_severity_user_moderated_object_does_not_soft_deletes_its_comments_and_communities(
-            self):
+        self,
+    ):
         """
         verifying a rejected critical severity user moderated object does not soft delete its posts and communities
         """
@@ -2978,15 +3726,20 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         post = user.create_public_post(text=make_fake_post_text())
 
         post_commenter = make_user()
-        post_comment = post_commenter.comment_post(post=post, text=make_fake_post_comment_text())
+        post_comment = post_commenter.comment_post(
+            post=post, text=make_fake_post_comment_text()
+        )
 
         community = make_community(creator=user)
 
-        report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_CRITICAL)
+        report_category = make_moderation_category(
+            severity=ModerationCategory.SEVERITY_CRITICAL
+        )
 
         reporter_user.report_user(user=user, category_id=report_category.pk)
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
         global_moderator.reject_moderated_object(moderated_object=moderated_object)
 
         url = self._get_url(moderated_object=moderated_object)
@@ -3003,7 +3756,9 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         self.assertFalse(community.is_deleted)
         self.assertFalse(post_comment.is_deleted)
 
-    def test_verifying_approved_any_severity_post_moderated_object_soft_deletes_its_comments(self):
+    def test_verifying_approved_any_severity_post_moderated_object_soft_deletes_its_comments(
+        self,
+    ):
         """
         verifying an approved any severity post moderated object should soft delete its comments
         """
@@ -3019,14 +3774,19 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         for i in range(0, amount_of_post_comments):
             post_commenter = make_user()
-            post_comment = post_commenter.comment_post(post=post, text=make_fake_post_comment_text())
+            post_comment = post_commenter.comment_post(
+                post=post, text=make_fake_post_comment_text()
+            )
             post_comment_ids.append(post_comment.pk)
 
-        report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_MEDIUM)
+        report_category = make_moderation_category(
+            severity=ModerationCategory.SEVERITY_MEDIUM
+        )
 
         reporter_user.report_post(post=post, category_id=report_category.pk)
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(post=post,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
+            post=post, category_id=report_category.pk
+        )
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
         url = self._get_url(moderated_object=moderated_object)
@@ -3035,12 +3795,17 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(len(post_comment_ids), PostComment.objects.filter(
-            post_id=post.pk,
-            is_deleted=True,
-        ).count())
+        self.assertTrue(
+            len(post_comment_ids),
+            PostComment.objects.filter(
+                post_id=post.pk,
+                is_deleted=True,
+            ).count(),
+        )
 
-    def test_verifying_approved_any_severity_community_moderated_object_soft_deletes_its_posts(self):
+    def test_verifying_approved_any_severity_community_moderated_object_soft_deletes_its_posts(
+        self,
+    ):
         """
         verifying an approved any severity community moderated object should soft delete its posts
         """
@@ -3056,15 +3821,21 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         for i in range(0, amount_of_posts):
             post_creator = make_user()
             post_creator.join_community_with_name(community_name=community.name)
-            post_comment = post_creator.create_community_post(community_name=community.name,
-                                                              text=make_fake_post_text())
+            post_comment = post_creator.create_community_post(
+                community_name=community.name, text=make_fake_post_text()
+            )
             post_ids.append(post_comment.pk)
 
-        report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_MEDIUM)
+        report_category = make_moderation_category(
+            severity=ModerationCategory.SEVERITY_MEDIUM
+        )
 
-        reporter_user.report_community(community=community, category_id=report_category.pk)
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                        category_id=report_category.pk)
+        reporter_user.report_community(
+            community=community, category_id=report_category.pk
+        )
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(
+            community=community, category_id=report_category.pk
+        )
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
         url = self._get_url(moderated_object=moderated_object)
@@ -3073,12 +3844,17 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(len(post_ids), Post.objects.filter(
-            community_id=community.pk,
-            is_deleted=True,
-        ).count())
+        self.assertTrue(
+            len(post_ids),
+            Post.objects.filter(
+                community_id=community.pk,
+                is_deleted=True,
+            ).count(),
+        )
 
-    def test_verifying_approved_critical_severity_user_moderated_object_soft_deletes_it(self):
+    def test_verifying_approved_critical_severity_user_moderated_object_soft_deletes_it(
+        self,
+    ):
         """
         verifying an approved critical severity user moderated object should soft delete it
         """
@@ -3088,12 +3864,15 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         user = make_user()
 
-        report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_CRITICAL)
+        report_category = make_moderation_category(
+            severity=ModerationCategory.SEVERITY_CRITICAL
+        )
 
         reporter_user.report_user(user=user, category_id=report_category.pk)
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -3103,12 +3882,16 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(User.objects.filter(
-            pk=user.pk,
-            is_deleted=True,
-        ).exists())
+        self.assertTrue(
+            User.objects.filter(
+                pk=user.pk,
+                is_deleted=True,
+            ).exists()
+        )
 
-    def test_verifying_approved_not_critical_severity_user_moderated_object_does_not_soft_delete_it(self):
+    def test_verifying_approved_not_critical_severity_user_moderated_object_does_not_soft_delete_it(
+        self,
+    ):
         """
         verifying an approved non critical severity user moderated object should not soft delete it
         """
@@ -3118,12 +3901,15 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         user = make_user()
 
-        report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_HIGH)
+        report_category = make_moderation_category(
+            severity=ModerationCategory.SEVERITY_HIGH
+        )
 
         reporter_user.report_user(user=user, category_id=report_category.pk)
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -3133,12 +3919,16 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(User.objects.filter(
-            pk=user.pk,
-            is_deleted=False,
-        ).exists())
+        self.assertTrue(
+            User.objects.filter(
+                pk=user.pk,
+                is_deleted=False,
+            ).exists()
+        )
 
-    def test_verifying_rejected_user_moderated_object_does_not_place_suspension_penalty_on_user(self):
+    def test_verifying_rejected_user_moderated_object_does_not_place_suspension_penalty_on_user(
+        self,
+    ):
         """
         verifying a rejected user moderated object should not place a suspension penalty on the user
         """
@@ -3152,8 +3942,9 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         reporter_user.report_user(user=user, category_id=report_category.pk)
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         global_moderator.reject_moderated_object(moderated_object=moderated_object)
 
@@ -3163,13 +3954,17 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertFalse(ModerationPenalty.objects.filter(
-            moderated_object_id=moderated_object.pk,
-            user_id=user.pk,
-            expiration__isnull=False
-        ).exists())
+        self.assertFalse(
+            ModerationPenalty.objects.filter(
+                moderated_object_id=moderated_object.pk,
+                user_id=user.pk,
+                expiration__isnull=False,
+            ).exists()
+        )
 
-    def test_verifying_approved_user_moderated_object_places_suspension_penalty_on_user(self):
+    def test_verifying_approved_user_moderated_object_places_suspension_penalty_on_user(
+        self,
+    ):
         """
         verifying an approved user moderated object should place a suspension penalty on the user
         """
@@ -3183,8 +3978,9 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         reporter_user.report_user(user=user, category_id=report_category.pk)
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -3194,13 +3990,17 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModerationPenalty.objects.filter(
-            moderated_object_id=moderated_object.pk,
-            user_id=user.pk,
-            expiration__isnull=False
-        ).exists())
+        self.assertTrue(
+            ModerationPenalty.objects.filter(
+                moderated_object_id=moderated_object.pk,
+                user_id=user.pk,
+                expiration__isnull=False,
+            ).exists()
+        )
 
-    def test_verifying_approved_post_moderated_object_places_suspension_penalty_on_creator(self):
+    def test_verifying_approved_post_moderated_object_places_suspension_penalty_on_creator(
+        self,
+    ):
         """
         verifying an approved post moderated object should place a suspension penalty on the creator
         """
@@ -3215,8 +4015,9 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         reporter_user.report_post(post=post, category_id=report_category.pk)
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(post=post,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
+            post=post, category_id=report_category.pk
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -3226,13 +4027,17 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModerationPenalty.objects.filter(
-            moderated_object_id=moderated_object.pk,
-            user_id=post_creator.pk,
-            expiration__isnull=False
-        ).exists())
+        self.assertTrue(
+            ModerationPenalty.objects.filter(
+                moderated_object_id=moderated_object.pk,
+                user_id=post_creator.pk,
+                expiration__isnull=False,
+            ).exists()
+        )
 
-    def test_verifying_approved_community_moderated_object_places_suspension_penalty_on_staff(self):
+    def test_verifying_approved_community_moderated_object_places_suspension_penalty_on_staff(
+        self,
+    ):
         """
         verifying an approved community moderated object should place a suspension penalty on the staff
         """
@@ -3245,21 +4050,25 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
-        community_creator.add_moderator_with_username_to_community_with_name(username=community_moderator.username,
-                                                                             community_name=community.name)
+        community_creator.add_moderator_with_username_to_community_with_name(
+            username=community_moderator.username, community_name=community.name
+        )
 
         community_administrator = make_user()
         community_administrator.join_community_with_name(community_name=community.name)
         community_creator.add_administrator_with_username_to_community_with_name(
-            username=community_administrator.username,
-            community_name=community.name)
+            username=community_administrator.username, community_name=community.name
+        )
 
         report_category = make_moderation_category()
 
-        reporter_user.report_community(community=community, category_id=report_category.pk)
+        reporter_user.report_community(
+            community=community, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                        category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(
+            community=community, category_id=report_category.pk
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -3269,13 +4078,22 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(3, ModerationPenalty.objects.filter(
-            moderated_object_id=moderated_object.pk,
-            user_id__in=[community_creator.pk, community_moderator.pk, community_administrator.pk],
-            expiration__isnull=False
-        ).count())
+        self.assertEqual(
+            3,
+            ModerationPenalty.objects.filter(
+                moderated_object_id=moderated_object.pk,
+                user_id__in=[
+                    community_creator.pk,
+                    community_moderator.pk,
+                    community_administrator.pk,
+                ],
+                expiration__isnull=False,
+            ).count(),
+        )
 
-    def test_verifying_approved_post_comment_moderated_object_places_suspension_penalty_on_creator(self):
+    def test_verifying_approved_post_comment_moderated_object_places_suspension_penalty_on_creator(
+        self,
+    ):
         """
         verifying an approved post comment moderated object should place a suspension penalty on the creator
         """
@@ -3285,14 +4103,21 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         post_comment_creator = make_user()
         post = post_comment_creator.create_public_post(text=make_fake_post_text())
-        post_comment = post_comment_creator.comment_post(post=post, text=make_fake_post_comment_text())
+        post_comment = post_comment_creator.comment_post(
+            post=post, text=make_fake_post_comment_text()
+        )
 
         report_category = make_moderation_category()
 
-        reporter_user.report_comment_for_post(post_comment=post_comment, post=post, category_id=report_category.pk)
+        reporter_user.report_comment_for_post(
+            post_comment=post_comment, post=post, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(post_comment=post_comment,
-                                                                                           category_id=report_category.pk)
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=post_comment, category_id=report_category.pk
+            )
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -3302,11 +4127,13 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModerationPenalty.objects.filter(
-            moderated_object_id=moderated_object.pk,
-            user_id=post_comment_creator.pk,
-            expiration__isnull=False
-        ).exists())
+        self.assertTrue(
+            ModerationPenalty.objects.filter(
+                moderated_object_id=moderated_object.pk,
+                user_id=post_comment_creator.pk,
+                expiration__isnull=False,
+            ).exists()
+        )
 
     def test_can_verify_moderated_object_if_global_moderator_and_approved(self):
         """
@@ -3319,10 +4146,13 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -3332,10 +4162,9 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=user.pk,
-            verified=True
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(object_id=user.pk, verified=True).exists()
+        )
 
     def test_can_verify_moderated_object_if_global_moderator_and_rejected(self):
         """
@@ -3348,10 +4177,13 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         global_moderator.reject_moderated_object(moderated_object=moderated_object)
 
@@ -3361,10 +4193,9 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=user.pk,
-            verified=True
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(object_id=user.pk, verified=True).exists()
+        )
 
     def test_cant_verify_moderated_object_if_global_moderator_and_pending(self):
         """
@@ -3377,10 +4208,13 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         url = self._get_url(moderated_object=moderated_object)
         headers = make_authentication_headers_for_user(global_moderator)
@@ -3388,11 +4222,11 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=user.pk,
-            status=ModeratedObject.STATUS_PENDING,
-            verified=False
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=user.pk, status=ModeratedObject.STATUS_PENDING, verified=False
+            ).exists()
+        )
 
     def test_cant_verify_user_moderated_object_if_community_moderator(self):
         """
@@ -3405,19 +4239,22 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community(creator=community_creator)
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
-        community_creator.add_moderator_with_username_to_community_with_name(community_name=community.name,
-                                                                             username=community_moderator.username
-                                                                             )
+        community_creator.add_moderator_with_username_to_community_with_name(
+            community_name=community.name, username=community_moderator.username
+        )
 
         user = make_user()
 
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -3427,10 +4264,9 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=user.pk,
-            verified=False
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(object_id=user.pk, verified=False).exists()
+        )
 
     def test_cant_verify_user_moderated_object_if_regular_user(self):
         """
@@ -3444,10 +4280,13 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -3457,10 +4296,9 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=user.pk,
-            verified=False
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(object_id=user.pk, verified=False).exists()
+        )
 
     def test_can_verify_community_moderated_object_if_global_moderator(self):
         """
@@ -3473,11 +4311,13 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_community = make_user()
         report_category = make_moderation_category()
 
-        reporter_community.report_community(community=community,
-                                            category_id=report_category.pk)
+        reporter_community.report_community(
+            community=community, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                        category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(
+            community=community, category_id=report_category.pk
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -3487,10 +4327,11 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community.pk,
-            verified=True
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community.pk, verified=True
+            ).exists()
+        )
 
     def test_cant_verify_community_moderated_object_if_community_moderator(self):
         """
@@ -3501,20 +4342,22 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community(creator=community_creator)
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
-        community_creator.add_moderator_with_username_to_community_with_name(community_name=community.name,
-                                                                             username=community_moderator.username
-                                                                             )
+        community_creator.add_moderator_with_username_to_community_with_name(
+            community_name=community.name, username=community_moderator.username
+        )
 
         community = make_community()
 
         reporter_community = make_user()
         report_category = make_moderation_category()
 
-        reporter_community.report_community(community=community,
-                                            category_id=report_category.pk)
+        reporter_community.report_community(
+            community=community, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                        category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(
+            community=community, category_id=report_category.pk
+        )
         global_moderator = make_global_moderator()
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -3524,10 +4367,11 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community.pk,
-            verified=False
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community.pk, verified=False
+            ).exists()
+        )
 
     def test_cant_verify_community_moderated_object_if_regular_user(self):
         """
@@ -3540,11 +4384,13 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_community = make_user()
         report_category = make_moderation_category()
 
-        reporter_community.report_community(community=community,
-                                            category_id=report_category.pk)
+        reporter_community.report_community(
+            community=community, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                        category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(
+            community=community, category_id=report_category.pk
+        )
 
         global_moderator = make_global_moderator()
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
@@ -3555,10 +4401,11 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community.pk,
-            verified=False
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community.pk, verified=False
+            ).exists()
+        )
 
     def test_can_verify_community_post_moderated_object_if_global_moderator(self):
         """
@@ -3570,18 +4417,20 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(community_name=community.name,
-                                                                      text=make_fake_post_text())
+        community_post = community_post_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post.report_post(post=community_post,
-                                            category_id=report_category.pk)
+        reporter_community_post.report_post(
+            post=community_post, category_id=report_category.pk
+        )
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
-            post=community_post,
-            category_id=report_category.pk)
+            post=community_post, category_id=report_category.pk
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -3591,10 +4440,11 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post.pk,
-            verified=True
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post.pk, verified=True
+            ).exists()
+        )
 
     def test_cant_verify_community_post_moderated_object_if_community_moderator(self):
         """
@@ -3606,23 +4456,24 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
         community_creator.add_moderator_with_username_to_community_with_name(
-            community_name=community.name,
-            username=community_moderator.username
+            community_name=community.name, username=community_moderator.username
         )
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(community_name=community.name,
-                                                                      text=make_fake_post_text())
+        community_post = community_post_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post.report_post(post=community_post,
-                                            category_id=report_category.pk)
+        reporter_community_post.report_post(
+            post=community_post, category_id=report_category.pk
+        )
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
-            post=community_post,
-            category_id=report_category.pk)
+            post=community_post, category_id=report_category.pk
+        )
         global_moderator = make_global_moderator()
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -3632,10 +4483,11 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post.pk,
-            verified=False
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post.pk, verified=False
+            ).exists()
+        )
 
     def test_cant_verify_community_post_moderated_object_if_regular_user(self):
         """
@@ -3647,18 +4499,20 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(community_name=community.name,
-                                                                      text=make_fake_post_text())
+        community_post = community_post_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post.report_post(post=community_post,
-                                            category_id=report_category.pk)
+        reporter_community_post.report_post(
+            post=community_post, category_id=report_category.pk
+        )
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
-            post=community_post,
-            category_id=report_category.pk)
+            post=community_post, category_id=report_category.pk
+        )
 
         global_moderator = make_global_moderator()
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
@@ -3669,12 +4523,15 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post.pk,
-            verified=False
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post.pk, verified=False
+            ).exists()
+        )
 
-    def test_can_verify_community_post_comment_moderated_object_if_global_moderator(self):
+    def test_can_verify_community_post_comment_moderated_object_if_global_moderator(
+        self,
+    ):
         """
         should be able to verify a community_post_comment moderated object if global moderator
         """
@@ -3683,24 +4540,30 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community()
 
         community_post_comment_creator = make_user()
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         reporter_community_post_comment = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post_comment.report_comment_for_post(post=community_post,
-                                                                post_comment=community_post_comment,
-                                                                category_id=report_category.pk)
-
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
+        reporter_community_post_comment.report_comment_for_post(
+            post=community_post,
             post_comment=community_post_comment,
-            category_id=report_category.pk)
+            category_id=report_category.pk,
+        )
+
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=community_post_comment, category_id=report_category.pk
+            )
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -3710,12 +4573,15 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post_comment.pk,
-            verified=True
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post_comment.pk, verified=True
+            ).exists()
+        )
 
-    def test_cant_verify_community_post_comment_moderated_object_if_community_moderator(self):
+    def test_cant_verify_community_post_comment_moderated_object_if_community_moderator(
+        self,
+    ):
         """
         should not be able to verify a community_post_comment moderated object if community moderator
         """
@@ -3725,29 +4591,34 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
         community_creator.add_moderator_with_username_to_community_with_name(
-            community_name=community.name,
-            username=community_moderator.username
+            community_name=community.name, username=community_moderator.username
         )
 
         community_post_comment_creator = make_user()
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         reporter_community_post_comment = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post_comment.report_comment_for_post(post=community_post,
-                                                                post_comment=community_post_comment,
-                                                                category_id=report_category.pk)
-
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
+        reporter_community_post_comment.report_comment_for_post(
+            post=community_post,
             post_comment=community_post_comment,
-            category_id=report_category.pk)
+            category_id=report_category.pk,
+        )
+
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=community_post_comment, category_id=report_category.pk
+            )
+        )
 
         global_moderator = make_global_moderator()
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
@@ -3758,10 +4629,11 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post_comment.pk,
-            verified=False
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post_comment.pk, verified=False
+            ).exists()
+        )
 
     def test_cant_verify_community_post_comment_moderated_object_if_regular_user(self):
         """
@@ -3772,24 +4644,30 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community()
 
         community_post_comment_creator = make_user()
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         reporter_community_post_comment = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post_comment.report_comment_for_post(post=community_post,
-                                                                post_comment=community_post_comment,
-                                                                category_id=report_category.pk)
-
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
+        reporter_community_post_comment.report_comment_for_post(
+            post=community_post,
             post_comment=community_post_comment,
-            category_id=report_category.pk)
+            category_id=report_category.pk,
+        )
+
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=community_post_comment, category_id=report_category.pk
+            )
+        )
 
         global_moderator = make_global_moderator()
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
@@ -3800,10 +4678,11 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post_comment.pk,
-            verified=False
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post_comment.pk, verified=False
+            ).exists()
+        )
 
     def test_creates_verified_changed_log_on_verify(self):
         """
@@ -3816,10 +4695,13 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -3829,14 +4711,19 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(1, ModeratedObjectVerifiedChangedLog.objects.filter(
-            changed_from=False,
-            changed_to=True,
-            log__actor_id=global_moderator.pk,
-            log__moderated_object__object_id=user.pk
-        ).count())
+        self.assertEqual(
+            1,
+            ModeratedObjectVerifiedChangedLog.objects.filter(
+                changed_from=False,
+                changed_to=True,
+                log__actor_id=global_moderator.pk,
+                log__moderated_object__object_id=user.pk,
+            ).count(),
+        )
 
-    def test_on_critical_severity_post_moderated_object_verify_should_delete_image(self):
+    def test_on_critical_severity_post_moderated_object_verify_should_delete_image(
+        self,
+    ):
         """
         on critical severity post moderated object, verify should delete image
         """
@@ -3844,20 +4731,25 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         post_creator = make_user()
 
-        image = Image.new('RGB', (100, 100))
-        tmp_file = tempfile.NamedTemporaryFile(suffix='.jpg')
+        image = Image.new("RGB", (100, 100))
+        tmp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
         image.save(tmp_file)
         tmp_file.seek(0)
 
-        post = post_creator.create_public_post(text=make_fake_post_text(), image=File(tmp_file))
+        post = post_creator.create_public_post(
+            text=make_fake_post_text(), image=File(tmp_file)
+        )
 
         reporter_user = make_user()
-        report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_CRITICAL)
+        report_category = make_moderation_category(
+            severity=ModerationCategory.SEVERITY_CRITICAL
+        )
 
         reporter_user.report_post(post=post, category_id=report_category.pk)
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(post=post,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
+            post=post, category_id=report_category.pk
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
 
@@ -3873,9 +4765,10 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
             file = post.image.image.file
 
     def _get_url(self, moderated_object):
-        return reverse('verify-moderated-object', kwargs={
-            'moderated_object_id': moderated_object.pk
-        })
+        return reverse(
+            "verify-moderated-object",
+            kwargs={"moderated_object_id": moderated_object.pk},
+        )
 
     def _get_moderation_category_severities(self):
         return (
@@ -3902,10 +4795,13 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
         global_moderator.verify_moderated_object(moderated_object=moderated_object)
@@ -3916,10 +4812,9 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=user.pk,
-            verified=False
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(object_id=user.pk, verified=False).exists()
+        )
 
     def test_can_unverify_moderated_object_if_global_moderator_and_rejected(self):
         """
@@ -3932,10 +4827,13 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         global_moderator.reject_moderated_object(moderated_object=moderated_object)
         global_moderator.verify_moderated_object(moderated_object=moderated_object)
@@ -3946,10 +4844,9 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=user.pk,
-            verified=False
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(object_id=user.pk, verified=False).exists()
+        )
 
     def test_cant_unverify_user_moderated_object_if_community_moderator(self):
         """
@@ -3962,19 +4859,22 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community(creator=community_creator)
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
-        community_creator.add_moderator_with_username_to_community_with_name(community_name=community.name,
-                                                                             username=community_moderator.username
-                                                                             )
+        community_creator.add_moderator_with_username_to_community_with_name(
+            community_name=community.name, username=community_moderator.username
+        )
 
         user = make_user()
 
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
         global_moderator.verify_moderated_object(moderated_object=moderated_object)
@@ -3985,10 +4885,9 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=user.pk,
-            verified=True
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(object_id=user.pk, verified=True).exists()
+        )
 
     def test_cant_unverify_user_moderated_object_if_regular_user(self):
         """
@@ -4002,10 +4901,13 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
         global_moderator.verify_moderated_object(moderated_object=moderated_object)
@@ -4016,10 +4918,9 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=user.pk,
-            verified=True
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(object_id=user.pk, verified=True).exists()
+        )
 
     def test_can_unverify_community_moderated_object_if_global_moderator(self):
         """
@@ -4032,11 +4933,13 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_community = make_user()
         report_category = make_moderation_category()
 
-        reporter_community.report_community(community=community,
-                                            category_id=report_category.pk)
+        reporter_community.report_community(
+            community=community, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                        category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(
+            community=community, category_id=report_category.pk
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
         global_moderator.verify_moderated_object(moderated_object=moderated_object)
@@ -4047,10 +4950,11 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community.pk,
-            verified=False
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community.pk, verified=False
+            ).exists()
+        )
 
     def test_cant_unverify_community_moderated_object_if_community_moderator(self):
         """
@@ -4061,20 +4965,22 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community(creator=community_creator)
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
-        community_creator.add_moderator_with_username_to_community_with_name(community_name=community.name,
-                                                                             username=community_moderator.username
-                                                                             )
+        community_creator.add_moderator_with_username_to_community_with_name(
+            community_name=community.name, username=community_moderator.username
+        )
 
         community = make_community()
 
         reporter_community = make_user()
         report_category = make_moderation_category()
 
-        reporter_community.report_community(community=community,
-                                            category_id=report_category.pk)
+        reporter_community.report_community(
+            community=community, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                        category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(
+            community=community, category_id=report_category.pk
+        )
         global_moderator = make_global_moderator()
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
         global_moderator.verify_moderated_object(moderated_object=moderated_object)
@@ -4085,10 +4991,11 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community.pk,
-            verified=True
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community.pk, verified=True
+            ).exists()
+        )
 
     def test_cant_unverify_community_moderated_object_if_regular_user(self):
         """
@@ -4101,11 +5008,13 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_community = make_user()
         report_category = make_moderation_category()
 
-        reporter_community.report_community(community=community,
-                                            category_id=report_category.pk)
+        reporter_community.report_community(
+            community=community, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(community=community,
-                                                                                        category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_community(
+            community=community, category_id=report_category.pk
+        )
 
         global_moderator = make_global_moderator()
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
@@ -4117,10 +5026,11 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community.pk,
-            verified=True
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community.pk, verified=True
+            ).exists()
+        )
 
     def test_can_unverify_community_post_moderated_object_if_global_moderator(self):
         """
@@ -4132,18 +5042,20 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(community_name=community.name,
-                                                                      text=make_fake_post_text())
+        community_post = community_post_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post.report_post(post=community_post,
-                                            category_id=report_category.pk)
+        reporter_community_post.report_post(
+            post=community_post, category_id=report_category.pk
+        )
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
-            post=community_post,
-            category_id=report_category.pk)
+            post=community_post, category_id=report_category.pk
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
         global_moderator.verify_moderated_object(moderated_object=moderated_object)
@@ -4154,10 +5066,11 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post.pk,
-            verified=False
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post.pk, verified=False
+            ).exists()
+        )
 
     def test_cant_unverify_community_post_moderated_object_if_community_moderator(self):
         """
@@ -4169,23 +5082,24 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
         community_creator.add_moderator_with_username_to_community_with_name(
-            community_name=community.name,
-            username=community_moderator.username
+            community_name=community.name, username=community_moderator.username
         )
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(community_name=community.name,
-                                                                      text=make_fake_post_text())
+        community_post = community_post_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post.report_post(post=community_post,
-                                            category_id=report_category.pk)
+        reporter_community_post.report_post(
+            post=community_post, category_id=report_category.pk
+        )
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
-            post=community_post,
-            category_id=report_category.pk)
+            post=community_post, category_id=report_category.pk
+        )
         global_moderator = make_global_moderator()
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
         global_moderator.verify_moderated_object(moderated_object=moderated_object)
@@ -4196,10 +5110,11 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post.pk,
-            verified=True
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post.pk, verified=True
+            ).exists()
+        )
 
     def test_cant_unverify_community_post_moderated_object_if_regular_user(self):
         """
@@ -4211,18 +5126,20 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(community_name=community.name,
-                                                                      text=make_fake_post_text())
+        community_post = community_post_creator.create_community_post(
+            community_name=community.name, text=make_fake_post_text()
+        )
 
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post.report_post(post=community_post,
-                                            category_id=report_category.pk)
+        reporter_community_post.report_post(
+            post=community_post, category_id=report_category.pk
+        )
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
-            post=community_post,
-            category_id=report_category.pk)
+            post=community_post, category_id=report_category.pk
+        )
 
         global_moderator = make_global_moderator()
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
@@ -4234,12 +5151,15 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post.pk,
-            verified=True
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post.pk, verified=True
+            ).exists()
+        )
 
-    def test_can_unverify_community_post_comment_moderated_object_if_global_moderator(self):
+    def test_can_unverify_community_post_comment_moderated_object_if_global_moderator(
+        self,
+    ):
         """
         should be able to unverify a community_post_comment moderated object if global moderator
         """
@@ -4248,24 +5168,30 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community()
 
         community_post_comment_creator = make_user()
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         reporter_community_post_comment = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post_comment.report_comment_for_post(post=community_post,
-                                                                post_comment=community_post_comment,
-                                                                category_id=report_category.pk)
-
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
+        reporter_community_post_comment.report_comment_for_post(
+            post=community_post,
             post_comment=community_post_comment,
-            category_id=report_category.pk)
+            category_id=report_category.pk,
+        )
+
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=community_post_comment, category_id=report_category.pk
+            )
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
         global_moderator.verify_moderated_object(moderated_object=moderated_object)
@@ -4276,12 +5202,15 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post_comment.pk,
-            verified=False
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post_comment.pk, verified=False
+            ).exists()
+        )
 
-    def test_cant_unverify_community_post_comment_moderated_object_if_community_moderator(self):
+    def test_cant_unverify_community_post_comment_moderated_object_if_community_moderator(
+        self,
+    ):
         """
         should not be able to unverify a community_post_comment moderated object if community moderator
         """
@@ -4291,29 +5220,34 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
         community_creator.add_moderator_with_username_to_community_with_name(
-            community_name=community.name,
-            username=community_moderator.username
+            community_name=community.name, username=community_moderator.username
         )
 
         community_post_comment_creator = make_user()
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         reporter_community_post_comment = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post_comment.report_comment_for_post(post=community_post,
-                                                                post_comment=community_post_comment,
-                                                                category_id=report_category.pk)
-
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
+        reporter_community_post_comment.report_comment_for_post(
+            post=community_post,
             post_comment=community_post_comment,
-            category_id=report_category.pk)
+            category_id=report_category.pk,
+        )
+
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=community_post_comment, category_id=report_category.pk
+            )
+        )
 
         global_moderator = make_global_moderator()
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
@@ -4325,12 +5259,15 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post_comment.pk,
-            verified=True
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post_comment.pk, verified=True
+            ).exists()
+        )
 
-    def test_cant_unverify_community_post_comment_moderated_object_if_regular_user(self):
+    def test_cant_unverify_community_post_comment_moderated_object_if_regular_user(
+        self,
+    ):
         """
         should not be able to unverify a community_post_comment moderated object if regular user
         """
@@ -4339,24 +5276,30 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community()
 
         community_post_comment_creator = make_user()
-        community_post_comment_creator.join_community_with_name(community_name=community.name)
+        community_post_comment_creator.join_community_with_name(
+            community_name=community.name
+        )
         community_post = community_post_comment_creator.create_community_post(
-            community_name=community.name,
-            text=make_fake_post_text())
+            community_name=community.name, text=make_fake_post_text()
+        )
         community_post_comment = community_post_comment_creator.comment_post(
-            post=community_post,
-            text=make_fake_post_text())
+            post=community_post, text=make_fake_post_text()
+        )
 
         reporter_community_post_comment = make_user()
         report_category = make_moderation_category()
 
-        reporter_community_post_comment.report_comment_for_post(post=community_post,
-                                                                post_comment=community_post_comment,
-                                                                category_id=report_category.pk)
-
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
+        reporter_community_post_comment.report_comment_for_post(
+            post=community_post,
             post_comment=community_post_comment,
-            category_id=report_category.pk)
+            category_id=report_category.pk,
+        )
+
+        moderated_object = (
+            ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=community_post_comment, category_id=report_category.pk
+            )
+        )
 
         global_moderator = make_global_moderator()
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
@@ -4368,10 +5311,11 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertTrue(ModeratedObject.objects.filter(
-            object_id=community_post_comment.pk,
-            verified=True
-        ).exists())
+        self.assertTrue(
+            ModeratedObject.objects.filter(
+                object_id=community_post_comment.pk, verified=True
+            ).exists()
+        )
 
     def test_creates_verified_changed_log_on_unverify(self):
         """
@@ -4384,10 +5328,13 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
         report_category = make_moderation_category()
 
-        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
+        reporter_user.report_user_with_username(
+            username=user.username, category_id=report_category.pk
+        )
 
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(user=user,
-                                                                                   category_id=report_category.pk)
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
+            user=user, category_id=report_category.pk
+        )
 
         global_moderator.approve_moderated_object(moderated_object=moderated_object)
         global_moderator.verify_moderated_object(moderated_object=moderated_object)
@@ -4398,17 +5345,21 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(1, ModeratedObjectVerifiedChangedLog.objects.filter(
-            changed_from=True,
-            changed_to=False,
-            log__actor_id=global_moderator.pk,
-            log__moderated_object__object_id=user.pk
-        ).count())
+        self.assertEqual(
+            1,
+            ModeratedObjectVerifiedChangedLog.objects.filter(
+                changed_from=True,
+                changed_to=False,
+                log__actor_id=global_moderator.pk,
+                log__moderated_object__object_id=user.pk,
+            ).count(),
+        )
 
     def _get_url(self, moderated_object):
-        return reverse('unverify-moderated-object', kwargs={
-            'moderated_object_id': moderated_object.pk
-        })
+        return reverse(
+            "unverify-moderated-object",
+            kwargs={"moderated_object_id": moderated_object.pk},
+        )
 
 
 class ModeratedObjectLogs(OpenbookAPITestCase):
@@ -4422,8 +5373,7 @@ class ModeratedObjectLogs(OpenbookAPITestCase):
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
         community_creator.add_moderator_with_username_to_community_with_name(
-            community_name=community.name,
-            username=community_moderator.username
+            community_name=community.name, username=community_moderator.username
         )
 
         moderated_object = make_moderated_object(community=community)
@@ -4432,7 +5382,9 @@ class ModeratedObjectLogs(OpenbookAPITestCase):
         moderated_object_logs_ids = []
 
         for i in range(0, amount_of_moderated_object_logs):
-            moderated_object_log = make_moderated_object_log(moderated_object=moderated_object)
+            moderated_object_log = make_moderated_object_log(
+                moderated_object=moderated_object
+            )
             moderated_object_logs_ids.append(moderated_object_log.pk)
 
         url = self._get_url(moderated_object=moderated_object)
@@ -4441,12 +5393,16 @@ class ModeratedObjectLogs(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderation_categories = json.loads(response.content, object_hook=uuid_id_parser)
+        response_moderation_categories = json.loads(
+            response.content, object_hook=uuid_id_parser
+        )
 
-        self.assertEqual(len(response_moderation_categories), len(moderated_object_logs_ids))
+        self.assertEqual(
+            len(response_moderation_categories), len(moderated_object_logs_ids)
+        )
 
         for response_moderationCategory in response_moderation_categories:
-            response_moderation_category_id = response_moderationCategory.get('id')
+            response_moderation_category_id = response_moderationCategory.get("id")
             self.assertIn(response_moderation_category_id, moderated_object_logs_ids)
 
     def test_cant_retrieve_community_moderation_object_logs_if_not_staff(self):
@@ -4464,7 +5420,9 @@ class ModeratedObjectLogs(OpenbookAPITestCase):
         moderated_object_logs_ids = []
 
         for i in range(0, amount_of_moderated_object_logs):
-            moderated_object_log = make_moderated_object_log(moderated_object=moderated_object)
+            moderated_object_log = make_moderated_object_log(
+                moderated_object=moderated_object
+            )
             moderated_object_logs_ids.append(moderated_object_log.pk)
 
         url = self._get_url(moderated_object=moderated_object)
@@ -4485,7 +5443,9 @@ class ModeratedObjectLogs(OpenbookAPITestCase):
         moderated_object_logs_ids = []
 
         for i in range(0, amount_of_moderated_object_logs):
-            moderated_object_log = make_moderated_object_log(moderated_object=moderated_object)
+            moderated_object_log = make_moderated_object_log(
+                moderated_object=moderated_object
+            )
             moderated_object_logs_ids.append(moderated_object_log.pk)
 
         url = self._get_url(moderated_object=moderated_object)
@@ -4494,12 +5454,16 @@ class ModeratedObjectLogs(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderation_categories = json.loads(response.content, object_hook=uuid_id_parser)
+        response_moderation_categories = json.loads(
+            response.content, object_hook=uuid_id_parser
+        )
 
-        self.assertEqual(len(response_moderation_categories), len(moderated_object_logs_ids))
+        self.assertEqual(
+            len(response_moderation_categories), len(moderated_object_logs_ids)
+        )
 
         for response_moderationCategory in response_moderation_categories:
-            response_moderation_category_id = response_moderationCategory.get('id')
+            response_moderation_category_id = response_moderationCategory.get("id")
             self.assertIn(response_moderation_category_id, moderated_object_logs_ids)
 
     def test_cant_retrieve_global_moderation_object_logs_if_not_global_moderator(self):
@@ -4514,7 +5478,9 @@ class ModeratedObjectLogs(OpenbookAPITestCase):
         moderated_object_logs_ids = []
 
         for i in range(0, amount_of_moderated_object_logs):
-            moderated_object_log = make_moderated_object_log(moderated_object=moderated_object)
+            moderated_object_log = make_moderated_object_log(
+                moderated_object=moderated_object
+            )
             moderated_object_logs_ids.append(moderated_object_log.pk)
 
         url = self._get_url(moderated_object=moderated_object)
@@ -4524,9 +5490,9 @@ class ModeratedObjectLogs(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def _get_url(self, moderated_object):
-        return reverse('moderated-object-logs', kwargs={
-            'moderated_object_id': moderated_object.pk
-        })
+        return reverse(
+            "moderated-object-logs", kwargs={"moderated_object_id": moderated_object.pk}
+        )
 
 
 class ModeratedObjectReports(OpenbookAPITestCase):
@@ -4540,8 +5506,7 @@ class ModeratedObjectReports(OpenbookAPITestCase):
         community_moderator = make_user()
         community_moderator.join_community_with_name(community_name=community.name)
         community_creator.add_moderator_with_username_to_community_with_name(
-            community_name=community.name,
-            username=community_moderator.username
+            community_name=community.name, username=community_moderator.username
         )
 
         moderated_object = make_moderated_object(community=community)
@@ -4550,7 +5515,9 @@ class ModeratedObjectReports(OpenbookAPITestCase):
         moderated_object_reports_ids = []
 
         for i in range(0, amount_of_moderated_object_reports):
-            moderated_object_report = make_moderated_object_report(moderated_object=moderated_object)
+            moderated_object_report = make_moderated_object_report(
+                moderated_object=moderated_object
+            )
             moderated_object_reports_ids.append(moderated_object_report.pk)
 
         url = self._get_url(moderated_object=moderated_object)
@@ -4559,12 +5526,16 @@ class ModeratedObjectReports(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderation_categories = json.loads(response.content, object_hook=uuid_id_parser)
+        response_moderation_categories = json.loads(
+            response.content, object_hook=uuid_id_parser
+        )
 
-        self.assertEqual(len(response_moderation_categories), len(moderated_object_reports_ids))
+        self.assertEqual(
+            len(response_moderation_categories), len(moderated_object_reports_ids)
+        )
 
         for response_moderationCategory in response_moderation_categories:
-            response_moderation_category_id = response_moderationCategory.get('id')
+            response_moderation_category_id = response_moderationCategory.get("id")
             self.assertIn(response_moderation_category_id, moderated_object_reports_ids)
 
     def test_cant_retrieve_community_moderation_object_reports_if_not_staff(self):
@@ -4582,7 +5553,9 @@ class ModeratedObjectReports(OpenbookAPITestCase):
         moderated_object_reports_ids = []
 
         for i in range(0, amount_of_moderated_object_reports):
-            moderated_object_report = make_moderated_object_report(moderated_object=moderated_object)
+            moderated_object_report = make_moderated_object_report(
+                moderated_object=moderated_object
+            )
             moderated_object_reports_ids.append(moderated_object_report.pk)
 
         url = self._get_url(moderated_object=moderated_object)
@@ -4603,7 +5576,9 @@ class ModeratedObjectReports(OpenbookAPITestCase):
         moderated_object_reports_ids = []
 
         for i in range(0, amount_of_moderated_object_reports):
-            moderated_object_report = make_moderated_object_report(moderated_object=moderated_object)
+            moderated_object_report = make_moderated_object_report(
+                moderated_object=moderated_object
+            )
             moderated_object_reports_ids.append(moderated_object_report.pk)
 
         url = self._get_url(moderated_object=moderated_object)
@@ -4612,15 +5587,21 @@ class ModeratedObjectReports(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderation_categories = json.loads(response.content, object_hook=uuid_id_parser)
+        response_moderation_categories = json.loads(
+            response.content, object_hook=uuid_id_parser
+        )
 
-        self.assertEqual(len(response_moderation_categories), len(moderated_object_reports_ids))
+        self.assertEqual(
+            len(response_moderation_categories), len(moderated_object_reports_ids)
+        )
 
         for response_moderationCategory in response_moderation_categories:
-            response_moderation_category_id = response_moderationCategory.get('id')
+            response_moderation_category_id = response_moderationCategory.get("id")
             self.assertIn(response_moderation_category_id, moderated_object_reports_ids)
 
-    def test_cant_retrieve_global_moderation_object_reports_if_not_global_moderator(self):
+    def test_cant_retrieve_global_moderation_object_reports_if_not_global_moderator(
+        self,
+    ):
         """
         should not be able to retrieve global moderation object reports if not global moderator and return 200
         """
@@ -4632,7 +5613,9 @@ class ModeratedObjectReports(OpenbookAPITestCase):
         moderated_object_reports_ids = []
 
         for i in range(0, amount_of_moderated_object_reports):
-            moderated_object_report = make_moderated_object_report(moderated_object=moderated_object)
+            moderated_object_report = make_moderated_object_report(
+                moderated_object=moderated_object
+            )
             moderated_object_reports_ids.append(moderated_object_report.pk)
 
         url = self._get_url(moderated_object=moderated_object)
@@ -4642,6 +5625,7 @@ class ModeratedObjectReports(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def _get_url(self, moderated_object):
-        return reverse('moderated-object-reports', kwargs={
-            'moderated_object_id': moderated_object.pk
-        })
+        return reverse(
+            "moderated-object-reports",
+            kwargs={"moderated_object_id": moderated_object.pk},
+        )

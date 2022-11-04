@@ -11,11 +11,11 @@ def check_url_can_be_proxied(url):
 
     if not urls:
         raise PermissionDenied(
-            _('No valid URL given'),
+            _("No valid URL given"),
         )
 
     ProxyBlacklistDomain = get_proxy_blacklist_domain_model()
     if ProxyBlacklistDomain.is_url_domain_blacklisted(url):
         raise PermissionDenied(
-            _('Url is blacklisted'),
+            _("Url is blacklisted"),
         )

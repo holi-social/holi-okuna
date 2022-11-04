@@ -7,7 +7,10 @@ from openbook_common.tests.models import OpenbookAPITestCase
 import logging
 import json
 
-from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user
+from openbook_common.tests.helpers import (
+    make_user,
+    make_authentication_headers_for_user,
+)
 from openbook_common.utils.test import uuid_id_parser
 
 fake = Faker()
@@ -16,9 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class LinkedUsersAPITests(OpenbookAPITestCase):
-    fixtures = [
-        'openbook_circles/fixtures/circles.json'
-    ]
+    fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_can_retrieve_linked_users(self):
         """
@@ -31,7 +32,9 @@ class LinkedUsersAPITests(OpenbookAPITestCase):
         amount_of_followers_linked_users = 5
         amount_of_connected_linked_users = 5
 
-        amount_of_linked_users = amount_of_connected_linked_users + amount_of_followers_linked_users
+        amount_of_linked_users = (
+            amount_of_connected_linked_users + amount_of_followers_linked_users
+        )
 
         for i in range(0, amount_of_followers_linked_users):
             linked_follower_user = make_user()
@@ -54,11 +57,11 @@ class LinkedUsersAPITests(OpenbookAPITestCase):
         self.assertEqual(len(response_linked_users), amount_of_linked_users)
 
         for response_member in response_linked_users:
-            response_member_id = response_member.get('id')
+            response_member_id = response_member.get("id")
             self.assertIn(response_member_id, linked_users_ids)
 
     def _get_url(self):
-        return reverse('linked-users')
+        return reverse("linked-users")
 
 
 class SearchLinkedUsersAPITests(OpenbookAPITestCase):
@@ -82,25 +85,27 @@ class SearchLinkedUsersAPITests(OpenbookAPITestCase):
             linked_user_name = linked_user.profile.name
             amount_of_characters_to_query = random.randint(1, len(linked_user_name))
             query = linked_user_name[0:amount_of_characters_to_query]
-            final_query = ''
+            final_query = ""
             for character in query:
-                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
+                final_query = final_query + (
+                    character.upper() if fake.boolean() else character.lower()
+                )
 
             url = self._get_url()
 
-            response = self.client.get(url, {
-                'query': final_query
-            }, **headers)
+            response = self.client.get(url, {"query": final_query}, **headers)
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_linked_users = json.loads(response.content, object_hook=uuid_id_parser)
+            response_linked_users = json.loads(
+                response.content, object_hook=uuid_id_parser
+            )
             response_members_count = len(response_linked_users)
 
             self.assertEqual(response_members_count, 1)
             retrieved_linked_member = response_linked_users[0]
 
-            self.assertEqual(retrieved_linked_member['id'], linked_user.id)
+            self.assertEqual(retrieved_linked_member["id"], linked_user.id)
             linked_user.unfollow_user_with_id(user.pk)
 
     def test_can_search_linked_users_by_username(self):
@@ -119,28 +124,28 @@ class SearchLinkedUsersAPITests(OpenbookAPITestCase):
             linked_user_username = linked_user.username
             amount_of_characters_to_query = random.randint(1, len(linked_user_username))
             query = linked_user_username[0:amount_of_characters_to_query]
-            final_query = ''
+            final_query = ""
             for character in query:
-                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
+                final_query = final_query + (
+                    character.upper() if fake.boolean() else character.lower()
+                )
 
             url = self._get_url()
 
-            response = self.client.get(url, {
-                'query': final_query
-            }, **headers)
+            response = self.client.get(url, {"query": final_query}, **headers)
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_linked_users = json.loads(response.content, object_hook=uuid_id_parser)
+            response_linked_users = json.loads(
+                response.content, object_hook=uuid_id_parser
+            )
             response_members_count = len(response_linked_users)
 
             self.assertEqual(response_members_count, 1)
             retrieved_linked_member = response_linked_users[0]
 
-            self.assertEqual(retrieved_linked_member['id'], linked_user.id)
+            self.assertEqual(retrieved_linked_member["id"], linked_user.id)
             linked_user.unfollow_user_with_id(user.pk)
 
     def _get_url(self):
-        return reverse('search-linked-users')
-
-
+        return reverse("search-linked-users")

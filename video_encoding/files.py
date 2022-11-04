@@ -16,7 +16,7 @@ class VideoFile(File):
         """
         Returns video width in pixels.
         """
-        return self._get_video_info().get('width', 0)
+        return self._get_video_info().get("width", 0)
 
     width = property(_get_width)
 
@@ -24,7 +24,7 @@ class VideoFile(File):
         """
         Returns video height in pixels.
         """
-        return self._get_video_info().get('height', 0)
+        return self._get_video_info().get("height", 0)
 
     height = property(_get_height)
 
@@ -32,7 +32,7 @@ class VideoFile(File):
         """
         Returns duration in seconds.
         """
-        return self._get_video_info().get('duration', 0)
+        return self._get_video_info().get("duration", 0)
 
     duration = property(_get_duration)
 
@@ -40,7 +40,7 @@ class VideoFile(File):
         """
         Returns basic information about the video as dictionary.
         """
-        if not hasattr(self, '_info_cache'):
+        if not hasattr(self, "_info_cache"):
             encoding_backend = get_backend()
 
             local_path, local_tmp_file = get_fieldfile_local_path(fieldfile=self)

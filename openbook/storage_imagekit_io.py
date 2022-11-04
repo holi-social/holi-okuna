@@ -17,7 +17,6 @@ class IncorrectFilename(Exception):
 
 
 class ImagekitIoStorage(Storage):
-
     def __init__(self):
         self.imagekit = ImageKit(
             private_key=settings.IMAGEKIT_PRIVATE_KEY,
@@ -35,13 +34,15 @@ class ImagekitIoStorage(Storage):
     def url(self, name):
         return name
 
-    def _open(self, name, mode='rb'):
+    def _open(self, name, mode="rb"):
         return ContentFile(self.http.request("GET", name).data)
 
     def _save(self, name, content):
         if name.count("/") < 2:
             raise IncorrectFilename(
-                "Filenames need to have at least three sections: object_type/object_id/filename.ext[/username] but filename was: " + name)
+                "Filenames need to have at least three sections: object_type/object_id/filename.ext[/username] but filename was: "
+                + name
+            )
         split = name.split("/")
         object_type = split[0]
         object_id = split[1]
@@ -51,26 +52,23 @@ class ImagekitIoStorage(Storage):
         tags = [type_tag]
         if len(split) > 3:
             tags.append(f"user_{split[3]}")
-        old_files = self.imagekit.list_files(
-            {"tags": type_tag, "path": object_type})
+        old_files = self.imagekit.list_files({"tags": type_tag, "path": object_type})
 
-        options = {
-            "folder": object_type,
-            "tags": tags
-        }
+        options = {"folder": object_type, "tags": tags}
         content.name = object_id + _get_file_extension(filename)
         upload = self.imagekit.upload(
-            file=content, file_name=content.name, options=options)
+            file=content, file_name=content.name, options=options
+        )
 
-        if old_files and old_files['response']:
-            self.delete_images(
-                map(lambda file: file['fileId'], old_files['response']))
-            logger.info("deleted %s old versions of the file",
-                        len(old_files['response']))
+        if old_files and old_files["response"]:
+            self.delete_images(map(lambda file: file["fileId"], old_files["response"]))
+            logger.info(
+                "deleted %s old versions of the file", len(old_files["response"])
+            )
 
         # once, the container did not start because part of the return statement was None. Therefore I integrated logging for analysis next time around.
         logger.info("UPLOAD result: %s", upload)
-        return upload['response']['url']
+        return upload["response"]["url"]
 
     def delete_images(self, file_ids):
         """
@@ -84,17 +82,21 @@ class ImagekitIoStorage(Storage):
         Delete an image by file_id
         """
         try:
-            error = self.imagekit.delete_file(file_id).get('error')
+            error = self.imagekit.delete_file(file_id).get("error")
             if error is not None:
                 logger.warning(
-                    "Could not delete image file with fileId: %s. Error response: %s", file_id, error)
+                    "Could not delete image file with fileId: %s. Error response: %s",
+                    file_id,
+                    error,
+                )
         except RequestException:
             logger.warning(
-                "Could not delete image file with fileId: %s.", file_id, exc_info=True)
+                "Could not delete image file with fileId: %s.", file_id, exc_info=True
+            )
 
     def _get_file_id(self, url):
         filename = os.path.basename(url)
-        return self.imagekit.list_files({"name": filename})['response'][0]['fileId']
+        return self.imagekit.list_files({"name": filename})["response"][0]["fileId"]
 
 
 def _get_file_extension(filename):

@@ -7,12 +7,12 @@ class EmptyEnvironmentValueError(AttributeError):
 
 
 class EnvironmentChecker:
-    PRODUCTION_VALUE = 'production'
-    ACCEPTANCE_VALUE = 'acceptance'
-    DEVELOPMENT_VALUE = 'development'
-    TEST_VALUE = 'test'
-    QUICKTEST_VALUE = 'quicktest'
-    BUILD_VALUE = 'build'
+    PRODUCTION_VALUE = "production"
+    ACCEPTANCE_VALUE = "acceptance"
+    DEVELOPMENT_VALUE = "development"
+    TEST_VALUE = "test"
+    QUICKTEST_VALUE = "quicktest"
+    BUILD_VALUE = "build"
 
     ALLOWED_ENVIRONMENTS = [
         BUILD_VALUE,

@@ -4,28 +4,28 @@ from openbook_common.models import Emoji, EmojiGroup, Badge, Language
 
 
 class EmojiGroupTranslationOptions(TranslationOptions):
-    fields = ('keyword',)
+    fields = ("keyword",)
 
 
 translator.register(EmojiGroup, EmojiGroupTranslationOptions)
 
 
 class EmojiTranslationOptions(TranslationOptions):
-    fields = ('keyword',)
+    fields = ("keyword",)
 
 
 translator.register(Emoji, EmojiTranslationOptions)
 
 
 class BadgeTranslationOptions(TranslationOptions):
-    fields = ('keyword_description',)
+    fields = ("keyword_description",)
 
 
 translator.register(Badge, BadgeTranslationOptions)
 
 
 class LanguageTranslationOptions(TranslationOptions):
-    fields = ('name',)
+    fields = ("name",)
 
 
 translator.register(Language, LanguageTranslationOptions)

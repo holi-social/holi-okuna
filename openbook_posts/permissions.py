@@ -2,10 +2,9 @@ from rest_framework import permissions
 
 
 class IsGetOrIsAuthenticated(permissions.BasePermission):
-
     def has_permission(self, request, view):
         # allow all GET requests
-        if request.method == 'GET':
+        if request.method == "GET":
             return True
 
         # Otherwise, only allow authenticated requests

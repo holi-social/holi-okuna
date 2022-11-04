@@ -12,18 +12,16 @@ class ProxyAuth(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        url = request.META.get('HTTP_X_PROXY_URL', '')
+        url = request.META.get("HTTP_X_PROXY_URL", "")
 
-        serializer = ProxyAuthSerializer(data={
-            'url': url
-        })
+        serializer = ProxyAuthSerializer(data={"url": url})
 
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
 
-        url = data.get('url')
+        url = data.get("url")
 
         common_checkers.check_url_can_be_proxied(url)
 
-        return Response(_('All Ok'), status=status.HTTP_202_ACCEPTED)
+        return Response(_("All Ok"), status=status.HTTP_202_ACCEPTED)

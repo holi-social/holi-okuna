@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Normalises all usernames in the user model'
+    help = "Normalises all usernames in the user model"
 
     def handle(self, *args, **options):
         User = get_user_model()
@@ -17,11 +17,24 @@ class Command(BaseCommand):
         for user in users:
             old_username = user.username
             # convert to ascii
-            normalised_username = unicodedata.normalize('NFD', old_username).encode('ascii', 'ignore').decode('utf-8')
+            normalised_username = (
+                unicodedata.normalize("NFD", old_username)
+                .encode("ascii", "ignore")
+                .decode("utf-8")
+            )
             normalised_username = self.sanitise_username(normalised_username)
 
-            logger.info(f'Normalised username {old_username}  to   {normalised_username}')
+            logger.info(
+                f"Normalised username {old_username}  to   {normalised_username}"
+            )
 
     def sanitise_username(self, username):
-        chars = '[@#!±$%^&*()=|/><?,:;\~`{}]'
-        return re.sub(chars, '', username).lower().replace(' ', '_').replace('+', '_').replace('-', '_').replace('\\', '')
+        chars = "[@#!±$%^&*()=|/><?,:;\~`{}]"
+        return (
+            re.sub(chars, "", username)
+            .lower()
+            .replace(" ", "_")
+            .replace("+", "_")
+            .replace("-", "_")
+            .replace("\\", "")
+        )

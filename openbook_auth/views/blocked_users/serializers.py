@@ -9,27 +9,20 @@ class GetBlockedUsersSerializer(serializers.Serializer):
     max_id = serializers.IntegerField(
         required=False,
     )
-    count = serializers.IntegerField(
-        required=False,
-        max_value=10
-    )
+    count = serializers.IntegerField(required=False, max_value=10)
 
 
 class SearchBlockedUsersSerializer(serializers.Serializer):
-    query = serializers.CharField(max_length=settings.SEARCH_QUERIES_MAX_LENGTH, required=True)
-    count = serializers.IntegerField(
-        required=False,
-        max_value=10
+    query = serializers.CharField(
+        max_length=settings.SEARCH_QUERIES_MAX_LENGTH, required=True
     )
+    count = serializers.IntegerField(required=False, max_value=10)
 
 
 class BlockedUsersUserProfileBadgeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Badge
-        fields = (
-            'keyword',
-            'keyword_description'
-        )
+        fields = ("keyword", "keyword_description")
 
 
 class BlockedUsersUserProfileSerializer(serializers.ModelSerializer):
@@ -37,12 +30,7 @@ class BlockedUsersUserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = (
-            'id',
-            'avatar',
-            'name',
-            'badges'
-        )
+        fields = ("id", "avatar", "name", "badges")
 
 
 class BlockedUsersUserSerializer(serializers.ModelSerializer):
@@ -51,7 +39,7 @@ class BlockedUsersUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id',
-            'profile',
-            'username',
+            "id",
+            "profile",
+            "username",
         )

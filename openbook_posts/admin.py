@@ -15,11 +15,7 @@ class PostImageInline(admin.TabularInline):
 class PostCommentInline(admin.TabularInline):
     model = PostComment
 
-    readonly_fields = (
-        'commenter',
-        'text',
-        'created'
-    )
+    readonly_fields = ("commenter", "text", "created")
 
     def has_add_permission(self, request, obj):
         return False
@@ -28,10 +24,7 @@ class PostCommentInline(admin.TabularInline):
 class PostReactionInline(admin.TabularInline):
     model = PostReaction
 
-    readonly_fields = [
-        'reactor',
-        'emoji'
-    ]
+    readonly_fields = ["reactor", "emoji"]
 
     def has_add_permission(self, request, obj):
         return False
@@ -51,21 +44,16 @@ class PostCircleInline(admin.TabularInline):
 
 
 class PostAdmin(admin.ModelAdmin):
-    inlines = [
-        PostReactionInline,
-        PostImageInline,
-        PostCommentInline,
-        PostCircleInline
-    ]
+    inlines = [PostReactionInline, PostImageInline, PostCommentInline, PostCircleInline]
 
     list_display = (
-        'id',
-        'created',
-        'creator',
-        'count_comments',
-        'count_reactions',
-        'has_text',
-        'has_image'
+        "id",
+        "created",
+        "creator",
+        "count_comments",
+        "count_reactions",
+        "has_text",
+        "has_image",
     )
 
     def has_add_permission(self, request, obj=None):

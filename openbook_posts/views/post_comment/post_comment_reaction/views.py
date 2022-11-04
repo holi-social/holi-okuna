@@ -6,7 +6,9 @@ from rest_framework.views import APIView
 from django.utils.translation import gettext_lazy as _
 
 from openbook_moderation.permissions import IsNotSuspended
-from openbook_posts.views.post_comment.post_comment_reaction.serializers import DeletePostCommentReactionSerializer
+from openbook_posts.views.post_comment.post_comment_reaction.serializers import (
+    DeletePostCommentReactionSerializer,
+)
 
 
 class PostCommentReactionItem(APIView):
@@ -14,9 +16,9 @@ class PostCommentReactionItem(APIView):
 
     def delete(self, request, post_id, post_comment_id, post_comment_reaction_id):
         request_data = {
-            'post_id': post_id,
-            'post_comment_reaction_id': post_comment_reaction_id,
-            'post_comment_id': post_comment_id,
+            "post_id": post_id,
+            "post_comment_reaction_id": post_comment_reaction_id,
+            "post_comment_id": post_comment_id,
         }
 
         serializer = DeletePostCommentReactionSerializer(data=request_data)
@@ -25,8 +27,10 @@ class PostCommentReactionItem(APIView):
         user = request.user
 
         with transaction.atomic():
-            user.delete_post_comment_reaction_with_id(post_comment_reaction_id=post_comment_reaction_id)
+            user.delete_post_comment_reaction_with_id(
+                post_comment_reaction_id=post_comment_reaction_id
+            )
 
-        return Response({
-            'message': _('Post comment reaction deleted')
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {"message": _("Post comment reaction deleted")}, status=status.HTTP_200_OK
+        )

@@ -3,9 +3,12 @@ from rest_framework import serializers
 from openbook_common.models import Emoji, Badge
 from openbook_common.serializers import CommonPublicUserSerializer
 from openbook_posts.models import PostCommentReaction
-from openbook_posts.validators import post_id_exists, post_comment_id_exists, \
-    post_comment_reaction_id_exists_for_post_with_id_and_comment_with_id, \
-    post_comment_reaction_id_exists
+from openbook_posts.validators import (
+    post_id_exists,
+    post_comment_id_exists,
+    post_comment_reaction_id_exists_for_post_with_id_and_comment_with_id,
+    post_comment_reaction_id_exists,
+)
 
 
 class DeletePostCommentReactionSerializer(serializers.Serializer):
@@ -24,29 +27,27 @@ class DeletePostCommentReactionSerializer(serializers.Serializer):
 
     def validate(self, data):
         post_comment_reaction_id_exists_for_post_with_id_and_comment_with_id(
-            post_comment_reaction_id=data['post_comment_reaction_id'],
-            post_comment_id=data['post_comment_id'],
-            post_id=data['post_id'])
+            post_comment_reaction_id=data["post_comment_reaction_id"],
+            post_comment_id=data["post_comment_id"],
+            post_id=data["post_id"],
+        )
         return data
 
 
 class PostReactorProfileBadgeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Badge
-        fields = (
-            'keyword',
-            'keyword_description'
-        )
+        fields = ("keyword", "keyword_description")
 
 
 class PostCommentReactionEmojiSerializer(serializers.ModelSerializer):
     class Meta:
         model = Emoji
         fields = (
-            'id',
-            'keyword',
-            'image',
-            'created',
+            "id",
+            "keyword",
+            "image",
+            "created",
         )
 
 
@@ -56,9 +57,4 @@ class PostCommentReactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PostCommentReaction
-        fields = (
-            'reactor',
-            'created',
-            'emoji',
-            'id'
-        )
+        fields = ("reactor", "created", "emoji", "id")

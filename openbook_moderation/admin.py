@@ -2,7 +2,11 @@ from django.contrib import admin
 from django.contrib.admin import ModelAdmin
 from modeltranslation.admin import TranslationAdmin
 
-from openbook_moderation.models import ModerationCategory, ModerationReport, ModeratedObject
+from openbook_moderation.models import (
+    ModerationCategory,
+    ModerationReport,
+    ModeratedObject,
+)
 
 
 class ModerationCategoryAdmin(TranslationAdmin):
@@ -23,7 +27,7 @@ class ModerationReportAdmin(ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return True
 
-    readonly_fields = ['reporter', 'moderated_object', 'category', 'description']
+    readonly_fields = ["reporter", "moderated_object", "category", "description"]
 
 
 admin.site.register(ModerationReport, ModerationReportAdmin)
@@ -36,7 +40,16 @@ class ModeratedObjectAdmin(ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return True
 
-    readonly_fields = ['verified', 'category', 'description', 'community', 'status', 'object_type', 'object_id', 'content_type']
+    readonly_fields = [
+        "verified",
+        "category",
+        "description",
+        "community",
+        "status",
+        "object_type",
+        "object_id",
+        "content_type",
+    ]
 
 
 admin.site.register(ModeratedObject, ModeratedObjectAdmin)

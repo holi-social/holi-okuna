@@ -9,37 +9,35 @@ from openbook_invitations.validators import invite_id_exists, check_invite_not_u
 
 class CreateUserInviteSerializer(serializers.Serializer):
     nickname = serializers.CharField(
-        max_length=PROFILE_NAME_MAX_LENGTH,
-        required=True,
-        allow_blank=False)
+        max_length=PROFILE_NAME_MAX_LENGTH, required=True, allow_blank=False
+    )
 
 
 class BadgeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Badge
-        fields = (
-            'keyword',
-            'keyword_description'
-        )
+        fields = ("keyword", "keyword_description")
 
 
 class InvitedUserProfileSerializer(serializers.ModelSerializer):
-    avatar = serializers.ImageField(max_length=None, use_url=True, allow_null=True, required=False)
+    avatar = serializers.ImageField(
+        max_length=None, use_url=True, allow_null=True, required=False
+    )
     badges = BadgeSerializer(many=True)
 
     class Meta:
         model = UserProfile
         fields = (
-            'id',
-            'name',
-            'avatar',
-            'about_me',
-            'url',
-            'location',
-            'cover',
-            'is_of_legal_age',
-            'followers_count_visible',
-            'badges'
+            "id",
+            "name",
+            "avatar",
+            "about_me",
+            "url",
+            "location",
+            "cover",
+            "is_of_legal_age",
+            "followers_count_visible",
+            "badges",
         )
 
 
@@ -48,11 +46,7 @@ class InvitedUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = (
-            'id',
-            'username',
-            'profile'
-        )
+        fields = ("id", "username", "profile")
 
 
 class GetUserInviteSerializer(serializers.ModelSerializer):
@@ -61,21 +55,18 @@ class GetUserInviteSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserInvite
         fields = (
-            'id',
-            'email',
-            'is_invite_email_sent',
-            'nickname',
-            'token',
-            'created_user',
-            'created'
+            "id",
+            "email",
+            "is_invite_email_sent",
+            "nickname",
+            "token",
+            "created_user",
+            "created",
         )
 
 
 class GetUserInvitesSerializer(serializers.Serializer):
-    count = serializers.IntegerField(
-        required=False,
-        max_value=20
-    )
+    count = serializers.IntegerField(required=False, max_value=20)
     offset = serializers.IntegerField(
         required=False,
     )
@@ -83,15 +74,10 @@ class GetUserInvitesSerializer(serializers.Serializer):
 
 
 class SearchUserInvitesSerializer(serializers.Serializer):
-    count = serializers.IntegerField(
-        required=False,
-        max_value=20
-    )
+    count = serializers.IntegerField(required=False, max_value=20)
     pending = serializers.BooleanField(required=False)
     query = serializers.CharField(
-        max_length=settings.SEARCH_QUERIES_MAX_LENGTH,
-        allow_blank=False,
-        required=True
+        max_length=settings.SEARCH_QUERIES_MAX_LENGTH, allow_blank=False, required=True
     )
 
 
@@ -108,9 +94,8 @@ class EditUserInviteSerializer(serializers.Serializer):
         required=True,
     )
     nickname = serializers.CharField(
-        max_length=PROFILE_NAME_MAX_LENGTH,
-        required=True,
-        allow_blank=False)
+        max_length=PROFILE_NAME_MAX_LENGTH, required=True, allow_blank=False
+    )
 
 
 class EmailUserInviteSerializer(serializers.Serializer):

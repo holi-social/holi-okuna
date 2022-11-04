@@ -8,7 +8,12 @@ from django.utils.translation import gettext_lazy as _
 
 
 class IsNotSuspendedCheck(APIView):
-    permission_classes = (IsAuthenticated, IsNotSuspended,)
+    permission_classes = (
+        IsAuthenticated,
+        IsNotSuspended,
+    )
 
     def get(self, request):
-        return ApiMessageResponse(message=_('Congrats, you\'re not suspended :-)'), status=status.HTTP_200_OK)
+        return ApiMessageResponse(
+            message=_("Congrats, you're not suspended :-)"), status=status.HTTP_200_OK
+        )

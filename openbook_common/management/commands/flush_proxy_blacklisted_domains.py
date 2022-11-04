@@ -13,7 +13,7 @@ url_validator = URLValidator()
 
 
 class Command(BaseCommand):
-    help = 'Flush all of the proxy blacklisted domains'
+    help = "Flush all of the proxy blacklisted domains"
 
     def handle(self, *args, **options):
         ProxyBlacklistedDomain.objects.all().delete()

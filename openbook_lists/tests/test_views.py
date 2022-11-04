@@ -11,8 +11,12 @@ import logging
 import json
 
 from openbook_common.models import Emoji
-from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, make_emoji, \
-    make_fake_list_name
+from openbook_common.tests.helpers import (
+    make_user,
+    make_authentication_headers_for_user,
+    make_emoji,
+    make_fake_list_name,
+)
 from openbook_common.utils.test import uuid_id_parser
 from openbook_lists.models import List
 
@@ -38,18 +42,20 @@ class ListsAPITests(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user)
 
-        data = {
-            'name': list_name,
-            'emoji_id': emoji_id
-        }
+        data = {"name": list_name, "emoji_id": emoji_id}
 
         url = self._get_url()
 
-        response = self.client.put(url, data, **headers, format='multipart')
+        response = self.client.put(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(List.objects.filter(name=list_name, emoji_id=emoji_id, creator_id=user.pk).count() == 1)
+        self.assertTrue(
+            List.objects.filter(
+                name=list_name, emoji_id=emoji_id, creator_id=user.pk
+            ).count()
+            == 1
+        )
 
     def test_retrieve_own_lists(self):
         """
@@ -71,11 +77,11 @@ class ListsAPITests(OpenbookAPITestCase):
         self.assertEqual(len(response_lists), len(lists_ids))
 
         for response_list in response_lists:
-            response_list_id = response_list.get('id')
+            response_list_id = response_list.get("id")
             self.assertIn(response_list_id, lists_ids)
 
     def _get_url(self):
-        return reverse('lists')
+        return reverse("lists")
 
 
 class ListItemAPITests(OpenbookAPITestCase):
@@ -99,7 +105,7 @@ class ListItemAPITests(OpenbookAPITestCase):
         response_list = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(response_list['id'] == list_id)
+        self.assertTrue(response_list["id"] == list_id)
 
     def test_delete_own_list(self):
         """
@@ -145,19 +151,21 @@ class ListItemAPITests(OpenbookAPITestCase):
         list = mixer.blend(List, creator=user)
         list_id = list.pk
 
-        new_list_name = 'New List Name'
+        new_list_name = "New List Name"
         new_emoji = mixer.blend(Emoji)
 
-        data = {
-            'name': new_list_name,
-            'emoji_id': new_emoji.pk
-        }
+        data = {"name": new_list_name, "emoji_id": new_emoji.pk}
 
         url = self._get_url(list_id)
         response = self.client.patch(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(List.objects.filter(name=new_list_name, id=list_id, emoji_id=new_emoji.pk).count() == 1)
+        self.assertTrue(
+            List.objects.filter(
+                name=new_list_name, id=list_id, emoji_id=new_emoji.pk
+            ).count()
+            == 1
+        )
 
     def test_can_update_own_list_users(self):
         """
@@ -183,9 +191,7 @@ class ListItemAPITests(OpenbookAPITestCase):
             new_users_to_follow_in_list.append(user_to_follow)
             new_users_to_follow_in_list_usernames.append(user_to_follow.username)
 
-        data = {
-            'usernames': ','.join(map(str, new_users_to_follow_in_list_usernames))
-        }
+        data = {"usernames": ",".join(map(str, new_users_to_follow_in_list_usernames))}
 
         url = self._get_url(list_id)
         headers = make_authentication_headers_for_user(user)
@@ -194,7 +200,11 @@ class ListItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         for new_user_to_follow in new_users_to_follow_in_list:
-            self.assertTrue(user.is_following_user_with_id_in_list_with_id(new_user_to_follow.pk, list_id))
+            self.assertTrue(
+                user.is_following_user_with_id_in_list_with_id(
+                    new_user_to_follow.pk, list_id
+                )
+            )
 
     def test_can_update_own_list_users_to_none(self):
         """
@@ -211,9 +221,7 @@ class ListItemAPITests(OpenbookAPITestCase):
             user_to_follow = make_user()
             user.follow_user_with_id(user_to_follow.pk, lists_ids=[list_id])
 
-        data = {
-            'usernames': ''
-        }
+        data = {"usernames": ""}
 
         url = self._get_url(list_id)
         headers = make_authentication_headers_for_user(user)
@@ -236,24 +244,24 @@ class ListItemAPITests(OpenbookAPITestCase):
         list = mixer.blend(List, creator=other_user)
         list_id = list.pk
 
-        new_list_name = 'New List Name'
+        new_list_name = "New List Name"
         new_emoji = mixer.blend(Emoji)
 
-        data = {
-            'name': new_list_name,
-            'emoji_id': new_emoji.pk
-        }
+        data = {"name": new_list_name, "emoji_id": new_emoji.pk}
 
         url = self._get_url(list_id)
         response = self.client.patch(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(List.objects.filter(name=new_list_name, id=list_id, emoji_id=new_emoji.pk).count() == 0)
+        self.assertTrue(
+            List.objects.filter(
+                name=new_list_name, id=list_id, emoji_id=new_emoji.pk
+            ).count()
+            == 0
+        )
 
     def _get_url(self, list_id):
-        return reverse('list', kwargs={
-            'list_id': list_id
-        })
+        return reverse("list", kwargs={"list_id": list_id})
 
 
 class ListNameCheckAPITests(OpenbookAPITestCase):
@@ -269,11 +277,11 @@ class ListNameCheckAPITests(OpenbookAPITestCase):
         user = make_user()
 
         list_name = make_fake_list_name()
-        request_data = {'name': list_name}
+        request_data = {"name": list_name}
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
-        response = self.client.post(url, request_data, format='json', **headers)
+        response = self.client.post(url, request_data, format="json", **headers)
 
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
@@ -286,14 +294,14 @@ class ListNameCheckAPITests(OpenbookAPITestCase):
 
         list = user.create_list(name=make_fake_list_name(), emoji_id=emoji.pk)
 
-        request_data = {'name': list.name}
+        request_data = {"name": list.name}
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
 
-        response = self.client.post(url, request_data, format='json', **headers)
+        response = self.client.post(url, request_data, format="json", **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def _get_url(self):
-        return reverse('list-name-check')
+        return reverse("list-name-check")

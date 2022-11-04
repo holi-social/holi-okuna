@@ -16,9 +16,22 @@ import logging
 import json
 
 from openbook_auth.views.authenticated_user.views import AuthenticatedUserSettings
-from openbook_common.tests.helpers import make_user, make_authentication_headers_for_user, make_user_about_me, \
-    make_user_location, make_user_avatar, make_user_cover, make_random_language, make_user_skills, make_user_sdgs, \
-    make_user_interests, make_user_engagement_level, make_user_pronouns, make_user_last_name, make_user_name
+from openbook_common.tests.helpers import (
+    make_user,
+    make_authentication_headers_for_user,
+    make_user_about_me,
+    make_user_location,
+    make_user_avatar,
+    make_user_cover,
+    make_random_language,
+    make_user_skills,
+    make_user_sdgs,
+    make_user_interests,
+    make_user_engagement_level,
+    make_user_pronouns,
+    make_user_last_name,
+    make_user_name,
+)
 from openbook_common.utils.test import uuid_id_parser
 
 fake = Faker()
@@ -31,9 +44,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
     AuthenticatedUserAPI
     """
 
-    fixtures = [
-        'openbook_circles/fixtures/circles.json'
-    ]
+    fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_can_retrieve_user(self):
         """
@@ -51,8 +62,8 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertIn('username', parsed_response)
-        response_username = parsed_response['username']
+        self.assertIn("username", parsed_response)
+        response_username = parsed_response["username"]
         self.assertEqual(response_username, user.username)
 
     def test_can_update_user_username(self):
@@ -64,9 +75,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         new_username = fake.user_name()
 
-        data = {
-            'username': new_username
-        }
+        data = {"username": new_username}
 
         url = self._get_url()
 
@@ -85,9 +94,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        data = {
-            'username': user.username
-        }
+        data = {"username": user.username}
 
         url = self._get_url()
 
@@ -108,9 +115,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         user_b = make_user()
 
-        data = {
-            'username': user_b.username
-        }
+        data = {"username": user_b.username}
 
         url = self._get_url()
 
@@ -126,34 +131,40 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         """
         should be able to update the authenticated user profile name and return 200
         """
-        self._test_can_update_user_profile_field('name', lambda user: user.profile.name, make_user_name())
+        self._test_can_update_user_profile_field(
+            "name", lambda user: user.profile.name, make_user_name()
+        )
 
     def test_can_update_user_profile_last_name(self):
         """
         should be able to update the authenticated user profile last name and return 200
         """
-        self._test_can_update_user_profile_field('last_name', lambda user: user.profile.last_name,
-                                                 make_user_last_name())
+        self._test_can_update_user_profile_field(
+            "last_name", lambda user: user.profile.last_name, make_user_last_name()
+        )
 
     def test_can_update_user_profile_about_me(self):
         """
         should be able to update the authenticated user profile about me and return 200
         """
-        self._test_can_update_user_profile_field('about_me', lambda user: user.profile.about_me,
-                                                 make_user_about_me())
+        self._test_can_update_user_profile_field(
+            "about_me", lambda user: user.profile.about_me, make_user_about_me()
+        )
 
     def test_can_update_user_profile_pronouns(self):
         """
         should be able to update the authenticated user profile pronouns and return 200
         """
-        self._test_can_update_user_profile_field('pronouns', lambda user: user.profile.pronouns, make_user_pronouns())
+        self._test_can_update_user_profile_field(
+            "pronouns", lambda user: user.profile.pronouns, make_user_pronouns()
+        )
 
     def test_can_update_user_engagement_level_if_current_value_is_none(self):
         """
         should be able to update the authenticated user profile engagement level if current value is None and return 200
         """
         self._test_can_update_user_engagement_level_if_current_value_is_none()
-    
+
     def test_can_not_update_user_engagement_level_if_current_value_is_not_none(self):
         """
         should not be able to update the authenticated user profile engagement level and return 400
@@ -170,31 +181,40 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         """
         should be able to update the authenticated user profile interests and return 200
         """
-        self._test_can_update_user_profile_field('interests', lambda user: user.profile.interests,
-                                                 make_user_interests(), as_json=True)
+        self._test_can_update_user_profile_field(
+            "interests",
+            lambda user: user.profile.interests,
+            make_user_interests(),
+            as_json=True,
+        )
 
     def test_can_update_user_profile_sdgs(self):
         """
         should be able to update the authenticated user profile sdgs and return 200
         """
-        self._test_can_update_user_profile_field('sdgs', lambda user: user.profile.sdgs, make_user_sdgs(), as_json=True)
+        self._test_can_update_user_profile_field(
+            "sdgs", lambda user: user.profile.sdgs, make_user_sdgs(), as_json=True
+        )
 
     def test_can_update_user_profile_skills(self):
         """
         should be able to update the authenticated user profile skills and return 200
         """
-        self._test_can_update_user_profile_field('skills', lambda user: user.profile.skills, make_user_skills(),
-                                                 as_json=True)
+        self._test_can_update_user_profile_field(
+            "skills", lambda user: user.profile.skills, make_user_skills(), as_json=True
+        )
 
     def test_can_update_user_profile_location(self):
         """
         should be able to update the authenticated user profile location and return 200
         """
-        self._test_can_update_user_profile_field('location', lambda user: user.profile.location, make_user_location())
+        self._test_can_update_user_profile_field(
+            "location", lambda user: user.profile.location, make_user_location()
+        )
 
     def _test_can_update_user_engagement_level_if_current_value_is_none(self):
         user = make_user()
-        
+
         # force initial value to be None
         user.profile.engagement_level = None
         user.profile.save()
@@ -203,14 +223,16 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         # get a new engagement_level value
         update_value = make_user_engagement_level()
 
-        data = {'engagement_level': update_value}
+        data = {"engagement_level": update_value}
 
         url = self._get_url()
 
         response = self.client.patch(url, data, **headers)
 
         # make sure HTTP response is expected
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"response.data {response.data}")
+        self.assertEqual(
+            response.status_code, status.HTTP_200_OK, f"response.data {response.data}"
+        )
 
         user.refresh_from_db()
 
@@ -229,14 +251,18 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         while update_value == initial_engagement_level:
             update_value = make_user_engagement_level()
 
-        data = {'engagement_level': update_value}
+        data = {"engagement_level": update_value}
 
         url = self._get_url()
 
         response = self.client.patch(url, data, **headers)
 
         # make sure HTTP response is expected
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"response.data {response.data}")
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+            f"response.data {response.data}",
+        )
 
         # make sure new retrieved value is same as initial_engagement_level
         user.refresh_from_db()
@@ -249,20 +275,24 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         update_value = user.profile.engagement_level
 
-        data = {'engagement_level': update_value}
+        data = {"engagement_level": update_value}
 
         url = self._get_url()
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"response.data {response.data}")
+        self.assertEqual(
+            response.status_code, status.HTTP_200_OK, f"response.data {response.data}"
+        )
 
         # make sure new retrieved value is same as update_value
         user.refresh_from_db()
         retrieved_value = user.profile.engagement_level
         self.assertEqual(retrieved_value, update_value)
 
-    def _test_can_update_user_profile_field(self, field_name, field_selector, update_value, as_json=False):
+    def _test_can_update_user_profile_field(
+        self, field_name, field_selector, update_value, as_json=False
+    ):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -275,7 +305,9 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"response.data {response.data}")
+        self.assertEqual(
+            response.status_code, status.HTTP_200_OK, f"response.data {response.data}"
+        )
 
         user.refresh_from_db()
 
@@ -283,41 +315,67 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         self.assertEqual(retrieved_value, update_value)
 
     def test_validates_interests_constraints(self):
-        self._user_profile_update_expect_400(self._make_json_array(field='interests',
-                                                                   length=settings.PROFILE_INTEREST_MAX_LENGTH,
-                                                                   count=settings.PROFILE_INTERESTS_MAX_COUNT + 1))
-        self._user_profile_update_expect_400(self._make_json_array(field='interests',
-                                                                   length=settings.PROFILE_INTEREST_MAX_LENGTH + 1,
-                                                                   count=settings.PROFILE_INTERESTS_MAX_COUNT))
+        self._user_profile_update_expect_400(
+            self._make_json_array(
+                field="interests",
+                length=settings.PROFILE_INTEREST_MAX_LENGTH,
+                count=settings.PROFILE_INTERESTS_MAX_COUNT + 1,
+            )
+        )
+        self._user_profile_update_expect_400(
+            self._make_json_array(
+                field="interests",
+                length=settings.PROFILE_INTEREST_MAX_LENGTH + 1,
+                count=settings.PROFILE_INTERESTS_MAX_COUNT,
+            )
+        )
 
     def test_validates_sdgs_constraints(self):
-        self._user_profile_update_expect_400(self._make_json_array(field='sdgs',
-                                                                   length=settings.PROFILE_SDG_MAX_LENGTH,
-                                                                   count=settings.PROFILE_SDGS_MAX_COUNT + 1))
-        self._user_profile_update_expect_400(self._make_json_array(field='sdgs',
-                                                                   length=settings.PROFILE_SDG_MAX_LENGTH + 1,
-                                                                   count=settings.PROFILE_SDGS_MAX_COUNT))
+        self._user_profile_update_expect_400(
+            self._make_json_array(
+                field="sdgs",
+                length=settings.PROFILE_SDG_MAX_LENGTH,
+                count=settings.PROFILE_SDGS_MAX_COUNT + 1,
+            )
+        )
+        self._user_profile_update_expect_400(
+            self._make_json_array(
+                field="sdgs",
+                length=settings.PROFILE_SDG_MAX_LENGTH + 1,
+                count=settings.PROFILE_SDGS_MAX_COUNT,
+            )
+        )
 
     def test_validates_skills_constraints(self):
-        self._user_profile_update_expect_400(self._make_json_array(field='skills',
-                                                                   length=settings.PROFILE_SKILL_MAX_LENGTH,
-                                                                   count=settings.PROFILE_SKILLS_MAX_COUNT + 1))
-        self._user_profile_update_expect_400(self._make_json_array(field='skills',
-                                                                   length=settings.PROFILE_SKILL_MAX_LENGTH + 1,
-                                                                   count=settings.PROFILE_SKILLS_MAX_COUNT))
+        self._user_profile_update_expect_400(
+            self._make_json_array(
+                field="skills",
+                length=settings.PROFILE_SKILL_MAX_LENGTH,
+                count=settings.PROFILE_SKILLS_MAX_COUNT + 1,
+            )
+        )
+        self._user_profile_update_expect_400(
+            self._make_json_array(
+                field="skills",
+                length=settings.PROFILE_SKILL_MAX_LENGTH + 1,
+                count=settings.PROFILE_SKILLS_MAX_COUNT,
+            )
+        )
 
     @staticmethod
     def _make_json_array(field, length, count):
-        return {
-            field: [fake.text(max_nb_chars=length) for _ in range(count)]
-        }
+        return {field: [fake.text(max_nb_chars=length) for _ in range(count)]}
 
     def _user_profile_update_expect_400(self, data):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         url = self._get_url()
         response = self.client.patch(url, data, **headers)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"response.data {response.data}")
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+            f"response.data {response.data}",
+        )
 
     def test_can_update_user_followers_count_visible(self):
         """
@@ -328,9 +386,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         new_followers_count_visible = not user.profile.followers_count_visible
 
-        data = {
-            'followers_count_visible': new_followers_count_visible
-        }
+        data = {"followers_count_visible": new_followers_count_visible}
 
         url = self._get_url()
 
@@ -340,7 +396,9 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         user.refresh_from_db()
 
-        self.assertEqual(user.profile.followers_count_visible, new_followers_count_visible)
+        self.assertEqual(
+            user.profile.followers_count_visible, new_followers_count_visible
+        )
 
     def test_can_update_user_community_posts_visible(self):
         """
@@ -351,9 +409,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         new_community_posts_visible = not user.profile.community_posts_visible
 
-        data = {
-            'community_posts_visible': new_community_posts_visible
-        }
+        data = {"community_posts_visible": new_community_posts_visible}
 
         url = self._get_url()
 
@@ -363,7 +419,9 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         user.refresh_from_db()
 
-        self.assertEqual(user.profile.community_posts_visible, new_community_posts_visible)
+        self.assertEqual(
+            user.profile.community_posts_visible, new_community_posts_visible
+        )
 
     def test_can_update_user_avatar(self):
         """
@@ -374,13 +432,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         new_avatar = make_user_avatar()
 
-        data = {
-            'avatar': new_avatar
-        }
+        data = {"avatar": new_avatar}
 
         url = self._get_url()
 
-        response = self.client.patch(url, data, **headers, format='multipart')
+        response = self.client.patch(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -396,16 +452,13 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         new_avatar = make_user_avatar()
-        new_username = 'paulyd97'
+        new_username = "paulyd97"
 
-        data = {
-            'avatar': new_avatar,
-            'username': new_username
-        }
+        data = {"avatar": new_avatar, "username": new_username}
 
         url = self._get_url()
 
-        response = self.client.patch(url, data, **headers, format='multipart')
+        response = self.client.patch(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -425,13 +478,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         user.save()
 
-        data = {
-            'avatar': ''
-        }
+        data = {"avatar": ""}
 
         url = self._get_url()
 
-        response = self.client.patch(url, data, **headers, format='multipart')
+        response = self.client.patch(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -448,13 +499,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         new_cover = make_user_cover()
 
-        data = {
-            'cover': new_cover
-        }
+        data = {"cover": new_cover}
 
         url = self._get_url()
 
-        response = self.client.patch(url, data, **headers, format='multipart')
+        response = self.client.patch(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -473,13 +522,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         user.save()
 
-        data = {
-            'cover': ''
-        }
+        data = {"cover": ""}
 
         url = self._get_url()
 
-        response = self.client.patch(url, data, **headers, format='multipart')
+        response = self.client.patch(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -498,9 +545,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         user.save()
 
-        data = {
-            'about_me': ''
-        }
+        data = {"about_me": ""}
 
         url = self._get_url()
 
@@ -523,9 +568,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         user.save()
 
-        data = {
-            'location': ''
-        }
+        data = {"location": ""}
 
         url = self._get_url()
 
@@ -548,9 +591,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         user.save()
 
-        data = {
-            'url': ''
-        }
+        data = {"url": ""}
 
         url = self._get_url()
 
@@ -571,9 +612,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         new_url = fake.url()
 
-        data = {
-            'url': new_url
-        }
+        data = {"url": new_url}
 
         url = self._get_url()
 
@@ -598,9 +637,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         unfully_qualified_url = parsed_url.netloc
 
-        data = {
-            'url': unfully_qualified_url
-        }
+        data = {"url": unfully_qualified_url}
 
         url = self._get_url()
 
@@ -610,7 +647,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         user.refresh_from_db()
 
-        self.assertEqual('https://' + unfully_qualified_url, user.profile.url)
+        self.assertEqual("https://" + unfully_qualified_url, user.profile.url)
 
     def test_can_update_user_visibility(self):
         """
@@ -624,9 +661,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
                 user = make_user(visibility=initial_visibility)
                 headers = make_authentication_headers_for_user(user)
 
-                data = {
-                    'visibility': new_visibility
-                }
+                data = {"visibility": new_visibility}
 
                 url = self._get_url()
 
@@ -638,7 +673,9 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
                 self.assertEqual(user.visibility, new_visibility)
 
-    def test_when_updating_visibility_to_public_existing_follow_requests_get_deleted(self):
+    def test_when_updating_visibility_to_public_existing_follow_requests_get_deleted(
+        self,
+    ):
         """
         when updating the visibility to public, existing follow requests should be deleted
         """
@@ -651,9 +688,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         user_requesting_to_follow = make_user()
         user_requesting_to_follow.create_follow_request_for_user(user=user)
 
-        data = {
-            'visibility': new_visibility
-        }
+        data = {"visibility": new_visibility}
 
         url = self._get_url()
 
@@ -663,7 +698,9 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         self.assertFalse(user.has_follow_request_from_user(user_requesting_to_follow))
 
-    def test_when_updating_visibility_to_private_existing_connection_requests_get_deleted(self):
+    def test_when_updating_visibility_to_private_existing_connection_requests_get_deleted(
+        self,
+    ):
         """
         when updating the visibility to private, existing connection requests should be deleted
         """
@@ -678,11 +715,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         for i in range(number_of_connection_requests):
             user_requesting_to_connect = make_user()
             circle_to_connect = mixer.blend(Circle, creator=user_requesting_to_connect)
-            user_requesting_to_connect.connect_with_user_with_id(user.pk, circles_ids=[circle_to_connect.pk])
+            user_requesting_to_connect.connect_with_user_with_id(
+                user.pk, circles_ids=[circle_to_connect.pk]
+            )
 
-        data = {
-            'visibility': new_visibility
-        }
+        data = {"visibility": new_visibility}
 
         url = self._get_url()
 
@@ -693,14 +730,18 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         self.assertEqual(user.targeted_connections.count(), 0)
 
     def test_when_updating_visibility_to_non_private_from_non_private_existing_connection_requests_dont_get_deleted(
-            self):
+        self,
+    ):
         """
         when updating the visibility from non private, to another non private, connection requests should not be deleted
         """
 
         for initial_visibility, name in User.VISIBILITY_TYPES:
             for new_visibility, n_name in User.VISIBILITY_TYPES:
-                if initial_visibility == User.VISIBILITY_TYPE_PRIVATE or new_visibility == User.VISIBILITY_TYPE_PRIVATE:
+                if (
+                    initial_visibility == User.VISIBILITY_TYPE_PRIVATE
+                    or new_visibility == User.VISIBILITY_TYPE_PRIVATE
+                ):
                     return
 
                 user = make_user(visibility=initial_visibility)
@@ -710,12 +751,14 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
                 for i in range(number_of_connection_requests):
                     user_requesting_to_connect = make_user()
-                    circle_to_connect = mixer.blend(Circle, creator=user_requesting_to_connect)
-                    user_requesting_to_connect.connect_with_user_with_id(user.pk, circles_ids=[circle_to_connect.pk])
+                    circle_to_connect = mixer.blend(
+                        Circle, creator=user_requesting_to_connect
+                    )
+                    user_requesting_to_connect.connect_with_user_with_id(
+                        user.pk, circles_ids=[circle_to_connect.pk]
+                    )
 
-                data = {
-                    'visibility': new_visibility
-                }
+                data = {"visibility": new_visibility}
 
                 url = self._get_url()
 
@@ -723,16 +766,16 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
                 self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-                self.assertEqual(user.targeted_connections.count(), number_of_connection_requests)
+                self.assertEqual(
+                    user.targeted_connections.count(), number_of_connection_requests
+                )
 
     def _get_url(self):
-        return reverse('authenticated-user')
+        return reverse("authenticated-user")
 
 
 class AuthenticatedUserDeleteTests(OpenbookAPITestCase):
-    fixtures = [
-        'openbook_circles/fixtures/circles.json'
-    ]
+    fixtures = ["openbook_circles/fixtures/circles.json"]
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_can_delete_user_with_password(self):
@@ -748,9 +791,7 @@ class AuthenticatedUserDeleteTests(OpenbookAPITestCase):
 
         user.save()
 
-        data = {
-            'password': user_password
-        }
+        data = {"password": user_password}
 
         url = self._get_url()
 
@@ -772,9 +813,7 @@ class AuthenticatedUserDeleteTests(OpenbookAPITestCase):
 
         user.save()
 
-        data = {
-            'password': user_password
-        }
+        data = {"password": user_password}
 
         url = self._get_url()
 
@@ -803,7 +842,7 @@ class AuthenticatedUserDeleteTests(OpenbookAPITestCase):
         self.assertTrue(User.objects.filter(pk=user.pk).exists())
 
     def _get_url(self):
-        return reverse('delete-authenticated-user')
+        return reverse("delete-authenticated-user")
 
 
 class AuthenticatedUserNotificationsSettingsTests(OpenbookAPITestCase):
@@ -827,8 +866,8 @@ class AuthenticatedUserNotificationsSettingsTests(OpenbookAPITestCase):
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertIn('id', parsed_response)
-        response_id = parsed_response['id']
+        self.assertIn("id", parsed_response)
+        response_id = parsed_response["id"]
         self.assertEqual(response_id, user.notifications_settings.pk)
 
     def test_can_update_notifications_settings(self):
@@ -857,36 +896,62 @@ class AuthenticatedUserNotificationsSettingsTests(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user)
 
-        new_post_comment_notifications = not notifications_settings.post_comment_notifications
-        new_post_reaction_notifications = not notifications_settings.post_reaction_notifications
+        new_post_comment_notifications = (
+            not notifications_settings.post_comment_notifications
+        )
+        new_post_reaction_notifications = (
+            not notifications_settings.post_reaction_notifications
+        )
         new_follow_notifications = not notifications_settings.follow_notifications
-        new_follow_request_notifications = not notifications_settings.follow_request_notifications
-        new_follow_request_approved_notifications = not notifications_settings.follow_request_approved_notifications
-        new_connection_request_notifications = not notifications_settings.connection_request_notifications
-        new_connection_confirmed_notifications = not notifications_settings.connection_confirmed_notifications
-        new_community_invite_notifications = not notifications_settings.community_invite_notifications
-        new_community_new_post_notifications = not notifications_settings.community_new_post_notifications
-        new_user_new_post_notifications = not notifications_settings.user_new_post_notifications
-        new_post_comment_reaction_notifications = not notifications_settings.post_comment_reaction_notifications
-        new_post_comment_reply_notifications = not notifications_settings.post_comment_reply_notifications
-        new_post_comment_user_mention_notifications = not notifications_settings.post_comment_user_mention_notifications
-        new_post_user_mention_notifications = not notifications_settings.post_user_mention_notifications
+        new_follow_request_notifications = (
+            not notifications_settings.follow_request_notifications
+        )
+        new_follow_request_approved_notifications = (
+            not notifications_settings.follow_request_approved_notifications
+        )
+        new_connection_request_notifications = (
+            not notifications_settings.connection_request_notifications
+        )
+        new_connection_confirmed_notifications = (
+            not notifications_settings.connection_confirmed_notifications
+        )
+        new_community_invite_notifications = (
+            not notifications_settings.community_invite_notifications
+        )
+        new_community_new_post_notifications = (
+            not notifications_settings.community_new_post_notifications
+        )
+        new_user_new_post_notifications = (
+            not notifications_settings.user_new_post_notifications
+        )
+        new_post_comment_reaction_notifications = (
+            not notifications_settings.post_comment_reaction_notifications
+        )
+        new_post_comment_reply_notifications = (
+            not notifications_settings.post_comment_reply_notifications
+        )
+        new_post_comment_user_mention_notifications = (
+            not notifications_settings.post_comment_user_mention_notifications
+        )
+        new_post_user_mention_notifications = (
+            not notifications_settings.post_user_mention_notifications
+        )
 
         data = {
-            'post_comment_notifications': new_post_comment_notifications,
-            'post_reaction_notifications': new_post_reaction_notifications,
-            'follow_notifications': new_follow_notifications,
-            'follow_request_notifications': new_follow_request_notifications,
-            'follow_request_approved_notifications': new_follow_request_approved_notifications,
-            'connection_request_notifications': new_connection_request_notifications,
-            'connection_confirmed_notifications': new_connection_confirmed_notifications,
-            'community_invite_notifications': new_community_invite_notifications,
-            'community_new_post_notifications': new_community_new_post_notifications,
-            'user_new_post_notifications': new_user_new_post_notifications,
-            'post_comment_reply_notifications': new_post_comment_reply_notifications,
-            'post_comment_reaction_notifications': new_post_comment_reaction_notifications,
-            'post_comment_user_mention_notifications': new_post_comment_user_mention_notifications,
-            'post_user_mention_notifications': new_post_user_mention_notifications
+            "post_comment_notifications": new_post_comment_notifications,
+            "post_reaction_notifications": new_post_reaction_notifications,
+            "follow_notifications": new_follow_notifications,
+            "follow_request_notifications": new_follow_request_notifications,
+            "follow_request_approved_notifications": new_follow_request_approved_notifications,
+            "connection_request_notifications": new_connection_request_notifications,
+            "connection_confirmed_notifications": new_connection_confirmed_notifications,
+            "community_invite_notifications": new_community_invite_notifications,
+            "community_new_post_notifications": new_community_new_post_notifications,
+            "user_new_post_notifications": new_user_new_post_notifications,
+            "post_comment_reply_notifications": new_post_comment_reply_notifications,
+            "post_comment_reaction_notifications": new_post_comment_reaction_notifications,
+            "post_comment_user_mention_notifications": new_post_comment_user_mention_notifications,
+            "post_user_mention_notifications": new_post_user_mention_notifications,
         }
 
         url = self._get_url()
@@ -897,32 +962,64 @@ class AuthenticatedUserNotificationsSettingsTests(OpenbookAPITestCase):
 
         notifications_settings.refresh_from_db()
 
-        self.assertEqual(notifications_settings.post_comment_notifications, new_post_comment_notifications)
-        self.assertEqual(notifications_settings.post_reaction_notifications, new_post_reaction_notifications)
-        self.assertEqual(notifications_settings.follow_notifications, new_follow_notifications)
-        self.assertEqual(notifications_settings.follow_request_notifications, new_follow_request_notifications)
-        self.assertEqual(notifications_settings.follow_request_approved_notifications,
-                         new_follow_request_approved_notifications)
-        self.assertEqual(notifications_settings.connection_request_notifications, new_connection_request_notifications)
-        self.assertEqual(notifications_settings.community_invite_notifications, new_community_invite_notifications)
-        self.assertEqual(notifications_settings.community_new_post_notifications, new_community_new_post_notifications)
-        self.assertEqual(notifications_settings.user_new_post_notifications, new_user_new_post_notifications)
-        self.assertEqual(notifications_settings.connection_confirmed_notifications,
-                         new_connection_confirmed_notifications)
-        self.assertEqual(notifications_settings.post_comment_reply_notifications,
-                         new_post_comment_reply_notifications)
-        self.assertEqual(notifications_settings.post_comment_reaction_notifications,
-                         new_post_comment_reaction_notifications)
+        self.assertEqual(
+            notifications_settings.post_comment_notifications,
+            new_post_comment_notifications,
+        )
+        self.assertEqual(
+            notifications_settings.post_reaction_notifications,
+            new_post_reaction_notifications,
+        )
+        self.assertEqual(
+            notifications_settings.follow_notifications, new_follow_notifications
+        )
+        self.assertEqual(
+            notifications_settings.follow_request_notifications,
+            new_follow_request_notifications,
+        )
+        self.assertEqual(
+            notifications_settings.follow_request_approved_notifications,
+            new_follow_request_approved_notifications,
+        )
+        self.assertEqual(
+            notifications_settings.connection_request_notifications,
+            new_connection_request_notifications,
+        )
+        self.assertEqual(
+            notifications_settings.community_invite_notifications,
+            new_community_invite_notifications,
+        )
+        self.assertEqual(
+            notifications_settings.community_new_post_notifications,
+            new_community_new_post_notifications,
+        )
+        self.assertEqual(
+            notifications_settings.user_new_post_notifications,
+            new_user_new_post_notifications,
+        )
+        self.assertEqual(
+            notifications_settings.connection_confirmed_notifications,
+            new_connection_confirmed_notifications,
+        )
+        self.assertEqual(
+            notifications_settings.post_comment_reply_notifications,
+            new_post_comment_reply_notifications,
+        )
+        self.assertEqual(
+            notifications_settings.post_comment_reaction_notifications,
+            new_post_comment_reaction_notifications,
+        )
 
     def _get_url(self):
-        return reverse('authenticated-user-notifications-settings')
+        return reverse("authenticated-user-notifications-settings")
 
 
 class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
     """
     User Settings API
     """
-    url = reverse('authenticated-user-settings')
+
+    url = reverse("authenticated-user-settings")
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_can_change_password_successfully(self):
@@ -936,16 +1033,13 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
 
         new_password = fake.password()
 
-        data = {
-            'new_password': new_password,
-            'current_password': current_raw_password
-        }
+        data = {"new_password": new_password, "current_password": current_raw_password}
 
         response = self.client.patch(self.url, data, **headers)
         parsed_reponse = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(parsed_reponse['username'], user.username)
+        self.assertEqual(parsed_reponse["username"], user.username)
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_cannot_change_password_without_current_password(self):
@@ -957,9 +1051,7 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
 
         new_password = fake.password()
 
-        data = {
-            'new_password': new_password
-        }
+        data = {"new_password": new_password}
 
         response = self.client.patch(self.url, data, **headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -976,8 +1068,8 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
         new_password = fake.password()
 
         data = {
-            'new_password': new_password,
-            'current_password': fake.password()  # use another fake password
+            "new_password": new_password,
+            "current_password": fake.password(),  # use another fake password
         }
 
         response = self.client.patch(self.url, data, **headers)
@@ -993,9 +1085,7 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
         user.update_password(user.password)  # make sure hashed password is stored
         headers = make_authentication_headers_for_user(user)
 
-        data = {
-            'current_password': current_raw_password
-        }
+        data = {"current_password": current_raw_password}
 
         response = self.client.patch(self.url, data, **headers)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -1008,11 +1098,11 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        data = {
-            'email': user.email
-        }
+        data = {"email": user.email}
 
-        with mock.patch.object(AuthenticatedUserSettings, 'send_confirmation_email', return_value=None):
+        with mock.patch.object(
+            AuthenticatedUserSettings, "send_confirmation_email", return_value=None
+        ):
             response = self.client.patch(self.url, data, **headers)
 
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -1022,7 +1112,8 @@ class AuthenticatedUserAcceptGuidelines(OpenbookAPITestCase):
     """
     AuthenticatedUserAcceptGuidelines API
     """
-    url = reverse('authenticated-user-accept-guidelines')
+
+    url = reverse("authenticated-user-accept-guidelines")
 
     def test_can_accept_guidelines(self):
         """
@@ -1062,9 +1153,7 @@ class AuthenticatedUserLanguageAPI(OpenbookAPITestCase):
     AuthenticatedUserLanguageAPI API
     """
 
-    fixtures = [
-        'openbook_common/fixtures/languages.json'
-    ]
+    fixtures = ["openbook_common/fixtures/languages.json"]
 
     def test_can_get_all_languages(self):
         """
@@ -1087,9 +1176,7 @@ class AuthenticatedUserLanguageAPI(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         language = make_random_language()
 
-        response = self.client.post(self.url, {
-            'language_id': language.id
-        }, **headers)
+        response = self.client.post(self.url, {"language_id": language.id}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         user.refresh_from_db()
@@ -1105,9 +1192,7 @@ class AuthenticatedUserLanguageAPI(OpenbookAPITestCase):
         user.save()
         headers = make_authentication_headers_for_user(user)
 
-        response = self.client.post(self.url, {
-            'language_id': 99999
-        }, **headers)
+        response = self.client.post(self.url, {"language_id": 99999}, **headers)
 
         print(response)
 
@@ -1115,4 +1200,4 @@ class AuthenticatedUserLanguageAPI(OpenbookAPITestCase):
         user.refresh_from_db()
         self.assertTrue(user.language.id, language.id)
 
-    url = reverse('user-language')
+    url = reverse("user-language")

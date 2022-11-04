@@ -8,9 +8,9 @@ class ModerationCategorySerializer(serializers.ModelSerializer):
         model = ModerationCategory
 
         fields = (
-            'id',
-            'name',
-            'title',
-            'severity',
-            'description',
+            "id",
+            "name",
+            "title",
+            "severity",
+            "description",
         )

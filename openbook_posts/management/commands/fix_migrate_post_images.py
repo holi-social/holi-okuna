@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Fixed migrates the Post.image\'s to PostMedia items'
+    help = "Fixed migrates the Post.image's to PostMedia items"
 
     def handle(self, *args, **options):
         Post = get_post_model()
@@ -24,7 +24,7 @@ class Command(BaseCommand):
                 if isinstance(post_image, PostImage):
                     post_image.post = post
                     post_image.save()
-                    logger.info('Fixed migrated post with id:' + str(post.pk))
+                    logger.info("Fixed migrated post with id:" + str(post.pk))
             migrated_posts = migrated_posts + 1
 
-        logger.info('Fixed migrated %d posts' % migrated_posts)
+        logger.info("Fixed migrated %d posts" % migrated_posts)

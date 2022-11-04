@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class OpenbookNotificationsConfig(AppConfig):
-    name = 'openbook_notifications'
+    name = "openbook_notifications"

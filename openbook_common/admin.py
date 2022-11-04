@@ -10,17 +10,9 @@ class EmojiGroupEmoji(admin.TabularInline):
 
 
 class EmojiGroupAdmin(TranslationAdmin):
-    inlines = [
-        EmojiGroupEmoji
-    ]
+    inlines = [EmojiGroupEmoji]
 
-    list_display = (
-        'id',
-        'keyword',
-        'created',
-        'color',
-        'order'
-    )
+    list_display = ("id", "keyword", "created", "color", "order")
 
 
 admin.site.register(EmojiGroup, EmojiGroupAdmin)
@@ -41,9 +33,7 @@ admin.site.register(Badge, BadgeAdmin)
 
 
 class ProxyBlacklistDomainAdmin(admin.ModelAdmin):
-    list_display = (
-        'domain',
-    )
+    list_display = ("domain",)
 
 
 admin.site.register(ProxyBlacklistedDomain, ProxyBlacklistDomainAdmin)

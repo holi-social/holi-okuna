@@ -18,8 +18,17 @@ import random
 
 import logging
 
-from openbook_common.tests.helpers import make_authentication_headers_for_user, make_fake_post_text, \
-    make_user, get_test_videos, get_test_image, get_test_video, make_circle, make_community, get_test_images
+from openbook_common.tests.helpers import (
+    make_authentication_headers_for_user,
+    make_fake_post_text,
+    make_user,
+    get_test_videos,
+    get_test_image,
+    get_test_video,
+    make_circle,
+    make_community,
+    get_test_images,
+)
 from openbook_common.utils.test import uuid_id_parser
 from openbook_communities.models import Community
 from openbook_posts.models import PostMedia, Post
@@ -34,7 +43,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
     """
 
     fixtures = [
-        'openbook_circles/fixtures/circles.json',
+        "openbook_circles/fixtures/circles.json",
     ]
 
     def test_can_add_media_image_to_draft_post(self):
@@ -49,18 +58,16 @@ class PostMediaAPITests(OpenbookAPITestCase):
         image_width = random.randint(100, 500)
         image_height = random.randint(100, 500)
 
-        image = Image.new('RGB', (image_width, image_height))
-        tmp_file = tempfile.NamedTemporaryFile(suffix='.jpg')
+        image = Image.new("RGB", (image_width, image_height))
+        tmp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
         image.save(tmp_file)
         tmp_file.seek(0)
 
-        data = {
-            'file': tmp_file
-        }
+        data = {"file": tmp_file}
 
         url = self._get_url(post=draft_post)
 
-        response = self.client.put(url, data, **headers, format='multipart')
+        response = self.client.put(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -82,13 +89,13 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         post_image = post_media_image.content_object
 
-        self.assertTrue(hasattr(post_image, 'image'))
+        self.assertTrue(hasattr(post_image, "image"))
 
         self.assertEqual(post_image.width, image_width)
         self.assertEqual(post_image.width, image_width)
 
         # Not for long though
-        self.assertTrue(hasattr(draft_post, 'image'))
+        self.assertTrue(hasattr(draft_post, "image"))
 
     def test_can_add_media_video_to_draft_post(self):
         """
@@ -100,17 +107,14 @@ class PostMediaAPITests(OpenbookAPITestCase):
         test_videos = get_test_videos()
 
         for test_video in test_videos:
-            with open(test_video['path'], 'rb') as file:
+            with open(test_video["path"], "rb") as file:
                 draft_post = user.create_public_post(is_draft=True)
 
-                data = {
-                    'file': file
-                }
+                data = {"file": file}
 
                 url = self._get_url(post=draft_post)
 
-                response = self.client.put(
-                    url, data, **headers, format='multipart')
+                response = self.client.put(url, data, **headers, format="multipart")
 
                 self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -126,14 +130,13 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
                 post_media_video = post_media[0]
 
-                self.assertEqual(post_media_video.type,
-                                 PostMedia.MEDIA_TYPE_VIDEO)
+                self.assertEqual(post_media_video.type, PostMedia.MEDIA_TYPE_VIDEO)
 
                 self.assertEqual(post_media_video.order, 0)
 
                 post_video = post_media_video.content_object
 
-                self.assertTrue(hasattr(post_video, 'file'))
+                self.assertTrue(hasattr(post_video, "file"))
 
     def test_cant_add_media_image_to_published_post(self):
         """
@@ -144,18 +147,16 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         post = user.create_public_post(text=make_fake_post_text())
 
-        image = Image.new('RGB', (100, 100))
-        tmp_file = tempfile.NamedTemporaryFile(suffix='.jpg')
+        image = Image.new("RGB", (100, 100))
+        tmp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
         image.save(tmp_file)
         tmp_file.seek(0)
 
-        data = {
-            'file': tmp_file
-        }
+        data = {"file": tmp_file}
 
         url = self._get_url(post=post)
 
-        response = self.client.put(url, data, **headers, format='multipart')
+        response = self.client.put(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(post.has_media())
@@ -169,21 +170,19 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         draft_post = user.create_public_post(is_draft=True)
 
-        image = Image.new('RGB', (100, 100))
-        image_tmp_file = tempfile.NamedTemporaryFile(suffix='.jpg')
+        image = Image.new("RGB", (100, 100))
+        image_tmp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
         image.save(image_tmp_file)
         image_tmp_file.seek(0)
 
         for i in range(0, settings.POST_MEDIA_MAX_ITEMS):
             user.add_media_to_post(post=draft_post, file=File(image_tmp_file))
 
-        data = {
-            'file': image_tmp_file
-        }
+        data = {"file": image_tmp_file}
 
         url = self._get_url(post=draft_post)
 
-        response = self.client.put(url, data, **headers, format='multipart')
+        response = self.client.put(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -195,17 +194,14 @@ class PostMediaAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user=user)
 
         for test_video in get_test_videos():
-            with open(test_video['path'], 'rb') as file:
+            with open(test_video["path"], "rb") as file:
                 post = user.create_public_post(is_draft=True)
 
-                data = {
-                    'file': file
-                }
+                data = {"file": file}
 
                 url = self._get_url(post=post)
 
-                response = self.client.put(
-                    url, data, **headers, format='multipart')
+                response = self.client.put(url, data, **headers, format="multipart")
 
                 self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -214,12 +210,16 @@ class PostMediaAPITests(OpenbookAPITestCase):
                 post_video = post.get_first_media().content_object
 
                 post_video_aspect_ratio = post_video.width / post_video.height
-                post_video_thumbnail_aspect_ratio = post_video.thumbnail_width / \
-                    post_video.thumbnail_height
+                post_video_thumbnail_aspect_ratio = (
+                    post_video.thumbnail_width / post_video.thumbnail_height
+                )
                 post_media_aspect_ratio = post.media_width / post.media_height
 
-                self.assertTrue(post_video_aspect_ratio ==
-                                post_media_aspect_ratio == post_video_thumbnail_aspect_ratio)
+                self.assertTrue(
+                    post_video_aspect_ratio
+                    == post_media_aspect_ratio
+                    == post_video_thumbnail_aspect_ratio
+                )
 
                 self.assertIsNotNone(post.media_thumbnail)
                 self.assertIsNotNone(post.media_width)
@@ -234,17 +234,14 @@ class PostMediaAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user=user)
 
         for test_image in get_test_images():
-            with open(test_image['path'], 'rb') as file:
+            with open(test_image["path"], "rb") as file:
                 post = user.create_public_post(is_draft=True)
 
-                data = {
-                    'file': file
-                }
+                data = {"file": file}
 
                 url = self._get_url(post=post)
 
-                response = self.client.put(
-                    url, data, **headers, format='multipart')
+                response = self.client.put(url, data, **headers, format="multipart")
 
                 self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -255,8 +252,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
                 post_image_aspect_ratio = post_image.width / post_image.height
                 post_media_aspect_ratio = post.media_width / post.media_height
 
-                self.assertEqual(post_image_aspect_ratio,
-                                 post_media_aspect_ratio)
+                self.assertEqual(post_image_aspect_ratio, post_media_aspect_ratio)
 
                 self.assertIsNotNone(post.media_thumbnail)
 
@@ -273,17 +269,14 @@ class PostMediaAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user=user)
 
         for test_image in get_test_images():
-            with open(test_image['path'], 'rb') as file:
+            with open(test_image["path"], "rb") as file:
                 post = user.create_public_post(is_draft=True)
 
-                data = {
-                    'file': file
-                }
+                data = {"file": file}
 
                 url = self._get_url(post=post)
 
-                response = self.client.put(
-                    url, data, **headers, format='multipart')
+                response = self.client.put(url, data, **headers, format="multipart")
 
                 self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -307,7 +300,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         url = self._get_url(post=post)
 
-        response = self.client.get(url, **headers, format='multipart')
+        response = self.client.get(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -325,15 +318,15 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         test_image = get_test_image()
 
-        with open(test_image['path'], 'rb') as file:
+        with open(test_image["path"], "rb") as file:
             file = File(file)
             post = user.create_public_post(image=file)
 
-        get_worker('high', worker_class=SimpleWorker).work(burst=True)
+        get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
         url = self._get_url(post=post)
 
-        response = self.client.get(url, **headers, format='multipart')
+        response = self.client.get(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -344,9 +337,10 @@ class PostMediaAPITests(OpenbookAPITestCase):
         post_media = post.get_media().all()
 
         self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media)
+            post_media=post_media, response_media=response_media
+        )
 
-    @tag('failing')
+    @tag("failing")
     def test_can_retrieve_own_post_media_video(self):
         """
         should be able to retrieve an own post media video
@@ -357,15 +351,15 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         test_video = get_test_video()
 
-        with open(test_video['path'], 'rb') as file:
+        with open(test_video["path"], "rb") as file:
             file = File(file)
             post = user.create_public_post(video=file)
 
-        get_worker('high', worker_class=SimpleWorker).work(burst=True)
+        get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
         url = self._get_url(post=post)
 
-        response = self.client.get(url, **headers, format='multipart')
+        response = self.client.get(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -376,7 +370,8 @@ class PostMediaAPITests(OpenbookAPITestCase):
         post_media = post.get_media().all()
 
         self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media)
+            post_media=post_media, response_media=response_media
+        )
 
         # foreign
 
@@ -392,15 +387,15 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         test_image = get_test_image()
 
-        with open(test_image['path'], 'rb') as file:
+        with open(test_image["path"], "rb") as file:
             file = File(file)
             post = foreign_user.create_public_post(image=file)
 
-        get_worker('high', worker_class=SimpleWorker).work(burst=True)
+        get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
         url = self._get_url(post=post)
 
-        response = self.client.get(url, **headers, format='multipart')
+        response = self.client.get(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -411,7 +406,8 @@ class PostMediaAPITests(OpenbookAPITestCase):
         post_media = post.get_media().all()
 
         self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media)
+            post_media=post_media, response_media=response_media
+        )
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_foreign_user_post_media_video(self):
@@ -425,15 +421,15 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         test_video = get_test_video()
 
-        with open(test_video['path'], 'rb') as file:
+        with open(test_video["path"], "rb") as file:
             file = File(file)
             post = foreign_user.create_public_post(video=file)
 
-        get_worker('high', worker_class=SimpleWorker).work(burst=True)
+        get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
         url = self._get_url(post=post)
 
-        response = self.client.get(url, **headers, format='multipart')
+        response = self.client.get(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -444,7 +440,8 @@ class PostMediaAPITests(OpenbookAPITestCase):
         post_media = post.get_media().all()
 
         self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media)
+            post_media=post_media, response_media=response_media
+        )
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_following_user_post_media_image(self):
@@ -460,15 +457,15 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         test_image = get_test_image()
 
-        with open(test_image['path'], 'rb') as file:
+        with open(test_image["path"], "rb") as file:
             file = File(file)
             post = following_user.create_public_post(image=file)
 
-        get_worker('high', worker_class=SimpleWorker).work(burst=True)
+        get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
         url = self._get_url(post=post)
 
-        response = self.client.get(url, **headers, format='multipart')
+        response = self.client.get(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -479,7 +476,8 @@ class PostMediaAPITests(OpenbookAPITestCase):
         post_media = post.get_media().all()
 
         self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media)
+            post_media=post_media, response_media=response_media
+        )
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_following_user_post_media_video(self):
@@ -495,15 +493,15 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         test_video = get_test_video()
 
-        with open(test_video['path'], 'rb') as file:
+        with open(test_video["path"], "rb") as file:
             file = File(file)
             post = following_user.create_public_post(video=file)
 
-        get_worker('high', worker_class=SimpleWorker).work(burst=True)
+        get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
         url = self._get_url(post=post)
 
-        response = self.client.get(url, **headers, format='multipart')
+        response = self.client.get(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -514,7 +512,8 @@ class PostMediaAPITests(OpenbookAPITestCase):
         post_media = post.get_media().all()
 
         self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media)
+            post_media=post_media, response_media=response_media
+        )
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_follower_user_post_media_image(self):
@@ -530,15 +529,15 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         test_image = get_test_image()
 
-        with open(test_image['path'], 'rb') as file:
+        with open(test_image["path"], "rb") as file:
             file = File(file)
             post = follower_user.create_public_post(image=file)
 
-        get_worker('high', worker_class=SimpleWorker).work(burst=True)
+        get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
         url = self._get_url(post=post)
 
-        response = self.client.get(url, **headers, format='multipart')
+        response = self.client.get(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -549,7 +548,8 @@ class PostMediaAPITests(OpenbookAPITestCase):
         post_media = post.get_media().all()
 
         self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media)
+            post_media=post_media, response_media=response_media
+        )
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_follower_user_post_media_video(self):
@@ -565,15 +565,15 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         test_video = get_test_video()
 
-        with open(test_video['path'], 'rb') as file:
+        with open(test_video["path"], "rb") as file:
             file = File(file)
             post = follower_user.create_public_post(video=file)
 
-        get_worker('high', worker_class=SimpleWorker).work(burst=True)
+        get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
         url = self._get_url(post=post)
 
-        response = self.client.get(url, **headers, format='multipart')
+        response = self.client.get(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -584,7 +584,8 @@ class PostMediaAPITests(OpenbookAPITestCase):
         post_media = post.get_media().all()
 
         self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media)
+            post_media=post_media, response_media=response_media
+        )
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_connected_user_post_media_image(self):
@@ -596,23 +597,25 @@ class PostMediaAPITests(OpenbookAPITestCase):
         circle = make_circle(creator=connected_user)
 
         connected_user.connect_with_user_with_id(
-            user_id=user.pk, circles_ids=[circle.pk])
+            user_id=user.pk, circles_ids=[circle.pk]
+        )
         user.confirm_connection_with_user_with_id(user_id=connected_user.pk)
 
         headers = make_authentication_headers_for_user(user=user)
 
         test_image = get_test_image()
 
-        with open(test_image['path'], 'rb') as file:
+        with open(test_image["path"], "rb") as file:
             file = File(file)
             post = connected_user.create_encircled_post(
-                image=file, circles_ids=[circle.pk])
+                image=file, circles_ids=[circle.pk]
+            )
 
-        get_worker('high', worker_class=SimpleWorker).work(burst=True)
+        get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
         url = self._get_url(post=post)
 
-        response = self.client.get(url, **headers, format='multipart')
+        response = self.client.get(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -623,7 +626,8 @@ class PostMediaAPITests(OpenbookAPITestCase):
         post_media = post.get_media().all()
 
         self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media)
+            post_media=post_media, response_media=response_media
+        )
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_connected_user_post_media_video(self):
@@ -636,23 +640,25 @@ class PostMediaAPITests(OpenbookAPITestCase):
         circle = make_circle(creator=connected_user)
 
         connected_user.connect_with_user_with_id(
-            user_id=user.pk, circles_ids=[circle.pk])
+            user_id=user.pk, circles_ids=[circle.pk]
+        )
         user.confirm_connection_with_user_with_id(user_id=connected_user.pk)
 
         headers = make_authentication_headers_for_user(user=user)
 
         test_video = get_test_video()
 
-        with open(test_video['path'], 'rb') as file:
+        with open(test_video["path"], "rb") as file:
             file = File(file)
             post = connected_user.create_encircled_post(
-                video=file, circles_ids=[circle.pk])
+                video=file, circles_ids=[circle.pk]
+            )
 
-        get_worker('high', worker_class=SimpleWorker).work(burst=True)
+        get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
         url = self._get_url(post=post)
 
-        response = self.client.get(url, **headers, format='multipart')
+        response = self.client.get(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -663,9 +669,12 @@ class PostMediaAPITests(OpenbookAPITestCase):
         post_media = post.get_media().all()
 
         self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media)
+            post_media=post_media, response_media=response_media
+        )
 
-    def test_cant_retrieve_pending_connection_user_user_encircled_post_media_image(self):
+    def test_cant_retrieve_pending_connection_user_user_encircled_post_media_image(
+        self,
+    ):
         """
         should not be able to retrieve an pending_connection_user_user encircled post media image
         """
@@ -678,21 +687,24 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         test_image = get_test_image()
 
-        with open(test_image['path'], 'rb') as file:
+        with open(test_image["path"], "rb") as file:
             file = File(file)
             circle = make_circle(creator=pending_connection_user_user)
             post = pending_connection_user_user.create_encircled_post(
-                image=file, circles_ids=[circle.pk])
+                image=file, circles_ids=[circle.pk]
+            )
 
-        get_worker('high', worker_class=SimpleWorker).work(burst=True)
+        get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
         url = self._get_url(post=post)
 
-        response = self.client.get(url, **headers, format='multipart')
+        response = self.client.get(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_cant_retrieve_pending_connection_user_user_encircled_post_media_video(self):
+    def test_cant_retrieve_pending_connection_user_user_encircled_post_media_video(
+        self,
+    ):
         """
         should be able to retrieve an pending_connection_user_user encircled post media video
         """
@@ -705,17 +717,18 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         test_video = get_test_video()
 
-        with open(test_video['path'], 'rb') as file:
+        with open(test_video["path"], "rb") as file:
             file = File(file)
             circle = make_circle(creator=pending_connection_user_user)
             post = pending_connection_user_user.create_encircled_post(
-                video=file, circles_ids=[circle.pk])
+                video=file, circles_ids=[circle.pk]
+            )
 
-        get_worker('high', worker_class=SimpleWorker).work(burst=True)
+        get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
         url = self._get_url(post=post)
 
-        response = self.client.get(url, **headers, format='multipart')
+        response = self.client.get(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -728,23 +741,23 @@ class PostMediaAPITests(OpenbookAPITestCase):
         public_community = make_community()
         community_member = make_user()
 
-        community_member.join_community_with_name(
-            community_name=public_community.name)
+        community_member.join_community_with_name(community_name=public_community.name)
 
         headers = make_authentication_headers_for_user(user=user)
 
         test_image = get_test_image()
 
-        with open(test_image['path'], 'rb') as file:
+        with open(test_image["path"], "rb") as file:
             file = File(file)
             post = community_member.create_community_post(
-                image=file, community_name=public_community.name)
+                image=file, community_name=public_community.name
+            )
 
-        get_worker('high', worker_class=SimpleWorker).work(burst=True)
+        get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
         url = self._get_url(post=post)
 
-        response = self.client.get(url, **headers, format='multipart')
+        response = self.client.get(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -755,7 +768,8 @@ class PostMediaAPITests(OpenbookAPITestCase):
         post_media = post.get_media().all()
 
         self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media)
+            post_media=post_media, response_media=response_media
+        )
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_public_community_post_media_video(self):
@@ -766,23 +780,23 @@ class PostMediaAPITests(OpenbookAPITestCase):
         public_community = make_community()
         community_member = make_user()
 
-        community_member.join_community_with_name(
-            community_name=public_community.name)
+        community_member.join_community_with_name(community_name=public_community.name)
 
         headers = make_authentication_headers_for_user(user=user)
 
         test_video = get_test_video()
 
-        with open(test_video['path'], 'rb') as file:
+        with open(test_video["path"], "rb") as file:
             file = File(file)
             post = community_member.create_community_post(
-                video=file, community_name=public_community.name)
+                video=file, community_name=public_community.name
+            )
 
-        get_worker('high', worker_class=SimpleWorker).work(burst=True)
+        get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
         url = self._get_url(post=post)
 
-        response = self.client.get(url, **headers, format='multipart')
+        response = self.client.get(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -793,7 +807,8 @@ class PostMediaAPITests(OpenbookAPITestCase):
         post_media = post.get_media().all()
 
         self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media)
+            post_media=post_media, response_media=response_media
+        )
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_private_community_part_of_post_media_image(self):
@@ -803,26 +818,29 @@ class PostMediaAPITests(OpenbookAPITestCase):
         user = make_user()
         community_creator = make_user()
         private_community = make_community(
-            creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
+            creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE
+        )
 
-        community_creator.invite_user_with_username_to_community_with_name(community_name=private_community.name,
-                                                                           username=user.username)
+        community_creator.invite_user_with_username_to_community_with_name(
+            community_name=private_community.name, username=user.username
+        )
         user.join_community_with_name(community_name=private_community.name)
 
         headers = make_authentication_headers_for_user(user=user)
 
         test_image = get_test_image()
 
-        with open(test_image['path'], 'rb') as file:
+        with open(test_image["path"], "rb") as file:
             file = File(file)
             post = community_creator.create_community_post(
-                image=file, community_name=private_community.name)
+                image=file, community_name=private_community.name
+            )
 
-        get_worker('high', worker_class=SimpleWorker).work(burst=True)
+        get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
         url = self._get_url(post=post)
 
-        response = self.client.get(url, **headers, format='multipart')
+        response = self.client.get(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -833,7 +851,8 @@ class PostMediaAPITests(OpenbookAPITestCase):
         post_media = post.get_media().all()
 
         self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media)
+            post_media=post_media, response_media=response_media
+        )
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_private_community_part_of_post_media_video(self):
@@ -843,26 +862,29 @@ class PostMediaAPITests(OpenbookAPITestCase):
         user = make_user()
         community_creator = make_user()
         private_community = make_community(
-            creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
+            creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE
+        )
 
-        community_creator.invite_user_with_username_to_community_with_name(community_name=private_community.name,
-                                                                           username=user.username)
+        community_creator.invite_user_with_username_to_community_with_name(
+            community_name=private_community.name, username=user.username
+        )
         user.join_community_with_name(community_name=private_community.name)
 
         headers = make_authentication_headers_for_user(user=user)
 
         test_video = get_test_video()
 
-        with open(test_video['path'], 'rb') as file:
+        with open(test_video["path"], "rb") as file:
             file = File(file)
             post = community_creator.create_community_post(
-                video=file, community_name=private_community.name)
+                video=file, community_name=private_community.name
+            )
 
-        get_worker('high', worker_class=SimpleWorker).work(burst=True)
+        get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
         url = self._get_url(post=post)
 
-        response = self.client.get(url, **headers, format='multipart')
+        response = self.client.get(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -873,7 +895,8 @@ class PostMediaAPITests(OpenbookAPITestCase):
         post_media = post.get_media().all()
 
         self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media)
+            post_media=post_media, response_media=response_media
+        )
 
     def test_cannot_retrieve_private_community_not_part_of_post_media_image(self):
         """
@@ -882,22 +905,24 @@ class PostMediaAPITests(OpenbookAPITestCase):
         user = make_user()
         community_creator = make_user()
         private_community = make_community(
-            creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
+            creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE
+        )
 
         headers = make_authentication_headers_for_user(user=user)
 
         test_image = get_test_image()
 
-        with open(test_image['path'], 'rb') as file:
+        with open(test_image["path"], "rb") as file:
             file = File(file)
             post = community_creator.create_community_post(
-                image=file, community_name=private_community.name)
+                image=file, community_name=private_community.name
+            )
 
-        get_worker('high', worker_class=SimpleWorker).work(burst=True)
+        get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
         url = self._get_url(post=post)
 
-        response = self.client.get(url, **headers, format='multipart')
+        response = self.client.get(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -908,22 +933,24 @@ class PostMediaAPITests(OpenbookAPITestCase):
         user = make_user()
         community_creator = make_user()
         private_community = make_community(
-            creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
+            creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE
+        )
 
         headers = make_authentication_headers_for_user(user=user)
 
         test_video = get_test_video()
 
-        with open(test_video['path'], 'rb') as file:
+        with open(test_video["path"], "rb") as file:
             file = File(file)
             post = community_creator.create_community_post(
-                video=file, community_name=private_community.name)
+                video=file, community_name=private_community.name
+            )
 
-        get_worker('high', worker_class=SimpleWorker).work(burst=True)
+        get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
         url = self._get_url(post=post)
 
-        response = self.client.get(url, **headers, format='multipart')
+        response = self.client.get(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -932,42 +959,61 @@ class PostMediaAPITests(OpenbookAPITestCase):
             post_media_item = post_media[i]
             response_item = response_media[i]
 
-            self.assertEqual(post_media_item.id, response_item['id'])
-            self.assertEqual(post_media_item.type, response_item['type'])
-            self.assertEqual(post_media_item.order, response_item['order'])
+            self.assertEqual(post_media_item.id, response_item["id"])
+            self.assertEqual(post_media_item.type, response_item["type"])
+            self.assertEqual(post_media_item.order, response_item["order"])
 
             if post_media_item.type == PostMedia.MEDIA_TYPE_IMAGE:
-                self.assertEqual(post_media_item.content_object.width,
-                                 response_item['content_object']['width'])
-                self.assertEqual(post_media_item.content_object.height,
-                                 response_item['content_object']['height'])
-                self.assertIn(str(post_media_item.content_object.image),
-                              response_item['content_object']['image'])
+                self.assertEqual(
+                    post_media_item.content_object.width,
+                    response_item["content_object"]["width"],
+                )
+                self.assertEqual(
+                    post_media_item.content_object.height,
+                    response_item["content_object"]["height"],
+                )
+                self.assertIn(
+                    str(post_media_item.content_object.image),
+                    response_item["content_object"]["image"],
+                )
             elif post_media_item.type == PostMedia.MEDIA_TYPE_VIDEO:
-                self.assertEqual(post_media_item.content_object.width,
-                                 response_item['content_object']['width'])
-                self.assertEqual(post_media_item.content_object.height,
-                                 response_item['content_object']['height'])
-                self.assertEqual(post_media_item.content_object.duration,
-                                 response_item['content_object']['duration'])
+                self.assertEqual(
+                    post_media_item.content_object.width,
+                    response_item["content_object"]["width"],
+                )
+                self.assertEqual(
+                    post_media_item.content_object.height,
+                    response_item["content_object"]["height"],
+                )
+                self.assertEqual(
+                    post_media_item.content_object.duration,
+                    response_item["content_object"]["duration"],
+                )
 
-                post_media_item_format_set = post_media_item.content_object.format_set.all()
+                post_media_item_format_set = (
+                    post_media_item.content_object.format_set.all()
+                )
 
                 for j in range(0, len(post_media_item_format_set)):
                     post_media_item_format_set_item = post_media_item_format_set[j]
                     response_post_media_item_format_set_item = response_item[
-                        'content_object']['format_set'][j]
-                    self.assertEqual(post_media_item_format_set_item.format,
-                                     response_post_media_item_format_set_item['format'])
-                    self.assertEqual(post_media_item_format_set_item.progress,
-                                     response_post_media_item_format_set_item['progress'])
-                    self.assertIn(str(post_media_item_format_set_item.file),
-                                  response_post_media_item_format_set_item['file'])
+                        "content_object"
+                    ]["format_set"][j]
+                    self.assertEqual(
+                        post_media_item_format_set_item.format,
+                        response_post_media_item_format_set_item["format"],
+                    )
+                    self.assertEqual(
+                        post_media_item_format_set_item.progress,
+                        response_post_media_item_format_set_item["progress"],
+                    )
+                    self.assertIn(
+                        str(post_media_item_format_set_item.file),
+                        response_post_media_item_format_set_item["file"],
+                    )
 
             else:
-                raise Exception('Unsupported media type')
+                raise Exception("Unsupported media type")
 
     def _get_url(self, post):
-        return reverse('post-media', kwargs={
-            'post_id': post.id
-        })
+        return reverse("post-media", kwargs={"post_id": post.id})

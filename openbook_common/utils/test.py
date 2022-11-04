@@ -1,7 +1,9 @@
 import re
 import uuid
 
-_uuid_pattern = re.compile('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
+_uuid_pattern = re.compile(
+    "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+)
 
 
 def uuid_id_parser(obj):
@@ -11,8 +13,8 @@ def uuid_id_parser(obj):
     Use it like this: json.loads(json_str, object_hook=uuid_id_parser)
     """
     if "id" in obj:
-        id_str = str(obj['id'])
+        id_str = str(obj["id"])
         if _uuid_pattern.match(id_str):
             uuid_obj = uuid.UUID(id_str)
-            obj['id'] = uuid_obj
+            obj["id"] = uuid_obj
     return obj
