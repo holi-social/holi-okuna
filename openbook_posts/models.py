@@ -92,12 +92,12 @@ magic = get_magic()
 from openbook_common.helpers import get_language_for_text, extract_urls_from_string
 
 # TODO Think about what to do for storage backend
-# post_image_storage = S3PrivateMediaStorage() if settings.IS_PRODUCTION else default_storage
 post_image_storage = default_storage
 
 
 class Post(ModelWithUUID):
     moderated_object = GenericRelation(ModeratedObject, related_query_name="posts")
+    title = models.CharField(max_length=settings.POST_TITLE_MAX_LENGTH, blank=False)
     text = models.TextField(
         _("text"),
         max_length=settings.POST_MAX_LENGTH,
@@ -138,13 +138,17 @@ class Post(ModelWithUUID):
     status = models.CharField(
         blank=False, null=False, choices=STATUSES, default=STATUS_DRAFT, max_length=2
     )
-    media_height = models.PositiveSmallIntegerField(_("media height"), null=True)
-    media_width = models.PositiveSmallIntegerField(_("media width"), null=True)
+    media_height = models.PositiveSmallIntegerField(
+        _("media height"), blank=True, null=True
+    )
+    media_width = models.PositiveSmallIntegerField(
+        _("media width"), blank=True, null=True
+    )
     media_thumbnail = ProcessedImageField(
         verbose_name=_("thumbnail"),
         storage=post_image_storage,
         upload_to=upload_to_post_directory,
-        blank=False,
+        blank=True,
         null=True,
         format="JPEG",
         options={"quality": 30},
