@@ -4,6 +4,7 @@ from django.db import Error, transaction
 from graphene_django import DjangoObjectType
 from graphql import GraphQLError
 from graphene_file_upload.scalars import Upload
+from itertools import chain
 
 from openbook_auth.models import UserConnectionStatus, User as UserModel
 from openbook_auth.views.authenticated_user.serializers import UpdateAuthenticatedUserSerializer
@@ -13,7 +14,7 @@ from openbook_auth.images import store_avatar, delete_avatar
 from openbook_insights.models import Insight as InsightModel
 from openbook_posts.models import Post as PostModel, PostComment as PostCommentModel
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
-from openbook_spaces.models import Space as SpaceModel
+from openbook_spaces.models import Space as SpaceModel, SpaceMember as SpaceMemberModel
 
 from logging import getLogger
 
@@ -104,9 +105,24 @@ class Insight(DjangoObjectType):
         model = InsightModel
 
 
+class SpaceMember(DjangoObjectType):
+    class Meta:
+        model = SpaceMemberModel
+
+
 class Space(DjangoObjectType):
     class Meta:
         model = SpaceModel
+
+
+class SpacesForInterest(graphene.ObjectType):
+    interest = graphene.String()
+    spaces = graphene.List(Space)
+
+
+class SpaceFilterResult(graphene.ObjectType):
+    filterResults = graphene.List(SpacesForInterest)
+    otherResults = graphene.List(SpacesForInterest)
 
 
 class Post(DjangoObjectType):
@@ -128,6 +144,8 @@ class Query(graphene.ObjectType):
     spaces = graphene.List(Space, offset=graphene.Int(
         default_value=0), limit=graphene.Int(default_value=5))
     space_by_id = graphene.Field(Space, id=graphene.String())
+    # TODO(SF) define params
+    filtered_spaces = graphene.Field(SpaceFilterResult)
 
     def resolve_authenticated_user(self, info):
         if info.context.user.is_anonymous:
@@ -169,6 +187,16 @@ class Query(graphene.ObjectType):
                 "code": ErrorCodes.NOT_FOUND
             })
 
+    def resolve_filtered_spaces(self, info):
+        # TODO(SF) simpler solution? different data type/structure for interests?
+        unique_interests = set(list(chain.from_iterable(list(SpaceModel.objects.values_list('interests', flat=True).distinct()))))
+        print('unique_interests', unique_interests)
+        # TODO(SF) perform proper filtering, add params, group by interests
+        spaces = SpaceModel.objects.order_by('-created')[0:5]
+        return SpaceFilterResult(
+            filterResults=[SpacesForInterest(interest="Foo", spaces=spaces)],
+            otherResults=[SpacesForInterest(interest="Foo", spaces=spaces)]
+        )
 
 class UpdateAuthenticatedUserInput(graphene.InputObjectType):
     avatar = Upload(required=False)
