@@ -29,6 +29,7 @@ The project uses
 - PostgreSQL
 - Redis
 - `docker` / `docker-compose`
+- [Black code formatter](https://github.com/psf/black) (see the [docs](https://black.readthedocs.io/en/stable/) for IDE integrations)
 
 ## Quickstart
 
