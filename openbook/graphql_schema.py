@@ -16,6 +16,7 @@ from openbook_insights.models import Insight as InsightModel
 from openbook_posts.models import Post as PostModel, PostComment as PostCommentModel
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
 from openbook_spaces.models import Space as SpaceModel
+from openbook_spaces.models import Task as TaskModel
 
 from logging import getLogger
 
@@ -109,6 +110,11 @@ class Insight(DjangoObjectType):
 class Space(DjangoObjectType):
     class Meta:
         model = SpaceModel
+
+
+class Task(DjangoObjectType):
+    class Meta:
+        model = TaskModel
 
 
 class Post(DjangoObjectType):
