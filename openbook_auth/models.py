@@ -4984,6 +4984,7 @@ class UserProfile(ModelWithUUID):
         options={"quality": 90},
         processors=[ResizeToFill(500, 500)],
         upload_to=upload_to_user_avatar_directory,
+        max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     cover = ProcessedImageField(
         verbose_name=_("cover"),
@@ -4993,6 +4994,7 @@ class UserProfile(ModelWithUUID):
         options={"quality": 90},
         upload_to=upload_to_user_cover_directory,
         processors=[ResizeToFit(width=1024, upscale=False)],
+        max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     about_me = models.TextField(
         _("about me"),
