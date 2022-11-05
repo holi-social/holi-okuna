@@ -48,6 +48,7 @@ class Posts(APIView):
         )
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+        title = data.get("title")
         text = data.get("text")
         image = data.get("image")
         video = data.get("video")
@@ -58,6 +59,7 @@ class Posts(APIView):
         with transaction.atomic():
             if circles_ids:
                 post = user.create_encircled_post(
+                    title=title,
                     text=text,
                     circles_ids=circles_ids,
                     image=image,
@@ -66,7 +68,7 @@ class Posts(APIView):
                 )
             else:
                 post = user.create_public_post(
-                    text=text, image=image, video=video, is_draft=is_draft
+                    title=title, text=text, image=image, video=video, is_draft=is_draft
                 )
 
         post_serializer = AuthenticatedUserPostSerializer(

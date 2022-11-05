@@ -76,6 +76,11 @@ class GetTrendingPostsSerializer(serializers.Serializer):
 
 
 class CreatePostSerializer(serializers.Serializer):
+    title = serializers.CharField(
+        max_length=settings.POST_TITLE_MAX_LENGTH,
+        required=False,
+        allow_blank=False,
+    )
     text = serializers.CharField(
         max_length=settings.POST_MAX_LENGTH,
         required=False,

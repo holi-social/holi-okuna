@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='post',
             name='title',
-            field=models.CharField(default='Post Default Title', max_length=128),
+            field=models.CharField(default='Post Default Title', max_length=128, null=True),
             preserve_default=False,
         ),
         migrations.AlterField(

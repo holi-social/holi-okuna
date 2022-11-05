@@ -97,7 +97,9 @@ post_image_storage = default_storage
 
 class Post(ModelWithUUID):
     moderated_object = GenericRelation(ModeratedObject, related_query_name="posts")
-    title = models.CharField(max_length=settings.POST_TITLE_MAX_LENGTH, blank=False)
+    title = models.CharField(
+        max_length=settings.POST_TITLE_MAX_LENGTH, blank=False, null=True
+    )
     text = models.TextField(
         _("text"),
         max_length=settings.POST_MAX_LENGTH,
@@ -180,6 +182,7 @@ class Post(ModelWithUUID):
         video=None,
         created=None,
         is_draft=False,
+        title=None,
     ):
 
         if not community_name and not circles_ids:
@@ -192,10 +195,13 @@ class Post(ModelWithUUID):
                 _("A post cannot be posted both to a community and to circles.")
             )
 
-        post = Post.objects.create(creator=creator, created=created)
+        # if not is_draft and not title:
+        #     raise ValidationError("Non-draft posts must have a title")
 
         if image and video:
             raise ValidationError(_("A post must have an image or a video, not both."))
+
+        post = Post.objects.create(creator=creator, created=created, title=title)
 
         if text:
             post.text = text

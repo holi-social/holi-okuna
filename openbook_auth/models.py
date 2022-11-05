@@ -2750,10 +2750,17 @@ class User(AbstractUser):
         return Community.objects.filter(moderated_communities_query)
 
     def create_public_post(
-        self, text=None, image=None, video=None, created=None, is_draft=False
+        self,
+        text=None,
+        image=None,
+        video=None,
+        created=None,
+        is_draft=False,
+        title=None,
     ):
         world_circle_id = self._get_world_circle_id()
         return self.create_encircled_post(
+            title=title,
             text=text,
             image=image,
             video=video,
@@ -2770,10 +2777,12 @@ class User(AbstractUser):
         video=None,
         created=None,
         is_draft=False,
+        title=None,
     ):
         check_can_post_to_circles_with_ids(user=self, circles_ids=circles_ids)
         Post = get_post_model()
         post = Post.create_post(
+            title=title,
             text=text,
             creator=self,
             circles_ids=circles_ids,
