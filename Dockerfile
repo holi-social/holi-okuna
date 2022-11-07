@@ -9,7 +9,7 @@ RUN pip install -r /requirements.txt
 
 # fix for django_media_fixtures: Django removed django.utils.encoding.smart_text alias in Django 4.0
 # see also https://github.com/adrianoveiga/django-media-fixtures/pull/6
-RUN sed -i -e 's/smart_text/smart_str/g' /usr/local/lib/python3.9/site-packages/django_media_fixtures/management/commands/collectmedia.py
+RUN sed -i -e 's/smart_text/smart_str/g' /usr/local/lib/python3.11/site-packages/django_media_fixtures/management/commands/collectmedia.py
 
 COPY . /opt/okuna-api
 
@@ -25,7 +25,7 @@ RUN chmod +x /wait-for-it.sh
 
 WORKDIR /opt/okuna-api
 # SECRET_KEY must be set, but the value is never used
-run ENVIRONMENT=build SECRET_KEY=foo python manage.py collectstatic
+run ENVIRONMENT=build SECRET_KEY=foo python manage.py collectstatic --no-input
 
 ENTRYPOINT ["/entrypoint.sh"]
 
