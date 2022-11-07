@@ -1087,7 +1087,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
     def test_cant_create_non_draft_post_with_no_text_image_nor_video(self):
         """
-        should be able to create a draft post with no text, image nor video and return 201
+        should not be able to create a non-draft post with no text, image nor video and return 201
         """
         user = make_user()
 
@@ -1603,7 +1603,7 @@ class PostsAPITests(OpenbookAPITestCase):
         created_posts_ids = []
 
         for i in range(amount_of_public_posts):
-            post = user_to_connect_with.create_public_post(make_fake_post_text())
+            post = user_to_connect_with.create_public_post(text=make_fake_post_text())
             created_posts_ids.append(post.pk)
 
         circle = make_circle(creator=user_to_connect_with)
@@ -1806,7 +1806,7 @@ class PostsAPITests(OpenbookAPITestCase):
         created_posts_ids = []
 
         for i in range(amount_of_public_posts):
-            post = user.create_public_post(make_fake_post_text())
+            post = user.create_public_post(text=make_fake_post_text())
             created_posts_ids.append(post.pk)
 
         circle = make_circle(creator=user)
