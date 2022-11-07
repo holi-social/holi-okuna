@@ -34,7 +34,6 @@ class Task(ModelWithUUID):
     creator = models.ForeignKey(User, on_delete=models.SET_NULL,
                                 related_name='created_tasks', blank=True, null=True)
     created = models.DateTimeField(default=now, editable=False)
-    skills = JSONField(null=True, blank=True, default=list)
     slots_available = models.PositiveIntegerField(blank=False)
     slots_taken = models.PositiveIntegerField(blank=False)
     location = models.CharField(max_length=settings.TASK_LOCATION_MAX_LENGTH, blank=False)
