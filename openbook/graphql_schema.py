@@ -196,14 +196,25 @@ class Query(graphene.ObjectType):
 
     def resolve_filtered_spaces(self, info):
         # TODO(SF) simpler solution? different data type/structure for interests?
-        unique_interests = set(list(chain.from_iterable(list(SpaceModel.objects.values_list('interests', flat=True).distinct()))))
-        print('unique_interests', unique_interests)
+        unique_interests = set(
+            list(
+                chain.from_iterable(
+                    list(
+                        SpaceModel.objects.values_list(
+                            "interests", flat=True
+                        ).distinct()
+                    )
+                )
+            )
+        )
+        print("unique_interests", unique_interests)
         # TODO(SF) perform proper filtering, add params, group by interests
-        spaces = SpaceModel.objects.order_by('-created')[0:5]
+        spaces = SpaceModel.objects.order_by("-created")[0:5]
         return SpaceFilterResult(
             filterResults=[SpacesForInterest(interest="Foo", spaces=spaces)],
-            otherResults=[SpacesForInterest(interest="Foo", spaces=spaces)]
+            otherResults=[SpacesForInterest(interest="Foo", spaces=spaces)],
         )
+
 
 class UpdateAuthenticatedUserInput(graphene.InputObjectType):
     avatar = Upload(required=False)
