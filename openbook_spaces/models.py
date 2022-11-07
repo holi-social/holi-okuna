@@ -26,8 +26,7 @@ class Space(ModelWithUUID):
         null=True,
     )
     created = models.DateTimeField(default=now, editable=False)
-    # TODO(SF) translate verbose name main_image > is there a manage command?
-    # TODO(SF) resizing necessary?
+    # TODO: resizing really necessary?
     main_image = ProcessedImageField(
         verbose_name=_("main_image"),
         storage=space_image_storage,
@@ -42,7 +41,6 @@ class Space(ModelWithUUID):
     location = models.CharField(
         max_length=settings.SPACE_LOCATION_MAX_LENGTH, blank=True, null=True
     )
-    interests = models.JSONField(null=True, blank=True, default=list)
 
 
 class SpaceMember(ModelWithUUID):

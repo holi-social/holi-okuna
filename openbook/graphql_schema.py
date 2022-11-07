@@ -117,14 +117,15 @@ class Space(DjangoObjectType):
         model = SpaceModel
 
 
-class SpacesForInterest(graphene.ObjectType):
-    interest = graphene.String()
+class SpacesForTopic(graphene.ObjectType):
+    # TODO: possibly object with id + slug?
+    topic = graphene.String()
     spaces = graphene.List(Space)
 
 
 class SpaceFilterResult(graphene.ObjectType):
-    filterResults = graphene.List(SpacesForInterest)
-    otherResults = graphene.List(SpacesForInterest)
+    filterResults = graphene.List(SpacesForTopic)
+    otherResults = graphene.List(SpacesForTopic)
 
 
 class Post(DjangoObjectType):
@@ -147,7 +148,7 @@ class Query(graphene.ObjectType):
         Space, offset=graphene.Int(default_value=0), limit=graphene.Int(default_value=5)
     )
     space_by_id = graphene.Field(Space, id=graphene.String())
-    # TODO(SF) define params
+    # TODO: define filter params
     filtered_spaces = graphene.Field(SpaceFilterResult)
 
     def resolve_authenticated_user(self, info):
@@ -195,24 +196,11 @@ class Query(graphene.ObjectType):
             )
 
     def resolve_filtered_spaces(self, info):
-        # TODO(SF) simpler solution? different data type/structure for interests?
-        unique_interests = set(
-            list(
-                chain.from_iterable(
-                    list(
-                        SpaceModel.objects.values_list(
-                            "interests", flat=True
-                        ).distinct()
-                    )
-                )
-            )
-        )
-        print("unique_interests", unique_interests)
-        # TODO(SF) perform proper filtering, add params, group by interests
+        # TODO: perform proper filtering by search params, group by topics
         spaces = SpaceModel.objects.order_by("-created")[0:5]
         return SpaceFilterResult(
-            filterResults=[SpacesForInterest(interest="Foo", spaces=spaces)],
-            otherResults=[SpacesForInterest(interest="Foo", spaces=spaces)],
+            filterResults=[SpacesForTopic(topic="Foo", spaces=spaces)],
+            otherResults=[SpacesForTopic(topic="Foo", spaces=spaces)],
         )
 
 
