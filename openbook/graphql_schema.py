@@ -127,6 +127,7 @@ class Query(graphene.ObjectType):
     user_suggestions = graphene.List(User, numberOfItems=graphene.Int())
     last_insights = graphene.List(Insight, numberOfItems=graphene.Int())
     insight_by_id = graphene.Field(Insight, id=graphene.String())
+    post_by_id = graphene.Field(Post, id=graphene.String())
     spaces = graphene.List(
         Space, offset=graphene.Int(default_value=0), limit=graphene.Int(default_value=5)
     )
@@ -163,6 +164,14 @@ class Query(graphene.ObjectType):
         except InsightModel.DoesNotExist:
             raise GraphQLError(
                 "Insight not found", extensions={"code": ErrorCodes.NOT_FOUND}
+            )
+
+    def resolve_post_by_id(self, info, id):
+        try:
+            return PostModel.objects.get(id=id)
+        except PostModel.DoesNotExist:
+            raise GraphQLError(
+                "Post not found", extensions={"code": ErrorCodes.NOT_FOUND}
             )
 
     def resolve_spaces(self, info, offset=graphene.Int(), limit=graphene.Int()):
@@ -310,6 +319,8 @@ class CreatePostCommentMutation(graphene.Mutation):
 
     post_comment = graphene.Field(PostComment)
 
+    post_by_id = graphene.Field(Post)
+
     @classmethod
     def mutate(cls, root, info, input):
         if info.context.user.is_anonymous:
@@ -331,7 +342,9 @@ class CreatePostCommentMutation(graphene.Mutation):
                 post_id=post_id, text=comment_text
             )
 
-        return CreatePostCommentMutation(post_comment=post_comment)
+        post_by_id = PostModel.objects.get(id=post_id)
+
+        return CreatePostCommentMutation(post_comment=post_comment, post_by_id=post_by_id)
 
 
 class Mutation(graphene.ObjectType):
