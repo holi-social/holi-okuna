@@ -24,16 +24,21 @@ specifics of the HOLI project.
 
 The project uses
 
-- Python 3.9+
+- Python 3.11+
 - Django 4
 - PostgreSQL
 - Redis
 - `docker` / `docker-compose`
+- [pyenv](https://github.com/pyenv/pyenv) (optional)
 - [Black code formatter](https://github.com/psf/black) (see the [docs](https://black.readthedocs.io/en/stable/) for IDE integrations)
 
 ## Quickstart
 
-1. Make sure you're actually running Python 3.9 or later by running `python --version`.
+1. Make sure you're actually running Python 3.11.0 or later by running `python --version`, if you
+   are using pyenv, the version check will be executed implicitly for you.
+
+   Use `pyenv install $PYENV_VERSION` to install the currently used interpreter and delete your `.venv` folder to remove
+   the deprecated environment.
 
 2. Install AND **set up** [`direnv`](http://direnv.net) and run `direnv allow .` in the current directory in order for
    `direnv` to initialise the development environment (variables). This should automatically create a Python 3 venv,
