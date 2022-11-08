@@ -16,10 +16,12 @@ from openbook_insights.models import Insight as InsightModel
 from openbook_posts.models import Post as PostModel, PostComment as PostCommentModel
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
 from openbook_spaces.models import Space as SpaceModel
+from openbook_spaces.models import Task as TaskModel
 
 from logging import getLogger
 
 logger = getLogger(__name__)
+
 
 # noinspection PyUnresolvedReferences
 
@@ -111,6 +113,11 @@ class Space(DjangoObjectType):
         model = SpaceModel
 
 
+class Task(DjangoObjectType):
+    class Meta:
+        model = TaskModel
+
+
 class Post(DjangoObjectType):
     class Meta:
         model = PostModel
@@ -132,6 +139,10 @@ class Query(graphene.ObjectType):
         Space, offset=graphene.Int(default_value=0), limit=graphene.Int(default_value=5)
     )
     space_by_id = graphene.Field(Space, id=graphene.String())
+    tasks_by_space_id = graphene.List(
+        Task, space_id=graphene.String(), offset=graphene.Int(default_value=0), limit=graphene.Int(default_value=5)
+    )
+    task_by_id = graphene.Field(Task, id=graphene.String())
 
     def resolve_authenticated_user(self, info):
         if info.context.user.is_anonymous:
@@ -175,7 +186,7 @@ class Query(graphene.ObjectType):
             )
 
     def resolve_spaces(self, info, offset=graphene.Int(), limit=graphene.Int()):
-        return SpaceModel.objects.order_by("-created")[offset : offset + limit]
+        return SpaceModel.objects.order_by("-created")[offset: offset + limit]
 
     def resolve_space_by_id(self, info, id):
         try:
@@ -183,6 +194,17 @@ class Query(graphene.ObjectType):
         except SpaceModel.DoesNotExist:
             raise GraphQLError(
                 "Space not found", extensions={"code": ErrorCodes.NOT_FOUND}
+            )
+
+    def resolve_tasks_by_space_id(self, info, space_id, offset=graphene.Int(), limit=graphene.Int()):
+        return TaskModel.objects.filter(space__id=space_id).order_by("-created")[offset: offset + limit]
+
+    def resolve_task_by_id(self, info, id):
+        try:
+            return TaskModel.objects.get(id=id)
+        except TaskModel.DoesNotExist:
+            raise GraphQLError(
+                "Task not found", extensions={"code": ErrorCodes.NOT_FOUND}
             )
 
 
@@ -298,8 +320,8 @@ class UpdateConnectionWithUserMutation(graphene.Mutation):
 
         # Disconnect action (only run if current connection status is different than NOT_CONNECTED)
         elif (
-            data.get("action") == UpdateConnectionWithUserAction.DISCONNECT
-            and current_connection_status != UserConnectionStatus.NOT_CONNECTED
+                data.get("action") == UpdateConnectionWithUserAction.DISCONNECT
+                and current_connection_status != UserConnectionStatus.NOT_CONNECTED
         ):
             authenticated_user.disconnect_from_user_with_id(
                 user_id=userToUpdateConnection.id

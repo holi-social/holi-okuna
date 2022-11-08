@@ -1,12 +1,10 @@
-image: python:3.9.12
-
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip" # Change pip's cache directory to be inside the project directory since we can only cache local items.
   API_BASE_URL_PATH: "$CI_PROJECT_DIR/api_domain"
 
 cache:
   key:
-    files: 
+    files:
       - requirements.txt # hashes this file so cache content depends on files content
   paths:
     - .cache/pip
@@ -70,7 +68,7 @@ build_docker:
 
 .deploy:
   stage: "deploy"
-  image: 
+  image:
     name: 'hashicorp/terraform:1.1.9'
     # default entrypoint is terraform command, but we want to run shell scripts
     entrypoint: ["/bin/sh", "-c"]
@@ -123,7 +121,6 @@ review_destroy:
     name: review/$CI_COMMIT_REF_SLUG
     action: stop
   dependencies: [] # explicitly disable artifact usage
-  before_script:
   script:
     - export GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_CLOUD_SERVICE_ACCOUNT}
     # branch may have been deleted, so we clone and checkout main
