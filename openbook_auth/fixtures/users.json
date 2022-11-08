@@ -1,7 +1,7 @@
 [
   {
     "model": "openbook_auth.User",
-    "pk": "46c136a6-9bc4-41b4-b2d2-34b9085b693e",
+    "pk": "1",
     "fields": {
       "username": "9ebfc2c2-2d2b-413d-8bfd-ec30af1b7d49",
       "password": "F0OB4R",
@@ -37,7 +37,7 @@
   },
   {
     "model": "openbook_auth.User",
-    "pk": "9f8b4173-dc22-4c29-a035-d16a4ce4d1a5",
+    "pk": "2",
     "fields": {
       "username": "5846dd02-e2c9-4350-9e68-e4c79bf02e02",
       "password": "F0OB4R",
@@ -69,7 +69,7 @@
   },
   {
     "model": "openbook_auth.User",
-    "pk": "8e8213ac-fa3d-424a-9248-0cd48b068044",
+    "pk": "3",
     "fields": {
       "username": "a09124b7-cdaf-4922-9c02-10b40b3b1530",
       "password": "F0OB4R",
@@ -105,7 +105,7 @@
   },
   {
     "model": "openbook_auth.User",
-    "pk": "9f411e50-5903-4801-8c15-53449ee55376",
+    "pk": "4",
     "fields": {
       "username": "d2384748-0151-40d6-8527-0fe182112a6c",
       "password": "F0OB4R",

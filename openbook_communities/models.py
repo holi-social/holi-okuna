@@ -310,7 +310,7 @@ class Community(ModelWithUUID):
         invites_enabled=None,
     ):
         # If its a private community and no invites_enabled
-        if type is Community.COMMUNITY_TYPE_PRIVATE and invites_enabled is None:
+        if type == Community.COMMUNITY_TYPE_PRIVATE and invites_enabled is None:
             invites_enabled = False
         else:
             # The default for this field is not working when passed None?
@@ -504,7 +504,7 @@ class Community(ModelWithUUID):
         return User.objects.filter(staff_members_query)
 
     def is_private(self):
-        return self.type is self.COMMUNITY_TYPE_PRIVATE
+        return self.type == self.COMMUNITY_TYPE_PRIVATE
 
     def update(
         self,
