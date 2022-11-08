@@ -1,4 +1,4 @@
-FROM python:3.9.12
+FROM python:3.11.0
 
 RUN apt-get -y update && apt-get -y upgrade &&  apt-get install -y ffmpeg  && apt-get install -y supervisor
 
