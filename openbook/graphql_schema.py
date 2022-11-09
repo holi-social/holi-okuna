@@ -16,6 +16,11 @@ from openbook_insights.models import Insight as InsightModel
 from openbook_posts.models import Post as PostModel, PostComment as PostCommentModel
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
 from openbook_spaces.models import Space as SpaceModel
+from openbook_terms.models import (
+    Topic as TopicModel,
+    SDG as SDGModel,
+    Skill as SkillModel,
+)
 
 from logging import getLogger
 
@@ -121,6 +126,21 @@ class PostComment(DjangoObjectType):
         model = PostCommentModel
 
 
+class Topic(DjangoObjectType):
+    class Meta:
+        model = TopicModel
+
+
+class SDG(DjangoObjectType):
+    class Meta:
+        model = SDGModel
+
+
+class Skill(DjangoObjectType):
+    class Meta:
+        model = SkillModel
+
+
 class Query(graphene.ObjectType):
     authenticated_user = graphene.Field(User)
     user_by_id = graphene.Field(User, id=graphene.String())
@@ -131,6 +151,9 @@ class Query(graphene.ObjectType):
         Space, offset=graphene.Int(default_value=0), limit=graphene.Int(default_value=5)
     )
     space_by_id = graphene.Field(Space, id=graphene.String())
+    topics = graphene.List(Topic)
+    sdgs = graphene.List(SDG)
+    skills = graphene.List(Skill)
 
     def resolve_authenticated_user(self, info):
         if info.context.user.is_anonymous:
@@ -175,6 +198,15 @@ class Query(graphene.ObjectType):
             raise GraphQLError(
                 "Space not found", extensions={"code": ErrorCodes.NOT_FOUND}
             )
+
+    def resolve_topics(self, info):
+        return TopicModel.objects.all()
+
+    def resolve_sdgs(self, info):
+        return SDGModel.objects.all()
+
+    def resolve_skills(self, info):
+        return SkillModel.objects.all()
 
 
 class UpdateAuthenticatedUserInput(graphene.InputObjectType):

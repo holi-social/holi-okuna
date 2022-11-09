@@ -16,10 +16,6 @@ from openbook_common.validators import hex_color_validator
 import tldextract
 
 
-def uuid_as_str():
-    return str(uuid.uuid4())
-
-
 class ModelWithUUID(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
