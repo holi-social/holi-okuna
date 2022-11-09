@@ -43,7 +43,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
             community_member = make_user()
             community_member.join_community_with_name(community_name)
             other_user.add_administrator_with_username_to_community_with_name(
-                username=community_member, community_name=community.name
+                username=community_member.username, community_name=community.name
             )
             administrators_ids.append(community_member.pk)
 
@@ -85,7 +85,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
             community_member = make_user()
             community_member.join_community_with_name(community_name)
             other_user.add_administrator_with_username_to_community_with_name(
-                username=community_member, community_name=community.name
+                username=community_member.username, community_name=community.name
             )
             administrators_ids.append(community_member.pk)
 
@@ -124,7 +124,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
             community_member = make_user()
             community_member.join_community_with_name(community_name)
             other_user.add_administrator_with_username_to_community_with_name(
-                username=community_member, community_name=community.name
+                username=community_member.username, community_name=community.name
             )
             administrators_ids.append(community_member.pk)
 
@@ -184,7 +184,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
             community_name=community.name
         )
         user.add_moderator_with_username_to_community_with_name(
-            username=user_to_make_admnistrator, community_name=community.name
+            username=user_to_make_admnistrator.username, community_name=community.name
         )
 
         url = self._get_url(community_name=community.name)

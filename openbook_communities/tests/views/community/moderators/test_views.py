@@ -43,7 +43,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
             community_member = make_user()
             community_member.join_community_with_name(community_name)
             other_user.add_moderator_with_username_to_community_with_name(
-                username=community_member, community_name=community.name
+                username=community_member.username, community_name=community.name
             )
             moderators_ids.append(community_member.pk)
 
@@ -83,7 +83,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
             community_member = make_user()
             community_member.join_community_with_name(community_name)
             other_user.add_moderator_with_username_to_community_with_name(
-                username=community_member, community_name=community.name
+                username=community_member.username, community_name=community.name
             )
             moderators_ids.append(community_member.pk)
 
@@ -120,7 +120,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
             community_member = make_user()
             community_member.join_community_with_name(community_name)
             other_user.add_moderator_with_username_to_community_with_name(
-                username=community_member, community_name=community.name
+                username=community_member.username, community_name=community.name
             )
             moderators_ids.append(community_member.pk)
 
@@ -158,7 +158,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
             community_member = make_user()
             community_member.join_community_with_name(community_name)
             community_owner.add_moderator_with_username_to_community_with_name(
-                username=community_member, community_name=community.name
+                username=community_member.username, community_name=community.name
             )
 
         url = self._get_url(community_name=community.name)
@@ -224,7 +224,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
 
         user.join_community_with_name(community_name=community.name)
         other_user.add_administrator_with_username_to_community_with_name(
-            username=user, community_name=community.name
+            username=user.username, community_name=community.name
         )
 
         user_to_make_admnistrator = make_user()
