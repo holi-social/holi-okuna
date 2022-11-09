@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class OpenbookTermsConfig(AppConfig):
-    name = 'openbook_terms'
+    name = "openbook_terms"
