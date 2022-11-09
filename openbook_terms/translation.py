@@ -1,17 +1,17 @@
-from modeltranslation.translator import register, TranslationOptions
+from modeltranslation import translator
 from .models import Topic, SDG, Skill
 
 
-@register(Topic)
-class TopicTranslationOptions(TranslationOptions):
+@translator.register(Topic)
+class TopicTranslationOptions(translator.TranslationOptions):
     fields = ("title",)
 
 
-@register(SDG)
-class SDGTranslationOptions(TranslationOptions):
+@translator.register(SDG)
+class SDGTranslationOptions(translator.TranslationOptions):
     fields = ("title",)
 
 
-@register(Skill)
-class SkillTranslationOptions(TranslationOptions):
+@translator.register(Skill)
+class SkillTranslationOptions(translator.TranslationOptions):
     fields = ("title",)
