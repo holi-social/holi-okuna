@@ -56,7 +56,7 @@ class GetPostCommentRequestSerializer(serializers.Serializer):
     )
 
 
-class UpdatePostCommentSerializer(serializers.Serializer):
+class CreatePostCommentSerializer(serializers.Serializer):
     post_id = serializers.UUIDField(
         validators=[post_id_exists],
         required=True,
