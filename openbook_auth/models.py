@@ -4912,8 +4912,9 @@ class User(AbstractUser):
         return excluded_users.union(creator)
 
     def __str__(self):
-        if hasattr(self, "profile") and self.profile.name and self.profile.last_name:
-            return f"{self.__class__.__name__}, Name {self.profile.name} {self.profile.last_name}"
+        if hasattr(self, "profile") and (self.profile.name or self.profile.last_name):
+            name = " ".join(filter(None, [self.profile.name, self.profile.last_name]))
+            return f"{self.__class__.__name__}, Name {name}"
         else:
             return f"{self.__class__.__name__}, UUID {self.id}"
 
