@@ -9,7 +9,7 @@ from openbook_common.responses import ApiMessageResponse
 from openbook_moderation.permissions import IsNotSuspended
 from openbook_posts.views.post_comment.serializers import (
     DeletePostCommentSerializer,
-    UpdatePostCommentSerializer,
+    CreatePostCommentSerializer,
     EditPostCommentSerializer,
     MutePostCommentSerializer,
     UnmutePostCommentSerializer,
@@ -70,7 +70,7 @@ class PostCommentItem(APIView):
     def patch(self, request, post_id, post_comment_id):
         request_data = self._get_request_data(request, post_id, post_comment_id)
 
-        serializer = UpdatePostCommentSerializer(data=request_data)
+        serializer = CreatePostCommentSerializer(data=request_data)
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
