@@ -1054,6 +1054,9 @@ class Post(ModelWithUUID):
         else:
             self.links.all().delete()
 
+    def __str__(self):
+        return f"{self.__class__.__name__}: {self.title}"
+
 
 class TopPost(ModelWithUUID):
     post = models.OneToOneField(Post, on_delete=models.CASCADE, related_name="top_post")

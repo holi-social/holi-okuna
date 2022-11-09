@@ -21,13 +21,10 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ("username", "email", "full_name")
 
     def full_name(self, object):
-        if object.profile.name is None:
-            return None
-        else:
-            if object.profile.last_name is None or object.profile.last_name == "":
-                return object.profile.name
-            else:
-                return f"{object.profile.name} {object.profile.last_name}"
+        return (
+            " ".join(filter(None, [object.profile.name, object.profile.last_name]))
+            or None  # map empty string to None
+        )
 
     def has_add_permission(self, request, obj=None):
         return False
