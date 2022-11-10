@@ -20,10 +20,12 @@ fake = Faker()
 
 
 class CommunityModeratorsAPITest(OpenbookAPITestCase):
+    """
+    CommunityModeratorsAPITest
+    """
+
     def test_can_get_community_moderators_if_admin(self):
-        """
-        should be able to retrieve the community moderators if user is admin of community
-        """
+        """should be able to retrieve the community moderators if user is admin of community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -61,9 +63,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
             self.assertIn(response_moderator_id, moderators_ids)
 
     def test_can_get_community_moderators_if_mod(self):
-        """
-        should be able to retrieve the community moderators if user is moderator of community
-        """
+        """should be able to retrieve the community moderators if user is moderator of community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -101,9 +101,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
             self.assertIn(response_moderator_id, moderators_ids)
 
     def test_can_get_community_moderators_if_member(self):
-        """
-        should be able to retrieve the community moderators if user is member of community
-        """
+        """should be able to retrieve the community moderators if user is member of community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -138,9 +136,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
             self.assertIn(response_moderator_id, moderators_ids)
 
     def test_cant_get_community_moderators_if_banned(self):
-        """
-        should not be able to retrieve the community moderators if user has been banned from community
-        """
+        """should not be able to retrieve the community moderators if user has been banned from community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -167,9 +163,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_can_add_community_moderator_if_creator(self):
-        """
-        should be able to add a community moderator if user is creator of community
-        """
+        """should be able to add a community moderator if user is creator of community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -192,9 +186,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
         )
 
     def test_logs_community_moderator_added(self):
-        """
-        should create a log when community moderator was added
-        """
+        """should create a log when community moderator was added"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -213,9 +205,8 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
         )
 
     def test_can_add_community_moderator_if_admin(self):
-        """
-        should be able to add a community moderator if user is administrator of community
-        """
+        """should be able to add a community moderator if user is administrator of community"""
+
         user = make_user()
         other_user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -246,9 +237,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
         )
 
     def test_cant_add_community_moderator_if_mod(self):
-        """
-        should not be able to add a community moderator if user is moderator of community
-        """
+        """should not be able to add a community moderator if user is moderator of community"""
         user = make_user()
         other_user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -279,9 +268,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
         )
 
     def test_cant_add_community_moderator_if_member(self):
-        """
-        should not be able to add a community moderator if user is just a member of community
-        """
+        """should not be able to add a community moderator if user is just a member of community"""
         user = make_user()
         other_user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -309,9 +296,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
         )
 
     def test_cant_add_community_moderator_if_not_member(self):
-        """
-        should not be able to add a community moderator if user is not even a member of community
-        """
+        """should not be able to add a community moderator if user is not even a member of community"""
         user = make_user()
         other_user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -334,9 +319,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
         )
 
     def test_cant_add_community_moderator_if_admin(self):
-        """
-        should not be able to add a community moderator if the user is already an admin
-        """
+        """should not be able to add a community moderator if the user is already an admin"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -368,10 +351,12 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
 
 
 class CommunityModeratorAPITest(OpenbookAPITestCase):
+    """
+    CommunityModeratorAPITest
+    """
+
     def test_can_remove_community_moderator_if_admin(self):
-        """
-        should be able to remove a community moderator if user is admin of the community
-        """
+        """should be able to remove a community moderator if user is admin of the community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -397,9 +382,7 @@ class CommunityModeratorAPITest(OpenbookAPITestCase):
         )
 
     def test_logs_community_moderator_removed(self):
-        """
-        should create a log when community moderator was removed
-        """
+        """should create a log when community moderator was removed"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -423,9 +406,7 @@ class CommunityModeratorAPITest(OpenbookAPITestCase):
         )
 
     def test_cant_remove_community_moderator_if_mod(self):
-        """
-        should not be able to remove a community moderator if user is moderator
-        """
+        """should not be able to remove a community moderator if user is moderator"""
         user = make_user()
         other_user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -457,9 +438,7 @@ class CommunityModeratorAPITest(OpenbookAPITestCase):
         )
 
     def test_cant_remove_community_moderator_if_member(self):
-        """
-        should not be able to remove a community moderator if user is member
-        """
+        """should not be able to remove a community moderator if user is member"""
         user = make_user()
         other_user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -503,9 +482,7 @@ class SearchCommunityModeratorsAPITests(OpenbookAPITestCase):
     """
 
     def test_can_search_community_moderators_by_name(self):
-        """
-        should be able to search for community moderators by their name and return 200
-        """
+        """should be able to search for community moderators by their name and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         community = make_community(creator=user)
@@ -552,9 +529,7 @@ class SearchCommunityModeratorsAPITests(OpenbookAPITestCase):
             )
 
     def test_can_search_community_moderators_by_username(self):
-        """
-        should be able to search for community moderators by their username and return 200
-        """
+        """should be able to search for community moderators by their username and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         community = make_community(creator=user)

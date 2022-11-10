@@ -22,9 +22,7 @@ class FollowersAPITests(OpenbookAPITestCase):
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_can_retrieve_followers(self):
-        """
-        should be able to retrieve the authenticated user linked users
-        """
+        """should be able to retrieve the authenticated user linked users"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -51,9 +49,7 @@ class FollowersAPITests(OpenbookAPITestCase):
             self.assertIn(response_member_id, followers_ids)
 
     def test_cant_retrieve_soft_deleted_followers(self):
-        """
-        should not be able to retrieve soft deleted followers
-        """
+        """should not be able to retrieve soft deleted followers"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -83,9 +79,7 @@ class SearchFollowersAPITests(OpenbookAPITestCase):
     """
 
     def test_can_search_followers_by_name(self):
-        """
-        should be able to search for linked users by their name and return 200
-        """
+        """should be able to search for linked users by their name and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -122,9 +116,7 @@ class SearchFollowersAPITests(OpenbookAPITestCase):
             follower.unfollow_user_with_id(user.pk)
 
     def test_can_search_followers_by_username(self):
-        """
-        should be able to search for linked users by their username and return 200
-        """
+        """should be able to search for linked users by their username and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -161,9 +153,7 @@ class SearchFollowersAPITests(OpenbookAPITestCase):
             follower.unfollow_user_with_id(user.pk)
 
     def test_cant_search_soft_deleted_followers(self):
-        """
-        should not be able to search for soft deleted followers and return 200
-        """
+        """should not be able to search for soft deleted followers and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 

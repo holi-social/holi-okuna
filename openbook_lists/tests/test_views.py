@@ -30,9 +30,7 @@ class ListsAPITests(OpenbookAPITestCase):
     """
 
     def test_create_list(self):
-        """
-        should be able to create a list and return 201
-        """
+        """should be able to create a list and return 201"""
         user = make_user()
 
         list_emoji = mixer.blend(Emoji)
@@ -58,9 +56,7 @@ class ListsAPITests(OpenbookAPITestCase):
         )
 
     def test_retrieve_own_lists(self):
-        """
-        should be able to retrieve all own lists return 200
-        """
+        """should be able to retrieve all own lists return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -90,9 +86,7 @@ class ListItemAPITests(OpenbookAPITestCase):
     """
 
     def test_retrieve_own_list(self):
-        """
-        should be able to retrieve an own list and return 200
-        """
+        """should be able to retrieve an own list and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -108,9 +102,7 @@ class ListItemAPITests(OpenbookAPITestCase):
         self.assertTrue(response_list["id"] == list_id)
 
     def test_delete_own_list(self):
-        """
-        should be able to delete an own list and return 200
-        """
+        """should be able to delete an own list and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -124,9 +116,7 @@ class ListItemAPITests(OpenbookAPITestCase):
         self.assertTrue(List.objects.filter(id=list_id).count() == 0)
 
     def test_cannot_delete_other_user_list(self):
-        """
-        should not be able to delete another user list with and return 400
-        """
+        """should not be able to delete another user list with and return 400"""
         user = make_user()
         other_user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -141,9 +131,7 @@ class ListItemAPITests(OpenbookAPITestCase):
         self.assertTrue(List.objects.filter(id=list_id).count() == 1)
 
     def test_can_update_own_list(self):
-        """
-        should be able to update an own list and return 200
-        """
+        """should be able to update an own list and return 200"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
@@ -168,9 +156,7 @@ class ListItemAPITests(OpenbookAPITestCase):
         )
 
     def test_can_update_own_list_users(self):
-        """
-        should be able to update an own list and return 200
-        """
+        """should be able to update an own list and return 200"""
         user = make_user()
 
         list = mixer.blend(List, creator=user)
@@ -207,9 +193,7 @@ class ListItemAPITests(OpenbookAPITestCase):
             )
 
     def test_can_update_own_list_users_to_none(self):
-        """
-        should be able to update an own list and return 200
-        """
+        """should be able to update an own list and return 200"""
         user = make_user()
 
         list = mixer.blend(List, creator=user)
@@ -232,9 +216,7 @@ class ListItemAPITests(OpenbookAPITestCase):
         self.assertEqual(len(list.users), 0)
 
     def test_cannot_update_other_user_list(self):
-        """
-        should not be able update another user list and return 400
-        """
+        """should not be able update another user list and return 400"""
         user = make_user()
 
         other_user = make_user()
@@ -270,9 +252,7 @@ class ListNameCheckAPITests(OpenbookAPITestCase):
     """
 
     def test_list_name_not_taken(self):
-        """
-        should return status 202 if list name is not taken.
-        """
+        """should return status 202 if list name is not taken."""
 
         user = make_user()
 
@@ -286,9 +266,7 @@ class ListNameCheckAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
     def test_list_name_taken(self):
-        """
-        should return status 400 if the listName is taken
-        """
+        """should return status 400 if the listName is taken"""
         user = make_user()
         emoji = make_emoji()
 

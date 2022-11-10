@@ -27,9 +27,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
     """
 
     def test_retrieves_post_moderated_objects(self):
-        """
-        should be able to retrieve all moderated objects by default and return 200
-        """
+        """should be able to retrieve all moderated objects by default and return 200"""
 
         global_moderator = make_global_moderator()
 
@@ -70,9 +68,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
             self.assertIn(response_moderated_object_post_id, posts_ids)
 
     def test_retrieves_hashtag_moderated_objects(self):
-        """
-        should be able to retrieve all hashtag moderated objects and return 200
-        """
+        """should be able to retrieve all hashtag moderated objects and return 200"""
 
         global_moderator = make_global_moderator()
 
@@ -115,9 +111,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
             self.assertIn(response_moderated_object_hashtag_id, hashtags_ids)
 
     def test_retrieves_post_comment_moderated_objects(self):
-        """
-        should be able to retrieve all moderated objects by default and return 200
-        """
+        """should be able to retrieve all moderated objects by default and return 200"""
 
         global_moderator = make_global_moderator()
 
@@ -164,9 +158,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
             self.assertIn(response_moderated_object_post_comment_id, post_comments_ids)
 
     def test_retrieves_user_moderated_objects(self):
-        """
-        should be able to retrieve all moderated objects by default and return 200
-        """
+        """should be able to retrieve all moderated objects by default and return 200"""
 
         global_moderator = make_global_moderator()
 
@@ -206,9 +198,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
             self.assertIn(response_moderated_object_user_id, users_ids)
 
     def test_retrieves_community_moderated_objects(self):
-        """
-        should be able to retrieve all moderated objects by default and return 200
-        """
+        """should be able to retrieve all moderated objects by default and return 200"""
 
         global_moderator = make_global_moderator()
 
@@ -252,9 +242,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
             self.assertIn(response_moderated_object_community_id, communities_ids)
 
     def test_can_filter_approved_moderated_objects(self):
-        """
-        should be able to filter on approved moderated objects and return 200
-        """
+        """should be able to filter on approved moderated objects and return 200"""
         global_moderator = make_global_moderator()
 
         amount_of_posts = 5
@@ -312,9 +300,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
             )
 
     def test_can_filter_pending_moderated_objects(self):
-        """
-        should be able to filter on pending moderated objects and return 200
-        """
+        """should be able to filter on pending moderated objects and return 200"""
         global_moderator = make_global_moderator()
 
         amount_of_posts = 5
@@ -373,9 +359,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
             )
 
     def test_can_filter_rejected_moderated_objects(self):
-        """
-        should be able to filter rejected moderated objects and return 200
-        """
+        """should be able to filter rejected moderated objects and return 200"""
         global_moderator = make_global_moderator()
 
         amount_of_posts = 5
@@ -433,9 +417,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
             )
 
     def test_can_filter_verified_moderated_objects(self):
-        """
-        should be able to filter on verified moderated objects and return 200
-        """
+        """should be able to filter on verified moderated objects and return 200"""
         global_moderator = make_global_moderator()
 
         amount_of_posts = 5
@@ -494,9 +476,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
             )
 
     def test_can_filter_unverified_moderated_objects(self):
-        """
-        should be able to filter on unverified moderated objects and return 200
-        """
+        """should be able to filter on unverified moderated objects and return 200"""
         global_moderator = make_global_moderator()
 
         amount_of_posts = 5
@@ -557,9 +537,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
             )
 
     def test_can_filter_post_moderated_objects(self):
-        """
-        should be able to filter post moderated objects and return 200
-        """
+        """should be able to filter post moderated objects and return 200"""
         global_moderator = make_global_moderator()
 
         reporter_user = make_user()
@@ -601,9 +579,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         self.assertEqual(response_moderated_object_post_id, post.pk)
 
     def test_can_filter_post_comment_moderated_objects(self):
-        """
-        should be able to filter post_comment moderated objects and return 200
-        """
+        """should be able to filter post_comment moderated objects and return 200"""
         global_moderator = make_global_moderator()
 
         reporter_user = make_user()
@@ -649,9 +625,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         self.assertEqual(response_moderated_object_id, post.pk)
 
     def test_can_filter_user_moderated_objects(self):
-        """
-        should be able to filter user moderated objects and return 200
-        """
+        """should be able to filter user moderated objects and return 200"""
         global_moderator = make_global_moderator()
 
         reporter_user = make_user()
@@ -695,9 +669,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         self.assertEqual(response_moderated_object_id, user.pk)
 
     def test_can_filter_community_moderated_objects(self):
-        """
-        should be able to filter community moderated objects and return 200
-        """
+        """should be able to filter community moderated objects and return 200"""
         global_moderator = make_global_moderator()
 
         reporter_user = make_user()
@@ -742,9 +714,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         self.assertEqual(response_moderated_object_id, community.pk)
 
     def test_cant_retrieve_moderated_objects_if_regular_user(self):
-        """
-        should not be able to retrieve all moderated objects if regular user and return 400
-        """
+        """should not be able to retrieve all moderated objects if regular user and return 400"""
         regular_user = make_user()
 
         amount_of_posts = 5
@@ -765,9 +735,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_cant_retrieve_moderated_objects_if_community_moderator(self):
-        """
-        should not be able to retrieve all moderated objects if community moderator and return 400
-        """
+        """should not be able to retrieve all moderated objects if community moderator and return 400"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
         community_moderator = make_user()
@@ -804,9 +772,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
     """
 
     def test_retrieves_community_post_moderated_objects_if_moderator(self):
-        """
-        should be able to retrieve all community post moderated objects if moderator and return 200
-        """
+        """should be able to retrieve all community post moderated objects if moderator and return 200"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -857,9 +823,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
             self.assertIn(response_moderated_object_post_id, posts_ids)
 
     def test_retrieves_community_post_comment_moderated_objects_if_moderator(self):
-        """
-        should be able to retrieve all community post comment moderated objects if moderator and return 200
-        """
+        """should be able to retrieve all community post comment moderated objects if moderator and return 200"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -917,9 +881,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
             self.assertIn(response_moderated_object_post_comment_id, post_comments_ids)
 
     def test_cannot_retrieve_user_moderated_objects_if_moderator(self):
-        """
-        should not be able to retrieve user moderated objects if moderator and return 200
-        """
+        """should not be able to retrieve user moderated objects if moderator and return 200"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -953,9 +915,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
         self.assertEqual(0, len(response_moderated_objects))
 
     def test_cannot_retrieve_community_moderated_objects_if_moderator(self):
-        """
-        should not be able to retrieve community moderated objects if moderator and return 200
-        """
+        """should not be able to retrieve community moderated objects if moderator and return 200"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -989,9 +949,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
         self.assertEqual(0, len(response_moderated_objects))
 
     def test_can_filter_approved_moderated_objects(self):
-        """
-        should be able to filter on approved moderated objects and return 200
-        """
+        """should be able to filter on approved moderated objects and return 200"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -1060,9 +1018,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
             )
 
     def test_can_filter_pending_moderated_objects(self):
-        """
-        should be able to filter on pending moderated objects and return 200
-        """
+        """should be able to filter on pending moderated objects and return 200"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -1132,9 +1088,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
             )
 
     def test_can_filter_rejected_moderated_objects(self):
-        """
-        should be able to filter on rejected moderated objects and return 200
-        """
+        """should be able to filter on rejected moderated objects and return 200"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -1203,9 +1157,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
             )
 
     def test_can_filter_verified_moderated_objects(self):
-        """
-        should be able to filter on verified moderated objects and return 200
-        """
+        """should be able to filter on verified moderated objects and return 200"""
         global_moderator = make_global_moderator()
         community_creator = make_user()
         community = make_community(creator=community_creator)
@@ -1276,9 +1228,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
             )
 
     def test_can_filter_unverified_moderated_objects(self):
-        """
-        should be able to filter on unverified moderated objects and return 200
-        """
+        """should be able to filter on unverified moderated objects and return 200"""
         global_moderator = make_global_moderator()
 
         community_creator = make_user()
@@ -1352,9 +1302,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
             )
 
     def test_can_filter_post_moderated_objects(self):
-        """
-        should be able to filter post moderated objects and return 200
-        """
+        """should be able to filter post moderated objects and return 200"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -1412,9 +1360,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
         self.assertEqual(response_moderated_object_post_id, post.pk)
 
     def test_can_filter_post_comment_moderated_objects(self):
-        """
-        should be able to filter post_comment moderated objects and return 200
-        """
+        """should be able to filter post_comment moderated objects and return 200"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -1473,9 +1419,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
         self.assertEqual(response_moderated_object_post_id, post_comment.pk)
 
     def test_cant_filter_user_moderated_objects(self):
-        """
-        should be not able to filter user moderated objects and return 400
-        """
+        """should be not able to filter user moderated objects and return 400"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -1503,9 +1447,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cant_filter_community_moderated_objects(self):
-        """
-        should not be able to filter community moderated objects and return 400
-        """
+        """should not be able to filter community moderated objects and return 400"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -1529,9 +1471,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cant_retrieve_moderated_objects_if_not_community_moderator(self):
-        """
-        should not be able to retrieve all moderated objects if not community moderators and return 400
-        """
+        """should not be able to retrieve all moderated objects if not community moderators and return 400"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 

@@ -36,9 +36,7 @@ class CommunityAPITests(OpenbookAPITestCase):
     """
 
     def test_can_retrieve_public_community(self):
-        """
-        should be able to retrieve a public community and return 200
-        """
+        """should be able to retrieve a public community and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -59,9 +57,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertEqual(response_name, community_name)
 
     def test_can_retrieve_private_community(self):
-        """
-        should be able to retrieve a private community and return 200
-        """
+        """should be able to retrieve a private community and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -82,9 +78,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertEqual(response_name, community_name)
 
     def test_cannot_retrieve_community_banned_from(self):
-        """
-        should not be able to retrieve a community banned from and return 403
-        """
+        """should not be able to retrieve a community banned from and return 403"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -104,9 +98,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_non_member_cannot_update_community(self):
-        """
-        a non member of a community should not be able to update a community
-        """
+        """a non member of a community should not be able to update a community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -128,9 +120,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertNotEqual(community.name, new_community_name)
 
     def test_member_cannot_update_community(self):
-        """
-        a community member should not be able to update a community
-        """
+        """a community member should not be able to update a community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -154,9 +144,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertNotEqual(community.name, new_community_name)
 
     def test_moderator_cannot_update_community(self):
-        """
-        a community moderator should not be able to update a community
-        """
+        """a community moderator should not be able to update a community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -184,9 +172,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertNotEqual(community.name, new_community_name)
 
     def test_can_update_administrated_community_name(self):
-        """
-        should be able to update an administrated community name
-        """
+        """should be able to update an administrated community name"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -206,9 +192,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertEqual(community.name, new_community_name)
 
     def test_cannot_update_administrated_community_name_to_taken_name(self):
-        """
-        should not be able to update an administrated community name to an existing one and return 400
-        """
+        """should not be able to update an administrated community name to an existing one and return 400"""
         user = make_user()
         other_user = make_user()
 
@@ -230,9 +214,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertNotEqual(community.name, other_community.name)
 
     def test_can_update_administrated_community_type(self):
-        """
-        should be able to update an administrated community type
-        """
+        """should be able to update an administrated community type"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -252,9 +234,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertEqual(community.type, new_community_type)
 
     def test_cannot_update_private_community_type(self):
-        """
-        should NOT be able to update a private community type to public
-        """
+        """should NOT be able to update a private community type to public"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -273,9 +253,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertEqual(community.type, "T")
 
     def test_can_update_administrated_community_title(self):
-        """
-        should be able to update an administrated community title
-        """
+        """should be able to update an administrated community title"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -295,9 +273,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertEqual(community.title, new_community_title)
 
     def test_can_update_administrated_community_users_adjective(self):
-        """
-        should be able to update an administrated community users_adjective
-        """
+        """should be able to update an administrated community users_adjective"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -317,9 +293,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertEqual(community.users_adjective, new_community_users_adjective)
 
     def test_can_update_administrated_community_invites_enabled(self):
-        """
-        should be able to update an administrated community invites_enabled
-        """
+        """should be able to update an administrated community invites_enabled"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -342,9 +316,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertEqual(community.invites_enabled, new_community_users_adjective)
 
     def test_can_update_administrated_community_user_adjective(self):
-        """
-        should be able to update an administrated community user_adjective
-        """
+        """should be able to update an administrated community user_adjective"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -364,9 +336,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertEqual(community.user_adjective, new_community_user_adjective)
 
     def test_can_update_administrated_community_color(self):
-        """
-        should be able to update an administrated community color
-        """
+        """should be able to update an administrated community color"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -386,9 +356,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertEqual(community.color, new_community_color)
 
     def test_can_update_administrated_community_description(self):
-        """
-        should be able to update an administrated community description
-        """
+        """should be able to update an administrated community description"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -408,9 +376,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertEqual(community.description, new_community_description)
 
     def test_can_update_administrated_community_description_with_type_unchanged(self):
-        """
-        should be able to update an administrated community description with the same type
-        """
+        """should be able to update an administrated community description with the same type"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -430,9 +396,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertEqual(community.description, new_community_description)
 
     def test_can_update_administrated_community_rules(self):
-        """
-        should be able to update an administrated community rules
-        """
+        """should be able to update an administrated community rules"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -452,9 +416,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertEqual(community.rules, new_community_rules)
 
     def test_can_delete_administrated_community_description(self):
-        """
-        should be able to delete the administrated community description and return 200
-        """
+        """should be able to delete the administrated community description and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -473,9 +435,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertTrue(not community.description)
 
     def test_can_delete_administrated_community_rules(self):
-        """
-        should be able to delete the administrated community rules and return 200
-        """
+        """should be able to delete the administrated community rules and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -494,9 +454,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertTrue(not community.rules)
 
     def test_can_delete_administrated_community_user_adjective(self):
-        """
-        should be able to delete the administrated community user_adjective and return 200
-        """
+        """should be able to delete the administrated community user_adjective and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -515,9 +473,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertTrue(not community.user_adjective)
 
     def test_can_delete_administrated_community_users_adjective(self):
-        """
-        should be able to delete the administrated community users_adjective and return 200
-        """
+        """should be able to delete the administrated community users_adjective and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -536,9 +492,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertTrue(not community.users_adjective)
 
     def test_can_update_administrated_community_categories(self):
-        """
-        should be able to update the administrated community categories and return 200
-        """
+        """should be able to update the administrated community categories and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -575,9 +529,7 @@ class CommunityAPITests(OpenbookAPITestCase):
             self.assertIn(new_category.pk, categories_ids)
 
     def test_cannot_delete_administrated_community_categories(self):
-        """
-        should not be able to update the administrated community categories and return 400
-        """
+        """should not be able to update the administrated community categories and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -596,9 +548,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertTrue(community.categories.exists())
 
     def test_creator_can_delete_community(self):
-        """
-        should be able to delete a created community and return 200
-        """
+        """should be able to delete a created community and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -614,9 +564,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertFalse(Community.objects.filter(pk=community.pk).exists())
 
     def test_admin_cannot_delete_community(self):
-        """
-        should not be able to delete a merely administrated community and return 400
-        """
+        """should not be able to delete a merely administrated community and return 400"""
         user = make_user()
         other_user = make_user()
 
@@ -639,9 +587,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertTrue(Community.objects.filter(pk=community.pk).exists())
 
     def test_moderator_cannot_delete_community(self):
-        """
-        should not be able to delete a merely moderated community and return 400
-        """
+        """should not be able to delete a merely moderated community and return 400"""
         user = make_user()
         other_user = make_user()
 
@@ -664,9 +610,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertTrue(Community.objects.filter(pk=community.pk).exists())
 
     def test_member_cannot_delete_community(self):
-        """
-        should not be able to delete a joined community and return 400
-        """
+        """should not be able to delete a joined community and return 400"""
         user = make_user()
         other_user = make_user()
 
@@ -686,9 +630,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertTrue(Community.objects.filter(pk=community.pk).exists())
 
     def test_user_cannot_delete_community(self):
-        """
-        should not be able to delete a community and return 400
-        """
+        """should not be able to delete a community and return 400"""
         user = make_user()
         other_user = make_user()
 
@@ -706,9 +648,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         self.assertTrue(Community.objects.filter(pk=community.pk).exists())
 
     def test_cannot_retrieve_soft_deleted_community(self):
-        """
-        should not be able to retrieve a soft deleted community and return 403
-        """
+        """should not be able to retrieve a soft deleted community and return 403"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -746,9 +686,7 @@ class CommunityAvatarAPITests(OpenbookAPITestCase):
     """
 
     def test_can_update_administrated_community_avatar(self):
-        """
-        should be able to update the avatar of an administrated community and return 200
-        """
+        """should be able to update the avatar of an administrated community and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -771,9 +709,7 @@ class CommunityAvatarAPITests(OpenbookAPITestCase):
         self.assertIsNotNone(community.avatar)
 
     def test_can_delete_administrated_community_avatar(self):
-        """
-        should be able to delete the avatar of an administrated community and return 200
-        """
+        """should be able to delete the avatar of an administrated community and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -800,9 +736,7 @@ class CommunityCoverAPITests(OpenbookAPITestCase):
     """
 
     def test_can_update_administrated_community_cover(self):
-        """
-        should be able to update the cover of an administrated community and return 200
-        """
+        """should be able to update the cover of an administrated community and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -825,9 +759,7 @@ class CommunityCoverAPITests(OpenbookAPITestCase):
         self.assertIsNotNone(community.cover)
 
     def test_can_delete_administrated_community_cover(self):
-        """
-        should be able to delete the cover of an administrated community and return 200
-        """
+        """should be able to delete the cover of an administrated community and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -854,10 +786,7 @@ class FavoriteCommunityAPITests(OpenbookAPITestCase):
     """
 
     def test_cant_favorite_not_joined_community(self):
-        """
-        should not be able to favorite a community not joined
-        :return:
-        """
+        """should not be able to favorite a community not joined"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -873,9 +802,7 @@ class FavoriteCommunityAPITests(OpenbookAPITestCase):
         self.assertFalse(user.has_favorite_community_with_name(community.name))
 
     def test_can_favorite_joined_community(self):
-        """
-        should be able to favorite a joined community and return 200
-        """
+        """should be able to favorite a joined community and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -893,9 +820,7 @@ class FavoriteCommunityAPITests(OpenbookAPITestCase):
         self.assertTrue(user.has_favorite_community_with_name(community.name))
 
     def test_cant_favorite_already_favorite_community(self):
-        """
-        should not be be able to favorite an already favorite community and return 400
-        """
+        """should not be be able to favorite an already favorite community and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -914,9 +839,7 @@ class FavoriteCommunityAPITests(OpenbookAPITestCase):
         self.assertTrue(user.has_favorite_community_with_name(community.name))
 
     def test_can_unfavorite_favorite_community(self):
-        """
-        should be able to unfavorite a favorite community and return 200
-        """
+        """should be able to unfavorite a favorite community and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -935,9 +858,7 @@ class FavoriteCommunityAPITests(OpenbookAPITestCase):
         self.assertFalse(user.has_favorite_community_with_name(community.name))
 
     def test_cant_unfavorite_not_favorite_community(self):
-        """
-        should not be able to unfavorite a non favorite community and return 400
-        """
+        """should not be able to unfavorite a non favorite community and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -964,9 +885,7 @@ class ExcludeTopPostsCommunityAPITests(OpenbookAPITestCase):
     """
 
     def test_can_exclude_community(self):
-        """
-        should be able to exclude a community from top posts
-        """
+        """should be able to exclude a community from top posts"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -985,9 +904,7 @@ class ExcludeTopPostsCommunityAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_exclude_private_community(self):
-        """
-        should not be able to exclude a private community from top posts
-        """
+        """should not be able to exclude a private community from top posts"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1008,9 +925,7 @@ class ExcludeTopPostsCommunityAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_exclude_community_already_excluded(self):
-        """
-        should not be able to exclude a community if already excluded from top posts
-        """
+        """should not be able to exclude a community if already excluded from top posts"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1030,9 +945,7 @@ class ExcludeTopPostsCommunityAPITests(OpenbookAPITestCase):
         )
 
     def test_can_remove_excluded_community(self):
-        """
-        should be able to remove an community exclusion
-        """
+        """should be able to remove an community exclusion"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1052,9 +965,7 @@ class ExcludeTopPostsCommunityAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_remove_exclusion_for_community_if_not_excluded(self):
-        """
-        should not be able to remove an community exclusion, if the community is not excluded in the first place
-        """
+        """should not be able to remove an community exclusion, if the community is not excluded in the first place"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1080,10 +991,11 @@ class ExcludeTopPostsCommunityAPITests(OpenbookAPITestCase):
 
 
 class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
+    """
+    SubscribeToCommunityNotificationsAPITests
+    """
     def test_should_be_able_to_subscribe_to_notifications_for_community_if_member(self):
-        """
-        should be able to subscribe to community posts for a community a member
-        """
+        """should be able to subscribe to community posts for a community a member"""
         admin = make_user()
         community = make_community(creator=admin, type="P")
 
@@ -1104,9 +1016,7 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
     def test_should_not_be_able_to_subscribe_to_notifications_for_community_if_not_member(
         self,
     ):
-        """
-        should not be able to subscribe to community posts for a community if not member
-        """
+        """should not be able to subscribe to community posts for a community if not member"""
         admin = make_user()
         community = make_community(creator=admin, type="P")
 
@@ -1121,9 +1031,7 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
     def test_should_not_be_able_to_subscribe_to_notifications_for_community_if_banned(
         self,
     ):
-        """
-        should not be able to subscribe to community posts for a community if banned
-        """
+        """should not be able to subscribe to community posts for a community if banned"""
         admin = make_user()
         community = make_community(creator=admin, type="P")
 
@@ -1143,9 +1051,7 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
     def test_should_not_be_able_to_subscribe_to_notifications_for_community_if_already_subscribed(
         self,
     ):
-        """
-        should not be able to subscribe to community posts for a community if already subscribed
-        """
+        """should not be able to subscribe to community posts for a community if already subscribed"""
         admin = make_user()
         community = make_community(creator=admin, type="P")
 
@@ -1168,9 +1074,7 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
     def test_should_be_able_to_unsubscribe_to_notifications_for_community_if_member(
         self,
     ):
-        """
-        should be able to unsubscribe to community posts for a community a member
-        """
+        """should be able to unsubscribe to community posts for a community a member"""
         admin = make_user()
         community = make_community(creator=admin, type="P")
 
@@ -1194,9 +1098,7 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
     def test_should_not_be_able_to_unsubscribe_to_notifications_for_community_if_not_member(
         self,
     ):
-        """
-        should not be able to unsubscribe to community posts for a community if not member
-        """
+        """should not be able to unsubscribe to community posts for a community if not member"""
         admin = make_user()
         community = make_community(creator=admin, type="P")
 
@@ -1211,9 +1113,7 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
     def test_should_not_be_able_to_unsubscribe_to_notifications_for_community_if_banned(
         self,
     ):
-        """
-        should not be able to unsubscribe to community posts for a community if banned
-        """
+        """should not be able to unsubscribe to community posts for a community if banned"""
         admin = make_user()
         community = make_community(creator=admin, type="P")
 
@@ -1236,9 +1136,7 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
     def test_should_not_be_able_to_unsubscribe_to_notifications_for_community_if_already_subscribed(
         self,
     ):
-        """
-        should not be able to unsubscribe to community posts for a community if already unsubscribed
-        """
+        """should not be able to unsubscribe to community posts for a community if already unsubscribed"""
         admin = make_user()
         community = make_community(creator=admin, type="P")
 

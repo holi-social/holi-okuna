@@ -29,9 +29,7 @@ class CirclesAPITests(OpenbookAPITestCase):
     """
 
     def test_create_circle(self):
-        """
-        should be able to create a circle and return 201
-        """
+        """should be able to create a circle and return 201"""
         user = make_user()
 
         circle_name = fake.name()
@@ -55,9 +53,7 @@ class CirclesAPITests(OpenbookAPITestCase):
         )
 
     def test_retrieve_own_circles(self):
-        """
-        should retrieve the all own circles and return 200
-        """
+        """should retrieve the all own circles and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -92,9 +88,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_delete_own_circle(self):
-        """
-        should be able to delete an own circle and return 200
-        """
+        """should be able to delete an own circle and return 200"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
@@ -109,9 +103,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
         self.assertTrue(Circle.objects.filter(id=circle_id).count() == 0)
 
     def test_cannot_delete_world_circle(self):
-        """
-        should not be able to own world circle and return 400
-        """
+        """should not be able to own world circle and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -124,9 +116,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
         self.assertTrue(Circle.objects.filter(id=circle_id).count() == 1)
 
     def test_cannot_delete_connections_circle(self):
-        """
-        should not be able to delete own connections circle and return 400
-        """
+        """should not be able to delete own connections circle and return 400"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
@@ -140,9 +130,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
         self.assertTrue(Circle.objects.filter(id=circle_id).count() == 1)
 
     def test_cannot_delete_other_user_circle(self):
-        """
-        should not be able to delete another user's circle and return 400
-        """
+        """should not be able to delete another user's circle and return 400"""
         user = make_user()
 
         other_user = make_user()
@@ -159,9 +147,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
         self.assertTrue(Circle.objects.filter(id=circle_id).count() == 1)
 
     def test_can_update_own_circle(self):
-        """
-        should be able to update own circle and return 200
-        """
+        """should be able to update own circle and return 200"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
@@ -187,9 +173,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
         )
 
     def test_can_update_own_circle_users(self):
-        """
-        should be able to update an own circle and return 200
-        """
+        """should be able to update an own circle and return 200"""
         user = make_user()
 
         circle = mixer.blend(Circle, creator=user)
@@ -234,9 +218,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
             )
 
     def test_can_update_own_circle_users_to_none(self):
-        """
-        should be able to update an own circle and return 200
-        """
+        """should be able to update an own circle and return 200"""
         user = make_user()
 
         circle = mixer.blend(Circle, creator=user)
@@ -263,9 +245,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
         self.assertEqual(len(circle.users), 0)
 
     def test_cannot_update_other_user_circle(self):
-        """
-        should not be able to update the circle of another user and return 400
-        """
+        """should not be able to update the circle of another user and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -292,9 +272,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_update_world_circle(self):
-        """
-        should not be able to update own world circle and return 400
-        """
+        """should not be able to update own world circle and return 400"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
@@ -318,9 +296,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_update_connections_circle(self):
-        """
-        should not be able to update own connections circle and return 400
-        """
+        """should not be able to update own connections circle and return 400"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
@@ -353,9 +329,7 @@ class CircleNameCheckAPITests(OpenbookAPITestCase):
     """
 
     def test_circle_name_not_taken(self):
-        """
-        should return status 202 if circle name is not taken.
-        """
+        """should return status 202 if circle name is not taken."""
 
         user = make_user()
 
@@ -369,9 +343,7 @@ class CircleNameCheckAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
     def test_circle_name_taken(self):
-        """
-        should return status 400 if the circleName is taken
-        """
+        """should return status 400 if the circleName is taken"""
         user = make_user()
         color = fake.hex_color()
 

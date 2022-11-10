@@ -33,9 +33,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_can_retrieve_comment_replies_from_public_community_post(self):
-        """
-        should be able to retrieve comment replies for posts
-        """
+        """should be able to retrieve comment replies for posts"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -77,9 +75,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     def test_can_retrieve_comment_replies_from_closed_public_community_post_if_creator(
         self,
     ):
-        """
-        should be able to retrieve comment replies for closed posts if creator
-        """
+        """should be able to retrieve comment replies for closed posts if creator"""
 
         post_creator = make_user()
         admin = make_user()
@@ -125,9 +121,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     def test_can_retrieve_comment_replies_from_closed_public_community_post_if_administrator(
         self,
     ):
-        """
-        should be able to retrieve comment replies for closed posts if administrator
-        """
+        """should be able to retrieve comment replies for closed posts if administrator"""
 
         post_creator = make_user()
         admin = make_user()
@@ -171,9 +165,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
             self.assertIn(reply_id, reply_ids)
 
     def test_can_retrieve_comments_from_closed_public_community_post_if_moderator(self):
-        """
-        should be able to retrieve comments for closed posts if moderator
-        """
+        """should be able to retrieve comments for closed posts if moderator"""
 
         post_creator = make_user()
         admin = make_user()
@@ -306,9 +298,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
             self.assertIn(reply_id, reply_ids)
 
     def test_can_retrieve_comment_replies_from_public_post(self):
-        """
-        should be able to retrieve the comment replies from an own public post and return 200
-        """
+        """should be able to retrieve the comment replies from an own public post and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -345,9 +335,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
             self.assertIn(reply_id, reply_ids)
 
     def test_can_retrieve_comment_replies_from_own_public_post(self):
-        """
-        should be able to retrieve the comment replies from an own public post and return 200
-        """
+        """should be able to retrieve the comment replies from an own public post and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -382,9 +370,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
             self.assertIn(reply_id, reply_ids)
 
     def test_can_retrieve_comment_replies_from_own_encircled_post(self):
-        """
-        should be able to retrieve the comment replies from an own encircled post and return 200
-        """
+        """should be able to retrieve the comment replies from an own encircled post and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         circle = make_circle(creator=user)
@@ -426,9 +412,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
             self.assertIn(reply_id, reply_ids)
 
     def test_can_retrieve_comment_replies_from_encircled_post_part_of(self):
-        """
-        should be able to retrieve the comment replies from an encircled post part of and return 200
-        """
+        """should be able to retrieve the comment replies from an encircled post part of and return 200"""
         post_creator = make_user()
         circle = make_circle(creator=post_creator)
         user = make_user()
@@ -477,9 +461,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
             self.assertIn(reply_id, reply_ids)
 
     def test_cannot_retrieve_comment_replies_from_encircled_post_not_part_of(self):
-        """
-        should not be able to retrieve the comment replies from an encircled post not part of and return 200
-        """
+        """should not be able to retrieve the comment replies from an encircled post not part of and return 200"""
         post_creator = make_user()
         circle = make_circle(creator=post_creator)
         user = make_user()
@@ -511,9 +493,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cannot_retrieve_comment_replies_from_blocked_user(self):
-        """
-        should not be able to retrieve the comment replies from a blocked user
-        """
+        """should not be able to retrieve the comment replies from a blocked user"""
         user = make_user()
 
         post_creator = make_user()
@@ -546,9 +526,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         self.assertEqual(len(response_comment_replies), 0)
 
     def test_cannot_retrieve_comment_replies_from_blocking_user(self):
-        """
-        should not be able to retrieve the comment replies from a blocking user
-        """
+        """should not be able to retrieve the comment replies from a blocking user"""
         user = make_user()
 
         post_creator = make_user()
@@ -580,9 +558,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         self.assertEqual(len(response_comment_replies), 0)
 
     def test_cannot_retrieve_comment_replies_from_blocked_user_in_a_community(self):
-        """
-        should not be able to retrieve the comment replies from a blocked user in a community
-        """
+        """should not be able to retrieve the comment replies from a blocked user in a community"""
         user = make_user()
 
         post_creator = make_user()
@@ -619,9 +595,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         self.assertEqual(len(response_comment_replies), 0)
 
     def test_cannot_retrieve_comment_replies_from_blocking_user_in_a_community(self):
-        """
-        should not be able to retrieve the comment replies from a blocking user in a community
-        """
+        """should not be able to retrieve the comment replies from a blocking user in a community"""
         user = make_user()
 
         post_creator = make_user()
@@ -660,9 +634,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     def test_can_retrieve_comment_replies_from_blocked_user_in_a_community_if_staff(
         self,
     ):
-        """
-        should be able to retrieve the comment replies from a blocked user in a community if staff member
-        """
+        """should be able to retrieve the comment replies from a blocked user in a community if staff member"""
         user = make_user()
         community = make_community(creator=user)
         post_creator = make_user()
@@ -703,9 +675,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     def test_can_retrieve_comment_replies_from_blocking_user_in_a_community_if_staff(
         self,
     ):
-        """
-        should be able to retrieve the comment replies from a blocking user in a community if staff member
-        """
+        """should be able to retrieve the comment replies from a blocking user in a community if staff member"""
         user = make_user()
         community = make_community(creator=user)
         post_creator = make_user()
@@ -744,9 +714,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         self.assertEqual(response_comment_replies[0]["id"], post_comment_reply.pk)
 
     def test_can_reply_to_comment_in_own_post(self):
-        """
-        should be able to reply to comment in own post and return 201
-        """
+        """should be able to reply to comment in own post and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -771,9 +739,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_reply_to_a_reply_in_post(self):
-        """
-        should NOT be able to reply to an existing reply in post
-        """
+        """should NOT be able to reply to an existing reply in post"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -803,9 +769,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_reply_comment_in_foreign_post(self):
-        """
-        should not be able to reply comment in a foreign encircled post and return 400
-        """
+        """should not be able to reply comment in a foreign encircled post and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -831,9 +795,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_can_reply_comment_in_connected_user_public_post(self):
-        """
-        should be able to reply comment in the public post of a connected user post and return 201
-        """
+        """should be able to reply comment in the public post of a connected user post and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -863,9 +825,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_comment_reply_in_blocked_user_post(self):
-        """
-        should not be able to comment reply in a blocked user post and return 400
-        """
+        """should not be able to comment reply in a blocked user post and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -896,9 +856,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_comment_reply_in_blocking_user_post(self):
-        """
-        should not be able to comment reply in a blocking user post and return 400
-        """
+        """should not be able to comment reply in a blocking user post and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -931,9 +889,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_comment_reply_in_blocked_user_community_post(self):
-        """
-        should not be able to comment reply in a blocked user community post and return 400
-        """
+        """should not be able to comment reply in a blocked user community post and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -971,9 +927,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_comment_reply_in_blocking_user_community_post(self):
-        """
-        should not be able to comment reply in a blocking user community post and return 400
-        """
+        """should not be able to comment reply in a blocking user community post and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1009,9 +963,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_can_comment_reply_in_blocked_community_staff_member_post(self):
-        """
-        should be able to comment reply in a blocked community staff member post and return 201
-        """
+        """should be able to comment reply in a blocked community staff member post and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1042,9 +994,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_can_comment_reply_in_blocking_community_staff_member_post(self):
-        """
-        should be able to comment reply in a blocking community staff member post and return 201
-        """
+        """should be able to comment reply in a blocking community staff member post and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1075,9 +1025,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_owner_cannot_comment_reply_in_community_post_with_disabled_comments(self):
-        """
-        should not be able to comment reply in the community post with comments disabled even if owner of post
-        """
+        """should not be able to comment reply in the community post with comments disabled even if owner of post"""
         user = make_user()
         admin = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -1108,9 +1056,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     def test_foreign_user_cannot_reply_comment_in_community_post_with_disabled_comments(
         self,
     ):
-        """
-        should not be able to reply comment in the community post with comments disabled even if foreign user
-        """
+        """should not be able to reply comment in the community post with comments disabled even if foreign user"""
         user = make_user()
         foreign_user = make_user()
         admin = make_user()
@@ -1143,9 +1089,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     def test_administrator_can_comment_reply_in_community_post_with_disabled_comments(
         self,
     ):
-        """
-        should be able to comment reply in the community post with comments disabled if administrator
-        """
+        """should be able to comment reply in the community post with comments disabled if administrator"""
         user = make_user()
         admin = make_user()
         headers = make_authentication_headers_for_user(admin)
@@ -1183,9 +1127,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         self.assertEqual(response_id, post_comment_reply.id)
 
     def test_moderator_can_comment_reply_in_community_post_with_disabled_comments(self):
-        """
-        should be able to comment reply in the community post with comments disabled if moderator
-        """
+        """should be able to comment reply in the community post with comments disabled if moderator"""
         user = make_user()
         admin = make_user()
         moderator = make_user()
@@ -1228,9 +1170,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         self.assertEqual(response_id, post_comment_reply.id)
 
     def test_owner_can_comment_reply_on_closed_community_post(self):
-        """
-        should be able to comment reply in the community post which is closed
-        """
+        """should be able to comment reply in the community post which is closed"""
         user = make_user()
         admin = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -1259,9 +1199,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_foreign_user_cannot_comment_reply_on_closed_community_post(self):
-        """
-        should not be able to comment reply in the community post that is closed
-        """
+        """should not be able to comment reply in the community post that is closed"""
         user = make_user()
         foreign_user = make_user()
         admin = make_user()
@@ -1292,9 +1230,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_moderator_can_comment_reply_on_closed_community_post(self):
-        """
-        should be able to comment reply on the community post which is closed if moderator
-        """
+        """should be able to comment reply on the community post which is closed if moderator"""
         user = make_user()
         admin = make_user()
         moderator = make_user()
@@ -1337,9 +1273,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         self.assertEqual(response_id, post_comment_reply.id)
 
     def test_administrator_can_comment_reply_on_closed_community_post(self):
-        """
-        should be able to comment reply in the community post which is closed if administrator
-        """
+        """should be able to comment reply in the community post which is closed if administrator"""
         user = make_user()
         admin = make_user()
         headers = make_authentication_headers_for_user(admin)
@@ -1377,9 +1311,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         self.assertEqual(response_id, post_comment_reply.id)
 
     def test_can_comment_reply_in_connected_user_encircled_post_part_of(self):
-        """
-        should be able to comment reply in the encircled post of a connected user which the user is part of and return 201
-        """
+        """should be able to comment reply in the encircled post of a connected user which the user is part of and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1416,9 +1348,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_comment_reply_in_connected_user_encircled_post_not_part_of(self):
-        """
-        should NOT be able to comment reply in the encircled post of a connected user which the user is NOT part of and return 400
-        """
+        """should NOT be able to comment reply in the encircled post of a connected user which the user is NOT part of and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1453,9 +1383,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_can_comment_reply_in_user_public_post(self):
-        """
-        should be able to comment reply in the public post of any user and return 201
-        """
+        """should be able to comment reply in the public post of any user and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1484,9 +1412,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_comment_reply_in_followed_user_encircled_post(self):
-        """
-        should be able to comment reply in the encircled post of a followed user return 400
-        """
+        """should be able to comment reply in the encircled post of a followed user return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1520,9 +1446,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_comment_reply_in_post_from_community_banned_from(self):
-        """
-        should not be able to comment reply in the post of a community banned from and return 400
-        """
+        """should not be able to comment reply in the post of a community banned from and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1562,9 +1486,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_retrieve_comment_of_own_soft_deleted_post(self):
-        """
-        should not be able to retrieve the comments of a soft deleted post
-        """
+        """should not be able to retrieve the comments of a soft deleted post"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -1582,9 +1504,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
     def test_cannot_retrieve_comment_of_foreign_soft_deleted_post(self):
-        """
-        should not be able to retrieve the comments of a soft deleted post
-        """
+        """should not be able to retrieve the comments of a soft deleted post"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1604,9 +1524,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
     def test_commenting_reply_in_foreign_post_creates_notification(self):
-        """
-        should create a notification when replying to comment on a foreign post
-        """
+        """should create a notification when replying to comment on a foreign post"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1636,9 +1554,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_commenting_reply_in_own_post_does_not_create_notification(self):
-        """
-        should not create a notification when commenting reply on own post
-        """
+        """should not create a notification when commenting reply on own post"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -1667,9 +1583,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     def test_commenting_reply_in_commented_post_by_foreign_user_creates_foreign_notification(
         self,
     ):
-        """
-        should create a notification when a user comments reply in a post where a foreign user commented before
-        """
+        """should create a notification when a user comments reply in a post where a foreign user commented before"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1703,9 +1617,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     def test_commenting_reply_in_commented_post_by_foreign_user_creates_foreign_notification_when_muted(
         self,
     ):
-        """
-        should create a notification when a user comments reply in a post where a foreign user commented and muted before
-        """
+        """should create a notification when a user comments reply in a post where a foreign user commented and muted before"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1741,9 +1653,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     def test_reply_in_community_post_by_foreign_user_does_not_create_foreign_notification_when_closed(
         self,
     ):
-        """
-        should NOT create a notification when a creator comments reply in a CLOSED community post where a foreign user commented
-        """
+        """should NOT create a notification when a creator comments reply in a CLOSED community post where a foreign user commented"""
         post_creator = make_user()
         admin = make_user()
         community = make_community(creator=admin)
@@ -1781,9 +1691,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     def test_reply_in_community_post_by_admin_does_create_notification_when_closed(
         self,
     ):
-        """
-        should create a notification to a community post creator when an admin comments in a CLOSED post
-        """
+        """should create a notification to a community post creator when an admin comments in a CLOSED post"""
         post_creator = make_user()
         admin = make_user()
         community = make_community(creator=admin)
@@ -1819,9 +1727,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     def test_comment_reply_in_an_encircled_post_with_a_user_removed_from_the_circle_not_notifies_it(
         self,
     ):
-        """
-        should not create a comment reply notification for a user that has been been removed from an encircled post circle
-        """
+        """should not create a comment reply notification for a user that has been been removed from an encircled post circle"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1877,9 +1783,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     def test_replying_on_foreign_post_comment_sends_push_notification_to_commenter(
         self, send_post_comment_reply_push_notification_call
     ):
-        """
-        should send a push notification to the commenter when replying on a foreign post comment
-        """
+        """should send a push notification to the commenter when replying on a foreign post comment"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1922,9 +1826,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     def test_replying_on_foreign_post_comment_sends_push_notification_to_post_creator(
         self, send_post_comment_reply_push_notification_call
     ):
-        """
-        should send a push notification to the post creator when replying on a foreign post comment
-        """
+        """should send a push notification to the post creator when replying on a foreign post comment"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1966,9 +1868,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     def test_replying_on_foreign_post_comment_sends_push_notification_to_other_replier(
         self, send_post_comment_reply_push_notification_call
     ):
-        """
-        should send a push notification to other replier when replying on a foreign post comment
-        """
+        """should send a push notification to other replier when replying on a foreign post comment"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -2011,9 +1911,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     def test_replying_on_foreign_post_comment_doesnt_send_push_notification_when_muted(
         self, send_post_comment_reply_push_notification_call
     ):
-        """
-        should NOT send a push notification when replying on a foreign post comment when muted
-        """
+        """should NOT send a push notification when replying on a foreign post comment when muted"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -2052,9 +1950,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     def test_replying_on_foreign_post_comment_doesnt_send_push_notification_when_post_muted(
         self, send_post_comment_reply_push_notification_call
     ):
-        """
-        should NOT send a push notification when replying on a foreign post comment when post muted
-        """
+        """should NOT send a push notification when replying on a foreign post comment when post muted"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -2090,8 +1986,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     def test_replying_on_post_comment_doesnt_create_push_notification_when_user_blocked(
         self,
     ):
-        """
-        should NOT create notification when a blocked user replies on a foreign users post comment, on a post
+        """should NOT create notification when a blocked user replies on a foreign users post comment, on a post
         that you also commented on
         """
         blocked_user = make_user()
@@ -2134,8 +2029,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     def test_replying_on_post_comment_doesnt_send_push_notification_when_user_blocked(
         self, send_post_comment_reply_push_notification_call
     ):
-        """
-        should NOT send push notification to blocking user when the blocked user replies on a post comment the
+        """should NOT send push notification to blocking user when the blocked user replies on a post comment the
         blocking user replied on
         """
         blocked_user = make_user()
@@ -2180,9 +2074,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     def test_reply_to_post_comment_ignores_parent_comment_creator_username_mention(
         self,
     ):
-        """
-        should ignore the parent comment creator username mention when replying to a post comment
-        """
+        """should ignore the parent comment creator username mention when replying to a post comment"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -2222,9 +2114,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_reply_to_post_comment_ignores_if_username_already_replied(self):
-        """
-        should ignore a username if the person already replied
-        """
+        """should ignore a username if the person already replied"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -2261,9 +2151,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_reply_to_post_comment_ignores_comment_creator_username_mention(self):
-        """
-        should ignore the comment creator username mention when replying to a post comment
-        """
+        """should ignore the comment creator username mention when replying to a post comment"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -2303,9 +2191,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_reply_to_post_comment_detects_post_creator_username_mention(self):
-        """
-        should detect the post creator username mention when replying to a post comment
-        """
+        """should detect the post creator username mention when replying to a post comment"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -2346,9 +2232,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
     def test_should_retrieve_all_comment_replies_on_public_post(self):
-        """
-        should retrieve all comment replies on public post
-        """
+        """should retrieve all comment replies on public post"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -2380,9 +2264,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
             self.assertTrue(comment.pk in response_ids)
 
     def test_should_retrieve_all_comment_replies_on_public_post_with_sort(self):
-        """
-        should retrieve all comment replies on public post with sort ascending
-        """
+        """should retrieve all comment replies on public post with sort ascending"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -2415,9 +2297,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_retrieve_comment_replies_less_than_max_id_on_post(self):
-        """
-        should retrieve comment replies less than max id for post if param is present
-        """
+        """should retrieve comment replies less than max id for post if param is present"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -2451,9 +2331,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_retrieve_comment_replies_greater_than_or_equal_to_min_id(self):
-        """
-        should retrieve comment replies greater than or equal to min_id for post if param is present
-        """
+        """should retrieve comment replies greater than or equal to min_id for post if param is present"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -2487,9 +2365,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_retrieve_comment_replies_slice_for_min_id_and_max_id(self):
-        """
-        should retrieve comment replies slice for post comments taking into account min_id and max_id
-        """
+        """should retrieve comment replies slice for post comments taking into account min_id and max_id"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -2540,9 +2416,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
     def test_should_retrieve_comment_replies_slice_with_sort_for_min_id_and_max_id(
         self,
     ):
-        """
-        should retrieve comment replies slice sorted ascending for post comments taking into account min_id and max_id
-        """
+        """should retrieve comment replies slice sorted ascending for post comments taking into account min_id and max_id"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())

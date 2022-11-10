@@ -70,9 +70,7 @@ class PostItemAPITests(OpenbookAPITestCase):
     ]
 
     def test_can_retrieve_own_post(self):
-        """
-        should be able to retrieve own post and return 200
-        """
+        """should be able to retrieve own post and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -88,9 +86,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response_post["id"], post.pk)
 
     def test_can_retrieve_foreign_user_public_post(self):
-        """
-        should be able to retrieve a foreign user public post and return 200
-        """
+        """should be able to retrieve a foreign user public post and return 200"""
         user = make_user()
         foreign_user = make_user()
 
@@ -108,9 +104,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response_post["id"], post.pk)
 
     def test_can_retrieve_connected_user_encircled_post(self):
-        """
-        should be able to retrieve a connected user encircled post and return 200
-        """
+        """should be able to retrieve a connected user encircled post and return 200"""
         user = make_user()
         foreign_user = make_user()
 
@@ -137,9 +131,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response_post["id"], post.pk)
 
     def test_can_retrieve_public_community_not_member_of_post(self):
-        """
-        should be able to retrieve a public community not member of post and return 200
-        """
+        """should be able to retrieve a public community not member of post and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -161,9 +153,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response_post["id"], post.pk)
 
     def test_can_retrieve_public_community_member_of_post(self):
-        """
-        should be able to retrieve a public community member of post and return 200
-        """
+        """should be able to retrieve a public community member of post and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -187,9 +177,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response_post["id"], post.pk)
 
     def test_cant_retrieve_community_banned_from_post(self):
-        """
-        should not be able to retrieve a community banned from post and return 400
-        """
+        """should not be able to retrieve a community banned from post and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -214,9 +202,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cant_retrieve_private_community_not_member_of_post(self):
-        """
-        should not be able to retrieve a private community not member of post and return 400
-        """
+        """should not be able to retrieve a private community not member of post and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -236,9 +222,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_can_retrieve_private_community_member_of_post(self):
-        """
-        should be able to retrieve a private community member of post and return 200
-        """
+        """should be able to retrieve a private community member of post and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -267,9 +251,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response_post["id"], post.pk)
 
     def test_cant_retrieve_user_encircled_post(self):
-        """
-        should not be able to retrieve a user encircled post and return 400
-        """
+        """should not be able to retrieve a user encircled post and return 400"""
         user = make_user()
         foreign_user = make_user()
 
@@ -287,9 +269,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cant_retrieve_blocked_user_post(self):
-        """
-        should not be able to retrieve a post from a blocked user and return 400
-        """
+        """should not be able to retrieve a post from a blocked user and return 400"""
         user = make_user()
         user_to_block = make_user()
 
@@ -306,9 +286,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
     def test_cant_retrieve_blocking_user_post(self):
-        """
-        should not be able to retrieve a post from a blocking user and return 400
-        """
+        """should not be able to retrieve a post from a blocking user and return 400"""
         user = make_user()
         user_to_block = make_user()
 
@@ -325,9 +303,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
     def test_cant_retrieve_blocked_user_community_post(self):
-        """
-        should not be able to retrieve a community post from a blocked user and return 400
-        """
+        """should not be able to retrieve a community post from a blocked user and return 400"""
         user = make_user()
 
         community_owner = make_user()
@@ -352,9 +328,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
     def test_cant_retrieve_blocking_user_community_post(self):
-        """
-        should not be able to retrieve a community post from a blocking user and return 400
-        """
+        """should not be able to retrieve a community post from a blocking user and return 400"""
         user = make_user()
 
         community_owner = make_user()
@@ -379,9 +353,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
     def test_can_retrieve_blocked_community_staff_post(self):
-        """
-        should be able to retrieve a the post of a blocked community staff member and return 200
-        """
+        """should be able to retrieve a the post of a blocked community staff member and return 200"""
         user = make_user()
         community_owner = make_user()
         community = make_community(creator=community_owner)
@@ -404,9 +376,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response_post["id"], post.pk)
 
     def test_can_retrieve_blocking_community_staff_post(self):
-        """
-        should be able to retrieve a the post of a blocking community staff member and return 200
-        """
+        """should be able to retrieve a the post of a blocking community staff member and return 200"""
         user = make_user()
         community_owner = make_user()
         community = make_community(creator=community_owner)
@@ -429,9 +399,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response_post["id"], post.pk)
 
     def test_can_retrieve_draft_own_post(self):
-        """
-        should be able to retrieve a draft own post
-        """
+        """should be able to retrieve a draft own post"""
         user = make_user()
 
         post = user.create_public_post(text=make_fake_post_text(), is_draft=True)
@@ -448,9 +416,7 @@ class PostItemAPITests(OpenbookAPITestCase):
 
     @mock.patch("openbook_posts.jobs.process_post_media")
     def test_can_retrieve_processing_own_post(self, mock):
-        """
-        should be able to retrieve an own processing post
-        """
+        """should be able to retrieve an own processing post"""
         user = make_user()
 
         test_image = get_test_image()
@@ -470,9 +436,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response_post["id"], post.pk)
 
     def test_cant_retrieve_draft_foreign_user_post(self):
-        """
-        should not be able to retrieve a foreign user draft post
-        """
+        """should not be able to retrieve a foreign user draft post"""
         user = make_user()
         foreign_user = make_user()
 
@@ -488,9 +452,7 @@ class PostItemAPITests(OpenbookAPITestCase):
 
     @mock.patch("openbook_posts.jobs.process_post_media")
     def test_cant_retrieve_processing_foreign_user_post(self, mock):
-        """
-        should not be able to retrieve a foreign user processing post
-        """
+        """should not be able to retrieve a foreign user processing post"""
         user = make_user()
         foreign_user = make_user()
 
@@ -509,9 +471,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cant_retrieve_draft_following_user_post(self):
-        """
-        should not be able to retrieve a following user draft post
-        """
+        """should not be able to retrieve a following user draft post"""
         user = make_user()
         following_user = make_user()
 
@@ -529,9 +489,7 @@ class PostItemAPITests(OpenbookAPITestCase):
 
     @mock.patch("openbook_posts.jobs.process_post_media")
     def test_cant_retrieve_processing_following_user_post(self, mock):
-        """
-        should not be able to retrieve a following user processing post
-        """
+        """should not be able to retrieve a following user processing post"""
         user = make_user()
         following_user = make_user()
 
@@ -552,9 +510,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cant_retrieve_draft_follower_user_post(self):
-        """
-        should not be able to retrieve a follower user draft post
-        """
+        """should not be able to retrieve a follower user draft post"""
         user = make_user()
         follower_user = make_user()
 
@@ -572,9 +528,7 @@ class PostItemAPITests(OpenbookAPITestCase):
 
     @mock.patch("openbook_posts.jobs.process_post_media")
     def test_cant_retrieve_processing_follower_user_post(self, mock):
-        """
-        should not be able to retrieve a follower user processing post
-        """
+        """should not be able to retrieve a follower user processing post"""
         user = make_user()
         follower_user = make_user()
 
@@ -595,9 +549,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cant_retrieve_draft_connected_user_post(self):
-        """
-        should not be able to retrieve a follower user draft post
-        """
+        """should not be able to retrieve a follower user draft post"""
         user = make_user()
         connected_user = make_user()
 
@@ -617,9 +569,7 @@ class PostItemAPITests(OpenbookAPITestCase):
 
     @mock.patch("openbook_posts.jobs.process_post_media")
     def test_cant_retrieve_processing_connected_user_post(self, mock):
-        """
-        should not be able to retrieve a follower user processing post
-        """
+        """should not be able to retrieve a follower user processing post"""
         user = make_user()
         connected_user = make_user()
 
@@ -642,9 +592,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cant_retrieve_draft_pending_connection_user_post(self):
-        """
-        should not be able to retrieve a follower user draft post
-        """
+        """should not be able to retrieve a follower user draft post"""
         user = make_user()
         pending_connection_user = make_user()
 
@@ -663,9 +611,7 @@ class PostItemAPITests(OpenbookAPITestCase):
 
     @mock.patch("openbook_posts.jobs.process_post_media")
     def test_cant_retrieve_processing_pending_connection_user_post(self, mock):
-        """
-        should not be able to retrieve a follower user processing post
-        """
+        """should not be able to retrieve a follower user processing post"""
         user = make_user()
         pending_connection_user = make_user()
 
@@ -687,9 +633,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_can_delete_own_post(self):
-        """
-        should be able to delete own post and return 200
-        """
+        """should be able to delete own post and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -702,9 +646,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertTrue(Post.objects.filter(pk=post.pk).count() == 0)
 
     def test_delete_image_post(self):
-        """
-        should be able to delete image post and file
-        """
+        """should be able to delete image post and file"""
         user = make_user()
 
         image = Image.new("RGB", (100, 100))
@@ -721,9 +663,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertFalse(access(file.name, F_OK))
 
     def test_delete_video_post(self):
-        """
-        should be able to delete video post and file
-        """
+        """should be able to delete video post and file"""
         user = make_user()
 
         test_video = get_test_videos()[0]
@@ -752,9 +692,7 @@ class PostItemAPITests(OpenbookAPITestCase):
             self.assertFalse(Post.objects.filter(pk=post.pk).exists())
 
     def test_can_delete_post_of_community_if_mod(self):
-        """
-        should be able to delete a community post if moderator and return 200
-        """
+        """should be able to delete a community post if moderator and return 200"""
         user = make_user()
 
         community_creator = make_user()
@@ -781,9 +719,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertTrue(Post.objects.filter(pk=post.pk).count() == 0)
 
     def test_can_delete_post_of_community_if_admin(self):
-        """
-        should be able to delete a community post if administrator and return 200
-        """
+        """should be able to delete a community post if administrator and return 200"""
         user = make_user()
 
         community_creator = make_user()
@@ -810,9 +746,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertTrue(Post.objects.filter(pk=post.pk).count() == 0)
 
     def test_logs_community_post_deleted_by_non_creator(self):
-        """
-        should create a log when a community post was deleted by an admin/moderator
-        """
+        """should create a log when a community post was deleted by an admin/moderator"""
         user = make_user()
 
         community_creator = make_user()
@@ -842,9 +776,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_delete_foreign_post(self):
-        """
-        should not be able to delete a foreign post and return 400
-        """
+        """should not be able to delete a foreign post and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -859,9 +791,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertTrue(Post.objects.filter(pk=post.pk).count() == 1)
 
     def test_can_edit_own_post(self):
-        """
-        should be able to edit own  post and return 200
-        """
+        """should be able to edit own  post and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -879,9 +809,7 @@ class PostItemAPITests(OpenbookAPITestCase):
 
     @mock.patch("openbook_posts.models.get_language_for_text")
     def test_editing_own_post_updates_language(self, get_language_for_text_call):
-        """
-        should update language when editing own  post and return 200
-        """
+        """should update language when editing own  post and return 200"""
         Language = get_language_model()
         get_language_for_text_call.return_value = Language.objects.get(code="en")
         user = make_user()
@@ -897,9 +825,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         get_language_for_text_call.assert_called_with(edited_text)
 
     def test_editing_own_post_updates_mentions(self):
-        """
-        should update mentions when updating text
-        """
+        """should update mentions when updating text"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -959,9 +885,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         )
 
     def test_editing_text_post_ignores_non_existing_mentioned_usernames(self):
-        """
-        should ignore non existing mentioned usernames when editing a post
-        """
+        """should ignore non existing mentioned usernames when editing a post"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -981,9 +905,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(PostUserMention.objects.filter(post_id=post.pk).count(), 0)
 
     def test_editing_text_post_ignores_casing_of_mentioned_usernames(self):
-        """
-        should ignores casing of mentioned usernames when editing a post
-        """
+        """should ignores casing of mentioned usernames when editing a post"""
         user = make_user()
         mentioned_user = make_user(username="Miguel")
 
@@ -1008,9 +930,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         )
 
     def test_editing_own_post_does_not_create_double_mentions(self):
-        """
-        should not create double mentions when editing our own post
-        """
+        """should not create double mentions when editing our own post"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -1046,9 +966,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(new_post_user_mention.pk, post_user_mention.pk)
 
     def test_editing_own_post_with_hashtag_creates_hashtag_if_not_exist(self):
-        """
-        when editing a post with a hashtag, should create  it if not exists
-        """
+        """when editing a post with a hashtag, should create  it if not exists"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -1076,9 +994,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(post.hashtags.all().count(), 1)
 
     def test_editing_own_post_with_hashtag_updates_to_existing_hashtag_exists(self):
-        """
-        when editing a post with a hashtag, should update to it if exists
-        """
+        """when editing a post with a hashtag, should update to it if exists"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -1105,9 +1021,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(post.hashtags.all().count(), 1)
 
     def test_editing_own_post_with_hashtag_does_not_create_double_hashtags(self):
-        """
-        when editing a post with a hashtag, should not create duplicate hashtags
-        """
+        """when editing a post with a hashtag, should not create duplicate hashtags"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -1132,9 +1046,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(post.hashtags.all().count(), 1)
 
     def test_edit_text_post_with_more_hashtags_than_allowed_should_not_edit_it(self):
-        """
-        when editing a post with more than allowed hashtags, should not create it
-        """
+        """when editing a post with more than allowed hashtags, should not create it"""
         user = make_user()
 
         post_text = make_fake_post_text()
@@ -1161,9 +1073,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertTrue(Post.objects.filter(text=post_text).exists())
 
     def test_canot_edit_to_remove_text_from_own_text_only_post(self):
-        """
-        should not be able to edit to remove the text of an own post and return 400
-        """
+        """should not be able to edit to remove the text of an own post and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         initial_text = make_fake_post_text()
@@ -1180,9 +1090,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertFalse(post.is_edited)
 
     def test_can_edit_own_community_post(self):
-        """
-        should be able to edit own community post and return 200
-        """
+        """should be able to edit own community post and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1206,9 +1114,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertTrue(community_post.is_edited)
 
     def test_cannot_edit_own_community_post_which_is_closed(self):
-        """
-        should NOT be able to edit own closed community post and return 200
-        """
+        """should NOT be able to edit own closed community post and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1235,9 +1141,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertFalse(community_post.is_edited)
 
     def test_cannot_edit_foreign_post(self):
-        """
-        should not be able to edit foreign post
-        """
+        """should not be able to edit foreign post"""
         user = make_user()
         foreign_user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -1256,9 +1160,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertFalse(post.is_edited)
 
     def test_cant_retrieve_soft_deleted_community_post(self):
-        """
-        should not be able to retrieve soft deleted community post
-        """
+        """should not be able to retrieve soft deleted community post"""
         user = make_user()
 
         community_creator = make_user()
@@ -1282,9 +1184,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cant_retrieve_soft_deleted_following_user_post(self):
-        """
-        should not be able to retrieve soft deleted following user post
-        """
+        """should not be able to retrieve soft deleted following user post"""
         user = make_user()
 
         following_user = make_user()
@@ -1302,9 +1202,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cant_retrieve_soft_deleted_connected_user_post(self):
-        """
-        should not be able to retrieve soft deleted connected user post
-        """
+        """should not be able to retrieve soft deleted connected user post"""
         user = make_user()
 
         connected_user = make_user()
@@ -1326,9 +1224,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cant_retrieve_reported_community_post(self):
-        """
-        should not be able to retrieve reported community post
-        """
+        """should not be able to retrieve reported community post"""
         user = make_user()
 
         community_creator = make_user()
@@ -1352,9 +1248,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cant_retrieve_reported_following_user_post(self):
-        """
-        should not be able to retrieve reported following user post
-        """
+        """should not be able to retrieve reported following user post"""
         user = make_user()
 
         following_user = make_user()
@@ -1374,9 +1268,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cant_retrieve_reported_connected_user_post(self):
-        """
-        should not be able to retrieve reported connected user post
-        """
+        """should not be able to retrieve reported connected user post"""
         user = make_user()
 
         connected_user = make_user()
@@ -1410,9 +1302,7 @@ class MutePostAPITests(OpenbookAPITestCase):
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_can_mute_own_post(self):
-        """
-        should be able to mute own post and return 200
-        """
+        """should be able to mute own post and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -1426,9 +1316,7 @@ class MutePostAPITests(OpenbookAPITestCase):
         self.assertTrue(user.has_muted_post_with_id(post.pk))
 
     def test_cant_mute_own_post_if_already_muted(self):
-        """
-        should not be able to mute own post if already muted and return 400
-        """
+        """should not be able to mute own post if already muted and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -1521,9 +1409,7 @@ class MutePostAPITests(OpenbookAPITestCase):
         self.assertTrue(user.has_muted_post_with_id(post.pk))
 
     def test_cannot_mute_closed_community_post(self):
-        """
-        should not be able to mute closed post if not admin/mod or post creator in community
-        """
+        """should not be able to mute closed post if not admin/mod or post creator in community"""
         user = make_user()
 
         foreign_user = make_user()
@@ -1545,9 +1431,7 @@ class MutePostAPITests(OpenbookAPITestCase):
         self.assertFalse(user.has_muted_post_with_id(post.pk))
 
     def test_can_mute_closed_community_post_if_creator(self):
-        """
-        should be able to mute closed post if post creator in community
-        """
+        """should be able to mute closed post if post creator in community"""
         user = make_user()
 
         foreign_user = make_user()
@@ -1569,9 +1453,7 @@ class MutePostAPITests(OpenbookAPITestCase):
         self.assertTrue(user.has_muted_post_with_id(post.pk))
 
     def test_can_mute_closed_community_post_administrator(self):
-        """
-        should be able to mute closed post if administrator in community
-        """
+        """should be able to mute closed post if administrator in community"""
         user = make_user()
 
         admin = make_user()
@@ -1593,9 +1475,7 @@ class MutePostAPITests(OpenbookAPITestCase):
         self.assertTrue(admin.has_muted_post_with_id(post.pk))
 
     def test_can_mute_closed_community_post_if_moderator(self):
-        """
-        should be able to mute closed post if moderator in community
-        """
+        """should be able to mute closed post if moderator in community"""
         user = make_user()
 
         admin = make_user()
@@ -1677,9 +1557,7 @@ class UnmutePostAPITests(OpenbookAPITestCase):
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_can_unmute_own_post(self):
-        """
-        should be able to unmute own post and return 200
-        """
+        """should be able to unmute own post and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -1695,9 +1573,7 @@ class UnmutePostAPITests(OpenbookAPITestCase):
         self.assertFalse(user.has_muted_post_with_id(post.pk))
 
     def test_cant_unmute_own_post_if_already_unmuted(self):
-        """
-        should not be able to unmute own post if already unmuted and return 400
-        """
+        """should not be able to unmute own post if already unmuted and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -1711,9 +1587,7 @@ class UnmutePostAPITests(OpenbookAPITestCase):
         self.assertFalse(user.has_muted_post_with_id(post.pk))
 
     def test_cannot_unmute_closed_community_post(self):
-        """
-        should not be able to unmute closed post if not admin/mod or post creator in community
-        """
+        """should not be able to unmute closed post if not admin/mod or post creator in community"""
         user = make_user()
 
         foreign_user = make_user()
@@ -1736,9 +1610,7 @@ class UnmutePostAPITests(OpenbookAPITestCase):
         self.assertTrue(user.has_muted_post_with_id(post.pk))
 
     def test_can_unmute_closed_community_post_if_creator(self):
-        """
-        should be able to unmute closed post if post creator in community
-        """
+        """should be able to unmute closed post if post creator in community"""
         user = make_user()
 
         foreign_user = make_user()
@@ -1761,9 +1633,7 @@ class UnmutePostAPITests(OpenbookAPITestCase):
         self.assertFalse(user.has_muted_post_with_id(post.pk))
 
     def test_can_unmute_closed_community_post_administrator(self):
-        """
-        should be able to unmute closed post if administrator in community
-        """
+        """should be able to unmute closed post if administrator in community"""
         user = make_user()
 
         admin = make_user()
@@ -1786,9 +1656,7 @@ class UnmutePostAPITests(OpenbookAPITestCase):
         self.assertFalse(admin.has_muted_post_with_id(post.pk))
 
     def test_can_unmute_closed_community_post_if_moderator(self):
-        """
-        should be able to unmute closed post if moderator in community
-        """
+        """should be able to unmute closed post if moderator in community"""
         user = make_user()
 
         admin = make_user()
@@ -1825,9 +1693,7 @@ class PostCloseAPITests(OpenbookAPITestCase):
     """
 
     def test_can_close_post_if_administrator_of_community(self):
-        """
-        should be able to close post if administrator of a community
-        """
+        """should be able to close post if administrator of a community"""
         user = make_user()
         admin = make_user()
         community = make_community(admin)
@@ -1847,9 +1713,7 @@ class PostCloseAPITests(OpenbookAPITestCase):
         self.assertTrue(parsed_response["is_closed"])
 
     def test_can_close_post_if_moderator_of_community(self):
-        """
-        should be able to close post if moderator of a community
-        """
+        """should be able to close post if moderator of a community"""
         user = make_user()
         admin = make_user()
         moderator = make_user()
@@ -1874,9 +1738,7 @@ class PostCloseAPITests(OpenbookAPITestCase):
         self.assertTrue(parsed_response["is_closed"])
 
     def test_cannot_close_post_if_not_administrator_or_moderator_of_community(self):
-        """
-        should not be able to close post if not moderator/administrator of a community
-        """
+        """should not be able to close post if not moderator/administrator of a community"""
         user = make_user()
         admin = make_user()
         community = make_community(admin)
@@ -1893,9 +1755,7 @@ class PostCloseAPITests(OpenbookAPITestCase):
         self.assertFalse(post.is_closed)
 
     def test_logs_close_post_by_administrator_of_community(self):
-        """
-        should log close post by administrator of a community
-        """
+        """should log close post by administrator of a community"""
         community_post_creator = make_user()
         admin = make_user()
         community = make_community(admin)
@@ -1919,9 +1779,7 @@ class PostCloseAPITests(OpenbookAPITestCase):
         )
 
     def test_close_post_deletes_new_post_notifications_for_normal_members(self):
-        """
-        should delete new post notifications for members (except creator/staff) on close post by administrator of a community
-        """
+        """should delete new post notifications for members (except creator/staff) on close post by administrator of a community"""
         community_post_creator = make_user()
         admin = make_user()
         community_member = make_user()
@@ -1952,9 +1810,7 @@ class PostCloseAPITests(OpenbookAPITestCase):
     def test_close_post_deletes_post_user_mention_notifications_for_normal_members(
         self,
     ):
-        """
-        should delete post user mention notifications for members (except creator/staff) on close post by administrator of a community
-        """
+        """should delete post user mention notifications for members (except creator/staff) on close post by administrator of a community"""
         community_post_creator = make_user()
         admin = make_user()
         mentioned_user = make_user(username="joel123")
@@ -1980,9 +1836,7 @@ class PostCloseAPITests(OpenbookAPITestCase):
         )
 
     def test_close_post_deletes_post_comment_notifications_for_normal_members(self):
-        """
-        should delete post comment notifications for members (except creator/staff) on close post by administrator of a community
-        """
+        """should delete post comment notifications for members (except creator/staff) on close post by administrator of a community"""
         community_post_creator = make_user()
         admin = make_user()
         community_member = make_user()
@@ -2019,9 +1873,7 @@ class PostCloseAPITests(OpenbookAPITestCase):
     def test_close_post_deletes_post_comment_reaction_notifications_for_normal_members(
         self,
     ):
-        """
-        should delete post comment reaction notifications for members (except creator/staff) on close post by administrator of a community
-        """
+        """should delete post comment reaction notifications for members (except creator/staff) on close post by administrator of a community"""
         community_post_creator = make_user()
         admin = make_user()
         community_member = make_user()
@@ -2064,9 +1916,7 @@ class PostCloseAPITests(OpenbookAPITestCase):
     def test_close_post_deletes_post_comment_reply_notifications_for_normal_members(
         self,
     ):
-        """
-        should delete post comment reply notifications for members (except creator/staff) on close post by administrator of a community
-        """
+        """should delete post comment reply notifications for members (except creator/staff) on close post by administrator of a community"""
         community_post_creator = make_user()
         admin = make_user()
         community_member = make_user()
@@ -2103,9 +1953,7 @@ class PostCloseAPITests(OpenbookAPITestCase):
     def test_close_post_deletes_post_comment_user_mention_notifications_for_normal_members(
         self,
     ):
-        """
-        should delete post comment user mention notifications for members (except creator/staff) on close post by administrator of a community
-        """
+        """should delete post comment user mention notifications for members (except creator/staff) on close post by administrator of a community"""
         community_post_creator = make_user()
         admin = make_user()
         community_member = make_user()
@@ -2139,9 +1987,7 @@ class PostCloseAPITests(OpenbookAPITestCase):
     def test_close_post_does_not_delete_new_post_notifications_for_staff_and_creator(
         self,
     ):
-        """
-        should NOT delete new post notifications for staff and creator on close post
-        """
+        """should NOT delete new post notifications for staff and creator on close post"""
         community_post_creator = make_user()
         admin = make_user()
         community_member = make_user()
@@ -2187,9 +2033,7 @@ class PostOpenAPITests(OpenbookAPITestCase):
     """
 
     def test_can_open_post_if_administrator_of_community(self):
-        """
-        should be able to open post if administrator of a community
-        """
+        """should be able to open post if administrator of a community"""
         user = make_user()
         admin = make_user()
         community = make_community(admin)
@@ -2211,9 +2055,7 @@ class PostOpenAPITests(OpenbookAPITestCase):
         self.assertFalse(parsed_response["is_closed"])
 
     def test_can_open_post_if_moderator_of_community(self):
-        """
-        should be able to open post if moderator of a community
-        """
+        """should be able to open post if moderator of a community"""
         user = make_user()
         admin = make_user()
         moderator = make_user()
@@ -2240,9 +2082,7 @@ class PostOpenAPITests(OpenbookAPITestCase):
         self.assertFalse(parsed_response["is_closed"])
 
     def test_cannot_open_post_if_not_administrator_or_moderator_of_community(self):
-        """
-        should not be able to open post if not moderator/administrator of a community
-        """
+        """should not be able to open post if not moderator/administrator of a community"""
         user = make_user()
         admin = make_user()
         community = make_community(admin)
@@ -2261,9 +2101,7 @@ class PostOpenAPITests(OpenbookAPITestCase):
         self.assertTrue(post.is_closed)
 
     def test_logs_open_post_by_administrator_of_community(self):
-        """
-        should log open post by administrator of a community
-        """
+        """should log open post by administrator of a community"""
         community_post_creator = make_user()
         admin = make_user()
         community = make_community(admin)
@@ -2301,9 +2139,7 @@ class TranslatePostAPITests(OpenbookAPITestCase):
     ]
 
     def test_translate_post_text(self):
-        """
-        should translate post text and return 200
-        """
+        """should translate post text and return 200"""
         user = make_user()
         Language = get_language_model()
         user.translation_language = Language.objects.get(code="en")
@@ -2322,9 +2158,7 @@ class TranslatePostAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_translate_post_text_without_user_language(self):
-        """
-        should not translate post text and return 400 if user language is not set
-        """
+        """should not translate post text and return 400 if user language is not set"""
         user = make_user()
         text = "Ik ben en man 😀. Jij bent en vrouw."
         headers = make_authentication_headers_for_user(user)
@@ -2336,9 +2170,7 @@ class TranslatePostAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cannot_translate_encircled_post(self):
-        """
-        should not be able to translate encircled post and return 400
-        """
+        """should not be able to translate encircled post and return 400"""
         user = make_user()
         text = "Ik ben en man 😀. Jij bent en vrouw."
         headers = make_authentication_headers_for_user(user)
@@ -2351,9 +2183,7 @@ class TranslatePostAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cannot_translate_post_text_without_post_comment_language(self):
-        """
-        should not translate post text and return 400 if post language is not set
-        """
+        """should not translate post text and return 400 if post language is not set"""
         user = make_user()
         text = "Ik ben en man 😀. Jij bent en vrouw."
         headers = make_authentication_headers_for_user(user)
@@ -2367,9 +2197,7 @@ class TranslatePostAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_return_error_between_unsupported_translate_pairs(self):
-        """
-        should return error when translating post between unsupported pairs (Norwegian to arabic) and return 400
-        """
+        """should return error when translating post between unsupported pairs (Norwegian to arabic) and return 400"""
         user = make_user()
         Language = get_language_model()
         user.translation_language = Language.objects.get(code="ar")
@@ -2385,9 +2213,7 @@ class TranslatePostAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_return_error_when_text_length_exceeds_max_setting(self):
-        """
-        should return appropriate error when length of text is more than maximum in settings.py return 400
-        """
+        """should return appropriate error when length of text is more than maximum in settings.py return 400"""
         user = make_user()
         Language = get_language_model()
         user.translation_language = Language.objects.get(code="ar")
@@ -2416,9 +2242,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
     ]
 
     def test_retrieves_post_creator_by_username(self):
-        """
-        should retrieve the post creator by username and return 200
-        """
+        """should retrieve the post creator by username and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -2444,9 +2268,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
         self.assertTrue(found)
 
     def test_retrieves_post_creator_by_name(self):
-        """
-        should retrieve the post creator by name and return 200
-        """
+        """should retrieve the post creator by name and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -2472,9 +2294,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
         self.assertTrue(found)
 
     def test_retrieves_oneself_by_username(self):
-        """
-        should retrieve the oneself by username and return 200
-        """
+        """should retrieve the oneself by username and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -2498,9 +2318,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
         self.assertTrue(found)
 
     def test_retrieves_oneself_by_name(self):
-        """
-        should retrieve the oneself by name and return 200
-        """
+        """should retrieve the oneself by name and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -2525,9 +2343,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
         self.assertTrue(found)
 
     def test_retrieves_post_commentator_by_username(self):
-        """
-        should retrieve a post commentator by username and return 200
-        """
+        """should retrieve a post commentator by username and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -2559,9 +2375,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
         self.assertTrue(found)
 
     def test_retrieves_post_commentator_by_name(self):
-        """
-        should retrieve a post commentator by name and return 200
-        """
+        """should retrieve a post commentator by name and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -2593,9 +2407,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
         self.assertTrue(found)
 
     def test_retrieves_post_community_member_by_username(self):
-        """
-        should retrieve a post community member by username and return 200
-        """
+        """should retrieve a post community member by username and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -2632,9 +2444,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
         self.assertTrue(found)
 
     def test_retrieves_post_community_member_by_name(self):
-        """
-        should retrieve a post community member by name and return 200
-        """
+        """should retrieve a post community member by name and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -2671,9 +2481,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
         self.assertTrue(found)
 
     def test_retrieves_follower_by_username(self):
-        """
-        should retrieve a follower by username and return 200
-        """
+        """should retrieve a follower by username and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -2703,9 +2511,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
         self.assertTrue(found)
 
     def test_retrieves_follower_by_name(self):
-        """
-        should retrieve a follower by name and return 200
-        """
+        """should retrieve a follower by name and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -2735,9 +2541,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
         self.assertTrue(found)
 
     def test_retrieves_connection_by_username(self):
-        """
-        should retrieve a connection by username and return 200
-        """
+        """should retrieve a connection by username and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -2769,9 +2573,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
         self.assertTrue(found)
 
     def test_retrieves_connection_by_name(self):
-        """
-        should retrieve a connection by name and return 200
-        """
+        """should retrieve a connection by name and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -2816,9 +2618,7 @@ class GetPostParticipantsAPITests(OpenbookAPITestCase):
     ]
 
     def test_retrieves_post_creator(self):
-        """
-        should retrieve the post creator and return 200
-        """
+        """should retrieve the post creator and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -2836,9 +2636,7 @@ class GetPostParticipantsAPITests(OpenbookAPITestCase):
         self.assertEqual(response_participants[0]["id"], post_creator.pk)
 
     def test_retrieves_post_commentator(self):
-        """
-        should retrieve a post commentator and return 200
-        """
+        """should retrieve a post commentator and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -2866,9 +2664,7 @@ class GetPostParticipantsAPITests(OpenbookAPITestCase):
         self.assertTrue(found)
 
     def test_retrieves_post_community_member(self):
-        """
-        should retrieve a post community member and return 200
-        """
+        """should retrieve a post community member and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -2913,9 +2709,7 @@ class PublishPostAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1425")
     def test_publishing_draft_image_post_should_process_media(self):
-        """
-        should process draft image post when publishing
-        """
+        """should process draft image post when publishing"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
@@ -2950,9 +2744,7 @@ class PublishPostAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1425")
     def test_publishing_draft_video_post_should_process_media(self):
-        """
-        should process draft video post mp4|3gp|gif media when publishing
-        """
+        """should process draft video post mp4|3gp|gif media when publishing"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
@@ -2995,9 +2787,7 @@ class PublishPostAPITests(OpenbookAPITestCase):
                 self.assertTrue(post_media_video.format_set.exists())
 
     def test_can_publish_draft_text_post(self):
-        """
-        should be able to publish a draft text post and return 200
-        """
+        """should be able to publish a draft text post and return 200"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
@@ -3017,9 +2807,7 @@ class PublishPostAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_publish_draft_post_with_no_image_nor_text(self):
-        """
-        should not be able to publish a draft post with no image nor text and return 200
-        """
+        """should not be able to publish a draft post with no image nor text and return 200"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
@@ -3037,9 +2825,7 @@ class PublishPostAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_publish_an_already_published_post(self):
-        """
-        should not be able to publish an already published post and return 200
-        """
+        """should not be able to publish an already published post and return 200"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
@@ -3059,9 +2845,7 @@ class PublishPostAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_publish_foreign_user_draft_public_post(self):
-        """
-        should not be able to publish a foreign user draft public post
-        """
+        """should not be able to publish a foreign user draft public post"""
         user = make_user()
         foreign_user = make_user()
 
@@ -3082,9 +2866,7 @@ class PublishPostAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_publish_foreign_user_draft_community_post(self):
-        """
-        should not be able to publish a foreign user draft community post
-        """
+        """should not be able to publish a foreign user draft community post"""
         user = make_user()
         foreign_user = make_user()
 
@@ -3110,9 +2892,7 @@ class PublishPostAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_publish_foreign_user_draft_encircled_post(self):
-        """
-        should not be able to publish a foreign user draft encircled post
-        """
+        """should not be able to publish a foreign user draft encircled post"""
         user = make_user()
         foreign_user = make_user()
         circle = make_circle(creator=foreign_user)
@@ -3137,9 +2917,7 @@ class PublishPostAPITests(OpenbookAPITestCase):
     def test_publishing_publicly_visible_image_post_with_new_hashtag_should_use_image(
         self,
     ):
-        """
-        when publishing a publicly visible post with a new hashtag, the hashtag should use the image
-        """
+        """when publishing a publicly visible post with a new hashtag, the hashtag should use the image"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
@@ -3192,9 +2970,7 @@ class PostStatusAPITests(OpenbookAPITestCase):
     ]
 
     def test_can_retrieve_own_post_status(self):
-        """
-        should be able to retrieve own post status
-        """
+        """should be able to retrieve own post status"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
@@ -3214,9 +2990,7 @@ class PostStatusAPITests(OpenbookAPITestCase):
         self.assertEqual(parsed_response["status"], post.status)
 
     def test_cant_retrieve_foreign_post_status(self):
-        """
-        should not be able to retrieve a foreign post status
-        """
+        """should not be able to retrieve a foreign post status"""
         user = make_user()
         foreign_user = make_user()
 

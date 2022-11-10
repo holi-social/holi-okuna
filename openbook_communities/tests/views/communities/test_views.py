@@ -36,9 +36,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
     """
 
     def test_cant_create_community_without_mandatory_params(self):
-        """
-        should NOT be able to create a community without providing mandatory params and return 400
-        """
+        """should NOT be able to create a community without providing mandatory params and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -57,9 +55,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         self.assertTrue(Community.objects.all().count() == 0)
 
     def test_cannot_create_community_without_credentials(self):
-        """
-        should NOT be able to create a community without providing credentials and return 400
-        """
+        """should NOT be able to create a community without providing credentials and return 400"""
 
         community_name = fake.user_name()
         community_title = fake.name_male()
@@ -100,9 +96,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         )
 
     def test_can_create_community_without_optional_params(self):
-        """
-        should be able to create a community without providing the optional arguments and return 201
-        """
+        """should be able to create a community without providing the optional arguments and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -141,9 +135,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         )
 
     def test_can_create_community_with_categories(self):
-        """
-        should be able to create a community with categories and return 201
-        """
+        """should be able to create a community with categories and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -182,9 +174,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
             self.assertIn(community_category, categories_names)
 
     def test_cannot_create_a_category_with_exceeding_categories(self):
-        """
-        should NOT be able to create a community with an exceeding category amount and return 400
-        """
+        """should NOT be able to create a community with an exceeding category amount and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -215,9 +205,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         self.assertFalse(Community.objects.filter(name=community_name).exists())
 
     def test_cannot_create_a_category_with_less_than_minimal_categories(self):
-        """
-        should NOT be able to create a community with a less that minimal category amount and return 400
-        """
+        """should NOT be able to create a community with a less that minimal category amount and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -248,9 +236,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         self.assertFalse(Community.objects.filter(name=community_name).exists())
 
     def test_create_community_should_make_creator_admin(self):
-        """
-        should make the community creator an administrator when creating a new community
-        """
+        """should make the community creator an administrator when creating a new community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -281,9 +267,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         )
 
     def test_create_community_should_not_make_creator_mod(self):
-        """
-        should NOT make the community creator a moderator when creating a new community
-        """
+        """should NOT make the community creator a moderator when creating a new community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -314,9 +298,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         )
 
     def test_create_private_community(self):
-        """
-        should be able to create a private community and return 201
-        """
+        """should be able to create a private community and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -363,9 +345,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         )
 
     def test_create_private_community_should_disable_member_invites(self):
-        """
-        should be able to create a private community and automatically disable member invites and return 201
-        """
+        """should be able to create a private community and automatically disable member invites and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -413,9 +393,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         )
 
     def test_create_public_community_should_enable_member_invites(self):
-        """
-        should be able to create a public community and automatically emnable member invites and return 201
-        """
+        """should be able to create a public community and automatically emnable member invites and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -454,9 +432,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         self.assertTrue(community.invites_enabled)
 
     def test_create_public_community(self):
-        """
-        should be able to create a public community and return 201
-        """
+        """should be able to create a public community and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -509,9 +485,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         )
 
     def test_create_community_with_avatar(self):
-        """
-        should be able to create a community with an avatar and return 201
-        """
+        """should be able to create a community with an avatar and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -554,9 +528,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         self.assertTrue(hasattr(community, "avatar"))
 
     def test_create_community_with_cover(self):
-        """
-        should be able to create a community with a cover and return 201
-        """
+        """should be able to create a community with a cover and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -603,10 +575,11 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
 
 class JoinedCommunities(OpenbookAPITestCase):
+    """
+    JoinedCommunities
+    """
     def test_retrieve_joined_communities(self):
-        """
-        should be able to retrieve all own communities return 200
-        """
+        """should be able to retrieve all own communities return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -630,9 +603,7 @@ class JoinedCommunities(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_retrieve_joined_communities_offset(self):
-        """
-        should be able to retrieve all own communities with an offset return 200
-        """
+        """should be able to retrieve all own communities with an offset return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -670,9 +641,7 @@ class JoinedCommunities(OpenbookAPITestCase):
             self.assertIn(response_community_id, offsetted_communities_ids)
 
     def test_can_retrieve_only_joined_communities_not_excluded_from_profile_posts(self):
-        """
-        should be able to retrieve for only joined communities not excluded from profile posts and return 200
-        """
+        """should be able to retrieve for only joined communities not excluded from profile posts and return 200"""
         user = make_user()
 
         non_excluded_community_owner = make_user()
@@ -716,9 +685,7 @@ class SearchJoinedCommunitiesAPITests(OpenbookAPITestCase):
     """
 
     def test_can_search_joined_communities_by_name(self):
-        """
-        should be able to search for joined communities by their name and return 200
-        """
+        """should be able to search for joined communities by their name and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -755,9 +722,7 @@ class SearchJoinedCommunitiesAPITests(OpenbookAPITestCase):
             community.delete()
 
     def test_can_search_joined_communities_by_title(self):
-        """
-        should be able to search for joined communities by their title and return 200
-        """
+        """should be able to search for joined communities by their title and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -794,9 +759,7 @@ class SearchJoinedCommunitiesAPITests(OpenbookAPITestCase):
             community.delete()
 
     def test_can_search_only_joined_communities_not_excluded_from_profile_posts(self):
-        """
-        should be able to search for only joined communities not excluded from profile posts and return 200
-        """
+        """should be able to search for only joined communities not excluded from profile posts and return 200"""
         user = make_user()
 
         non_excluded_community_owner = make_user()
@@ -835,10 +798,11 @@ class SearchJoinedCommunitiesAPITests(OpenbookAPITestCase):
 
 
 class AdministratedCommunities(OpenbookAPITestCase):
+    """
+    AdministratedCommunities
+    """
     def test_retrieve_administrated_communities(self):
-        """
-        should be able to retrieve all administrated communities return 200
-        """
+        """should be able to retrieve all administrated communities return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -863,9 +827,7 @@ class AdministratedCommunities(OpenbookAPITestCase):
             self.assertIn(response_community_id, communities_ids)
 
     def test_retrieve_administrated_communities_offset(self):
-        """
-        should be able to retrieve all own communities with an offset return 200
-        """
+        """should be able to retrieve all own communities with an offset return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -915,9 +877,7 @@ class SearchAdministratedCommunitiesAPITests(OpenbookAPITestCase):
     """
 
     def test_can_search_administrated_communities_by_name(self):
-        """
-        should be able to search for administrated communities by their name and return 200
-        """
+        """should be able to search for administrated communities by their name and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -950,9 +910,7 @@ class SearchAdministratedCommunitiesAPITests(OpenbookAPITestCase):
             community.delete()
 
     def test_can_search_administrated_communities_by_title(self):
-        """
-        should be able to search for administrated communities by their title and return 200
-        """
+        """should be able to search for administrated communities by their title and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -989,10 +947,11 @@ class SearchAdministratedCommunitiesAPITests(OpenbookAPITestCase):
 
 
 class ModeratedCommunities(OpenbookAPITestCase):
+    """
+    ModeratedCommunities
+    """
     def test_retrieve_moderated_communities(self):
-        """
-        should be able to retrieve all moderated communities return 200
-        """
+        """should be able to retrieve all moderated communities return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1022,9 +981,7 @@ class ModeratedCommunities(OpenbookAPITestCase):
             self.assertIn(response_community_id, communities_ids)
 
     def test_retrieve_moderated_communities_offset(self):
-        """
-        should be able to retrieve all moderated communities with an offset return 200
-        """
+        """should be able to retrieve all moderated communities with an offset return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1074,9 +1031,7 @@ class SearchModeratedCommunitiesAPITests(OpenbookAPITestCase):
     """
 
     def test_can_search_moderated_communities_by_name(self):
-        """
-        should be able to search for moderated communities by their name and return 200
-        """
+        """should be able to search for moderated communities by their name and return 200"""
         user = make_user()
         community_creator = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -1114,9 +1069,7 @@ class SearchModeratedCommunitiesAPITests(OpenbookAPITestCase):
             community.delete()
 
     def test_can_search_moderated_communities_by_title(self):
-        """
-        should be able to search for moderated communities by their title and return 200
-        """
+        """should be able to search for moderated communities by their title and return 200"""
         user = make_user()
         community_creator = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -1158,10 +1111,11 @@ class SearchModeratedCommunitiesAPITests(OpenbookAPITestCase):
 
 
 class FavoriteCommunities(OpenbookAPITestCase):
+    """
+    FavoriteCommunities
+    """
     def test_retrieve_favorite_communities(self):
-        """
-        should be able to retrieve all favorite communities and return 200
-        """
+        """should be able to retrieve all favorite communities and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1185,9 +1139,7 @@ class FavoriteCommunities(OpenbookAPITestCase):
             self.assertIn(response_community_id, communities_ids)
 
     def test_should_not_retrieve_non_favorite_communities(self):
-        """
-        should NOT retrieve non-favorite communities and return 200
-        """
+        """should NOT retrieve non-favorite communities and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1205,9 +1157,7 @@ class FavoriteCommunities(OpenbookAPITestCase):
         self.assertEqual(len(response_communities), 0)
 
     def test_retrieve_favorite_communities_offset(self):
-        """
-        should be able to retrieve all favorite communities with an offset return 200
-        """
+        """should be able to retrieve all favorite communities with an offset return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1252,9 +1202,7 @@ class SearchFavoriteCommunitiesAPITests(OpenbookAPITestCase):
     """
 
     def test_can_search_favorite_communities_by_name(self):
-        """
-        should be able to search for favorite communities by their name and return 200
-        """
+        """should be able to search for favorite communities by their name and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1292,9 +1240,7 @@ class SearchFavoriteCommunitiesAPITests(OpenbookAPITestCase):
             community.delete()
 
     def test_can_search_favorite_communities_by_title(self):
-        """
-        should be able to search for favorite communities by their title and return 200
-        """
+        """should be able to search for favorite communities by their title and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1341,9 +1287,7 @@ class CommunityNameCheckAPITests(OpenbookAPITestCase):
     """
 
     def test_communityName_not_taken(self):
-        """
-        should return status 202 if community name is not taken.
-        """
+        """should return status 202 if community name is not taken."""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1355,9 +1299,7 @@ class CommunityNameCheckAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
     def test_community_name_taken(self):
-        """
-        should return status 400 if the communityName is taken
-        """
+        """should return status 400 if the communityName is taken"""
 
         user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -1375,9 +1317,7 @@ class CommunityNameCheckAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_invalid_community_name(self):
-        """
-        should return 400 if the communityName is not a valid one
-        """
+        """should return 400 if the communityName is not a valid one"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1399,9 +1339,7 @@ class CommunityNameCheckAPITests(OpenbookAPITestCase):
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_valid_community_name(self):
-        """
-        should return 202 if the communityName is a valid name
-        """
+        """should return 202 if the communityName is a valid name"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1425,9 +1363,7 @@ class SearchCommunitiesAPITests(OpenbookAPITestCase):
     """
 
     def test_can_search_communities_by_name(self):
-        """
-        should be able to search for communities by their name and return 200
-        """
+        """should be able to search for communities by their name and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1454,9 +1390,7 @@ class SearchCommunitiesAPITests(OpenbookAPITestCase):
             community.delete()
 
     def test_can_search_communities_by_title(self):
-        """
-        should be able to search for communities by their title and return 200
-        """
+        """should be able to search for communities by their title and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1483,9 +1417,7 @@ class SearchCommunitiesAPITests(OpenbookAPITestCase):
             community.delete()
 
     def test_can_search_communities_banned_from(self):
-        """
-        should be able to search for communities banned from and return 200
-        """
+        """should be able to search for communities banned from and return 200"""
         user = make_user()
 
         community_owner = make_user()
@@ -1512,9 +1444,7 @@ class SearchCommunitiesAPITests(OpenbookAPITestCase):
         self.assertEqual(retrieved_community["name"], community.name)
 
     def test_can_search_only_communities_not_excluded_from_profile_posts(self):
-        """
-        should be able to search for only communities not excluded from profile posts and return 200
-        """
+        """should be able to search for only communities not excluded from profile posts and return 200"""
         user = make_user()
 
         non_excluded_community_owner = make_user()
@@ -1557,9 +1487,7 @@ class TrendingCommunitiesAPITests(OpenbookAPITestCase):
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_displays_public_communities(self):
-        """
-        should display public communities and return 200
-        """
+        """should display public communities and return 200"""
         user = make_user()
 
         amount_of_communities = 5
@@ -1587,9 +1515,7 @@ class TrendingCommunitiesAPITests(OpenbookAPITestCase):
             self.assertIn(response_community_id, communities_ids)
 
     def test_not_displays_private_communities(self):
-        """
-        should not display private communities and return 200
-        """
+        """should not display private communities and return 200"""
         user = make_user()
 
         amount_of_communities = 5
@@ -1615,9 +1541,7 @@ class TrendingCommunitiesAPITests(OpenbookAPITestCase):
         self.assertEqual(len(response_communities), 0)
 
     def test_does_not_display_community_banned_from(self):
-        """
-        should not display a community banned from and return 200
-        """
+        """should not display a community banned from and return 200"""
         user = make_user()
         community_owner = make_user()
 
@@ -1651,9 +1575,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
     """
 
     def test_retrieve_excluded_communities(self):
-        """
-        should be able to retrieve all excluded communities and return 200
-        """
+        """should be able to retrieve all excluded communities and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1679,9 +1601,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
             self.assertIn(response_community_id, communities_ids)
 
     def test_should_not_retrieve_non_excluded_communities(self):
-        """
-        should NOT retrieve non-excluded communities and return 200
-        """
+        """should NOT retrieve non-excluded communities and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1699,9 +1619,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         self.assertEqual(len(response_communities), 0)
 
     def test_retrieve_excluded_communities_offset(self):
-        """
-        should be able to retrieve all excluded communities with an offset return 200
-        """
+        """should be able to retrieve all excluded communities with an offset return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1748,9 +1666,7 @@ class SearchTopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
     """
 
     def test_can_search_excluded_communities_by_name(self):
-        """
-        should be able to search for excluded communities by their name and return 200
-        """
+        """should be able to search for excluded communities by their name and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1787,9 +1703,7 @@ class SearchTopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
             community.delete()
 
     def test_can_search_excluded_communities_by_title(self):
-        """
-        should be able to search for excluded communities by their title and return 200
-        """
+        """should be able to search for excluded communities by their title and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1835,10 +1749,7 @@ class SuggestedCommunitiesAPITests(OpenbookAPITestCase):
     """
 
     def test_should_return_communities_with_correct_id(self):
-        """
-        should return communities with ids mentioned in the environment var
-        default id in settings is 1
-        """
+        """should return communities with ids mentioned in the environment var default id in settings is 1"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
