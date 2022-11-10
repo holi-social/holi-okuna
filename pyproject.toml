@@ -1,6 +1,15 @@
 [tool.black]
 exclude = '''
 /(
-  | migrations
+    \.docker
+    | \.docker-cache
+    | \.git
+    | \.venv
+    | media
+    | migrations
+    | reports
+    | static
+    | terraform
+    | venv
 )/
 '''
