@@ -36,9 +36,7 @@ class ConnectionsAPITests(OpenbookAPITestCase):
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_retrieve_own_connections(self):
-        """
-        should be able to retrieve own connections and return 200
-        """
+        """should be able to retrieve own connections and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -71,12 +69,14 @@ class ConnectionsAPITests(OpenbookAPITestCase):
 
 
 class ConnectAPITests(OpenbookAPITestCase):
+    """
+    ConnectAPITests
+    """
+
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_connect(self):
-        """
-        should be able to connect with another user on an specific circle, add the connections circle and return 200
-        """
+        """should be able to connect with another user on an specific circle, add the connections circle and return 200"""
         user = make_user()
 
         circle_to_connect = mixer.blend(Circle, creator=user)
@@ -105,9 +105,7 @@ class ConnectAPITests(OpenbookAPITestCase):
         )
 
     def test_connect_autofollows(self):
-        """
-        should autofollow the user it attempts to connect with
-        """
+        """should autofollow the user it attempts to connect with"""
         user = make_user()
 
         circle_to_connect = mixer.blend(Circle, creator=user)
@@ -127,9 +125,7 @@ class ConnectAPITests(OpenbookAPITestCase):
         self.assertTrue(user.is_following_user_with_id(user_to_connect.pk))
 
     def test_connect_in_multiple_circles(self):
-        """
-        should be able to connect another user on multiple circles and return 200
-        """
+        """should be able to connect another user on multiple circles and return 200"""
         user = make_user()
 
         amount_of_circles = 4
@@ -170,9 +166,7 @@ class ConnectAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_connect_with_existing_connection(self):
-        """
-        should not be able to connect with a user already connected with and return 400
-        """
+        """should not be able to connect with a user already connected with and return 400"""
         user = make_user()
 
         circle_to_connect = mixer.blend(Circle, creator=user)
@@ -196,9 +190,7 @@ class ConnectAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cannot_connect_in_world_circle(self):
-        """
-        should not be able to connect with a user in the world circle and return 400
-        """
+        """should not be able to connect with a user in the world circle and return 400"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -217,9 +209,7 @@ class ConnectAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_connect_should_create_connection_request_notification(self):
-        """
-        should create a connection request notification when trying to connect with an user
-        """
+        """should create a connection request notification when trying to connect with an user"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -246,9 +236,7 @@ class ConnectAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_connect_with_private_visibility_user_without_following(self):
-        """
-        should not be able to connect with a private visibility user without previously following and return 400
-        """
+        """should not be able to connect with a private visibility user without previously following and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -271,9 +259,7 @@ class ConnectAPITests(OpenbookAPITestCase):
         )
 
     def test_can_connect_with_private_visibility_user_previously_following(self):
-        """
-        should be able to connect with a private visibility user having previously followed it and return 400
-        """
+        """should be able to connect with a private visibility user having previously followed it and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -297,9 +283,7 @@ class ConnectAPITests(OpenbookAPITestCase):
         self.assertTrue(user_to_connect.is_connected_with_user_with_id(user_id=user.pk))
 
     def test_can_connect_with_okuna_visibility_without_previously_following(self):
-        """
-        should be able to connect with a okuna visibility without having previously followed the person and return 400
-        """
+        """should be able to connect with a okuna visibility without having previously followed the person and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -324,12 +308,14 @@ class ConnectAPITests(OpenbookAPITestCase):
 
 
 class DisconnectAPITest(OpenbookAPITestCase):
+    """
+    DisconnectAPITest
+    """
+
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_disconnect(self):
-        """
-        should be able to disconnect from a user and return 200
-        """
+        """should be able to disconnect from a user and return 200"""
         user = make_user()
 
         circle_to_connect = mixer.blend(Circle, creator=user)
@@ -354,9 +340,7 @@ class DisconnectAPITest(OpenbookAPITestCase):
         )
 
     def test_disconnect_unfollows(self):
-        """
-        should automatically unfollow a user it disconnects from
-        """
+        """should automatically unfollow a user it disconnects from"""
         user = make_user()
 
         circle_to_connect = mixer.blend(Circle, creator=user)
@@ -378,9 +362,7 @@ class DisconnectAPITest(OpenbookAPITestCase):
         self.assertFalse(user.is_following_user_with_id(user_to_connect.pk))
 
     def test_cannot_disconnect_from_unexisting_connection(self):
-        """
-        should not be able to disconnect from an unexisting connection and return 400
-        """
+        """should not be able to disconnect from an unexisting connection and return 400"""
         user = make_user()
 
         not_connected_user = make_user()
@@ -398,9 +380,7 @@ class DisconnectAPITest(OpenbookAPITestCase):
         self.assertFalse(user.is_connected_with_user(not_connected_user))
 
     def test_disconnect_should_delete_own_connection_confirmed_notification(self):
-        """
-        should delete own connection confirmed notification when the user disconnects from a user
-        """
+        """should delete own connection confirmed notification when the user disconnects from a user"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -433,9 +413,7 @@ class DisconnectAPITest(OpenbookAPITestCase):
         self.assertFalse(Notification.objects.filter(pk=notification.pk).exists())
 
     def test_disconnect_should_delete_foreign_connection_confirmed_notification(self):
-        """
-        should delete foreign connection confirmed notification when the user disconnects from a user
-        """
+        """should delete foreign connection confirmed notification when the user disconnects from a user"""
         user = make_user()
         user_to_connect = make_user()
 
@@ -469,9 +447,7 @@ class DisconnectAPITest(OpenbookAPITestCase):
     def test_disconnect_from_unconfirmed_connection_should_delete_own_connection_request_notification(
         self,
     ):
-        """
-        should delete own connection request notification when the user disconnects from a unconfirmed connection
-        """
+        """should delete own connection request notification when the user disconnects from a unconfirmed connection"""
         user = make_user()
         user_to_connect = make_user()
 
@@ -507,12 +483,14 @@ class DisconnectAPITest(OpenbookAPITestCase):
 
 
 class UpdateConnectionAPITest(OpenbookAPITestCase):
+    """
+    UpdateConnectionAPITest
+    """
+
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_update_connection(self):
-        """
-        should be able to update an own connection and return 200
-        """
+        """should be able to update an own connection and return 200"""
         user = make_user()
 
         circle_to_connect = mixer.blend(Circle, creator=user)
@@ -547,9 +525,7 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
         )
 
     def test_update_connect_multiple_circles(self):
-        """
-        should be able to update an own connect of multiple circles and return 200
-        """
+        """should be able to update an own connect of multiple circles and return 200"""
         user = make_user()
         user_to_connect = make_user()
 
@@ -599,9 +575,7 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
         )
 
     def test_cannot_update_unexisting_connection(self):
-        """
-        should not be able to update an unexisting connection and return 400
-        """
+        """should not be able to update an unexisting connection and return 400"""
         user = make_user()
 
         not_connected_user = make_user()
@@ -623,12 +597,14 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
 
 
 class ConfirmConnectionAPITest(OpenbookAPITestCase):
+    """
+    ConfirmConnectionAPITest
+    """
+
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_confirm_connection(self):
-        """
-        should be able to confirm a connection, have it automatically added to connections circle and return 200
-        """
+        """should be able to confirm a connection, have it automatically added to connections circle and return 200"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -655,9 +631,7 @@ class ConfirmConnectionAPITest(OpenbookAPITestCase):
         )
 
     def test_confirm_connection_autofollows(self):
-        """
-        should autofollow the user it confirms the connection with
-        """
+        """should autofollow the user it confirms the connection with"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -675,9 +649,7 @@ class ConfirmConnectionAPITest(OpenbookAPITestCase):
         self.assertTrue(user.is_following_user_with_id(user_to_connect.pk))
 
     def test_confirm_connection_in_circle(self):
-        """
-        should be able to confirm a connection in a custom circle and return 200
-        """
+        """should be able to confirm a connection in a custom circle and return 200"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -702,9 +674,7 @@ class ConfirmConnectionAPITest(OpenbookAPITestCase):
         self.assertTrue(connection.circles.filter(id=circle.pk).exists())
 
     def test_cannot_confirm_unexisting_connection(self):
-        """
-        should not be able to confirm an unexisting connection and return 400
-        """
+        """should not be able to confirm an unexisting connection and return 400"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -723,9 +693,7 @@ class ConfirmConnectionAPITest(OpenbookAPITestCase):
         self.assertFalse(user_to_connect.is_fully_connected_with_user_with_id(user.pk))
 
     def test_confirm_connection_should_create_connection_confirmed_notification(self):
-        """
-        should create a connection confirmed notification when a connection is confirmed
-        """
+        """should create a connection confirmed notification when a connection is confirmed"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -750,9 +718,7 @@ class ConfirmConnectionAPITest(OpenbookAPITestCase):
         )
 
     def test_confirm_connection_should_delete_connection_request_notification(self):
-        """
-        should delete the connection request notification once the connection is confirmed
-        """
+        """should delete the connection request notification once the connection is confirmed"""
         user = make_user()
 
         user_to_connect = make_user()

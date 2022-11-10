@@ -47,9 +47,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
     ]
 
     def test_can_add_media_image_to_draft_post(self):
-        """
-        should be able to add a media image to a draft post
-        """
+        """should be able to add a media image to a draft post"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -98,9 +96,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         self.assertTrue(hasattr(draft_post, "image"))
 
     def test_can_add_media_video_to_draft_post(self):
-        """
-        should be able to add a media video to a draft post
-        """
+        """should be able to add a media video to a draft post"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -139,9 +135,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
                 self.assertTrue(hasattr(post_video, "file"))
 
     def test_cant_add_media_image_to_published_post(self):
-        """
-        should not be able to add a media image to a published post
-        """
+        """should not be able to add a media image to a published post"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -162,9 +156,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         self.assertFalse(post.has_media())
 
     def test_cannot_add_media_to_draft_if_exceeds_settings_maximum(self):
-        """
-        should not be able to add a media item to a draft post if exceeds the settings maximums
-        """
+        """should not be able to add a media item to a draft post if exceeds the settings maximums"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -187,9 +179,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_add_first_media_video_creates_media_thumbnail_and_dimensions(self):
-        """
-        should create a post media_thumbnail and dimensions when adding the first media video
-        """
+        """should create a post media_thumbnail and dimensions when adding the first media video"""
         user = make_user()
         headers = make_authentication_headers_for_user(user=user)
 
@@ -227,9 +217,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1425")
     def test_add_first_media_image_creates_media_thumbnail_and_dimensions(self):
-        """
-        should create a post media_thumbnail and dimensions when adding the first media image
-        """
+        """should create a post media_thumbnail and dimensions when adding the first media image"""
         user = make_user()
         headers = make_authentication_headers_for_user(user=user)
 
@@ -262,9 +250,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1425")
     def test_add_media_image_creates_image_thumbnails(self):
-        """
-        should create an image thumbnail and dimensions when adding a media image
-        """
+        """should create an image thumbnail and dimensions when adding a media image"""
         user = make_user()
         headers = make_authentication_headers_for_user(user=user)
 
@@ -287,9 +273,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
                 self.assertIsNotNone(post_image.thumbnail)
 
     def test_can_retrieve_post_empty_media_if_no_media(self):
-        """
-        should be able to retrieve a posts empty media if the pos has no media
-        """
+        """should be able to retrieve a posts empty media if the pos has no media"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -309,9 +293,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         self.assertEqual(len(parsed_response), 0)
 
     def test_can_retrieve_own_post_media_image(self):
-        """
-        should be able to retrieve an own post media image
-        """
+        """should be able to retrieve an own post media image"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -342,9 +324,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
     @tag("failing")
     def test_can_retrieve_own_post_media_video(self):
-        """
-        should be able to retrieve an own post media video
-        """
+        """should be able to retrieve an own post media video"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -377,9 +357,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_foreign_user_post_media_image(self):
-        """
-        should be able to retrieve an foreign_user post media image
-        """
+        """should be able to retrieve an foreign_user post media image"""
         user = make_user()
         foreign_user = make_user()
 
@@ -411,9 +389,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_foreign_user_post_media_video(self):
-        """
-        should be able to retrieve an foreign_user post media video
-        """
+        """should be able to retrieve an foreign_user post media video"""
         user = make_user()
         foreign_user = make_user()
 
@@ -445,9 +421,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_following_user_post_media_image(self):
-        """
-        should be able to retrieve an following_user post media image
-        """
+        """should be able to retrieve an following_user post media image"""
         user = make_user()
         following_user = make_user()
 
@@ -481,9 +455,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_following_user_post_media_video(self):
-        """
-        should be able to retrieve an following_user post media video
-        """
+        """should be able to retrieve an following_user post media video"""
         user = make_user()
         following_user = make_user()
 
@@ -517,9 +489,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_follower_user_post_media_image(self):
-        """
-        should be able to retrieve an follower_user post media image
-        """
+        """should be able to retrieve an follower_user post media image"""
         user = make_user()
         follower_user = make_user()
 
@@ -553,9 +523,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_follower_user_post_media_video(self):
-        """
-        should be able to retrieve an follower_user post media video
-        """
+        """should be able to retrieve an follower_user post media video"""
         user = make_user()
         follower_user = make_user()
 
@@ -589,9 +557,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_connected_user_post_media_image(self):
-        """
-        should be able to retrieve an connected_user post media image
-        """
+        """should be able to retrieve an connected_user post media image"""
         user = make_user()
         connected_user = make_user()
         circle = make_circle(creator=connected_user)
@@ -631,9 +597,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_connected_user_post_media_video(self):
-        """
-        should be able to retrieve an connected_user post media video
-        """
+        """should be able to retrieve an connected_user post media video"""
         user = make_user()
         connected_user = make_user()
 
@@ -675,9 +639,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
     def test_cant_retrieve_pending_connection_user_user_encircled_post_media_image(
         self,
     ):
-        """
-        should not be able to retrieve an pending_connection_user_user encircled post media image
-        """
+        """should not be able to retrieve an pending_connection_user_user encircled post media image"""
         user = make_user()
         pending_connection_user_user = make_user()
 
@@ -705,9 +667,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
     def test_cant_retrieve_pending_connection_user_user_encircled_post_media_video(
         self,
     ):
-        """
-        should be able to retrieve an pending_connection_user_user encircled post media video
-        """
+        """should be able to retrieve an pending_connection_user_user encircled post media video"""
         user = make_user()
         pending_connection_user_user = make_user()
 
@@ -734,9 +694,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_public_community_post_media_image(self):
-        """
-        should be able to retrieve an public_community post media image
-        """
+        """should be able to retrieve an public_community post media image"""
         user = make_user()
         public_community = make_community()
         community_member = make_user()
@@ -773,9 +731,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_public_community_post_media_video(self):
-        """
-        should be able to retrieve an public_community post media video
-        """
+        """should be able to retrieve an public_community post media video"""
         user = make_user()
         public_community = make_community()
         community_member = make_user()
@@ -812,9 +768,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_private_community_part_of_post_media_image(self):
-        """
-        should be able to retrieve an private_community part of post media image
-        """
+        """should be able to retrieve an private_community part of post media image"""
         user = make_user()
         community_creator = make_user()
         private_community = make_community(
@@ -856,9 +810,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_private_community_part_of_post_media_video(self):
-        """
-        should be able to retrieve an private_community part of post media video
-        """
+        """should be able to retrieve an private_community part of post media video"""
         user = make_user()
         community_creator = make_user()
         private_community = make_community(
@@ -899,9 +851,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_retrieve_private_community_not_part_of_post_media_image(self):
-        """
-        should not be able to retrieve an private_community not part of post media image
-        """
+        """should not be able to retrieve an private_community not part of post media image"""
         user = make_user()
         community_creator = make_user()
         private_community = make_community(
@@ -927,9 +877,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cannot_retrieve_private_community_not_part_of_post_media_video(self):
-        """
-        should not be able to retrieve an private_community not part of post media video
-        """
+        """should not be able to retrieve an private_community not part of post media video"""
         user = make_user()
         community_creator = make_user()
         private_community = make_community(

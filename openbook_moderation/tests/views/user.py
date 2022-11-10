@@ -24,8 +24,7 @@ class UserModerationPenaltiesAPITests(OpenbookAPITestCase):
     """
 
     def test_can_retrieve_own_moderation_penalties(self):
-        """
-        should be able to retrieve own moderation penalties
+        """should be able to retrieve own moderation penalties
         :return:
         """
 
@@ -57,8 +56,7 @@ class UserModerationPenaltiesAPITests(OpenbookAPITestCase):
             self.assertIn(response_moderation_category_id, moderation_penalties_ids)
 
     def test_cant_retrieve_other_user_moderation_penalties(self):
-        """
-        should not be able to retrieve other user moderation penalties
+        """should not be able to retrieve other user moderation penalties
         :return:
         """
 
@@ -96,8 +94,7 @@ class UserPendingModeratedObjectsCommunitiesAPITests(OpenbookAPITestCase):
     def test_can_retrieve_pending_moderated_objects_communities_of_moderated_communities(
         self,
     ):
-        """
-        should be able to retrieve pending moderated objects communities of moderated communities
+        """should be able to retrieve pending moderated objects communities of moderated communities
         :return:
         """
 
@@ -154,8 +151,7 @@ class UserPendingModeratedObjectsCommunitiesAPITests(OpenbookAPITestCase):
     def test_cant_retrieve_pending_moderated_objects_communities_of_moderated_communities(
         self,
     ):
-        """
-        should not be able to retrieve pending moderated objects communities of non moderated communities
+        """should not be able to retrieve pending moderated objects communities of non moderated communities
         :return:
         """
 
@@ -195,8 +191,7 @@ class UserPendingModeratedObjectsCommunitiesAPITests(OpenbookAPITestCase):
     def test_can_retrieve_pending_moderated_objects_communities_of_administrated_communities(
         self,
     ):
-        """
-        should be able to retrieve pending moderated objects communities of administrated communities
+        """should be able to retrieve pending moderated objects communities of administrated communities
         :return:
         """
 
@@ -253,8 +248,7 @@ class UserPendingModeratedObjectsCommunitiesAPITests(OpenbookAPITestCase):
     def test_cant_retrieve_pending_moderated_objects_communities_of_administrated_communities(
         self,
     ):
-        """
-        should not be able to retrieve pending moderated objects communities of non administrated communities
+        """should not be able to retrieve pending moderated objects communities of non administrated communities
         :return:
         """
 

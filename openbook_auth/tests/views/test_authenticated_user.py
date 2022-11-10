@@ -47,9 +47,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_can_retrieve_user(self):
-        """
-        should return 200 and the data of the authenticated user
-        """
+        """should return 200 and the data of the authenticated user"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
@@ -67,9 +65,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         self.assertEqual(response_username, user.username)
 
     def test_can_update_user_username(self):
-        """
-        should be able to update the authenticated user username and return 200
-        """
+        """should be able to update the authenticated user username and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -88,9 +84,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         self.assertEqual(user.username, new_username)
 
     def test_can_update_user_username_to_same_username(self):
-        """
-        should be able to update the authenticated user username to the same it already has and return 200
-        """
+        """should be able to update the authenticated user username to the same it already has and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -107,9 +101,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         self.assertEqual(user.username, user.username)
 
     def test_cannot_update_user_username_to_taken_username(self):
-        """
-        should be able to update the authenticated user username to a taken username and return 400
-        """
+        """should be able to update the authenticated user username to a taken username and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -128,59 +120,43 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         self.assertNotEqual(user.username, user_b.username)
 
     def test_can_update_user_profile_name(self):
-        """
-        should be able to update the authenticated user profile name and return 200
-        """
+        """should be able to update the authenticated user profile name and return 200"""
         self._test_can_update_user_profile_field(
             "name", lambda user: user.profile.name, make_user_name()
         )
 
     def test_can_update_user_profile_last_name(self):
-        """
-        should be able to update the authenticated user profile last name and return 200
-        """
+        """should be able to update the authenticated user profile last name and return 200"""
         self._test_can_update_user_profile_field(
             "last_name", lambda user: user.profile.last_name, make_user_last_name()
         )
 
     def test_can_update_user_profile_about_me(self):
-        """
-        should be able to update the authenticated user profile about me and return 200
-        """
+        """should be able to update the authenticated user profile about me and return 200"""
         self._test_can_update_user_profile_field(
             "about_me", lambda user: user.profile.about_me, make_user_about_me()
         )
 
     def test_can_update_user_profile_pronouns(self):
-        """
-        should be able to update the authenticated user profile pronouns and return 200
-        """
+        """should be able to update the authenticated user profile pronouns and return 200"""
         self._test_can_update_user_profile_field(
             "pronouns", lambda user: user.profile.pronouns, make_user_pronouns()
         )
 
     def test_can_update_user_engagement_level_if_current_value_is_none(self):
-        """
-        should be able to update the authenticated user profile engagement level if current value is None and return 200
-        """
+        """should be able to update the authenticated user profile engagement level if current value is None and return 200"""
         self._test_can_update_user_engagement_level_if_current_value_is_none()
 
     def test_can_not_update_user_engagement_level_if_current_value_is_not_none(self):
-        """
-        should not be able to update the authenticated user profile engagement level and return 400
-        """
+        """should not be able to update the authenticated user profile engagement level and return 400"""
         self._test_can_not_update_user_engagement_level_if_current_value_is_not_none()
 
     def test_ignore_update_user_engagement_level_if_same_value_is_provided(self):
-        """
-        should ignore update the authenticated user profile engagement level if same value is provided and return 200
-        """
+        """should ignore update the authenticated user profile engagement level if same value is provided and return 200"""
         self._test_ignore_update_user_engagement_level_if_same_value_is_provided()
 
     def test_can_update_user_profile_interests(self):
-        """
-        should be able to update the authenticated user profile interests and return 200
-        """
+        """should be able to update the authenticated user profile interests and return 200"""
         self._test_can_update_user_profile_field(
             "interests",
             lambda user: user.profile.interests,
@@ -189,25 +165,19 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         )
 
     def test_can_update_user_profile_sdgs(self):
-        """
-        should be able to update the authenticated user profile sdgs and return 200
-        """
+        """should be able to update the authenticated user profile sdgs and return 200"""
         self._test_can_update_user_profile_field(
             "sdgs", lambda user: user.profile.sdgs, make_user_sdgs(), as_json=True
         )
 
     def test_can_update_user_profile_skills(self):
-        """
-        should be able to update the authenticated user profile skills and return 200
-        """
+        """should be able to update the authenticated user profile skills and return 200"""
         self._test_can_update_user_profile_field(
             "skills", lambda user: user.profile.skills, make_user_skills(), as_json=True
         )
 
     def test_can_update_user_profile_location(self):
-        """
-        should be able to update the authenticated user profile location and return 200
-        """
+        """should be able to update the authenticated user profile location and return 200"""
         self._test_can_update_user_profile_field(
             "location", lambda user: user.profile.location, make_user_location()
         )
@@ -378,9 +348,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         )
 
     def test_can_update_user_followers_count_visible(self):
-        """
-        should be able to update the authenticated user followers_count_visible and return 200
-        """
+        """should be able to update the authenticated user followers_count_visible and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -401,9 +369,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         )
 
     def test_can_update_user_community_posts_visible(self):
-        """
-        should be able to update the authenticated user community_posts_visible and return 200
-        """
+        """should be able to update the authenticated user community_posts_visible and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -424,9 +390,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         )
 
     def test_can_update_user_avatar(self):
-        """
-        should be able to update the authenticated user avatar and return 200
-        """
+        """should be able to update the authenticated user avatar and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -445,9 +409,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         self.assertIsNotNone(user.profile.avatar)
 
     def test_can_update_user_avatar_plus_username(self):
-        """
-        should be able to update the authenticated user avatar and username and return 200
-        """
+        """should be able to update the authenticated user avatar and username and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -468,9 +430,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         self.assertEqual(user.username, new_username)
 
     def test_can_delete_user_avatar(self):
-        """
-        should be able to delete the authenticated user avatar and return 200
-        """
+        """should be able to delete the authenticated user avatar and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -491,9 +451,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         self.assertTrue(not user.profile.avatar)
 
     def test_can_update_user_cover(self):
-        """
-        should be able to update the authenticated user cover and return 200
-        """
+        """should be able to update the authenticated user cover and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -512,9 +470,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         self.assertIsNotNone(user.profile.cover)
 
     def test_can_delete_user_cover(self):
-        """
-        should be able to delete the authenticated user cover and return 200
-        """
+        """should be able to delete the authenticated user cover and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -535,9 +491,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         self.assertTrue(not user.profile.cover)
 
     def test_can_delete_user_about_me(self):
-        """
-        should be able to delete the authenticated user about me and return 200
-        """
+        """should be able to delete the authenticated user about me and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -558,9 +512,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         self.assertTrue(not user.profile.about_me)
 
     def test_can_delete_user_location(self):
-        """
-        should be able to delete the authenticated user location and return 200
-        """
+        """should be able to delete the authenticated user location and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -581,9 +533,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         self.assertTrue(not user.profile.location)
 
     def test_can_delete_user_url(self):
-        """
-        should be able to delete the authenticated user url and return 200
-        """
+        """should be able to delete the authenticated user url and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -604,9 +554,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         self.assertTrue(not user.profile.url)
 
     def test_can_update_user_url(self):
-        """
-        should be able to update the authenticated user url and return 200
-        """
+        """should be able to update the authenticated user url and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -625,9 +573,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         self.assertEqual(new_url, user.profile.url)
 
     def test_can_update_user_url_with_not_fully_qualified_urls(self):
-        """
-        should be able to update the authenticated user url with not fully qualified urls and return 200
-        """
+        """should be able to update the authenticated user url with not fully qualified urls and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -650,9 +596,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         self.assertEqual("https://" + unfully_qualified_url, user.profile.url)
 
     def test_can_update_user_visibility(self):
-        """
-        should be able to update the authenticated user visibility and return 200
-        """
+        """should be able to update the authenticated user visibility and return 200"""
 
         for initial_visibility in User.VISIBILITY_TYPES:
             for new_visibility in User.VISIBILITY_TYPES:
@@ -676,9 +620,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
     def test_when_updating_visibility_to_public_existing_follow_requests_get_deleted(
         self,
     ):
-        """
-        when updating the visibility to public, existing follow requests should be deleted
-        """
+        """when updating the visibility to public, existing follow requests should be deleted"""
         initial_visibility = User.VISIBILITY_TYPE_PRIVATE
         new_visibility = User.VISIBILITY_TYPE_PUBLIC
 
@@ -701,9 +643,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
     def test_when_updating_visibility_to_private_existing_connection_requests_get_deleted(
         self,
     ):
-        """
-        when updating the visibility to private, existing connection requests should be deleted
-        """
+        """when updating the visibility to private, existing connection requests should be deleted"""
         initial_visibility = User.VISIBILITY_TYPE_PUBLIC
         new_visibility = User.VISIBILITY_TYPE_PRIVATE
 
@@ -732,9 +672,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
     def test_when_updating_visibility_to_non_private_from_non_private_existing_connection_requests_dont_get_deleted(
         self,
     ):
-        """
-        when updating the visibility from non private, to another non private, connection requests should not be deleted
-        """
+        """when updating the visibility from non private, to another non private, connection requests should not be deleted"""
 
         for initial_visibility, name in User.VISIBILITY_TYPES:
             for new_visibility, n_name in User.VISIBILITY_TYPES:
@@ -779,9 +717,7 @@ class AuthenticatedUserDeleteTests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_can_delete_user_with_password(self):
-        """
-        should be able to delete the authenticated user with his password and return 200
-        """
+        """should be able to delete the authenticated user with his password and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -803,9 +739,7 @@ class AuthenticatedUserDeleteTests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_cant_delete_user_with_wrong_password(self):
-        """
-        should not be able to delete the authenticated user with a wrong password and return 401
-        """
+        """should not be able to delete the authenticated user with a wrong password and return 401"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -825,9 +759,7 @@ class AuthenticatedUserDeleteTests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_cant_delete_user_without_password(self):
-        """
-        should not be able to delete the authenticated user without his password and return 400
-        """
+        """should not be able to delete the authenticated user without his password and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -851,9 +783,7 @@ class AuthenticatedUserNotificationsSettingsTests(OpenbookAPITestCase):
     """
 
     def test_can_retrieve_notifications_settings(self):
-        """
-        should be able to retrieve own notifications settings and return 200
-        """
+        """should be able to retrieve own notifications settings and return 200"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
@@ -871,9 +801,7 @@ class AuthenticatedUserNotificationsSettingsTests(OpenbookAPITestCase):
         self.assertEqual(response_id, user.notifications_settings.pk)
 
     def test_can_update_notifications_settings(self):
-        """
-        should be able to update notifications settings and return 200
-        """
+        """should be able to update notifications settings and return 200"""
         user = make_user()
         notifications_settings = user.notifications_settings
 
@@ -1023,9 +951,7 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_can_change_password_successfully(self):
-        """
-        should be able to update the authenticated user password and return 200
-        """
+        """should be able to update the authenticated user password and return 200"""
         user = make_user()
         current_raw_password = user.password
         user.update_password(user.password)  # make sure hashed password is stored
@@ -1043,9 +969,7 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_cannot_change_password_without_current_password(self):
-        """
-        should not be able to update the user password without supplying the current password
-        """
+        """should not be able to update the user password without supplying the current password"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1058,9 +982,7 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_cannot_change_password_without_correct_password(self):
-        """
-        should not be able to update the authenticated user password without the correct password
-        """
+        """should not be able to update the authenticated user password without the correct password"""
         user = make_user()
         user.update_password(user.password)  # make sure hashed password is stored
         headers = make_authentication_headers_for_user(user)
@@ -1077,9 +999,7 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_cannot_change_password_without_new_password(self):
-        """
-        should not be able to update the authenticated user password without the new password
-        """
+        """should not be able to update the authenticated user password without the new password"""
         user = make_user()
         current_raw_password = user.password
         user.update_password(user.password)  # make sure hashed password is stored
@@ -1092,9 +1012,7 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_cannot_change_email_to_existing_email(self):
-        """
-        should not be able to update the authenticated user email to existing email
-        """
+        """should not be able to update the authenticated user email to existing email"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1116,9 +1034,7 @@ class AuthenticatedUserAcceptGuidelines(OpenbookAPITestCase):
     url = reverse("authenticated-user-accept-guidelines")
 
     def test_can_accept_guidelines(self):
-        """
-        should be able to accept the guidelines and return 200
-        """
+        """should be able to accept the guidelines and return 200"""
         user = make_user()
         user.are_guidelines_accepted = False
         user.save()
@@ -1132,9 +1048,7 @@ class AuthenticatedUserAcceptGuidelines(OpenbookAPITestCase):
         self.assertTrue(user.are_guidelines_accepted)
 
     def test_cant_accept_guidelines_if_aleady_accepted(self):
-        """
-        should not be able to accept the guidelines if already accepted and return 400
-        """
+        """should not be able to accept the guidelines if already accepted and return 400"""
         user = make_user()
         user.are_guidelines_accepted = True
         user.save()
@@ -1156,9 +1070,7 @@ class AuthenticatedUserLanguageAPI(OpenbookAPITestCase):
     fixtures = ["openbook_common/fixtures/languages.json"]
 
     def test_can_get_all_languages(self):
-        """
-        should be able to set user language and return 200
-        """
+        """should be able to set user language and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1169,9 +1081,7 @@ class AuthenticatedUserLanguageAPI(OpenbookAPITestCase):
         self.assertTrue(len(parsed_response), 25)
 
     def test_can_set_language(self):
-        """
-        should be able to set user language and return 200
-        """
+        """should be able to set user language and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         language = make_random_language()
@@ -1183,9 +1093,7 @@ class AuthenticatedUserLanguageAPI(OpenbookAPITestCase):
         self.assertTrue(user.language.id, language.id)
 
     def test_cannot_set_invalid_language(self):
-        """
-        should be able to set user language and return 200
-        """
+        """should be able to set user language and return 200"""
         user = make_user()
         language = make_random_language()
         user.language = language

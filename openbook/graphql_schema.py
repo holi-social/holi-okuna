@@ -379,7 +379,6 @@ class CreatePostCommentMutation(graphene.Mutation):
         input = graphene.Argument(CreatePostCommentInput)
 
     post_comment = graphene.Field(PostComment)
-
     post_by_id = graphene.Field(Post)
 
     @classmethod
