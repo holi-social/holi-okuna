@@ -31,9 +31,7 @@ class SearchHashtagsAPITests(OpenbookAPITestCase):
     """
 
     def test_can_search_hashtags_by_name(self):
-        """
-        should be able to search for hashtags by their name and return 200
-        """
+        """should be able to search for hashtags by their name and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -60,9 +58,7 @@ class SearchHashtagsAPITests(OpenbookAPITestCase):
             hashtag.delete()
 
     def test_can_search_for_foreign_user_reported_hashtag(self):
-        """
-        should be able to search for a foreign usre reported hashtag and return 200
-        """
+        """should be able to search for a foreign usre reported hashtag and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -84,9 +80,7 @@ class SearchHashtagsAPITests(OpenbookAPITestCase):
         self.assertEqual(len(parsed_response), 1)
 
     def test_cant_search_for_reported_hashtag(self):
-        """
-        should not be able to search for a reported hashtag and return 200
-        """
+        """should not be able to search for a reported hashtag and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -106,9 +100,7 @@ class SearchHashtagsAPITests(OpenbookAPITestCase):
         self.assertEqual(len(parsed_response), 0)
 
     def test_cant_search_for_reported_and_approved_hashtag(self):
-        """
-        should not be able to search for a reported and approved hashtag and return 200
-        """
+        """should not be able to search for a reported and approved hashtag and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 

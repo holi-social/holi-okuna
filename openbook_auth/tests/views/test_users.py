@@ -146,9 +146,7 @@ class GetUserAPITests(OpenbookAPITestCase):
     """
 
     def test_can_retrieve_user(self):
-        """
-        should be able to retrieve a user when authenticated and return 200
-        """
+        """should be able to retrieve a user when authenticated and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -165,9 +163,7 @@ class GetUserAPITests(OpenbookAPITestCase):
         self.assertEqual(response_username, user.username)
 
     def test_cant_retrieve_blocked_user(self):
-        """
-        should not be able to retrieve a blocked user and return 403
-        """
+        """should not be able to retrieve a blocked user and return 403"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -181,9 +177,7 @@ class GetUserAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_cant_retrieve_blocking_user(self):
-        """
-        should not be able to retrieve a blocking user and return 403
-        """
+        """should not be able to retrieve a blocking user and return 403"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -197,9 +191,7 @@ class GetUserAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_cant_retrieve_soft_deleted_user(self):
-        """
-        should not be able to retrieve a soft deleted user and return 403
-        """
+        """should not be able to retrieve a soft deleted user and return 403"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -224,9 +216,7 @@ class BlockUserAPITests(OpenbookAPITestCase):
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_can_block_user(self):
-        """
-        should be able to block a user and return 200
-        """
+        """should be able to block a user and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -240,9 +230,7 @@ class BlockUserAPITests(OpenbookAPITestCase):
         self.assertTrue(user.has_blocked_user_with_id(user_id=user_to_block.pk))
 
     def test_cannot_block_already_blocked_user(self):
-        """
-        should not be able to block an already blocked user and return 403
-        """
+        """should not be able to block an already blocked user and return 403"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -257,9 +245,7 @@ class BlockUserAPITests(OpenbookAPITestCase):
         self.assertTrue(user.has_blocked_user_with_id(user_id=user_to_block.pk))
 
     def test_cannot_block_blocking_user(self):
-        """
-        should not be able to block a blocking user and return 400
-        """
+        """should not be able to block a blocking user and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -274,9 +260,7 @@ class BlockUserAPITests(OpenbookAPITestCase):
         self.assertTrue(blocking_user.has_blocked_user_with_id(user_id=user.pk))
 
     def test_disconnects_from_user(self):
-        """
-        should disconnect from the blocked user
-        """
+        """should disconnect from the blocked user"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -293,9 +277,7 @@ class BlockUserAPITests(OpenbookAPITestCase):
         self.assertFalse(user.is_connected_with_user_with_id(user_id=user_to_block.pk))
 
     def test_unfollows_user(self):
-        """
-        should unfollow the blocked user
-        """
+        """should unfollow the blocked user"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -311,9 +293,7 @@ class BlockUserAPITests(OpenbookAPITestCase):
         self.assertFalse(user.is_following_user_with_id(user_id=user_to_block.pk))
 
     def test_gets_unfollowed_by_blocked_user(self):
-        """
-        should be unfollowed by the blocked user
-        """
+        """should be unfollowed by the blocked user"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -331,9 +311,7 @@ class BlockUserAPITests(OpenbookAPITestCase):
         )
 
     def test_a_blocking_user_should_remove_notifications_subscriptions(self):
-        """
-        blocking a user should remove notifications subscriptions for both
-        """
+        """should remove notifications subscriptions for both on blocking of a user"""
         user = make_user()
         user_to_block = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -362,9 +340,7 @@ class BlockUserAPITests(OpenbookAPITestCase):
         )
 
     def test_blocking_user_should_remove_their_notifications_subscriptions(self):
-        """
-        a blocking user should remove notifications subscriptions for both
-        """
+        """should remove notifications subscriptions for both when a blocking user"""
         user = make_user()
         blocking_user = make_user()
         headers = make_authentication_headers_for_user(blocking_user)
@@ -402,9 +378,7 @@ class UnblockUserAPITests(OpenbookAPITestCase):
     """
 
     def test_can_unblock_blocked_user(self):
-        """
-        should be able to unblock a blocked user and return 200
-        """
+        """should be able to unblock a blocked user and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -419,9 +393,7 @@ class UnblockUserAPITests(OpenbookAPITestCase):
         self.assertFalse(user.has_blocked_user_with_id(user_id=blocked_user.pk))
 
     def test_cannot_unblock_not_blocked_user(self):
-        """
-        should not be able to unblock a not blocked user and return 400
-        """
+        """should not be able to unblock a not blocked user and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -435,9 +407,7 @@ class UnblockUserAPITests(OpenbookAPITestCase):
         self.assertFalse(user.has_blocked_user_with_id(user_id=blocked_user.pk))
 
     def test_cannot_unblock_unblocking_user(self):
-        """
-        should not be able to unblock a blocking user and return 400
-        """
+        """should not be able to unblock a blocking user and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -461,9 +431,7 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
     """
 
     def test_can_subscribe_to_notifications_from_user(self):
-        """
-        should be able to subscribe to a user and return 201
-        """
+        """should be able to subscribe to a user and return 201"""
         user = make_user()
         user_to_subscribe = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -485,9 +453,7 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_subscribe_to_own_notifications(self):
-        """
-        should nt be able to subscribe to a own notifications and return 400
-        """
+        """should nt be able to subscribe to a own notifications and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -504,9 +470,7 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_subscribe_to_notifications_from_user_if_already_subscribed(self):
-        """
-        should not be able to subscribe to a user if already subscribed and return 400
-        """
+        """should not be able to subscribe to a user if already subscribed and return 400"""
         user = make_user()
         user_to_subscribe = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -528,9 +492,7 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_subscribe_to_notifications_from_user_if_user_has_been_blocked(self):
-        """
-        should not be able to subscribe to a user if blocked and return 403
-        """
+        """should not be able to subscribe to a user if blocked and return 403"""
         user = make_user()
         user_to_subscribe = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -549,9 +511,7 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_subscribe_to_notifications_from_user_if_user_has_blocked_us(self):
-        """
-        should not be able to subscribe to a user if they have blocked subscriber and return 403
-        """
+        """should not be able to subscribe to a user if they have blocked subscriber and return 403"""
         user = make_user()
         user_to_subscribe = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -570,9 +530,7 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
         )
 
     def test_can_unsubscribe_to_notifications_from_user(self):
-        """
-        should be able to unsubscribe to a user and return 200
-        """
+        """should be able to unsubscribe to a user and return 200"""
         user = make_user()
         user_to_unsubscribe = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -595,9 +553,7 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
     def test_cannot_unsubscribe_to_notifications_from_user_if_already_unsubscribed(
         self,
     ):
-        """
-        should not be able to unsubscribe to a user if already unsubscribed and return 400
-        """
+        """should not be able to unsubscribe to a user if already unsubscribed and return 400"""
         user = make_user()
         user_to_unsubscribe = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -625,9 +581,7 @@ class GetUserPostsCountAPITests(OpenbookAPITestCase):
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_can_retrieve_posts_count(self):
-        """
-        should be able to retrieve the posts count and return 200
-        """
+        """should be able to retrieve the posts count and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 

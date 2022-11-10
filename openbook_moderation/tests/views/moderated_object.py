@@ -64,9 +64,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
     """
 
     def test_can_update_user_moderated_object_if_global_moderator(self):
-        """
-        should be able to update a user moderated object if global moderator
-        """
+        """should be able to update a user moderated object if global moderator"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -107,9 +105,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         )
 
     def test_can_update_user_moderated_object_if_approved(self):
-        """
-        should be able to update a user moderated object if approved
-        """
+        """should be able to update a user moderated object if approved"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -151,9 +147,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         )
 
     def test_can_update_user_moderated_object_if_rejected(self):
-        """
-        should be able to update a user moderated object if rejected
-        """
+        """should be able to update a user moderated object if rejected"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -195,9 +189,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_update_moderated_object_if_verified(self):
-        """
-        should not be able to update a user moderated object if already verified
-        """
+        """should not be able to update a user moderated object if already verified"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -245,9 +237,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_update_user_moderated_object_if_not_global_moderator(self):
-        """
-        should not be able to update a user moderated object if not a global moderator
-        """
+        """should not be able to update a user moderated object if not a global moderator"""
         non_global_moderator = make_user()
 
         user = make_user()
@@ -288,9 +278,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_update_user_moderated_object_if_community_moderator(self):
-        """
-        should not be able to update a user moderated object if community moderator
-        """
+        """should not be able to update a user moderated object if community moderator"""
 
         community_creator = make_user()
         community = make_community(creator=community_creator)
@@ -340,9 +328,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         )
 
     def test_creates_description_changed_log_on_update(self):
-        """
-        should create a description changed log on update
-        """
+        """should create a description changed log on update"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -383,9 +369,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         )
 
     def test_creates_category_changed_log_on_update(self):
-        """
-        should create a category changed log on update
-        """
+        """should create a category changed log on update"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -426,9 +410,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         )
 
     def test_can_update_community_moderated_object_if_global_moderator(self):
-        """
-        should be able to update a community moderated object if global moderator
-        """
+        """should be able to update a community moderated object if global moderator"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -469,9 +451,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_update_community_moderated_object_if_not_global_moderator(self):
-        """
-        should not be able to update a community moderated object if not a global moderator
-        """
+        """should not be able to update a community moderated object if not a global moderator"""
         non_global_moderator = make_user()
 
         community = make_community()
@@ -511,9 +491,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_update_community_moderated_object_if_community_moderator(self):
-        """
-        should not be able to update a community moderated object if community moderator
-        """
+        """should not be able to update a community moderated object if community moderator"""
 
         community_creator = make_user()
         community = make_community(creator=community_creator)
@@ -563,9 +541,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         )
 
     def test_can_update_community_post_moderated_object_if_global_moderator(self):
-        """
-        should be able to update a community post moderated object if global moderator
-        """
+        """should be able to update a community post moderated object if global moderator"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -610,9 +586,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         )
 
     def test_can_update_community_post_moderated_object_if_community_moderator(self):
-        """
-        should be able to update a community post moderated object if community moderator
-        """
+        """should be able to update a community post moderated object if community moderator"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
         community_moderator = make_user()
@@ -665,9 +639,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
     def test_cant_update_community_post_moderated_object_if_not_global_nor_community_moderator(
         self,
     ):
-        """
-        should not be able to update a community post moderated object if not global nor community moderator
-        """
+        """should not be able to update a community post moderated object if not global nor community moderator"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
         non_moderator = make_user()
@@ -892,9 +864,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
     def test_can_update_community_post_comment_moderated_object_if_global_moderator(
         self,
     ):
-        """
-        should be able to update a community post_comment moderated object if global moderator
-        """
+        """should be able to update a community post_comment moderated object if global moderator"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -948,9 +918,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
     def test_can_update_community_post_comment_moderated_object_if_community_moderator(
         self,
     ):
-        """
-        should be able to update a community post_comment moderated object if community moderator
-        """
+        """should be able to update a community post_comment moderated object if community moderator"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
         community_moderator = make_user()
@@ -1010,9 +978,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
     def test_cant_update_community_post_comment_moderated_object_if_not_global_nor_community_moderator(
         self,
     ):
-        """
-        should not be able to update a community post_comment moderated object if not global nor community moderator
-        """
+        """should not be able to update a community post_comment moderated object if not global nor community moderator"""
         non_global_moderator = make_user()
 
         community = make_community()
@@ -1269,9 +1235,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     """
 
     def test_can_approve_user_moderated_object_if_global_moderator(self):
-        """
-        should be able to approve a user moderated object if global moderator
-        """
+        """should be able to approve a user moderated object if global moderator"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -1302,9 +1266,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_approving_user_moderated_object_for_severity_critical_deletes_user_new_post_notifications(
         self,
     ):
-        """
-        should remove all user new post notifications on approval of a user moderated object for severity critical
-        """
+        """should remove all user new post notifications on approval of a user moderated object for severity critical"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -1338,9 +1300,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_approving_user_moderated_object_for_severity_critical_deletes_user_follow_notifications(
         self,
     ):
-        """
-        should remove all user follow notifications on approval of a user moderated object for severity critical
-        """
+        """should remove all user follow notifications on approval of a user moderated object for severity critical"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -1371,9 +1331,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_approving_user_moderated_object_for_severity_critical_deletes_user_connection_request_notifications(
         self,
     ):
-        """
-        should remove all user connection request notifications on approval of a user moderated object for severity critical
-        """
+        """should remove all user connection request notifications on approval of a user moderated object for severity critical"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -1408,9 +1366,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_approving_user_moderated_object_for_severity_critical_deletes_user_connection_confirmed_notifications(
         self,
     ):
-        """
-        should remove all user connection confirmed notifications on approval of a user moderated object for severity critical
-        """
+        """should remove all user connection confirmed notifications on approval of a user moderated object for severity critical"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -1453,9 +1409,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_approve_user_moderated_object_if_community_moderator(self):
-        """
-        should not be able to approve a user moderated object if community moderator
-        """
+        """should not be able to approve a user moderated object if community moderator"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
         community_moderator = make_user()
@@ -1490,9 +1444,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_approve_user_moderated_object_if_regular_user(self):
-        """
-        should not be able to approve a user moderated object if regular user
-        """
+        """should not be able to approve a user moderated object if regular user"""
         regular_user = make_user()
 
         user = make_user()
@@ -1521,9 +1473,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_can_approve_community_moderated_object_if_global_moderator(self):
-        """
-        should be able to approve a community moderated object if global moderator
-        """
+        """should be able to approve a community moderated object if global moderator"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -1554,9 +1504,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_approving_community_moderated_object_deleted_community_new_post_notifications(
         self,
     ):
-        """
-        should remove community new post notifications on approving a community moderated object
-        """
+        """should remove community new post notifications on approving a community moderated object"""
         global_moderator = make_global_moderator()
         community_admin = make_user()
 
@@ -1594,9 +1542,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_approving_community_moderated_object_deleted_community_invite_notifications(
         self,
     ):
-        """
-        should remove community invite notifications on approving a community moderated object
-        """
+        """should remove community invite notifications on approving a community moderated object"""
         global_moderator = make_global_moderator()
         community_admin = make_user()
         community_invitee = make_user()
@@ -1634,9 +1580,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_approve_community_moderated_object_if_community_moderator(self):
-        """
-        should not be able to approve a community moderated object if community moderator
-        """
+        """should not be able to approve a community moderated object if community moderator"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
         community_moderator = make_user()
@@ -1671,9 +1615,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_approve_community_moderated_object_if_regular_community(self):
-        """
-        should not be able to approve a community moderated object if regular community
-        """
+        """should not be able to approve a community moderated object if regular community"""
         regular_community = make_user()
 
         community = make_community()
@@ -1702,9 +1644,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_can_approve_community_post_moderated_object_if_global_moderator(self):
-        """
-        should be able to approve a community_post moderated object if global moderator
-        """
+        """should be able to approve a community_post moderated object if global moderator"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -1741,9 +1681,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_approving_community_post_moderated_object_deletes_post_reaction_notifications(
         self,
     ):
-        """
-        should delete post reaction notifications on approving a community_post moderated object
-        """
+        """should delete post reaction notifications on approving a community_post moderated object"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -1790,9 +1728,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_approving_community_post_moderated_object_deletes_comment_notifications(
         self,
     ):
-        """
-        should delete comment notifications on approving community_post moderated object
-        """
+        """should delete comment notifications on approving community_post moderated object"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -1839,9 +1775,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_approving_community_post_moderated_object_deletes_comment_reply_notifications(
         self,
     ):
-        """
-        should delete comment reply notifications on approving community_post moderated object
-        """
+        """should delete comment reply notifications on approving community_post moderated object"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -1896,9 +1830,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_approving_community_post_moderated_object_deletes_comment_reaction_notifications(
         self,
     ):
-        """
-        should delete comment reaction notifications on approving community_post moderated object
-        """
+        """should delete comment reaction notifications on approving community_post moderated object"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -1957,9 +1889,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_approving_community_post_moderated_object_deletes_comment_reply_reaction_notifications(
         self,
     ):
-        """
-        should delete comments reply reactions notifications on approving community_post moderated object
-        """
+        """should delete comments reply reactions notifications on approving community_post moderated object"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -2031,9 +1961,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_approving_community_post_moderated_object_deletes_post_comment_user_mention_notifications(
         self,
     ):
-        """
-        should delete comment user mention notifications on approving community_post moderated object
-        """
+        """should delete comment user mention notifications on approving community_post moderated object"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -2090,9 +2018,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_approving_community_post_moderated_object_deletes_post_user_mention_notifications(
         self,
     ):
-        """
-        should delete post user mention notifications on approving community_post moderated object
-        """
+        """should delete post user mention notifications on approving community_post moderated object"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -2142,9 +2068,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_can_approve_community_post_moderated_object_if_community_post_moderator(
         self,
     ):
-        """
-        should be able to approve a community_post moderated object if community_post moderator
-        """
+        """should be able to approve a community_post moderated object if community_post moderator"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -2183,9 +2107,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_approve_community_post_moderated_object_if_regular_user(self):
-        """
-        should not be able to approve a community_post moderated object if regular user
-        """
+        """should not be able to approve a community_post moderated object if regular user"""
         regular_user = make_user()
 
         community = make_community()
@@ -2222,9 +2144,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_can_approve_community_post_comment_moderated_object_if_global_moderator(
         self,
     ):
-        """
-        should be able to approve a community_post_comment moderated object if global moderator
-        """
+        """should be able to approve a community_post_comment moderated object if global moderator"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -2271,9 +2191,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_approving_community_post_comment_moderated_object_deletes_comment_notifications(
         self,
     ):
-        """
-        should delete comment notifications on approving community_post_comment moderated object
-        """
+        """should delete comment notifications on approving community_post_comment moderated object"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -2336,9 +2254,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_approving_community_post_comment_moderated_object_deletes_comment_reply_notifications(
         self,
     ):
-        """
-        should delete comment reply notifications on approving community_post_comment moderated object
-        """
+        """should delete comment reply notifications on approving community_post_comment moderated object"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -2397,9 +2313,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_approving_community_post_comment_moderated_object_that_is_reply_deletes_comment_reply_notifications(
         self,
     ):
-        """
-        should delete comment reply notifications on approving community_post_comment (that is a reply) moderated object
-        """
+        """should delete comment reply notifications on approving community_post_comment (that is a reply) moderated object"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -2459,9 +2373,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_approving_community_post_comment_moderated_object_deletes_comment_reaction_notifications(
         self,
     ):
-        """
-        should delete comment reaction notifications on approving community_post_comment moderated object
-        """
+        """should delete comment reaction notifications on approving community_post_comment moderated object"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -2524,9 +2436,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_approving_community_post_comment_moderated_object_deletes_comment_reply_reaction_notifications(
         self,
     ):
-        """
-        should delete comments reply reactions notifications on approving community_post_comment moderated object
-        """
+        """should delete comments reply reactions notifications on approving community_post_comment moderated object"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -2602,9 +2512,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_approving_community_post_comment_moderated_object_deletes_user_mention_notifications(
         self,
     ):
-        """
-        should delete user mention notifications on approving community_post_comment moderated object
-        """
+        """should delete user mention notifications on approving community_post_comment moderated object"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -2665,9 +2573,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_can_approve_community_post_comment_moderated_object_if_community_post_comment_moderator(
         self,
     ):
-        """
-        should be able to approve a community_post_comment moderated object if community_post_comment moderator
-        """
+        """should be able to approve a community_post_comment moderated object if community_post_comment moderator"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -2719,9 +2625,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
     def test_cant_approve_community_post_comment_moderated_object_if_regular_community_post_comment(
         self,
     ):
-        """
-        should not be able to approve a community_post_comment moderated object if regular community_post_comment
-        """
+        """should not be able to approve a community_post_comment moderated object if regular community_post_comment"""
         regular_user = make_user()
 
         community = make_community()
@@ -2766,9 +2670,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_creates_approved_changed_log_on_update(self):
-        """
-        should create an approved changed log on update
-        """
+        """should create an approved changed log on update"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -2813,9 +2715,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
     """
 
     def test_can_reject_user_moderated_object_if_global_moderator(self):
-        """
-        should be able to reject a user moderated object if global moderator
-        """
+        """should be able to reject a user moderated object if global moderator"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -2844,9 +2744,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_reject_user_moderated_object_if_community_moderator(self):
-        """
-        should not be able to reject a user moderated object if community moderator
-        """
+        """should not be able to reject a user moderated object if community moderator"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
         community_moderator = make_user()
@@ -2881,9 +2779,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_reject_user_moderated_object_if_regular_user(self):
-        """
-        should not be able to reject a user moderated object if regular user
-        """
+        """should not be able to reject a user moderated object if regular user"""
         regular_user = make_user()
 
         user = make_user()
@@ -2912,9 +2808,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_can_reject_community_moderated_object_if_global_moderator(self):
-        """
-        should be able to reject a community moderated object if global moderator
-        """
+        """should be able to reject a community moderated object if global moderator"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -2943,9 +2837,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_reject_community_moderated_object_if_community_moderator(self):
-        """
-        should not be able to reject a community moderated object if community moderator
-        """
+        """should not be able to reject a community moderated object if community moderator"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
         community_moderator = make_user()
@@ -2980,9 +2872,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_reject_community_moderated_object_if_regular_community(self):
-        """
-        should not be able to reject a community moderated object if regular community
-        """
+        """should not be able to reject a community moderated object if regular community"""
         regular_community = make_user()
 
         community = make_community()
@@ -3011,9 +2901,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_can_reject_community_post_moderated_object_if_global_moderator(self):
-        """
-        should be able to reject a community_post moderated object if global moderator
-        """
+        """should be able to reject a community_post moderated object if global moderator"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -3050,9 +2938,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
     def test_can_reject_community_post_moderated_object_if_community_post_moderator(
         self,
     ):
-        """
-        should be able to reject a community_post moderated object if community_post moderator
-        """
+        """should be able to reject a community_post moderated object if community_post moderator"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -3093,9 +2979,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
     def test_cant_reject_community_post_moderated_object_if_regular_community_post(
         self,
     ):
-        """
-        should not be able to reject a community_post moderated object if regular community_post
-        """
+        """should not be able to reject a community_post moderated object if regular community_post"""
         regular_user = make_user()
 
         community = make_community()
@@ -3132,9 +3016,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
     def test_can_reject_community_post_comment_moderated_object_if_global_moderator(
         self,
     ):
-        """
-        should be able to reject a community_post_comment moderated object if global moderator
-        """
+        """should be able to reject a community_post_comment moderated object if global moderator"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -3181,9 +3063,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
     def test_can_reject_community_post_comment_moderated_object_if_community_post_comment_moderator(
         self,
     ):
-        """
-        should be able to reject a community_post_comment moderated object if community_post_comment moderator
-        """
+        """should be able to reject a community_post_comment moderated object if community_post_comment moderator"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -3235,9 +3115,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
     def test_cant_reject_community_post_comment_moderated_object_if_regular_community_post_comment(
         self,
     ):
-        """
-        should not be able to reject a community_post_comment moderated object if regular community_post_comment
-        """
+        """should not be able to reject a community_post_comment moderated object if regular community_post_comment"""
         regular_user = make_user()
 
         community = make_community()
@@ -3282,9 +3160,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_creates_rejected_changed_log_on_update(self):
-        """
-        should create an rejected changed log on update
-        """
+        """should create an rejected changed log on update"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -4136,9 +4012,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_can_verify_moderated_object_if_global_moderator_and_approved(self):
-        """
-        should be able to verify a user moderated object if global moderator and approved
-        """
+        """should be able to verify a user moderated object if global moderator and approved"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -4167,9 +4041,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_can_verify_moderated_object_if_global_moderator_and_rejected(self):
-        """
-        should be able to verify a user moderated object if global moderator and rejected
-        """
+        """should be able to verify a user moderated object if global moderator and rejected"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -4198,9 +4070,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_verify_moderated_object_if_global_moderator_and_pending(self):
-        """
-        should not be able to verify a user moderated object if global moderator and pending
-        """
+        """should not be able to verify a user moderated object if global moderator and pending"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -4229,9 +4099,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_verify_user_moderated_object_if_community_moderator(self):
-        """
-        should not be able to verify a user moderated object if community moderator
-        """
+        """should not be able to verify a user moderated object if community moderator"""
 
         global_moderator = make_global_moderator()
 
@@ -4269,9 +4137,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_verify_user_moderated_object_if_regular_user(self):
-        """
-        should not be able to verify a user moderated object if regular user
-        """
+        """should not be able to verify a user moderated object if regular user"""
         regular_user = make_user()
         global_moderator = make_global_moderator()
 
@@ -4301,9 +4167,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_can_verify_community_moderated_object_if_global_moderator(self):
-        """
-        should be able to verify a community moderated object if global moderator
-        """
+        """should be able to verify a community moderated object if global moderator"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -4334,9 +4198,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_verify_community_moderated_object_if_community_moderator(self):
-        """
-        should not be able to verify a community moderated object if community moderator
-        """
+        """should not be able to verify a community moderated object if community moderator"""
 
         community_creator = make_user()
         community = make_community(creator=community_creator)
@@ -4374,9 +4236,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_verify_community_moderated_object_if_regular_user(self):
-        """
-        should not be able to verify a community moderated object if regular user
-        """
+        """should not be able to verify a community moderated object if regular user"""
         regular_user = make_user()
 
         community = make_community()
@@ -4408,9 +4268,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_can_verify_community_post_moderated_object_if_global_moderator(self):
-        """
-        should be able to verify a community_post moderated object if global moderator
-        """
+        """should be able to verify a community_post moderated object if global moderator"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -4447,9 +4305,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_verify_community_post_moderated_object_if_community_moderator(self):
-        """
-        should not be able to verify a community_post moderated object if community moderator
-        """
+        """should not be able to verify a community_post moderated object if community moderator"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -4490,9 +4346,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_verify_community_post_moderated_object_if_regular_user(self):
-        """
-        should not be able to verify a community_post moderated object if regular user
-        """
+        """should not be able to verify a community_post moderated object if regular user"""
         regular_user = make_user()
 
         community = make_community()
@@ -4532,9 +4386,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
     def test_can_verify_community_post_comment_moderated_object_if_global_moderator(
         self,
     ):
-        """
-        should be able to verify a community_post_comment moderated object if global moderator
-        """
+        """should be able to verify a community_post_comment moderated object if global moderator"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -4582,9 +4434,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
     def test_cant_verify_community_post_comment_moderated_object_if_community_moderator(
         self,
     ):
-        """
-        should not be able to verify a community_post_comment moderated object if community moderator
-        """
+        """should not be able to verify a community_post_comment moderated object if community moderator"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -4636,9 +4486,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_verify_community_post_comment_moderated_object_if_regular_user(self):
-        """
-        should not be able to verify a community_post_comment moderated object if regular user
-        """
+        """should not be able to verify a community_post_comment moderated object if regular user"""
         regular_user = make_user()
 
         community = make_community()
@@ -4685,9 +4533,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_creates_verified_changed_log_on_verify(self):
-        """
-        should create a verified changed log on verify
-        """
+        """should create a verified changed log on verify"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -4785,9 +4631,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
     """
 
     def test_can_unverify_moderated_object_if_global_moderator_and_approved(self):
-        """
-        should be able to unverify a user moderated object if global moderator and approved
-        """
+        """should be able to unverify a user moderated object if global moderator and approved"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -4817,9 +4661,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_can_unverify_moderated_object_if_global_moderator_and_rejected(self):
-        """
-        should be able to unverify a user moderated object if global moderator and rejected
-        """
+        """should be able to unverify a user moderated object if global moderator and rejected"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -4849,9 +4691,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_unverify_user_moderated_object_if_community_moderator(self):
-        """
-        should not be able to unverify a user moderated object if community moderator
-        """
+        """should not be able to unverify a user moderated object if community moderator"""
 
         global_moderator = make_global_moderator()
 
@@ -4890,9 +4730,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_unverify_user_moderated_object_if_regular_user(self):
-        """
-        should not be able to unverify a user moderated object if regular user
-        """
+        """should not be able to unverify a user moderated object if regular user"""
         regular_user = make_user()
         global_moderator = make_global_moderator()
 
@@ -4923,9 +4761,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_can_unverify_community_moderated_object_if_global_moderator(self):
-        """
-        should be able to unverify a community moderated object if global moderator
-        """
+        """should be able to unverify a community moderated object if global moderator"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -4957,9 +4793,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_unverify_community_moderated_object_if_community_moderator(self):
-        """
-        should not be able to unverify a community moderated object if community moderator
-        """
+        """should not be able to unverify a community moderated object if community moderator"""
 
         community_creator = make_user()
         community = make_community(creator=community_creator)
@@ -4998,9 +4832,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_unverify_community_moderated_object_if_regular_user(self):
-        """
-        should not be able to unverify a community moderated object if regular user
-        """
+        """should not be able to unverify a community moderated object if regular user"""
         regular_user = make_user()
 
         community = make_community()
@@ -5033,9 +4865,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_can_unverify_community_post_moderated_object_if_global_moderator(self):
-        """
-        should be able to unverify a community_post moderated object if global moderator
-        """
+        """should be able to unverify a community_post moderated object if global moderator"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -5073,9 +4903,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_unverify_community_post_moderated_object_if_community_moderator(self):
-        """
-        should not be able to unverify a community_post moderated object if community moderator
-        """
+        """should not be able to unverify a community_post moderated object if community moderator"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -5117,9 +4945,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_cant_unverify_community_post_moderated_object_if_regular_user(self):
-        """
-        should not be able to unverify a community_post moderated object if regular user
-        """
+        """should not be able to unverify a community_post moderated object if regular user"""
         regular_user = make_user()
 
         community = make_community()
@@ -5160,9 +4986,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
     def test_can_unverify_community_post_comment_moderated_object_if_global_moderator(
         self,
     ):
-        """
-        should be able to unverify a community_post_comment moderated object if global moderator
-        """
+        """should be able to unverify a community_post_comment moderated object if global moderator"""
         global_moderator = make_global_moderator()
 
         community = make_community()
@@ -5211,9 +5035,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
     def test_cant_unverify_community_post_comment_moderated_object_if_community_moderator(
         self,
     ):
-        """
-        should not be able to unverify a community_post_comment moderated object if community moderator
-        """
+        """should not be able to unverify a community_post_comment moderated object if community moderator"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -5268,9 +5090,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
     def test_cant_unverify_community_post_comment_moderated_object_if_regular_user(
         self,
     ):
-        """
-        should not be able to unverify a community_post_comment moderated object if regular user
-        """
+        """should not be able to unverify a community_post_comment moderated object if regular user"""
         regular_user = make_user()
 
         community = make_community()
@@ -5318,9 +5138,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         )
 
     def test_creates_verified_changed_log_on_unverify(self):
-        """
-        should create a verified changed log on unverify
-        """
+        """should create a verified changed log on unverify"""
         global_moderator = make_global_moderator()
 
         user = make_user()
@@ -5364,9 +5182,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
 class ModeratedObjectLogs(OpenbookAPITestCase):
     def test_can_retrieve_community_moderation_object_logs_if_staff(self):
-        """
-        should be able to retrieve community moderation object logs if staff and return 200
-        """
+        """should be able to retrieve community moderation object logs if staff and return 200"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -5406,9 +5222,7 @@ class ModeratedObjectLogs(OpenbookAPITestCase):
             self.assertIn(response_moderation_category_id, moderated_object_logs_ids)
 
     def test_cant_retrieve_community_moderation_object_logs_if_not_staff(self):
-        """
-        should not be able to retrieve community moderation logs if not staff and return 400
-        """
+        """should not be able to retrieve community moderation logs if not staff and return 400"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -5432,9 +5246,7 @@ class ModeratedObjectLogs(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_can_retrieve_global_moderation_object_logs_if_global_moderator(self):
-        """
-        should be able to retrieve global moderation object logs if global moderator and return 200
-        """
+        """should be able to retrieve global moderation object logs if global moderator and return 200"""
         global_moderator = make_global_moderator()
 
         moderated_object = make_moderated_object()
@@ -5467,9 +5279,7 @@ class ModeratedObjectLogs(OpenbookAPITestCase):
             self.assertIn(response_moderation_category_id, moderated_object_logs_ids)
 
     def test_cant_retrieve_global_moderation_object_logs_if_not_global_moderator(self):
-        """
-        should not be able to retrieve global moderation object logs if not global moderator and return 200
-        """
+        """should not be able to retrieve global moderation object logs if not global moderator and return 200"""
         user = make_user()
 
         moderated_object = make_moderated_object()
@@ -5497,9 +5307,7 @@ class ModeratedObjectLogs(OpenbookAPITestCase):
 
 class ModeratedObjectReports(OpenbookAPITestCase):
     def test_can_retrieve_community_moderation_object_reports_if_staff(self):
-        """
-        should be able to retrieve community moderation object reports if staff and return 200
-        """
+        """should be able to retrieve community moderation object reports if staff and return 200"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -5539,9 +5347,7 @@ class ModeratedObjectReports(OpenbookAPITestCase):
             self.assertIn(response_moderation_category_id, moderated_object_reports_ids)
 
     def test_cant_retrieve_community_moderation_object_reports_if_not_staff(self):
-        """
-        should not be able to retrieve community moderation reports if not staff and return 400
-        """
+        """should not be able to retrieve community moderation reports if not staff and return 400"""
         community_creator = make_user()
         community = make_community(creator=community_creator)
 
@@ -5565,9 +5371,7 @@ class ModeratedObjectReports(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_can_retrieve_global_moderation_object_reports_if_global_moderator(self):
-        """
-        should be able to retrieve global moderation object reports if global moderator and return 200
-        """
+        """should be able to retrieve global moderation object reports if global moderator and return 200"""
         global_moderator = make_global_moderator()
 
         moderated_object = make_moderated_object()
@@ -5602,9 +5406,7 @@ class ModeratedObjectReports(OpenbookAPITestCase):
     def test_cant_retrieve_global_moderation_object_reports_if_not_global_moderator(
         self,
     ):
-        """
-        should not be able to retrieve global moderation object reports if not global moderator and return 200
-        """
+        """should not be able to retrieve global moderation object reports if not global moderator and return 200"""
         user = make_user()
 
         moderated_object = make_moderated_object()

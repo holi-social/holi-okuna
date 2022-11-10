@@ -21,9 +21,7 @@ class ModerationCategoriesAPITests(OpenbookAPITestCase):
     """
 
     def test_can_retrieve_moderation_categories(self):
-        """
-        should be able to retrieve all moderationCategories and return 200
-        """
+        """should be able to retrieve all moderationCategories and return 200"""
         user = make_user()
 
         amount_of_moderationCategories = 5

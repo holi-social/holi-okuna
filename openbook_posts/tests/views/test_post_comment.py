@@ -44,9 +44,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     ]
 
     def test_can_get_own_post_comment(self):
-        """
-        should be able to get an own comment in own post and return 200
-        """
+        """should be able to get an own comment in own post and return 200"""
         user = make_user()
 
         post = user.create_public_post(text=make_fake_post_text())
@@ -63,9 +61,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_can_get_foreign_public_post_comment(self):
-        """
-        should be able to get an own comment in a foreign public post and return 200
-        """
+        """should be able to get an own comment in a foreign public post and return 200"""
         user = make_user()
 
         post_creator = make_user()
@@ -88,9 +84,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_can_get_foreign_encircled_post_comment_part_of(self):
-        """
-        should be able to get a foreign encircled post comment part of and return 200
-        """
+        """should be able to get a foreign encircled post comment part of and return 200"""
         user = make_user()
 
         post_creator = make_user()
@@ -122,9 +116,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_cant_get_foreign_encircled_post_comment_part_of(self):
-        """
-        should NOT be able to get a foreign encircled post comment NOT part of and return 400
-        """
+        """should NOT be able to get a foreign encircled post comment NOT part of and return 400"""
         user = make_user()
 
         post_creator = make_user()
@@ -153,9 +145,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_can_get_public_community_post_comment(self):
-        """
-        should be able to get a comment in a public community post and return 200
-        """
+        """should be able to get a comment in a public community post and return 200"""
         user = make_user()
 
         community_creator = make_user()
@@ -184,9 +174,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_can_get_private_community_post_comment_part_of(self):
-        """
-        should be able to get a comment in a private community part of post and return 200
-        """
+        """should be able to get a comment in a private community part of post and return 200"""
         user = make_user()
 
         community_creator = make_user()
@@ -228,9 +216,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_cant_get_private_community_post_comment_not_part_of(self):
-        """
-        should NOT be able to get a comment in a private community NOT part of post and return 200
-        """
+        """should NOT be able to get a comment in a private community NOT part of post and return 200"""
         user = make_user()
 
         community_creator = make_user()
@@ -267,9 +253,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_can_delete_foreign_comment_in_own_post(self):
-        """
-        should be able to delete a foreign comment in own post and return 200
-        """
+        """should be able to delete a foreign comment in own post and return 200"""
         user = make_user()
 
         commenter = make_user()
@@ -289,9 +273,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertFalse(PostComment.objects.filter(id=post_comment.pk).exists())
 
     def test_can_delete_community_post_comment_if_mod(self):
-        """
-        should be able to delete a community post comment if is moderator and return 200
-        """
+        """should be able to delete a community post comment if is moderator and return 200"""
         user = make_user()
 
         community_creator = make_user()
@@ -326,9 +308,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertFalse(PostComment.objects.filter(id=post_comment.pk).exists())
 
     def test_can_delete_community_post_comment_if_admin(self):
-        """
-        should be able to delete a community post comment if is administrator and return 200
-        """
+        """should be able to delete a community post comment if is administrator and return 200"""
         user = make_user()
 
         community_creator = make_user()
@@ -365,9 +345,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     def test_can_delete_community_post_comment_for_post_with_disabled_comments_if_comment_owner(
         self,
     ):
-        """
-        should be able to delete a community post comment for post with disabled comments if comment owner
-        """
+        """should be able to delete a community post comment for post with disabled comments if comment owner"""
         user = make_user()
 
         admin = make_user()
@@ -400,9 +378,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertFalse(PostComment.objects.filter(id=post_comment.pk).exists())
 
     def test_can_delete_community_post_comment_with_disabled_comments_if_admin(self):
-        """
-        should be able to delete a community post comment for post with comments disabled if administrator
-        """
+        """should be able to delete a community post comment for post with comments disabled if administrator"""
         user = make_user()
 
         community_creator = make_user()
@@ -442,9 +418,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     def test_can_delete_community_post_comment_for_post_with_disabled_comments_if_moderator(
         self,
     ):
-        """
-        should be able to delete a community post comment for post with disabled comments if moderator
-        """
+        """should be able to delete a community post comment for post with disabled comments if moderator"""
         user = make_user()
 
         community_creator = make_user()
@@ -482,9 +456,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertFalse(PostComment.objects.filter(id=post_comment.pk).exists())
 
     def test_can_delete_community_post_comment_with_closed_post_if_admin(self):
-        """
-        should be able to delete a community post comment for closed post if administrator
-        """
+        """should be able to delete a community post comment for closed post if administrator"""
         user = make_user()
 
         community_creator = make_user()
@@ -522,9 +494,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertFalse(PostComment.objects.filter(id=post_comment.pk).exists())
 
     def test_can_delete_community_post_comment_for_closed_post_if_moderator(self):
-        """
-        should be able to delete a community post comment for closed post if moderator
-        """
+        """should be able to delete a community post comment for closed post if moderator"""
         user = make_user()
 
         community_creator = make_user()
@@ -564,9 +534,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     def test_cannot_delete_community_post_comment_for_closed_post_if_comment_owner(
         self,
     ):
-        """
-        should NOT be able to delete a community post comment for closed post if comment owner
-        """
+        """should NOT be able to delete a community post comment for closed post if comment owner"""
         user = make_user()
 
         admin = make_user()
@@ -601,9 +569,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     def test_cannot_delete_own_community_post_comment_for_closed_post_if_post_creator(
         self,
     ):
-        """
-        should NOT be able to delete own community post comment for closed post if post creator
-        """
+        """should NOT be able to delete own community post comment for closed post if post creator"""
         user = make_user()
 
         admin = make_user()
@@ -633,9 +599,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).exists())
 
     def test_logs_community_post_comment_deleted_by_non_creator(self):
-        """
-        should create a log when a community post comment was deleted by an admin/moderator
-        """
+        """should create a log when a community post comment was deleted by an admin/moderator"""
         user = make_user()
 
         community_creator = make_user()
@@ -675,9 +639,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         )
 
     def test_can_delete_own_comment_in_foreign_public_post(self):
-        """
-        should be able to delete own comment in foreign public post and return 200
-        """
+        """should be able to delete own comment in foreign public post and return 200"""
         user = make_user()
 
         foreign_user = make_user()
@@ -697,9 +659,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).count() == 0)
 
     def test_cannot_delete_foreign_comment_in_foreign_public_post(self):
-        """
-        should NOT be able to delete foreign comment in foreign public post and return 400
-        """
+        """should NOT be able to delete foreign comment in foreign public post and return 400"""
         user = make_user()
 
         foreign_user = make_user()
@@ -721,9 +681,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).count() == 1)
 
     def test_can_delete_own_comment_in_connected_user_public_post(self):
-        """
-        should be able to delete own comment in a connected user public post and return 200
-        """
+        """should be able to delete own comment in a connected user public post and return 200"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -746,9 +704,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).count() == 0)
 
     def test_cannot_delete_foreign_comment_in_connected_user_public_post(self):
-        """
-        should not be able to delete foreign comment in a connected user public post and return 400
-        """
+        """should not be able to delete foreign comment in a connected user public post and return 400"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -775,9 +731,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).count() == 1)
 
     def test_can_delete_own_comment_in_connected_user_encircled_post_part_of(self):
-        """
-        should be able to delete own comment in a connected user encircled post it's part of and return 200
-        """
+        """should be able to delete own comment in a connected user encircled post it's part of and return 200"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -807,9 +761,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     def test_cannot_delete_foreign_comment_in_connected_user_encircled_post_part_of(
         self,
     ):
-        """
-        should NOT be able to delete foreign comment in a connected user encircled post it's part of and return 400
-        """
+        """should NOT be able to delete foreign comment in a connected user encircled post it's part of and return 400"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -847,9 +799,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     def test_cannot_delete_foreign_comment_in_connected_user_encircled_post_not_part_of(
         self,
     ):
-        """
-        should NOT be able to delete foreign comment in a connected user encircled post NOT part of and return 400
-        """
+        """should NOT be able to delete foreign comment in a connected user encircled post NOT part of and return 400"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -880,9 +830,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).count() == 1)
 
     def test_can_delete_own_comment_in_followed_user_public_post(self):
-        """
-        should be able to delete own comment in a followed user public post and return 200
-        """
+        """should be able to delete own comment in a followed user public post and return 200"""
         user = make_user()
 
         user_to_follow = make_user()
@@ -904,9 +852,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).count() == 0)
 
     def test_cannot_delete_foreign_comment_in_followed_user_public_post(self):
-        """
-        should not be able to delete foreign comment in a followed user public post and return 400
-        """
+        """should not be able to delete foreign comment in a followed user public post and return 400"""
         user = make_user()
 
         user_to_follow = make_user()
@@ -932,9 +878,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).count() == 1)
 
     def test_cannot_delete_foreign_comment_in_folowed_user_encircled_post(self):
-        """
-        should not be able to delete foreign comment in a followed user encircled post and return 400
-        """
+        """should not be able to delete foreign comment in a followed user encircled post and return 400"""
         user = make_user()
 
         user_to_follow = make_user()
@@ -967,9 +911,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).count() == 1)
 
     def test_post_comment_notification_is_deleted_when_deleting_comment(self):
-        """
-        should delete the post comment notification when a post comment is deleted
-        """
+        """should delete the post comment notification when a post comment is deleted"""
         user = make_user()
 
         commenter = make_user()
@@ -1001,9 +943,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertFalse(Notification.objects.filter(pk=notification.pk).exists())
 
     def test_can_edit_own_post_comment_on_own_post(self):
-        """
-        should be able to edit own post comment
-        """
+        """should be able to edit own post comment"""
 
         user = make_user()
         post = user.create_public_post(text=make_fake_post_text())
@@ -1025,9 +965,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertTrue(post_comment.is_edited)
 
     def test_editing_own_post_comment_updates_mentions(self):
-        """
-        should update mentions when updating text
-        """
+        """should update mentions when updating text"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -1091,9 +1029,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         )
 
     def test_editing_text_post_comment_ignores_non_existing_mentioned_usernames(self):
-        """
-        should ignore non existing mentioned usernames when editing a post_comment
-        """
+        """should ignore non existing mentioned usernames when editing a post_comment"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -1121,9 +1057,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         )
 
     def test_editing_text_post_comment_ignores_casing_of_mentioned_usernames(self):
-        """
-        should ignore non existing mentioned usernames casings when editing a post_comment
-        """
+        """should ignore non existing mentioned usernames casings when editing a post_comment"""
         user = make_user()
         newly_mentioned_user = make_user(username="Miguel")
 
@@ -1150,9 +1084,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         )
 
     def test_editing_own_post_comment_does_not_create_double_mentions(self):
-        """
-        should not create double mentions when editing our own post_comment
-        """
+        """should not create double mentions when editing our own post_comment"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -1195,9 +1127,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     def test_editing_own_post_comment_comment_with_hashtag_creates_hashtag_if_not_exist(
         self,
     ):
-        """
-        when editing a post comment with a hashtag, should create  it if not exists
-        """
+        """when editing a post comment with a hashtag, should create  it if not exists"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -1227,9 +1157,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     def test_editing_own_post_comment_comment_with_hashtag_updates_to_existing_hashtag_exists(
         self,
     ):
-        """
-        when editing a post comment with a hashtag, should update to it if exists
-        """
+        """when editing a post comment with a hashtag, should update to it if exists"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -1258,9 +1186,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     def test_editing_own_post_comment_comment_with_hashtag_does_not_create_double_hashtags(
         self,
     ):
-        """
-        when editing a post comment with a hashtag, should not create duplicate hashtags
-        """
+        """when editing a post comment with a hashtag, should not create duplicate hashtags"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -1288,9 +1214,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     def test_editing_own_post_comment_updates_language_of_comment(
         self, get_language_for_text_call
     ):
-        """
-        should update language of comment when editing post comment
-        """
+        """should update language of comment when editing post comment"""
         Language = get_language_model()
         get_language_for_text_call.return_value = Language.objects.get(code="en")
         user = make_user()
@@ -1311,9 +1235,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         get_language_for_text_call.assert_called_with(edited_post_comment_text)
 
     def test_can_edit_own_post_comment_on_others_post(self):
-        """
-        should be able to edit own post comment on someone else's post
-        """
+        """should be able to edit own post comment on someone else's post"""
 
         user = make_user()
         post_creator = make_user()
@@ -1335,9 +1257,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertTrue(post_comment.text == edited_post_comment_text)
 
     def test_cannot_edit_others_post_comment(self):
-        """
-        should not be able to edit someone else's comment
-        """
+        """should not be able to edit someone else's comment"""
 
         user = make_user()
         commenter = make_user()
@@ -1360,9 +1280,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertFalse(post_comment.is_edited)
 
     def test_cannot_edit_post_comment_if_comments_disabled(self):
-        """
-        should not be able to edit own comment if comments are disabled
-        """
+        """should not be able to edit own comment if comments are disabled"""
 
         admin = make_user()
         user = make_user()
@@ -1391,9 +1309,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertFalse(post_comment.is_edited)
 
     def test_cannot_edit_post_comment_if_post_closed_and_not_not_post_creator(self):
-        """
-        should NOT be able to edit own comment if post is closed and not post creator
-        """
+        """should NOT be able to edit own comment if post is closed and not post creator"""
 
         admin = make_user()
         user = make_user()
@@ -1422,9 +1338,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertFalse(post_comment.is_edited)
 
     def test_cannot_edit_post_comment_if_post_closed_and_post_creator(self):
-        """
-        should NOT be able to edit own comment if post is closed even if post creator
-        """
+        """should NOT be able to edit own comment if post is closed even if post creator"""
 
         admin = make_user()
         user = make_user()
@@ -1453,9 +1367,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertFalse(post_comment.is_edited)
 
     def test_cannot_edit_others_community_post_comment_even_if_admin(self):
-        """
-        should not be able to edit someone else's comment even if community admin
-        """
+        """should not be able to edit someone else's comment even if community admin"""
 
         user = make_user()
         admin = make_user()
@@ -1482,9 +1394,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     # Post Comments that are replies
 
     def test_can_delete_foreign_comment_reply_in_own_post(self):
-        """
-        should be able to delete a foreign comment reply in own post and return 200
-        """
+        """should be able to delete a foreign comment reply in own post and return 200"""
         user = make_user()
 
         commenter = make_user()
@@ -1511,9 +1421,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertFalse(PostComment.objects.filter(id=post_comment_reply.pk).exists())
 
     def test_can_delete_community_post_comment_reply_if_mod(self):
-        """
-        should be able to delete a community post comment reply if is moderator and return 200
-        """
+        """should be able to delete a community post comment reply if is moderator and return 200"""
         user = make_user()
 
         community_creator = make_user()
@@ -1555,9 +1463,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertFalse(PostComment.objects.filter(id=post_comment_reply.pk).exists())
 
     def test_can_delete_community_post_comment_reply_if_admin(self):
-        """
-        should be able to delete a community post comment reply if is administrator and return 200
-        """
+        """should be able to delete a community post comment reply if is administrator and return 200"""
         user = make_user()
 
         community_creator = make_user()
@@ -1601,9 +1507,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     def test_can_delete_community_post_comment_reply_for_post_with_disabled_comments_if_comment_owner(
         self,
     ):
-        """
-        should be able to delete a community post comment reply for post with disabled comments if comment owner
-        """
+        """should be able to delete a community post comment reply for post with disabled comments if comment owner"""
         user = make_user()
 
         admin = make_user()
@@ -1643,9 +1547,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     def test_can_delete_community_post_comment_reply_with_disabled_comments_if_admin(
         self,
     ):
-        """
-        should be able to delete a community post comment reply for post with comments disabled if administrator
-        """
+        """should be able to delete a community post comment reply for post with comments disabled if administrator"""
         user = make_user()
 
         community_creator = make_user()
@@ -1692,9 +1594,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     def test_can_delete_community_post_comment_reply_for_post_with_disabled_comments_if_moderator(
         self,
     ):
-        """
-        should be able to delete a community post comment reply for post with disabled comments if moderator
-        """
+        """should be able to delete a community post comment reply for post with disabled comments if moderator"""
         user = make_user()
 
         community_creator = make_user()
@@ -1739,9 +1639,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertFalse(PostComment.objects.filter(id=post_comment_reply.pk).exists())
 
     def test_can_delete_community_post_comment_reply_with_closed_post_if_admin(self):
-        """
-        should be able to delete a community post comment reply for closed post if administrator
-        """
+        """should be able to delete a community post comment reply for closed post if administrator"""
         user = make_user()
 
         community_creator = make_user()
@@ -1786,9 +1684,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertFalse(PostComment.objects.filter(id=post_comment_reply.pk).exists())
 
     def test_can_delete_community_post_comment_reply_for_closed_post_if_moderator(self):
-        """
-        should be able to delete a community post comment reply for closed post if moderator
-        """
+        """should be able to delete a community post comment reply for closed post if moderator"""
         user = make_user()
 
         community_creator = make_user()
@@ -1835,9 +1731,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     def test_cannot_delete_community_post_comment_reply_for_closed_post_if_comment_owner(
         self,
     ):
-        """
-        should NOT be able to delete a community post comment reply for closed post if comment owner
-        """
+        """should NOT be able to delete a community post comment reply for closed post if comment owner"""
         user = make_user()
 
         admin = make_user()
@@ -1877,9 +1771,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     def test_cannot_delete_own_community_post_comment_reply_for_closed_post_if_post_creator(
         self,
     ):
-        """
-        should NOT be able to delete own community post comment reply for closed post if post creator
-        """
+        """should NOT be able to delete own community post comment reply for closed post if post creator"""
         user = make_user()
 
         admin = make_user()
@@ -1916,9 +1808,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).exists())
 
     def test_logs_community_post_comment_reply_deleted_by_non_creator(self):
-        """
-        should create a log when a community post comment reply was deleted by an admin/moderator
-        """
+        """should create a log when a community post comment reply was deleted by an admin/moderator"""
         user = make_user()
 
         community_creator = make_user()
@@ -1965,9 +1855,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         )
 
     def test_can_delete_own_comment_reply_in_foreign_public_post(self):
-        """
-        should be able to delete own comment reply in foreign public post and return 200
-        """
+        """should be able to delete own comment reply in foreign public post and return 200"""
         user = make_user()
 
         foreign_user = make_user()
@@ -1994,9 +1882,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_delete_foreign_comment_reply_in_foreign_public_post(self):
-        """
-        should NOT be able to delete foreign comment reply in foreign public post and return 400
-        """
+        """should NOT be able to delete foreign comment reply in foreign public post and return 400"""
         user = make_user()
 
         foreign_user = make_user()
@@ -2025,9 +1911,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         )
 
     def test_can_delete_own_comment_reply_in_connected_user_public_post(self):
-        """
-        should be able to delete own comment reply in a connected user public post and return 200
-        """
+        """should be able to delete own comment reply in a connected user public post and return 200"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -2057,9 +1941,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_delete_foreign_comment_reply_in_connected_user_public_post(self):
-        """
-        should not be able to delete foreign comment reply in a connected user public post and return 400
-        """
+        """should not be able to delete foreign comment reply in a connected user public post and return 400"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -2095,9 +1977,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     def test_can_delete_own_comment_reply_in_connected_user_encircled_post_part_of(
         self,
     ):
-        """
-        should be able to delete own comment reply in a connected user encircled post it's part of and return 200
-        """
+        """should be able to delete own comment reply in a connected user encircled post it's part of and return 200"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -2134,9 +2014,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     def test_cannot_delete_foreign_comment_reply_in_connected_user_encircled_post_part_of(
         self,
     ):
-        """
-        should NOT be able to delete foreign comment reply in a connected user encircled post it's part of and return 400
-        """
+        """should NOT be able to delete foreign comment reply in a connected user encircled post it's part of and return 400"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -2181,9 +2059,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     def test_cannot_delete_foreign_comment_reply_in_connected_user_encircled_post_not_part_of(
         self,
     ):
-        """
-        should NOT be able to delete foreign comment reply in a connected user encircled post NOT part of and return 400
-        """
+        """should NOT be able to delete foreign comment reply in a connected user encircled post NOT part of and return 400"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -2221,9 +2097,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         )
 
     def test_can_delete_own_comment_reply_in_followed_user_public_post(self):
-        """
-        should be able to delete own comment reply in a followed user public post and return 200
-        """
+        """should be able to delete own comment reply in a followed user public post and return 200"""
         user = make_user()
 
         user_to_follow = make_user()
@@ -2252,9 +2126,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_delete_foreign_comment_reply_in_followed_user_public_post(self):
-        """
-        should not be able to delete foreign comment reply in a followed user public post and return 400
-        """
+        """should not be able to delete foreign comment reply in a followed user public post and return 400"""
         user = make_user()
 
         user_to_follow = make_user()
@@ -2287,9 +2159,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_delete_foreign_comment_reply_in_folowed_user_encircled_post(self):
-        """
-        should not be able to delete foreign comment reply in a followed user encircled post and return 400
-        """
+        """should not be able to delete foreign comment reply in a followed user encircled post and return 400"""
         user = make_user()
 
         user_to_follow = make_user()
@@ -2329,9 +2199,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         )
 
     def test_post_comment_reply_notification_is_deleted_when_deleting_comment(self):
-        """
-        should delete the post comment reply notification when a post comment is deleted
-        """
+        """should delete the post comment reply notification when a post comment is deleted"""
         user = make_user()
 
         commenter = make_user()
@@ -2369,9 +2237,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertFalse(Notification.objects.filter(pk=notification.pk).exists())
 
     def test_can_edit_own_post_comment_reply_on_own_post(self):
-        """
-        should be able to edit own post comment reply
-        """
+        """should be able to edit own post comment reply"""
 
         user = make_user()
         post = user.create_public_post(text=make_fake_post_text())
@@ -2399,9 +2265,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertTrue(post_comment_reply.is_edited)
 
     def test_can_edit_own_post_comment_reply_on_others_post_comment(self):
-        """
-        should be able to edit own post comment reply on someone else's post comment
-        """
+        """should be able to edit own post comment reply on someone else's post comment"""
 
         user = make_user()
         post_creator = make_user()
@@ -2429,9 +2293,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertTrue(post_comment_reply.text == edited_post_comment_reply_text)
 
     def test_cannot_edit_others_post_comment_reply(self):
-        """
-        should not be able to edit someone else's comment reply
-        """
+        """should not be able to edit someone else's comment reply"""
 
         user = make_user()
         commenter = make_user()
@@ -2461,9 +2323,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertFalse(post_comment_reply.is_edited)
 
     def test_cannot_edit_post_comment_reply_if_comments_disabled(self):
-        """
-        should not be able to edit own comment reply if comments are disabled
-        """
+        """should not be able to edit own comment reply if comments are disabled"""
 
         admin = make_user()
         user = make_user()
@@ -2501,9 +2361,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     def test_cannot_edit_post_comment_reply_if_post_closed_and_not_not_post_creator(
         self,
     ):
-        """
-        should NOT be able to edit own comment reply if post is closed and not post creator
-        """
+        """should NOT be able to edit own comment reply if post is closed and not post creator"""
 
         admin = make_user()
         user = make_user()
@@ -2553,9 +2411,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_can_mute_own_post_comment(self):
-        """
-        should be able to mute own post comment and return 200
-        """
+        """should be able to mute own post comment and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -2570,9 +2426,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
         self.assertTrue(user.has_muted_post_comment_with_id(post_comment.pk))
 
     def test_cant_mute_own_post_comment_if_already_muted(self):
-        """
-        should not be able to mute own post comment if already muted and return 400
-        """
+        """should not be able to mute own post comment if already muted and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -2678,9 +2532,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
         self.assertTrue(user.has_muted_post_comment_with_id(post_comment.pk))
 
     def test_can_mute_closed_community_post_comment(self):
-        """
-        should be able to mute closed post comment if not admin/mod or post comment creator in community
-        """
+        """should be able to mute closed post comment if not admin/mod or post comment creator in community"""
         user = make_user()
 
         foreign_user = make_user()
@@ -2706,9 +2558,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
         self.assertTrue(user.has_muted_post_comment_with_id(post_comment.pk))
 
     def test_can_mute_closed_community_post_comment_if_creator(self):
-        """
-        should be able to mute closed post comment if post_comment creator in community
-        """
+        """should be able to mute closed post comment if post_comment creator in community"""
         user = make_user()
 
         foreign_user = make_user()
@@ -2732,9 +2582,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
         self.assertTrue(user.has_muted_post_comment_with_id(post_comment.pk))
 
     def test_can_mute_closed_community_post_comment_administrator(self):
-        """
-        should be able to mute closed post comment if administrator in community
-        """
+        """should be able to mute closed post comment if administrator in community"""
         user = make_user()
 
         admin = make_user()
@@ -2758,9 +2606,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
         self.assertTrue(admin.has_muted_post_comment_with_id(post_comment.pk))
 
     def test_can_mute_closed_community_post_comment_if_moderator(self):
-        """
-        should be able to mute closed post comment if moderator in community
-        """
+        """should be able to mute closed post comment if moderator in community"""
         user = make_user()
 
         admin = make_user()
@@ -2856,9 +2702,7 @@ class UnmutePostCommentAPITests(OpenbookAPITestCase):
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_can_unmute_own_post_comment(self):
-        """
-        should be able to unmute own post comment and return 200
-        """
+        """should be able to unmute own post comment and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -2875,9 +2719,7 @@ class UnmutePostCommentAPITests(OpenbookAPITestCase):
         self.assertFalse(user.has_muted_post_comment_with_id(post_comment.pk))
 
     def test_cant_unmute_own_post_comment_if_already_unmuted(self):
-        """
-        should not be able to unmute own post comment if already unmuted and return 400
-        """
+        """should not be able to unmute own post comment if already unmuted and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -2892,9 +2734,7 @@ class UnmutePostCommentAPITests(OpenbookAPITestCase):
         self.assertFalse(user.has_muted_post_comment_with_id(post_comment.pk))
 
     def test_can_unmute_closed_community_post_comment(self):
-        """
-        should be able to unmute closed post comment if not admin/mod or post comment creator in community
-        """
+        """should be able to unmute closed post comment if not admin/mod or post comment creator in community"""
         user = make_user()
 
         foreign_user = make_user()
@@ -2920,9 +2760,7 @@ class UnmutePostCommentAPITests(OpenbookAPITestCase):
         self.assertFalse(user.has_muted_post_comment_with_id(post_comment.pk))
 
     def test_can_unmute_closed_community_post_comment_if_creator(self):
-        """
-        should be able to unmute closed post comment if post_comment creator in community
-        """
+        """should be able to unmute closed post comment if post_comment creator in community"""
         user = make_user()
 
         foreign_user = make_user()
@@ -2946,9 +2784,7 @@ class UnmutePostCommentAPITests(OpenbookAPITestCase):
         self.assertFalse(user.has_muted_post_comment_with_id(post_comment.pk))
 
     def test_can_unmute_closed_community_post_comment_administrator(self):
-        """
-        should be able to unmute closed post comment if administrator in community
-        """
+        """should be able to unmute closed post comment if administrator in community"""
         user = make_user()
 
         admin = make_user()
@@ -2972,9 +2808,7 @@ class UnmutePostCommentAPITests(OpenbookAPITestCase):
         self.assertFalse(admin.has_muted_post_comment_with_id(post_comment.pk))
 
     def test_can_unmute_closed_community_post_comment_if_moderator(self):
-        """
-        should be able to unmute closed post comment if moderator in community
-        """
+        """should be able to unmute closed post comment if moderator in community"""
         user = make_user()
 
         admin = make_user()
@@ -3023,9 +2857,7 @@ class TranslatePostCommentAPITests(OpenbookAPITestCase):
     ]
 
     def test_translate_post_comment_text(self):
-        """
-        should translate post comment text and return 200
-        """
+        """should translate post comment text and return 200"""
         user = make_user()
         Language = get_language_model()
         user.translation_language = Language.objects.get(code="en")
@@ -3046,9 +2878,7 @@ class TranslatePostCommentAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_translate_post_comment_text_without_user_language(self):
-        """
-        should not translate post comment text and return 400 if user language is not set
-        """
+        """should not translate post comment text and return 400 if user language is not set"""
         user = make_user()
         text = "Ik ben en man 😀. Jij bent en vrouw."
         headers = make_authentication_headers_for_user(user)
@@ -3061,9 +2891,7 @@ class TranslatePostCommentAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cannot_translate_comment_in_encircled_post(self):
-        """
-        should not translate post comment text in an encircled post and return 400
-        """
+        """should not translate post comment text in an encircled post and return 400"""
         user = make_user()
         text = "Ik ben en man 😀. Jij bent en vrouw."
         headers = make_authentication_headers_for_user(user)
@@ -3077,9 +2905,7 @@ class TranslatePostCommentAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cannot_translate_post_comment_text_without_post_comment_language(self):
-        """
-        should not translate post comment text and return 400 if post comment language is not set
-        """
+        """should not translate post comment text and return 400 if post comment language is not set"""
         user = make_user()
         text = "Ik ben en man 😀. Jij bent en vrouw."
         headers = make_authentication_headers_for_user(user)
@@ -3094,9 +2920,7 @@ class TranslatePostCommentAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_return_error_between_unsupported_translate_pairs(self):
-        """
-        should return error using aws translate when translating comment between unsupported pairs (Norwegian to arabic) and return 400
-        """
+        """should return error using aws translate when translating comment between unsupported pairs (Norwegian to arabic) and return 400"""
         user = make_user()
         Language = get_language_model()
         user.translation_language = Language.objects.get(code="ar")
@@ -3113,9 +2937,7 @@ class TranslatePostCommentAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_return_error_when_text_length_exceeds_max_setting(self):
-        """
-        should return appropriate error when length of text is more than maximum in settings.py return 400
-        """
+        """should return appropriate error when length of text is more than maximum in settings.py return 400"""
         user = make_user()
         Language = get_language_model()
         user.translation_language = Language.objects.get(code="ar")

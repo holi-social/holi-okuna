@@ -31,9 +31,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_cant_delete_foreign_reaction_in_own_post_comment(self):
-        """
-        should NOT be able to delete a foreign reaction in own post comment and return 200
-        """
+        """should NOT be able to delete a foreign reaction in own post comment and return 200"""
         user = make_user()
 
         reactor = make_user()
@@ -66,9 +64,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
         )
 
     def test_can_delete_own_post_comment_reaction_in_foreign_public_post_comment(self):
-        """
-        should be able to delete own post comment reaction in foreign public post and return 200
-        """
+        """should be able to delete own post comment reaction in foreign public post and return 200"""
         user = make_user()
 
         foreign_user = make_user()
@@ -102,9 +98,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_delete_foreign_reaction_in_foreign_public_post_comment(self):
-        """
-        should NOT be able to delete foreign reaction in foreign public post comment and return 400
-        """
+        """should NOT be able to delete foreign reaction in foreign public post comment and return 400"""
         user = make_user()
 
         foreign_user = make_user()
@@ -140,9 +134,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
     def test_cannot_delete_reaction_in_closed_community_post_comment_when_not_creator(
         self,
     ):
-        """
-        should NOT be able to delete reaction in closed community post comment if not creator
-        """
+        """should NOT be able to delete reaction in closed community post comment if not creator"""
         user = make_user()
         admin = make_user()
         community = make_community(admin)
@@ -185,9 +177,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_delete_reaction_in_closed_community_post_comment_if_creator(self):
-        """
-        should NOT be able to delete reaction in closed community post if creator
-        """
+        """should NOT be able to delete reaction in closed community post if creator"""
         user = make_user()
         admin = make_user()
         community = make_community(admin)
@@ -230,9 +220,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
         )
 
     def test_can_delete_own_reaction_in_connected_user_public_post_comment(self):
-        """
-        should be able to delete own reaction in a connected user public post comment and return 200
-        """
+        """should be able to delete own reaction in a connected user public post comment and return 200"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -269,9 +257,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_delete_foreign_reaction_in_connected_user_public_post_comment(self):
-        """
-        should not be able to delete foreign reaction in a connected user public post comment and return 400
-        """
+        """should not be able to delete foreign reaction in a connected user public post comment and return 400"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -312,9 +298,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
     def test_can_delete_own_reaction_in_connected_user_encircled_post_comment_part_of(
         self,
     ):
-        """
-        should be able to delete own reaction in a connected user encircled post comment it's part of and return 200
-        """
+        """should be able to delete own reaction in a connected user encircled post comment it's part of and return 200"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -358,9 +342,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
     def test_cannot_delete_foreign_reaction_in_connected_user_encircled_post_comment_part_of(
         self,
     ):
-        """
-        should NOT be able to delete foreign reaction in a connected user encircled post comment it's part of and return 400
-        """
+        """should NOT be able to delete foreign reaction in a connected user encircled post comment it's part of and return 400"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -410,9 +392,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
     def test_cannot_delete_foreign_reaction_in_connected_user_encircled_post_comment_not_part_of(
         self,
     ):
-        """
-        should NOT be able to delete foreign reaction in a connected user encircled post comment NOT part of and return 400
-        """
+        """should NOT be able to delete foreign reaction in a connected user encircled post comment NOT part of and return 400"""
         user = make_user()
 
         user_to_connect = make_user()
@@ -455,9 +435,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
         )
 
     def test_can_delete_own_reaction_in_followed_user_public_post_comment(self):
-        """
-        should be able to delete own reaction in a followed user public post comment and return 200
-        """
+        """should be able to delete own reaction in a followed user public post comment and return 200"""
         user = make_user()
 
         user_to_follow = make_user()
@@ -493,9 +471,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_delete_foreign_reaction_in_followed_user_public_post_comment(self):
-        """
-        should not be able to delete foreign reaction in a followed user public post comment and return 400
-        """
+        """should not be able to delete foreign reaction in a followed user public post comment and return 400"""
         user = make_user()
 
         user_to_follow = make_user()
@@ -535,9 +511,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
     def test_cannot_delete_foreign_reaction_in_followed_user_encircled_post_comment(
         self,
     ):
-        """
-        should not be able to delete foreign reaction in a followed user encircled post comment and return 400
-        """
+        """should not be able to delete foreign reaction in a followed user encircled post comment and return 400"""
         user = make_user()
 
         user_to_follow = make_user()
@@ -582,9 +556,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
         )
 
     def test_post_comment_reaction_notification_is_deleted_when_deleting_reaction(self):
-        """
-        should delete the post comment reaction notification when a post comment reaction is deleted
-        """
+        """should delete the post comment reaction notification when a post comment reaction is deleted"""
         user = make_user()
 
         reactor = make_user()

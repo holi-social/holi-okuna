@@ -30,9 +30,7 @@ class UserInvitesAPITests(OpenbookAPITestCase):
     """
 
     def test_create_invite(self):
-        """
-        should be able to create an invite and return 201
-        """
+        """should be able to create an invite and return 201"""
         original_invite_count = 5
         user = make_user(invite_count=original_invite_count)
         nickname = fake.name()
@@ -56,9 +54,7 @@ class UserInvitesAPITests(OpenbookAPITestCase):
         self.assertEqual(invite.id, invite_id)
 
     def test_cannot_create_invite_if_count_is_zero(self):
-        """
-        should not be able to create an invite if invite_count is 0
-        """
+        """should not be able to create an invite if invite_count is 0"""
         user = make_user()
         nickname = fake.name()
         data = {"nickname": nickname}
@@ -73,9 +69,7 @@ class UserInvitesAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_create_invite_without_nickname(self):
-        """
-        should not be able to create an invite if no nickname is provided
-        """
+        """should not be able to create an invite if no nickname is provided"""
         user = make_user(invite_count=5)
 
         url = self._get_url()
@@ -86,9 +80,7 @@ class UserInvitesAPITests(OpenbookAPITestCase):
         self.assertFalse(UserInvite.objects.filter(invited_by=user).exists())
 
     def test_get_invites(self):
-        """
-        should be able to get invites list for user
-        """
+        """should be able to get invites list for user"""
         original_invite_count = 5
         user = make_user(invite_count=original_invite_count)
         total_invites = 5
@@ -114,9 +106,7 @@ class UserInvitesAPITests(OpenbookAPITestCase):
         self.assertEqual(user.invite_count, original_invite_count - total_invites)
 
     def test_get_invites_with_status_accepted(self):
-        """
-        get all invites with status accepted
-        """
+        """get all invites with status accepted"""
         original_invite_count = 5
         user = make_user(invite_count=original_invite_count)
         nickname = fake.name()
@@ -141,9 +131,7 @@ class UserInvitesAPITests(OpenbookAPITestCase):
         self.assertTrue(invite.pk == parsed_response[0]["id"])
 
     def test_get_invites_with_status_pending(self):
-        """
-        get all invites with status pending
-        """
+        """get all invites with status pending"""
         original_invite_count = 5
         user = make_user(invite_count=original_invite_count)
         nickname = fake.name()
@@ -171,9 +159,7 @@ class UserInvitesAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_get_invites_count_offset(self):
-        """
-        should be able to get invites list with count and offset for user
-        """
+        """should be able to get invites list with count and offset for user"""
         original_invite_count = 5
         user = make_user(invite_count=original_invite_count)
         total_invites = 5
@@ -206,9 +192,7 @@ class UserInvitesAPITests(OpenbookAPITestCase):
 
 class UserInviteSearchAPITests(OpenbookAPITestCase):
     def test_get_search_invites(self):
-        """
-        should be able to get invites with search
-        """
+        """should be able to get invites with search"""
         original_invite_count = 5
         user = make_user(invite_count=original_invite_count)
         total_invites = 5
@@ -240,9 +224,7 @@ class UserInviteItemAPITests(OpenbookAPITestCase):
     """
 
     def test_can_delete_invite(self):
-        """
-        should be able to delete invite
-        """
+        """should be able to delete invite"""
         original_invite_count = 5
         user = make_user(invite_count=original_invite_count)
         nickname = fake.name()
@@ -258,9 +240,7 @@ class UserInviteItemAPITests(OpenbookAPITestCase):
         self.assertFalse(UserInvite.objects.filter(id=invite.pk).exists())
 
     def test_cannot_delete_invite_if_invite_is_accepted(self):
-        """
-        should not be able to delete if an invite already has been accepted
-        """
+        """should not be able to delete if an invite already has been accepted"""
         original_invite_count = 5
         user = make_user(invite_count=original_invite_count)
         nickname = fake.name()
@@ -279,9 +259,7 @@ class UserInviteItemAPITests(OpenbookAPITestCase):
         self.assertTrue(UserInvite.objects.filter(id=invite.pk).exists())
 
     def test_can_update_invite(self):
-        """
-        should be able to update invite
-        """
+        """should be able to update invite"""
         user = make_user(invite_count=5)
         nickname = fake.name()
         invite = user.create_invite(nickname=nickname)
@@ -329,9 +307,7 @@ class UserInviteItemEmailAPI(OpenbookAPITestCase):
     """
 
     def test_can_send_email_to_invitee(self):
-        """
-        should be able to send invite email to invitee
-        """
+        """should be able to send invite email to invitee"""
         user = make_user(invite_count=5)
         nickname = fake.name()
         invite = user.create_invite(nickname=nickname)

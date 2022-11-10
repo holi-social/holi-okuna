@@ -33,9 +33,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
     ]
 
     def test_can_report_public_post(self):
-        """
-        should be able to report a post with a description and return 201
-        """
+        """should be able to report a post with a description and return 201"""
         post_creator = make_user()
         post_text = make_fake_post_text()
         post = post_creator.create_public_post(text=post_text)
@@ -98,9 +96,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_report_own_post(self):
-        """
-        should not be able to report an own post and return 400
-        """
+        """should not be able to report an own post and return 400"""
         post_creator = make_user()
         post_text = make_fake_post_text()
         post = post_creator.create_public_post(text=post_text)
@@ -131,9 +127,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         )
 
     def test_can_report_encircled_post_part_of(self):
-        """
-        should be able to report an encircled post part of with a description and return 201
-        """
+        """should be able to report an encircled post part of with a description and return 201"""
         post_creator = make_user()
 
         post_reporter = make_user()
@@ -175,9 +169,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_report_encircled_post(self):
-        """
-        should not be able to report an encircled post with a description and return 400
-        """
+        """should not be able to report an encircled post with a description and return 400"""
         post_creator = make_user()
 
         post_reporter = make_user()
@@ -214,9 +206,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         )
 
     def test_can_report_public_community_post(self):
-        """
-        should be able to report an public community post with a description and return 201
-        """
+        """should be able to report an public community post with a description and return 201"""
         post_creator = make_user()
 
         post_reporter = make_user()
@@ -253,9 +243,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         )
 
     def test_can_report_private_community_part_of_post(self):
-        """
-        should be able to report a private community part of, post with a description and return 201
-        """
+        """should be able to report a private community part of, post with a description and return 201"""
         post_creator = make_user()
 
         post_reporter = make_user()
@@ -299,9 +287,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_report_private_community_post(self):
-        """
-        should not be able to report a private community post with a description and return 400
-        """
+        """should not be able to report a private community post with a description and return 400"""
         post_creator = make_user()
 
         post_reporter = make_user()
@@ -375,9 +361,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_report_post_without_category(self):
-        """
-        should not be able to report a post without a category and return 400
-        """
+        """should not be able to report a post without a category and return 400"""
         post_creator = make_user()
         post_text = make_fake_post_text()
         post = post_creator.create_public_post(text=post_text)
@@ -405,9 +389,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_report_post_twice(self):
-        """
-        should not be able to report a post twice and return 400
-        """
+        """should not be able to report a post twice and return 400"""
         post_creator = make_user()
         post_text = make_fake_post_text()
         post = post_creator.create_public_post(text=post_text)
@@ -445,9 +427,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         )
 
     def test_can_report_post_without_description(self):
-        """
-        should be able to report a post without a description and return 201
-        """
+        """should be able to report a post without a description and return 201"""
         post_creator = make_user()
         post_text = make_fake_post_text()
         post = post_creator.create_public_post(text=post_text)
@@ -492,9 +472,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
     ]
 
     def test_can_report_public_post_comment(self):
-        """
-        should be able to report a post_comment with a description and return 201
-        """
+        """should be able to report a post_comment with a description and return 201"""
         post_comment_creator = make_user()
         post = post_comment_creator.create_public_post(text=make_fake_post_text())
 
@@ -568,9 +546,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_report_own_post_comment(self):
-        """
-        should not be able to report an own post_comment and return 400
-        """
+        """should not be able to report an own post_comment and return 400"""
         post_comment_creator = make_user()
         post = post_comment_creator.create_public_post(text=make_fake_post_text())
 
@@ -609,9 +585,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         )
 
     def test_can_report_encircled_post_comment_part_of(self):
-        """
-        should be able to report an encircled post_comment part of with a description and return 201
-        """
+        """should be able to report an encircled post_comment part of with a description and return 201"""
         post_comment_creator = make_user()
         post_comment_reporter = make_user()
 
@@ -662,9 +636,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_report_encircled_post_comment(self):
-        """
-        should not be able to report an encircled post_comment with a description and return 400
-        """
+        """should not be able to report an encircled post_comment with a description and return 400"""
         post_comment_creator = make_user()
         post_comment_reporter = make_user()
 
@@ -709,9 +681,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         )
 
     def test_can_report_public_community_post_comment(self):
-        """
-        should be able to report an public community post_comment with a description and return 201
-        """
+        """should be able to report an public community post_comment with a description and return 201"""
         post_comment_creator = make_user()
         community = make_community(creator=post_comment_creator)
         post = post_comment_creator.create_community_post(
@@ -754,9 +724,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         )
 
     def test_can_report_private_community_part_of_post_comment(self):
-        """
-        should be able to report a private community part of, post_comment with a description and return 201
-        """
+        """should be able to report a private community part of, post_comment with a description and return 201"""
         post_comment_creator = make_user()
         post_comment_reporter = make_user()
 
@@ -807,9 +775,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_report_private_community_post_comment(self):
-        """
-        should not be able to report a private community post_comment with a description and return 400
-        """
+        """should not be able to report a private community post_comment with a description and return 400"""
         post_comment_creator = make_user()
         post_comment_reporter = make_user()
 
@@ -897,9 +863,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_report_post_comment_without_category(self):
-        """
-        should not be able to report a post_comment without a category and return 400
-        """
+        """should not be able to report a post_comment without a category and return 400"""
         post_comment_creator = make_user()
         post = post_comment_creator.create_public_post(text=make_fake_post_text())
 
@@ -935,9 +899,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_report_post_comment_twice(self):
-        """
-        should not be able to report a post_comment twice and return 400
-        """
+        """should not be able to report a post_comment twice and return 400"""
         post_comment_creator = make_user()
         post = post_comment_creator.create_public_post(text=make_fake_post_text())
 
@@ -983,9 +945,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         )
 
     def test_can_report_post_comment_without_description(self):
-        """
-        should be able to report a post_comment without a description and return 201
-        """
+        """should be able to report a post_comment without a description and return 201"""
         post_comment_creator = make_user()
         post = post_comment_creator.create_public_post(text=make_fake_post_text())
 
@@ -1041,9 +1001,7 @@ class ReportUserAPITests(OpenbookAPITestCase):
     ]
 
     def test_can_report_user(self):
-        """
-        should be able to report a user with a description and return 201
-        """
+        """should be able to report a user with a description and return 201"""
         user = make_user()
 
         user_reporter = make_user()
@@ -1102,9 +1060,7 @@ class ReportUserAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_report_oneself(self):
-        """
-        should not be able to report oneself and return 400
-        """
+        """should not be able to report oneself and return 400"""
         user = make_user()
 
         report_category = make_moderation_category()
@@ -1133,9 +1089,7 @@ class ReportUserAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_report_user_without_category(self):
-        """
-        should not be able to report a user without a category and return 400
-        """
+        """should not be able to report a user without a category and return 400"""
         user = make_user()
 
         user_reporter = make_user()
@@ -1161,9 +1115,7 @@ class ReportUserAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_report_user_twice(self):
-        """
-        should not be able to report a user twice and return 400
-        """
+        """should not be able to report a user twice and return 400"""
         user = make_user()
 
         user_reporter = make_user()
@@ -1200,9 +1152,7 @@ class ReportUserAPITests(OpenbookAPITestCase):
         )
 
     def test_can_report_user_without_description(self):
-        """
-        should be able to report a user without a description and return 201
-        """
+        """should be able to report a user without a description and return 201"""
         user = make_user()
 
         user_reporter = make_user()
@@ -1245,9 +1195,7 @@ class ReportCommunityAPITests(OpenbookAPITestCase):
     ]
 
     def test_can_report_community(self):
-        """
-        should be able to report a community with a description and return 201
-        """
+        """should be able to report a community with a description and return 201"""
         community_owner = make_user()
         community = make_community(creator=community_owner)
 
@@ -1310,9 +1258,7 @@ class ReportCommunityAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_report_own_community(self):
-        """
-        should not be able to report own and return 400
-        """
+        """should not be able to report own and return 400"""
         community_owner = make_user()
         community = make_community(creator=community_owner)
 
@@ -1344,9 +1290,7 @@ class ReportCommunityAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_report_community_without_category(self):
-        """
-        should not be able to report a community without a category and return 400
-        """
+        """should not be able to report a community without a category and return 400"""
         community_owner = make_user()
         community = make_community(creator=community_owner)
 
@@ -1375,9 +1319,7 @@ class ReportCommunityAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_report_community_twice(self):
-        """
-        should not be able to report a community twice and return 400
-        """
+        """should not be able to report a community twice and return 400"""
         community_owner = make_user()
         community = make_community(creator=community_owner)
 
@@ -1417,9 +1359,7 @@ class ReportCommunityAPITests(OpenbookAPITestCase):
         )
 
     def test_can_report_community_without_description(self):
-        """
-        should be able to report a community without a description and return 201
-        """
+        """should be able to report a community without a description and return 201"""
         community_owner = make_user()
         community = make_community(creator=community_owner)
 
@@ -1465,9 +1405,7 @@ class ReportHashtagAPITests(OpenbookAPITestCase):
     ]
 
     def test_can_report_hashtag(self):
-        """
-        should be able to report a hashtag with a description and return 201
-        """
+        """should be able to report a hashtag with a description and return 201"""
         hashtag = make_hashtag()
 
         hashtag_reporter = make_user()
@@ -1499,9 +1437,7 @@ class ReportHashtagAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_report_hashtag_without_category(self):
-        """
-        should not be able to report a hashtag without a category and return 400
-        """
+        """should not be able to report a hashtag without a category and return 400"""
         hashtag = make_hashtag()
 
         hashtag_reporter = make_user()
@@ -1529,9 +1465,7 @@ class ReportHashtagAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_report_hashtag_twice(self):
-        """
-        should not be able to report a hashtag twice and return 400
-        """
+        """should not be able to report a hashtag twice and return 400"""
         hashtag = make_hashtag()
 
         hashtag_reporter = make_user()
@@ -1570,9 +1504,7 @@ class ReportHashtagAPITests(OpenbookAPITestCase):
         )
 
     def test_can_report_hashtag_without_description(self):
-        """
-        should be able to report a hashtag without a description and return 201
-        """
+        """should be able to report a hashtag without a description and return 201"""
         hashtag = make_hashtag()
 
         hashtag_reporter = make_user()

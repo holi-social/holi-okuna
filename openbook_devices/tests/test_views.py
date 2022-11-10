@@ -22,9 +22,7 @@ class DevicesAPITests(OpenbookAPITestCase):
     """
 
     def test_can_create_device_without_optional_arguments(self):
-        """
-        should be able to create a new device and return 200
-        """
+        """should be able to create a new device and return 200"""
 
         user = make_user()
         device_uuid = fake.uuid4()
@@ -42,9 +40,7 @@ class DevicesAPITests(OpenbookAPITestCase):
         self.assertTrue(Device.objects.filter(uuid=device_uuid, owner=user).exists())
 
     def test_can_create_device_with_all_arguments(self):
-        """
-        should be able to create a new device and return 200
-        """
+        """should be able to create a new device and return 200"""
 
         user = make_user()
         device_uuid = fake.uuid4()
@@ -64,9 +60,7 @@ class DevicesAPITests(OpenbookAPITestCase):
         self.assertTrue(Device.objects.filter(uuid=device_uuid, owner=user).exists())
 
     def test_can_retrieve_devices(self):
-        """
-        should be able to retrieve all devices and return 200
-        """
+        """should be able to retrieve all devices and return 200"""
         user = make_user()
 
         amount_of_devices = 5
@@ -91,9 +85,7 @@ class DevicesAPITests(OpenbookAPITestCase):
             self.assertIn(response_device_uuid, devices_ids)
 
     def test_can_delete_devices(self):
-        """
-        should be able to delete all devices and return 200
-        """
+        """should be able to delete all devices and return 200"""
         user = make_user()
 
         amount_of_devices = 5
@@ -121,9 +113,7 @@ class DeviceItemAPITests(OpenbookAPITestCase):
     """
 
     def test_can_retrieve_own_device(self):
-        """
-        should be able to retrieve an own device
-        """
+        """should be able to retrieve an own device"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
@@ -141,9 +131,7 @@ class DeviceItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response_device["uuid"], str(device.uuid))
 
     def test_cant_retrieve_foreign_device(self):
-        """
-        should not be able to retrieve a foreign device
-        """
+        """should not be able to retrieve a foreign device"""
         user = make_user()
         foreign_user = make_user()
 
@@ -158,9 +146,7 @@ class DeviceItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_can_delete_own_device(self):
-        """
-        should be able to delete an own device and return 200
-        """
+        """should be able to delete an own device and return 200"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
@@ -176,9 +162,7 @@ class DeviceItemAPITests(OpenbookAPITestCase):
         self.assertFalse(Device.objects.filter(uuid=device_uuid).exists())
 
     def test_cannot_delete_foreign_device(self):
-        """
-        should not be able to delete a foreign device and return 404
-        """
+        """should not be able to delete a foreign device and return 404"""
         user = make_user()
         foreign_user = make_user()
 
@@ -195,9 +179,7 @@ class DeviceItemAPITests(OpenbookAPITestCase):
         self.assertTrue(Device.objects.filter(uuid=device_uuid).exists())
 
     def test_can_update_a_device_name(self):
-        """
-        should be able to update a device name and return 200
-        """
+        """should be able to update a device name and return 200"""
 
         user = make_user()
         device = make_device(owner=user)
@@ -217,9 +199,7 @@ class DeviceItemAPITests(OpenbookAPITestCase):
         )
 
     def test_can_update_a_device_updatable_arguments_at_once(self):
-        """
-        should be able to update a device updatable_arguments at once and return 200
-        """
+        """should be able to update a device updatable_arguments at once and return 200"""
 
         user = make_user()
         device = make_device(owner=user)
@@ -244,9 +224,7 @@ class DeviceItemAPITests(OpenbookAPITestCase):
         )
 
     def test_cant_update_a_foreign_device(self):
-        """
-        should not be able to update a foreign device and return 403
-        """
+        """should not be able to update a foreign device and return 403"""
 
         user = make_user()
         foreign_user = make_user()

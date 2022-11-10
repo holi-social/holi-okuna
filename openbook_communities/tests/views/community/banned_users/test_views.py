@@ -19,11 +19,13 @@ logger = logging.getLogger(__name__)
 fake = Faker()
 
 
-class Communitybanned_usersAPITest(OpenbookAPITestCase):
+class CommunityBannedUsersAPITest(OpenbookAPITestCase):
+    """
+    CommunityBannedUsersAPITest
+    """
+
     def test_cannot_retrieve_banned_users_of_private_community(self):
-        """
-        should not be able to retrieve the banned users of a private community and return 400
-        """
+        """should not be able to retrieve the banned users of a private community and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -42,10 +44,7 @@ class Communitybanned_usersAPITest(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cannot_retrieve_banned_users_of_public_community(self):
-        """
-        should not be able to retrieve the banned users of a public community and return 400
-        :return:
-        """
+        """should not be able to retrieve the banned users of a public community and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -64,10 +63,7 @@ class Communitybanned_usersAPITest(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cannot_retrieve_banned_users_of_community_member_of(self):
-        """
-        should not be able to retrieve the banned users of a community member of and return 400
-        :return:
-        """
+        """should not be able to retrieve the banned users of a community member of and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -88,10 +84,7 @@ class Communitybanned_usersAPITest(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_can_retrieve_banned_users_of_community_if_admin(self):
-        """
-        should be able to retrieve the banned users of a community if is an admin and return 200
-        :return:
-        """
+        """should be able to retrieve the banned users of a community if is an admin and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -128,10 +121,7 @@ class Communitybanned_usersAPITest(OpenbookAPITestCase):
             self.assertIn(response_member_id, banned_users_ids)
 
     def test_can_retrieve_banned_users_of_community_if_mod(self):
-        """
-        should be able to retrieve the banned users of a community if is a moderator and return 200
-        :return:
-        """
+        """should be able to retrieve the banned users of a community if is a moderator and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -174,10 +164,12 @@ class Communitybanned_usersAPITest(OpenbookAPITestCase):
 
 
 class BanCommunityUserAPITest(OpenbookAPITestCase):
+    """
+    BanCommunityUserAPITest
+    """
+
     def test_can_ban_user_from_community_if_mod(self):
-        """
-        should be able to ban user from a community if is moderator and return 200
-        """
+        """should be able to ban user from a community if is moderator and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -200,9 +192,7 @@ class BanCommunityUserAPITest(OpenbookAPITestCase):
         self.assertTrue(user_to_ban.is_banned_from_community_with_name(community.name))
 
     def test_logs_user_banned(self):
-        """
-        should create a log when a community user is banned
-        """
+        """should create a log when a community user is banned"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -227,9 +217,7 @@ class BanCommunityUserAPITest(OpenbookAPITestCase):
         )
 
     def test_cant_ban_user_from_community_if_already_banned(self):
-        """
-        should not be able to ban user from a community if is already banned and return 400
-        """
+        """should not be able to ban user from a community if is already banned and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -249,9 +237,7 @@ class BanCommunityUserAPITest(OpenbookAPITestCase):
         self.assertTrue(user_to_ban.is_banned_from_community_with_name(community.name))
 
     def test_can_ban_user_from_community_if_admin(self):
-        """
-        should be able to ban user from a community if is admin and return 200
-        """
+        """should be able to ban user from a community if is admin and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -274,9 +260,7 @@ class BanCommunityUserAPITest(OpenbookAPITestCase):
         self.assertTrue(user_to_ban.is_banned_from_community_with_name(community.name))
 
     def test_cant_ban_user_from_community_if_member(self):
-        """
-        should not be able to ban user from a community if is member and return 200
-        """
+        """should not be able to ban user from a community if is member and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -296,9 +280,7 @@ class BanCommunityUserAPITest(OpenbookAPITestCase):
         self.assertFalse(user_to_ban.is_banned_from_community_with_name(community.name))
 
     def test_cant_ban_user_from_community(self):
-        """
-        should not be able to ban user from a community and return 200
-        """
+        """should not be able to ban user from a community and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -315,9 +297,7 @@ class BanCommunityUserAPITest(OpenbookAPITestCase):
         self.assertFalse(user_to_ban.is_banned_from_community_with_name(community.name))
 
     def test_ban_user_makes_it_no_longer_a_member_of_community(self):
-        """
-        should remove membership of a user when banned from a community
-        """
+        """should remove membership of a user when banned from a community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -343,10 +323,12 @@ class BanCommunityUserAPITest(OpenbookAPITestCase):
 
 
 class UnbanCommunityUserAPITest(OpenbookAPITestCase):
+    """
+    UnbanCommunityUserAPITest
+    """
+
     def test_can_unban_user_from_community_if_mod(self):
-        """
-        should be able to unban user from a community if is moderator and return 200
-        """
+        """should be able to unban user from a community if is moderator and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -377,9 +359,7 @@ class UnbanCommunityUserAPITest(OpenbookAPITestCase):
         )
 
     def test_logs_user_unbanned(self):
-        """
-        should create a log when a community user is unbanned
-        """
+        """should create a log when a community user is unbanned"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -408,9 +388,7 @@ class UnbanCommunityUserAPITest(OpenbookAPITestCase):
         )
 
     def test_cant_unban_user_from_community_if_already_banned(self):
-        """
-        should not be able to unban user from a community if is not banned and return 400
-        """
+        """should not be able to unban user from a community if is not banned and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -437,9 +415,7 @@ class UnbanCommunityUserAPITest(OpenbookAPITestCase):
         )
 
     def test_can_unban_user_from_community_if_admin(self):
-        """
-        should be able to unban user from a community if is admin and return 200
-        """
+        """should be able to unban user from a community if is admin and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -470,9 +446,7 @@ class UnbanCommunityUserAPITest(OpenbookAPITestCase):
         )
 
     def test_cant_unban_user_from_community_if_member(self):
-        """
-        should not be able to unban user from a community if is member and return 200
-        """
+        """should not be able to unban user from a community if is member and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -500,9 +474,7 @@ class UnbanCommunityUserAPITest(OpenbookAPITestCase):
         )
 
     def test_cant_ban_user_from_community(self):
-        """
-        should not be able to ban user from a community and return 200
-        """
+        """should not be able to ban user from a community and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -539,9 +511,7 @@ class SearchCommunityBannedUsersAPITests(OpenbookAPITestCase):
     """
 
     def test_can_search_community_banned_users_by_name(self):
-        """
-        should be able to search for community banned users by their name and return 200
-        """
+        """should be able to search for community banned users by their name and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         community = make_community(creator=user)
@@ -588,9 +558,7 @@ class SearchCommunityBannedUsersAPITests(OpenbookAPITestCase):
             )
 
     def test_can_search_community_banned_users_by_username(self):
-        """
-        should be able to search for community banned_users by their username and return 200
-        """
+        """should be able to search for community banned_users by their username and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         community = make_community(creator=user)

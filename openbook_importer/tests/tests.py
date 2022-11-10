@@ -9,9 +9,7 @@ from openbook_common.tests.helpers import make_authentication_headers_for_user
 # DISABLED
 class UploadFileTests(OpenbookAPITestCase):
     def upload_file_success(self):
-        """
-        Upload valid archive imports 9 posts, return 200
-        """
+        """Upload valid archive imports 9 posts, return 200"""
 
         user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -27,9 +25,7 @@ class UploadFileTests(OpenbookAPITestCase):
         self.assertEqual(len(response.json()), number_of_posts)
 
     def upload_file_malicious(self):
-        """
-        the file is malicious, should return 400
-        """
+        """the file is malicious, should return 400"""
 
         user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -40,9 +36,7 @@ class UploadFileTests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_upload_file_invalid(self):
-        """
-        the file is invalid needs to return 400
-        """
+        """the file is invalid needs to return 400"""
 
         user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -53,10 +47,7 @@ class UploadFileTests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def upload_file_duplicate(self):
-        """
-        Uploading duplicate archive, should skip all imported posts
-        and return 200.
-        """
+        """Uploading duplicate archive, should skip all imported posts and return 200."""
 
         user = make_user()
         headers = make_authentication_headers_for_user(user)
