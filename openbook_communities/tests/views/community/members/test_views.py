@@ -26,6 +26,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
     """
     CommunityMembersAPITest
     """
+
     def test_can_retrieve_members_of_public_community(self):
         """should be able to retrieve the members of a public community"""
         user = make_user()
@@ -319,6 +320,7 @@ class InviteCommunityMembersAPITest(OpenbookAPITestCase):
     """
     InviteCommunityMembersAPITest
     """
+
     def test_can_invite_user_to_community_part_of_with_invites_enabled(self):
         """should be able to invite a user to join a community part of with invites enabled and return 200"""
         user = make_user()
@@ -493,6 +495,7 @@ class UninviteCommunityMembersAPITest(OpenbookAPITestCase):
     """
     UninviteCommunityMembersAPITest
     """
+
     def test_can_uninvite_user_from_community(self):
         """should be able to uninvite a user from a community and return 200"""
         user = make_user()
@@ -550,6 +553,7 @@ class JoinCommunityAPITest(OpenbookAPITestCase):
     """
     JoinCommunityAPITest
     """
+
     def test_can_join_public_community(self):
         """should be able to join a public community and return 200"""
         user = make_user()
@@ -932,6 +936,7 @@ class LeaveCommunityAPITests(OpenbookAPITestCase):
     """
     LeaveCommunityAPITests
     """
+
     def test_leaving_community_should_remove_notifications_subscription(self):
         """when leaving a community, the member community notifications subscription should be removed"""
         user = make_user()

@@ -578,6 +578,7 @@ class JoinedCommunities(OpenbookAPITestCase):
     """
     JoinedCommunities
     """
+
     def test_retrieve_joined_communities(self):
         """should be able to retrieve all own communities return 200"""
         user = make_user()
@@ -801,6 +802,7 @@ class AdministratedCommunities(OpenbookAPITestCase):
     """
     AdministratedCommunities
     """
+
     def test_retrieve_administrated_communities(self):
         """should be able to retrieve all administrated communities return 200"""
         user = make_user()
@@ -950,6 +952,7 @@ class ModeratedCommunities(OpenbookAPITestCase):
     """
     ModeratedCommunities
     """
+
     def test_retrieve_moderated_communities(self):
         """should be able to retrieve all moderated communities return 200"""
         user = make_user()
@@ -1114,6 +1117,7 @@ class FavoriteCommunities(OpenbookAPITestCase):
     """
     FavoriteCommunities
     """
+
     def test_retrieve_favorite_communities(self):
         """should be able to retrieve all favorite communities and return 200"""
         user = make_user()

@@ -994,6 +994,7 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
     """
     SubscribeToCommunityNotificationsAPITests
     """
+
     def test_should_be_able_to_subscribe_to_notifications_for_community_if_member(self):
         """should be able to subscribe to community posts for a community a member"""
         admin = make_user()

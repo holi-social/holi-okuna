@@ -35,6 +35,7 @@ class ReceivedFollowRequestsAPITests(OpenbookAPITestCase):
     """
     ReceivedFollowRequestsAPITests
     """
+
     def test_can_retrieve_received_own_follow_requests(self):
         """should be able to retrieve own follow requests and return 200"""
         user = make_user(visibility=User.VISIBILITY_TYPE_PRIVATE)
@@ -116,6 +117,7 @@ class RequestToFollowUserAPITests(OpenbookAPITestCase):
     """
     RequestToFollowUserAPITests
     """
+
     def test_can_request_to_follow_private_user(self):
         """should be able to request to follow a private user and return 200"""
         user = make_user()
@@ -290,6 +292,7 @@ class CancelRequestToFollowUserAPITests(OpenbookAPITestCase):
     """
     CancelRequestToFollowUserAPITests
     """
+
     def test_can_cancel_request_to_follow_private_user(self):
         """should be able to cancel a request to follow a private user and return 200"""
         user = make_user()
@@ -374,6 +377,7 @@ class ApproveUserFollowRequestAPITests(OpenbookAPITestCase):
     """
     ApproveUserFollowRequestAPITests
     """
+
     def test_approving_a_follow_request_follows_the_approving_user(self):
         """should be able to approve a follow request and automatically follow the approving user and return 200"""
         user = make_user(visibility=User.VISIBILITY_TYPE_PRIVATE)
@@ -575,6 +579,7 @@ class RejectUserFollowRequestAPITests(OpenbookAPITestCase):
     """
     RejectUserFollowRequestAPITests
     """
+
     def test_rejecting_a_follow_request_does_not_follow_the_rejecting_user(self):
         """should be able to reject a follow request and automatically follow the rejecting user and return 200"""
         user = make_user(visibility=User.VISIBILITY_TYPE_PRIVATE)
@@ -721,6 +726,7 @@ class FollowAPITests(OpenbookAPITestCase):
     """
     FollowAPITests
     """
+
     def test_follow(self):
         """should be able to follow another user on an specific list and return 200"""
         user = make_user()
@@ -838,6 +844,7 @@ class UnfollowAPITest(OpenbookAPITestCase):
     """
     UnfollowAPITest
     """
+
     def test_unfollow(self):
         """should be able to unfollow a user and return 200"""
         user = make_user()
@@ -916,6 +923,7 @@ class UpdateFollowAPITest(OpenbookAPITestCase):
     """
     UpdateFollowAPITest
     """
+
     def test_update_follow(self):
         """should be able to update an own follow and return 200"""
         user = make_user()
