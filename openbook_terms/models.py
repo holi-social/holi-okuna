@@ -15,6 +15,9 @@ class Topic(ModelWithUUID):
         _("title"), max_length=settings.TOPIC_TITLE_MAX_LENGTH, blank=False
     )
 
+    def __str__(self):
+        return f"{self.__class__.__name__}: {self.title} ({self.id})"
+
 
 class SDG(ModelWithUUID):
     """
@@ -26,6 +29,9 @@ class SDG(ModelWithUUID):
         _("title"), max_length=settings.SDG_TITLE_MAX_LENGTH, blank=False
     )
 
+    def __str__(self):
+        return f"{self.__class__.__name__}: {self.title} ({self.id})"
+
 
 class Skill(ModelWithUUID):
     """
@@ -35,3 +41,6 @@ class Skill(ModelWithUUID):
     title = models.CharField(
         _("title"), max_length=settings.SKILL_TITLE_MAX_LENGTH, blank=False
     )
+
+    def __str__(self):
+        return f"{self.__class__.__name__}: {self.title} ({self.id})"
