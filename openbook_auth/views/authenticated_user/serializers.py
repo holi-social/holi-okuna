@@ -192,8 +192,12 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
         allow_blank=False,
         validators=[name_characters_validator],
     )
-    followers_count_visible = serializers.NullBooleanField(required=False, default=None)
-    community_posts_visible = serializers.NullBooleanField(required=False, default=None)
+    followers_count_visible = serializers.BooleanField(
+        required=False, default=None, allow_null=True
+    )
+    community_posts_visible = serializers.BooleanField(
+        required=False, default=None, allow_null=True
+    )
     about_me = serializers.CharField(
         max_length=settings.PROFILE_ABOUT_ME_MAX_LENGTH,
         required=False,
