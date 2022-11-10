@@ -33,6 +33,16 @@ The project uses
 - [Black code formatter](https://github.com/psf/black) (see the [docs](https://black.readthedocs.io/en/stable/) for IDE integrations)
 
 ## Quickstart
+If you have installed pyenv, you can execute `./reset_environment.sh` to install the required python interpreter,
+set up the virtual environment and install the required dependencies.
+
+Start the required services using `python okuna-cli.py up-services-only`
+
+Start the dev server using `python manage.py runserver 0.0.0.0:8000`
+### Reset
+Use `python okuna-cli.py clean` to reset all local state, including database and config files.
+
+### Step by step
 
 1. Make sure you're actually running Python 3.11.0 or later by running `python --version`, if you
    are using pyenv, the version check will be executed implicitly for you.
@@ -143,3 +153,7 @@ See `.env` for `RDS_USERNAME` and `RDS_PASSWORD`
 ```sh
 psql -h localhost okuna -U <RDS_USERNAME>
 ```
+
+## Pycharm
+Shared run configurations can be found in the `.run` subfolder.
+You can use these to start your dev server or run tests.
