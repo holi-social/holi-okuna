@@ -10,5 +10,6 @@ exclude = '''
     | reports
     | static
     | terraform
+    | venv
 )/
 '''
