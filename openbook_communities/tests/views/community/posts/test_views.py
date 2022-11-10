@@ -29,9 +29,7 @@ fake = Faker()
 
 class CommunityPostsAPITest(OpenbookAPITestCase):
     def test_can_retrieve_posts_from_public_community(self):
-        """
-        should be able to retrieve the posts for a public community and 200
-        """
+        """should be able to retrieve the posts for a public community and 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -65,9 +63,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_can_retrieve_posts_with_max_id_and_count(self):
-        """
-        should be able to retrieve community posts with a max id and count
-        """
+        """should be able to retrieve community posts with a max id and count"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -102,9 +98,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
             self.assertTrue(response_post_id < max_id)
 
     def test_can_retrieve_posts_from_private_community_member_of(self):
-        """
-        should be able to retrieve the posts for a private community member of and return 200
-        """
+        """should be able to retrieve the posts for a private community member of and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -145,9 +139,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
             self.assertIn(response_post_id, community_posts_ids)
 
     def test_cannot_retrieve_posts_from_private_community_not_part_of(self):
-        """
-        should not be able to retrieve the posts for a private community not part of and return 400
-        """
+        """should not be able to retrieve the posts for a private community not part of and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -164,9 +156,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cannot_retrieve_soft_deleted_posts_from_community(self):
-        """
-        should not be able to retrieve soft deleted posts of a community
-        """
+        """should not be able to retrieve soft deleted posts of a community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -194,9 +184,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(0, len(response_posts))
 
     def test_cannot_retrieve_moderated_approved_posts_from_community(self):
-        """
-        should not be able to retrieve moderated approved posts of a community
-        """
+        """should not be able to retrieve moderated approved posts of a community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -242,9 +230,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(0, len(response_posts))
 
     def test_cannot_retrieve_reported_posts_from_community(self):
-        """
-        should not be able to retrieve reported posts of a community
-        """
+        """should not be able to retrieve reported posts of a community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -277,9 +263,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(0, len(response_posts))
 
     def test_can_retrieve_moderated_rejected_posts_from_community(self):
-        """
-        should be able to retrieve moderated rejected posts of a community
-        """
+        """should be able to retrieve moderated rejected posts of a community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -331,9 +315,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
             self.assertIn(response_post_id, community_posts_ids)
 
     def test_can_retrieve_moderated_pending_posts_from_community(self):
-        """
-        should be able to retrieve moderated pending posts of a community
-        """
+        """should be able to retrieve moderated pending posts of a community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -372,9 +354,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
             self.assertIn(response_post_id, community_posts_ids)
 
     def test_cannot_retrieve_posts_from_community_banned_from(self):
-        """
-        should not be able to retrieve the posts for a community banned from and return 403
-        """
+        """should not be able to retrieve the posts for a community banned from and return 403"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -397,9 +377,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_cannot_retrieve_posts_from_blocked_user(self):
-        """
-        should not be able to retrieve the community posts for a blocked user and return 200
-        """
+        """should not be able to retrieve the community posts for a blocked user and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -426,9 +404,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(len(response_posts), 0)
 
     def test_cannot_retrieve_posts_from_blocking_user(self):
-        """
-        should not be able to retrieve the community posts for a blocking user and return 200
-        """
+        """should not be able to retrieve the community posts for a blocking user and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -455,9 +431,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(len(response_posts), 0)
 
     def test_can_retrieve_posts_from_blocked_staff_member(self):
-        """
-        should be able to retrieve the community posts for a blocked staff member and return 200
-        """
+        """should be able to retrieve the community posts for a blocked staff member and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -485,9 +459,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(response_post_id, post.pk)
 
     def test_can_retrieve_posts_from_blocking_staff_member(self):
-        """
-        should be able to retrieve the community posts for a blocking staff member and return 200
-        """
+        """should be able to retrieve the community posts for a blocking staff member and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -515,9 +487,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(response_post_id, post.pk)
 
     def test_can_retrieve_posts_from_blocking_member_if_staff(self):
-        """
-        should be able to retrieve the community posts of a blocking member if staff and return 200
-        """
+        """should be able to retrieve the community posts of a blocking member if staff and return 200"""
         user = make_user()
 
         community_owner = make_user()
@@ -546,9 +516,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(response_post_id, post.pk)
 
     def test_can_retrieve_posts_from_blocked_member_if_staff(self):
-        """
-        should be able to retrieve the community posts of a blocked member if staff and return 200
-        """
+        """should be able to retrieve the community posts of a blocked member if staff and return 200"""
         user = make_user()
 
         community_owner = make_user()
@@ -577,9 +545,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(response_post_id, post.pk)
 
     def test_can_create_community_text_post_part_of(self):
-        """
-        should be able to create a post for a community part of and return 201
-        """
+        """should be able to create a post for a community part of and return 201"""
         user = make_user()
         community_creator = make_user()
         community = make_community(creator=community_creator, type="P")
@@ -596,9 +562,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertTrue(Post.objects.filter(text=post_text).exists())
 
     def test_can_create_community_image_post_part_of(self):
-        """
-        should be able to create an image post for a community part of and return 201
-        """
+        """should be able to create an image post for a community part of and return 201"""
         user = make_user()
         community_creator = make_user()
         community = make_community(creator=community_creator, type="P")
@@ -616,9 +580,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertTrue(Post.objects.filter(image__isnull=False).exists())
 
     def test_can_create_community_post_draft(self):
-        """
-        should be able to create an post draft for a community part of and return 201
-        """
+        """should be able to create an post draft for a community part of and return 201"""
         user = make_user()
         community_creator = make_user()
         community = make_community(creator=community_creator, type="P")
@@ -640,9 +602,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         )
 
     def test_cant_create_community_post_not_part_of(self):
-        """
-        should not be able to create a post for a community part of and return 400
-        """
+        """should not be able to create a post for a community part of and return 400"""
         user = make_user()
         community_creator = make_user()
         community = make_community(creator=community_creator, type="P")
@@ -658,9 +618,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertFalse(Post.objects.filter(text=post_text).exists())
 
     def test_create_public_community_post_detects_mention(self):
-        """
-        should detect mentions when creating a public community post
-        """
+        """should detect mentions when creating a public community post"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -690,9 +648,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
     def test_create_private_community_post_does_not_detects_mention_if_not_part_of(
         self,
     ):
-        """
-        should not detect mentions when creating a private community post not part of
-        """
+        """should not detect mentions when creating a private community post not part of"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -726,9 +682,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         )
 
     def test_create_private_community_post_detects_mention_if_part_of(self):
-        """
-        should detect mentions when creating a private community post part of
-        """
+        """should detect mentions when creating a private community post part of"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -768,9 +722,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         )
 
     def test_create_community_post_notifies_subscribers(self):
-        """
-        should notify subscribers when creating a community post
-        """
+        """should notify subscribers when creating a community post"""
         user = make_user()
 
         community_admin = make_user()
@@ -804,9 +756,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_community_post_does_not_notify_blocked_subscribers(self):
-        """
-        should NOT notify subscribers who are blocked by creator/have blocked creator when creating a community post
-        """
+        """should NOT notify subscribers who are blocked by creator/have blocked creator when creating a community post"""
         user = make_user()
         blocking_user = make_user()
 
@@ -846,9 +796,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_community_post_does_notify_blocked_subscribers_if_admin(self):
-        """
-        should notify subscribers who are blocked by admin/have blocked admin when creating a community post
-        """
+        """should notify subscribers who are blocked by admin/have blocked admin when creating a community post"""
         user = make_user()
 
         community_admin = make_user()
@@ -888,9 +836,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
     def test_create_community_post_for_one_community_does_not_notify_admin_for_all_communities_they_are_subscribed_to(
         self,
     ):
-        """
-        should notify admins who are subscribers only once for the community in which the post was created
-        """
+        """should notify admins who are subscribers only once for the community in which the post was created"""
         user = make_user(username="user")
 
         post_creator = make_user(username="post_creator")
@@ -951,9 +897,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
 
 class CommunityClosedPostsAPITest(OpenbookAPITestCase):
     def test_can_retrieve_closed_posts_from_community_if_administrator(self):
-        """
-        should be able to retrieve closed posts for a community if administrator
-        """
+        """should be able to retrieve closed posts for a community if administrator"""
 
         admin = make_user()
         community = make_community(creator=admin, type="P")
@@ -987,9 +931,7 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
             self.assertIn(response_post_id, community_posts_ids)
 
     def test_can_retrieve_closed_posts_from_community_if_moderator(self):
-        """
-        should be able to retrieve closed posts for a community if moderator
-        """
+        """should be able to retrieve closed posts for a community if moderator"""
 
         moderator = make_user()
         admin = make_user()
@@ -1031,9 +973,7 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_can_retrieve_closed_posts_with_max_id_and_count(self):
-        """
-        should be able to retrieve community closed posts with a max id and count if administrator/moderator
-        """
+        """should be able to retrieve community closed posts with a max id and count if administrator/moderator"""
         admin = make_user()
         community = make_community(creator=admin, type="P")
         community_name = community.name
@@ -1068,9 +1008,7 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
             self.assertTrue(response_post_id < max_id)
 
     def test_cannot_retrieve_closed_posts_from_community_if_member(self):
-        """
-        should not be able to retrieve closed posts for a community if just a member
-        """
+        """should not be able to retrieve closed posts for a community if just a member"""
 
         admin = make_user()
         community = make_community(creator=admin, type="P")
@@ -1105,9 +1043,7 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
 
 class GetCommunityPostsCountAPITests(OpenbookAPITestCase):
     def test_can_retrieve_posts_count(self):
-        """
-        should be able to retrieve the posts count and return 200
-        """
+        """should be able to retrieve the posts count and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 

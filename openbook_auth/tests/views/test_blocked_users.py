@@ -22,9 +22,7 @@ class BlockedUsersAPITests(OpenbookAPITestCase):
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_can_retrieve_blocked_users(self):
-        """
-        should be able to retrieve the authenticated user blocked users
-        """
+        """should be able to retrieve the authenticated user blocked users"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -61,9 +59,7 @@ class SearchBlockedUsersAPITests(OpenbookAPITestCase):
     """
 
     def test_can_search_blocked_users_by_name(self):
-        """
-        should be able to search for blocked users by their name and return 200
-        """
+        """should be able to search for blocked users by their name and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -100,9 +96,7 @@ class SearchBlockedUsersAPITests(OpenbookAPITestCase):
             user.unblock_user_with_id(blocked_user.pk)
 
     def test_can_search_blocked_users_by_username(self):
-        """
-        should be able to search for blocked users by their username and return 200
-        """
+        """should be able to search for blocked users by their username and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 

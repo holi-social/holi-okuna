@@ -33,9 +33,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_can_react_to_own_post(self):
-        """
-        should be able to reaction in own post and return 201
-        """
+        """should be able to reaction in own post and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -60,9 +58,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_react_to_foreign_post(self):
-        """
-        should not be able to reaction in a foreign encircled post and return 400
-        """
+        """should not be able to reaction in a foreign encircled post and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -92,9 +88,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_react_to_foreign_post_with_non_reaction_emoji(self):
-        """
-        should not be able to reaction in a post with a non reaction emoji group and return 400
-        """
+        """should not be able to reaction in a post with a non reaction emoji group and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -119,9 +113,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         )
 
     def test_can_react_to_connected_user_public_post(self):
-        """
-        should be able to reaction in the public post of a connected user post and return 201
-        """
+        """should be able to reaction in the public post of a connected user post and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -155,9 +147,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         )
 
     def test_can_react_to_connected_user_encircled_post_part_of(self):
-        """
-        should be able to reaction in the encircled post of a connected user which the user is part of and return 201
-        """
+        """should be able to reaction in the encircled post of a connected user which the user is part of and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -195,9 +185,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_react_to_connected_user_encircled_post_not_part_of(self):
-        """
-        should NOT be able to reaction in the encircled post of a connected user which the user is NOT part of and return 400
-        """
+        """should NOT be able to reaction in the encircled post of a connected user which the user is NOT part of and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -234,9 +222,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         )
 
     def test_can_react_to_user_public_post(self):
-        """
-        should be able to reaction in the public post of any user and return 201
-        """
+        """should be able to reaction in the public post of any user and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -266,9 +252,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_react_to_followed_user_encircled_post(self):
-        """
-        should be able to reaction in the encircled post of a followed user return 400
-        """
+        """should be able to reaction in the encircled post of a followed user return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -303,9 +287,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_react_in_post_from_community_banned_from(self):
-        """
-        should not be able to react in the post of a community banned from and return 400
-        """
+        """should not be able to react in the post of a community banned from and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -343,9 +325,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_react_to_closed_community_post_if_not_creator(self):
-        """
-        should NOT be able to react in a closed community post if not creator
-        """
+        """should NOT be able to react in a closed community post if not creator"""
         user = make_user()
         admin = make_user()
         community = make_community(admin)
@@ -382,9 +362,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         )
 
     def test_can_react_to_closed_community_post_if_creator(self):
-        """
-        should be able to react in a closed community post if creator
-        """
+        """should be able to react in a closed community post if creator"""
         user = make_user()
         admin = make_user()
         community = make_community(admin)
@@ -421,9 +399,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_react_to_blocked_user_post(self):
-        """
-        should not be able to react to a blocked user post and return 400
-        """
+        """should not be able to react to a blocked user post and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -457,9 +433,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_react_to_blocking_user_post(self):
-        """
-        should not be able to react to a blocking user post and return 400
-        """
+        """should not be able to react to a blocking user post and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -493,9 +467,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_react_to_blocked_user_community_post(self):
-        """
-        should not be able to react to a blocked user community post and return 400
-        """
+        """should not be able to react to a blocked user community post and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -534,9 +506,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_react_to_blocking_user_community_post(self):
-        """
-        should not be able to react to a blocking user community post and return 400
-        """
+        """should not be able to react to a blocking user community post and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -575,9 +545,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         )
 
     def test_can_react_to_blocked_community_staff_member_post(self):
-        """
-        should be able to react to a blocked community staff member post and return 201
-        """
+        """should be able to react to a blocked community staff member post and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -612,9 +580,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         )
 
     def test_can_react_to_blocking_community_staff_member_post(self):
-        """
-        should be able to react to a blocking community staff member post and return 201
-        """
+        """should be able to react to a blocking community staff member post and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -649,9 +615,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         )
 
     def test_can_react_to_post_only_once(self):
-        """
-        should be able to reaction in own post only once, update the old reaction and return 201
-        """
+        """should be able to reaction in own post only once, update the old reaction and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -681,9 +645,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         )
 
     def test_reacting_in_foreign_post_creates_notification(self):
-        """
-        should create a notification when reacting on a foreign post
-        """
+        """should create a notification when reacting on a foreign post"""
         user = make_user()
         reactor = make_user()
 
@@ -709,9 +671,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         )
 
     def test_reacting_in_own_post_does_not_create_notification(self):
-        """
-        should not create a notification when reacting on an own post
-        """
+        """should not create a notification when reacting on an own post"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
@@ -755,9 +715,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_can_retrieve_reactions_emoji_count(self):
-        """
-        should be able to retrieve a valid reactions emoji count and return 200
-        """
+        """should be able to retrieve a valid reactions emoji count and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
@@ -806,9 +764,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
             self.assertEqual(count, reaction_count)
 
     def test_cannot_retrieve_reaction_from_blocked_user(self):
-        """
-        should not be able to retrieve the reaction from a blocked user
-        """
+        """should not be able to retrieve the reaction from a blocked user"""
         user = make_user()
 
         post_creator = make_user()
@@ -837,9 +793,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
         self.assertEqual(len(response_reactions), 0)
 
     def test_cannot_retrieve_reactions_from_blocking_user(self):
-        """
-        should not be able to retrieve the reactions from a blocking user
-        """
+        """should not be able to retrieve the reactions from a blocking user"""
         user = make_user()
 
         post_creator = make_user()
@@ -868,9 +822,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
         self.assertEqual(len(response_reactions), 0)
 
     def test_cannot_retrieve_reactions_from_blocked_user_in_a_community(self):
-        """
-        should not be able to retrieve the reactions from a blocked user in a community
-        """
+        """should not be able to retrieve the reactions from a blocked user in a community"""
         user = make_user()
 
         post_creator = make_user()
@@ -903,9 +855,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
         self.assertEqual(len(response_reactions), 0)
 
     def test_cannot_retrieve_reactions_from_blocking_user_in_a_community(self):
-        """
-        should not be able to retrieve the reactions from a blocking user in a community
-        """
+        """should not be able to retrieve the reactions from a blocking user in a community"""
         user = make_user()
 
         post_creator = make_user()
@@ -938,9 +888,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
         self.assertEqual(len(response_reactions), 0)
 
     def test_can_retrieve_reactions_from_blocked_user_in_a_community_if_staff(self):
-        """
-        should be able to retrieve the reactions from a blocked user in a community if staff member
-        """
+        """should be able to retrieve the reactions from a blocked user in a community if staff member"""
         user = make_user()
         community = make_community(creator=user)
         post_creator = make_user()
@@ -981,9 +929,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
         self.assertEqual(1, response_emoji_count)
 
     def test_can_retrieve_reactions_from_blocking_user_in_a_community_if_staff(self):
-        """
-        should be able to retrieve the reactions from a blocking user in a community if staff member
-        """
+        """should be able to retrieve the reactions from a blocking user in a community if staff member"""
         user = make_user()
         community = make_community(creator=user)
         post_creator = make_user()
@@ -1033,9 +979,7 @@ class TestPostReactionEmojiGroups(OpenbookAPITestCase):
     """
 
     def test_can_retrieve_reactions_emoji_groups(self):
-        """
-        should be able to retrieve post reaction emoji groups
-        """
+        """should be able to retrieve post reaction emoji groups"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -1059,9 +1003,7 @@ class TestPostReactionEmojiGroups(OpenbookAPITestCase):
             self.assertIn(group_id, response_groups_ids)
 
     def test_cannot_retrieve_non_reactions_emoji_groups(self):
-        """
-        should not able to retrieve non post reaction emoji groups
-        """
+        """should not able to retrieve non post reaction emoji groups"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 

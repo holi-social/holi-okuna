@@ -21,9 +21,7 @@ class CategoriesAPITests(OpenbookAPITestCase):
     """
 
     def test_can_retrieve_categories(self):
-        """
-        should be able to retrieve all categories and return 200
-        """
+        """should be able to retrieve all categories and return 200"""
         user = make_user()
 
         amount_of_categories = 5

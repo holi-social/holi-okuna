@@ -23,9 +23,7 @@ class NotificationsAPITests(OpenbookAPITestCase):
     """
 
     def test_can_retrieve_notifications(self):
-        """
-        should be able to retrieve all notifications and return 200
-        """
+        """should be able to retrieve all notifications and return 200"""
         user = make_user()
 
         amount_of_notifications = 5
@@ -54,9 +52,7 @@ class NotificationsAPITests(OpenbookAPITestCase):
             self.assertIn(response_notification_id, notifications_ids)
 
     def test_can_retrieve_notifications_by_type(self):
-        """
-        should be able to retrieve notifications of the specified types and return 200
-        """
+        """should be able to retrieve notifications of the specified types and return 200"""
         user = make_user()
 
         amount_of_notifications = len(Notification.NOTIFICATION_TYPES)
@@ -94,9 +90,7 @@ class NotificationsAPITests(OpenbookAPITestCase):
             self.assertIn(response_notification_type, valid_types)
 
     def test_cant_retrieve_notifications_with_bad_type(self):
-        """
-        should return 400 if invalid a notification type is specified
-        """
+        """should return 400 if invalid a notification type is specified"""
         user = make_user()
 
         url = f"{self._get_url()}?types=AA"
@@ -106,9 +100,7 @@ class NotificationsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_can_delete_notifications(self):
-        """
-        should be able to delete all notifications and return 200
-        """
+        """should be able to delete all notifications and return 200"""
         user = make_user()
 
         amount_of_notifications = 5
@@ -136,9 +128,7 @@ class ReadNotificationsAPITests(OpenbookAPITestCase):
     """
 
     def test_should_be_able_to_read_notifications(self):
-        """
-        should be able to read all notifications and return 200
-        """
+        """should be able to read all notifications and return 200"""
         user = make_user()
 
         amount_of_notifications = 5
@@ -163,9 +153,7 @@ class ReadNotificationsAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_be_able_to_read_notifications_with_max_id(self):
-        """
-        should be able to read all notifications with a max_id and return 200
-        """
+        """should be able to read all notifications with a max_id and return 200"""
         user = make_user()
 
         amount_of_notifications = 5
@@ -193,9 +181,7 @@ class ReadNotificationsAPITests(OpenbookAPITestCase):
         )
 
     def test_should_be_able_to_read_notifications_by_type(self):
-        """
-        should be able to read notifications of the specified types and return 200
-        """
+        """should be able to read notifications of the specified types and return 200"""
         user = make_user()
 
         amount_of_notifications = len(Notification.NOTIFICATION_TYPES)
@@ -235,9 +221,7 @@ class ReadNotificationsAPITests(OpenbookAPITestCase):
         )
 
     def test_should_not_be_able_to_read_notifications_with_bad_type(self):
-        """
-        should return 400 if an invalid notification type is specified
-        """
+        """should return 400 if an invalid notification type is specified"""
         user = make_user()
 
         amount_of_notifications = len(Notification.NOTIFICATION_TYPES)
@@ -269,9 +253,7 @@ class NotificationItemAPITests(OpenbookAPITestCase):
     """
 
     def test_can_delete_own_notification(self):
-        """
-        should be able to delete an own notification and return 200
-        """
+        """should be able to delete an own notification and return 200"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
@@ -287,9 +269,7 @@ class NotificationItemAPITests(OpenbookAPITestCase):
         self.assertFalse(Notification.objects.filter(id=notification_id).exists())
 
     def test_cannot_delete_foreign_notification(self):
-        """
-        should not be able to delete a foreign notification and return 200
-        """
+        """should not be able to delete a foreign notification and return 200"""
         user = make_user()
         foreign_user = make_user()
 
@@ -315,9 +295,7 @@ class ReadNotificationAPITests(OpenbookAPITestCase):
     """
 
     def test_can_read_own_notification(self):
-        """
-        should be able to read an own notification and return 200
-        """
+        """should be able to read an own notification and return 200"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
@@ -335,9 +313,7 @@ class ReadNotificationAPITests(OpenbookAPITestCase):
         )
 
     def test_cannot_read_foreign_notification(self):
-        """
-        should not be able to read a foreign notification and return 400
-        """
+        """should not be able to read a foreign notification and return 400"""
         user = make_user()
         foreign_user = make_user()
 
@@ -365,9 +341,7 @@ class UnreadNotificationsCountAPITests(OpenbookAPITestCase):
     """
 
     def test_should_be_able_to_get_unread_notifications_count(self):
-        """
-        should be able to get all unread count notifications and return 200
-        """
+        """should be able to get all unread count notifications and return 200"""
         user = make_user()
 
         amount_of_notifications = 5
@@ -389,9 +363,7 @@ class UnreadNotificationsCountAPITests(OpenbookAPITestCase):
 
     @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_should_be_able_to_get_unread_notifications_count_with_max_id(self):
-        """
-        should be able to get all unread notifications count with a max_id and return 200
-        """
+        """should be able to get all unread notifications count with a max_id and return 200"""
         user = make_user()
 
         amount_of_notifications = 5
@@ -417,9 +389,7 @@ class UnreadNotificationsCountAPITests(OpenbookAPITestCase):
         self.assertTrue(parsed_response["count"] == 4)
 
     def test_should_be_able_to_get_unread_notifications_count_by_type(self):
-        """
-        should be able to get unread notifications count of the specified types and return 200
-        """
+        """should be able to get unread notifications count of the specified types and return 200"""
         user = make_user()
 
         amount_of_notifications = len(Notification.NOTIFICATION_TYPES)
@@ -449,9 +419,7 @@ class UnreadNotificationsCountAPITests(OpenbookAPITestCase):
         self.assertEqual(parsed_response["count"], len(valid_ids))
 
     def test_should_not_be_able_to_get_unread_notifications_count_with_bad_type(self):
-        """
-        should return 400 if an invalid notification type is specified
-        """
+        """should return 400 if an invalid notification type is specified"""
         user = make_user()
 
         amount_of_notifications = len(Notification.NOTIFICATION_TYPES)
