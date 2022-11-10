@@ -4594,9 +4594,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
         self.assertFalse(TrendingPost.objects.filter(post__id=post.pk).exists())
 
     def test_does_not_return_recently_turned_private_community_posts(self):
-        """
-        should not return recently turned private community posts in trending posts
-        """
+        """should not return recently turned private community posts in trending posts"""
         user = make_user()
 
         community = make_community(creator=user, type=Community.COMMUNITY_TYPE_PUBLIC)

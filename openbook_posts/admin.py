@@ -34,13 +34,13 @@ class PostCircleInline(admin.TabularInline):
     model = Circle.posts.through
 
     def has_delete_permission(self, request, obj=None):
-        return False
+        return True
 
     def has_change_permission(self, request, obj=None):
-        return False
+        return True
 
     def has_add_permission(self, request, obj):
-        return False
+        return True
 
 
 class PostAdmin(admin.ModelAdmin):

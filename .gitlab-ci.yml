@@ -42,6 +42,7 @@ test:
   script:
     - /etc/init.d/redis-server start
     - source venv/bin/activate
+    - black --check .
     - python manage.py test
   tags:
     - holi-big # more cpu, quicker testing

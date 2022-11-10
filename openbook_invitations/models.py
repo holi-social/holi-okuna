@@ -190,13 +190,12 @@ class UserInvite(ModelWithUUID):
         self.save()
 
     def generate_token(self):
-        token_bytes = jwt.encode(
+        return jwt.encode(
             {"id": self.id},
             settings.SECRET_KEY,
             algorithm=settings.JWT_ALGORITHM,
             json_encoder=DjangoJSONEncoder,
-        )
-        return token_bytes.decode("UTF-8")
+        ).decode("UTF-8")
 
     def _generate_one_time_link(self):
         return f"{settings.EMAIL_HOST}/api/auth/invite?token={self.token}"
