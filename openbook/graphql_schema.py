@@ -196,6 +196,8 @@ class Query(graphene.ObjectType):
             )
 
     def resolve_filtered_spaces(self, info):
+        user = info.context.user
+        topics = user.profile.
         # TODO: perform proper filtering by search params, group by topics
         spaces = SpaceModel.objects.order_by("-created")[0:5]
         return SpaceFilterResult(

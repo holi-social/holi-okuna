@@ -26,7 +26,6 @@ class Space(ModelWithUUID):
         null=True,
     )
     created = models.DateTimeField(default=now, editable=False)
-    # TODO: resizing really necessary?
     main_image = ProcessedImageField(
         verbose_name=_("main_image"),
         storage=space_image_storage,
@@ -34,7 +33,7 @@ class Space(ModelWithUUID):
         null=True,
         format="JPEG",
         options={"quality": 90},
-        processors=[ResizeToFit(width=1200, upscale=False)],
+        processors=[ResizeToFit(width=settings.SPACE_IMAGE_RESIZE_WIDTH, upscale=False)],
         upload_to=upload_to_spaces_main_image_directory,
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
