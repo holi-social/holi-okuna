@@ -23,10 +23,12 @@ fake = Faker()
 
 
 class CommunityMembersAPITest(OpenbookAPITestCase):
+    """
+    CommunityMembersAPITest
+    """
+
     def test_can_retrieve_members_of_public_community(self):
-        """
-        should be able to retrieve the members of a public community
-        """
+        """should be able to retrieve the members of a public community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -56,9 +58,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
             self.assertIn(response_member_id, community_members_ids)
 
     def test_cannot_retrieve_members_of_private_community(self):
-        """
-        should not be able to retrieve the members of a private community
-        """
+        """should not be able to retrieve the members of a private community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -71,9 +71,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_cannot_retrieve_members_of_community_banned_from(self):
-        """
-        should not be able to retrieve the community members if user has been banned from community
-        """
+        """should not be able to retrieve the community members if user has been banned from community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -92,9 +90,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_can_retrieve_members_of_private_community_part_of(self):
-        """
-        should be able to retrieve the members of a private community part of
-        """
+        """should be able to retrieve the members of a private community part of"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -132,9 +128,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
             self.assertIn(response_member_id, community_members_ids)
 
     def test_can_retrieve_members_with_max_id_and_count(self):
-        """
-        should be able to retrieve community members with a max id and count
-        """
+        """should be able to retrieve community members with a max id and count"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -168,9 +162,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
             self.assertTrue(response_member_id < max_id)
 
     def test_can_filter_administrators_from_members_of_community(self):
-        """
-        should be able to filter the administrators from the retrieve the members of a community
-        """
+        """should be able to filter the administrators from the retrieve the members of a community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -217,9 +209,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
             self.assertIn(response_member_id, community_members_ids)
 
     def test_can_filter_moderators_from_members_of_community(self):
-        """
-        should be able to filter the moderators from the retrieve the members of a community
-        """
+        """should be able to filter the moderators from the retrieve the members of a community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -264,9 +254,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
             self.assertIn(response_member_id, community_members_ids)
 
     def test_can_filter_moderators_and_administrators_from_members_of_community(self):
-        """
-        should be able to filter the moderators and administrators from the retrieve the members of a community
-        """
+        """should be able to filter the moderators and administrators from the retrieve the members of a community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -329,10 +317,12 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
 
 
 class InviteCommunityMembersAPITest(OpenbookAPITestCase):
+    """
+    InviteCommunityMembersAPITest
+    """
+
     def test_can_invite_user_to_community_part_of_with_invites_enabled(self):
-        """
-        should be able to invite a user to join a community part of with invites enabled and return 200
-        """
+        """should be able to invite a user to join a community part of with invites enabled and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -358,9 +348,7 @@ class InviteCommunityMembersAPITest(OpenbookAPITestCase):
         )
 
     def test_invite_user_to_community_creates_community_invite_notification(self):
-        """
-        should create an community invite notification when a user is invited to join a community
-        """
+        """should create an community invite notification when a user is invited to join a community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -387,9 +375,7 @@ class InviteCommunityMembersAPITest(OpenbookAPITestCase):
         )
 
     def test_cannot_invite_user_to_community_not_part_of_with_invites_enabled(self):
-        """
-        should not be able to invite a user to join a community NOT part of with invites enabled and return 200
-        """
+        """should not be able to invite a user to join a community NOT part of with invites enabled and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -414,9 +400,7 @@ class InviteCommunityMembersAPITest(OpenbookAPITestCase):
         )
 
     def test_cannot_invite_user_to_community_part_of_with_invites_disabled(self):
-        """
-        should not able to invite a user to join a community part of with invites enabled and return 200
-        """
+        """should not able to invite a user to join a community part of with invites enabled and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -442,9 +426,7 @@ class InviteCommunityMembersAPITest(OpenbookAPITestCase):
         )
 
     def test_can_invite_user_to_community_part_of_with_invites_disabled_if_admin(self):
-        """
-        should be able to invite a user to join a community when invites disabled but user is admin and return 200
-        """
+        """should be able to invite a user to join a community when invites disabled but user is admin and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -475,9 +457,7 @@ class InviteCommunityMembersAPITest(OpenbookAPITestCase):
         )
 
     def test_can_invite_user_to_community_part_of_with_invites_disabled_if_mod(self):
-        """
-        should be able to invite a user to join a community when invites disabled but user is mod and return 200
-        """
+        """should be able to invite a user to join a community when invites disabled but user is mod and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -512,10 +492,12 @@ class InviteCommunityMembersAPITest(OpenbookAPITestCase):
 
 
 class UninviteCommunityMembersAPITest(OpenbookAPITestCase):
+    """
+    UninviteCommunityMembersAPITest
+    """
+
     def test_can_uninvite_user_from_community(self):
-        """
-        should be able to uninvite a user from a community and return 200
-        """
+        """should be able to uninvite a user from a community and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -544,9 +526,7 @@ class UninviteCommunityMembersAPITest(OpenbookAPITestCase):
         )
 
     def test_cannot_withdraw_unexisting_invite(self):
-        """
-        should not be able to withdraw an unexisting invite and return 400
-        """
+        """should not be able to withdraw an unexisting invite and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -570,10 +550,12 @@ class UninviteCommunityMembersAPITest(OpenbookAPITestCase):
 
 
 class JoinCommunityAPITest(OpenbookAPITestCase):
+    """
+    JoinCommunityAPITest
+    """
+
     def test_can_join_public_community(self):
-        """
-        should be able to join a public community and return 200
-        """
+        """should be able to join a public community and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -590,9 +572,7 @@ class JoinCommunityAPITest(OpenbookAPITestCase):
         )
 
     def test_can_join_private_community_with_invite(self):
-        """
-        should be able to join a private community with an invite and return 200
-        """
+        """should be able to join a private community with an invite and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -613,9 +593,7 @@ class JoinCommunityAPITest(OpenbookAPITestCase):
         )
 
     def test_join_community_with_invite_removes_community_invite_notification(self):
-        """
-        should able to join a private community with an invite and remove the community invite notification
-        """
+        """should able to join a private community with an invite and remove the community invite notification"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -656,9 +634,7 @@ class JoinCommunityAPITest(OpenbookAPITestCase):
         self.assertFalse(Notification.objects.filter(pk=notification.pk).exists())
 
     def test_cannot_join_private_community_without_invite(self):
-        """
-        should not be able to join a private community without an invite and return 400
-        """
+        """should not be able to join a private community without an invite and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -675,9 +651,7 @@ class JoinCommunityAPITest(OpenbookAPITestCase):
         )
 
     def test_cannot_join_already_joined_community(self):
-        """
-        should not be able to join a private community without an invite
-        """
+        """should not be able to join a private community without an invite"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -705,9 +679,7 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
     """
 
     def test_can_search_community_members_by_name(self):
-        """
-        should be able to search for community members by their name and return 200
-        """
+        """should be able to search for community members by their name and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         community = make_community(creator=user)
@@ -746,9 +718,7 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
             member.leave_community_with_name(community_name=community.name)
 
     def test_can_search_community_members_by_username(self):
-        """
-        should be able to search for community members by their username and return 200
-        """
+        """should be able to search for community members by their username and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         community = make_community(creator=user)
@@ -788,9 +758,7 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
             member.leave_community_with_name(community_name=community.name)
 
     def test_can_filter_administrators_from_members_search(self):
-        """
-        should be able to filter the administrators from the search members of a community
-        """
+        """should be able to filter the administrators from the search members of a community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -847,9 +815,7 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
             self.assertIn(response_member_id, expected_members_ids)
 
     def test_can_filter_moderators_from_members_search(self):
-        """
-        should be able to filter the moderators from the search members of a community
-        """
+        """should be able to filter the moderators from the search members of a community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -904,9 +870,7 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
             self.assertIn(response_member_id, expected_members_ids)
 
     def test_can_filter_moderators_and_administrators_from_members_search(self):
-        """
-        should be able to filter the moderators and administrators from the search members of a community
-        """
+        """should be able to filter the moderators and administrators from the search members of a community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -969,10 +933,12 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
 
 
 class LeaveCommunityAPITests(OpenbookAPITestCase):
+    """
+    LeaveCommunityAPITests
+    """
+
     def test_leaving_community_should_remove_notifications_subscription(self):
-        """
-        when leaving a community, the member community notifications subscription should be removed
-        """
+        """when leaving a community, the member community notifications subscription should be removed"""
         user = make_user()
         other_user = make_user()
 

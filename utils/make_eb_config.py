@@ -9,33 +9,35 @@ def make_eb_config(application_name, default_region):
     # Create the jinja2 environment.
     # Notice the use of trim_blocks, which greatly helps control whitespace.
     j2_env = Environment(loader=FileSystemLoader(UTILS_DIR), autoescape=True)
-    return j2_env.get_template('templates/eb/config.yml').render(
-        APPLICATION_NAME=application_name,
-        DEFAULT_REGION=default_region
+    return j2_env.get_template("templates/eb/config.yml").render(
+        APPLICATION_NAME=application_name, DEFAULT_REGION=default_region
     )
 
 
 def write_eb_config(dest, application_name, default_region):
     contents = make_eb_config(application_name, default_region)
-    fh = open(dest, 'w')
+    fh = open(dest, "w")
     fh.write(contents)
     fh.close()
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='EB Config Maker')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="EB Config Maker")
     # Optional argument
-    parser.add_argument('--dest', type=str,
-                        help='The destination of the generated eb config',
-                        default='./.elasticbeanstalk/config.yml')
+    parser.add_argument(
+        "--dest",
+        type=str,
+        help="The destination of the generated eb config",
+        default="./.elasticbeanstalk/config.yml",
+    )
 
-    parser.add_argument('--name', type=str,
-                        required=True,
-                        help='The name of the application')
+    parser.add_argument(
+        "--name", type=str, required=True, help="The name of the application"
+    )
 
-    parser.add_argument('--region', type=str,
-                        required=True,
-                        help='The default application region')
+    parser.add_argument(
+        "--region", type=str, required=True, help="The default application region"
+    )
 
     args = parser.parse_args()
 

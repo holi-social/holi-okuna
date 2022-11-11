@@ -35,9 +35,7 @@ class OathkeeperAuthTest(OpenbookAPITestCase):
     """
 
     def test_creates_user_if_not_existing(self):
-        """
-        should create a user and return 200 if user does not exist yet
-        """
+        """should create a user and return 200 if user does not exist yet"""
         user_id = fake.user_name()
         user_email = fake.email()
         url = self._get_user_profile_url(user_id)
@@ -53,9 +51,7 @@ class OathkeeperAuthTest(OpenbookAPITestCase):
         )
 
     def test_requires_holi_user_id_for_non_existing_user(self):
-        """
-        should return 403 if request header `X-Holi-User-ID` is not provided for a non-existing user
-        """
+        """should return 403 if request header `X-Holi-User-ID` is not provided for a non-existing user"""
         user_id = fake.user_name()
         user_email = fake.email()
         url = self._get_user_profile_url(user_id)
@@ -70,9 +66,7 @@ class OathkeeperAuthTest(OpenbookAPITestCase):
         )
 
     def test_requires_holi_user_email_for_non_existing_user(self):
-        """
-        should return 403 if request header `X-Holi-User-Email` is not provided for a non-existing user
-        """
+        """should return 403 if request header `X-Holi-User-Email` is not provided for a non-existing user"""
         user_id = fake.user_name()
         url = self._get_user_profile_url(user_id)
         headers = {
@@ -86,9 +80,7 @@ class OathkeeperAuthTest(OpenbookAPITestCase):
         )
 
     def test_allows_anonymous_requests(self):
-        """
-        should allow anonymous requests
-        """
+        """should allow anonymous requests"""
         url = reverse(
             "username-check"
         )  # just a random endpoint that doesn't require authentication
@@ -111,9 +103,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
     """
 
     def test_token_required(self):
-        """
-        should return 400 if the token is not present
-        """
+        """should return 400 if the token is not present"""
         url = self._get_url()
         data = {
             "name": "Joel Hernandez",
@@ -128,9 +118,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_token_can_be_used_once(self):
-        """
-        should return 400 if token already has been used to create an account.
-        """
+        """should return 400 if token already has been used to create an account."""
         url = self._get_url()
         token = self._make_user_invite_token()
         first_request_data = {
@@ -154,9 +142,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_token_should_be_valid(self):
-        """
-        should return 400 if token is invalid.
-        """
+        """should return 400 if token is invalid."""
         url = self._get_url()
         token = uuid.uuid4()
         first_request_data = {
@@ -172,9 +158,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_invalid_name(self):
-        """
-        should return 400 if the name is not valid
-        """
+        """should return 400 if the name is not valid"""
         url = self._get_url()
         invalid_names = (
             "Joel<",
@@ -198,9 +182,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_invalid_username(self):
-        """
-        should return 400 if the username is not valid
-        """
+        """should return 400 if the username is not valid"""
         url = self._get_url()
         invalid_usernames = (
             "joel<;<",
@@ -225,9 +207,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_name_required(self):
-        """
-        should return 400 if the name is not present
-        """
+        """should return 400 if the name is not present"""
         url = self._get_url()
         token = self._make_user_invite_token()
         data = {
@@ -243,9 +223,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_email_required(self):
-        """
-        should return 400 if the email is not present
-        """
+        """should return 400 if the email is not present"""
         url = self._get_url()
         token = self._make_user_invite_token()
         data = {
@@ -261,9 +239,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_is_of_legal_age_required(self):
-        """
-        should return 400 if the is_of_legal_age is not present
-        """
+        """should return 400 if the is_of_legal_age is not present"""
         url = self._get_url()
         token = self._make_user_invite_token()
         data = {
@@ -277,9 +253,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_is_of_legal_age_true_required(self):
-        """
-        should return 400 if the is_of_legal_age is false
-        """
+        """should return 400 if the is_of_legal_age is false"""
         url = self._get_url()
         token = self._make_user_invite_token()
         data = {
@@ -294,9 +268,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_are_guidelines_accepted_required(self):
-        """
-        should return 400 if are_guidelines_accepted is not present
-        """
+        """should return 400 if are_guidelines_accepted is not present"""
         url = self._get_url()
         token = self._make_user_invite_token()
         data = {
@@ -310,9 +282,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_are_guidelines_accepted_true_required(self):
-        """
-        should return 400 if are_guidelines_accepted is false
-        """
+        """should return 400 if are_guidelines_accepted is false"""
         url = self._get_url()
         token = self._make_user_invite_token()
         data = {
@@ -327,9 +297,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_email_taken(self):
-        """
-        should return 400 if email is taken.
-        """
+        """should return 400 if email is taken."""
         url = self._get_url()
         token = self._make_user_invite_token()
         email = "joel@open-book.org"
@@ -357,9 +325,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_user_created(self):
-        """
-        should create a User model instance
-        """
+        """should create a User model instance"""
         url = self._get_url()
         token = self._make_user_invite_token()
         email = fake.email()
@@ -380,9 +346,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         self.assertEqual(User.objects.filter(email=email).exists(), True)
 
     def test_user_profile_is_created(self):
-        """
-        should create a UserProfile instance and associate it to the User instance
-        """
+        """should create a UserProfile instance and associate it to the User instance"""
         url = self._get_url()
         token = self._make_user_invite_token()
         email = fake.email()
@@ -401,9 +365,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         self.assertTrue(hasattr(user, "profile"))
 
     def test_user_profile_has_badges(self):
-        """
-        should send user's badges with UserProfile instance
-        """
+        """should send user's badges with UserProfile instance"""
         url = self._get_url()
         badge = make_badge()
         token = self._make_user_invite_token_with_badge(badge)
@@ -425,9 +387,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         self.assertTrue(badges[0].keyword, badge.keyword)
 
     def test_user_circles_are_created(self):
-        """
-        should create the default circles instance and associate it to the User instance
-        """
+        """should create the default circles instance and associate it to the User instance"""
         url = self._get_url()
         token = self._make_user_invite_token()
         email = fake.email()
@@ -454,9 +414,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         self.assertTrue(hasattr(user, "circles"))
 
     def test_user_guidelines_are_accepted(self):
-        """
-        should create a User model instance
-        """
+        """should create a User model instance"""
         url = self._get_url()
         token = self._make_user_invite_token()
         email = fake.email()
@@ -479,9 +437,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         self.assertTrue(user.are_guidelines_accepted)
 
     def test_user_avatar(self):
-        """
-        Should accept an avatar file and store it on the UserProfile
-        """
+        """should accept an avatar file and store it on the UserProfile"""
         image = Image.new("RGB", (100, 100))
         tmp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
         image.save(tmp_file)
@@ -504,9 +460,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         self.assertTrue(hasattr(user.profile, "avatar"))
 
     def test_user_status(self):
-        """
-        Should return 201 when the user was created successfully and return its auth token.
-        """
+        """should return 201 when the user was created successfully and return its auth token."""
         token1 = self._make_user_invite_token()
         token2 = self._make_user_invite_token()
         token3 = self._make_user_invite_token()
@@ -557,9 +511,7 @@ class VerifyRegistrationTokenAPITests(OpenbookAPITestCase):
     """
 
     def test_should_reject_invalid_token(self):
-        """
-        should return 400 if token is invalid.
-        """
+        """should return 400 if token is invalid."""
         url = self._get_url()
         token = uuid.uuid4()
         request_data = {"token": token}
@@ -568,9 +520,7 @@ class VerifyRegistrationTokenAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_should_accept_valid_token(self):
-        """
-        should return 202 if token is valid.
-        """
+        """should return 202 if token is valid."""
         url = self._get_url()
         token = self._make_user_invite_token()
         request_data = {"token": token}
@@ -579,9 +529,7 @@ class VerifyRegistrationTokenAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
     def test_should_reject_expired_token(self):
-        """
-        should return 400 if token already has been used to create an account.
-        """
+        """should return 400 if token already has been used to create an account."""
         url = self._get_url()
         token = self._make_user_invite_token()
         email = fake.email()
@@ -621,9 +569,7 @@ class VerifyRegistrationTokenAPITests(OpenbookAPITestCase):
 @unittest.skip("TODO HOLI-1722 most likely remove completely")
 class RequestPasswordResetAPITests(OpenbookAPITestCase):
     def test_cannot_request_password_reset_with_invalid_email(self):
-        """
-        Should not be able to request password reset if no valid email exists
-        """
+        """should not be able to request password reset if no valid email exists"""
         email = fake.email()
         request_data = {"email": email}
         url = self._get_url()
@@ -635,9 +581,7 @@ class RequestPasswordResetAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_request_password_reset_successfully_with_valid_email(self):
-        """
-        Should generate request password reset token for email  and send mail
-        """
+        """should generate request password reset token for email  and send mail"""
         user = make_user()
         request_data = {"email": user.email}
 
@@ -656,9 +600,7 @@ class RequestPasswordResetAPITests(OpenbookAPITestCase):
 @unittest.skip("TODO HOLI-1722 most likely remove completely")
 class VerifyResetPasswordAPITests(OpenbookAPITestCase):
     def test_can_update_password_with_valid_token(self):
-        """
-        Should update password with valid token
-        """
+        """should update password with valid token"""
         user = make_user()
         old_password = user.password
         user_email = user.email
@@ -682,9 +624,7 @@ class VerifyResetPasswordAPITests(OpenbookAPITestCase):
         self.assertEqual(user_new.email, user_email)
 
     def test_cannot_update_password_with_invalid_token(self):
-        """
-        Should not update password with invalid token for email
-        """
+        """should not update password with invalid token for email"""
         user = make_user()
         old_password = user.password
         user_email = user.email
@@ -700,9 +640,7 @@ class VerifyResetPasswordAPITests(OpenbookAPITestCase):
         self.assertEqual(user_db.password, old_password)
 
     def test_cannot_update_password_without_providing_new_password(self):
-        """
-        Should not update password without a new password
-        """
+        """should not update password without a new password"""
         user = make_user()
         old_password = user.password
         user_email = user.email
@@ -718,9 +656,7 @@ class VerifyResetPasswordAPITests(OpenbookAPITestCase):
         self.assertEqual(user_db.password, old_password)
 
     def test_cannot_update_password_without_providing_token(self):
-        """
-        Should not update password without providing token
-        """
+        """should not update password without providing token"""
         user = make_user()
         old_password = user.password
         user_email = user.email
@@ -738,9 +674,7 @@ class VerifyResetPasswordAPITests(OpenbookAPITestCase):
         self.assertEqual(user_db.password, old_password)
 
     def test_updating_password_with_valid_token_resets_auth_token(self):
-        """
-        updating the password with a valid token should reset the auth token
-        """
+        """updating the password with a valid token should reset the auth token"""
         user = make_user()
         original_auth_token_key = user.auth_token.key
         user_email = user.email
@@ -773,9 +707,7 @@ class UsernameCheckAPITests(OpenbookAPITestCase):
     """
 
     def test_username_not_taken(self):
-        """
-        should return status 202 if username is not taken.
-        """
+        """should return status 202 if username is not taken."""
         username = "lifenautjoe"
         request_data = {"username": username}
         url = self._get_url()
@@ -783,9 +715,7 @@ class UsernameCheckAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
     def test_username_taken(self):
-        """
-        should return status 400 if the username is taken
-        """
+        """should return status 400 if the username is taken"""
         username = "lifenautjoe"
         User.objects.create_user(
             username=username, password="SuChSeCuRiTyWow!", email="lifenautjoe@mail.com"
@@ -800,9 +730,7 @@ class UsernameCheckAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_invalid_username(self):
-        """
-        should return 400 if the username is not a valid one
-        """
+        """should return 400 if the username is not a valid one"""
         url = self._get_url()
         usernames = ("lifenau!", "", ".a!", "dexter@", "🤷‍♂️")
         for username in usernames:
@@ -813,9 +741,7 @@ class UsernameCheckAPITests(OpenbookAPITestCase):
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_valid_username(self):
-        """
-        should return 202 if the username is a valid username
-        """
+        """should return 202 if the username is a valid username"""
         url = self._get_url()
         usernames = ("lifenautjoe", "shantanu_123", "m4k3l0v3n0tw4r", "o_0")
         for username in usernames:
@@ -833,9 +759,7 @@ class EmailCheckAPITests(OpenbookAPITestCase):
     """
 
     def test_email_not_taken(self):
-        """
-        should return status 202 if email is not taken.
-        """
+        """should return status 202 if email is not taken."""
         email = "joel@open-book.org"
         request_data = {"email": email}
         url = self._get_url()
@@ -843,9 +767,7 @@ class EmailCheckAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
     def test_email_taken(self):
-        """
-        should return status 400 if the email is taken
-        """
+        """should return status 400 if the email is taken"""
         email = "joel@open-book.org"
         User.objects.create_user(
             email=email, password="SuChSeCuRiTyWow!", username="lifenautjoe"
@@ -860,9 +782,7 @@ class EmailCheckAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_invalid_email(self):
-        """
-        should return 400 if the email is not a valid one
-        """
+        """should return 400 if the email is not a valid one"""
         url = self._get_url()
         emails = (
             "not-a-valid-email.com",
@@ -879,9 +799,7 @@ class EmailCheckAPITests(OpenbookAPITestCase):
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_valid_email(self):
-        """
-        should return 202 if the email is a valid email
-        """
+        """should return 202 if the email is a valid email"""
         url = self._get_url()
         emails = (
             "joel@open-book.org",
@@ -905,9 +823,7 @@ class LoginAPITests(OpenbookAPITestCase):
     """
 
     def test_login_success(self):
-        """
-        should return 200 and the user token when sending correct credentials
-        """
+        """should return 200 and the user token when sending correct credentials"""
         username = "mike_waswski"
         password = "boo_scary!"
 
@@ -932,9 +848,7 @@ class LoginAPITests(OpenbookAPITestCase):
         self.assertEqual(response_token, user_token.key)
 
     def test_login_failure(self):
-        """
-        should return 401 when sending incorrect credentials
-        """
+        """should return 401 when sending incorrect credentials"""
         username = "pauly_d"
         password = "theW0rstDJEv4"
 
@@ -956,9 +870,7 @@ class LoginAPITests(OpenbookAPITestCase):
 
 class VerifyChangeEmailAPITests(OpenbookAPITestCase):
     def test_can_verify_email_token_successfully(self):
-        """
-        should be able to verify the authenticated user email with token
-        """
+        """should be able to verify the authenticated user email with token"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -975,9 +887,7 @@ class VerifyChangeEmailAPITests(OpenbookAPITestCase):
         self.assertTrue(user.email == new_email)
 
     def test_cannot_verify_email_with_other_user_id(self):
-        """
-        should not be able to verify the authenticated user email with foreign user token for same email
-        """
+        """should not be able to verify the authenticated user email with foreign user token for same email"""
         user = make_user()
         foreign_user = make_user()
         original_email = user.email

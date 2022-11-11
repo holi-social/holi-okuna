@@ -9,7 +9,7 @@ echo "👨‍🔧 Applying migrations"
 python manage.py migrate
 
 echo "👩‍💻 Loading development data"
-python manage.py loaddata utils/development_data/fixtures.json
+python manage.py loaddata circles.json emoji-groups.json emojis.json badges.json categories.json languages.json users.json
 
 echo "🖼  Copying development media"
 cp -a utils/development_data/media .

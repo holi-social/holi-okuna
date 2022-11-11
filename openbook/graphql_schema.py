@@ -17,10 +17,17 @@ from openbook_insights.models import Insight as InsightModel
 from openbook_posts.models import Post as PostModel, PostComment as PostCommentModel
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
 from openbook_spaces.models import Space as SpaceModel, SpaceMember as SpaceMemberModel
+from openbook_spaces.models import Task as TaskModel
+from openbook_terms.models import (
+    Topic as TopicModel,
+    SDG as SDGModel,
+    Skill as SkillModel,
+)
 
 from logging import getLogger
 
 logger = getLogger(__name__)
+
 
 # noinspection PyUnresolvedReferences
 
@@ -128,6 +135,11 @@ class SpaceFilterResult(graphene.ObjectType):
     otherResults = graphene.List(SpacesForTopic)
 
 
+class Task(DjangoObjectType):
+    class Meta:
+        model = TaskModel
+
+
 class Post(DjangoObjectType):
     class Meta:
         model = PostModel
@@ -138,16 +150,42 @@ class PostComment(DjangoObjectType):
         model = PostCommentModel
 
 
+class Topic(DjangoObjectType):
+    class Meta:
+        model = TopicModel
+
+
+class SDG(DjangoObjectType):
+    class Meta:
+        model = SDGModel
+
+
+class Skill(DjangoObjectType):
+    class Meta:
+        model = SkillModel
+
+
 class Query(graphene.ObjectType):
     authenticated_user = graphene.Field(User)
     user_by_id = graphene.Field(User, id=graphene.String())
     user_suggestions = graphene.List(User, numberOfItems=graphene.Int())
     last_insights = graphene.List(Insight, numberOfItems=graphene.Int())
     insight_by_id = graphene.Field(Insight, id=graphene.String())
+    post_by_id = graphene.Field(Post, id=graphene.String())
     spaces = graphene.List(
         Space, offset=graphene.Int(default_value=0), limit=graphene.Int(default_value=5)
     )
     space_by_id = graphene.Field(Space, id=graphene.String())
+    tasks_by_space_id = graphene.List(
+        Task,
+        space_id=graphene.String(),
+        offset=graphene.Int(default_value=0),
+        limit=graphene.Int(default_value=5),
+    )
+    task_by_id = graphene.Field(Task, id=graphene.String())
+    topics = graphene.List(Topic)
+    sdgs = graphene.List(SDG)
+    skills = graphene.List(Skill)
     # TODO: define filter params
     filtered_spaces = graphene.Field(SpaceFilterResult)
 
@@ -184,6 +222,14 @@ class Query(graphene.ObjectType):
                 "Insight not found", extensions={"code": ErrorCodes.NOT_FOUND}
             )
 
+    def resolve_post_by_id(self, info, id):
+        try:
+            return PostModel.objects.get(id=id)
+        except PostModel.DoesNotExist:
+            raise GraphQLError(
+                "Post not found", extensions={"code": ErrorCodes.NOT_FOUND}
+            )
+
     def resolve_spaces(self, info, offset=graphene.Int(), limit=graphene.Int()):
         return SpaceModel.objects.order_by("-created")[offset : offset + limit]
 
@@ -194,6 +240,30 @@ class Query(graphene.ObjectType):
             raise GraphQLError(
                 "Space not found", extensions={"code": ErrorCodes.NOT_FOUND}
             )
+
+    def resolve_tasks_by_space_id(
+        self, info, space_id, offset=graphene.Int(), limit=graphene.Int()
+    ):
+        return TaskModel.objects.filter(space__id=space_id).order_by("-created")[
+            offset : offset + limit
+        ]
+
+    def resolve_task_by_id(self, info, id):
+        try:
+            return TaskModel.objects.get(id=id)
+        except TaskModel.DoesNotExist:
+            raise GraphQLError(
+                "Task not found", extensions={"code": ErrorCodes.NOT_FOUND}
+            )
+
+    def resolve_topics(self, info):
+        return TopicModel.objects.all()
+
+    def resolve_sdgs(self, info):
+        return SDGModel.objects.all()
+
+    def resolve_skills(self, info):
+        return SkillModel.objects.all()
 
     def resolve_filtered_spaces(self, info):
         user = info.context.user
@@ -338,6 +408,7 @@ class CreatePostCommentMutation(graphene.Mutation):
         input = graphene.Argument(CreatePostCommentInput)
 
     post_comment = graphene.Field(PostComment)
+    post_by_id = graphene.Field(Post)
 
     @classmethod
     def mutate(cls, root, info, input):
@@ -360,7 +431,11 @@ class CreatePostCommentMutation(graphene.Mutation):
                 post_id=post_id, text=comment_text
             )
 
-        return CreatePostCommentMutation(post_comment=post_comment)
+        post_by_id = PostModel.objects.get(id=post_id)
+
+        return CreatePostCommentMutation(
+            post_comment=post_comment, post_by_id=post_by_id
+        )
 
 
 class Mutation(graphene.ObjectType):

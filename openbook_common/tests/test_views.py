@@ -24,9 +24,7 @@ class TimeAPITests(OpenbookAPITestCase):
     """
 
     def test_timezone_set(self):
-        """
-        should set the timezone provided in the Time-Zone header
-        """
+        """should set the timezone provided in the Time-Zone header"""
         url = self._get_url()
         timezone_to_set = "America/Mexico_City"
         header = {"HTTP_TIME_ZONE": timezone_to_set}
@@ -57,9 +55,7 @@ class TestEmojiGroups(OpenbookAPITestCase):
     """
 
     def test_can_retrieve_non_reaction_emoji_groups(self):
-        """
-        should be able to retrieve non post reaction emoji groups
-        """
+        """should be able to retrieve non post reaction emoji groups"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -83,9 +79,7 @@ class TestEmojiGroups(OpenbookAPITestCase):
             self.assertIn(group_id, response_groups_ids)
 
     def test_cannot_retrieve_reactions_emoji_groups(self):
-        """
-        should not able to retrieve post reaction emoji groups
-        """
+        """should not able to retrieve post reaction emoji groups"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -114,9 +108,7 @@ class ProxyDomainCheckAPITests(OpenbookAPITestCase):
     """
 
     def test_fails_on_blacklisted_domain(self):
-        """
-        should fail when calling with a blacklisted domain and return 403
-        """
+        """should fail when calling with a blacklisted domain and return 403"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         request_url = "www.okuna.io"
@@ -128,9 +120,7 @@ class ProxyDomainCheckAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_fails_on_blacklisted_root_domain(self):
-        """
-        should fail when calling with a blacklisted root domain and return 403
-        """
+        """should fail when calling with a blacklisted root domain and return 403"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         request_url = "test.blogspot.com"
@@ -142,9 +132,7 @@ class ProxyDomainCheckAPITests(OpenbookAPITestCase):
         self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
 
     def test_fails_on_blacklisted_subdomain_domain(self):
-        """
-        should fail when calling with a blacklisted subdomain domain and return 403
-        """
+        """should fail when calling with a blacklisted subdomain domain and return 403"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         request_url = "test.blogspot.com"
@@ -156,9 +144,7 @@ class ProxyDomainCheckAPITests(OpenbookAPITestCase):
         self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
 
     def test_succeeds_on_non_blacklisted_root_domain_with_blacklisted_subdomain(self):
-        """
-        should succeed when calling with a non blacklisted root domain that also has a blacklisted subdomain and return 403
-        """
+        """should succeed when calling with a non blacklisted root domain that also has a blacklisted subdomain and return 403"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         request_url = "blogspot.com"
@@ -170,9 +156,7 @@ class ProxyDomainCheckAPITests(OpenbookAPITestCase):
         self.assertEqual(status.HTTP_202_ACCEPTED, response.status_code)
 
     def test_succeeds_with_non_blacklisted_domain(self):
-        """
-        should succeed with a non blacklisted domain and return 202
-        """
+        """should succeed with a non blacklisted domain and return 202"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         preview_url = "https://www.techcrunch.com"
@@ -183,9 +167,7 @@ class ProxyDomainCheckAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
     def test_fails_on_invalid_domain(self):
-        """
-        should fail when calling with an invalid domain and return 403
-        """
+        """should fail when calling with an invalid domain and return 403"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         request_url = "invalid.potato"

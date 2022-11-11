@@ -20,10 +20,12 @@ fake = Faker()
 
 
 class CommunityAdministratorsAPITest(OpenbookAPITestCase):
+    """
+    CommunityAdministratorsAPITest
+    """
+
     def test_can_get_community_administrators_if_admin(self):
-        """
-        should be able to retrieve the community administrators if user is admin of community
-        """
+        """should be able to retrieve the community administrators if user is admin of community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -43,7 +45,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
             community_member = make_user()
             community_member.join_community_with_name(community_name)
             other_user.add_administrator_with_username_to_community_with_name(
-                username=community_member, community_name=community.name
+                username=community_member.username, community_name=community.name
             )
             administrators_ids.append(community_member.pk)
 
@@ -63,9 +65,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
             self.assertIn(response_administrator_id, administrators_ids)
 
     def test_can_get_community_administrators_if_mod(self):
-        """
-        should be able to retrieve the community administrators if user is admin of community
-        """
+        """should be able to retrieve the community administrators if user is admin of community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -85,7 +85,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
             community_member = make_user()
             community_member.join_community_with_name(community_name)
             other_user.add_administrator_with_username_to_community_with_name(
-                username=community_member, community_name=community.name
+                username=community_member.username, community_name=community.name
             )
             administrators_ids.append(community_member.pk)
 
@@ -105,9 +105,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
             self.assertIn(response_administrator_id, administrators_ids)
 
     def test_can_get_community_administrators_if_member(self):
-        """
-        should be able to retrieve the community administrators if user is member of community
-        """
+        """should be able to retrieve the community administrators if user is member of community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -124,7 +122,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
             community_member = make_user()
             community_member.join_community_with_name(community_name)
             other_user.add_administrator_with_username_to_community_with_name(
-                username=community_member, community_name=community.name
+                username=community_member.username, community_name=community.name
             )
             administrators_ids.append(community_member.pk)
 
@@ -144,9 +142,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
             self.assertIn(response_administrator_id, administrators_ids)
 
     def test_can_add_community_administrator_if_creator(self):
-        """
-        should be able to add a community administrator if user is creator of community
-        """
+        """should be able to add a community administrator if user is creator of community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -171,9 +167,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
         )
 
     def test_removes_member_from_moderator_when_adding_as_administrator(self):
-        """
-        should remove the member from moderators if added as an administrator
-        """
+        """should remove the member from moderators if added as an administrator"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -184,7 +178,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
             community_name=community.name
         )
         user.add_moderator_with_username_to_community_with_name(
-            username=user_to_make_admnistrator, community_name=community.name
+            username=user_to_make_admnistrator.username, community_name=community.name
         )
 
         url = self._get_url(community_name=community.name)
@@ -201,9 +195,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
         )
 
     def test_logs_community_administrator_added(self):
-        """
-        should create a log when community administrator was added
-        """
+        """should create a log when community administrator was added"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -222,9 +214,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
         )
 
     def test_cant_add_community_administrator_if_mod(self):
-        """
-        should not be able to add a community administrator if user is moderator of community
-        """
+        """should not be able to add a community administrator if user is moderator of community"""
         user = make_user()
         other_user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -255,9 +245,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
         )
 
     def test_cant_add_community_administrator_if_member(self):
-        """
-        should not be able to add a community administrator if user is member of community
-        """
+        """should not be able to add a community administrator if user is member of community"""
         user = make_user()
         other_user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -285,9 +273,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
         )
 
     def test_cant_add_community_administrator_if_not_member(self):
-        """
-        should not be able to add a community administrator if user is not member of community
-        """
+        """should not be able to add a community administrator if user is not member of community"""
         user = make_user()
         other_user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -319,10 +305,12 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
 
 
 class CommunityAdministratorAPITest(OpenbookAPITestCase):
+    """
+    CommunityAdministratorAPITest
+    """
+
     def test_can_remove_community_administrator_if_creator(self):
-        """
-        should be able to remove a community administrator if user is creator of the community
-        """
+        """should be able to remove a community administrator if user is creator of the community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -348,9 +336,7 @@ class CommunityAdministratorAPITest(OpenbookAPITestCase):
         )
 
     def test_logs_community_administrator_removed(self):
-        """
-        should create a log when community administrator was removed
-        """
+        """should create a log when community administrator was removed"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -374,9 +360,7 @@ class CommunityAdministratorAPITest(OpenbookAPITestCase):
         )
 
     def test_cant_remove_creator_from_community_administrators(self):
-        """
-        should not be able to remove the creator of the community from the administrators
-        """
+        """should not be able to remove the creator of the community from the administrators"""
         user = make_user()
         other_user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -400,9 +384,7 @@ class CommunityAdministratorAPITest(OpenbookAPITestCase):
         )
 
     def test_cant_remove_community_administrator_if_mod(self):
-        """
-        should not be able to remove a community administrator if user is moderator
-        """
+        """should not be able to remove a community administrator if user is moderator"""
         user = make_user()
         other_user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -434,9 +416,7 @@ class CommunityAdministratorAPITest(OpenbookAPITestCase):
         )
 
     def test_cant_remove_community_administrator_if_member(self):
-        """
-        should not be able to remove a community administrator if user is member
-        """
+        """should not be able to remove a community administrator if user is member"""
         user = make_user()
         other_user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -480,9 +460,7 @@ class SearchCommunityAdministratorsAPITests(OpenbookAPITestCase):
     """
 
     def test_can_search_community_administrators_by_name(self):
-        """
-        should be able to search for community administrators by their name and return 200
-        """
+        """should be able to search for community administrators by their name and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         community = make_community(creator=user)
@@ -529,9 +507,7 @@ class SearchCommunityAdministratorsAPITests(OpenbookAPITestCase):
             )
 
     def test_can_search_community_administrators_by_username(self):
-        """
-        should be able to search for community administrators by their username and return 200
-        """
+        """should be able to search for community administrators by their username and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         community = make_community(creator=user)
