@@ -31,6 +31,7 @@ from openbook_notifications.helpers import (
 )
 from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
 from openbook_posts.query_collections import get_posts_for_user_collection
+from openbook_terms.models import Topic, SDG, Skill
 from openbook_translation import translation_strategy
 from openbook_common.helpers import get_supported_translation_language
 from openbook_common.models import Badge, ModelWithUUID
@@ -4988,9 +4989,9 @@ class UserProfile(ModelWithUUID):
         blank=False,
         null=True,
     )
-    interests = JSONField(null=True, blank=True, default=list)
-    sdgs = JSONField(null=True, blank=True, default=list)
-    skills = JSONField(null=True, blank=True, default=list)
+    interests = models.ManyToManyField(Topic, blank=True)
+    sdgs = models.ManyToManyField(SDG, blank=True)
+    skills = models.ManyToManyField(Skill, blank=True)
     is_of_legal_age = models.BooleanField(default=False)
     avatar = ProcessedImageField(
         verbose_name=_("avatar"),

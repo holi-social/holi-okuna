@@ -42,73 +42,6 @@ class UpdateConnectionWithUserAction:
     DISCONNECT = "DISCONNECT"
 
 
-class User(DjangoObjectType):
-    # normally, all fields could just go in here to be automatically included. but for user the fields are actually in
-    # user.profile instead of user directly, so we have to write custom resolvers.
-    class Meta:
-        model = UserModel
-        fields = ["id"]
-
-    id = graphene.String()
-    avatar = graphene.String()
-    first_name = graphene.String()
-    last_name = graphene.String()
-    about_me = graphene.String()
-    pronouns = graphene.String()
-    location = graphene.String()
-    avatar_default_color = graphene.NonNull(graphene.String)
-    avatar_label = graphene.NonNull(graphene.String)
-    engagement_level = graphene.String()
-    interests = graphene.List(graphene.String)
-    sdgs = graphene.List(graphene.String)
-    skills = graphene.List(graphene.String)
-    connection_status_to_myself = graphene.String()
-
-    def resolve_id(self, info):
-        return self.username
-
-    def resolve_avatar(self, info):
-        return self.profile.avatar
-
-    def resolve_first_name(self, info):
-        return self.profile.name
-
-    def resolve_last_name(self, info):
-        return self.profile.last_name
-
-    def resolve_about_me(self, info):
-        return self.profile.about_me
-
-    def resolve_pronouns(self, info):
-        return self.profile.pronouns
-
-    def resolve_location(self, info):
-        return self.profile.location
-
-    def resolve_avatar_default_color(self, info):
-        return self.avatar_default_color
-
-    def resolve_avatar_label(self, info):
-        return self.avatar_label
-
-    def resolve_engagement_level(self, info):
-        return self.profile.engagement_level
-
-    def resolve_interests(self, info):
-        return self.profile.interests
-
-    def resolve_sdgs(self, info):
-        return self.profile.sdgs
-
-    def resolve_skills(self, info):
-        return self.profile.skills
-
-    def resolve_connection_status_to_myself(self, info):
-        if info.context.user.is_anonymous:
-            return None
-        return info.context.user.get_connection_status_with_user_id(user_id=self.id)
-
-
 class Insight(DjangoObjectType):
     class Meta:
         model = InsightModel
@@ -163,6 +96,73 @@ class SDG(DjangoObjectType):
 class Skill(DjangoObjectType):
     class Meta:
         model = SkillModel
+
+
+class User(DjangoObjectType):
+    # normally, all fields could just go in here to be automatically included. but for user the fields are actually in
+    # user.profile instead of user directly, so we have to write custom resolvers.
+    class Meta:
+        model = UserModel
+        fields = ["id"]
+
+    id = graphene.String()
+    avatar = graphene.String()
+    first_name = graphene.String()
+    last_name = graphene.String()
+    about_me = graphene.String()
+    pronouns = graphene.String()
+    location = graphene.String()
+    avatar_default_color = graphene.NonNull(graphene.String)
+    avatar_label = graphene.NonNull(graphene.String)
+    engagement_level = graphene.String()
+    interests = graphene.List(Topic)
+    sdgs = graphene.List(SDG)
+    skills = graphene.List(Skill)
+    connection_status_to_myself = graphene.String()
+
+    def resolve_id(self, info):
+        return self.username
+
+    def resolve_avatar(self, info):
+        return self.profile.avatar
+
+    def resolve_first_name(self, info):
+        return self.profile.name
+
+    def resolve_last_name(self, info):
+        return self.profile.last_name
+
+    def resolve_about_me(self, info):
+        return self.profile.about_me
+
+    def resolve_pronouns(self, info):
+        return self.profile.pronouns
+
+    def resolve_location(self, info):
+        return self.profile.location
+
+    def resolve_avatar_default_color(self, info):
+        return self.avatar_default_color
+
+    def resolve_avatar_label(self, info):
+        return self.avatar_label
+
+    def resolve_engagement_level(self, info):
+        return self.profile.engagement_level
+
+    def resolve_interests(self, info):
+        return self.profile.interests.all()
+
+    def resolve_sdgs(self, info):
+        return self.profile.sdgs.all()
+
+    def resolve_skills(self, info):
+        return self.profile.skills.all()
+
+    def resolve_connection_status_to_myself(self, info):
+        if info.context.user.is_anonymous:
+            return None
+        return info.context.user.get_connection_status_with_user_id(user_id=self.id)
 
 
 class Query(graphene.ObjectType):
