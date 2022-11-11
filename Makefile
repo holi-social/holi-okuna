@@ -28,7 +28,7 @@ runserver:
 runserver_public:
 	python manage.py runserver 0.0.0.0:8000
 
-load_fixtures: load_circles_fixtures load_emoji_fixtures load_badges_fixtures load_categories_fixtures load_languages_fixtures
+load_fixtures: load_circles_fixtures load_emoji_fixtures load_badges_fixtures load_categories_fixtures load_languages_fixtures load_topics_fixtures load_skills_fixtures load_sdgs_fixtures
 
 load_circles_fixtures:
 	python manage.py loaddata circles.json
@@ -46,3 +46,12 @@ load_categories_fixtures:
 
 load_languages_fixtures:
 	python manage.py loaddata languages.json
+
+load_topics_fixtures:
+    python manage.py loaddata topics.json
+
+load_skills_fixtures:
+    python manage.py loaddata skills.json
+
+load_sdgs_fixtures:
+    python manage.py loaddata sdgs.json
