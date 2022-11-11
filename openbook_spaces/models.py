@@ -10,8 +10,10 @@ from pilkit.processors import ResizeToFit
 from openbook_auth.models import User
 from openbook_common.models import ModelWithUUID
 from openbook_spaces.helpers import upload_to_spaces_main_image_directory
+from openbook_terms.models import Topic
 
 # TODO Think about what to do for storage backend
+
 space_image_storage = default_storage
 
 
@@ -40,6 +42,7 @@ class Space(ModelWithUUID):
     location = models.CharField(
         max_length=settings.SPACE_LOCATION_MAX_LENGTH, blank=True, null=True
     )
+    topics = models.ManyToManyField(Topic, related_name='spaces')
 
 
 class SpaceMember(ModelWithUUID):

@@ -1,6 +1,7 @@
 import graphene
 from datetime import datetime
 from django.db import Error, transaction
+from django.db.models import Q
 from graphene_django import DjangoObjectType
 from graphql import GraphQLError
 from graphene_file_upload.scalars import Upload
@@ -186,7 +187,8 @@ class Query(graphene.ObjectType):
     sdgs = graphene.List(SDG)
     skills = graphene.List(Skill)
     # TODO: define filter params
-    filtered_spaces = graphene.Field(SpaceFilterResult)
+    filtered_spaces = graphene.Field(SpaceFilterResult, location=graphene.String(default_value=None),
+                                     topic_ids=graphene.List(graphene.UUID, default_value=None))
 
     def resolve_authenticated_user(self, info):
         if info.context.user.is_anonymous:
@@ -229,32 +231,6 @@ class Query(graphene.ObjectType):
                 "Post not found", extensions={"code": ErrorCodes.NOT_FOUND}
             )
 
-    def resolve_spaces(self, info, offset=graphene.Int(), limit=graphene.Int()):
-        return SpaceModel.objects.order_by("-created")[offset : offset + limit]
-
-    def resolve_space_by_id(self, info, id):
-        try:
-            return SpaceModel.objects.get(id=id)
-        except SpaceModel.DoesNotExist:
-            raise GraphQLError(
-                "Space not found", extensions={"code": ErrorCodes.NOT_FOUND}
-            )
-
-    def resolve_tasks_by_space_id(
-        self, info, space_id, offset=graphene.Int(), limit=graphene.Int()
-    ):
-        return TaskModel.objects.filter(space__id=space_id).order_by("-created")[
-            offset : offset + limit
-        ]
-
-    def resolve_task_by_id(self, info, id):
-        try:
-            return TaskModel.objects.get(id=id)
-        except TaskModel.DoesNotExist:
-            raise GraphQLError(
-                "Task not found", extensions={"code": ErrorCodes.NOT_FOUND}
-            )
-
     def resolve_topics(self, info):
         return TopicModel.objects.all()
 
@@ -264,18 +240,57 @@ class Query(graphene.ObjectType):
     def resolve_skills(self, info):
         return SkillModel.objects.all()
 
-    def resolve_filtered_spaces(self, info):
-        user = info.context.user
-        if user.is_anonymous:
-            topics = TopicModel.objects.all()
-        else:
-            topics = user.profile.interests.all()
+    def resolve_spaces(self, info, offset, limit):
+        return SpaceModel.objects.order_by("-created")[offset: offset + limit]
+
+    def resolve_space_by_id(self, info, id):
+        try:
+            return SpaceModel.objects.get(id=id)
+        except SpaceModel.DoesNotExist:
+            raise GraphQLError(
+                "Space not found", extensions={"code": ErrorCodes.NOT_FOUND}
+            )
+
+    def resolve_filtered_spaces(self, info, location, topic_ids):
+        print('location=', location)
+        print('topic_ids=', topic_ids)
+
+        # TODO what to do with topic_ids=[]
+        #  - let frontend always pass topic_ids
+        #  - return all topics
+        #  - don't filter by topics but only return location matches (if given)
+
+        if topic_ids is None:
+            user = info.context.user
+            if user.is_anonymous:
+                # TODO maybe constrain / paging, order by ?
+                topics = TopicModel.objects.all()[0:3]  # TODO 0:3 just an assumption
+            else:
+                topics = user.profile.interests.all()[0:3]  # TODO 0:3 just an assumption
+
+        topic_ids =['2ebecfaa-3a6d-4f39-9389-28bbbca628c9', '36a23973-bbdb-4a8b-b4f0-982f9406809d']
+
         # TODO: perform proper filtering by search params, group by topics
-        spaces = SpaceModel.objects.order_by("-created")[0:5]
+        spaces = SpaceModel.objects.filter(topics__id__in=topic_ids).order_by("-created")[0:5]
         return SpaceFilterResult(
             filteredResults=map(lambda t: SpacesForTopic(topic=t, spaces=spaces), topics),
             otherResults=map(lambda t: SpacesForTopic(topic=t, spaces=spaces), topics),
         )
+
+    def resolve_tasks_by_space_id(
+            self, info, space_id, offset=graphene.Int(), limit=graphene.Int()
+    ):
+        return TaskModel.objects.filter(space__id=space_id).order_by("-created")[
+               offset: offset + limit
+               ]
+
+    def resolve_task_by_id(self, info, id):
+        try:
+            return TaskModel.objects.get(id=id)
+        except TaskModel.DoesNotExist:
+            raise GraphQLError(
+                "Task not found", extensions={"code": ErrorCodes.NOT_FOUND}
+            )
 
 
 class UpdateAuthenticatedUserInput(graphene.InputObjectType):
@@ -390,8 +405,8 @@ class UpdateConnectionWithUserMutation(graphene.Mutation):
 
         # Disconnect action (only run if current connection status is different than NOT_CONNECTED)
         elif (
-            data.get("action") == UpdateConnectionWithUserAction.DISCONNECT
-            and current_connection_status != UserConnectionStatus.NOT_CONNECTED
+                data.get("action") == UpdateConnectionWithUserAction.DISCONNECT
+                and current_connection_status != UserConnectionStatus.NOT_CONNECTED
         ):
             authenticated_user.disconnect_from_user_with_id(
                 user_id=userToUpdateConnection.id
