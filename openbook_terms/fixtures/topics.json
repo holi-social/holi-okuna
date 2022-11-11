@@ -1,0 +1,470 @@
+[
+  {
+    "model": "openbook_terms.topic",
+    "pk": "2ebecfaa-3a6d-4f39-9389-28bbbca628c9",
+    "fields": {
+      "title": "Children & Youth",
+      "title_es": null,
+      "title_en": "Children & Youth",
+      "title_de": "Kinder & Jugend",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "36a23973-bbdb-4a8b-b4f0-982f9406809d",
+    "fields": {
+      "title": "Education & Knowledge",
+      "title_es": null,
+      "title_en": "Education & Knowledge",
+      "title_de": "Bildung & Wissen",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "3c285e6f-239e-43a5-ae83-927ce8694ca9",
+    "fields": {
+      "title": "Nutrition",
+      "title_es": null,
+      "title_en": "Nutrition",
+      "title_de": "Ernährung",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "52776394-f255-449f-bd9c-aa880fdf0f42",
+    "fields": {
+      "title": "Disaster Protection",
+      "title_es": null,
+      "title_en": "Disaster Protection",
+      "title_de": "Katastrophenschutz",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "5d004e15-28da-4b98-a78e-f817832b2f52",
+    "fields": {
+      "title": "Digitalization",
+      "title_es": null,
+      "title_en": "Digitalization",
+      "title_de": "Digitalisierung",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "6244ff16-823b-4c51-b695-58b1aadab32c",
+    "fields": {
+      "title": "Europe",
+      "title_es": null,
+      "title_en": "Europe",
+      "title_de": "Europa",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "7b4383f4-d766-4c76-a661-e20a86812352",
+    "fields": {
+      "title": "Environmental Protection",
+      "title_es": null,
+      "title_en": "Environmental Protection",
+      "title_de": "Umweltschutz",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "871ec9d6-1014-4c86-b0b9-fdf441017411",
+    "fields": {
+      "title": "Psychology",
+      "title_es": null,
+      "title_en": "Psychology",
+      "title_de": "Psychologie",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "9adbef9c-17ad-43fb-ba21-549be1b979a9",
+    "fields": {
+      "title": "Religion",
+      "title_es": null,
+      "title_en": "Religion",
+      "title_de": "Religion",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "9b14d7f5-94e0-4c11-a4ed-35b91e376712",
+    "fields": {
+      "title": "Mobility & Infrastructure",
+      "title_es": null,
+      "title_en": "Mobility & Infrastructure",
+      "title_de": "Mobilität & Infrastruktur",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "9cafd8e2-85ab-4e54-9cca-f4327015648a",
+    "fields": {
+      "title": "Human Rights",
+      "title_es": null,
+      "title_en": "Human Rights",
+      "title_de": "Menschenrechte",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "a56b1a9c-d32a-4905-8253-4e7c9b4d181e",
+    "fields": {
+      "title": "Travel",
+      "title_es": null,
+      "title_en": "Travel",
+      "title_de": "Reisen",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "a9932c46-0d75-431b-8ba7-a29e1ec040ab",
+    "fields": {
+      "title": "Migration & Integration",
+      "title_es": null,
+      "title_en": "Migration & Integration",
+      "title_de": "Migration & Integration",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "a9b99cea-bdf6-4fdc-b3ac-de776fb81526",
+    "fields": {
+      "title": "Research & Science",
+      "title_es": null,
+      "title_en": "Research & Science",
+      "title_de": "Forschung & Wissenschaft",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "b54fb72a-fbac-463d-a6b1-eed3d547cd8f",
+    "fields": {
+      "title": "Sustainability",
+      "title_es": null,
+      "title_en": "Sustainability",
+      "title_de": "Nachhaltigkeit",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "cb748e87-cf5d-4c28-9bb6-f6a555e0fd99",
+    "fields": {
+      "title": "Society & Politics",
+      "title_es": null,
+      "title_en": "Society & Politics",
+      "title_de": "Gesellschaft & Politik",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "cbf11d62-eb42-4dc7-a6f9-b2d6c21d3412",
+    "fields": {
+      "title": "Development cooperation",
+      "title_es": null,
+      "title_en": "Development cooperation",
+      "title_de": "Entwicklungszusammenarbeit",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "d61a942c-96f7-4c3e-8fda-aa55ff47a05d",
+    "fields": {
+      "title": "Climate Protection",
+      "title_es": null,
+      "title_en": "Climate Protection",
+      "title_de": "Klimaschutz",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "dc1a3af2-c911-42c0-805f-90ba385bd577",
+    "fields": {
+      "title": "Elderly people (65+)",
+      "title_es": null,
+      "title_en": "Elderly people (65+)",
+      "title_de": "Ältere Menschen (65+)",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "e1f5ba0c-77ce-4a6a-bdbb-0d484e0f6cef",
+    "fields": {
+      "title": "Holi Community",
+      "title_es": null,
+      "title_en": "Holi Community",
+      "title_de": "Holi Community",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "e3f03ff4-b205-4196-9eff-57b80e5b0fff",
+    "fields": {
+      "title": "Animal Welfare",
+      "title_es": null,
+      "title_en": "Animal Welfare",
+      "title_de": "Tierschutz",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "e47ceb10-c3ae-46cb-87d2-066195c6660b",
+    "fields": {
+      "title": "Culture & History",
+      "title_es": null,
+      "title_en": "Culture & History",
+      "title_de": "Kultur & Geschichte",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "e61f3914-930e-4178-a954-73c7a129bd1f",
+    "fields": {
+      "title": "Water & Ocean",
+      "title_es": null,
+      "title_en": "Water & Ocean",
+      "title_de": "Wasser & Meer",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "e6582e73-c2b3-460c-952a-426161e4e130",
+    "fields": {
+      "title": "Language & Literature",
+      "title_es": null,
+      "title_en": "Language & Literature",
+      "title_de": "Sprache & Literatur",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "f754f9a5-3280-435f-ac64-ccae4929b0b6",
+    "fields": {
+      "title": "Health",
+      "title_es": null,
+      "title_en": "Health",
+      "title_de": "Gesundheit",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.topic",
+    "pk": "fd49039a-88b9-43cc-bb0d-793c3f8e3b2b",
+    "fields": {
+      "title": "Corona",
+      "title_es": null,
+      "title_en": "Corona",
+      "title_de": "Corona",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  }
+]
