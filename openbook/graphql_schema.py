@@ -57,17 +57,6 @@ class Space(DjangoObjectType):
         model = SpaceModel
 
 
-class SpacesForTopic(graphene.ObjectType):
-    # TODO: possibly object with id + slug?
-    topic = graphene.String()
-    spaces = graphene.List(Space)
-
-
-class SpaceFilterResult(graphene.ObjectType):
-    filterResults = graphene.List(SpacesForTopic)
-    otherResults = graphene.List(SpacesForTopic)
-
-
 class Task(DjangoObjectType):
     class Meta:
         model = TaskModel
@@ -96,6 +85,16 @@ class SDG(DjangoObjectType):
 class Skill(DjangoObjectType):
     class Meta:
         model = SkillModel
+
+
+class SpacesForTopic(graphene.ObjectType):
+    topic = graphene.Field(Topic)
+    spaces = graphene.List(Space)
+
+
+class SpaceFilterResult(graphene.ObjectType):
+    filteredResults = graphene.List(SpacesForTopic)
+    otherResults = graphene.List(SpacesForTopic)
 
 
 class User(DjangoObjectType):
@@ -267,12 +266,15 @@ class Query(graphene.ObjectType):
 
     def resolve_filtered_spaces(self, info):
         user = info.context.user
-        topics = user.profile.
+        if user.is_anonymous:
+            topics = TopicModel.objects.all()
+        else:
+            topics = user.profile.interests.all()
         # TODO: perform proper filtering by search params, group by topics
         spaces = SpaceModel.objects.order_by("-created")[0:5]
         return SpaceFilterResult(
-            filterResults=[SpacesForTopic(topic="Foo", spaces=spaces)],
-            otherResults=[SpacesForTopic(topic="Foo", spaces=spaces)],
+            filteredResults=map(lambda t: SpacesForTopic(topic=t, spaces=spaces), topics),
+            otherResults=map(lambda t: SpacesForTopic(topic=t, spaces=spaces), topics),
         )
 
 
