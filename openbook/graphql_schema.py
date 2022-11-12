@@ -94,8 +94,8 @@ class SpacesForTopic(graphene.ObjectType):
 
 
 class SpaceFilterResult(graphene.ObjectType):
-    filteredResults = graphene.List(SpacesForTopic)
-    otherResults = graphene.List(SpacesForTopic)
+    filtered_results = graphene.List(SpacesForTopic)
+    other_results = graphene.List(SpacesForTopic)
 
 
 class User(DjangoObjectType):
@@ -251,6 +251,11 @@ class Query(graphene.ObjectType):
                 "Space not found", extensions={"code": ErrorCodes.NOT_FOUND}
             )
 
+    @staticmethod
+    def _spaces_for(topic, location):
+        print('_spaces_for', topic, location)
+        return SpaceModel.objects.filter(Q(topics__in=[topic]) & Q(location=location))
+
     def resolve_filtered_spaces(self, info, location, topic_ids):
         print('location=', location)
         print('topic_ids=', topic_ids)
@@ -260,22 +265,38 @@ class Query(graphene.ObjectType):
         #  - return all topics
         #  - don't filter by topics but only return location matches (if given)
 
+        # TODO alternative approach:
+        #  - let frontend request per topic (in parallel)
+        #  - display skeletons in frontend while loading spaces per topic
+        #    - how to deal with empty topics?
+
+        filter_topics_with_spaces = ~Q(spaces=None)
+        filter_topics_with_spaces_in_location =\
+            Q(spaces__location=location) & ~Q(spaces=None) if location is not None else Q()
+        # TODO this also returns topics that have spaces but that are in a different location
+
         if topic_ids is None:
             user = info.context.user
             if user.is_anonymous:
                 # TODO maybe constrain / paging, order by ?
-                topics = TopicModel.objects.all()[0:3]  # TODO 0:3 just an assumption
+                topics = TopicModel.objects.filter(
+                    filter_topics_with_spaces & filter_topics_with_spaces_in_location
+                )
             else:
-                topics = user.profile.interests.all()[0:3]  # TODO 0:3 just an assumption
+                topics = user.profile.interests.filter(
+                    filter_topics_with_spaces & filter_topics_with_spaces_in_location
+                )
+        else:
+            topics = TopicModel.objects.filter(
+                Q(id__in=topic_ids) & filter_topics_with_spaces & filter_topics_with_spaces_in_location
+            ).all()
 
-        topic_ids =['2ebecfaa-3a6d-4f39-9389-28bbbca628c9', '36a23973-bbdb-4a8b-b4f0-982f9406809d']
+        filtered_results = [SpacesForTopic(topic=topic, spaces=Query._spaces_for(topic, location)) for topic in topics]
+        filtered_results_space_ids = list(chain(*[[s.id for s in sft.spaces] for sft in filtered_results]))
+        other_results = SpaceModel.objects.filter(~Q(id__in=filtered_results_space_ids) & Q(location=location))
 
         # TODO: perform proper filtering by search params, group by topics
-        spaces = SpaceModel.objects.filter(topics__id__in=topic_ids).order_by("-created")[0:5]
-        return SpaceFilterResult(
-            filteredResults=map(lambda t: SpacesForTopic(topic=t, spaces=spaces), topics),
-            otherResults=map(lambda t: SpacesForTopic(topic=t, spaces=spaces), topics),
-        )
+        return SpaceFilterResult(filtered_results, other_results)
 
     def resolve_tasks_by_space_id(
             self, info, space_id, offset=graphene.Int(), limit=graphene.Int()
