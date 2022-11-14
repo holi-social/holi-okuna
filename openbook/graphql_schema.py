@@ -5,7 +5,6 @@ from django.db.models import Q
 from graphene_django import DjangoObjectType
 from graphql import GraphQLError
 from graphene_file_upload.scalars import Upload
-from itertools import chain
 
 from openbook_auth.models import UserConnectionStatus, User as UserModel
 from openbook_auth.views.authenticated_user.serializers import (
@@ -173,9 +172,15 @@ class Query(graphene.ObjectType):
     insight_by_id = graphene.Field(Insight, id=graphene.String())
     post_by_id = graphene.Field(Post, id=graphene.String())
     spaces = graphene.List(
-        Space, offset=graphene.Int(default_value=0), limit=graphene.Int(default_value=5)
+        Space,
+        topic_id=graphene.UUID(required=False, default_value=None),
+        location=graphene.String(required=False, default_value=None),
+        offset=graphene.Int(default_value=0),
+        limit=graphene.Int(default_value=5),
+        required=True
     )
     space_by_id = graphene.Field(Space, id=graphene.String())
+
     tasks_by_space_id = graphene.List(
         Task,
         space_id=graphene.String(),
@@ -186,9 +191,6 @@ class Query(graphene.ObjectType):
     topics = graphene.List(Topic)
     sdgs = graphene.List(SDG)
     skills = graphene.List(Skill)
-    # TODO: define filter params
-    filtered_spaces = graphene.Field(SpaceFilterResult, location=graphene.String(default_value=None),
-                                     topic_ids=graphene.List(graphene.UUID, default_value=None))
 
     def resolve_authenticated_user(self, info):
         if info.context.user.is_anonymous:
@@ -240,8 +242,10 @@ class Query(graphene.ObjectType):
     def resolve_skills(self, info):
         return SkillModel.objects.all()
 
-    def resolve_spaces(self, info, offset, limit):
-        return SpaceModel.objects.order_by("-created")[offset: offset + limit]
+    def resolve_spaces(self, info, topic_id, location_filter, offset, limit):
+        topic_filter = Q(topics__id__contains=topic_id) if topic_id is not None else Q()
+        location_filter = Q(location=location_filter) if location_filter is not None else Q()
+        return SpaceModel.objects.filter(topic_filter, location_filter).order_by("-created")[offset: offset + limit]
 
     def resolve_space_by_id(self, info, id):
         try:
@@ -250,55 +254,6 @@ class Query(graphene.ObjectType):
             raise GraphQLError(
                 "Space not found", extensions={"code": ErrorCodes.NOT_FOUND}
             )
-
-    @staticmethod
-    def _spaces_for(topic, location):
-        print('_spaces_for', topic, location)
-        return SpaceModel.objects.filter(Q(topics__in=[topic]) & Q(location=location))
-
-    def resolve_filtered_spaces(self, info, location, topic_ids):
-        print('location=', location)
-        print('topic_ids=', topic_ids)
-
-        # TODO what to do with topic_ids=[]
-        #  - let frontend always pass topic_ids
-        #  - return all topics
-        #  - don't filter by topics but only return location matches (if given)
-
-        # TODO alternative approach:
-        #  - let frontend request per topic (in parallel)
-        #  - display skeletons in frontend while loading spaces per topic
-        #    - how to deal with empty topics?
-
-        # TODO another alternative: https://docs.djangoproject.com/en/4.1/topics/db/sql/#performing-raw-queries
-
-        filter_topics_with_spaces = ~Q(spaces=None)
-        filter_topics_with_spaces_in_location =\
-            Q(spaces__location=location) & ~Q(spaces=None) if location is not None else Q()
-        # TODO this also returns topics that have spaces but that are in a different location
-
-        if topic_ids is None:
-            user = info.context.user
-            if user.is_anonymous:
-                # TODO maybe constrain / paging, order by ?
-                topics = TopicModel.objects.filter(
-                    filter_topics_with_spaces & filter_topics_with_spaces_in_location
-                )
-            else:
-                topics = user.profile.interests.filter(
-                    filter_topics_with_spaces & filter_topics_with_spaces_in_location
-                )
-        else:
-            topics = TopicModel.objects.filter(
-                Q(id__in=topic_ids) & filter_topics_with_spaces & filter_topics_with_spaces_in_location
-            ).all()
-
-        filtered_results = [SpacesForTopic(topic=topic, spaces=Query._spaces_for(topic, location)) for topic in topics]
-        filtered_results_space_ids = list(chain(*[[s.id for s in sft.spaces] for sft in filtered_results]))
-        other_results = SpaceModel.objects.filter(~Q(id__in=filtered_results_space_ids) & Q(location=location))
-
-        # TODO: perform proper filtering by search params, group by topics
-        return SpaceFilterResult(filtered_results, other_results)
 
     def resolve_tasks_by_space_id(
             self, info, space_id, offset=graphene.Int(), limit=graphene.Int()
