@@ -148,10 +148,11 @@ class Space(DjangoObjectType):
     class Meta:
         model = SpaceModel
 
-    members = graphene.List(User)
+    members = graphene.List(User, offset=graphene.Int(required=False, default_value=0),
+                            limit=graphene.Int(required=False, default_value=10), required=True)
 
-    def resolve_members(self, info):
-        return UserModel.objects.filter(spaces_memberships__space=self).all()
+    def resolve_members(self, info, offset, limit):
+        return UserModel.objects.filter(spaces_memberships__space=self).all()[offset:offset+limit]
 
 
 class Query(graphene.ObjectType):
@@ -237,7 +238,7 @@ class Query(graphene.ObjectType):
 
         return SpaceModel.objects.filter(topic_filter, location_filter).order_by(
             "-created"
-        )[offset : offset + limit]
+        )[offset: offset + limit]
 
     def resolve_space_by_id(self, info, id):
         try:
@@ -248,11 +249,11 @@ class Query(graphene.ObjectType):
             )
 
     def resolve_tasks_by_space_id(
-        self, info, space_id, offset=graphene.Int(), limit=graphene.Int()
+            self, info, space_id, offset=graphene.Int(), limit=graphene.Int()
     ):
         return TaskModel.objects.filter(space__id=space_id).order_by("-created")[
-            offset : offset + limit
-        ]
+               offset: offset + limit
+               ]
 
     def resolve_task_by_id(self, info, id):
         try:
@@ -375,8 +376,8 @@ class UpdateConnectionWithUserMutation(graphene.Mutation):
 
         # Disconnect action (only run if current connection status is different than NOT_CONNECTED)
         elif (
-            data.get("action") == UpdateConnectionWithUserAction.DISCONNECT
-            and current_connection_status != UserConnectionStatus.NOT_CONNECTED
+                data.get("action") == UpdateConnectionWithUserAction.DISCONNECT
+                and current_connection_status != UserConnectionStatus.NOT_CONNECTED
         ):
             authenticated_user.disconnect_from_user_with_id(
                 user_id=userToUpdateConnection.id

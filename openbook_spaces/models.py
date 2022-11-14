@@ -44,6 +44,9 @@ class Space(ModelWithUUID):
     )
     topics = models.ManyToManyField(Topic, related_name='spaces')
 
+    def __str__(self):
+        return f"{self.__class__.__name__}: {self.title} ({self.id})"
+
 
 class SpaceMember(ModelWithUUID):
     member = models.ForeignKey(
