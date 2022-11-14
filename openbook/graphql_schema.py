@@ -264,7 +264,7 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
     class Arguments:
         input = graphene.Argument(UpdateAuthenticatedUserInput)
 
-    authenticated_user = graphene.Field(User)
+    Output = User
 
     @classmethod
     def mutate(cls, root, info, input):
@@ -306,7 +306,7 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
                 delete_avatar(data["avatar"])
             raise
 
-        return UpdateAuthenticatedUserMutation(authenticated_user=authenticated_user)
+        return authenticated_user
 
 
 class UpdateConnectionWithUserInput(graphene.InputObjectType):
@@ -318,7 +318,7 @@ class UpdateConnectionWithUserMutation(graphene.Mutation):
     class Arguments:
         input = graphene.Argument(UpdateConnectionWithUserInput)
 
-    user_by_id = graphene.Field(User)
+    Output = User
 
     @classmethod
     def mutate(cls, root, info, input):
@@ -366,7 +366,7 @@ class UpdateConnectionWithUserMutation(graphene.Mutation):
                 user_id=userToUpdateConnection.id
             )
 
-        return UpdateConnectionWithUserMutation(user_by_id=userToUpdateConnection)
+        return userToUpdateConnection
 
 
 class CreatePostCommentInput(graphene.InputObjectType):
@@ -374,7 +374,7 @@ class CreatePostCommentInput(graphene.InputObjectType):
     text = graphene.String()
 
 
-class CreatePostCommentMutation(graphene.Mutation):
+class UpdatePostCommentMutation(graphene.Mutation):
     class Arguments:
         input = graphene.Argument(CreatePostCommentInput)
 
@@ -404,7 +404,7 @@ class CreatePostCommentMutation(graphene.Mutation):
 
         post_by_id = PostModel.objects.get(id=post_id)
 
-        return CreatePostCommentMutation(
+        return UpdatePostCommentMutation(
             post_comment=post_comment, post_by_id=post_by_id
         )
 
@@ -412,7 +412,7 @@ class CreatePostCommentMutation(graphene.Mutation):
 class Mutation(graphene.ObjectType):
     update_authenticated_user = UpdateAuthenticatedUserMutation.Field()
     update_connection_with_user = UpdateConnectionWithUserMutation.Field()
-    update_post_comment = CreatePostCommentMutation.Field()
+    update_post_comment = UpdatePostCommentMutation.Field()
 
 
 # noinspection PyTypeChecker

@@ -154,6 +154,13 @@ See `.env` for `RDS_USERNAME` and `RDS_PASSWORD`
 psql -h localhost okuna -U <RDS_USERNAME>
 ```
 
+## Admin Dashboard
+When using a local database, first execute `python manage.py createsuperuser` to create an admin account with your
+desired credentials.
+If you are connected to the staging database, use the credentials found in [Passbolt](https://cloud.passbolt.com/holi/app/passwords)
+
+After starting Okuna, you can access the admin ui at `http://localhost:8000/admin/`
+
 ## Pycharm
 Shared run configurations can be found in the `.run` subfolder.
 You can use these to start your dev server or run tests.
