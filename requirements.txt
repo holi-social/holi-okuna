@@ -41,7 +41,7 @@ gitpython==3.1.29; python_version >= '3.4'
 graphene-django==3.0.0
 graphene-file-upload==1.3.0
 halo==0.0.31
-imagekitio==3.0.1
+imagekitio==2.2.8
 langdetect==1.0.9
 log-symbols==0.0.14
 mixer==7.2.2
