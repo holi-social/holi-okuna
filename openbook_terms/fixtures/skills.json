@@ -1,0 +1,740 @@
+[
+  {
+    "model": "openbook_terms.skill",
+    "pk": "034c3b44-db37-4deb-a3bd-0ccac511b196",
+    "fields": {
+      "title": "Willingness to Learn",
+      "title_es": null,
+      "title_en": "Willingness to Learn",
+      "title_de": "Lernbereitschaft",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "04b40644-bac2-4f2c-b8d0-cc5177592d0c",
+    "fields": {
+      "title": "Holistic Thinking",
+      "title_es": null,
+      "title_en": "Holistic Thinking",
+      "title_de": "Ganzheitliches Denken",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "0b24c12f-b5a8-43d4-ade6-00fef9da1832",
+    "fields": {
+      "title": "Self-confident Appearance",
+      "title_es": null,
+      "title_en": "Self-confident Appearance",
+      "title_de": "Selbstbewusstes Auftreten",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "11fa947d-562f-42c1-b3b5-90e095072fbd",
+    "fields": {
+      "title": "Assertiveness",
+      "title_es": null,
+      "title_en": "Assertiveness",
+      "title_de": "Durchsetzungsvermögen",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "15c5f360-76dd-442d-9153-4f57ff5a4639",
+    "fields": {
+      "title": "Coping with Stress",
+      "title_es": null,
+      "title_en": "Coping with Stress",
+      "title_de": "Mit Stress umgehen",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "1bd06821-176b-4073-b518-f4b2dc42be4c",
+    "fields": {
+      "title": "Futability & Foresight Thinking",
+      "title_es": null,
+      "title_en": "Futability & Foresight Thinking",
+      "title_de": "Umsetzbarkeit und vorausschauendes Denken",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "1d1a7b97-f60b-48bc-af01-2f4d8f494e56",
+    "fields": {
+      "title": "Ability to self-reflect",
+      "title_es": null,
+      "title_en": "Ability to self-reflect",
+      "title_de": "Fähigkeit zur Selbstreflektion",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "324cbc72-ad25-42a7-b586-26482ee50f9d",
+    "fields": {
+      "title": "Teamwork",
+      "title_es": null,
+      "title_en": "Teamwork",
+      "title_de": "Teamwork",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "32f2f1ff-927a-4569-9a1f-06875aef30cc",
+    "fields": {
+      "title": "Analysis Ability",
+      "title_es": null,
+      "title_en": "Analysis Ability",
+      "title_de": "Analysefähigkeit",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "33ad082e-8249-4abe-8268-c76560402cf9",
+    "fields": {
+      "title": "Conflict Resolution",
+      "title_es": null,
+      "title_en": "Conflict Resolution",
+      "title_de": "Konfliktmanagement",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "387a0dab-6ff7-4659-813e-a7012a8df987",
+    "fields": {
+      "title": "Humor",
+      "title_es": null,
+      "title_en": "Humor",
+      "title_de": "Humor",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "4354026d-fa20-4447-8c34-e5971992353d",
+    "fields": {
+      "title": "Openness",
+      "title_es": null,
+      "title_en": "Openness",
+      "title_de": "Offenheit",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "54a66852-9cb9-4b50-8363-40685aec5cbb",
+    "fields": {
+      "title": "Resilience",
+      "title_es": null,
+      "title_en": "Resilience",
+      "title_de": "Resilienz",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "63bd3ea6-4a59-490f-919f-faf11d260eff",
+    "fields": {
+      "title": "Time Management",
+      "title_es": null,
+      "title_en": "Time Management",
+      "title_de": "Zeitmanagement",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "66fcb820-d3af-4bb7-a2d2-1beea55aa75c",
+    "fields": {
+      "title": "Creativity",
+      "title_es": null,
+      "title_en": "Creativity",
+      "title_de": "Kreativität",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "68a96fea-1c79-46d0-9806-15853c9a7860",
+    "fields": {
+      "title": "Discipline",
+      "title_es": null,
+      "title_en": "Discipline",
+      "title_de": "Disziplin",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "72163014-f154-49ee-956d-4180963f68d3",
+    "fields": {
+      "title": "Organizational Skills",
+      "title_es": null,
+      "title_en": "Organizational Skills",
+      "title_de": "Organisationstalent",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "738af6ed-b6bb-4f7f-91a8-bfa7fd5864f3",
+    "fields": {
+      "title": "Empathy",
+      "title_es": null,
+      "title_en": "Empathy",
+      "title_de": "Empathie",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "788d1876-a9a0-481d-ae19-6ec3138ba43b",
+    "fields": {
+      "title": "Gender Competence & Diversity",
+      "title_es": null,
+      "title_en": "Gender Competence & Diversity",
+      "title_de": "Geschlechter-Kompetenz und Diversität",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "7be2de3c-4caa-43f1-b46d-3be6b24ed851",
+    "fields": {
+      "title": "Mindfulness",
+      "title_es": null,
+      "title_en": "Mindfulness",
+      "title_de": "Achtsamkeit",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "8a399f2b-618b-4eb3-aa2b-aca87b8d7bd4",
+    "fields": {
+      "title": "Leadership",
+      "title_es": null,
+      "title_en": "Leadership",
+      "title_de": "Führung",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "8b3277c3-1781-4403-a666-4a7a5bdec603",
+    "fields": {
+      "title": "Oral and Written Expressiveness",
+      "title_es": null,
+      "title_en": "Oral and Written Expressiveness",
+      "title_de": "Mündliche und schrichtliche Ausdruckskraft",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "8b3d2ff2-981b-4c74-ba6e-80a95cea3706",
+    "fields": {
+      "title": "Relationship Competence",
+      "title_es": null,
+      "title_en": "Relationship Competence",
+      "title_de": "Beziehungskompetenz",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "942dd2eb-5ab7-43b3-acbe-9f26964356c3",
+    "fields": {
+      "title": "Independence",
+      "title_es": null,
+      "title_en": "Independence",
+      "title_de": "Unabhängigkeit",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "a4c26bff-1f64-4ed3-94dd-cfca61e1f333",
+    "fields": {
+      "title": "Reliability",
+      "title_es": null,
+      "title_en": "Reliability",
+      "title_de": "Zuverlässigkeit",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "a7c5b6b1-76e9-4807-bb48-29a1bf7444a7",
+    "fields": {
+      "title": "Sense of Responsibility",
+      "title_es": null,
+      "title_en": "Sense of Responsibility",
+      "title_de": "Verantwortungsbewusst",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "ab15c947-3da5-4259-9617-cc066aa98ba3",
+    "fields": {
+      "title": "Logical Thinking",
+      "title_es": null,
+      "title_en": "Logical Thinking",
+      "title_de": "Logisches Denken",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "b63ad40b-ecb8-44ce-9af8-129de3785f09",
+    "fields": {
+      "title": "Environmental Awareness",
+      "title_es": null,
+      "title_en": "Environmental Awareness",
+      "title_de": "Umweltbewusstsein",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "cf7004eb-1a85-4aec-9a14-5490bc12e39e",
+    "fields": {
+      "title": "Negotiation Skills",
+      "title_es": null,
+      "title_en": "Negotiation Skills",
+      "title_de": "Verhandlungsgeschick",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "d0212762-4cf4-410e-99b9-1b18e0850608",
+    "fields": {
+      "title": "Concept Development",
+      "title_es": null,
+      "title_en": "Concept Development",
+      "title_de": "Entwicklung von Konzepten",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "d0924663-41ab-4b14-8e48-f2634a91e98a",
+    "fields": {
+      "title": "Engagement & commitment",
+      "title_es": null,
+      "title_en": "Engagement & commitment",
+      "title_de": "Engagement",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "d80ae213-abdd-4856-8914-65f352f492b9",
+    "fields": {
+      "title": "Communication Skills",
+      "title_es": null,
+      "title_en": "Communication Skills",
+      "title_de": "Kommunikationsfähigkeit",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "d8be32f6-16b0-4700-9659-67eb57cdad28",
+    "fields": {
+      "title": "Give Feedback",
+      "title_es": null,
+      "title_en": "Give Feedback",
+      "title_de": "Feedback geben",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "da1d3702-5bcc-4eac-8b93-aedd8c6af102",
+    "fields": {
+      "title": "Initiative and Energy",
+      "title_es": null,
+      "title_en": "Initiative and Energy",
+      "title_de": "Initiative and Energie",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "df485e09-9e38-420b-a990-fc94211e1b84",
+    "fields": {
+      "title": "Knowledge Management",
+      "title_es": null,
+      "title_en": "Knowledge Management",
+      "title_de": "Wissensmanagement",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "f41f74aa-ba5f-4742-94e4-446276b7e906",
+    "fields": {
+      "title": "Loyalty",
+      "title_es": null,
+      "title_en": "Loyalty",
+      "title_de": "Loyalität",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "f4331151-d740-43cd-b752-6ce7d3976b2c",
+    "fields": {
+      "title": "Adaptability",
+      "title_es": null,
+      "title_en": "Adaptability",
+      "title_de": "Anpassungsfähigkeit",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "f8399855-4123-4ed6-9595-e0fb65bc2ade",
+    "fields": {
+      "title": "Personal Responsibility",
+      "title_es": null,
+      "title_en": "Personal Responsibility",
+      "title_de": "Persönliche Verantwortung",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "fcc4a764-d646-4fc6-ba8a-41dc4e224022",
+    "fields": {
+      "title": "Transferability",
+      "title_es": null,
+      "title_en": "Transferability",
+      "title_de": "Übertragbarkeit",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "fe09d17f-656b-4da7-8eef-f7b62bbca232",
+    "fields": {
+      "title": "Motivation",
+      "title_es": null,
+      "title_en": "Motivation",
+      "title_de": "Motivation",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.skill",
+    "pk": "ffbbc72f-5247-4246-abdd-ca28da934214",
+    "fields": {
+      "title": "Solution-oriented",
+      "title_es": null,
+      "title_en": "Solution-oriented",
+      "title_de": "Lösungsorientiert",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  }
+]
