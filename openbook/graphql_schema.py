@@ -270,6 +270,8 @@ class Query(graphene.ObjectType):
         #  - display skeletons in frontend while loading spaces per topic
         #    - how to deal with empty topics?
 
+        # TODO another alternative: https://docs.djangoproject.com/en/4.1/topics/db/sql/#performing-raw-queries
+
         filter_topics_with_spaces = ~Q(spaces=None)
         filter_topics_with_spaces_in_location =\
             Q(spaces__location=location) & ~Q(spaces=None) if location is not None else Q()
