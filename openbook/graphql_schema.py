@@ -47,16 +47,6 @@ class Insight(DjangoObjectType):
         model = InsightModel
 
 
-class SpaceMember(DjangoObjectType):
-    class Meta:
-        model = SpaceMemberModel
-
-
-class Space(DjangoObjectType):
-    class Meta:
-        model = SpaceModel
-
-
 class Task(DjangoObjectType):
     class Meta:
         model = TaskModel
@@ -85,16 +75,6 @@ class SDG(DjangoObjectType):
 class Skill(DjangoObjectType):
     class Meta:
         model = SkillModel
-
-
-class SpacesForTopic(graphene.ObjectType):
-    topic = graphene.Field(Topic)
-    spaces = graphene.List(Space)
-
-
-class SpaceFilterResult(graphene.ObjectType):
-    filtered_results = graphene.List(SpacesForTopic)
-    other_results = graphene.List(SpacesForTopic)
 
 
 class User(DjangoObjectType):
@@ -162,6 +142,16 @@ class User(DjangoObjectType):
         if info.context.user.is_anonymous:
             return None
         return info.context.user.get_connection_status_with_user_id(user_id=self.id)
+
+
+class Space(DjangoObjectType):
+    class Meta:
+        model = SpaceModel
+
+    members = graphene.List(User)
+
+    def resolve_members(self, info):
+        return UserModel.objects.filter(spaces_memberships__space=self).all()
 
 
 class Query(graphene.ObjectType):

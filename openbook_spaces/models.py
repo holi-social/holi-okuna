@@ -46,11 +46,11 @@ class Space(ModelWithUUID):
 
 
 class SpaceMember(ModelWithUUID):
+    member = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="spaces_memberships", null=True, blank=True
+    )
     space = models.ForeignKey(
         Space, on_delete=models.CASCADE, related_name="members", null=True, blank=True
-    )
-    member = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="spaces", null=True, blank=True
     )
 
     class Meta:
