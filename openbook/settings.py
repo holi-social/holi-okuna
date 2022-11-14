@@ -78,6 +78,9 @@ logging.config.dictConfig(
                 "handlers": ["console"],
                 "filters": ["graphql_log_filter"],
             },
+            # "django.db.backends": {
+            #     "level": "DEBUG",
+            # },
         },
     }
 )

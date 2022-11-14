@@ -177,10 +177,9 @@ class Query(graphene.ObjectType):
         location=graphene.String(required=False, default_value=None),
         offset=graphene.Int(default_value=0),
         limit=graphene.Int(default_value=5),
-        required=True
+        required=True,
     )
     space_by_id = graphene.Field(Space, id=graphene.String())
-
     tasks_by_space_id = graphene.List(
         Task,
         space_id=graphene.String(),
@@ -242,10 +241,13 @@ class Query(graphene.ObjectType):
     def resolve_skills(self, info):
         return SkillModel.objects.all()
 
-    def resolve_spaces(self, info, topic_id, location_filter, offset, limit):
+    def resolve_spaces(self, info, topic_id, location, offset, limit):
         topic_filter = Q(topics__id__contains=topic_id) if topic_id is not None else Q()
-        location_filter = Q(location=location_filter) if location_filter is not None else Q()
-        return SpaceModel.objects.filter(topic_filter, location_filter).order_by("-created")[offset: offset + limit]
+        location_filter = Q(location=location) if location is not None else Q()
+
+        return SpaceModel.objects.filter(topic_filter, location_filter).order_by(
+            "-created"
+        )[offset : offset + limit]
 
     def resolve_space_by_id(self, info, id):
         try:
@@ -256,11 +258,11 @@ class Query(graphene.ObjectType):
             )
 
     def resolve_tasks_by_space_id(
-            self, info, space_id, offset=graphene.Int(), limit=graphene.Int()
+        self, info, space_id, offset=graphene.Int(), limit=graphene.Int()
     ):
         return TaskModel.objects.filter(space__id=space_id).order_by("-created")[
-               offset: offset + limit
-               ]
+            offset : offset + limit
+        ]
 
     def resolve_task_by_id(self, info, id):
         try:
@@ -383,8 +385,8 @@ class UpdateConnectionWithUserMutation(graphene.Mutation):
 
         # Disconnect action (only run if current connection status is different than NOT_CONNECTED)
         elif (
-                data.get("action") == UpdateConnectionWithUserAction.DISCONNECT
-                and current_connection_status != UserConnectionStatus.NOT_CONNECTED
+            data.get("action") == UpdateConnectionWithUserAction.DISCONNECT
+            and current_connection_status != UserConnectionStatus.NOT_CONNECTED
         ):
             authenticated_user.disconnect_from_user_with_id(
                 user_id=userToUpdateConnection.id
