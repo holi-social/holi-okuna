@@ -51,4 +51,4 @@ class Task(ModelWithUUID):
         max_length=13,
         choices=Regularity.choices,
     )
-    skills = models.ManyToManyField(Skill, blank=True)
+    skills = models.ManyToManyField(Skill, related_name="tasks", blank=True)
