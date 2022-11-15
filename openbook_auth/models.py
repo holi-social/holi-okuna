@@ -749,11 +749,11 @@ class User(AbstractUser):
         if engagement_level:
             self.update_engagement_level(engagement_level)
         if interests is not None:
-            profile.interests = interests
+            profile.interests.set(interests)
         if sdgs is not None:
-            profile.sdgs = sdgs
+            profile.sdgs.set(sdgs)
         if skills is not None:
-            profile.skills = skills
+            profile.skills.set(skills)
 
         # TODO integrate our image provider service in order to delete previous avatars (extending delete_profile_avatar)
         if update_avatar:

@@ -2,6 +2,8 @@ import unittest
 from unittest import mock
 
 from urllib.parse import urlsplit
+
+from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
 from faker import Faker
 from rest_framework import status
@@ -32,6 +34,11 @@ from openbook_common.tests.helpers import (
     make_user_last_name,
     make_user_name,
 )
+from openbook_common.utils.model_loaders import (
+    get_skill_model,
+    get_sdg_model,
+    get_topic_model,
+)
 from openbook_common.utils.test import uuid_id_parser
 
 fake = Faker()
@@ -44,7 +51,12 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
     AuthenticatedUserAPI
     """
 
-    fixtures = ["openbook_circles/fixtures/circles.json"]
+    fixtures = [
+        "openbook_circles/fixtures/circles.json",
+        "openbook_terms/fixtures/topics.json",
+        "openbook_terms/fixtures/skills.json",
+        "openbook_terms/fixtures/sdgs.json",
+    ]
 
     def test_can_retrieve_user(self):
         """should return 200 and the data of the authenticated user"""
@@ -157,23 +169,32 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
     def test_can_update_user_profile_interests(self):
         """should be able to update the authenticated user profile interests and return 200"""
+        topics = [t.id for t in get_topic_model().objects.all()[1::5]]
         self._test_can_update_user_profile_field(
             "interests",
-            lambda user: user.profile.interests,
-            make_user_interests(),
+            lambda user: [t.id for t in user.profile.interests.all()],
+            topics,
             as_json=True,
         )
 
     def test_can_update_user_profile_sdgs(self):
         """should be able to update the authenticated user profile sdgs and return 200"""
+        sdgs = [s.id for s in get_sdg_model().objects.all()[1::5]]
         self._test_can_update_user_profile_field(
-            "sdgs", lambda user: user.profile.sdgs, make_user_sdgs(), as_json=True
+            "sdgs",
+            lambda user: [s.id for s in user.profile.sdgs.all()],
+            sdgs,
+            as_json=True,
         )
 
     def test_can_update_user_profile_skills(self):
         """should be able to update the authenticated user profile skills and return 200"""
+        skills = [s.id for s in get_skill_model().objects.all()[1::5]]
         self._test_can_update_user_profile_field(
-            "skills", lambda user: user.profile.skills, make_user_skills(), as_json=True
+            "skills",
+            lambda user: [s.id for s in user.profile.skills.all()],
+            skills,
+            as_json=True,
         )
 
     def test_can_update_user_profile_location(self):
@@ -267,7 +288,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         if as_json:
-            data = {field_name: json.dumps(update_value)}
+            data = {field_name: json.dumps(update_value, cls=DjangoJSONEncoder)}
         else:
             data = {field_name: update_value}
 

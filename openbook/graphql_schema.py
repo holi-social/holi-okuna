@@ -278,9 +278,9 @@ class UpdateAuthenticatedUserInput(graphene.InputObjectType):
     pronouns = graphene.String()
     location = graphene.String()
     engagement_level = graphene.String()
-    interests = graphene.List(graphene.String)
-    sdgs = graphene.List(graphene.String)
-    skills = graphene.List(graphene.String)
+    interests = graphene.List(graphene.UUID)
+    sdgs = graphene.List(graphene.UUID)
+    skills = graphene.List(graphene.UUID)
 
 
 class UpdateAuthenticatedUserMutation(graphene.Mutation):
