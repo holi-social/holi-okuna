@@ -97,7 +97,7 @@ def make_hashtag(name=None):
 
 
 def make_hashtag_name():
-    return fake.word().lower()
+    return fake.unique.word().lower()
 
 
 def make_emoji_group(is_reaction_group=False):
