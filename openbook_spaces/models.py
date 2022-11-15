@@ -35,14 +35,16 @@ class Space(ModelWithUUID):
         null=True,
         format="JPEG",
         options={"quality": 90},
-        processors=[ResizeToFit(width=settings.SPACE_IMAGE_RESIZE_WIDTH, upscale=False)],
+        processors=[
+            ResizeToFit(width=settings.SPACE_IMAGE_RESIZE_WIDTH, upscale=False)
+        ],
         upload_to=upload_to_spaces_main_image_directory,
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     location = models.CharField(
         max_length=settings.SPACE_LOCATION_MAX_LENGTH, blank=True, null=True
     )
-    topics = models.ManyToManyField(Topic, related_name='spaces')
+    topics = models.ManyToManyField(Topic, related_name="spaces")
 
     def __str__(self):
         return f"{self.__class__.__name__}: {self.title} ({self.id})"
@@ -50,7 +52,11 @@ class Space(ModelWithUUID):
 
 class SpaceMember(ModelWithUUID):
     member = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="spaces_memberships", null=True, blank=True
+        User,
+        on_delete=models.CASCADE,
+        related_name="spaces_memberships",
+        null=True,
+        blank=True,
     )
     space = models.ForeignKey(
         Space, on_delete=models.CASCADE, related_name="members", null=True, blank=True
