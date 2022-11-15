@@ -10,7 +10,7 @@ from pilkit.processors import ResizeToFit
 from openbook_auth.models import User
 from openbook_common.models import ModelWithUUID
 from openbook_spaces.helpers import upload_to_spaces_main_image_directory
-from openbook_terms.models import Topic
+from openbook_terms.models import Topic, Skill
 
 # TODO Think about what to do for storage backend
 
@@ -100,3 +100,4 @@ class Task(ModelWithUUID):
         max_length=13,
         choices=Regularity.choices,
     )
+    skills = models.ManyToManyField(Skill, related_name="tasks", blank=True)
