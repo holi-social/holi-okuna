@@ -5,6 +5,7 @@ from rest_framework.exceptions import ValidationError, NotFound
 
 from openbook import settings
 from openbook_auth.models import User
+from openbook_terms.models import Topic, SDG, Skill
 
 
 def username_characters_validator(username):
@@ -44,40 +45,22 @@ def user_email_exists(email):
         )
 
 
-def interests_json_validator(interests):
-    if type(interests) is not list:
-        raise ValidationError(_("User interests must be a valid JSON list"))
-    for interest in interests:
-        if type(interest) is not str:
-            raise ValidationError(_("User interests must be strings"))
-        if len(interest) > settings.PROFILE_INTEREST_MAX_LENGTH:
-            raise ValidationError(
-                _("User interests may not be more than %s characters long")
-                % settings.PROFILE_INTEREST_MAX_LENGTH
-            )
+def interests_json_validator(interest_uuid):
+    if not Topic.objects.filter(id=interest_uuid).exists():
+        raise NotFound(
+            _("Unknown UUID '" + interest_uuid + "' contained in interests array")
+        )
 
 
-def sdgs_json_validator(sdgs):
-    if type(sdgs) is not list:
-        raise ValidationError(_("User SDGs must be a valid JSON list"))
-    for sdg in sdgs:
-        if type(sdg) is not str:
-            raise ValidationError(_("User SDGs must be strings"))
-        if len(sdg) > settings.PROFILE_SDG_MAX_LENGTH:
-            raise ValidationError(
-                _("User SDGs may not be more than %s characters long")
-                % settings.PROFILE_SDG_MAX_LENGTH
-            )
+def sdgs_json_validator(sdg_uuid):
+    if not SDG.objects.filter(id=sdg_uuid).exists():
+        raise NotFound(
+            _("Unknown UUID '" + sdg_uuid + "' contained in sdgs array")
+        )
 
 
-def skills_json_validator(skills):
-    if type(skills) is not list:
-        raise ValidationError(_("User skills must be a valid JSON array"))
-    for skill in skills:
-        if type(skill) is not str:
-            raise ValidationError(_("User skills must be strings"))
-        if len(skill) > settings.PROFILE_SDG_MAX_LENGTH:
-            raise ValidationError(
-                _("User skills may not be more than %s characters long")
-                % settings.PROFILE_SDG_MAX_LENGTH
-            )
+def skills_json_validator(skill_uuid):
+    if not SDG.objects.filter(id=skill_uuid).exists():
+        raise NotFound(
+            _("Unknown UUID '" + skill_uuid + "' contained in skills array")
+        )

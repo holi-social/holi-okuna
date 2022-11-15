@@ -227,11 +227,21 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
         choices=EngagementLevelChoice.choices, required=False, allow_blank=True
     )
 
-    interests = serializers.JSONField(
-        required=False, validators=[interests_json_validator]
+    interests = serializers.ListSerializer(
+        required=False,
+        allow_empty=True,
+        child=serializers.UUIDField(validators=[interests_json_validator])
     )
-    sdgs = serializers.JSONField(required=False, validators=[sdgs_json_validator])
-    skills = serializers.JSONField(required=False, validators=[skills_json_validator])
+    sdgs = serializers.ListSerializer(
+        required=False,
+        allow_empty=True,
+        child=serializers.UUIDField(validators=[sdgs_json_validator])
+    )
+    skills = serializers.ListSerializer(
+        required=False,
+        allow_empty=True,
+        child=serializers.UUIDField(validators=[skills_json_validator])
+    )
 
 
 class DeleteAuthenticatedUserSerializer(serializers.Serializer):
