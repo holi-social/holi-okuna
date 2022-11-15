@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 # Create your models here.
 from openbook_auth.models import User
 from openbook_common.models import ModelWithUUID
+from openbook_terms.models import Skill
 
 
 class Space(ModelWithUUID):
@@ -50,3 +51,4 @@ class Task(ModelWithUUID):
         max_length=13,
         choices=Regularity.choices,
     )
+    skills = models.ManyToManyField(Skill, related_name="tasks", blank=True)
