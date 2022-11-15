@@ -54,13 +54,9 @@ def interests_json_validator(interest_uuid):
 
 def sdgs_json_validator(sdg_uuid):
     if not SDG.objects.filter(id=sdg_uuid).exists():
-        raise NotFound(
-            _("Unknown UUID '" + sdg_uuid + "' contained in sdgs array")
-        )
+        raise NotFound(_("Unknown UUID '" + sdg_uuid + "' contained in sdgs array"))
 
 
 def skills_json_validator(skill_uuid):
     if not SDG.objects.filter(id=skill_uuid).exists():
-        raise NotFound(
-            _("Unknown UUID '" + skill_uuid + "' contained in skills array")
-        )
+        raise NotFound(_("Unknown UUID '" + skill_uuid + "' contained in skills array"))
