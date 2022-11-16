@@ -819,7 +819,7 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        similar_username = fake.user_name()
+        similar_username = fake.unique.user_name()
 
         community_creator = make_user(username=similar_username + fake.word())
         community = make_community(creator=community_creator, type="P")
