@@ -161,6 +161,35 @@ class Space(DjangoObjectType):
         ]
 
 
+class PagedResponse(graphene.ObjectType):
+    total_results = graphene.Int()
+
+
+class PagedTopics(graphene.ObjectType):
+    data = graphene.List(Topic, required=True)
+    total_results = graphene.Int(required=True)
+
+
+class PagedSkills(graphene.ObjectType):
+    data = graphene.List(Skill, required=True)
+    total_results = graphene.Int(required=True)
+
+
+class PagedSDGs(graphene.ObjectType):
+    data = graphene.List(SDG, required=True)
+    total_results = graphene.Int(required=True)
+
+
+class PagedSpaces(graphene.ObjectType):
+    data = graphene.List(Space, required=True)
+    total_results = graphene.Int(required=True)
+
+
+class PagedTasks(graphene.ObjectType):
+    data = graphene.List(Task, required=True)
+    total_results = graphene.Int(required=True)
+
+
 class Query(graphene.ObjectType):
     authenticated_user = graphene.Field(User)
     user_by_id = graphene.Field(User, id=graphene.String())
@@ -168,8 +197,8 @@ class Query(graphene.ObjectType):
     last_insights = graphene.List(Insight, numberOfItems=graphene.Int())
     insight_by_id = graphene.Field(Insight, id=graphene.String())
     post_by_id = graphene.Field(Post, id=graphene.String())
-    spaces = graphene.List(
-        Space,
+    spaces = graphene.Field(
+        PagedSpaces,
         topic_id=graphene.UUID(required=False, default_value=None),
         location=graphene.String(required=False, default_value=None),
         offset=graphene.Int(default_value=0),
@@ -177,16 +206,17 @@ class Query(graphene.ObjectType):
         required=True,
     )
     space_by_id = graphene.Field(Space, id=graphene.String())
-    tasks_by_space_id = graphene.List(
-        Task,
+    tasks_by_space_id = graphene.Field(
+        PagedTasks,
         space_id=graphene.String(),
         offset=graphene.Int(default_value=0),
         limit=graphene.Int(default_value=5),
+        required=True,
     )
     task_by_id = graphene.Field(Task, id=graphene.String())
-    topics = graphene.List(Topic)
-    sdgs = graphene.List(SDG)
-    skills = graphene.List(Skill)
+    topics = graphene.Field(PagedTopics)
+    sdgs = graphene.Field(PagedSDGs)
+    skills = graphene.Field(PagedSkills)
 
     def resolve_authenticated_user(self, info):
         if info.context.user.is_anonymous:
@@ -230,21 +260,29 @@ class Query(graphene.ObjectType):
             )
 
     def resolve_topics(self, info):
-        return TopicModel.objects.all()
+        return PagedTopics(
+            data=TopicModel.objects.all(), total_results=TopicModel.objects.count()
+        )
 
     def resolve_sdgs(self, info):
-        return SDGModel.objects.all()
+        return PagedSDGs(
+            data=SDGModel.objects.all(), total_results=SDGModel.objects.count()
+        )
 
     def resolve_skills(self, info):
-        return SkillModel.objects.all()
+        data = SkillModel.objects.all()
+        return PagedSkills(data=data, total_results=data.count())
 
     def resolve_spaces(self, info, topic_id, location, offset, limit):
         topic_filter = Q(topics__id__contains=topic_id) if topic_id is not None else Q()
         location_filter = Q(location=location) if location is not None else Q()
 
-        return SpaceModel.objects.filter(topic_filter, location_filter).order_by(
+        data = SpaceModel.objects.filter(topic_filter, location_filter).order_by(
             "-created"
-        )[offset : offset + limit]
+        )
+        return PagedSpaces(
+            data=data[offset : offset + limit], total_results=data.count()
+        )
 
     def resolve_space_by_id(self, info, id):
         try:
@@ -257,9 +295,10 @@ class Query(graphene.ObjectType):
     def resolve_tasks_by_space_id(
         self, info, space_id, offset=graphene.Int(), limit=graphene.Int()
     ):
-        return TaskModel.objects.filter(space__id=space_id).order_by("-created")[
-            offset : offset + limit
-        ]
+        data = TaskModel.objects.filter(space__id=space_id).order_by("-created")
+        return PagedTasks(
+            data=data[offset : offset + limit], total_results=data.count()
+        )
 
     def resolve_task_by_id(self, info, id):
         try:
