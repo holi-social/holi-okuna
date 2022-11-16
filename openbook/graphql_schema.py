@@ -1,6 +1,7 @@
 import graphene
 from datetime import datetime
 from django.db import Error, transaction
+from django.db.models import Q
 from graphene_django import DjangoObjectType
 from graphql import GraphQLError
 from graphene_file_upload.scalars import Upload
@@ -15,7 +16,7 @@ from openbook_auth.images import store_avatar, delete_avatar
 from openbook_insights.models import Insight as InsightModel
 from openbook_posts.models import Post as PostModel, PostComment as PostCommentModel
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
-from openbook_spaces.models import Space as SpaceModel
+from openbook_spaces.models import Space as SpaceModel, SpaceMember as SpaceMemberModel
 from openbook_spaces.models import Task as TaskModel
 from openbook_terms.models import (
     Topic as TopicModel,
@@ -41,6 +42,41 @@ class UpdateConnectionWithUserAction:
     DISCONNECT = "DISCONNECT"
 
 
+class Insight(DjangoObjectType):
+    class Meta:
+        model = InsightModel
+
+
+class Task(DjangoObjectType):
+    class Meta:
+        model = TaskModel
+
+
+class Post(DjangoObjectType):
+    class Meta:
+        model = PostModel
+
+
+class PostComment(DjangoObjectType):
+    class Meta:
+        model = PostCommentModel
+
+
+class Topic(DjangoObjectType):
+    class Meta:
+        model = TopicModel
+
+
+class SDG(DjangoObjectType):
+    class Meta:
+        model = SDGModel
+
+
+class Skill(DjangoObjectType):
+    class Meta:
+        model = SkillModel
+
+
 class User(DjangoObjectType):
     # normally, all fields could just go in here to be automatically included. but for user the fields are actually in
     # user.profile instead of user directly, so we have to write custom resolvers.
@@ -58,9 +94,9 @@ class User(DjangoObjectType):
     avatar_default_color = graphene.NonNull(graphene.String)
     avatar_label = graphene.NonNull(graphene.String)
     engagement_level = graphene.String()
-    interests = graphene.List(graphene.String)
-    sdgs = graphene.List(graphene.String)
-    skills = graphene.List(graphene.String)
+    interests = graphene.List(Topic)
+    sdgs = graphene.List(SDG)
+    skills = graphene.List(Skill)
     connection_status_to_myself = graphene.String()
 
     def resolve_id(self, info):
@@ -94,13 +130,13 @@ class User(DjangoObjectType):
         return self.profile.engagement_level
 
     def resolve_interests(self, info):
-        return self.profile.interests
+        return self.profile.interests.all()
 
     def resolve_sdgs(self, info):
-        return self.profile.sdgs
+        return self.profile.sdgs.all()
 
     def resolve_skills(self, info):
-        return self.profile.skills
+        return self.profile.skills.all()
 
     def resolve_connection_status_to_myself(self, info):
         if info.context.user.is_anonymous:
@@ -108,44 +144,50 @@ class User(DjangoObjectType):
         return info.context.user.get_connection_status_with_user_id(user_id=self.id)
 
 
-class Insight(DjangoObjectType):
-    class Meta:
-        model = InsightModel
-
-
 class Space(DjangoObjectType):
     class Meta:
         model = SpaceModel
 
+    members = graphene.List(
+        User,
+        offset=graphene.Int(required=False, default_value=0),
+        limit=graphene.Int(required=False, default_value=10),
+        required=True,
+    )
 
-class Task(DjangoObjectType):
-    class Meta:
-        model = TaskModel
-
-
-class Post(DjangoObjectType):
-    class Meta:
-        model = PostModel
-
-
-class PostComment(DjangoObjectType):
-    class Meta:
-        model = PostCommentModel
+    def resolve_members(self, info, offset, limit):
+        return UserModel.objects.filter(spaces_memberships__space=self).all()[
+            offset : offset + limit
+        ]
 
 
-class Topic(DjangoObjectType):
-    class Meta:
-        model = TopicModel
+class PagedResponse(graphene.ObjectType):
+    total_results = graphene.Int()
 
 
-class SDG(DjangoObjectType):
-    class Meta:
-        model = SDGModel
+class PagedTopics(graphene.ObjectType):
+    data = graphene.List(Topic, required=True)
+    total_results = graphene.Int(required=True)
 
 
-class Skill(DjangoObjectType):
-    class Meta:
-        model = SkillModel
+class PagedSkills(graphene.ObjectType):
+    data = graphene.List(Skill, required=True)
+    total_results = graphene.Int(required=True)
+
+
+class PagedSDGs(graphene.ObjectType):
+    data = graphene.List(SDG, required=True)
+    total_results = graphene.Int(required=True)
+
+
+class PagedSpaces(graphene.ObjectType):
+    data = graphene.List(Space, required=True)
+    total_results = graphene.Int(required=True)
+
+
+class PagedTasks(graphene.ObjectType):
+    data = graphene.List(Task, required=True)
+    total_results = graphene.Int(required=True)
 
 
 class Query(graphene.ObjectType):
@@ -155,20 +197,26 @@ class Query(graphene.ObjectType):
     last_insights = graphene.List(Insight, numberOfItems=graphene.Int())
     insight_by_id = graphene.Field(Insight, id=graphene.String())
     post_by_id = graphene.Field(Post, id=graphene.String())
-    spaces = graphene.List(
-        Space, offset=graphene.Int(default_value=0), limit=graphene.Int(default_value=5)
+    spaces = graphene.Field(
+        PagedSpaces,
+        topic_id=graphene.UUID(required=False, default_value=None),
+        location=graphene.String(required=False, default_value=None),
+        offset=graphene.Int(default_value=0),
+        limit=graphene.Int(default_value=5),
+        required=True,
     )
     space_by_id = graphene.Field(Space, id=graphene.String())
-    tasks_by_space_id = graphene.List(
-        Task,
+    tasks_by_space_id = graphene.Field(
+        PagedTasks,
         space_id=graphene.String(),
         offset=graphene.Int(default_value=0),
         limit=graphene.Int(default_value=5),
+        required=True,
     )
     task_by_id = graphene.Field(Task, id=graphene.String())
-    topics = graphene.List(Topic)
-    sdgs = graphene.List(SDG)
-    skills = graphene.List(Skill)
+    topics = graphene.Field(PagedTopics)
+    sdgs = graphene.Field(PagedSDGs)
+    skills = graphene.Field(PagedSkills)
 
     def resolve_authenticated_user(self, info):
         if info.context.user.is_anonymous:
@@ -211,8 +259,30 @@ class Query(graphene.ObjectType):
                 "Post not found", extensions={"code": ErrorCodes.NOT_FOUND}
             )
 
-    def resolve_spaces(self, info, offset=graphene.Int(), limit=graphene.Int()):
-        return SpaceModel.objects.order_by("-created")[offset : offset + limit]
+    def resolve_topics(self, info):
+        return PagedTopics(
+            data=TopicModel.objects.all(), total_results=TopicModel.objects.count()
+        )
+
+    def resolve_sdgs(self, info):
+        return PagedSDGs(
+            data=SDGModel.objects.all(), total_results=SDGModel.objects.count()
+        )
+
+    def resolve_skills(self, info):
+        data = SkillModel.objects.all()
+        return PagedSkills(data=data, total_results=data.count())
+
+    def resolve_spaces(self, info, topic_id, location, offset, limit):
+        topic_filter = Q(topics__id__contains=topic_id) if topic_id is not None else Q()
+        location_filter = Q(location=location) if location is not None else Q()
+
+        data = SpaceModel.objects.filter(topic_filter, location_filter).order_by(
+            "-created"
+        )
+        return PagedSpaces(
+            data=data[offset : offset + limit], total_results=data.count()
+        )
 
     def resolve_space_by_id(self, info, id):
         try:
@@ -225,9 +295,10 @@ class Query(graphene.ObjectType):
     def resolve_tasks_by_space_id(
         self, info, space_id, offset=graphene.Int(), limit=graphene.Int()
     ):
-        return TaskModel.objects.filter(space__id=space_id).order_by("-created")[
-            offset : offset + limit
-        ]
+        data = TaskModel.objects.filter(space__id=space_id).order_by("-created")
+        return PagedTasks(
+            data=data[offset : offset + limit], total_results=data.count()
+        )
 
     def resolve_task_by_id(self, info, id):
         try:
@@ -236,15 +307,6 @@ class Query(graphene.ObjectType):
             raise GraphQLError(
                 "Task not found", extensions={"code": ErrorCodes.NOT_FOUND}
             )
-
-    def resolve_topics(self, info):
-        return TopicModel.objects.all()
-
-    def resolve_sdgs(self, info):
-        return SDGModel.objects.all()
-
-    def resolve_skills(self, info):
-        return SkillModel.objects.all()
 
 
 class UpdateAuthenticatedUserInput(graphene.InputObjectType):
@@ -255,9 +317,9 @@ class UpdateAuthenticatedUserInput(graphene.InputObjectType):
     pronouns = graphene.String()
     location = graphene.String()
     engagement_level = graphene.String()
-    interests = graphene.List(graphene.String)
-    sdgs = graphene.List(graphene.String)
-    skills = graphene.List(graphene.String)
+    interests = graphene.List(graphene.UUID)
+    sdgs = graphene.List(graphene.UUID)
+    skills = graphene.List(graphene.UUID)
 
 
 class UpdateAuthenticatedUserMutation(graphene.Mutation):

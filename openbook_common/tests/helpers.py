@@ -97,7 +97,7 @@ def make_hashtag(name=None):
 
 
 def make_hashtag_name():
-    return fake.word().lower()
+    return fake.unique.word().lower()
 
 
 def make_emoji_group(is_reaction_group=False):
@@ -135,22 +135,6 @@ def make_user_pronouns():
 def make_user_engagement_level():
     engagement_level_list = list(EngagementLevelChoice)
     return random.choice(engagement_level_list)
-
-
-def make_user_interests():
-    return [
-        fake.text(max_nb_chars=settings.PROFILE_INTEREST_MAX_LENGTH) for x in range(10)
-    ]
-
-
-def make_user_skills():
-    return [
-        fake.text(max_nb_chars=settings.PROFILE_SKILL_MAX_LENGTH) for x in range(10)
-    ]
-
-
-def make_user_sdgs():
-    return [fake.text(max_nb_chars=settings.PROFILE_SDG_MAX_LENGTH) for x in range(10)]
 
 
 def make_user_avatar():

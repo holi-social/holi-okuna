@@ -215,3 +215,15 @@ def get_moderation_category_model():
 
 def get_moderation_penalty_model():
     return apps.get_model("openbook_moderation.ModerationPenalty")
+
+
+def get_skill_model():
+    return apps.get_model("openbook_terms.Skill")
+
+
+def get_topic_model():
+    return apps.get_model("openbook_terms.Topic")
+
+
+def get_sdg_model():
+    return apps.get_model("openbook_terms.SDG")

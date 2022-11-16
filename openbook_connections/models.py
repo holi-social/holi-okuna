@@ -79,8 +79,4 @@ class Connection(ModelWithUUID):
 
     @classmethod
     def connection_with_id_exists_for_user_with_id(cls, connection_id, user_id):
-        count = Connection.objects.filter(id=connection_id, user_id=user_id).count()
-        if count > 0:
-            return True
-
-        return False
+        return Connection.objects.filter(id=connection_id, user_id=user_id).exists()

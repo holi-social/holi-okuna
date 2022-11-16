@@ -12,6 +12,7 @@ from pilkit.processors import ResizeToFit
 from openbook_auth.models import User
 from openbook_common.models import ModelWithUUID
 from openbook_insights.helpers import upload_to_insight_directory
+from openbook_posts.models import Post
 
 # TODO Think about what to do for storage backend
 # insight_image_storage = S3PrivateMediaStorage() if settings.IS_PRODUCTION else default_storage
@@ -41,4 +42,4 @@ class Insight(ModelWithUUID):
         processors=[ResizeToFit(width=1024, upscale=False)],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
-    posts = models.ManyToManyField(related_name="insights", to="openbook_posts.Post")
+    posts = models.ManyToManyField(Post, related_name="insights")
