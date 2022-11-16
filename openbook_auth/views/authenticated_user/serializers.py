@@ -14,9 +14,9 @@ from openbook_auth.models import User, UserProfile, EngagementLevelChoice
 from openbook_auth.validators import (
     username_characters_validator,
     email_not_taken_validator,
-    interests_json_validator,
-    skills_json_validator,
-    sdgs_json_validator,
+    interest_with_id_exists,
+    skill_with_id_exists,
+    sdg_with_id_exists,
 )
 from django.contrib.auth.password_validation import validate_password
 
@@ -227,11 +227,21 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
         choices=EngagementLevelChoice.choices, required=False, allow_blank=True
     )
 
-    interests = serializers.JSONField(
-        required=False, validators=[interests_json_validator]
+    interests = serializers.ListField(
+        required=False,
+        allow_empty=False,
+        child=serializers.UUIDField(validators=[interest_with_id_exists]),
     )
-    sdgs = serializers.JSONField(required=False, validators=[sdgs_json_validator])
-    skills = serializers.JSONField(required=False, validators=[skills_json_validator])
+    sdgs = serializers.ListField(
+        required=False,
+        allow_empty=True,
+        child=serializers.UUIDField(validators=[sdg_with_id_exists]),
+    )
+    skills = serializers.ListField(
+        required=False,
+        allow_empty=True,
+        child=serializers.UUIDField(validators=[skill_with_id_exists]),
+    )
 
 
 class DeleteAuthenticatedUserSerializer(serializers.Serializer):
