@@ -5,7 +5,7 @@ from openbook_lists.models import List
 
 
 def list_id_exists(list_id):
-    if List.objects.filter(id=list_id).count() == 0:
+    if not List.objects.filter(id=list_id).exists():
         raise ValidationError(
             _("The list does not exist."),
         )

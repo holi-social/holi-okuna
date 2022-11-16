@@ -137,22 +137,6 @@ def make_user_engagement_level():
     return random.choice(engagement_level_list)
 
 
-def make_user_interests():
-    return [
-        fake.text(max_nb_chars=settings.PROFILE_INTEREST_MAX_LENGTH) for x in range(10)
-    ]
-
-
-def make_user_skills():
-    return [
-        fake.text(max_nb_chars=settings.PROFILE_SKILL_MAX_LENGTH) for x in range(10)
-    ]
-
-
-def make_user_sdgs():
-    return [fake.text(max_nb_chars=settings.PROFILE_SDG_MAX_LENGTH) for x in range(10)]
-
-
 def make_user_avatar():
     image = Image.new("RGB", (100, 100))
     tmp_file = tempfile.NamedTemporaryFile(suffix=".jpg")

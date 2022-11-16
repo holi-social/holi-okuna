@@ -26,9 +26,6 @@ from openbook_common.tests.helpers import (
     make_user_avatar,
     make_user_cover,
     make_random_language,
-    make_user_skills,
-    make_user_sdgs,
-    make_user_interests,
     make_user_engagement_level,
     make_user_pronouns,
     make_user_last_name,
@@ -174,7 +171,6 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
             "interests",
             lambda user: [t.id for t in user.profile.interests.all()],
             topics,
-            as_json=True,
         )
 
     def test_can_update_user_profile_sdgs(self):
@@ -184,7 +180,6 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
             "sdgs",
             lambda user: [s.id for s in user.profile.sdgs.all()],
             sdgs,
-            as_json=True,
         )
 
     def test_can_update_user_profile_skills(self):
@@ -194,7 +189,6 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
             "skills",
             lambda user: [s.id for s in user.profile.skills.all()],
             skills,
-            as_json=True,
         )
 
     def test_can_update_user_profile_location(self):
@@ -307,50 +301,17 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
     def test_validates_interests_constraints(self):
         self._user_profile_update_expect_400(
-            self._make_json_array(
-                field="interests",
-                length=settings.PROFILE_INTEREST_MAX_LENGTH,
-                count=settings.PROFILE_INTERESTS_MAX_COUNT + 1,
-            )
-        )
-        self._user_profile_update_expect_400(
-            self._make_json_array(
-                field="interests",
-                length=settings.PROFILE_INTEREST_MAX_LENGTH + 1,
-                count=settings.PROFILE_INTERESTS_MAX_COUNT,
-            )
+            {"interests": ["11111111-2222-3333-4444-555555555555"]}
         )
 
     def test_validates_sdgs_constraints(self):
         self._user_profile_update_expect_400(
-            self._make_json_array(
-                field="sdgs",
-                length=settings.PROFILE_SDG_MAX_LENGTH,
-                count=settings.PROFILE_SDGS_MAX_COUNT + 1,
-            )
-        )
-        self._user_profile_update_expect_400(
-            self._make_json_array(
-                field="sdgs",
-                length=settings.PROFILE_SDG_MAX_LENGTH + 1,
-                count=settings.PROFILE_SDGS_MAX_COUNT,
-            )
+            {"sdgs": ["11111111-2222-3333-4444-555555555555"]}
         )
 
     def test_validates_skills_constraints(self):
         self._user_profile_update_expect_400(
-            self._make_json_array(
-                field="skills",
-                length=settings.PROFILE_SKILL_MAX_LENGTH,
-                count=settings.PROFILE_SKILLS_MAX_COUNT + 1,
-            )
-        )
-        self._user_profile_update_expect_400(
-            self._make_json_array(
-                field="skills",
-                length=settings.PROFILE_SKILL_MAX_LENGTH + 1,
-                count=settings.PROFILE_SKILLS_MAX_COUNT,
-            )
+            {"skills": ["11111111-2222-3333-4444-555555555555"]}
         )
 
     @staticmethod
