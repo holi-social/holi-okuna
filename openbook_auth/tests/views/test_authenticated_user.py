@@ -276,15 +276,12 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         self.assertEqual(retrieved_value, update_value)
 
     def _test_can_update_user_profile_field(
-        self, field_name, field_selector, update_value, as_json=False
+        self, field_name, field_selector, update_value
     ):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        if as_json:
-            data = {field_name: json.dumps(update_value, cls=DjangoJSONEncoder)}
-        else:
-            data = {field_name: update_value}
+        data = {field_name: update_value}
 
         url = self._get_url()
 
