@@ -172,7 +172,7 @@ class Paged(graphene.ObjectType):
             kwargs["required"] = True
 
         PagedType = type(
-            f"Paged{paged_class.__name__}",
+            f"Paged{paged_class.__name__}List",
             (Paged,),
             {
                 "data": graphene.List(paged_class, required=True),
@@ -204,13 +204,11 @@ class Query(graphene.ObjectType):
         Space,
         topic_id=graphene.UUID(required=False, default_value=None),
         location=graphene.String(required=False, default_value=None),
-        limit=graphene.Int(default_value=5),
     )
     space_by_id = graphene.Field(Space, id=graphene.String())
     tasks_by_space_id = Paged.of(
         Task,
         space_id=graphene.String(),
-        limit=graphene.Int(default_value=5),
     )
     task_by_id = graphene.Field(Task, id=graphene.String())
     topics = Paged.of(Topic, limit=graphene.Int(default_value=50))
