@@ -22,7 +22,7 @@ insight_image_storage = default_storage
 class Insight(ModelWithUUID):
     title = models.CharField(max_length=settings.INSIGHT_TITLE_MAX_LENGTH, blank=False)
     description = models.TextField(blank=False)
-    curator = models.ForeignKey(
+    creator = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         related_name="curated_insights",
