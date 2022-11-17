@@ -229,7 +229,7 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
 
     interests = serializers.ListField(
         required=False,
-        allow_empty=False,
+        allow_empty=True,
         child=serializers.UUIDField(validators=[interest_with_id_exists]),
     )
     sdgs = serializers.ListField(
