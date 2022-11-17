@@ -57,11 +57,6 @@ class Post(DjangoObjectType):
         model = PostModel
 
 
-class PostComment(DjangoObjectType):
-    class Meta:
-        model = PostCommentModel
-
-
 class Topic(DjangoObjectType):
     class Meta:
         model = TopicModel
@@ -142,6 +137,16 @@ class User(DjangoObjectType):
         if info.context.user.is_anonymous:
             return None
         return info.context.user.get_connection_status_with_user_id(user_id=self.id)
+
+
+class PostComment(DjangoObjectType):
+    class Meta:
+        model = PostCommentModel
+
+    creator = graphene.Field(User, required=True)
+
+    def resolve_creator(self):
+        return self.commenter
 
 
 class Space(DjangoObjectType):
