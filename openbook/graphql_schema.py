@@ -52,11 +52,6 @@ class Task(DjangoObjectType):
         model = TaskModel
 
 
-class Post(DjangoObjectType):
-    class Meta:
-        model = PostModel
-
-
 class PostComment(DjangoObjectType):
     class Meta:
         model = PostCommentModel
@@ -86,7 +81,7 @@ class User(DjangoObjectType):
 
     id = graphene.String()
     avatar = graphene.String()
-    full_name = graphene.String()
+    full_name = graphene.String(required=True)
     first_name = graphene.String()
     last_name = graphene.String()
     about_me = graphene.String()
@@ -146,6 +141,16 @@ class User(DjangoObjectType):
         if info.context.user.is_anonymous:
             return None
         return info.context.user.get_connection_status_with_user_id(user_id=self.id)
+
+
+class Post(DjangoObjectType):
+    class Meta:
+        model = PostModel
+
+    mentions = graphene.List(User)
+
+    def resolve_mentions(self, info):
+        return UserModel.objects.filter(post_mentions__post=self)
 
 
 class Space(DjangoObjectType):
