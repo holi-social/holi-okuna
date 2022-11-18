@@ -242,11 +242,13 @@ class Query(graphene.ObjectType):
             Q(profile__name__icontains=substring)
             | Q(profile__last_name__icontains=substring)
         ).count()
+
         by_first_name_query = UserModel.objects.filter(
             profile__name__icontains=substring
         )
         by_first_name = list(by_first_name_query[offset : offset + limit])
         by_first_name_len = len(by_first_name)
+
         if by_first_name_len >= limit:
             return Paged(by_first_name, total_results)
 
