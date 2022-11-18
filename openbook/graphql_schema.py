@@ -86,6 +86,7 @@ class User(DjangoObjectType):
 
     id = graphene.String()
     avatar = graphene.String()
+    full_name = graphene.String()
     first_name = graphene.String()
     last_name = graphene.String()
     about_me = graphene.String()
@@ -110,6 +111,9 @@ class User(DjangoObjectType):
 
     def resolve_last_name(self, info):
         return self.profile.last_name
+
+    def resolve_full_name(self, info):
+        return self.profile.full_name()
 
     def resolve_about_me(self, info):
         return self.profile.about_me
@@ -196,6 +200,11 @@ class Paged(graphene.ObjectType):
 class Query(graphene.ObjectType):
     authenticated_user = graphene.Field(User)
     user_by_id = graphene.Field(User, id=graphene.String())
+    user_by_name = Paged.of(
+        User,
+        substring=graphene.String(required=True),
+        limit=graphene.Int(default_value=5),
+    )
     user_suggestions = graphene.List(User, numberOfItems=graphene.Int())
     last_insights = graphene.List(Insight, numberOfItems=graphene.Int())
     insight_by_id = graphene.Field(Insight, id=graphene.String())
@@ -227,6 +236,33 @@ class Query(graphene.ObjectType):
             raise GraphQLError(
                 "User not found", extensions={"code": ErrorCodes.NOT_FOUND}
             )
+
+    def resolve_user_by_name(self, info, substring, offset, limit):
+        total_results = UserModel.objects.filter(
+            Q(profile__name__icontains=substring)
+            | Q(profile__last_name__icontains=substring)
+        ).count()
+        by_first_name_query = UserModel.objects.filter(
+            profile__name__icontains=substring
+        )
+        by_first_name = list(by_first_name_query[offset : offset + limit])
+        by_first_name_len = len(by_first_name)
+        if by_first_name_len >= limit:
+            return Paged(by_first_name, total_results)
+
+        if by_first_name_len > 0:
+            new_offset = 0
+            new_limit = limit - by_first_name_len
+        else:
+            new_offset = offset - by_first_name_query.count()
+            new_limit = limit
+
+        by_last_name = list(
+            UserModel.objects.filter(profile__last_name__icontains=substring)[
+                new_offset : new_offset + new_limit
+            ]
+        )
+        return Paged(by_first_name + by_last_name, total_results)
 
     def resolve_user_suggestions(self, info, numberOfItems=graphene.Int()):
         if info.context.user.id:
