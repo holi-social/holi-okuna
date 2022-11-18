@@ -270,9 +270,10 @@ class Query(graphene.ObjectType):
             new_limit = limit
 
         by_last_name = list(
-            UserModel.objects.filter(profile__last_name__icontains=substring)[
-                new_offset : new_offset + new_limit
-            ]
+            UserModel.objects.filter(
+                Q(profile__last_name__icontains=substring)
+                & ~Q(profile__name__icontains=substring)
+            )[new_offset : new_offset + new_limit]
         )
         return Paged(by_first_name + by_last_name, total_results)
 
