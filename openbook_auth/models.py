@@ -1193,10 +1193,7 @@ class User(AbstractUser):
             return True
         else:
             # Check if we can retrieve the post
-            if self._can_see_post(post=post):
-                return True
-
-        return False
+            return self._can_see_post(post=post)
 
     def can_see_hashtag(self, hashtag):
         query = make_get_hashtag_with_name_for_user_with_id_query(

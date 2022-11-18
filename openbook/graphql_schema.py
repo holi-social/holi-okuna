@@ -52,11 +52,6 @@ class Task(DjangoObjectType):
         model = TaskModel
 
 
-class PostComment(DjangoObjectType):
-    class Meta:
-        model = PostCommentModel
-
-
 class Topic(DjangoObjectType):
     class Meta:
         model = TopicModel
@@ -151,6 +146,16 @@ class Post(DjangoObjectType):
 
     def resolve_mentions(self, info):
         return UserModel.objects.filter(post_mentions__post=self)
+
+
+class PostComment(DjangoObjectType):
+    class Meta:
+        model = PostCommentModel
+
+    mentions = graphene.List(User)
+
+    def resolve_mentions(self, info):
+        return UserModel.objects.filter(post_comment_mentions__post_comment=self)
 
 
 class Space(DjangoObjectType):
