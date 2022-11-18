@@ -1193,10 +1193,7 @@ class User(AbstractUser):
             return True
         else:
             # Check if we can retrieve the post
-            if self._can_see_post(post=post):
-                return True
-
-        return False
+            return self._can_see_post(post=post)
 
     def can_see_hashtag(self, hashtag):
         query = make_get_hashtag_with_name_for_user_with_id_query(
@@ -4913,9 +4910,8 @@ class User(AbstractUser):
         return excluded_users.union(creator)
 
     def __str__(self):
-        if hasattr(self, "profile") and (self.profile.name or self.profile.last_name):
-            name = " ".join(filter(None, [self.profile.name, self.profile.last_name]))
-            return f"{self.__class__.__name__}, Name {name}"
+        if hasattr(self, "profile") and self.profile.full_name():
+            return f"{self.__class__.__name__}, Name {self.profile.full_name()}"
         else:
             return f"{self.__class__.__name__}, UUID {self.id}"
 
@@ -5043,6 +5039,9 @@ class UserProfile(ModelWithUUID):
                 check=models.Q(engagement_level__in=EngagementLevelChoice.values),
             )
         ]
+
+    def full_name(self):
+        return " ".join(filter(None, [self.name, self.last_name]))
 
     def __repr__(self):
         return f"<UserProfile {self.user.username}>"
