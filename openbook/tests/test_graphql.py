@@ -1,6 +1,6 @@
 from django.test import TestCase
 from graphene.test import Client
-from ..graphql_schema import schema
+from openbook.graphql_schema import schema
 
 
 class GraphQLTest(TestCase):
