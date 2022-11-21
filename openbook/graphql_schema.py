@@ -76,9 +76,9 @@ class User(DjangoObjectType):
 
     id = graphene.String()
     avatar = graphene.String()
-    full_name = graphene.String(required=True)
     first_name = graphene.String()
     last_name = graphene.String()
+    full_name = graphene.String(required=True, description="Can be an empty string")
     about_me = graphene.String()
     pronouns = graphene.String()
     location = graphene.String()
@@ -152,7 +152,11 @@ class PostComment(DjangoObjectType):
     class Meta:
         model = PostCommentModel
 
+    creator = graphene.Field(User, required=True, description="Synonym for commenter")
     mentions = graphene.List(User)
+
+    def resolve_creator(self, info):
+        return self.commenter
 
     def resolve_mentions(self, info):
         return UserModel.objects.filter(post_comment_mentions__post_comment=self)
@@ -215,8 +219,8 @@ class Query(graphene.ObjectType):
         substring=graphene.String(required=True),
         limit=graphene.Int(default_value=5),
     )
-    user_suggestions = graphene.List(User, numberOfItems=graphene.Int())
-    last_insights = graphene.List(Insight, numberOfItems=graphene.Int())
+    user_suggestions = Paged.of(User)
+    last_insights = Paged.of(Insight)
     insight_by_id = graphene.Field(Insight, id=graphene.String())
     post_by_id = graphene.Field(Post, id=graphene.String())
     spaces = Paged.of(
@@ -277,17 +281,25 @@ class Query(graphene.ObjectType):
         )
         return Paged(by_first_name + by_last_name, total_results)
 
-    def resolve_user_suggestions(self, info, numberOfItems=graphene.Int()):
+    def resolve_user_suggestions(self, info, offset, limit):
         if info.context.user.id:
-            return UserModel.objects.exclude(id=info.context.user.id).order_by(
-                "-date_joined"
-            )[:numberOfItems]
-        return UserModel.objects.order_by("-date_joined")[:numberOfItems]
+            return Paged.data(
+                UserModel.objects.exclude(id=info.context.user.id).order_by(
+                    "-date_joined"
+                ),
+                offset,
+                limit,
+            )
+        return Paged.data(UserModel.objects.order_by("-date_joined"), offset, limit)
 
-    def resolve_last_insights(self, info, numberOfItems=graphene.Int()):
-        return InsightModel.objects.filter(date_published__lte=datetime.now()).order_by(
-            "-date_published"
-        )[:numberOfItems]
+    def resolve_last_insights(self, info, offset, limit):
+        return Paged.data(
+            InsightModel.objects.filter(date_published__lte=datetime.now()).order_by(
+                "-date_published"
+            ),
+            offset,
+            limit,
+        )
 
     def resolve_insight_by_id(self, info, id):
         try:
@@ -306,13 +318,13 @@ class Query(graphene.ObjectType):
             )
 
     def resolve_topics(self, info, offset, limit):
-        return Paged.data(TopicModel.objects.all(), offset, limit)
+        return Paged.data(TopicModel.objects.all().order_by("title"), offset, limit)
 
     def resolve_sdgs(self, info, offset, limit):
-        return Paged.data(SDGModel.objects.all(), offset, limit)
+        return Paged.data(SDGModel.objects.all().order_by("title"), offset, limit)
 
     def resolve_skills(self, info, offset, limit):
-        return Paged.data(SkillModel.objects.all(), offset, limit)
+        return Paged.data(SkillModel.objects.all().order_by("title"), offset, limit)
 
     def resolve_spaces(self, info, topic_id, location, offset, limit):
         topic_filter = Q(topics__id__contains=topic_id) if topic_id is not None else Q()
