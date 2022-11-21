@@ -152,7 +152,7 @@ class PostComment(DjangoObjectType):
     class Meta:
         model = PostCommentModel
 
-    creator = graphene.Field(User, required=True)
+    creator = graphene.Field(User, required=True, description="Synonym for commenter")
     mentions = graphene.List(User)
 
     def resolve_creator(self, info):
