@@ -5044,6 +5044,9 @@ class UserProfile(ModelWithUUID):
             )
         ]
 
+    def full_name(self):
+        return " ".join(filter(None, [self.name, self.last_name]))
+
     def __repr__(self):
         return f"<UserProfile {self.user.username}>"
 
