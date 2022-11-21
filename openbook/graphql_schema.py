@@ -52,11 +52,6 @@ class Task(DjangoObjectType):
         model = TaskModel
 
 
-class Post(DjangoObjectType):
-    class Meta:
-        model = PostModel
-
-
 class Topic(DjangoObjectType):
     class Meta:
         model = TopicModel
@@ -143,14 +138,28 @@ class User(DjangoObjectType):
         return info.context.user.get_connection_status_with_user_id(user_id=self.id)
 
 
+class Post(DjangoObjectType):
+    class Meta:
+        model = PostModel
+
+    mentions = graphene.List(User)
+
+    def resolve_mentions(self, info):
+        return UserModel.objects.filter(post_mentions__post=self)
+
+
 class PostComment(DjangoObjectType):
     class Meta:
         model = PostCommentModel
 
     creator = graphene.Field(User, required=True)
+    mentions = graphene.List(User)
 
     def resolve_creator(self, info):
         return self.commenter
+
+    def resolve_mentions(self, info):
+        return UserModel.objects.filter(post_comment_mentions__post_comment=self)
 
 
 class Space(DjangoObjectType):
@@ -205,6 +214,11 @@ class Paged(graphene.ObjectType):
 class Query(graphene.ObjectType):
     authenticated_user = graphene.Field(User)
     user_by_id = graphene.Field(User, id=graphene.String())
+    user_by_name = Paged.of(
+        User,
+        substring=graphene.String(required=True),
+        limit=graphene.Int(default_value=5),
+    )
     user_suggestions = Paged.of(User)
     last_insights = Paged.of(Insight)
     insight_by_id = graphene.Field(Insight, id=graphene.String())
@@ -236,6 +250,36 @@ class Query(graphene.ObjectType):
             raise GraphQLError(
                 "User not found", extensions={"code": ErrorCodes.NOT_FOUND}
             )
+
+    def resolve_user_by_name(self, info, substring, offset, limit):
+        total_results = UserModel.objects.filter(
+            Q(profile__name__icontains=substring)
+            | Q(profile__last_name__icontains=substring)
+        ).count()
+
+        by_first_name_query = UserModel.objects.filter(
+            profile__name__icontains=substring
+        )
+        by_first_name = list(by_first_name_query[offset : offset + limit])
+        by_first_name_len = len(by_first_name)
+
+        if by_first_name_len >= limit:
+            return Paged(by_first_name, total_results)
+
+        if by_first_name_len > 0:
+            new_offset = 0
+            new_limit = limit - by_first_name_len
+        else:
+            new_offset = offset - by_first_name_query.count()
+            new_limit = limit
+
+        by_last_name = list(
+            UserModel.objects.filter(
+                Q(profile__last_name__icontains=substring)
+                & ~Q(profile__name__icontains=substring)
+            )[new_offset : new_offset + new_limit]
+        )
+        return Paged(by_first_name + by_last_name, total_results)
 
     def resolve_user_suggestions(self, info, offset, limit):
         if info.context.user.id:
