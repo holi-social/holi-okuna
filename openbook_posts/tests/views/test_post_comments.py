@@ -1,6 +1,7 @@
 # Create your tests here.
 import json
 import unittest
+import uuid
 
 from django.urls import reverse
 from faker import Faker
@@ -630,7 +631,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         post = user.create_public_post(text=make_fake_post_text())
 
         for test_username in test_usernames:
-            test_user = make_user(username=test_username)
+            test_user = make_user(name=test_username)
             post_text = "Hello @" + test_user.username + " @" + test_user.username
 
             data = {"text": post_text}
@@ -650,60 +651,6 @@ class PostCommentsAPITests(OpenbookAPITestCase):
                 1,
             )
 
-    def test_commenting_detect_mention_is_case_insensitive(self):
-        """should detect post comment mentions regardless of the username letter cases"""
-        user = make_user()
-
-        headers = make_authentication_headers_for_user(user=user)
-
-        post = user.create_public_post(text=make_fake_post_text())
-
-        mentioned_user = make_user(username="shantanoodles")
-        post_comment_text = "Hello @ShAnTaNoOdLes"
-
-        data = {"text": post_comment_text}
-        url = self._get_url(post=post)
-        response = self.client.put(url, data, **headers, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        post_comment = PostComment.objects.get(
-            text=post_comment_text, commenter_id=user.pk
-        )
-
-        self.assertEqual(
-            PostCommentUserMention.objects.filter(
-                post_comment_id=post_comment.pk, user_id=mentioned_user.pk
-            ).count(),
-            1,
-        )
-
-    def test_commenting_detect_mention_ignores_username_case(self):
-        """should detect post comment mentions ignoring the username casing"""
-        user = make_user()
-
-        headers = make_authentication_headers_for_user(user=user)
-
-        post = user.create_public_post(text=make_fake_post_text())
-
-        mentioned_user = make_user(username="Shantanoodles")
-        post_comment_text = "Hello @shantanoodles"
-
-        data = {"text": post_comment_text}
-        url = self._get_url(post=post)
-        response = self.client.put(url, data, **headers, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        post_comment = PostComment.objects.get(
-            text=post_comment_text, commenter_id=user.pk
-        )
-
-        self.assertEqual(
-            PostCommentUserMention.objects.filter(
-                post_comment_id=post_comment.pk, user_id=mentioned_user.pk
-            ).count(),
-            1,
-        )
-
     def test_create_text_post_comment_ignores_non_existing_mentioned_usernames(self):
         """should ignore non existing mentioned usernames when creating a post comment"""
         user = make_user()
@@ -712,7 +659,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         post = user.create_public_post(text=make_fake_post_text())
 
-        fake_username = "nonexistinguser"
+        fake_username = str(uuid.uuid4())
         post_comment_text = "Hello @" + fake_username
 
         data = {"text": post_comment_text}

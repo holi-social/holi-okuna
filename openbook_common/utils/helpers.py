@@ -116,7 +116,7 @@ usernames_regexp = re.compile("@[0-9a-fA-F-]{36}")
 
 def extract_usernames_from_string(string):
     usernames = usernames_regexp.findall(string=string)
-    return [username[1:] for username in usernames]
+    return [username[1:].lower() for username in usernames]
 
 
 # hash followed by a word with at least one alpha character
