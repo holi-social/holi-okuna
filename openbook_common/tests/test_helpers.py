@@ -32,4 +32,4 @@ class UserMentionsParsingTestCase(testcases.TestCase):
     def test_uuid_is_parsed_ignoring_case(self):
         user_id = "Dfa78f20-f7E9-41d4-aFcF-2ae437153922"
         usernames = extract_usernames_from_string(f"This is a@{user_id}553 Mention")
-        self.assertEqual(usernames, [user_id.lower()])
+        self.assertEqual(usernames, [user_id])
