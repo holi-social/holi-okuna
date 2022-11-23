@@ -111,7 +111,9 @@ def _sha256sum(file):
 
 
 # matches "@<UUID>" exactly
-usernames_regexp = re.compile("@[0-9a-fA-F-]{36}")
+usernames_regexp = re.compile(
+    "@[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
+)
 
 
 def extract_usernames_from_string(string):
