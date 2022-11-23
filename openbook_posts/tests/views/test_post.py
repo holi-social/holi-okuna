@@ -2391,7 +2391,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
         post_creator = make_user()
         post_creator.join_community_with_name(community_name=community.name)
         post = post_creator.create_community_post(
-            community_name=community, text=make_fake_post_text()
+            community_name=community.name, text=make_fake_post_text()
         )
 
         post_community_member = make_user()
@@ -2428,7 +2428,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
         post_creator = make_user()
         post_creator.join_community_with_name(community_name=community.name)
         post = post_creator.create_community_post(
-            community_name=community, text=make_fake_post_text()
+            community_name=community.name, text=make_fake_post_text()
         )
 
         post_community_member = make_user()
@@ -2648,7 +2648,7 @@ class GetPostParticipantsAPITests(OpenbookAPITestCase):
         post_creator = make_user()
         post_creator.join_community_with_name(community_name=community.name)
         post = post_creator.create_community_post(
-            community_name=community, text=make_fake_post_text()
+            community_name=community.name, text=make_fake_post_text()
         )
 
         post_community_member = make_user()

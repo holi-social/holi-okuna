@@ -2,10 +2,10 @@ import uuid
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.files.storage import default_storage
 from django.db import models
-
-# Create your models here.
 from django.utils import timezone
+
 from django.db.models import Q
 from django.db.models import Count
 from pilkit.processors import ResizeToFill, ResizeToFit
@@ -40,6 +40,10 @@ from openbook_moderation.models import ModeratedObject, ModerationCategory
 from openbook_posts.models import Post
 from imagekit.models import ProcessedImageField
 
+from openbook_terms.models import Topic
+
+community_image_storage = default_storage
+
 
 class Community(ModelWithUUID):
     moderated_object = GenericRelation(
@@ -66,9 +70,8 @@ class Community(ModelWithUUID):
         blank=False,
         null=False,
     )
-    description = models.CharField(
+    description = models.TextField(
         _("description"),
-        max_length=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH,
         blank=False,
         null=True,
     )
@@ -79,6 +82,7 @@ class Community(ModelWithUUID):
         null=True,
     )
     avatar = ProcessedImageField(
+        storage=community_image_storage,
         verbose_name=_("avatar"),
         blank=False,
         null=True,
@@ -89,16 +93,17 @@ class Community(ModelWithUUID):
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     cover = ProcessedImageField(
+        storage=community_image_storage,
         verbose_name=_("cover"),
         blank=False,
         null=True,
         format="JPEG",
         options={"quality": 90},
         upload_to=upload_to_community_cover_directory,
-        processors=[ResizeToFit(width=1024, upscale=False)],
+        processors=[ResizeToFit(width=1200, upscale=False)],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
-    created = models.DateTimeField(editable=False)
+    created = models.DateTimeField(default=timezone.now, editable=False)
     starrers = models.ManyToManyField(User, related_name="favorite_communities")
     banned_users = models.ManyToManyField(User, related_name="banned_of_communities")
     COMMUNITY_TYPE_PRIVATE = "T"
@@ -140,6 +145,10 @@ class Community(ModelWithUUID):
         _("is deleted"),
         default=False,
     )
+    location = models.CharField(
+        max_length=settings.SPACE_LOCATION_MAX_LENGTH, blank=True, null=True
+    )
+    topics = models.ManyToManyField(Topic, related_name="communities")
 
     class Meta:
         verbose_name_plural = "communities"
@@ -735,7 +744,7 @@ class Community(ModelWithUUID):
         ).count()
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.id})"
 
 
 class CommunityMembership(ModelWithUUID):
