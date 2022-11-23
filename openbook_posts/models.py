@@ -1721,7 +1721,7 @@ class PostLink(ModelWithUUID):
         try:
             self.has_preview = peekalink_client.is_peekable(self.link)
         except Exception as e:
-            # We dont care whether it succeeded or not
+            # We don't care whether it succeeded or not
             self.has_preview = False
 
         self.save()

@@ -110,8 +110,10 @@ def _sha256sum(file):
     return h.hexdigest()
 
 
-# Same as flutter app
-usernames_regexp = re.compile("@[^\s]+")
+# matches "@<UUID>" exactly
+usernames_regexp = re.compile(
+    "@[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
+)
 
 
 def extract_usernames_from_string(string):
@@ -119,13 +121,13 @@ def extract_usernames_from_string(string):
     return [username[1:] for username in usernames]
 
 
+# hash followed by a word with at least one alpha character
 hashtags_regexp = re.compile(r"\B#\w*[a-zA-Z]+\w*")
 
 
 def extract_hashtags_from_string(string):
     hashtags = hashtags_regexp.findall(string=string)
-    extracted_hashtags = [hashtag[1:] for hashtag in hashtags]
-    return extracted_hashtags
+    return [hashtag[1:] for hashtag in hashtags]
 
 
 magic = magic.Magic(mime=True)
