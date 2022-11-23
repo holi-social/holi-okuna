@@ -27,7 +27,7 @@ class Insight(ModelWithUUID):
         User,
         on_delete=models.SET_NULL,
         related_name="curated_insights",
-        blank=True,
+        blank=False,
         null=True,
     )
     date_published = models.DateField(blank=False)
