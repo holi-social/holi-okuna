@@ -55,9 +55,14 @@ def make_user(
     elif username:
         user = mixer.blend(User, username=username, visibility=visibility)
     elif invite_count:
-        user = mixer.blend(User, invite_count=invite_count, visibility=visibility)
+        user = mixer.blend(
+            User,
+            username=str(uuid.uuid4()),
+            invite_count=invite_count,
+            visibility=visibility,
+        )
     else:
-        user = mixer.blend(User, visibility=visibility)
+        user = mixer.blend(User, username=str(uuid.uuid4()), visibility=visibility)
 
     profile = make_profile(user, name=name)
     return user

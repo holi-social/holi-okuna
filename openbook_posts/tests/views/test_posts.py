@@ -317,7 +317,7 @@ class PostsAPITests(OpenbookAPITestCase):
         test_usernames = get_test_usernames()
 
         for test_username in test_usernames:
-            test_user = make_user(username=test_username)
+            test_user = make_user(name=test_username)
             post_text = "Hello @" + test_user.username + " @" + test_user.username
 
             data = {"text": post_text}
@@ -336,58 +336,6 @@ class PostsAPITests(OpenbookAPITestCase):
                 ).count(),
                 1,
             )
-
-    def test_create_text_detect_mention_is_case_insensitive(self):
-        """should detect mention regardless of the username letter cases"""
-        user = make_user()
-
-        headers = make_authentication_headers_for_user(user=user)
-
-        mentioned_user = make_user(username="joel132")
-
-        post_text = "Hello @JoEl132"
-
-        data = {
-            "text": post_text,
-        }
-
-        url = self._get_url()
-        response = self.client.put(url, data, **headers, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        post = Post.objects.get(text=post_text, creator_id=user.pk)
-
-        self.assertTrue(
-            PostUserMention.objects.filter(
-                post_id=post.pk, user_id=mentioned_user.pk
-            ).exists()
-        )
-
-    def test_create_text_detect_mention_ignores_casing_of_username(self):
-        """should detect mention regardless of the casing of the username"""
-        user = make_user()
-
-        headers = make_authentication_headers_for_user(user=user)
-
-        mentioned_user = make_user(username="Joel")
-
-        post_text = "Hello @joel"
-
-        data = {
-            "text": post_text,
-        }
-
-        url = self._get_url()
-        response = self.client.put(url, data, **headers, format="multipart")
-
-        get_worker("high", worker_class=SimpleWorker).work(burst=True)
-
-        post = Post.objects.get(text=post_text, creator_id=user.pk)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(
-            PostUserMention.objects.filter(
-                post_id=post.pk, user_id=mentioned_user.pk
-            ).exists()
-        )
 
     def test_create_text_post_ignores_non_existing_mentioned_usernames(self):
         """should ignore non existing mentioned usernames when creating a post"""
