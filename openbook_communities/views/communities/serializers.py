@@ -33,7 +33,6 @@ class CreateCommunitySerializer(serializers.Serializer):
         max_length=settings.COMMUNITY_TITLE_MAX_LENGTH, allow_blank=False
     )
     description = serializers.CharField(
-        max_length=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH,
         allow_blank=True,
         required=False,
     )
