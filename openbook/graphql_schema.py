@@ -1,7 +1,7 @@
 import graphene
 from datetime import datetime
 from django.db import Error, transaction
-from django.db.models import Q
+from django.db.models import Q, Count
 from graphene_django import DjangoObjectType
 from graphql import GraphQLError
 from graphene_file_upload.scalars import Upload
@@ -349,9 +349,9 @@ class Query(graphene.ObjectType):
         location_filter = Q(location=location) if location is not None else Q()
 
         return Paged.data(
-            CommunityModel.objects.filter(topic_filter, location_filter).order_by(
-                "-created"
-            ),
+            CommunityModel.objects.filter(topic_filter, location_filter)
+            .annotate(member_count=Count("memberships"))
+            .order_by("-member_count", "-created"),
             offset,
             limit,
         )
