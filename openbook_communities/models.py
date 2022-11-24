@@ -146,7 +146,7 @@ class Community(ModelWithUUID):
         default=False,
     )
     location = models.CharField(
-        max_length=settings.SPACE_LOCATION_MAX_LENGTH, blank=True, null=True
+        max_length=settings.COMMUNITY_LOCATION_MAX_LENGTH, blank=True, null=True
     )
     topics = models.ManyToManyField(Topic, related_name="communities")
 
