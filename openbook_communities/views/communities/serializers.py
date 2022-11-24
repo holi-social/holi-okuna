@@ -33,7 +33,6 @@ class CreateCommunitySerializer(serializers.Serializer):
         max_length=settings.COMMUNITY_TITLE_MAX_LENGTH, allow_blank=False
     )
     description = serializers.CharField(
-        max_length=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH,
         allow_blank=True,
         required=False,
     )
@@ -59,7 +58,7 @@ class CreateCommunitySerializer(serializers.Serializer):
     invites_enabled = serializers.BooleanField(required=False)
     color = serializers.CharField(
         max_length=COLOR_ATTR_MAX_LENGTH,
-        required=True,
+        required=False,
         validators=[hex_color_validator],
     )
     categories = serializers.ListField(

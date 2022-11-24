@@ -40,7 +40,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        mandatory_params = ["name", "type", "title", "color", "categories"]
+        mandatory_params = ["name", "type", "title", "categories"]
 
         url = self._get_url()
 

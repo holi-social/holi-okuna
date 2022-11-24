@@ -148,7 +148,11 @@ class CommonCircleSerializer(serializers.ModelSerializer):
 class CommonSearchCommunitiesSerializer(serializers.Serializer):
     count = serializers.IntegerField(required=False, max_value=20)
     query = serializers.CharField(
-        max_length=settings.COMMUNITY_NAME_MAX_LENGTH, allow_blank=False, required=True
+        max_length=max(
+            settings.COMMUNITY_NAME_MAX_LENGTH, settings.COMMUNITY_TITLE_MAX_LENGTH
+        ),
+        allow_blank=False,
+        required=True,
     )
 
     excluded_from_profile_posts = serializers.BooleanField(required=False, default=True)
