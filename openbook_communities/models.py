@@ -100,7 +100,7 @@ class Community(ModelWithUUID):
         format="JPEG",
         options={"quality": 90},
         upload_to=upload_to_community_cover_directory,
-        processors=[ResizeToFit(width=1200, upscale=False)],
+        processors=[ResizeToFit(width=settings.IMAGE_RESIZE_WIDTH, upscale=False)],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     created = models.DateTimeField(default=timezone.now, editable=False)

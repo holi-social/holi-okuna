@@ -15,6 +15,6 @@ class CommunityMembershipAdmin(admin.ModelAdmin):
 
 
 @admin.register(Task)
-class SpaceTasksAdmin(admin.ModelAdmin):
+class CommunityTaskAdmin(admin.ModelAdmin):
     model = Task
     list_display = ("name", "location", "creator", "created")
