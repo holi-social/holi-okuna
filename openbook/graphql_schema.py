@@ -10,14 +10,14 @@ from openbook_auth.models import UserConnectionStatus, User as UserModel
 from openbook_auth.views.authenticated_user.serializers import (
     UpdateAuthenticatedUserSerializer,
 )
+from openbook_communities.models import Community as CommunityModel
 from openbook_connections.serializers import UpdateConnectionWithUserSerializer
-from openbook_auth.images import store_avatar, delete_avatar
+from openbook_auth.images import delete_avatar
 
 from openbook_insights.models import Insight as InsightModel
 from openbook_posts.models import Post as PostModel, PostComment as PostCommentModel
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
-from openbook_spaces.models import Space as SpaceModel, SpaceMember as SpaceMemberModel
-from openbook_spaces.models import Task as TaskModel
+from openbook_communities.models import Task as TaskModel
 from openbook_terms.models import (
     Topic as TopicModel,
     SDG as SDGModel,
@@ -164,7 +164,7 @@ class PostComment(DjangoObjectType):
 
 class Space(DjangoObjectType):
     class Meta:
-        model = SpaceModel
+        model = CommunityModel
 
     members = graphene.List(
         User,
@@ -172,11 +172,15 @@ class Space(DjangoObjectType):
         limit=graphene.Int(required=False, default_value=10),
         required=True,
     )
+    main_image = graphene.String()
 
     def resolve_members(self, info, offset, limit):
-        return UserModel.objects.filter(spaces_memberships__space=self).all()[
+        return UserModel.objects.filter(communities_memberships__community=self).all()[
             offset : offset + limit
         ]
+
+    def resolve_main_image(self, info):
+        return self.cover.name
 
 
 class Paged(graphene.ObjectType):
@@ -331,7 +335,7 @@ class Query(graphene.ObjectType):
         location_filter = Q(location=location) if location is not None else Q()
 
         return Paged.data(
-            SpaceModel.objects.filter(topic_filter, location_filter).order_by(
+            CommunityModel.objects.filter(topic_filter, location_filter).order_by(
                 "-created"
             ),
             offset,
@@ -340,8 +344,8 @@ class Query(graphene.ObjectType):
 
     def resolve_space_by_id(self, info, id):
         try:
-            return SpaceModel.objects.get(id=id)
-        except SpaceModel.DoesNotExist:
+            return CommunityModel.objects.get(id=id)
+        except CommunityModel.DoesNotExist:
             raise GraphQLError(
                 "Space not found", extensions={"code": ErrorCodes.NOT_FOUND}
             )
@@ -350,7 +354,7 @@ class Query(graphene.ObjectType):
         self, info, space_id, offset=graphene.Int(), limit=graphene.Int()
     ):
         return Paged.data(
-            TaskModel.objects.filter(space__id=space_id).order_by("-created"),
+            TaskModel.objects.filter(community__id=space_id).order_by("-created"),
             offset,
             limit,
         )
