@@ -17,7 +17,7 @@ from openbook_auth.images import delete_avatar
 from openbook_insights.models import Insight as InsightModel
 from openbook_posts.models import Post as PostModel, PostComment as PostCommentModel
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
-from openbook_spaces.models import Task as TaskModel
+from openbook_communities.models import Task as TaskModel
 from openbook_terms.models import (
     Topic as TopicModel,
     SDG as SDGModel,
