@@ -58,7 +58,7 @@ class CreateCommunitySerializer(serializers.Serializer):
     invites_enabled = serializers.BooleanField(required=False)
     color = serializers.CharField(
         max_length=COLOR_ATTR_MAX_LENGTH,
-        required=True,
+        required=False,
         validators=[hex_color_validator],
     )
     categories = serializers.ListField(

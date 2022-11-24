@@ -78,7 +78,7 @@ class Community(ModelWithUUID):
     rules = models.TextField(
         _("rules"),
         max_length=settings.COMMUNITY_RULES_MAX_LENGTH,
-        blank=False,
+        blank=True,
         null=True,
     )
     avatar = ProcessedImageField(
@@ -104,8 +104,12 @@ class Community(ModelWithUUID):
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     created = models.DateTimeField(default=timezone.now, editable=False)
-    starrers = models.ManyToManyField(User, related_name="favorite_communities")
-    banned_users = models.ManyToManyField(User, related_name="banned_of_communities")
+    starrers = models.ManyToManyField(
+        User, related_name="favorite_communities", blank=True
+    )
+    banned_users = models.ManyToManyField(
+        User, related_name="banned_of_communities", blank=True
+    )
     COMMUNITY_TYPE_PRIVATE = "T"
     COMMUNITY_TYPE_PUBLIC = "P"
     COMMUNITY_TYPES = (
@@ -123,20 +127,20 @@ class Community(ModelWithUUID):
     color = models.CharField(
         _("color"),
         max_length=COLOR_ATTR_MAX_LENGTH,
-        blank=False,
-        null=False,
+        blank=True,
+        null=True,
         validators=[hex_color_validator],
     )
     user_adjective = models.CharField(
         _("user adjective"),
         max_length=settings.COMMUNITY_USER_ADJECTIVE_MAX_LENGTH,
-        blank=False,
+        blank=True,
         null=True,
     )
     users_adjective = models.CharField(
         _("users adjective"),
         max_length=settings.COMMUNITY_USERS_ADJECTIVE_MAX_LENGTH,
-        blank=False,
+        blank=True,
         null=True,
     )
     invites_enabled = models.BooleanField(_("invites enabled"), default=True)
@@ -307,7 +311,7 @@ class Community(ModelWithUUID):
         name,
         title,
         creator,
-        color,
+        color=None,
         type=None,
         user_adjective=None,
         users_adjective=None,
