@@ -1,7 +1,7 @@
 import graphene
 from datetime import datetime
 from django.db import Error, transaction
-from django.db.models import Q
+from django.db.models import Q, Count
 from graphene_django import DjangoObjectType
 from graphql import GraphQLError
 from graphene_file_upload.scalars import Upload
@@ -10,14 +10,18 @@ from openbook_auth.models import UserConnectionStatus, User as UserModel
 from openbook_auth.views.authenticated_user.serializers import (
     UpdateAuthenticatedUserSerializer,
 )
-from openbook_communities.models import Community as CommunityModel
+from openbook_communities.models import (
+    Community as CommunityModel,
+    Task as TaskModel,
+    CommunityMembership as CommunityMembershipModel,
+    ExternalLink as ExternalLinkModel,
+)
 from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_auth.images import delete_avatar
 
 from openbook_insights.models import Insight as InsightModel
 from openbook_posts.models import Post as PostModel, PostComment as PostCommentModel
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
-from openbook_communities.models import Task as TaskModel
 from openbook_terms.models import (
     Topic as TopicModel,
     SDG as SDGModel,
@@ -50,6 +54,11 @@ class Insight(DjangoObjectType):
 class Task(DjangoObjectType):
     class Meta:
         model = TaskModel
+
+
+class ExternalLink(DjangoObjectType):
+    class Meta:
+        model = ExternalLinkModel
 
 
 class Topic(DjangoObjectType):
@@ -162,12 +171,17 @@ class PostComment(DjangoObjectType):
         return UserModel.objects.filter(post_comment_mentions__post_comment=self)
 
 
+class SpaceMember(DjangoObjectType):
+    class Meta:
+        model = CommunityMembershipModel
+
+
 class Space(DjangoObjectType):
     class Meta:
         model = CommunityModel
 
     members = graphene.List(
-        User,
+        SpaceMember,
         offset=graphene.Int(required=False, default_value=0),
         limit=graphene.Int(required=False, default_value=10),
         required=True,
@@ -175,7 +189,7 @@ class Space(DjangoObjectType):
     main_image = graphene.String()
 
     def resolve_members(self, info, offset, limit):
-        return UserModel.objects.filter(communities_memberships__community=self).all()[
+        return CommunityMembershipModel.objects.filter(community=self).all()[
             offset : offset + limit
         ]
 
@@ -335,9 +349,9 @@ class Query(graphene.ObjectType):
         location_filter = Q(location=location) if location is not None else Q()
 
         return Paged.data(
-            CommunityModel.objects.filter(topic_filter, location_filter).order_by(
-                "-created"
-            ),
+            CommunityModel.objects.filter(topic_filter, location_filter)
+            .annotate(member_count=Count("memberships"))
+            .order_by("-member_count", "-created"),
             offset,
             limit,
         )

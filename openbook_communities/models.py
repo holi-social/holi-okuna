@@ -748,7 +748,7 @@ class Community(ModelWithUUID):
         ).count()
 
     def __str__(self):
-        return f"{self.name} ({self.id})"
+        return f"{self.title} ({self.id})"
 
 
 class CommunityMembership(ModelWithUUID):
@@ -1005,3 +1005,26 @@ class Task(ModelWithUUID):
         choices=Regularity.choices,
     )
     skills = models.ManyToManyField(Skill, related_name="tasks", blank=True)
+
+
+class ExternalLink(ModelWithUUID):
+    class ExternalLinkType(models.TextChoices):
+        INSTAGRAM = "instagram", _("instagram")
+        FACEBOOK = "facebook", _("facebook")
+        LINKEDIN = "linkedin", _("linkedin")
+        DISCORD = "discord", _("discord")
+        TWITTER = "twitter", _("twitter")
+        OTHER = "other", _("other")
+
+    url = models.CharField(max_length=settings.LINK_URL_MAX_LENGTH, blank=False)
+    community = models.ForeignKey(
+        Community,
+        on_delete=models.CASCADE,
+        related_name="links",
+        blank=False,
+        null=False,
+    )
+    type = models.CharField(
+        max_length=9,
+        choices=ExternalLinkType.choices,
+    )
