@@ -97,7 +97,7 @@ class ModerationPenaltyModeratedObjectCommunitySerializer(serializers.ModelSeria
 class ModerationPenaltyModeratedObjectPostImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostImage
-        fields = ("id", "image", "thumbnail", "width", "height")
+        fields = ("id", "image", "width", "height")
 
 
 class ModerationPenaltyModeratedObjectPostSerializer(serializers.ModelSerializer):

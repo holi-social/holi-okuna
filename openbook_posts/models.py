@@ -1180,37 +1180,16 @@ class PostImage(ModelWithUUID):
         null=True,
         format="JPEG",
         options={"quality": 80},
-        processors=[ResizeToFit(width=1024, upscale=False)],
+        processors=[ResizeToFit(width=3840, height=3840, upscale=False)],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     width = models.PositiveIntegerField(editable=False, null=False, blank=False)
     height = models.PositiveIntegerField(editable=False, null=False, blank=False)
-    hash = models.CharField(_("hash"), max_length=64, blank=False, null=True)
-    thumbnail = ProcessedImageField(
-        verbose_name=_("thumbnail"),
-        storage=post_image_storage,
-        upload_to=upload_to_post_image_directory,
-        blank=False,
-        null=True,
-        format="JPEG",
-        options={"quality": 30},
-        processors=[ResizeToFit(width=1024, upscale=False)],
-        max_length=settings.IMAGE_URL_MAX_LENGTH,
-    )
-
     media = GenericRelation(PostMedia)
 
     @classmethod
-    def create_post_image(cls, image, post_id):
-        hash = sha256sum(file=image.file)
-        return cls.objects.create(image=image, post_id=post_id, hash=hash)
-
-    @classmethod
     def create_post_media_image(cls, image, post_id, order):
-        hash = sha256sum(file=image.file)
-        post_image = cls.objects.create(
-            image=image, post_id=post_id, hash=hash, thumbnail=image
-        )
+        post_image = cls.objects.create(image=image, post_id=post_id)
         PostMedia.create_post_media(
             type=PostMedia.MEDIA_TYPE_IMAGE,
             content_object=post_image,

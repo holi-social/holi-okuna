@@ -20,7 +20,11 @@ from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_auth.images import delete_avatar
 
 from openbook_insights.models import Insight as InsightModel
-from openbook_posts.models import Post as PostModel, PostComment as PostCommentModel
+from openbook_posts.models import (
+    Post as PostModel,
+    PostComment as PostCommentModel,
+    PostImage as PostImageModel,
+)
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
 from openbook_terms.models import (
     Topic as TopicModel,
@@ -74,6 +78,17 @@ class SDG(DjangoObjectType):
 class Skill(DjangoObjectType):
     class Meta:
         model = SkillModel
+
+
+class PostImage(DjangoObjectType):
+    class Meta:
+        model = PostImageModel
+        exclude = ["image"]  # instead, expose it as "url"
+
+    url = graphene.NonNull(graphene.String)
+
+    def resolve_url(self, info):
+        return self.image
 
 
 class User(DjangoObjectType):
@@ -152,9 +167,13 @@ class Post(DjangoObjectType):
         model = PostModel
 
     mentions = graphene.List(User)
+    image = graphene.Field(PostImage)
 
     def resolve_mentions(self, info):
         return UserModel.objects.filter(post_mentions__post=self)
+
+    def resolve_image(self, info):
+        return self.image
 
 
 class PostComment(DjangoObjectType):
