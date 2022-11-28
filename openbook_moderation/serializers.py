@@ -45,7 +45,7 @@ class ModeratedObjectHashtagSerializer(serializers.ModelSerializer):
 class ModeratedObjectPostImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostImage
-        fields = ("id", "image", "thumbnail", "width", "height")
+        fields = ("id", "image", "width", "height")
 
 
 class LanguageSerializer(serializers.ModelSerializer):
