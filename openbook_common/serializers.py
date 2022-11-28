@@ -110,7 +110,7 @@ class CommonPostImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PostImage
-        fields = ("image", "thumbnail", "width", "height")
+        fields = ("image", "width", "height")
 
 
 class CommonCommunityMembershipSerializer(serializers.ModelSerializer):

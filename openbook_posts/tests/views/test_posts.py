@@ -702,38 +702,6 @@ class PostsAPITests(OpenbookAPITestCase):
 
         self.assertTrue(hasattr(post_image, "image"))
 
-    def test_create_image_post_creates_hash(self):
-        """creating an image post should create a hash and return 201"""
-        user = make_user()
-
-        image = Image.new("RGB", (100, 100))
-        tmp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
-        image.save(tmp_file)
-        tmp_file.seek(0)
-
-        filehash = sha256sum(filename=tmp_file.name)
-
-        headers = make_authentication_headers_for_user(user)
-
-        data = {"image": tmp_file}
-
-        url = self._get_url()
-
-        response = self.client.put(url, data, **headers, format="multipart")
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        response_post = json.loads(response.content, object_hook=uuid_id_parser)
-
-        response_post_id = response_post.get("id")
-
-        self.assertTrue(user.posts.count() == 1)
-
-        media = PostMedia.objects.get(
-            post_id=response_post_id, type=PostMedia.MEDIA_TYPE_IMAGE
-        )
-        self.assertEqual(media.content_object.hash, filehash)
-
     @unittest.skip("TODO HOLI-1425")
     def test_create_video_post(self):
         """should be able to create a video post and return 201"""
