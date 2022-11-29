@@ -27,7 +27,7 @@
       </ENTRIES>
     </EXTENSION>
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/manage.py" />
-    <option name="PARAMETERS" value="test --debug-mode openbook_communities.tests.views.communities.test_views:SearchCommunitiesAPITests.test_can_search_communities_by_title" />
+    <option name="PARAMETERS" value="test --debug-mode --keepdb openbook.tests.test_graphql.GraphQLTest" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />

@@ -2,6 +2,7 @@ import secrets
 from datetime import datetime, timedelta
 import re
 import uuid
+
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
@@ -95,8 +96,9 @@ class User(AbstractUser):
     moderated_object = GenericRelation(
         "openbook_moderation.ModeratedObject", related_query_name="users"
     )
-    first_name = None
+    first_name = None  # TODO where except from the db scheme is this actually used
     last_name = None
+
     language = models.ForeignKey(
         "openbook_common.Language",
         null=True,
@@ -111,6 +113,7 @@ class User(AbstractUser):
         on_delete=models.SET_NULL,
         related_name="translation_users",
     )
+
     email = models.EmailField(_("email address"), unique=True, null=False, blank=False)
     connections_circle = models.ForeignKey(
         "openbook_circles.Circle",
@@ -119,6 +122,12 @@ class User(AbstractUser):
         null=True,
         blank=True,
     )
+
+    """
+    Relationship typings of connected properties defined in other models (only for code completion) 
+    """
+    name: str
+    profile: "UserProfile"
 
     username_validator = UnicodeUsernameValidator()
     is_email_verified = models.BooleanField(default=False)
