@@ -2,6 +2,7 @@ import tempfile
 
 import random
 import uuid
+from typing import Optional
 
 from PIL import Image
 from django.contrib.contenttypes.models import ContentType
@@ -46,29 +47,23 @@ def make_fake_post_comment_text():
 
 
 def make_user(
-    username=None, invite_count=None, name=None, visibility=User.VISIBILITY_TYPE_OKUNA
-):
-    if username and invite_count:
-        user = mixer.blend(
-            User, username=username, invite_count=invite_count, visibility=visibility
-        )
-    elif username:
-        user = mixer.blend(User, username=username, visibility=visibility)
-    elif invite_count:
-        user = mixer.blend(
-            User,
-            username=str(uuid.uuid4()),
-            invite_count=invite_count,
-            visibility=visibility,
-        )
-    else:
-        user = mixer.blend(User, username=str(uuid.uuid4()), visibility=visibility)
+    username: Optional[str] = None,  # UUID
+    invite_count: Optional[int] = None,
+    name: Optional[str] = None,
+    last_name: Optional[str] = None,
+    visibility=User.VISIBILITY_TYPE_OKUNA,
+) -> User:
+    defined_arguments = {k: v for k, v in locals().items() if v is not None}
+    defined_arguments.setdefault("username", str(uuid.uuid4()))
+    defined_arguments["uuid"] = defined_arguments["username"]
 
-    profile = make_profile(user, name=name)
+    user = mixer.blend(User, **defined_arguments)
+    profile = make_profile(user, **defined_arguments)
+
     return user
 
 
-def make_global_moderator():
+def make_global_moderator() -> User:
     moderator = make_user()
     make_moderators_community(creator=moderator)
     return moderator
@@ -85,11 +80,14 @@ def make_users(amount):
     return users
 
 
-def make_profile(user=None, name=None):
-    if name:
-        return mixer.blend(UserProfile, user=user, name=name)
-
-    return mixer.blend(UserProfile, user=user)
+def make_profile(
+    user: Optional[User] = None,
+    name: Optional[str] = None,
+    last_name: Optional[str] = None,
+    **kwargs,
+) -> UserProfile:
+    defined_arguments = {k: v for k, v in locals().items() if v is not None}
+    return mixer.blend(UserProfile, **defined_arguments)
 
 
 def make_emoji(group=None):

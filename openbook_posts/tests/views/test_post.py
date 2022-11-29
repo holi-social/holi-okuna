@@ -1788,7 +1788,7 @@ class PostCloseAPITests(OpenbookAPITestCase):
         """should delete post user mention notifications for members (except creator/staff) on close post by administrator of a community"""
         community_post_creator = make_user()
         admin = make_user()
-        mentioned_user = make_user(username="joel123")
+        mentioned_user = make_user(name="joel123")
         community = make_community(admin)
 
         community_post_creator.join_community_with_name(community_name=community.name)
@@ -1932,7 +1932,7 @@ class PostCloseAPITests(OpenbookAPITestCase):
         community_post_creator = make_user()
         admin = make_user()
         community_member = make_user()
-        mentioned_user = make_user(username="joel123")
+        mentioned_user = make_user(name="joel123")
         community = make_community(admin)
 
         community_post_creator.join_community_with_name(community_name=community.name)

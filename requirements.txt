@@ -2,6 +2,7 @@
 appdirs==1.4.4
 bandit==1.7.4
 beautifulsoup4==4.11.1
+BeneDict~=0.3.2
 black[d]==22.10.0
 boto3==1.26.6
 botocore==1.29.6
