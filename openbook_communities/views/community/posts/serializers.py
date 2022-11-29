@@ -96,9 +96,6 @@ class CommunityPostSerializer(serializers.ModelSerializer):
             "reaction",
             "is_edited",
             "is_closed",
-            "media_height",
-            "media_width",
-            "media_thumbnail",
             "hashtags",
             "links",
         )

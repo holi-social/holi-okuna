@@ -140,23 +140,6 @@ class Post(ModelWithUUID):
     status = models.CharField(
         blank=False, null=False, choices=STATUSES, default=STATUS_DRAFT, max_length=2
     )
-    media_height = models.PositiveSmallIntegerField(
-        _("media height"), blank=True, null=True
-    )
-    media_width = models.PositiveSmallIntegerField(
-        _("media width"), blank=True, null=True
-    )
-    media_thumbnail = ProcessedImageField(
-        verbose_name=_("thumbnail"),
-        storage=post_image_storage,
-        upload_to=upload_to_post_directory,
-        blank=True,
-        null=True,
-        format="JPEG",
-        options={"quality": 30},
-        processors=[ResizeToFit(width=512, upscale=False)],
-        max_length=settings.IMAGE_URL_MAX_LENGTH,
-    )
     links = models.ManyToManyField(LinkPreview, related_name="+", blank=True)
 
     class Meta:
@@ -666,17 +649,9 @@ class Post(ModelWithUUID):
         has_other_media = self.media.exists()
 
         if file_mime_type == "image":
-            post_image = self._add_media_image(image=file, order=order)
-            if not has_other_media:
-                self.media_width = post_image.width
-                self.media_height = post_image.height
-                self.media_thumbnail = file
+            self._add_media_image(image=file, order=order)
         elif file_mime_type == "video":
-            post_video = self._add_media_video(video=file, order=order)
-            if not has_other_media:
-                self.media_width = post_video.width
-                self.media_height = post_video.height
-                self.media_thumbnail = post_video.thumbnail.file
+            self._add_media_video(video=file, order=order)
         else:
             raise ValidationError(_("Unsupported media file type"))
 
@@ -1171,7 +1146,13 @@ class PostImage(ModelWithUUID):
         null=True,
         format="JPEG",
         options={"quality": 80},
-        processors=[ResizeToFit(width=3840, height=3840, upscale=False)],
+        processors=[
+            ResizeToFit(
+                width=settings.CONTENT_IMAGE_MAX_DIMENSION,
+                height=settings.CONTENT_IMAGE_MAX_DIMENSION,
+                upscale=False,
+            )
+        ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     width = models.PositiveIntegerField(editable=False, null=False, blank=False)
@@ -1226,7 +1207,13 @@ class PostVideo(ModelWithUUID):
         null=True,
         format="JPEG",
         options={"quality": 30},
-        processors=[ResizeToFit(width=1024, upscale=False)],
+        processors=[
+            ResizeToFit(
+                width=settings.CONTENT_IMAGE_MAX_DIMENSION,
+                height=settings.CONTENT_IMAGE_MAX_DIMENSION,
+                upscale=False,
+            )
+        ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
 

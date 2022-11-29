@@ -104,9 +104,6 @@ class GetHashtagPostsPostSerializer(serializers.ModelSerializer):
             "is_edited",
             "is_closed",
             "is_encircled",
-            "media_height",
-            "media_width",
-            "media_thumbnail",
             "hashtags",
             "circles",
         )

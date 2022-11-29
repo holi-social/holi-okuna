@@ -236,9 +236,6 @@ class AuthenticatedUserPostSerializer(serializers.ModelSerializer):
             "is_encircled",
             "is_edited",
             "is_closed",
-            "media_height",
-            "media_width",
-            "media_thumbnail",
             "hashtags",
             "links",
         )
@@ -286,9 +283,6 @@ class UnauthenticatedUserPostSerializer(serializers.ModelSerializer):
             "comments_enabled",
             "public_reactions",
             "is_edited",
-            "media_height",
-            "media_width",
-            "media_thumbnail",
             "hashtags",
             "links",
         )
