@@ -71,7 +71,7 @@ class Hashtag(ModelWithUUID):
         null=True,
         format="JPEG",
         options={"quality": 60},
-        processors=[ResizeToFit(width=1024, upscale=False)],
+        processors=[ResizeToFit(width=settings.CONTENT_IMAGE_MAX_DIMENSION, height=settings.CONTENT_IMAGE_MAX_DIMENSION, upscale=False)],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     emoji = models.ForeignKey(
