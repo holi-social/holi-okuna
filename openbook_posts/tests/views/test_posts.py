@@ -491,7 +491,14 @@ class PostsAPITests(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user=user)
 
-        links = get_post_links()
+        links = [
+            "https://www.okuna.io/",
+            "www.techcrunch.com/",
+            "https://bbc.co.uk/",
+            "google.com?filter=evil/",
+            "www.blablacar.com/i/rest/results/",
+            "https://longwebsite.social/?url=https%3A%2F%2Ftest.com%3Fyes%3Dtrue",
+        ]
 
         post_text = " | ".join(links)
 
