@@ -44,7 +44,6 @@ from openbook_common.tests.helpers import (
     make_hashtag,
     get_test_valid_hashtags,
     get_test_invalid_hashtags,
-    get_post_links,
 )
 from openbook_common.utils.helpers import sha256sum, normalize_url
 from openbook_communities.models import Community
