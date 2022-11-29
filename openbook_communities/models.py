@@ -1014,6 +1014,7 @@ class ExternalLink(ModelWithUUID):
         LINKEDIN = "linkedin", _("linkedin")
         DISCORD = "discord", _("discord")
         TWITTER = "twitter", _("twitter")
+        WHATSAPP = "whatsapp", _("whatsapp")
         OTHER = "other", _("other")
 
     url = models.CharField(max_length=settings.LINK_URL_MAX_LENGTH, blank=False)
