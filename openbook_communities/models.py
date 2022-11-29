@@ -88,7 +88,12 @@ class Community(ModelWithUUID):
         null=True,
         format="JPEG",
         options={"quality": 90},
-        processors=[ResizeToFill(settings.PROFILE_IMAGE_MAX_DIMENSION, settings.PROFILE_IMAGE_MAX_DIMENSION)],
+        processors=[
+            ResizeToFill(
+                settings.PROFILE_IMAGE_MAX_DIMENSION,
+                settings.PROFILE_IMAGE_MAX_DIMENSION,
+            )
+        ],
         upload_to=upload_to_community_avatar_directory,
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
@@ -100,7 +105,13 @@ class Community(ModelWithUUID):
         format="JPEG",
         options={"quality": 90},
         upload_to=upload_to_community_cover_directory,
-        processors=[ResizeToFit(width=settings.CONTENT_IMAGE_MAX_DIMENSION, height=settings.CONTENT_IMAGE_MAX_DIMENSION, upscale=False)],
+        processors=[
+            ResizeToFit(
+                width=settings.CONTENT_IMAGE_MAX_DIMENSION,
+                height=settings.CONTENT_IMAGE_MAX_DIMENSION,
+                upscale=False,
+            )
+        ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     created = models.DateTimeField(default=timezone.now, editable=False)
