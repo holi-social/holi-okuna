@@ -484,6 +484,7 @@ class PostsAPITests(OpenbookAPITestCase):
             PostUserMention.objects.filter(post_id=post.pk, user_id=user.pk).exists()
         )
 
+    @unittest.skip("PostLink is replaced by LinkPreview")
     def test_create_text_post_detects_all_urls(self):
         """should detect different links in post text and create post links models from them"""
         user = make_user()
@@ -508,6 +509,7 @@ class PostsAPITests(OpenbookAPITestCase):
             link = normalize_url(link)
             self.assertTrue(link in result_links)
 
+    @unittest.skip("PostLink is replaced by LinkPreview")
     def test_create_text_post_does_not_skips_http_urls(self):
         """should not skip http urls in post text while creating post links models from them"""
         user = make_user()
