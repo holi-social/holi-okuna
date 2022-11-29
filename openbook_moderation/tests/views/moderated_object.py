@@ -1967,7 +1967,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community()
 
         community_post_comment_creator = make_user()
-        mmentioned_user = make_user(username="joelito")
+        mmentioned_user = make_user(name="joelito")
         post_comment_text = "Hello @joelito"
 
         community_post_comment_creator.join_community_with_name(
@@ -2024,7 +2024,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community()
 
         community_post_comment_creator = make_user()
-        mmentioned_user = make_user(username="joelito")
+        mmentioned_user = make_user(name="joelito")
         post_text = "Hello @joelito"
 
         community_post_comment_creator.join_community_with_name(
@@ -2518,7 +2518,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community = make_community()
 
         community_post_comment_creator = make_user()
-        mmentioned_user = make_user(username="joelito")
+        mmentioned_user = make_user(name="joelito")
         post_comment_text = "Hello @joelito"
 
         community_post_comment_creator.join_community_with_name(

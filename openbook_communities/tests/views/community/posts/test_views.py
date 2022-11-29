@@ -837,15 +837,15 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self,
     ):
         """should notify admins who are subscribers only once for the community in which the post was created"""
-        user = make_user(username="user")
+        user = make_user(name="user")
 
-        post_creator = make_user(username="post_creator")
+        post_creator = make_user(name="post_creator")
         user_community = make_community(creator=user, type="P", name="user_community")
         post_creator_community = make_community(
             creator=post_creator, type="P", name="post_creator_community"
         )
         other_community = make_community(
-            creator=make_user(username="other_user"), type="P", name="other_community"
+            creator=make_user(name="other_user"), type="P", name="other_community"
         )
 
         user.join_community_with_name(community_name=post_creator_community.name)
