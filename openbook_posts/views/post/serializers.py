@@ -7,7 +7,7 @@ from openbook_common.models import Badge, Language
 from openbook_common.serializers import (
     CommonHashtagSerializer,
     CommonPublicUserSerializer,
-    CommonPostLinkSerializer,
+    LinkPreviewSerializer,
 )
 from openbook_common.serializers_fields.post import (
     PostCreatorField,
@@ -145,7 +145,7 @@ class GetPostPostSerializer(serializers.ModelSerializer):
     language = PostLanguageSerializer()
     is_encircled = IsEncircledField()
     hashtags = CommonHashtagSerializer(many=True)
-    links = CommonPostLinkSerializer(many=True)
+    links = LinkPreviewSerializer(many=True)
 
     class Meta:
         model = Post

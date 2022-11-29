@@ -9,7 +9,7 @@ from openbook_common.serializers import (
     CommonPostReactionSerializer,
     CommonPostLanguageSerializer,
     CommonHashtagSerializer,
-    CommonPostLinkSerializer,
+    LinkPreviewSerializer,
 )
 from openbook_common.serializers_fields.community import CommunityPostsCountField
 from openbook_common.serializers_fields.post import (
@@ -78,7 +78,7 @@ class CommunityPostSerializer(serializers.ModelSerializer):
     reaction = ReactionField(reaction_serializer=CommonPostReactionSerializer)
     language = CommonPostLanguageSerializer()
     hashtags = CommonHashtagSerializer(many=True)
-    links = CommonPostLinkSerializer(many=True)
+    links = LinkPreviewSerializer(many=True)
 
     class Meta:
         model = Post

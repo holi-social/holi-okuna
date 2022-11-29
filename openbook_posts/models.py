@@ -1369,7 +1369,6 @@ class PostComment(ModelWithUUID):
             commenter=commenter,
             post=self.post,
             parent_comment=self,
-            language=get_language_for_text(text),
         )
 
         return post_comment

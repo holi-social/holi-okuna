@@ -7,6 +7,7 @@ from django.db.models import QuerySet, Q, Count
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from ordered_model.models import OrderedModel
+from requests import RequestException
 
 # Create your views here.
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
@@ -236,17 +237,20 @@ class LinkPreview(ModelWithUUID):
 
     @classmethod
     def get_opengraph(cls, url):
-        response = requests.get(url=url)
-        soup = BeautifulSoup(response.text, "html.parser")
         og = {}
-        for m in soup.find_all("meta"):
-            meta_property = m.get("property", None)
-            if meta_property in cls.fields:
-                og[meta_property[3:]] = m.get("content", None)
-        # sometimes image urls are relative, so use urljoin to prefix with og:url or url in those cases
-        if og.get("image"):
-            if og.get("url"):
-                og["image"] = urljoin(og["url"], og["image"])
-            else:
-                og["image"] = urljoin(url, og["image"])
-        return og
+        try:
+            response = requests.get(url=url)
+            soup = BeautifulSoup(response.text, "html.parser")
+            for m in soup.find_all("meta"):
+                meta_property = m.get("property", None)
+                if meta_property in cls.fields:
+                    og[meta_property[3:]] = m.get("content", None)
+            # sometimes image urls are relative, so use urljoin to prefix with og:url or url in those cases
+            if og.get("image"):
+                if og.get("url"):
+                    og["image"] = urljoin(og["url"], og["image"])
+                else:
+                    og["image"] = urljoin(url, og["image"])
+            return og
+        except RequestException:
+            return og
