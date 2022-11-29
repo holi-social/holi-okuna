@@ -115,7 +115,7 @@ class GraphQLTest(TestCase):
             }
             """
 
-        first_request_query = self.graphql.execute(
+        connection_request_response = self.graphql.execute(
             update_query,
             context_value=BeneDict({"user": first_user}),
             variable_values={
@@ -127,7 +127,7 @@ class GraphQLTest(TestCase):
         )
 
         assert (
-            first_request_query["data"]["updateConnectionWithUser"]["id"]
+            connection_request_response["data"]["updateConnectionWithUser"]["id"]
             == second_user.username
         )
 
@@ -137,7 +137,7 @@ class GraphQLTest(TestCase):
             == UserConnectionStatus.REQUESTED
         )
 
-        confirm_query = self.graphql.execute(
+        connection_confirm_response = self.graphql.execute(
             update_query,
             context_value=BeneDict({"user": second_user}),
             variable_values={
@@ -149,7 +149,7 @@ class GraphQLTest(TestCase):
         )
 
         assert (
-            confirm_query["data"]["updateConnectionWithUser"]["id"]
+            connection_confirm_response["data"]["updateConnectionWithUser"]["id"]
             == first_user.username
         )
         assert first_user.is_fully_connected_with_user_with_id(second_user.pk)
