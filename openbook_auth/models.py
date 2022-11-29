@@ -357,9 +357,6 @@ class User(AbstractUser):
             "creator__profile__avatar",
             "creator__profile__badges__id",
             "language",
-            "media_height",
-            "media_width",
-            "media_thumbnail",
             "public_reactions",
             "comments_enabled",
             "creator__profile__badges__keyword",
@@ -3091,9 +3088,6 @@ class User(AbstractUser):
             "creator__profile__avatar",
             "creator__profile__badges__id",
             "language",
-            "media_height",
-            "media_width",
-            "media_thumbnail",
             "public_reactions",
             "comments_enabled",
             "creator__profile__badges__keyword",
@@ -5006,7 +5000,13 @@ class UserProfile(ModelWithUUID):
         format="JPEG",
         options={"quality": 90},
         upload_to=upload_to_user_cover_directory,
-        processors=[ResizeToFit(width=1024, upscale=False)],
+        processors=[
+            ResizeToFit(
+                width=settings.CONTENT_IMAGE_MAX_DIMENSION,
+                height=settings.CONTENT_IMAGE_MAX_DIMENSION,
+                upscale=False,
+            )
+        ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     about_me = models.TextField(

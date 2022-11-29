@@ -40,7 +40,13 @@ class Insight(ModelWithUUID):
         format="JPEG",
         options={"quality": 80},
         # constrain to maximum width
-        processors=[ResizeToFit(width=1024, upscale=False)],
+        processors=[
+            ResizeToFit(
+                width=settings.CONTENT_IMAGE_MAX_DIMENSION,
+                height=settings.CONTENT_IMAGE_MAX_DIMENSION,
+                upscale=False,
+            )
+        ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     posts = models.ManyToManyField(Post, related_name="insights")

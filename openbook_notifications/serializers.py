@@ -126,9 +126,6 @@ class NotificationPostSerializer(serializers.ModelSerializer):
             "community",
             "is_closed",
             "is_encircled",
-            "media_height",
-            "media_width",
-            "media_thumbnail",
             # Temp backwards compat
             "image",
         )
