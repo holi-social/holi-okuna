@@ -291,32 +291,36 @@ RQ_QUEUES = {
 }
 
 # FYI: NOSE is a (deprecated) unit testing library
+NOSE_DEFAULT_ARGS = [
+    "--logging-level=ERROR",
+    "--verbosity=1",
+]
+NOSE_COVERAGE_ARGS = [
+    "--cover-erase",
+    "--cover-package=.",
+    "--with-spec",
+    "--spec-color",
+    "--with-coverage",
+]
 if IS_BUILD:
-    NOSE_ARGS = [
-        "--cover-erase",
-        "--cover-package=.",
-        "--with-spec",
-        "--spec-color",
-        "--with-coverage",
-        "--cover-xml",
-        "--verbosity=1",
-        "--nologcapture",
-    ]
+    NOSE_ARGS = (
+        NOSE_DEFAULT_ARGS
+        + NOSE_COVERAGE_ARGS
+        + [
+            "--cover-xml",
+        ]
+    )
 elif environment_checker.is_quicktest():
-    NOSE_ARGS = ["--nologcapture"]
+    NOSE_ARGS = NOSE_DEFAULT_ARGS
 else:
-    NOSE_ARGS = [
-        "--cover-erase",
-        "--cover-package=.",
-        "--with-spec",
-        "--spec-color",
-        "--with-coverage",
-        "--cover-html",
-        "--cover-html-dir=reports/cover",
-        "--verbosity=1",
-        "--nologcapture",
-        "--nocapture",
-    ]
+    NOSE_ARGS = (
+        NOSE_DEFAULT_ARGS
+        + NOSE_COVERAGE_ARGS
+        + [
+            "--cover-html",
+            "--cover-html-dir=reports/cover",
+        ]
+    )
 
 TEMPLATES = [
     {
