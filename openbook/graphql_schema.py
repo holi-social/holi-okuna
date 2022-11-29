@@ -489,13 +489,13 @@ class UpdateConnectionWithUserMutation(graphene.Mutation):
 
         authenticated_user = info.context.user
 
-        userToUpdateConnection = authenticated_user.get_user_with_username(
+        user_to_connect_to = authenticated_user.get_user_with_username(
             username=data.get("user_id")
         )
 
         current_connection_status = (
             authenticated_user.get_connection_status_with_user_id(
-                user_id=userToUpdateConnection.id
+                user_id=user_to_connect_to.id
             )
         )
 
@@ -504,13 +504,13 @@ class UpdateConnectionWithUserMutation(graphene.Mutation):
             # if current user needs to confirm connection, run confirm_connection_with_user_with_id
             if current_connection_status == UserConnectionStatus.PENDING_CONFIRMATION:
                 authenticated_user.confirm_connection_with_user_with_id(
-                    user_id=userToUpdateConnection.id
+                    user_id=user_to_connect_to.id
                 )
 
             # if there is no connection yet (no requests or pending confirmation), run connect_with_user_with_id
             if current_connection_status == UserConnectionStatus.NOT_CONNECTED:
                 authenticated_user.connect_with_user_with_id(
-                    user_id=userToUpdateConnection.id
+                    user_id=user_to_connect_to.id
                 )
 
         # Disconnect action (only run if current connection status is different than NOT_CONNECTED)
@@ -519,10 +519,10 @@ class UpdateConnectionWithUserMutation(graphene.Mutation):
             and current_connection_status != UserConnectionStatus.NOT_CONNECTED
         ):
             authenticated_user.disconnect_from_user_with_id(
-                user_id=userToUpdateConnection.id
+                user_id=user_to_connect_to.id
             )
 
-        return userToUpdateConnection
+        return user_to_connect_to
 
 
 class CreatePostCommentInput(graphene.InputObjectType):
