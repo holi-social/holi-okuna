@@ -173,7 +173,9 @@ class Post(DjangoObjectType):
         return UserModel.objects.filter(post_mentions__post=self)
 
     def resolve_image(self, info):
-        return self.image
+        if hasattr(self, "image"):
+            return self.image
+        return None
 
 
 class PostComment(DjangoObjectType):
