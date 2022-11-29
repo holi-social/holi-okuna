@@ -16,6 +16,7 @@ from openbook_communities.models import (
     CommunityMembership as CommunityMembershipModel,
     ExternalLink as ExternalLinkModel,
 )
+from openbook_common.models import LinkPreview as LinkPreviewModel
 from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_auth.images import delete_avatar
 
@@ -89,6 +90,11 @@ class PostImage(DjangoObjectType):
 
     def resolve_url(self, info):
         return self.image
+
+
+class LinkPreview(DjangoObjectType):
+    class Meta:
+        model = LinkPreviewModel
 
 
 class User(DjangoObjectType):
@@ -168,12 +174,16 @@ class Post(DjangoObjectType):
 
     mentions = graphene.List(User)
     image = graphene.Field(PostImage)
+    links = graphene.List(LinkPreview)
 
     def resolve_mentions(self, info):
         return UserModel.objects.filter(post_mentions__post=self)
 
     def resolve_image(self, info):
         return self.image
+
+    def resolve_links(self, info):
+        return self.links.all()
 
 
 class PostComment(DjangoObjectType):
@@ -182,12 +192,16 @@ class PostComment(DjangoObjectType):
 
     creator = graphene.Field(User, required=True, description="Synonym for commenter")
     mentions = graphene.List(User)
+    links = graphene.List(LinkPreview)
 
     def resolve_creator(self, info):
         return self.commenter
 
     def resolve_mentions(self, info):
         return UserModel.objects.filter(post_comment_mentions__post_comment=self)
+
+    def resolve_links(self, info):
+        return self.links.all()
 
 
 class SpaceMember(DjangoObjectType):

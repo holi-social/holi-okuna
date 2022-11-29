@@ -4,6 +4,8 @@ import tempfile
 import uuid
 from datetime import timedelta
 
+import ffmpy
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.files import File
@@ -14,28 +16,25 @@ from django.core.files.uploadedfile import (
     SimpleUploadedFile,
 )
 from django.db import models
+from django.db.models import Count
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.db.models import Count
-import ffmpy
+from imagekit.models import ProcessedImageField
 
 # Create your views here.
 from pilkit.processors import ResizeToFit
 from rest_framework.exceptions import ValidationError
 
-from django.conf import settings
-
-from openbook_common.peekalink_client import peekalink_client
-from openbook_posts.validators import post_text_validators, post_comment_text_validators
-from video_encoding.backends import get_backend
-from video_encoding.fields import VideoField
-from video_encoding.models import Format
-
-from openbook.storage_backends import S3PrivateMediaStorage
 from openbook_auth.models import User
-
-from openbook_common.models import Emoji, Language, ModelWithUUID, OrderedModelWithUUID
+from openbook_common.models import (
+    Emoji,
+    Language,
+    ModelWithUUID,
+    OrderedModelWithUUID,
+    LinkPreview,
+)
+from openbook_common.peekalink_client import peekalink_client
 from openbook_common.utils.helpers import (
     delete_file_field,
     sha256sum,
@@ -43,7 +42,6 @@ from openbook_common.utils.helpers import (
     get_magic,
     write_in_memory_file_to_disk,
     extract_hashtags_from_string,
-    normalize_url,
 )
 from openbook_common.utils.model_loaders import (
     get_emoji_model,
@@ -66,8 +64,6 @@ from openbook_common.utils.model_loaders import (
     get_trending_post_model,
     get_post_comment_reaction_notification_model,
 )
-from imagekit.models import ProcessedImageField
-
 from openbook_moderation.models import ModeratedObject
 from openbook_notifications.helpers import (
     send_post_comment_user_mention_push_notification,
@@ -87,9 +83,13 @@ from openbook_posts.helpers import (
     upload_to_post_directory,
 )
 from openbook_posts.jobs import process_post_media
+from openbook_posts.validators import post_text_validators, post_comment_text_validators
+from video_encoding.backends import get_backend
+from video_encoding.fields import VideoField
+from video_encoding.models import Format
 
 magic = get_magic()
-from openbook_common.helpers import get_language_for_text, extract_urls_from_string
+from openbook_common.helpers import get_language_for_text
 
 # TODO Think about what to do for storage backend
 post_image_storage = default_storage
@@ -157,6 +157,7 @@ class Post(ModelWithUUID):
         processors=[ResizeToFit(width=512, upscale=False)],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
+    links = models.ManyToManyField(LinkPreview, related_name="+", blank=True)
 
     class Meta:
         index_together = [
@@ -1040,19 +1041,9 @@ class Post(ModelWithUUID):
                 )
 
     def _process_post_links(self):
-        if self.has_text():
-            if not self.has_media():
-                link_urls = extract_urls_from_string(self.text)
-                if link_urls:
-                    self.links.all().delete()
-                    for link_url in link_urls:
-                        link_url = normalize_url(link_url)
-                        post_link = PostLink.create_link(link=link_url, post_id=self.pk)
-                        post_link.refresh_has_preview()
-            else:
-                self.links.all().delete()
-        else:
-            self.links.all().delete()
+        self.links.clear()
+        if self.has_text() and not self.has_media():
+            LinkPreview.parse_text(self.text, self.links)
 
     def __str__(self):
         return f"{self.__class__.__name__}: {self.title}"
@@ -1304,14 +1295,17 @@ class PostComment(ModelWithUUID):
     is_edited = models.BooleanField(default=False, null=False, blank=False)
     # This only happens if the comment was reported and found with critical severity content
     is_deleted = models.BooleanField(default=False)
+    links = models.ManyToManyField(LinkPreview, related_name="+", blank=True)
 
     @classmethod
     def create_comment(cls, text, commenter, post, parent_comment=None):
         post_comment = PostComment.objects.create(
-            text=text, commenter=commenter, post=post, parent_comment=parent_comment
+            text=text,
+            commenter=commenter,
+            post=post,
+            parent_comment=parent_comment,
+            language=get_language_for_text(text),
         )
-        post_comment.language = get_language_for_text(text)
-        post_comment.save()
 
         return post_comment
 
@@ -1371,10 +1365,12 @@ class PostComment(ModelWithUUID):
 
     def reply_to_comment(self, commenter, text):
         post_comment = PostComment.create_comment(
-            text=text, commenter=commenter, post=self.post, parent_comment=self
+            text=text,
+            commenter=commenter,
+            post=self.post,
+            parent_comment=self,
+            language=get_language_for_text(text),
         )
-        post_comment.language = get_language_for_text(text)
-        post_comment.save()
 
         return post_comment
 
@@ -1396,6 +1392,7 @@ class PostComment(ModelWithUUID):
 
         self._process_post_comment_mentions()
         self._process_post_comment_hashtags()
+        self._process_post_comment_links()
 
         return post_comment
 
@@ -1491,6 +1488,11 @@ class PostComment(ModelWithUUID):
                     if hashtag not in existing_hashtags:
                         hashtag_obj = Hashtag.get_or_create_hashtag(name=hashtag)
                         self.hashtags.add(hashtag_obj)
+
+    def _process_post_comment_links(self):
+        self.links.clear()
+        if self.text:
+            LinkPreview.parse_text(self.text, self.links)
 
     def update_comment(self, text):
         self.text = text
@@ -1688,7 +1690,7 @@ class PostCommentMute(ModelWithUUID):
 
 
 class PostLink(ModelWithUUID):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="links")
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="+")
     link = models.TextField(max_length=settings.POST_MAX_LENGTH)
     has_preview = models.BooleanField(default=False)
 
