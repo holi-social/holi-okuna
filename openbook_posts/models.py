@@ -4,6 +4,8 @@ import tempfile
 import uuid
 from datetime import timedelta
 
+import ffmpy
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.files import File
@@ -14,28 +16,24 @@ from django.core.files.uploadedfile import (
     SimpleUploadedFile,
 )
 from django.db import models
+from django.db.models import Count
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.db.models import Count
-import ffmpy
+from imagekit.models import ProcessedImageField
 
 # Create your views here.
 from pilkit.processors import ResizeToFit
 from rest_framework.exceptions import ValidationError
 
-from django.conf import settings
-
-from openbook_common.peekalink_client import peekalink_client
-from openbook_posts.validators import post_text_validators, post_comment_text_validators
-from video_encoding.backends import get_backend
-from video_encoding.fields import VideoField
-from video_encoding.models import Format
-
-from openbook.storage_backends import S3PrivateMediaStorage
 from openbook_auth.models import User
-
-from openbook_common.models import Emoji, Language, ModelWithUUID, OrderedModelWithUUID
+from openbook_common.models import (
+    Emoji,
+    Language,
+    ModelWithUUID,
+    OrderedModelWithUUID,
+    LinkPreview,
+)
 from openbook_common.utils.helpers import (
     delete_file_field,
     sha256sum,
@@ -43,7 +41,6 @@ from openbook_common.utils.helpers import (
     get_magic,
     write_in_memory_file_to_disk,
     extract_hashtags_from_string,
-    normalize_url,
 )
 from openbook_common.utils.model_loaders import (
     get_emoji_model,
@@ -66,8 +63,6 @@ from openbook_common.utils.model_loaders import (
     get_trending_post_model,
     get_post_comment_reaction_notification_model,
 )
-from imagekit.models import ProcessedImageField
-
 from openbook_moderation.models import ModeratedObject
 from openbook_notifications.helpers import (
     send_post_comment_user_mention_push_notification,
@@ -84,14 +79,16 @@ from openbook_posts.checkers import (
 from openbook_posts.helpers import (
     upload_to_post_image_directory,
     upload_to_post_video_directory,
-    upload_to_post_directory,
 )
 from openbook_posts.jobs import process_post_media
+from openbook_posts.validators import post_text_validators, post_comment_text_validators
+from video_encoding.backends import get_backend
+from video_encoding.fields import VideoField
+from video_encoding.models import Format
 
 magic = get_magic()
-from openbook_common.helpers import get_language_for_text, extract_urls_from_string
+from openbook_common.helpers import get_language_for_text, attr_filled
 
-# TODO Think about what to do for storage backend
 post_image_storage = default_storage
 
 
@@ -140,6 +137,7 @@ class Post(ModelWithUUID):
     status = models.CharField(
         blank=False, null=False, choices=STATUSES, default=STATUS_DRAFT, max_length=2
     )
+    links = models.ManyToManyField(LinkPreview, related_name="+", blank=True)
 
     class Meta:
         index_together = [
@@ -202,7 +200,7 @@ class Post(ModelWithUUID):
             post.community = Community.objects.get(name=community_name)
 
         # If on create we have a video or image, we automatically publish it
-        # Backwards compat reasons.
+        # Backwards compatibility reasons.
         if not is_draft:
             post.publish()
         else:
@@ -501,7 +499,7 @@ class Post(ModelWithUUID):
             if not user.is_staff_of_community_with_name(
                 community_name=self.community.name
             ):
-                # Dont retrieve comments except from staff members
+                # Don't retrieve comments except from staff members
                 blocked_users_query_staff_members = Q(
                     commenter__communities_memberships__community_id=self.community.pk
                 )
@@ -519,10 +517,10 @@ class Post(ModelWithUUID):
                 ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND
             )
 
-        # Dont count soft deleted items
+        # Don't count soft deleted items
         count_query.add(Q(is_deleted=False), Q.AND)
 
-        # Dont count items we have reported
+        # Don't count items we have reported
         count_query.add(~Q(moderated_object__reports__reporter_id=user.pk), Q.AND)
 
         return self.comments.filter(count_query).count()
@@ -536,28 +534,13 @@ class Post(ModelWithUUID):
         return self.has_text() and not self.has_video() and not self.has_image()
 
     def has_text(self):
-        if hasattr(self, "text"):
-
-            if self.text:
-                return True
-
-        return False
+        return attr_filled(self, "text")
 
     def has_image(self):
-        if hasattr(self, "image"):
-
-            if self.image:
-                return True
-
-        return False
+        return attr_filled(self, "image")
 
     def has_video(self):
-        if hasattr(self, "video"):
-
-            if self.video:
-                return True
-
-        return False
+        return attr_filled(self, "video")
 
     def has_links(self):
         return self.links.exists()
@@ -1016,18 +999,9 @@ class Post(ModelWithUUID):
 
     def _process_post_links(self):
         if self.has_text():
-            if not self.has_media():
-                link_urls = extract_urls_from_string(self.text)
-                if link_urls:
-                    self.links.all().delete()
-                    for link_url in link_urls:
-                        link_url = normalize_url(link_url)
-                        post_link = PostLink.create_link(link=link_url, post_id=self.pk)
-                        post_link.refresh_has_preview()
-            else:
-                self.links.all().delete()
+            self.links.set(LinkPreview.parse_text(self.text))
         else:
-            self.links.all().delete()
+            self.links.clear()
 
     def __str__(self):
         return f"{self.__class__.__name__}: {self.title}"
@@ -1291,14 +1265,17 @@ class PostComment(ModelWithUUID):
     is_edited = models.BooleanField(default=False, null=False, blank=False)
     # This only happens if the comment was reported and found with critical severity content
     is_deleted = models.BooleanField(default=False)
+    links = models.ManyToManyField(LinkPreview, related_name="+", blank=True)
 
     @classmethod
     def create_comment(cls, text, commenter, post, parent_comment=None):
         post_comment = PostComment.objects.create(
-            text=text, commenter=commenter, post=post, parent_comment=parent_comment
+            text=text,
+            commenter=commenter,
+            post=post,
+            parent_comment=parent_comment,
+            language=get_language_for_text(text),
         )
-        post_comment.language = get_language_for_text(text)
-        post_comment.save()
 
         return post_comment
 
@@ -1330,7 +1307,7 @@ class PostComment(ModelWithUUID):
             if not user.is_staff_of_community_with_name(
                 community_name=self.post.community.name
             ):
-                # Dont retrieve comments except from staff members
+                # Don't retrieve comments except from staff members
                 blocked_users_query_staff_members = Q(
                     commenter__communities_memberships__community_id=self.post.community.pk
                 )
@@ -1348,20 +1325,21 @@ class PostComment(ModelWithUUID):
                 ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND
             )
 
-        # Dont count soft deleted items
+        # Don't count soft deleted items
         count_query.add(Q(is_deleted=False), Q.AND)
 
-        # Dont count items we have reported
+        # Don't count items we have reported
         count_query.add(~Q(moderated_object__reports__reporter_id=user.pk), Q.AND)
 
         return self.replies.filter(count_query).count()
 
     def reply_to_comment(self, commenter, text):
         post_comment = PostComment.create_comment(
-            text=text, commenter=commenter, post=self.post, parent_comment=self
+            text=text,
+            commenter=commenter,
+            post=self.post,
+            parent_comment=self,
         )
-        post_comment.language = get_language_for_text(text)
-        post_comment.save()
 
         return post_comment
 
@@ -1383,6 +1361,7 @@ class PostComment(ModelWithUUID):
 
         self._process_post_comment_mentions()
         self._process_post_comment_hashtags()
+        self._process_post_comment_links()
 
         return post_comment
 
@@ -1434,7 +1413,7 @@ class PostComment(ModelWithUUID):
                                 user_has_replied_before
                                 or user_is_parent_comment_creator
                             ):
-                                # Its a reply to a comment, if the user previously replied to the comment
+                                # It's a reply to a comment, if the user previously replied to the comment
                                 # or if he's the creator of the parent comment he will already be alerted of the reply,
                                 # no need for mention
                                 continue
@@ -1443,7 +1422,7 @@ class PostComment(ModelWithUUID):
                                 commenter_id=user.pk
                             ).exists()
                             if user_has_commented_before:
-                                # Its a comment to a post, if the user previously commented on the post
+                                # It's a comment to a post, if the user previously commented on the post
                                 # he will already be alerted of the comment, no need for mention
                                 continue
 
@@ -1478,6 +1457,12 @@ class PostComment(ModelWithUUID):
                     if hashtag not in existing_hashtags:
                         hashtag_obj = Hashtag.get_or_create_hashtag(name=hashtag)
                         self.hashtags.add(hashtag_obj)
+
+    def _process_post_comment_links(self):
+        if self.has_text():
+            self.links.set(LinkPreview.parse_text(self.text))
+        else:
+            self.links.clear()
 
     def update_comment(self, text):
         self.text = text
@@ -1560,6 +1545,9 @@ class PostComment(ModelWithUUID):
             post_comment_user_mention__post_comment__post_id=self.pk,
             notification__owner_id=user.pk,
         ).delete()
+
+    def has_text(self):
+        return attr_filled(self, "text")
 
 
 class PostReaction(ModelWithUUID):
@@ -1672,25 +1660,6 @@ class PostCommentMute(ModelWithUUID):
     @classmethod
     def create_post_comment_mute(cls, post_comment_id, muter_id):
         return cls.objects.create(post_comment_id=post_comment_id, muter_id=muter_id)
-
-
-class PostLink(ModelWithUUID):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="links")
-    link = models.TextField(max_length=settings.POST_MAX_LENGTH)
-    has_preview = models.BooleanField(default=False)
-
-    @classmethod
-    def create_link(cls, link, post_id):
-        return cls.objects.create(link=link, post_id=post_id)
-
-    def refresh_has_preview(self):
-        try:
-            self.has_preview = peekalink_client.is_peekable(self.link)
-        except Exception as e:
-            # We don't care whether it succeeded or not
-            self.has_preview = False
-
-        self.save()
 
 
 class PostUserMention(ModelWithUUID):

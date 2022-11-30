@@ -8,7 +8,7 @@ from openbook_common.models import Emoji, Badge
 from openbook_common.serializers import (
     CommonHashtagSerializer,
     CommonPublicUserSerializer,
-    CommonPostLinkSerializer,
+    LinkPreviewSerializer,
 )
 from openbook_common.serializers_fields.post import (
     ReactionField,
@@ -215,7 +215,7 @@ class AuthenticatedUserPostSerializer(serializers.ModelSerializer):
     language = PostLanguageSerializer()
     is_encircled = IsEncircledField()
     hashtags = CommonHashtagSerializer(many=True)
-    links = CommonPostLinkSerializer(many=True)
+    links = LinkPreviewSerializer(many=True)
 
     class Meta:
         model = Post
@@ -268,7 +268,7 @@ class UnauthenticatedUserPostSerializer(serializers.ModelSerializer):
     comments_count = CommentsCountField()
     language = PostLanguageSerializer()
     hashtags = CommonHashtagSerializer(many=True)
-    links = CommonPostLinkSerializer(many=True)
+    links = LinkPreviewSerializer(many=True)
 
     class Meta:
         model = Post
@@ -300,11 +300,3 @@ class GetProfilePostsCommunityExclusionSerializer(serializers.Serializer):
         required=False,
     )
     count = serializers.IntegerField(required=False, max_value=20)
-
-
-class PreviewLinkSerializer(serializers.Serializer):
-    link = serializers.CharField(
-        max_length=255,
-        required=True,
-        allow_blank=False,
-    )

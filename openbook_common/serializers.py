@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from openbook_auth.models import User, UserProfile
 from openbook_circles.models import Circle
-from openbook_common.models import Emoji, EmojiGroup, Badge, Language
+from openbook_common.models import Emoji, EmojiGroup, Badge, Language, LinkPreview
 from openbook_common.serializers_fields.user import IsFollowingField, IsFollowedField
 from openbook_communities.models import Community, CommunityMembership
 from openbook_communities.serializers_fields import (
@@ -16,7 +16,7 @@ from openbook_communities.validators import (
 )
 from openbook_follows.models import FollowRequest, Follow
 from openbook_hashtags.models import Hashtag
-from openbook_posts.models import PostReaction, PostImage, PostLink
+from openbook_posts.models import PostReaction, PostImage
 
 
 class CommonEmojiSerializer(serializers.ModelSerializer):
@@ -133,10 +133,18 @@ class CommonHashtagSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "color", "text_color", "image", "emoji")
 
 
-class CommonPostLinkSerializer(serializers.ModelSerializer):
+class LinkPreviewSerializer(serializers.ModelSerializer):
     class Meta:
-        model = PostLink
-        fields = ("link", "has_preview")
+        model = LinkPreview
+        fields = (
+            "requested_url",
+            "url",
+            "title",
+            "description",
+            "type",
+            "image",
+            "fetched_at",
+        )
 
 
 class CommonCircleSerializer(serializers.ModelSerializer):
