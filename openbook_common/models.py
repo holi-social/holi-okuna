@@ -216,12 +216,14 @@ class LinkPreview(ModelWithUUID):
     fields = ["og:url", "og:title", "og:description", "og:type", "og:image"]
 
     @classmethod
-    def parse_text(cls, text, links):
+    def parse_text(cls, text):
+        links = []
         link_urls = extract_urls_from_string(text)
         if link_urls:
             for link_url in link_urls:
                 link_url = normalize_url(link_url)
-                links.add(cls.from_url(link_url))
+                links.append(cls.from_url(link_url))
+        return links
 
     @classmethod
     def from_url(cls, url):

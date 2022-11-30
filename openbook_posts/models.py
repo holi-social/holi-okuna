@@ -87,7 +87,7 @@ from video_encoding.fields import VideoField
 from video_encoding.models import Format
 
 magic = get_magic()
-from openbook_common.helpers import get_language_for_text
+from openbook_common.helpers import get_language_for_text, attr_filled
 
 post_image_storage = default_storage
 
@@ -534,28 +534,13 @@ class Post(ModelWithUUID):
         return self.has_text() and not self.has_video() and not self.has_image()
 
     def has_text(self):
-        if hasattr(self, "text"):
-
-            if self.text:
-                return True
-
-        return False
+        return attr_filled(self, "text")
 
     def has_image(self):
-        if hasattr(self, "image"):
-
-            if self.image:
-                return True
-
-        return False
+        return attr_filled(self, "image")
 
     def has_video(self):
-        if hasattr(self, "video"):
-
-            if self.video:
-                return True
-
-        return False
+        return attr_filled(self, "video")
 
     def has_links(self):
         return self.links.exists()
@@ -1013,9 +998,10 @@ class Post(ModelWithUUID):
                 )
 
     def _process_post_links(self):
-        self.links.clear()
-        if self.has_text() and not self.has_media():
-            LinkPreview.parse_text(self.text, self.links)
+        if self.has_text():
+            self.links.set(LinkPreview.parse_text(self.text))
+        else:
+            self.links.clear()
 
     def __str__(self):
         return f"{self.__class__.__name__}: {self.title}"
@@ -1473,9 +1459,10 @@ class PostComment(ModelWithUUID):
                         self.hashtags.add(hashtag_obj)
 
     def _process_post_comment_links(self):
-        self.links.clear()
-        if self.text:
-            LinkPreview.parse_text(self.text, self.links)
+        if self.has_text():
+            self.links.set(LinkPreview.parse_text(self.text))
+        else:
+            self.links.clear()
 
     def update_comment(self, text):
         self.text = text
@@ -1558,6 +1545,9 @@ class PostComment(ModelWithUUID):
             post_comment_user_mention__post_comment__post_id=self.pk,
             notification__owner_id=user.pk,
         ).delete()
+
+    def has_text(self):
+        return attr_filled(self, "text")
 
 
 class PostReaction(ModelWithUUID):
