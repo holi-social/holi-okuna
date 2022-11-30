@@ -205,12 +205,12 @@ class ProxyBlacklistedDomain(ModelWithUUID):
 
 
 class LinkPreview(ModelWithUUID):
-    requested_url = models.CharField(max_length=500, unique=True)
-    url = models.CharField(max_length=500)
-    title = models.CharField(max_length=500)
-    description = models.CharField(max_length=1000)
-    type = models.CharField(max_length=100)
-    image = models.CharField(max_length=500)
+    requested_url = models.TextField(unique=True)
+    url = models.TextField()
+    title = models.TextField()
+    description = models.TextField()
+    type = models.TextField()
+    image = models.TextField()
     fetched_at = models.DateTimeField(default=timezone.now, editable=False)
 
     fields = ["og:url", "og:title", "og:description", "og:type", "og:image"]
