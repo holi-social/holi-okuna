@@ -21,8 +21,6 @@ from openbook_insights.models import Insight
 from openbook_posts.models import Post, PostComment
 from openbook_posts.queries import make_only_public_posts_query
 
-# TODO Think about what to do for storage backend
-# hashtag_image_storage = S3PrivateMediaStorage() if settings.IS_PRODUCTION else default_storage
 hashtag_image_storage = default_storage
 
 

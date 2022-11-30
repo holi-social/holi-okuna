@@ -6,7 +6,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.utils.translation import gettext_lazy as _
 
-from openbook_common.peekalink_client import peekalink_client
 from openbook_common.responses import ApiMessageResponse
 from openbook_common.serializers import (
     CommonSearchCommunitiesSerializer,
@@ -30,7 +29,6 @@ from openbook_posts.views.posts.serializers import (
     AuthenticatedUserTrendingPostSerializer,
     GetProfilePostsCommunityExclusionSerializer,
     GetTopPostsCommunityExclusionSerializer,
-    PreviewLinkSerializer,
 )
 
 
@@ -395,44 +393,3 @@ class SearchProfilePostsExcludedCommunities(APIView):
         )
 
         return Response(communities_serializer.data, status=status.HTTP_200_OK)
-
-
-class PreviewLink(APIView):
-    permission_classes = (IsAuthenticated, IsNotSuspended)
-    throttle_scope = "link_preview"
-
-    def post(self, request):
-        serializer = PreviewLinkSerializer(
-            data=request.data, context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-
-        link = data.get("link")
-        user = request.user
-
-        link_preview = user.preview_link(link=link)
-
-        return Response(link_preview, status=status.HTTP_200_OK)
-
-
-class LinkIsPreviewable(APIView):
-    permission_classes = (IsAuthenticated, IsNotSuspended)
-    throttle_scope = "link_preview"
-
-    def post(self, request):
-        serializer = PreviewLinkSerializer(
-            data=request.data, context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-
-        link = data.get("link")
-
-        try:
-            is_previewable = peekalink_client.is_peekable(link)
-        except Exception as e:
-            # We dont care whether it succeeded or not
-            is_previewable = False
-
-        return Response({"is_previewable": is_previewable}, status=status.HTTP_200_OK)

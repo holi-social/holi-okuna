@@ -16,7 +16,7 @@ from openbook_communities.validators import (
 )
 from openbook_follows.models import FollowRequest, Follow
 from openbook_hashtags.models import Hashtag
-from openbook_posts.models import PostReaction, PostImage, PostLink
+from openbook_posts.models import PostReaction, PostImage
 
 
 class CommonEmojiSerializer(serializers.ModelSerializer):
@@ -131,12 +131,6 @@ class CommonHashtagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hashtag
         fields = ("id", "name", "color", "text_color", "image", "emoji")
-
-
-class CommonPostLinkSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PostLink
-        fields = ("link", "has_preview")
 
 
 class LinkPreviewSerializer(serializers.ModelSerializer):

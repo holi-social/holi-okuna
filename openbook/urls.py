@@ -176,7 +176,6 @@ from openbook_posts.views.post.views import (
     MutePost,
     UnmutePost,
     TranslatePost,
-    PostPreviewLinkData,
     SearchPostParticipants,
     GetPostParticipants,
     PublishPost,
@@ -221,8 +220,6 @@ from openbook_posts.views.posts.views import (
     SearchTopPostsExcludedCommunities,
     ProfilePostsExcludedCommunity,
     TopPostsExcludedCommunity,
-    PreviewLink,
-    LinkIsPreviewable,
 )
 from openbook_importer.views import ImportItem
 
@@ -401,7 +398,6 @@ post_patterns = [
     path("translate/", TranslatePost.as_view(), name="translate-post"),
     path("publish/", PublishPost.as_view(), name="publish-post"),
     path("status/", PostStatus.as_view(), name="post-status"),
-    path("link-preview/", PostPreviewLinkData.as_view(), name="preview-post-link"),
     path("participants/", include(post_participants_patterns)),
     path("media/", include(post_media_patterns)),
 ]
@@ -443,13 +439,6 @@ posts_top_patterns = [
     ),
 ]
 
-posts_links_patterns = [
-    path("preview/", PreviewLink.as_view(), name="preview-post-link"),
-    path(
-        "is-previewable/", LinkIsPreviewable.as_view(), name="post-link-is-previewable"
-    ),
-]
-
 posts_patterns = [
     path("<uuid:post_id>/", include(post_patterns)),
     path("", Posts.as_view(), name="posts"),
@@ -460,7 +449,6 @@ posts_patterns = [
     ),
     path("profile/", include(posts_profile_patterns)),
     path("top/", include(posts_top_patterns)),
-    path("links/", include(posts_links_patterns)),
 ]
 
 community_administrator_patterns = [

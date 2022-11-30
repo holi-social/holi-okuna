@@ -34,7 +34,6 @@ from openbook_common.models import (
     OrderedModelWithUUID,
     LinkPreview,
 )
-from openbook_common.peekalink_client import peekalink_client
 from openbook_common.utils.helpers import (
     delete_file_field,
     sha256sum,
@@ -80,7 +79,6 @@ from openbook_posts.checkers import (
 from openbook_posts.helpers import (
     upload_to_post_image_directory,
     upload_to_post_video_directory,
-    upload_to_post_directory,
 )
 from openbook_posts.jobs import process_post_media
 from openbook_posts.validators import post_text_validators, post_comment_text_validators
@@ -91,7 +89,6 @@ from video_encoding.models import Format
 magic = get_magic()
 from openbook_common.helpers import get_language_for_text
 
-# TODO Think about what to do for storage backend
 post_image_storage = default_storage
 
 
@@ -203,7 +200,7 @@ class Post(ModelWithUUID):
             post.community = Community.objects.get(name=community_name)
 
         # If on create we have a video or image, we automatically publish it
-        # Backwards compat reasons.
+        # Backwards compatibility reasons.
         if not is_draft:
             post.publish()
         else:
@@ -502,7 +499,7 @@ class Post(ModelWithUUID):
             if not user.is_staff_of_community_with_name(
                 community_name=self.community.name
             ):
-                # Dont retrieve comments except from staff members
+                # Don't retrieve comments except from staff members
                 blocked_users_query_staff_members = Q(
                     commenter__communities_memberships__community_id=self.community.pk
                 )
@@ -520,10 +517,10 @@ class Post(ModelWithUUID):
                 ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND
             )
 
-        # Dont count soft deleted items
+        # Don't count soft deleted items
         count_query.add(Q(is_deleted=False), Q.AND)
 
-        # Dont count items we have reported
+        # Don't count items we have reported
         count_query.add(~Q(moderated_object__reports__reporter_id=user.pk), Q.AND)
 
         return self.comments.filter(count_query).count()
@@ -1324,7 +1321,7 @@ class PostComment(ModelWithUUID):
             if not user.is_staff_of_community_with_name(
                 community_name=self.post.community.name
             ):
-                # Dont retrieve comments except from staff members
+                # Don't retrieve comments except from staff members
                 blocked_users_query_staff_members = Q(
                     commenter__communities_memberships__community_id=self.post.community.pk
                 )
@@ -1342,10 +1339,10 @@ class PostComment(ModelWithUUID):
                 ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND
             )
 
-        # Dont count soft deleted items
+        # Don't count soft deleted items
         count_query.add(Q(is_deleted=False), Q.AND)
 
-        # Dont count items we have reported
+        # Don't count items we have reported
         count_query.add(~Q(moderated_object__reports__reporter_id=user.pk), Q.AND)
 
         return self.replies.filter(count_query).count()
@@ -1430,7 +1427,7 @@ class PostComment(ModelWithUUID):
                                 user_has_replied_before
                                 or user_is_parent_comment_creator
                             ):
-                                # Its a reply to a comment, if the user previously replied to the comment
+                                # It's a reply to a comment, if the user previously replied to the comment
                                 # or if he's the creator of the parent comment he will already be alerted of the reply,
                                 # no need for mention
                                 continue
@@ -1439,7 +1436,7 @@ class PostComment(ModelWithUUID):
                                 commenter_id=user.pk
                             ).exists()
                             if user_has_commented_before:
-                                # Its a comment to a post, if the user previously commented on the post
+                                # It's a comment to a post, if the user previously commented on the post
                                 # he will already be alerted of the comment, no need for mention
                                 continue
 
@@ -1673,25 +1670,6 @@ class PostCommentMute(ModelWithUUID):
     @classmethod
     def create_post_comment_mute(cls, post_comment_id, muter_id):
         return cls.objects.create(post_comment_id=post_comment_id, muter_id=muter_id)
-
-
-class PostLink(ModelWithUUID):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="+")
-    link = models.TextField(max_length=settings.POST_MAX_LENGTH)
-    has_preview = models.BooleanField(default=False)
-
-    @classmethod
-    def create_link(cls, link, post_id):
-        return cls.objects.create(link=link, post_id=post_id)
-
-    def refresh_has_preview(self):
-        try:
-            self.has_preview = peekalink_client.is_peekable(self.link)
-        except Exception as e:
-            # We don't care whether it succeeded or not
-            self.has_preview = False
-
-        self.save()
 
 
 class PostUserMention(ModelWithUUID):

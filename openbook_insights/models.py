@@ -15,8 +15,6 @@ from openbook_insights.helpers import upload_to_insight_directory
 from openbook_posts.models import Post
 from openbook_terms.models import Topic
 
-# TODO Think about what to do for storage backend
-# insight_image_storage = S3PrivateMediaStorage() if settings.IS_PRODUCTION else default_storage
 insight_image_storage = default_storage
 
 

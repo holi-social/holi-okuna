@@ -333,7 +333,7 @@ class Community(ModelWithUUID):
         categories_names=None,
         invites_enabled=None,
     ):
-        # If its a private community and no invites_enabled
+        # If it's a private community and no invites_enabled
         if type == Community.COMMUNITY_TYPE_PRIVATE and invites_enabled is None:
             invites_enabled = False
         else:
@@ -1028,7 +1028,7 @@ class ExternalLink(ModelWithUUID):
         WHATSAPP = "whatsapp", _("whatsapp")
         OTHER = "other", _("other")
 
-    url = models.CharField(max_length=settings.LINK_URL_MAX_LENGTH, blank=False)
+    url = models.TextField(blank=False)
     community = models.ForeignKey(
         Community,
         on_delete=models.CASCADE,

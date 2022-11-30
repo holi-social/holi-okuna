@@ -62,7 +62,6 @@ from openbook_posts.models import (
     PostMedia,
     TopPost,
     TrendingPost,
-    PostLink,
 )
 from openbook_common.utils.test import uuid_id_parser
 
@@ -482,64 +481,6 @@ class PostsAPITests(OpenbookAPITestCase):
         self.assertFalse(
             PostUserMention.objects.filter(post_id=post.pk, user_id=user.pk).exists()
         )
-
-    @unittest.skip("PostLink is replaced by LinkPreview")
-    def test_create_text_post_detects_all_urls(self):
-        """should detect different links in post text and create post links models from them"""
-        user = make_user()
-
-        headers = make_authentication_headers_for_user(user=user)
-
-        links = [
-            "https://www.okuna.io/",
-            "www.techcrunch.com/",
-            "https://bbc.co.uk/",
-            "google.com?filter=evil/",
-            "www.blablacar.com/i/rest/results/",
-            "https://longwebsite.social/?url=https%3A%2F%2Ftest.com%3Fyes%3Dtrue",
-        ]
-
-        post_text = " | ".join(links)
-
-        data = {"text": post_text}
-
-        url = self._get_url()
-        response = self.client.put(url, data, **headers, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        post = Post.objects.get(text=post_text, creator_id=user.pk)
-        post_links = PostLink.objects.filter(post_id=post.pk)
-        result_links = [post_link.link for post_link in post_links]
-
-        self.assertEqual(len(result_links), len(links))
-        for link in links:
-            link = normalize_url(link)
-            self.assertTrue(link in result_links)
-
-    @unittest.skip("PostLink is replaced by LinkPreview")
-    def test_create_text_post_does_not_skips_http_urls(self):
-        """should not skip http urls in post text while creating post links models from them"""
-        user = make_user()
-
-        headers = make_authentication_headers_for_user(user=user)
-
-        post_text = "http://unsafe.com/"
-
-        data = {"text": post_text}
-
-        url = self._get_url()
-        response = self.client.put(url, data, **headers, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        post = Post.objects.get(text=post_text, creator_id=user.pk)
-        post_links = PostLink.objects.filter(post_id=post.pk)
-        result_links = [post_link.link for post_link in post_links]
-
-        self.assertTrue(len(result_links), 1)
-
-        result_link = result_links[0]
-
-        self.assertEqual(result_link, post_text)
-
-        self.assertEqual(len(result_links), 1)
 
     def test_create_post_is_added_to_world_circle(self):
         """the created text post should automatically added to world circle"""
