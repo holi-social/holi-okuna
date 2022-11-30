@@ -217,22 +217,21 @@ class LinkPreview(ModelWithUUID):
 
     @classmethod
     def parse_text(cls, text):
-        links = []
+        previews = []
         link_urls = extract_urls_from_string(text)
         if link_urls:
             for link_url in link_urls:
-                link_url = normalize_url(link_url)
-                links.append(cls.from_url(link_url))
-        return links
+                previews.append(cls.from_url(link_url))
+        return previews
 
     @classmethod
     def from_url(cls, url):
-        og = cls.get_opengraph(url)
         preview, created = cls.objects.get_or_create(requested_url=url)
         if not created and preview.fetched_at > timezone.now() - timezone.timedelta(
             hours=settings.LINK_PREVIEW_CACHE_TIME_H
         ):
             return preview
+        og = cls.get_opengraph(normalize_url(url))
         preview.fetched_at = timezone.now()
         for field in cls.fields:
             value = og.get(field[3:])
