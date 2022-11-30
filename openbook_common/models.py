@@ -1,7 +1,5 @@
-# Create your models here.
-# Create your models here.
 import uuid
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 
 from django.conf import settings
 from django.db import models
@@ -9,11 +7,16 @@ from django.db.models import QuerySet, Q, Count
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from ordered_model.models import OrderedModel
+from requests import RequestException
 
 # Create your views here.
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
+from openbook_common.helpers import extract_urls_from_string
+from openbook_common.utils.helpers import normalize_url
 from openbook_common.validators import hex_color_validator
 import tldextract
+import requests
+from bs4 import BeautifulSoup
 
 
 class ModelWithUUID(models.Model):
@@ -199,3 +202,61 @@ class ProxyBlacklistedDomain(ModelWithUUID):
         return cls.objects.filter(
             Q(domain=url_root_domain) | Q(domain=url_full_domain)
         ).exists()
+
+
+class LinkPreview(ModelWithUUID):
+    requested_url = models.TextField(unique=True)
+    url = models.TextField()
+    title = models.TextField()
+    description = models.TextField()
+    type = models.TextField()
+    image = models.TextField()
+    fetched_at = models.DateTimeField(default=timezone.now, editable=False)
+
+    fields = ["og:url", "og:title", "og:description", "og:type", "og:image"]
+
+    @classmethod
+    def parse_text(cls, text):
+        links = []
+        link_urls = extract_urls_from_string(text)
+        if link_urls:
+            for link_url in link_urls:
+                link_url = normalize_url(link_url)
+                links.append(cls.from_url(link_url))
+        return links
+
+    @classmethod
+    def from_url(cls, url):
+        og = cls.get_opengraph(url)
+        preview, created = cls.objects.get_or_create(requested_url=url)
+        if not created and preview.fetched_at > timezone.now() - timezone.timedelta(
+            hours=settings.LINK_PREVIEW_CACHE_TIME_H
+        ):
+            return preview
+        preview.fetched_at = timezone.now()
+        for field in cls.fields:
+            value = og.get(field[3:])
+            if value is not None:
+                setattr(preview, field[3:], value)
+        preview.save()
+        return preview
+
+    @classmethod
+    def get_opengraph(cls, url):
+        og = {}
+        try:
+            response = requests.get(url=url)
+            soup = BeautifulSoup(response.text, "html.parser")
+            for m in soup.find_all("meta"):
+                meta_property = m.get("property", None)
+                if meta_property in cls.fields:
+                    og[meta_property[3:]] = m.get("content", None)
+            # sometimes image urls are relative, so use urljoin to prefix with og:url or url in those cases
+            if og.get("image"):
+                if og.get("url"):
+                    og["image"] = urljoin(og["url"], og["image"])
+                else:
+                    og["image"] = urljoin(url, og["image"])
+            return og
+        except RequestException:
+            return og

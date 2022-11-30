@@ -22,7 +22,6 @@ from openbook_auth.helpers import (
     upload_to_user_avatar_directory,
     upload_to_user_cover_directory,
 )
-from openbook_common.peekalink_client import peekalink_client
 from openbook_hashtags.queries import (
     make_search_hashtag_query_for_user_with_id,
     make_get_hashtag_with_name_for_user_with_id_query,
@@ -4325,12 +4324,6 @@ class User(AbstractUser):
     def get_participants_for_post(self, post):
         self.can_see_post(post=post)
         return post.get_participants()
-
-    def preview_link(self, link):
-        if self.language:
-            return peekalink_client.peek(link=link, language_code=self.language.code)
-
-        return peekalink_client.peek(link=link)
 
     def _generate_password_reset_link(self, token):
         return f"{settings.EMAIL_HOST}/api/auth/password/verify?token={token}"

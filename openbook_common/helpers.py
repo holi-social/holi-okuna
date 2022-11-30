@@ -99,3 +99,7 @@ def create_upload_filename(object_type, object_id, filename, username=None):
         return f"{object_type}/{object_id}/{filename}"
 
     return f"{object_type}/{object_id}/{filename}/{username}"
+
+
+def attr_filled(obj, attr):
+    return bool(getattr(obj, attr, None))

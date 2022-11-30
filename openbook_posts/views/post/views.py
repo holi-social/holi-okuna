@@ -313,33 +313,3 @@ class PostStatus(APIView):
         post_status = user.get_status_for_post_with_id(post_id=post_id)
 
         return Response({"status": post_status}, status=status.HTTP_200_OK)
-
-
-class PostPreviewLinkData(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request, post_id):
-        request_data = request.data.copy()
-        request_data["post_id"] = post_id
-
-        serializer = GetPostSerializer(data=request_data)
-        serializer.is_valid(raise_exception=True)
-
-        data = serializer.validated_data
-        post_id = data.get("post_id")
-
-        user = request.user
-        try:
-            preview_link_data = user.get_preview_link_data_for_post_with_id(post_id)
-        except URLNotFound:
-            return ApiMessageResponse(
-                _("The linked url associated for preview was not found."),
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        except URLUnreachable:
-            return ApiMessageResponse(
-                _("The linked url associated for preview was not reachable."),
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        return Response(preview_link_data, status=status.HTTP_200_OK)
