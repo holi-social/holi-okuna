@@ -2,6 +2,7 @@ import json
 from typing import List
 
 from benedict import BeneDict
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 from graphene.test import Client
@@ -15,6 +16,9 @@ from openbook_auth.models import User, UserConnectionStatus
 from openbook_common.tests.helpers import (
     make_user,
     make_authentication_headers_for_user,
+    make_fake_post_text,
+    make_fake_post_title,
+    simple_jpeg_bytes,
 )
 
 
@@ -22,7 +26,9 @@ class GraphQLTest(TestCase):
     def setUp(self):
         self.graphql = Client(schema)
 
-    def test_query_http_api_query_authenticated_user(self):
+    fixtures = ["openbook_circles/fixtures/circles.json"]
+
+    def test_get_authenticated_user_returns_self_reference(self):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
@@ -41,7 +47,7 @@ class GraphQLTest(TestCase):
             path=endpoint,
             data=json.dumps({"query": graphql_query}),
             content_type="application/json",
-            **headers
+            **headers,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -154,6 +160,52 @@ class GraphQLTest(TestCase):
         )
         assert first_user.is_fully_connected_with_user_with_id(second_user.pk)
         assert second_user.is_fully_connected_with_user_with_id(first_user.pk)
+
+    def test_can_fetch_post_with_image(self):
+        posting_user = make_user()
+
+        print(posting_user.uuid)
+        print(posting_user.id)
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+        image_name = "foo.jpg"
+
+        post = posting_user.create_public_post(
+            text=post_text,
+            title=post_title,
+            image=SimpleUploadedFile(name=image_name, content=simple_jpeg_bytes),
+        )
+
+        response = self.graphql.execute(
+            f"""
+            query {{
+                postById(id: "{post.id}") {{
+                    text
+                    title
+                    image {{
+                        url
+                        width
+                        height
+                    }}
+                    created
+                    creator {{
+                        id
+                    }}
+                }}
+            }}
+            """
+        )
+
+        post_data = response["data"]["postById"]
+        print(post_data)
+        assert post_data["text"] == post_text
+        assert post_data["title"] == post_title
+        assert image_name in post_data["image"]["url"]
+        assert post_data["image"]["width"] == 1
+        assert post_data["image"]["height"] == 1
+        assert post_data["creator"]["id"] == str(posting_user.uuid)
+        assert post_data["created"] is not None
 
 
 def assert_paged_results_equal(results: dict, expected_data: List[dict[str, any]]):
