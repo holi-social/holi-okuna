@@ -161,11 +161,46 @@ class GraphQLTest(TestCase):
         assert first_user.is_fully_connected_with_user_with_id(second_user.pk)
         assert second_user.is_fully_connected_with_user_with_id(first_user.pk)
 
-    def test_can_fetch_post_with_image(self):
+    def test_can_fetch_post(self):
         posting_user = make_user()
 
-        print(posting_user.uuid)
-        print(posting_user.id)
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_public_post(
+            text=post_text,
+            title=post_title,
+        )
+
+        response = self.graphql.execute(
+            f"""
+            query {{
+                postById(id: "{post.id}") {{
+                    text
+                    title
+                    image {{
+                        url
+                        width
+                        height
+                    }}
+                    created
+                    creator {{
+                        id
+                    }}
+                }}
+            }}
+            """
+        )
+
+        post_data = response["data"]["postById"]
+        assert post_data["text"] == post_text
+        assert post_data["title"] == post_title
+        assert post_data["image"] is None
+        assert post_data["creator"]["id"] == str(posting_user.uuid)
+        assert post_data["created"] is not None
+
+    def test_can_fetch_post_with_image(self):
+        posting_user = make_user()
 
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
@@ -198,7 +233,6 @@ class GraphQLTest(TestCase):
         )
 
         post_data = response["data"]["postById"]
-        print(post_data)
         assert post_data["text"] == post_text
         assert post_data["title"] == post_title
         assert image_name in post_data["image"]["url"]
