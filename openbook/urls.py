@@ -767,6 +767,7 @@ urlpatterns = [
                 graphiql=True, schema=graphql_schema.schema
             )
         ),
+        name="graphql-endpoint",
     ),
 ]
 

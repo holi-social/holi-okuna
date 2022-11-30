@@ -10,6 +10,7 @@ coverage.xml
 src/
 static/
 docker-compose.override.yml
+core
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
