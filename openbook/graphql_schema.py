@@ -96,6 +96,11 @@ class LinkPreview(DjangoObjectType):
     class Meta:
         model = LinkPreviewModel
 
+    origin = graphene.String(required=True)
+
+    def resolve_origin(self, info):
+        return self.get_origin()
+
 
 class User(DjangoObjectType):
     # normally, all fields could just go in here to be automatically included. but for user the fields are actually in
