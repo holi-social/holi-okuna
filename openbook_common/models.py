@@ -236,12 +236,13 @@ class LinkPreview(ModelWithUUID):
 
     @classmethod
     def from_url(cls, url):
-        preview, created = cls.objects.get_or_create(requested_url=url)
+        normalized_url = normalize_url(url)
+        preview, created = cls.objects.get_or_create(requested_url=normalized_url)
         if not created and preview.fetched_at > timezone.now() - timezone.timedelta(
             hours=settings.LINK_PREVIEW_CACHE_TIME_H
         ):
             return preview
-        og = cls.get_opengraph(normalize_url(url))
+        og = cls.get_opengraph(normalize_url(normalized_url))
         preview.fetched_at = timezone.now()
         for field in cls.fields:
             value = og.get(field[3:])

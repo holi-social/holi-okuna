@@ -22,7 +22,7 @@ class LinkPreviewTestCase(TestCase):
         self.assertEqual(1, len(mock_get.call_args_list))
         self.assertEqual(preview, preview2)
         self.assertEqual(preview.has_data(), False)
-        self.assertEqual(preview.requested_url, "www.abcd.de")
+        self.assertEqual(preview.requested_url, "http://www.abcd.de/")
         self.assertEqual(preview.url, "")
         self.assertEqual(preview.title, "")
         self.assertEqual(preview.description, "")
@@ -63,7 +63,7 @@ class LinkPreviewTestCase(TestCase):
         self.assertEqual(1, len(previews))
         preview = previews[0]
         self.assertEqual(preview.has_data(), True)
-        self.assertEqual(preview.requested_url, "www.my.de")
+        self.assertEqual(preview.requested_url, "http://www.my.de/")
         self.assertEqual(preview.url, "https://my.url/xyz")
         self.assertEqual(preview.title, "MyTitle")
         self.assertEqual(preview.site_name, "MySite")
@@ -112,7 +112,7 @@ class LinkPreviewTestCase(TestCase):
 
         preview = previews[0]
         self.assertEqual(preview.has_data(), True)
-        self.assertEqual(preview.requested_url, "www.my.de")
+        self.assertEqual(preview.requested_url, "http://www.my.de/")
         self.assertEqual(preview.url, "https://my.url/xyz")
         self.assertEqual(preview.title, "MyTitle")
         self.assertEqual(preview.description, "MyDescription")
@@ -121,7 +121,7 @@ class LinkPreviewTestCase(TestCase):
 
         preview2 = previews[1]
         self.assertEqual(preview2.has_data(), True)
-        self.assertEqual(preview2.requested_url, "www.mysecond.de")
+        self.assertEqual(preview2.requested_url, "http://www.mysecond.de/")
         self.assertEqual(preview2.url, "https://mysecond.url/xyz")
         self.assertEqual(preview2.title, "MySecondTitle")
         self.assertEqual(preview2.description, "MySecondDescription")
