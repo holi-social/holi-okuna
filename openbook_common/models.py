@@ -11,7 +11,7 @@ from requests import RequestException
 
 # Create your views here.
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
-from openbook_common.helpers import extract_urls_from_string
+from openbook_common.helpers import extract_urls_from_string, attr_filled
 from openbook_common.utils.helpers import normalize_url
 from openbook_common.validators import hex_color_validator
 import tldextract
@@ -217,22 +217,23 @@ class LinkPreview(ModelWithUUID):
 
     @classmethod
     def parse_text(cls, text):
-        links = []
+        previews = []
         link_urls = extract_urls_from_string(text)
         if link_urls:
             for link_url in link_urls:
-                link_url = normalize_url(link_url)
-                links.append(cls.from_url(link_url))
-        return links
+                preview = cls.from_url(link_url)
+                if preview.has_data():
+                    previews.append(preview)
+        return previews
 
     @classmethod
     def from_url(cls, url):
-        og = cls.get_opengraph(url)
         preview, created = cls.objects.get_or_create(requested_url=url)
         if not created and preview.fetched_at > timezone.now() - timezone.timedelta(
             hours=settings.LINK_PREVIEW_CACHE_TIME_H
         ):
             return preview
+        og = cls.get_opengraph(normalize_url(url))
         preview.fetched_at = timezone.now()
         for field in cls.fields:
             value = og.get(field[3:])
@@ -260,3 +261,6 @@ class LinkPreview(ModelWithUUID):
             return og
         except RequestException:
             return og
+
+    def has_data(self):
+        return any(attr_filled(self, field[3:]) for field in self.fields)
