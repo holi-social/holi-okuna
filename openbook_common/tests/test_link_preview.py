@@ -52,6 +52,7 @@ class LinkPreviewTestCase(TestCase):
             <meta property="og:url" content="https://my.url/xyz" />
             <meta property="og:type" content="website" />
             <meta property="og:title" content="MyTitle" />
+            <meta property="og:site_name" content="MySite" />
             <meta property="og:description" content="MyDescription" />
             <meta property="og:image" content="https://www.my.url/image.jpg" />
             </head></html>
@@ -65,9 +66,11 @@ class LinkPreviewTestCase(TestCase):
         self.assertEqual(preview.requested_url, "www.my.de")
         self.assertEqual(preview.url, "https://my.url/xyz")
         self.assertEqual(preview.title, "MyTitle")
+        self.assertEqual(preview.site_name, "MySite")
         self.assertEqual(preview.description, "MyDescription")
         self.assertEqual(preview.type, "website")
         self.assertEqual(preview.image, "https://www.my.url/image.jpg")
+        self.assertEqual(preview.get_origin(), "http://www.my.de")
         self.assertTrue(
             timezone.now() - timezone.timedelta(seconds=3)
             <= preview.fetched_at

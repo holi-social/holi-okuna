@@ -1,9 +1,9 @@
 import uuid
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urlparse, urljoin, urlsplit
 
 from django.conf import settings
 from django.db import models
-from django.db.models import QuerySet, Q, Count
+from django.db.models import Q, Count
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from ordered_model.models import OrderedModel
@@ -211,9 +211,17 @@ class LinkPreview(ModelWithUUID):
     description = models.TextField()
     type = models.TextField()
     image = models.TextField()
+    site_name = models.TextField()
     fetched_at = models.DateTimeField(default=timezone.now, editable=False)
 
-    fields = ["og:url", "og:title", "og:description", "og:type", "og:image"]
+    fields = [
+        "og:url",
+        "og:title",
+        "og:description",
+        "og:type",
+        "og:image",
+        "og:site_name",
+    ]
 
     @classmethod
     def parse_text(cls, text):
@@ -264,3 +272,7 @@ class LinkPreview(ModelWithUUID):
 
     def has_data(self):
         return any(attr_filled(self, field[3:]) for field in self.fields)
+
+    def get_origin(self):
+        split = urlsplit(normalize_url(self.requested_url))
+        return f"{split.scheme}://{split.netloc}"
