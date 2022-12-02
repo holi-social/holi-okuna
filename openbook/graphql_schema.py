@@ -386,7 +386,9 @@ class Query(graphene.ObjectType):
 
     def resolve_spaces(self, info, topic_id, location, offset, limit):
         topic_filter = Q(topics__id__contains=topic_id) if topic_id is not None else Q()
-        location_filter = Q(location=location) if location is not None else Q()
+        location_filter = (
+            Q(location__icontains=location) if location is not None else Q()
+        )
 
         return Paged.data(
             CommunityModel.objects.filter(topic_filter, location_filter)
