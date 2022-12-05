@@ -316,7 +316,9 @@ class Query(graphene.ObjectType):
         string_not_empty(substring)
 
         users_to_exclude_ids = (
-            [info.context.user.id] if not info.context.user.is_anonymous else []
+            [info.context.user.id]
+            if info.context and info.context.user and not info.context.user.is_anonymous
+            else []
         )
         excludes_filter = ~Q(id__in=users_to_exclude_ids) & Q(profile__isnull=False)
         full_name_query = (

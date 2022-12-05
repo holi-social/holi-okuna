@@ -60,14 +60,14 @@ class GraphQLTest(TestCase):
     def test_get_user_by_name_returns_only_matching_user(self):
         expected_users = [
             make_user(name="Peter", last_name="Muster"),
-            make_user(name="Petra", last_name="Rudtke"),
+            make_user(name="Peter", last_name="Mudtke"),
         ]
         make_user(name="Fritz", last_name="Meier")
 
         executed = self.graphql.execute(
             """
             query {
-                userByName(substring: "Pet") {
+                userByName(substring: "er M") {
                     totalResults
                     data {
                         firstName
