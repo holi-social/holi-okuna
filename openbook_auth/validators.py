@@ -1,9 +1,7 @@
-import json
 import re
 from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import ValidationError, NotFound, ParseError
 
-from openbook import settings
 from openbook_auth.models import User
 from openbook_terms.models import Topic, SDG, Skill
 
@@ -60,3 +58,10 @@ def sdg_with_id_exists(sdg_uuid):
 def skill_with_id_exists(skill_uuid):
     if not Skill.objects.filter(id=skill_uuid).exists():
         raise ParseError(_(f"Unknown UUID '{skill_uuid}' contained in skills array"))
+
+
+def string_not_empty(string):
+    if not re.match("\\S", string):
+        raise ValidationError(
+            "You must provide at least one character in the search string"
+        )
