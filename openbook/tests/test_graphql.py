@@ -84,6 +84,36 @@ class GraphQLTest(TestCase):
             ],
         )
 
+    def test_get_user_by_name_first_name_matches_first(self):
+        make_user(name="Thomas", last_name="Petersen"),
+        make_user(name="Peter", last_name="Muster"),
+        make_user(name="Petra", last_name="Meier"),
+        make_user(name="Fritz", last_name="Meier")
+
+        executed = self.graphql.execute(
+            """
+            query {
+                userByName(substring: "Pet") {
+                    totalResults
+                    data {
+                        firstName
+                        lastName
+                    }
+                }
+            }
+            """
+        )
+        self.assertEqual(executed["data"]["userByName"]["totalResults"], 3)
+        self.assertEqual(
+            executed["data"]["userByName"]["data"][0]["firstName"], "Peter"
+        )
+        self.assertEqual(
+            executed["data"]["userByName"]["data"][1]["firstName"], "Petra"
+        )
+        self.assertEqual(
+            executed["data"]["userByName"]["data"][2]["firstName"], "Thomas"
+        )
+
     def test_can_update_authenticated_user(self):
         user = make_user(name="Fritz", last_name="Meier")
         pronouns = "She/her"
