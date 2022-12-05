@@ -1,12 +1,15 @@
 import graphene
 from datetime import datetime
 from django.db import Error, transaction
-from django.db.models import Q, Count
+from django.db.models import Q, Count, F, Value
+from django.db.models.functions import Concat
+from django.db.models.lookups import IContains
 from graphene_django import DjangoObjectType
 from graphql import GraphQLError
 from graphene_file_upload.scalars import Upload
 
 from openbook_auth.models import UserConnectionStatus, User as UserModel
+from openbook_auth.validators import string_not_empty
 from openbook_auth.views.authenticated_user.serializers import (
     UpdateAuthenticatedUserSerializer,
 )
@@ -310,13 +313,24 @@ class Query(graphene.ObjectType):
             )
 
     def resolve_user_by_name(self, info, substring, offset, limit):
-        total_results = UserModel.objects.filter(
-            Q(profile__name__icontains=substring)
-            | Q(profile__last_name__icontains=substring)
-        ).count()
+        string_not_empty(substring)
+
+        users_to_exclude_ids = (
+            [info.context.user.id] if not info.context.user.is_anonymous else []
+        )
+        excludes_filter = ~Q(id__in=users_to_exclude_ids) & Q(profile__isnull=False)
+        full_name_query = (
+            IContains(
+                Concat(F("profile__name"), Value(" "), F("profile__last_name")),
+                substring,
+            )
+            & excludes_filter
+        )
+
+        total_results = UserModel.objects.filter(full_name_query).count()
 
         by_first_name_query = UserModel.objects.filter(
-            profile__name__icontains=substring
+            Q(profile__name__icontains=substring) & excludes_filter
         )
         by_first_name = list(by_first_name_query[offset : offset + limit])
         by_first_name_len = len(by_first_name)
@@ -331,13 +345,12 @@ class Query(graphene.ObjectType):
             new_offset = offset - by_first_name_query.count()
             new_limit = limit
 
-        by_last_name = list(
+        by_full_name = list(
             UserModel.objects.filter(
-                Q(profile__last_name__icontains=substring)
-                & ~Q(profile__name__icontains=substring)
+                full_name_query & ~Q(profile__name__icontains=substring)
             )[new_offset : new_offset + new_limit]
         )
-        return Paged(by_first_name + by_last_name, total_results)
+        return Paged(by_first_name + by_full_name, total_results)
 
     def resolve_user_suggestions(self, info, offset, limit):
         if info.context.user.id:
