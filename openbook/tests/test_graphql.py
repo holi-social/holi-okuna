@@ -22,6 +22,11 @@ from openbook_common.tests.helpers import (
 )
 
 
+class ContextWithUser:
+    def __init__(self, user):
+        self.user = user
+
+
 class GraphQLTest(TestCase):
     def setUp(self):
         self.graphql = Client(schema)
@@ -57,12 +62,13 @@ class GraphQLTest(TestCase):
         assert authenticated_user["fullName"] == user.profile.full_name()
         assert authenticated_user["engagementLevel"] == user.profile.engagement_level
 
-    def test_get_user_by_name_returns_only_matching_user(self):
+    def test_get_user_by_name_returns_only_matching_users_without_logged_in_user(self):
         expected_users = [
             make_user(name="Peter", last_name="Muster"),
             make_user(name="Peter", last_name="Mudtke"),
         ]
         make_user(name="Fritz", last_name="Meier")
+        user = make_user(name="Peter", last_name="Moser")
 
         executed = self.graphql.execute(
             """
@@ -75,7 +81,8 @@ class GraphQLTest(TestCase):
                     }
                 }
             }
-            """
+            """,
+            context_value=BeneDict({"user": user}),
         )
         assert_paged_results_equal(
             results=executed["data"]["userByName"],
