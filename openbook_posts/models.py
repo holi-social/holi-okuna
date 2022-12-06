@@ -1212,7 +1212,7 @@ class PostVideo(ModelWithUUID):
         video_backend = get_backend()
 
         if isinstance(file, InMemoryUploadedFile):
-            # If its in memory, doing read shouldn't be an issue as the file should be small.
+            # If it's in memory, doing read shouldn't be an issue as the file should be small.
             in_disk_file = write_in_memory_file_to_disk(file)
             thumbnail_path = video_backend.get_thumbnail(
                 video_path=in_disk_file.name, at_time=0.0

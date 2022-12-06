@@ -42,7 +42,7 @@ def nomalize_usernames_in_request_data(request_data):
 
 
 def normalize_list_value_in_request_data(list_name, request_data):
-    """Checks if a list value is a list. If its a string, splits it and makes it a list"""
+    """Checks if a list value is a list. If it's a string, splits it and makes it a list"""
     list = request_data.get(list_name, None)
     if isinstance(list, str):
         list = list.split(",")
@@ -57,7 +57,7 @@ def generate_random_hex_color():
 
 
 def get_random_pastel_color():
-    # Its a random color jeez, we dont need cryptographically secure randomness
+    # It's a random color jeez, we don't need cryptographically secure randomness
     h, s, l = (
         random.random(),
         0.5 + random.random() / 2.0,

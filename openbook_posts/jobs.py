@@ -192,7 +192,7 @@ def clean_top_posts():
         .filter(top_posts_criteria_query)
     )
 
-    # bulk delete all that definitely dont meet the criteria anymore
+    # bulk delete all that definitely don't meet the criteria anymore
     direct_removable_top_posts.delete()
 
     # Now we need to only check the ones where the unique comments count might have dropped,
