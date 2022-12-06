@@ -384,8 +384,8 @@ class PostsAPITests(OpenbookAPITestCase):
             1,
         )
 
-    def test_create_text_post_does_not_detect_mention_if_encircled(self):
-        """should not detect mention if the post is encircled and the mentioned person is outside the circle"""
+    def test_create_text_post_does_not_notify_mention_if_encircled(self):
+        """should not notify mention if the post is encircled and the mentioned person is outside the circle"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -402,9 +402,13 @@ class PostsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
+        post_user_mention_query = PostUserMention.objects.filter(
+            post_id=post.pk, user_id=mentioned_user.pk
+        )
+        self.assertTrue(post_user_mention_query.exists())
         self.assertFalse(
-            PostUserMention.objects.filter(
-                post_id=post.pk, user_id=mentioned_user.pk
+            PostUserMentionNotification.objects.filter(
+                post_user_mention=post_user_mention_query.get()
             ).exists()
         )
 

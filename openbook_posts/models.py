@@ -929,12 +929,11 @@ class Post(ModelWithUUID):
                                 username__iexact=username
                             )
                             user_is_post_creator = user.pk == self.creator_id
-                            if (
-                                user.can_see_post(post=self)
-                                and not user_is_post_creator
-                            ):
+                            if not user_is_post_creator:
                                 PostUserMention.create_post_user_mention(
-                                    user=user, post=self
+                                    user=user,
+                                    post=self,
+                                    notify=user.can_see_post(post=self),
                                 )
                                 existing_mention_usernames.append(username)
                         except User.DoesNotExist:
@@ -1391,45 +1390,18 @@ class PostComment(ModelWithUUID):
                         user = User.objects.only("id", "username").get(
                             username__iexact=username
                         )
+
                         user_can_see_post_comment = user.can_see_post_comment(
                             post_comment=self
                         )
                         user_is_commenter = user.pk == self.commenter_id
-
-                        if not user_can_see_post_comment or user_is_commenter:
-                            continue
-
-                        if self.parent_comment:
-                            user_is_parent_comment_creator = (
-                                self.parent_comment.commenter_id == user.pk
+                        if not user_is_commenter:
+                            PostCommentUserMention.create_post_comment_user_mention(
+                                user=user,
+                                post_comment=self,
+                                notify=user_can_see_post_comment,
                             )
-                            user_has_replied_before = (
-                                self.parent_comment.replies.filter(
-                                    commenter_id=user.pk
-                                ).exists()
-                            )
-
-                            if (
-                                user_has_replied_before
-                                or user_is_parent_comment_creator
-                            ):
-                                # It's a reply to a comment, if the user previously replied to the comment
-                                # or if he's the creator of the parent comment he will already be alerted of the reply,
-                                # no need for mention
-                                continue
-                        else:
-                            user_has_commented_before = self.post.comments.filter(
-                                commenter_id=user.pk
-                            ).exists()
-                            if user_has_commented_before:
-                                # It's a comment to a post, if the user previously commented on the post
-                                # he will already be alerted of the comment, no need for mention
-                                continue
-
-                        PostCommentUserMention.create_post_comment_user_mention(
-                            user=user, post_comment=self
-                        )
-                        existing_mention_usernames.append(username)
+                            existing_mention_usernames.append(username)
                     except User.DoesNotExist:
                         pass
 
@@ -1677,13 +1649,16 @@ class PostUserMention(ModelWithUUID):
         )
 
     @classmethod
-    def create_post_user_mention(cls, user, post):
+    def create_post_user_mention(cls, user, post, notify=True):
         post_user_mention = cls.objects.create(user=user, post=post)
-        PostUserMentionNotification = get_post_user_mention_notification_model()
-        PostUserMentionNotification.create_post_user_mention_notification(
-            post_user_mention_id=post_user_mention.pk, owner_id=user.pk
-        )
-        send_post_user_mention_push_notification(post_user_mention=post_user_mention)
+        if notify:
+            PostUserMentionNotification = get_post_user_mention_notification_model()
+            PostUserMentionNotification.create_post_user_mention_notification(
+                post_user_mention_id=post_user_mention.pk, owner_id=user.pk
+            )
+            send_post_user_mention_push_notification(
+                post_user_mention=post_user_mention
+            )
         return post_user_mention
 
 
@@ -1702,17 +1677,19 @@ class PostCommentUserMention(ModelWithUUID):
         )
 
     @classmethod
-    def create_post_comment_user_mention(cls, user, post_comment):
+    def create_post_comment_user_mention(cls, user, post_comment, notify=True):
         post_comment_user_mention = cls.objects.create(
             user=user, post_comment=post_comment
         )
-        PostCommentUserMentionNotification = (
-            get_post_comment_user_mention_notification_model()
-        )
-        PostCommentUserMentionNotification.create_post_comment_user_mention_notification(
-            post_comment_user_mention_id=post_comment_user_mention.pk, owner_id=user.pk
-        )
-        send_post_comment_user_mention_push_notification(
-            post_comment_user_mention=post_comment_user_mention
-        )
+        if notify:
+            PostCommentUserMentionNotification = (
+                get_post_comment_user_mention_notification_model()
+            )
+            PostCommentUserMentionNotification.create_post_comment_user_mention_notification(
+                post_comment_user_mention_id=post_comment_user_mention.pk,
+                owner_id=user.pk,
+            )
+            send_post_comment_user_mention_push_notification(
+                post_comment_user_mention=post_comment_user_mention
+            )
         return post_comment_user_mention

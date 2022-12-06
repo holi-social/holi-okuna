@@ -704,8 +704,8 @@ class PostCommentsAPITests(OpenbookAPITestCase):
             0,
         )
 
-    def test_create_text_post_comment_ignores_if_username_already_commented(self):
-        """should ignore a username if the person already commented"""
+    def test_create_text_post_comment_if_username_already_commented(self):
+        """should notify a username if the person already commented"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -730,7 +730,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
             PostCommentUserMention.objects.filter(
                 post_comment_id=post_comment.pk
             ).count(),
-            0,
+            1,
         )
 
     def test_create_text_post_comment_creates_mention_notifications(self):

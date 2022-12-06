@@ -1602,7 +1602,6 @@ class User(AbstractUser):
     def comment_post(self, post, text):
         check_can_comment_in_post(user=self, post=post)
         post_comment = post.comment(text=text, commenter=self)
-        post_creator = post.creator
         post_commenter = self
 
         Post = get_post_model()
@@ -1624,7 +1623,7 @@ class User(AbstractUser):
             ):
                 continue
             post_notification_target_user_is_post_creator = (
-                post_notification_target_user.id == post_creator.id
+                post_notification_target_user.id == post.creator.id
             )
             post_notification_target_has_comment_notifications_enabled = post_notification_target_user.has_comment_notifications_enabled_for_post_with_id(
                 post_id=post_comment.post_id
