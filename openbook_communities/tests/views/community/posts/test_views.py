@@ -19,7 +19,10 @@ from openbook_common.tests.helpers import (
 from openbook_common.utils.test import uuid_id_parser
 from openbook_communities.models import Community, CommunityNotificationsSubscription
 from openbook_moderation.models import ModeratedObject
-from openbook_notifications.models import CommunityNewPostNotification
+from openbook_notifications.models import (
+    CommunityNewPostNotification,
+    PostUserMentionNotification,
+)
 from openbook_posts.models import Post, PostUserMention
 from openbook_notifications.models import Notification
 
@@ -675,9 +678,13 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
+        post_user_mention_query = PostUserMention.objects.filter(
+            post_id=post.pk, user_id=mentioned_user.pk
+        )
+        self.assertTrue(post_user_mention_query.exists())
         self.assertFalse(
-            PostUserMention.objects.filter(
-                post_id=post.pk, user_id=mentioned_user.pk
+            PostUserMentionNotification.objects.filter(
+                post_user_mention=post_user_mention_query.get()
             ).exists()
         )
 

@@ -1602,7 +1602,6 @@ class User(AbstractUser):
     def comment_post(self, post, text):
         check_can_comment_in_post(user=self, post=post)
         post_comment = post.comment(text=text, commenter=self)
-        post_creator = post.creator
         post_commenter = self
 
         Post = get_post_model()
@@ -1624,7 +1623,7 @@ class User(AbstractUser):
             ):
                 continue
             post_notification_target_user_is_post_creator = (
-                post_notification_target_user.id == post_creator.id
+                post_notification_target_user.id == post.creator.id
             )
             post_notification_target_has_comment_notifications_enabled = post_notification_target_user.has_comment_notifications_enabled_for_post_with_id(
                 post_id=post_comment.post_id
@@ -3685,7 +3684,7 @@ class User(AbstractUser):
         self._create_follow_notification(followed_user_id=user.pk)
 
         if not is_pre_approved:
-            # When its preapproved by the user to be followed, do not send the person a push notification
+            # When it's preapproved by the user to be followed, do not send the person a push notification
             self._send_follow_push_notification(followed_user_id=user.pk)
 
         if self.has_max_number_of_following():
@@ -4785,7 +4784,7 @@ class User(AbstractUser):
             if not self.is_staff_of_community_with_name(
                 community_name=post_community.name
             ):
-                # Dont retrieve posts of blocked users, except from staff members
+                # Don't retrieve posts of blocked users, except from staff members
                 blocked_users_query = ~Q(
                     Q(commenter__blocked_by_users__blocker_id=self.pk)
                     | Q(commenter__user_blocks__blocked_user_id=self.pk)
@@ -4808,7 +4807,7 @@ class User(AbstractUser):
                     ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND
                 )
         else:
-            #  Dont retrieve posts of blocked users
+            # Don't retrieve posts of blocked users
             blocked_users_query = ~Q(
                 Q(commenter__blocked_by_users__blocker_id=self.pk)
                 | Q(commenter__user_blocks__blocked_user_id=self.pk)
@@ -4821,10 +4820,10 @@ class User(AbstractUser):
         elif min_id:
             comments_query.add(Q(id__gte=min_id), Q.AND)
 
-        # Dont retrieve items we have reported
+        # Don't retrieve items we have reported
         comments_query.add(~Q(moderated_object__reports__reporter_id=self.pk), Q.AND)
 
-        # Dont retrieve soft deleted post comments
+        # Don't retrieve soft deleted post comments
         comments_query.add(Q(is_deleted=False), Q.AND)
 
         return comments_query
@@ -4849,7 +4848,7 @@ class User(AbstractUser):
             ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND
         )
 
-        # Dont retrieve items we have reported
+        # Don't retrieve items we have reported
         community_posts_query.add(
             ~Q(moderated_object__reports__reporter_id=self.pk), Q.AND
         )
@@ -4870,7 +4869,7 @@ class User(AbstractUser):
         community_posts_query.add(community_posts_visibility_query, Q.AND)
 
         if not self.is_staff_of_community_with_name(community_name=community.name):
-            # Dont retrieve closed posts
+            # Don't retrieve closed posts
             community_posts_query.add(Q(is_closed=False) | Q(creator_id=self.pk), Q.AND)
 
             # Don't retrieve posts of blocked users, except if they're staff members
