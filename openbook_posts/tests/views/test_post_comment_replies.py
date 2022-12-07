@@ -2071,10 +2071,10 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
             post_comment=post_comment_reply, message=ANY, target_user=post_creator
         )
 
-    def test_reply_to_post_comment_ignores_parent_comment_creator_username_mention(
+    def test_reply_to_post_comment_parent_comment_creator_username_mention(
         self,
     ):
-        """should ignore the parent comment creator username mention when replying to a post comment"""
+        """should notify the parent comment creator username mention when replying to a post comment"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -2110,11 +2110,11 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
             PostCommentUserMention.objects.filter(
                 post_comment_id=post_comment.pk
             ).count(),
-            0,
+            1,
         )
 
-    def test_reply_to_post_comment_ignores_if_username_already_replied(self):
-        """should ignore a username if the person already replied"""
+    def test_reply_to_post_comment_if_username_already_replied(self):
+        """should mention a username if the person already replied"""
         user = make_user()
 
         headers = make_authentication_headers_for_user(user=user)
@@ -2147,7 +2147,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
             PostCommentUserMention.objects.filter(
                 post_comment_id=post_comment.pk
             ).count(),
-            0,
+            1,
         )
 
     def test_reply_to_post_comment_ignores_comment_creator_username_mention(self):

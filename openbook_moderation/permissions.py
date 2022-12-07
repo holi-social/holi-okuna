@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 
 class IsNotSuspended(BasePermission):
     """
-    Dont allow access to suspended users
+    Don't allow access to suspended users
     """
 
     def has_permission(self, request, view):

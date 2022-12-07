@@ -132,10 +132,10 @@ def make_get_hashtag_posts_for_user_with_id_query(hashtag, user_id):
     # Only retrieve public posts
     hashtag_posts_query.add(make_only_public_posts_query(), Q.AND)
 
-    # Dont retrieve soft deleted posts
+    # Don't retrieve soft deleted posts
     hashtag_posts_query.add(make_exclude_soft_deleted_posts_query(), Q.AND)
 
-    # Dont retrieve posts from blocked people
+    # Don't retrieve posts from blocked people
     hashtag_posts_query.add(
         make_exclude_blocked_posts_for_user_with_id_query(user_id=user_id), Q.AND
     )
@@ -146,12 +146,12 @@ def make_get_hashtag_posts_for_user_with_id_query(hashtag, user_id):
     # Don't retrieve items that have been reported and approved
     hashtag_posts_query.add(make_exclude_reported_and_approved_posts_query(), Q.AND)
 
-    # Dont retrieve items we have reported
+    # Don't retrieve items we have reported
     hashtag_posts_query.add(
         make_exclude_reported_posts_by_user_with_id_query(user_id=user_id), Q.AND
     )
 
-    # Dont retrieve posts from communities we're  banned from
+    # Don't retrieve posts from communities we're  banned from
     hashtag_posts_query.add(
         make_exclude_community_posts_banned_from_for_user_with_id_query(
             user_id=user_id
@@ -159,7 +159,7 @@ def make_get_hashtag_posts_for_user_with_id_query(hashtag, user_id):
         Q.AND,
     )
 
-    # Dont retrieve closed posts
+    # Don't retrieve closed posts
     hashtag_posts_query.add(make_exclude_closed_posts_query(), Q.AND)
 
     return hashtag_posts_query

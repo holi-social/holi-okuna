@@ -22,4 +22,4 @@ class FollowRequestNotification(ModelWithUUID):
         )
         return follow_request_notification
 
-    # This notification is deleted when the FollowRequest is deleted, which is the case when its approved.
+    # This notification is deleted when the FollowRequest is deleted, which is the case when it's approved.
