@@ -143,7 +143,7 @@ resource "google_cloud_run_service" "okuna" {
     metadata {
       annotations = {
         "autoscaling.knative.dev/minScale" = local.environment == "production" ? "0" : "0"
-        "autoscaling.knative.dev/maxScale" = local.environment == "production" ? "10" : "1"
+        #"autoscaling.knative.dev/maxScale" = local.environment == "production" ? "10" : "1"
         # Use the VPC Connector
         "run.googleapis.com/vpc-access-connector" = data.terraform_remote_state.holi_infra_state.outputs.vpc_access_connector_name
         # possible values: all-traffic/private-ranges-only(default) https://cloud.google.com/sdk/gcloud/reference/run/services/update#--vpc-egress
