@@ -202,6 +202,7 @@ class GraphQLTest(TestCase):
 
     def test_can_fetch_post(self):
         posting_user = make_user()
+        other_user = make_user()
 
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
@@ -210,6 +211,8 @@ class GraphQLTest(TestCase):
             text=post_text,
             title=post_title,
         )
+        post.comment(text="comment text 1", commenter=other_user)
+        post.comment(text="comment text 2", commenter=other_user)
 
         response = self.graphql.execute(
             f"""
@@ -226,6 +229,13 @@ class GraphQLTest(TestCase):
                     creator {{
                         id
                     }}
+                    comments {{
+                        text
+                    }}
+                    numberOfComments
+                    involvedUsers {{
+                        totalResults
+                    }}
                 }}
             }}
             """
@@ -237,6 +247,8 @@ class GraphQLTest(TestCase):
         assert post_data["image"] is None
         assert post_data["creator"]["id"] == str(posting_user.uuid)
         assert post_data["created"] is not None
+        assert len(post_data["comments"]) == 2
+        assert post_data["comments"][0]["text"] == "comment text 1"
 
     def test_can_fetch_post_with_image(self):
         posting_user = make_user()
@@ -339,18 +351,18 @@ class GraphQLTest(TestCase):
         )
 
         insights = response["data"]["lastInsights"]["data"]
-        self.assertEqual(2, len(insights))
+        assert 2 == len(insights)
         # insight1 = next(i for i in insights if i["title"] == insight1_title)
         # insight2 = next(i for i in insights if i["title"] == insight2_title)
         insight1_result = insights[0]
-        self.assertEqual(insight1_result["title"], insight1.title)
-        self.assertEqual(insight1_result["numberOfPosts"], 3)
-        self.assertEqual(insight1_result["involvedUsers"]["totalResults"], 2)
+        assert insight1_result["title"] == insight1.title
+        assert insight1_result["numberOfPosts"] == 3
+        assert insight1_result["involvedUsers"]["totalResults"] == 2
 
         insight2_result = insights[1]
-        self.assertEqual(insight2_result["title"], insight2.title)
-        self.assertEqual(insight2_result["numberOfPosts"], 1)
-        self.assertEqual(insight2_result["involvedUsers"]["totalResults"], 2)
+        assert insight2_result["title"] == insight2.title
+        assert insight2_result["numberOfPosts"] == 1
+        assert insight2_result["involvedUsers"]["totalResults"] == 2
 
 
 def assert_paged_results_equal(results: dict, expected_data: List[dict[str, any]]):

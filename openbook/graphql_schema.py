@@ -232,6 +232,8 @@ class Post(DjangoObjectType):
     mentions = graphene.List(User)
     image = graphene.Field(PostImage)
     links = graphene.List(LinkPreview)
+    number_of_comments = graphene.Int(required=True)
+    involved_users = Paged.of(User)
 
     def resolve_mentions(self, info):
         return UserModel.objects.filter(post_mentions__post=self)
@@ -243,6 +245,18 @@ class Post(DjangoObjectType):
 
     def resolve_links(self, info):
         return self.links.all()
+
+    def resolve_number_of_comments(self, info):
+        return PostCommentModel.objects.filter(post=self).count()
+
+    def resolve_involved_users(self, info, offset, limit):
+        return Paged.data(
+            UserModel.objects.filter(
+                Q(posts=self) | Q(posts_comments__post=self)
+            ).distinct(),
+            offset,
+            limit,
+        )
 
 
 class PostComment(DjangoObjectType):
