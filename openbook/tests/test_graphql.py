@@ -5,6 +5,7 @@ from benedict import BeneDict
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 from graphene.test import Client
 from rest_framework import status
 
@@ -20,6 +21,7 @@ from openbook_common.tests.helpers import (
     make_fake_post_title,
     simple_jpeg_bytes,
 )
+from openbook_insights.models import Insight
 
 
 class ContextWithUser:
@@ -277,6 +279,78 @@ class GraphQLTest(TestCase):
         assert post_data["image"]["height"] == 1
         assert post_data["creator"]["id"] == str(posting_user.uuid)
         assert post_data["created"] is not None
+
+    def test_select_last_insights(self):
+        insight_user = make_user()
+        posting_user = make_user()
+        other_user = make_user()
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        now = timezone.now()
+        insight1 = Insight.objects.create(
+            creator=insight_user,
+            title="Insight 1",
+            date_published=now - timezone.timedelta(seconds=1),
+        )
+
+        post1 = posting_user.create_public_post(
+            text=post_text,
+            title=post_title,
+        )
+        post2 = posting_user.create_public_post(
+            text=post_text,
+            title=post_title,
+        )
+        post3 = posting_user.create_public_post(
+            text=post_text,
+            title=post_title,
+        )
+        insight1.posts.add(post1, post2, post3)
+
+        insight2 = Insight.objects.create(
+            creator=posting_user, title="Insight 2", date_published=now
+        )
+        post4 = posting_user.create_public_post(
+            text=post_text,
+            title=post_title,
+        )
+        post4.comment(text=post_text, commenter=other_user)
+        insight2.posts.add(post4)
+
+        response = self.graphql.execute(
+            f"""
+            query {{
+                lastInsights {{
+                    data {{
+                        title
+                        numberOfPosts
+                        involvedUsers {{
+                            totalResults
+                            data {{
+                              fullName
+                            }}
+                        }}
+                    }}
+                }}
+            }}
+            """
+        )
+
+        insights = response["data"]["lastInsights"]["data"]
+        self.assertEqual(2, len(insights))
+        # insight1 = next(i for i in insights if i["title"] == insight1_title)
+        # insight2 = next(i for i in insights if i["title"] == insight2_title)
+        insight1_result = insights[0]
+        self.assertEqual(insight1_result["title"], insight1.title)
+        self.assertEqual(insight1_result["numberOfPosts"], 3)
+        self.assertEqual(insight1_result["involvedUsers"]["totalResults"], 2)
+
+        insight2_result = insights[1]
+        self.assertEqual(insight2_result["title"], insight2.title)
+        self.assertEqual(insight2_result["numberOfPosts"], 1)
+        self.assertEqual(insight2_result["involvedUsers"]["totalResults"], 2)
 
 
 def assert_paged_results_equal(results: dict, expected_data: List[dict[str, any]]):

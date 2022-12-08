@@ -54,9 +54,36 @@ class UpdateConnectionWithUserAction:
     DISCONNECT = "DISCONNECT"
 
 
-class Insight(DjangoObjectType):
-    class Meta:
-        model = InsightModel
+class Paged(graphene.ObjectType):
+    @staticmethod
+    def of(paged_class, **kwargs):
+        if "offset" not in kwargs:
+            kwargs["offset"] = graphene.Int(default_value=0)
+        if "limit" not in kwargs:
+            kwargs["limit"] = graphene.Int(default_value=10)
+        if "required" not in kwargs:
+            kwargs["required"] = True
+
+        PagedType = type(
+            f"Paged{paged_class.__name__}List",
+            (Paged,),
+            {
+                "data": graphene.List(paged_class, required=True),
+                "total_results": graphene.Int(required=True),
+            },
+        )
+        return graphene.Field(
+            PagedType,
+            **kwargs,
+        )
+
+    @staticmethod
+    def data(data, offset, limit):
+        return Paged(data=data[offset : offset + limit], total_results=data.count())
+
+    def __init__(self, data, total_results):
+        self.data = data
+        self.total_results = total_results
 
 
 class Task(DjangoObjectType):
@@ -176,6 +203,28 @@ class User(DjangoObjectType):
         return info.context.user.get_connection_status_with_user_id(user_id=self.id)
 
 
+class Insight(DjangoObjectType):
+    class Meta:
+        model = InsightModel
+
+    number_of_posts = graphene.Int(required=True)
+    involved_users = Paged.of(User)
+
+    def resolve_number_of_posts(self, info):
+        return PostModel.objects.filter(insights=self).count()
+
+    def resolve_involved_users(self, info, offset, limit):
+        return Paged.data(
+            UserModel.objects.filter(
+                Q(curated_insights=self)
+                | Q(posts__insights=self)
+                | Q(posts_comments__post__insights=self)
+            ).distinct(),
+            offset,
+            limit,
+        )
+
+
 class Post(DjangoObjectType):
     class Meta:
         model = PostModel
@@ -238,38 +287,6 @@ class Space(DjangoObjectType):
 
     def resolve_main_image(self, info):
         return self.cover.name
-
-
-class Paged(graphene.ObjectType):
-    @staticmethod
-    def of(paged_class, **kwargs):
-        if "offset" not in kwargs:
-            kwargs["offset"] = graphene.Int(default_value=0)
-        if "limit" not in kwargs:
-            kwargs["limit"] = graphene.Int(default_value=10)
-        if "required" not in kwargs:
-            kwargs["required"] = True
-
-        PagedType = type(
-            f"Paged{paged_class.__name__}List",
-            (Paged,),
-            {
-                "data": graphene.List(paged_class, required=True),
-                "total_results": graphene.Int(required=True),
-            },
-        )
-        return graphene.Field(
-            PagedType,
-            **kwargs,
-        )
-
-    @staticmethod
-    def data(data, offset, limit):
-        return Paged(data=data[offset : offset + limit], total_results=data.count())
-
-    def __init__(self, data, total_results):
-        self.data = data
-        self.total_results = total_results
 
 
 class Query(graphene.ObjectType):
