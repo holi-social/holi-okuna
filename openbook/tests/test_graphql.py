@@ -247,6 +247,8 @@ class GraphQLTest(TestCase):
         assert post_data["image"] is None
         assert post_data["creator"]["id"] == str(posting_user.uuid)
         assert post_data["created"] is not None
+        assert post_data["numberOfComments"] == 2
+        assert post_data["involvedUsers"]["totalResults"] == 2
         assert len(post_data["comments"]) == 2
         assert post_data["comments"][0]["text"] == "comment text 1"
 
