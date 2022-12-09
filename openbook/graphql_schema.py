@@ -208,7 +208,10 @@ class Insight(DjangoObjectType):
         model = InsightModel
 
     number_of_posts = graphene.Int(required=True)
-    involved_users = Paged.of(User)
+    involved_users = Paged.of(
+        User,
+        description="A list of all users involved. Curator of the insight, Authors of all the posts and all commenters of those posts",
+    )
 
     def resolve_number_of_posts(self, info):
         return PostModel.objects.filter(insights=self).count()
@@ -233,7 +236,11 @@ class Post(DjangoObjectType):
     image = graphene.Field(PostImage)
     links = graphene.List(LinkPreview)
     number_of_comments = graphene.Int(required=True)
-    involved_users = Paged.of(User)
+    involved_users = Paged.of(
+        User,
+        description="A list of all users involved. Author of the post plus all commenters",
+    )
+    commenters = Paged.of(User)
 
     def resolve_mentions(self, info):
         return UserModel.objects.filter(post_mentions__post=self)
@@ -254,6 +261,13 @@ class Post(DjangoObjectType):
             UserModel.objects.filter(
                 Q(posts=self) | Q(posts_comments__post=self)
             ).distinct(),
+            offset,
+            limit,
+        )
+
+    def resolve_commenters(self, info, offset, limit):
+        return Paged.data(
+            UserModel.objects.filter(posts_comments__post=self).distinct(),
             offset,
             limit,
         )

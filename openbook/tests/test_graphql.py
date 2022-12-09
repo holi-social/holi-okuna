@@ -202,7 +202,7 @@ class GraphQLTest(TestCase):
 
     def test_can_fetch_post(self):
         posting_user = make_user()
-        other_user = make_user()
+        other_user = make_user(name="Other")
 
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
@@ -235,6 +235,15 @@ class GraphQLTest(TestCase):
                     numberOfComments
                     involvedUsers {{
                         totalResults
+                        data {{
+                            firstName
+                        }}
+                    }}
+                    commenters {{
+                        totalResults
+                        data {{
+                            firstName
+                        }}
                     }}
                 }}
             }}
@@ -251,6 +260,10 @@ class GraphQLTest(TestCase):
         assert post_data["involvedUsers"]["totalResults"] == 2
         assert len(post_data["comments"]) == 2
         assert post_data["comments"][0]["text"] == "comment text 1"
+        assert post_data["commenters"]["totalResults"] == 1
+        self.assertEqual(
+            post_data["commenters"]["data"][0]["firstName"], other_user.name
+        )
 
     def test_can_fetch_post_with_image(self):
         posting_user = make_user()
