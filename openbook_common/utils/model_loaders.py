@@ -45,14 +45,6 @@ def get_proxy_blacklist_domain_model():
     return apps.get_model("openbook_common.ProxyBlacklistedDomain")
 
 
-def get_post_user_mention_model():
-    return apps.get_model("openbook_posts.PostUserMention")
-
-
-def get_post_comment_user_mention_model():
-    return apps.get_model("openbook_posts.PostCommentUserMention")
-
-
 def get_post_mute_model():
     return apps.get_model("openbook_posts.PostMute")
 

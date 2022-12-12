@@ -11,6 +11,7 @@ from openbook_common.serializers import (
 from openbook_common.serializers_fields.post import IsEncircledField
 from openbook_common.serializers_fields.post_comment import PostCommentIsMutedField
 from openbook_communities.models import Community, CommunityInvite
+from openbook_follows.serializers import UserProfileSerializer
 from openbook_notifications.models import (
     Notification,
     PostCommentNotification,
@@ -43,8 +44,6 @@ from openbook_posts.models import (
     Post,
     PostImage,
     PostCommentReaction,
-    PostUserMention,
-    PostCommentUserMention,
 )
 from openbook_notifications.validators import notification_id_exists
 
@@ -329,12 +328,9 @@ class UserNewPostNotificationSerializer(serializers.ModelSerializer):
         fields = ("id", "post")
 
 
-class PostUserMentionSerializer(serializers.ModelSerializer):
-    post = NotificationPostSerializer()
-    user = CommonPublicUserSerializer()
-
+class PostUserMentionNotificationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = PostUserMention
+        model = PostUserMentionNotification
         fields = (
             "id",
             "post",
@@ -342,38 +338,13 @@ class PostUserMentionSerializer(serializers.ModelSerializer):
         )
 
 
-class PostUserMentionNotificationSerializer(serializers.ModelSerializer):
-    post_user_mention = PostUserMentionSerializer()
-
-    class Meta:
-        model = PostUserMentionNotification
-        fields = (
-            "id",
-            "post_user_mention",
-        )
-
-
-class PostCommentUserMentionSerializer(serializers.ModelSerializer):
-    post_comment = NotificationPostCommentSerializer()
-    user = CommonPublicUserSerializer()
-
-    class Meta:
-        model = PostCommentUserMention
-        fields = (
-            "id",
-            "post_comment",
-            "user",
-        )
-
-
 class PostCommentUserMentionNotificationSerializer(serializers.ModelSerializer):
-    post_comment_user_mention = PostCommentUserMentionSerializer()
-
     class Meta:
         model = PostCommentUserMentionNotification
         fields = (
             "id",
-            "post_comment_user_mention",
+            "post_comment",
+            "user",
         )
 
 

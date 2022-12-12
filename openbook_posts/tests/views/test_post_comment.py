@@ -27,7 +27,7 @@ from openbook_notifications.models import (
     PostCommentReplyNotification,
     PostCommentUserMentionNotification,
 )
-from openbook_posts.models import PostComment, PostCommentUserMention
+from openbook_posts.models import PostComment
 
 logger = logging.getLogger(__name__)
 fake = Faker()
@@ -976,10 +976,6 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post = user.create_public_post(text=make_fake_post_text())
         post_comment = user.comment_post(post=post, text=post_comment_text)
 
-        post_comment_user_mention = PostCommentUserMention.objects.get(
-            user_id=mentioned_user.pk, post_comment_id=post_comment.pk
-        )
-
         newly_mentioned_user = make_user()
 
         post_comment_text = "Hello @" + newly_mentioned_user.username
@@ -996,25 +992,16 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
             text=post_comment_text, commenter_id=user.pk
         )
 
-        self.assertFalse(
-            PostCommentUserMention.objects.filter(
-                user_id=mentioned_user.pk, post_comment_id=post_comment.pk
-            ).exists()
-        )
+        self.assertFalse(post_comment.mentions.filter(id=mentioned_user.pk).exists())
         self.assertEqual(
-            PostCommentUserMention.objects.filter(
-                user_id=newly_mentioned_user.pk, post_comment_id=post_comment.pk
-            ).count(),
+            post_comment.mentions.filter(id=newly_mentioned_user.pk).count(),
             1,
-        )
-
-        new_post_comment_user_mention = PostCommentUserMention.objects.get(
-            user_id=newly_mentioned_user.pk, post_comment_id=post_comment.pk
         )
 
         self.assertFalse(
             PostCommentUserMentionNotification.objects.filter(
-                post_comment_user_mention_id=post_comment_user_mention.pk,
+                post_comment=post_comment,
+                user=mentioned_user,
                 notification__owner_id=mentioned_user.pk,
                 notification__notification_type=Notification.POST_COMMENT_USER_MENTION,
             ).exists()
@@ -1022,7 +1009,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         self.assertTrue(
             PostCommentUserMentionNotification.objects.filter(
-                post_comment_user_mention_id=new_post_comment_user_mention.pk,
+                post_comment=post_comment,
+                user=newly_mentioned_user,
                 notification__owner_id=newly_mentioned_user.pk,
                 notification__notification_type=Notification.POST_COMMENT_USER_MENTION,
             ).exists()
@@ -1050,9 +1038,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         )
 
         self.assertEqual(
-            PostCommentUserMention.objects.filter(
-                post_comment_id=post_comment.pk
-            ).count(),
+            post_comment.mentions.count(),
             0,
         )
 
@@ -1068,10 +1054,6 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post = user.create_public_post(text=make_fake_post_text())
         post_comment = user.comment_post(post=post, text=post_comment_text)
 
-        post_comment_user_mention = PostCommentUserMention.objects.get(
-            user_id=mentioned_user.pk, post_comment_id=post_comment.pk
-        )
-
         data = {"text": post_comment_text}
 
         url = self._get_url(post_comment=post_comment, post=post)
@@ -1085,17 +1067,9 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         )
 
         self.assertEqual(
-            PostCommentUserMention.objects.filter(
-                user_id=mentioned_user.pk, post_comment_id=post_comment.pk
-            ).count(),
+            post_comment.mentions.filter(id=mentioned_user.pk).count(),
             1,
         )
-        new_post_comment_user_mention = PostCommentUserMention.objects.get(
-            user_id=mentioned_user.pk,
-            post_comment_id=post_comment.pk,
-            id=post_comment_user_mention.pk,
-        )
-        self.assertEqual(new_post_comment_user_mention.pk, post_comment_user_mention.pk)
 
     def test_editing_own_post_comment_comment_with_hashtag_creates_hashtag_if_not_exist(
         self,
