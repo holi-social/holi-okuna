@@ -58,7 +58,6 @@ from openbook_notifications.models import (
 from openbook_posts.jobs import curate_top_posts, curate_trending_posts
 from openbook_posts.models import (
     Post,
-    PostUserMention,
     PostMedia,
     TopPost,
     TrendingPost,
@@ -329,9 +328,7 @@ class PostsAPITests(OpenbookAPITestCase):
             post = Post.objects.get(text=post_text, creator_id=user.pk)
 
             self.assertEqual(
-                PostUserMention.objects.filter(
-                    user_id=test_user.pk, post_id=post.pk
-                ).count(),
+                post.mentions.filter(id=test_user.pk).count(),
                 1,
             )
 
@@ -350,7 +347,7 @@ class PostsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
-        self.assertEqual(PostUserMention.objects.filter(post_id=post.pk).count(), 0)
+        self.assertEqual(post.mentions.count(), 0)
 
     def test_create_text_post_creates_mention_notifications(self):
         """should be able to create a text post with a mention notification"""
@@ -371,13 +368,10 @@ class PostsAPITests(OpenbookAPITestCase):
 
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
-        post_user_mention = PostUserMention.objects.get(
-            user_id=test_user.pk, post_id=post.pk
-        )
-
         self.assertEqual(
             PostUserMentionNotification.objects.filter(
-                post_user_mention_id=post_user_mention.pk,
+                post=post,
+                user=test_user,
                 notification__owner_id=test_user.pk,
                 notification__notification_type=Notification.POST_USER_MENTION,
             ).count(),
@@ -402,13 +396,10 @@ class PostsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
-        post_user_mention_query = PostUserMention.objects.filter(
-            post_id=post.pk, user_id=mentioned_user.pk
-        )
-        self.assertTrue(post_user_mention_query.exists())
+        self.assertTrue(post.mentions.filter(id=mentioned_user.pk).exists())
         self.assertFalse(
             PostUserMentionNotification.objects.filter(
-                post_user_mention=post_user_mention_query.get()
+                post=post, user=mentioned_user
             ).exists()
         )
 
@@ -435,11 +426,7 @@ class PostsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
-        self.assertTrue(
-            PostUserMention.objects.filter(
-                post_id=post.pk, user_id=mentioned_user.pk
-            ).exists()
-        )
+        self.assertTrue(post.mentions.filter(id=mentioned_user.pk).exists())
 
     def test_create_text_detect_mention_if_public(self):
         """should detect mention if the post is public"""
@@ -460,11 +447,7 @@ class PostsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
-        self.assertTrue(
-            PostUserMention.objects.filter(
-                post_id=post.pk, user_id=mentioned_user.pk
-            ).exists()
-        )
+        self.assertTrue(post.mentions.filter(id=mentioned_user.pk).exists())
 
     def test_create_text_post_does_not_detect_creator_mention(self):
         """should not detect mention if the mentioned person is the creator"""
@@ -482,9 +465,7 @@ class PostsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
-        self.assertFalse(
-            PostUserMention.objects.filter(post_id=post.pk, user_id=user.pk).exists()
-        )
+        self.assertFalse(post.mentions.filter(id=user.pk).exists())
 
     def test_create_post_is_added_to_world_circle(self):
         """the created text post should automatically added to world circle"""

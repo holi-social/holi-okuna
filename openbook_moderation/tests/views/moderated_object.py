@@ -1983,12 +1983,6 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
             post=community_post, text=post_comment_text
         )
 
-        # get user mention
-        PostCommentUserMention = get_post_comment_user_mention_model()
-        community_post_comment_user_mention = PostCommentUserMention.objects.get(
-            post_comment=community_post_comment
-        )
-
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
@@ -2011,7 +2005,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(
             PostCommentUserMentionNotification.objects.filter(
-                post_comment_user_mention=community_post_comment_user_mention
+                post_comment=community_post_comment
             ).exists()
         )
 
@@ -2037,10 +2031,6 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
             community_name=community.name, text=post_text
         )
 
-        # get user mention
-        PostUserMention = get_post_user_mention_model()
-        community_post_user_mention = PostUserMention.objects.get(post=community_post)
-
         reporter_community_post = make_user()
         report_category = make_moderation_category()
 
@@ -2061,7 +2051,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(
             PostUserMentionNotification.objects.filter(
-                post_user_mention=community_post_user_mention
+                post=community_post,
             ).exists()
         )
 
@@ -2534,12 +2524,6 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
             post=community_post, text=post_comment_text
         )
 
-        # get user mention
-        PostCommentUserMention = get_post_comment_user_mention_model()
-        community_post_comment_user_mention = PostCommentUserMention.objects.get(
-            post_comment=community_post_comment
-        )
-
         reporter_community_post_comment = make_user()
         report_category = make_moderation_category()
 
@@ -2566,7 +2550,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(
             PostCommentUserMentionNotification.objects.filter(
-                post_comment_user_mention=community_post_comment_user_mention
+                post_comment=community_post_comment
             ).exists()
         )
 

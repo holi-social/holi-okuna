@@ -35,7 +35,7 @@ from openbook_notifications.models import (
     PostCommentUserMentionNotification,
     Notification,
 )
-from openbook_posts.models import PostComment, PostCommentUserMention, Post
+from openbook_posts.models import PostComment
 
 logger = logging.getLogger(__name__)
 fake = Faker()
@@ -645,9 +645,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
             post_comment = PostComment.objects.get(text=post_text, commenter_id=user.pk)
 
             self.assertEqual(
-                PostCommentUserMention.objects.filter(
-                    user_id=test_user.pk, post_comment_id=post_comment.pk
-                ).count(),
+                post_comment.mentions.filter(id=test_user.pk).count(),
                 1,
             )
 
@@ -672,9 +670,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         )
 
         self.assertEqual(
-            PostCommentUserMention.objects.filter(
-                post_comment_id=post_comment.pk
-            ).count(),
+            post_comment.mentions.count(),
             0,
         )
 
@@ -698,9 +694,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         )
 
         self.assertEqual(
-            PostCommentUserMention.objects.filter(
-                post_comment_id=post_comment.pk
-            ).count(),
+            post_comment.mentions.count(),
             0,
         )
 
@@ -727,9 +721,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         )
 
         self.assertEqual(
-            PostCommentUserMention.objects.filter(
-                post_comment_id=post_comment.pk
-            ).count(),
+            post_comment.mentions.count(),
             1,
         )
 
@@ -756,13 +748,10 @@ class PostCommentsAPITests(OpenbookAPITestCase):
             text=post_comment_text, commenter_id=user.pk
         )
 
-        post_comment_user_mention = PostCommentUserMention.objects.get(
-            user_id=test_user.pk, post_comment_id=post_comment.pk
-        )
-
         self.assertEqual(
             PostCommentUserMentionNotification.objects.filter(
-                post_comment_user_mention_id=post_comment_user_mention.pk,
+                post_comment=post_comment,
+                user=test_user,
                 notification__owner_id=test_user.pk,
                 notification__notification_type=Notification.POST_COMMENT_USER_MENTION,
             ).count(),

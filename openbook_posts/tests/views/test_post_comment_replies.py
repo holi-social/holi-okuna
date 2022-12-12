@@ -23,7 +23,7 @@ from openbook_common.tests.helpers import (
 )
 from openbook_common.utils.test import uuid_id_parser
 from openbook_notifications.models import PostCommentReplyNotification
-from openbook_posts.models import PostComment, PostCommentUserMention
+from openbook_posts.models import PostComment
 
 logger = logging.getLogger(__name__)
 fake = Faker()
@@ -2107,9 +2107,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
         self.assertEqual(
-            PostCommentUserMention.objects.filter(
-                post_comment_id=post_comment.pk
-            ).count(),
+            post_comment.mentions.count(),
             1,
         )
 
@@ -2144,9 +2142,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
         self.assertEqual(
-            PostCommentUserMention.objects.filter(
-                post_comment_id=post_comment.pk
-            ).count(),
+            post_comment.mentions.count(),
             1,
         )
 
@@ -2184,9 +2180,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
         self.assertEqual(
-            PostCommentUserMention.objects.filter(
-                post_comment_id=post_comment.pk
-            ).count(),
+            post_comment.mentions.count(),
             0,
         )
 
@@ -2225,9 +2219,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         )
 
         self.assertEqual(
-            PostCommentUserMention.objects.filter(
-                post_comment_id=post_comment.pk, user_id=post_creator.pk
-            ).count(),
+            post_comment.mentions.filter(id=post_creator.pk).count(),
             1,
         )
 

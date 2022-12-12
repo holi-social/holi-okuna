@@ -9,6 +9,8 @@ from django.urls import reverse
 from django_rq import get_worker
 from faker import Faker
 from rest_framework import status
+
+from openbook_auth.models import User
 from openbook_common.tests.models import OpenbookAPITestCase
 from django.core.files.images import ImageFile
 from django.core.files import File
@@ -48,8 +50,7 @@ from openbook_common.utils.test import uuid_id_parser
 from openbook_communities.models import Community
 from openbook_hashtags.models import Hashtag
 from openbook_notifications.models import PostUserMentionNotification, Notification
-from openbook_posts.models import Post, PostUserMention, PostMedia
-from openbook_common.models import ProxyBlacklistedDomain
+from openbook_posts.models import Post, PostMedia
 
 logger = logging.getLogger(__name__)
 fake = Faker()
@@ -835,10 +836,6 @@ class PostItemAPITests(OpenbookAPITestCase):
 
         post = user.create_public_post(text=post_text)
 
-        post_user_mention = PostUserMention.objects.get(
-            user_id=mentioned_user.pk, post_id=post.pk
-        )
-
         newly_mentioned_user = make_user()
 
         post_text = "Hello @" + newly_mentioned_user.username
@@ -852,25 +849,23 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(status.HTTP_200_OK, response.status_code)
 
         post = Post.objects.get(text=post_text, creator_id=user.pk)
-        new_post_user_mention = PostUserMention.objects.get(
-            user_id=newly_mentioned_user.pk, post_id=post.pk
-        )
 
         self.assertFalse(
-            PostUserMention.objects.filter(
-                user_id=mentioned_user.pk, post_id=post.pk
+            User.objects.filter(
+                id=mentioned_user.pk, mentioned_in_posts=post.pk
             ).exists()
         )
         self.assertEqual(
-            PostUserMention.objects.filter(
-                user_id=newly_mentioned_user.pk, post_id=post.pk
+            User.objects.filter(
+                id=newly_mentioned_user.pk, mentioned_in_posts=post.pk
             ).count(),
             1,
         )
 
         self.assertFalse(
             PostUserMentionNotification.objects.filter(
-                post_user_mention_id=post_user_mention.pk,
+                post_id=post.pk,
+                user_id=mentioned_user.pk,
                 notification__owner_id=mentioned_user.pk,
                 notification__notification_type=Notification.POST_USER_MENTION,
             ).exists()
@@ -878,7 +873,8 @@ class PostItemAPITests(OpenbookAPITestCase):
 
         self.assertTrue(
             PostUserMentionNotification.objects.filter(
-                post_user_mention_id=new_post_user_mention.pk,
+                post_id=post.pk,
+                user_id=newly_mentioned_user.pk,
                 notification__owner_id=newly_mentioned_user.pk,
                 notification__notification_type=Notification.POST_USER_MENTION,
             ).exists()
@@ -902,7 +898,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
-        self.assertEqual(PostUserMention.objects.filter(post_id=post.pk).count(), 0)
+        self.assertEqual(post.mentions.count(), 0)
 
     def test_editing_own_post_does_not_create_double_mentions(self):
         """should not create double mentions when editing our own post"""
@@ -915,10 +911,6 @@ class PostItemAPITests(OpenbookAPITestCase):
 
         post = user.create_public_post(text=post_text)
 
-        post_user_mention = PostUserMention.objects.get(
-            user_id=mentioned_user.pk, post_id=post.pk
-        )
-
         data = {"text": post_text}
 
         url = self._get_url(post)
@@ -930,15 +922,9 @@ class PostItemAPITests(OpenbookAPITestCase):
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
         self.assertEqual(
-            PostUserMention.objects.filter(
-                user_id=mentioned_user.pk, post_id=post.pk
-            ).count(),
+            post.mentions.filter(id=mentioned_user.pk).count(),
             1,
         )
-        new_post_user_mention = PostUserMention.objects.get(
-            user_id=mentioned_user.pk, post_id=post.pk, id=post_user_mention.pk
-        )
-        self.assertEqual(new_post_user_mention.pk, post_user_mention.pk)
 
     def test_editing_own_post_with_hashtag_creates_hashtag_if_not_exist(self):
         """when editing a post with a hashtag, should create  it if not exists"""
@@ -1806,7 +1792,7 @@ class PostCloseAPITests(OpenbookAPITestCase):
         PostUserMentionNotification = get_post_user_mention_notification_model()
         self.assertFalse(
             PostUserMentionNotification.objects.filter(
-                notification__owner_id=mentioned_user.pk, post_user_mention__post=post
+                notification__owner_id=mentioned_user.pk, post=post
             ).exists()
         )
 
@@ -1955,7 +1941,7 @@ class PostCloseAPITests(OpenbookAPITestCase):
         self.assertFalse(
             PostCommentUserMentionNotification.objects.filter(
                 notification__owner_id=mentioned_user.pk,
-                post_comment_user_mention__post_comment=post_comment,
+                post_comment=post_comment,
             ).exists()
         )
 
