@@ -391,35 +391,35 @@ class GraphQLTest(TestCase):
         self.assertIsNone(connection_request_response.get("errors"))
 
         response = self.graphql.execute(
-            f"""
-                query {{
-                    notifications {{
-                        totalResults
-                        data {{
-                            owner {{
+            """
+            query {{
+                notifications {{
+                    totalResults
+                    data {{
+                        owner {{
+                            fullName
+                        }}
+                        created
+                        read
+                        notificationType
+                        options {{
+                            user {{
                                 fullName
                             }}
-                            created
-                            read
-                            notificationType
-                            options {{
-                                user {{
-                                    fullName
-                                }}
-                                post {{
-                                    title
-                                }}
-                                postComment {{
-                                    text
-                                }}
-                                space {{
-                                    title
-                                }}
+                            post {{
+                                title
+                            }}
+                            postComment {{
+                                text
+                            }}
+                            space {{
+                                title
                             }}
                         }}
                     }}
                 }}
-                """,
+            }}
+            """,
             context_value=BeneDict({"user": followed_user}),
         )
         self.assertIsNone(response.get("errors"))
