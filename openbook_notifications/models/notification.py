@@ -69,3 +69,8 @@ class Notification(ModelWithUUID):
             self.created = timezone.now()
 
         return super(Notification, self).save(*args, **kwargs)
+
+    def get_options(self):
+        if self.content_object and self.content_object.get_options:
+            return self.content_object.get_options()
+        return {}

@@ -379,6 +379,76 @@ class GraphQLTest(TestCase):
         assert insight2_result["numberOfPosts"] == 1
         assert insight2_result["involvedUsers"]["totalResults"] == 2
 
+    def test_notifications(self):
+        followed_user = make_user(name="Peter", last_name="Pep")
+        following_user = make_user(name="Other")
+
+        update_query = """
+            mutation UpdateConnectionWithUser($input: UpdateConnectionWithUserInput) {
+                updateConnectionWithUser(input: $input) {
+                    id
+                }
+            }
+            """
+
+        connection_request_response = self.graphql.execute(
+            update_query,
+            variable_values={
+                "input": {
+                    "userId": followed_user.username,
+                    "action": UpdateConnectionWithUserAction.CONNECT,
+                }
+            },
+            context_value=BeneDict({"user": following_user}),
+        )
+        self.assertIsNone(connection_request_response.get("errors"))
+
+        response = self.graphql.execute(
+            """
+            query {
+                notifications {
+                    totalResults
+                    data {
+                        owner {
+                            fullName
+                        }
+                        created
+                        read
+                        notificationType
+                        options {
+                            user {
+                                fullName
+                            }
+                            post {
+                                title
+                            }
+                            postComment {
+                                text
+                            }
+                            space {
+                                title
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            context_value=BeneDict({"user": followed_user}),
+        )
+        self.assertIsNone(response.get("errors"))
+        self.assertGreaterEqual(response["data"]["notifications"]["totalResults"], 1)
+        notifications = response["data"]["notifications"]["data"]
+        cr_notification = next(
+            n for n in notifications if n["notificationType"] == "CR"
+        )
+        self.assertEqual(
+            cr_notification["owner"]["fullName"], followed_user.profile.full_name()
+        )
+        self.assertEqual(
+            cr_notification["options"]["user"]["fullName"],
+            following_user.profile.full_name(),
+        )
+
 
 def assert_paged_results_equal(results: dict, expected_data: List[dict[str, any]]):
     assert results["totalResults"] == len(expected_data)

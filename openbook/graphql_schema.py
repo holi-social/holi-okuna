@@ -24,6 +24,7 @@ from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_auth.images import delete_avatar
 
 from openbook_insights.models import Insight as InsightModel
+from openbook_notifications.models import Notification as NotificationModel
 from openbook_posts.models import (
     Post as PostModel,
     PostComment as PostCommentModel,
@@ -317,6 +318,30 @@ class Space(DjangoObjectType):
         return self.cover.name
 
 
+class NotificationOptions(graphene.ObjectType):
+    user = graphene.Field(User)
+    post = graphene.Field(Post)
+    post_comment = graphene.Field(PostComment)
+    space = graphene.Field(Space)
+
+
+class Notification(DjangoObjectType):
+    class Meta:
+        model = NotificationModel
+        exclude = ["object_id"]
+
+    options = graphene.Field(NotificationOptions)
+
+    def resolve_options(self, info):
+        options = self.get_options()
+        return NotificationOptions(
+            user=options.get("user"),
+            post=options.get("post"),
+            post_comment=options.get("post_comment"),
+            space=options.get("space"),
+        )
+
+
 class Query(graphene.ObjectType):
     authenticated_user = graphene.Field(User)
     user_by_id = graphene.Field(User, id=graphene.String())
@@ -343,6 +368,7 @@ class Query(graphene.ObjectType):
     topics = Paged.of(Topic, limit=graphene.Int(default_value=50))
     sdgs = Paged.of(SDG, limit=graphene.Int(default_value=50))
     skills = Paged.of(Skill, limit=graphene.Int(default_value=50))
+    notifications = Paged.of(Notification)
 
     def resolve_authenticated_user(self, info):
         if info.context.user.is_anonymous:
@@ -482,6 +508,16 @@ class Query(graphene.ObjectType):
             raise GraphQLError(
                 "Task not found", extensions={"code": ErrorCodes.NOT_FOUND}
             )
+
+    def resolve_notifications(self, info, offset, limit):
+        user = info.context.user
+        if user.is_anonymous:
+            return None
+        return Paged.data(
+            NotificationModel.objects.filter(owner=user).order_by("-created"),
+            offset,
+            limit,
+        )
 
 
 class UpdateAuthenticatedUserInput(graphene.InputObjectType):

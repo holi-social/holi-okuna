@@ -40,3 +40,6 @@ class ConnectionRequestNotification(ModelWithUUID):
         )
 
         cls.objects.filter(notification_query).delete()
+
+    def get_options(self):
+        return {"user": self.connection_requester}
