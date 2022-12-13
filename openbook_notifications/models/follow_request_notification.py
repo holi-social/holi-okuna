@@ -23,3 +23,5 @@ class FollowRequestNotification(ModelWithUUID):
         return follow_request_notification
 
     # This notification is deleted when the FollowRequest is deleted, which is the case when it's approved.
+    def get_options(self):
+        return {"user": self.follow_request.creator}

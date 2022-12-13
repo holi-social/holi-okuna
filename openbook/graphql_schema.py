@@ -304,9 +304,27 @@ class Space(DjangoObjectType):
         return self.cover.name
 
 
+class NotificationOptions(graphene.ObjectType):
+    user = graphene.Field(User)
+    post = graphene.Field(Post)
+    post_comment = graphene.Field(PostComment)
+    space = graphene.Field(Space)
+
+
 class Notification(DjangoObjectType):
     class Meta:
         model = NotificationModel
+
+    options = graphene.Field(NotificationOptions)
+
+    def resolve_options(self, info):
+        options = self.get_options()
+        return NotificationOptions(
+            user=options.get("user"),
+            post=options.get("post"),
+            post_comment=options.get("post_comment"),
+            space=options.get("space"),
+        )
 
 
 class Query(graphene.ObjectType):

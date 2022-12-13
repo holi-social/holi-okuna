@@ -1,9 +1,6 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
-from django.db.models.signals import pre_delete
-from django.dispatch import receiver
 
-from openbook_auth.models import User
 from openbook_common.models import ModelWithUUID
 from openbook_communities.models import CommunityInvite
 from openbook_notifications.models.notification import Notification
@@ -30,3 +27,9 @@ class CommunityInviteNotification(ModelWithUUID):
         cls.objects.filter(
             community_invite_id=community_invite_id, notification__owner_id=owner_id
         ).delete()
+
+    def get_options(self):
+        return {
+            "space": self.community_invite.community,
+            "user": self.community_invite.creator,
+        }

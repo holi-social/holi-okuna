@@ -37,3 +37,6 @@ class UserNewPostNotification(ModelWithUUID):
             post_id=post_id,
             notification__owner_id=owner_id,
         ).delete()
+
+    def get_options(self):
+        return {"post": self.post, "user": self.post.creator}

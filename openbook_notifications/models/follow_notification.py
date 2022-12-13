@@ -25,3 +25,6 @@ class FollowNotification(ModelWithUUID):
         cls.objects.filter(
             follower_id=follower_id, notification__owner_id=owner_id
         ).delete()
+
+    def get_options(self):
+        return {"user": self.follower}

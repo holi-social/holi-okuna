@@ -31,3 +31,6 @@ class PostCommentNotification(ModelWithUUID):
     @classmethod
     def delete_post_comment_notifications(cls, post_comment_id):
         cls.objects.filter(post_comment_id=post_comment_id).delete()
+
+    def get_options(self):
+        return {"post_comment": self.post_comment, "user": self.post_comment.creator}
