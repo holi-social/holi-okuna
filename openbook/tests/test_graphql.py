@@ -392,33 +392,33 @@ class GraphQLTest(TestCase):
 
         response = self.graphql.execute(
             """
-            query {{
-                notifications {{
+            query {
+                notifications {
                     totalResults
-                    data {{
-                        owner {{
+                    data {
+                        owner {
                             fullName
-                        }}
+                        }
                         created
                         read
                         notificationType
-                        options {{
-                            user {{
+                        options {
+                            user {
                                 fullName
-                            }}
-                            post {{
+                            }
+                            post {
                                 title
-                            }}
-                            postComment {{
+                            }
+                            postComment {
                                 text
-                            }}
-                            space {{
+                            }
+                            space {
                                 title
-                            }}
-                        }}
-                    }}
-                }}
-            }}
+                            }
+                        }
+                    }
+                }
+            }
             """,
             context_value=BeneDict({"user": followed_user}),
         )
