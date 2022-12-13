@@ -29,3 +29,9 @@ class PostUserMentionNotification(ModelWithUUID):
         cls.objects.filter(
             post_user_mention_id=post_user_mention_id, notification__owner_id=owner_id
         ).delete()
+
+    def get_options(self):
+        return {
+            "user": self.post_user_mention.user,
+            "post": self.post_user_mention.post,
+        }

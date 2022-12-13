@@ -33,3 +33,6 @@ class PostReactionNotification(ModelWithUUID):
     @classmethod
     def delete_post_reaction_notifications(cls, post_reaction_id):
         cls.objects.filter(post_reaction_id=post_reaction_id).delete()
+
+    def get_options(self):
+        return {"post": self.post_reaction.post, "user": self.post_reaction.reactor}

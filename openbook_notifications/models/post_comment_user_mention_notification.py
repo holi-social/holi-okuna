@@ -36,3 +36,9 @@ class PostCommentUserMentionNotification(ModelWithUUID):
             post_comment_user_mention_id=post_comment_user_mention_id,
             notification__owner_id=owner_id,
         ).delete()
+
+    def get_options(self):
+        return {
+            "post_comment": self.post_comment_user_mention.post_comment,
+            "user": self.post_comment_user_mention.user,
+        }

@@ -22,3 +22,5 @@ class FollowRequestApprovedNotification(ModelWithUUID):
 
     # No delete method because this will be auto-deleted when the follow is deleted.
     # Aka when a person unfollows the other person which created this approved notification.
+    def get_options(self):
+        return {"user": self.follow.followed_user}
