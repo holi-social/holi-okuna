@@ -314,6 +314,7 @@ class NotificationOptions(graphene.ObjectType):
 class Notification(DjangoObjectType):
     class Meta:
         model = NotificationModel
+        exclude = ["object_id"]
 
     options = graphene.Field(NotificationOptions)
 
