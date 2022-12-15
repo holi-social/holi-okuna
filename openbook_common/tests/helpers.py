@@ -292,7 +292,7 @@ def make_moderators_community(
     creator,
 ):
     return make_community(
-        name=settings.MODvERATORS_COMMUNITY_NAME,
+        name=settings.MODERATORS_COMMUNITY_NAME,
         creator=creator,
         type=Community.COMMUNITY_TYPE_PRIVATE,
     )
