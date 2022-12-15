@@ -14,11 +14,16 @@ from openbook.graphql_schema import (
     UpdateConnectionWithUserAction,
 )
 from openbook_auth.models import User, UserConnectionStatus
+from openbook_communities.models import Community
 from openbook_common.tests.helpers import (
     make_user,
     make_authentication_headers_for_user,
     make_fake_post_text,
     make_fake_post_title,
+    make_community,
+    make_community_task,
+    make_topic,
+    make_skill,
     simple_jpeg_bytes,
 )
 from openbook_insights.models import Insight
@@ -449,6 +454,86 @@ class GraphQLTest(TestCase):
             following_user.profile.full_name(),
         )
 
+    def test_filters_for_spaces(self):
+        topic1 = make_topic()
+        topic2 = make_topic()
+        space1 = make_community(topics=[topic1, topic2], location="Location1")
+        space2 = make_community(topics=[topic1], location="Location2")
+        skill1 = make_skill()
+        skill2 = make_skill()
+        skill3 = make_skill()
+        make_community_task(space1, skills=[skill1, skill2])
+        make_community_task(space2, skills=[skill2, skill3])
+
+        filter_query = """
+            query($topicId: UUID, $location: String, $skillIds: [UUID]) {
+                spaces(topicId: $topicId, location: $location, skillIds: $skillIds) {
+                    totalResults
+                    data {
+                        id
+                    }
+                }
+            }
+        """
+
+        def transform_space(space):
+            return {"id": str(space.id)}
+
+        def assert_filtered_spaces(filter_options, expected_spaces):
+            filter_response = self.graphql.execute(
+                filter_query, variable_values=filter_options
+            )
+            expected_data = list(map(transform_space, expected_spaces))
+            assert_paged_results_equal(filter_response["data"]["spaces"], expected_data)
+
+        # Return all spaces for empty filter
+        assert_filtered_spaces({}, [space1, space2])
+
+        # Filter by common topic
+        assert_filtered_spaces({"topicId": str(topic1.id)}, [space1, space2])
+
+        # Filter by unique topic
+        assert_filtered_spaces({"topicId": str(topic2.id)}, [space1])
+
+        # Filter by location
+        assert_filtered_spaces({"location": space2.location}, [space2])
+
+        # Filter by topic and location
+        assert_filtered_spaces({"topicId": str(topic1.id), "location": space1.location}, [space1])
+
+        # Filter by single skill
+        assert_filtered_spaces({"skillIds": [str(skill1.id)]}, [space1])
+
+        # Filter by multiple skills
+        assert_filtered_spaces({"skillIds": [str(skill1.id), str(skill3.id)]}, [space1, space2])
+
+        # Filter by skills and location
+        assert_filtered_spaces({"skillIds": [str(skill2.id)], "location": space2.location}, [space2])
+
+        # Filter by skills and topics
+        assert_filtered_spaces({"skillIds": [str(skill2.id)], "topicId": str(topic2.id)}, [space1])
+
+        # Filter by skills, topics and location
+        assert_filtered_spaces({"skillIds": [str(skill3.id)], "location": space1.location, "topicId": str(topic2.id)}, [])
+
+    def test_sort_spaces_by_member_count(self):
+        space1 = make_community()
+        space2 = make_community()
+        member = make_user()
+        space1.add_member(member)
+
+        filter_query = """
+            query {
+                spaces {
+                    data {
+                        id
+                    }
+                }
+            }
+        """
+        response = self.graphql.execute(filter_query)["data"]["spaces"]["data"]
+        assert response[0]["id"] == str(space1.id)
+        assert response[1]["id"] == str(space2.id)
 
 def assert_paged_results_equal(results: dict, expected_data: List[dict[str, any]]):
     assert results["totalResults"] == len(expected_data)

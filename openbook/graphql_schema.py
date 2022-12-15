@@ -358,6 +358,7 @@ class Query(graphene.ObjectType):
         Space,
         topic_id=graphene.UUID(required=False, default_value=None),
         location=graphene.String(required=False, default_value=None),
+        skill_ids=graphene.List(graphene.UUID, default_value=None)
     )
     space_by_id = graphene.Field(Space, id=graphene.String())
     tasks_by_space_id = Paged.of(
@@ -470,14 +471,15 @@ class Query(graphene.ObjectType):
     def resolve_skills(self, info, offset, limit):
         return Paged.data(SkillModel.objects.all().order_by("title"), offset, limit)
 
-    def resolve_spaces(self, info, topic_id, location, offset, limit):
+    def resolve_spaces(self, info, topic_id, location, skill_ids, offset, limit):
         topic_filter = Q(topics__id__contains=topic_id) if topic_id is not None else Q()
         location_filter = (
             Q(location__icontains=location) if location is not None else Q()
         )
+        skills_filter = Q(tasks__skills__id__in=skill_ids) if skill_ids else Q()
 
         return Paged.data(
-            CommunityModel.objects.filter(topic_filter, location_filter)
+            CommunityModel.objects.filter(topic_filter, location_filter, skills_filter)
             .annotate(member_count=Count("memberships"))
             .order_by("-member_count", "-created"),
             offset,

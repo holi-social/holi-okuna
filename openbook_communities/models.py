@@ -332,6 +332,7 @@ class Community(ModelWithUUID):
         rules=None,
         categories_names=None,
         invites_enabled=None,
+        location=None,
     ):
         # If it's a private community and no invites_enabled
         if type == Community.COMMUNITY_TYPE_PRIVATE and invites_enabled is None:
@@ -353,6 +354,7 @@ class Community(ModelWithUUID):
             type=type,
             rules=rules,
             invites_enabled=invites_enabled,
+            location=location
         )
 
         CommunityMembership.create_membership(

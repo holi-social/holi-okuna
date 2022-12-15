@@ -14,7 +14,7 @@ from openbook_categories.models import Category
 from openbook_circles.models import Circle
 from openbook_common.models import Emoji, EmojiGroup, Badge, Language
 from openbook_common.utils.helpers import get_random_pastel_color
-from openbook_communities.models import Community
+from openbook_communities.models import Community, Task
 from openbook_devices.models import Device
 from openbook_hashtags.models import Hashtag
 from openbook_lists.models import List
@@ -27,6 +27,7 @@ from openbook_moderation.models import (
 )
 from openbook_notifications.models import Notification
 from openbook_common.models import ProxyBlacklistedDomain
+from openbook_terms.models import Topic, Skill
 
 fake = Faker()
 
@@ -221,17 +222,26 @@ def make_community_name():
 def make_community_title():
     return fake.user_name()
 
-
 def make_category():
     return mixer.blend(Category)
 
+def make_topic():
+    return mixer.blend(Topic)
+
+def make_skill():
+    return mixer.blend(Skill)
 
 def make_community_invites_enabled():
     return fake.boolean()
 
+def make_community_task(community, skills=None):
+    if not skills:
+        skills = [make_skill()]
+
+    return mixer.blend(Task, community=community, skills=skills)
 
 def make_community(
-    creator=None, type=Community.COMMUNITY_TYPE_PUBLIC, name=None, title=None
+    creator=None, type=Community.COMMUNITY_TYPE_PUBLIC, name=None, title=None, topics=None, location=None
 ):
     if not creator:
         creator = make_user()
@@ -241,6 +251,12 @@ def make_community(
 
     if not title:
         title = make_community_title()
+
+    if not topics:
+        topics = [make_topic()]
+
+    if not location:
+        location = fake.text(max_nb_chars=settings.COMMUNITY_LOCATION_MAX_LENGTH)
 
     community = creator.create_community(
         name=name,
@@ -253,7 +269,11 @@ def make_community(
         users_adjective=make_community_users_adjective(),
         categories_names=[make_category().name],
         invites_enabled=make_community_invites_enabled(),
+        location=location
     )
+    community.topics.set(topics)
+    community.save()
+
     return community
 
 
