@@ -53,7 +53,6 @@ class GraphQLTest(TestCase):
                 }
             }
         """
-
         response = self.client.post(
             path=endpoint,
             data=json.dumps({"query": graphql_query}),
@@ -61,12 +60,14 @@ class GraphQLTest(TestCase):
             **headers,
         )
 
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         authenticated_user = json.loads(response.content)["data"]["authenticatedUser"]
-        assert authenticated_user["id"] == str(user.uuid)
-        assert authenticated_user["fullName"] == user.profile.full_name()
-        assert authenticated_user["engagementLevel"] == user.profile.engagement_level
+        self.assertEqual(authenticated_user["id"], str(user.uuid))
+        self.assertEqual(authenticated_user["fullName"], user.profile.full_name())
+        self.assertEqual(
+            authenticated_user["engagementLevel"], user.profile.engagement_level
+        )
 
     def test_get_user_by_name_returns_only_matching_users_without_logged_in_user(self):
         expected_users = [
@@ -90,7 +91,7 @@ class GraphQLTest(TestCase):
             """,
             context_value=BeneDict({"user": user}),
         )
-        assert_paged_results_equal(
+        self.assert_paged_results_equal(
             results=executed["data"]["userByName"],
             expected_data=[
                 {"firstName": u.name, "lastName": u.last_name} for u in expected_users
@@ -131,7 +132,9 @@ class GraphQLTest(TestCase):
         user = make_user(name="Fritz", last_name="Meier")
         pronouns = "She/her"
 
-        assert User.objects.get(username=user.username).profile.pronouns != pronouns
+        self.assertNotEqual(
+            User.objects.get(username=user.username).profile.pronouns, pronouns
+        )
 
         executed = self.graphql.execute(
             """
@@ -148,61 +151,38 @@ class GraphQLTest(TestCase):
         graphql_pronouns = executed["data"]["updateAuthenticatedUser"]["pronouns"]
         persisted_pronouns = User.objects.get(username=user.username).profile.pronouns
 
-        assert graphql_pronouns == persisted_pronouns == pronouns
+        self.assertEqual(graphql_pronouns, persisted_pronouns)
+        self.assertEqual(graphql_pronouns, pronouns)
 
     def test_can_perform_connection_workflow(self):
         first_user = make_user(name="Fritz", last_name="Meier")
         second_user = make_user(name="Gesine", last_name="Schinder")
 
-        assert not first_user.is_connected_with_user(second_user)
+        self.assertFalse(first_user.is_connected_with_user(second_user))
 
-        update_query = """
-            mutation test($input: UpdateConnectionWithUserInput) {
-                updateConnectionWithUser(input: $input) {
-                    id
-                }
-            }
-            """
+        connection_request_response = self.connect_to_user(first_user, second_user)
 
-        connection_request_response = self.graphql.execute(
-            update_query,
-            context_value=BeneDict({"user": first_user}),
-            variable_values={
-                "input": {
-                    "userId": second_user.username,
-                    "action": UpdateConnectionWithUserAction.CONNECT,
-                }
-            },
+        self.assertEqual(
+            connection_request_response["data"]["updateConnectionWithUser"]["id"],
+            second_user.username,
         )
 
-        assert (
-            connection_request_response["data"]["updateConnectionWithUser"]["id"]
-            == second_user.username
+        self.assertTrue(
+            second_user.is_pending_confirm_connection_for_user_with_id(first_user.pk)
+        )
+        self.assertEqual(
+            first_user.get_connection_status_with_user_id(second_user.pk),
+            UserConnectionStatus.REQUESTED,
         )
 
-        assert second_user.is_pending_confirm_connection_for_user_with_id(first_user.pk)
-        assert (
-            first_user.get_connection_status_with_user_id(second_user.pk)
-            == UserConnectionStatus.REQUESTED
-        )
+        connection_confirm_response = self.connect_to_user(second_user, first_user)
 
-        connection_confirm_response = self.graphql.execute(
-            update_query,
-            context_value=BeneDict({"user": second_user}),
-            variable_values={
-                "input": {
-                    "userId": first_user.username,
-                    "action": UpdateConnectionWithUserAction.CONNECT,
-                }
-            },
+        self.assertEqual(
+            connection_confirm_response["data"]["updateConnectionWithUser"]["id"],
+            first_user.username,
         )
-
-        assert (
-            connection_confirm_response["data"]["updateConnectionWithUser"]["id"]
-            == first_user.username
-        )
-        assert first_user.is_fully_connected_with_user_with_id(second_user.pk)
-        assert second_user.is_fully_connected_with_user_with_id(first_user.pk)
+        self.assertTrue(first_user.is_fully_connected_with_user_with_id(second_user.pk))
+        self.assertTrue(second_user.is_fully_connected_with_user_with_id(first_user.pk))
 
     def test_can_fetch_post(self):
         posting_user = make_user()
@@ -274,18 +254,18 @@ class GraphQLTest(TestCase):
         logger.error("Post fetched")
 
         post_data = response["data"]["postById"]
-        assert post_data["text"] == post_text
-        assert post_data["title"] == post_title
-        assert post_data["image"] is None
-        assert post_data["creator"]["id"] == str(posting_user.uuid)
-        assert post_data["created"] is not None
-        assert post_data["numberOfComments"] == 3
-        assert post_data["involvedUsers"]["totalResults"] == 2
-        assert len(post_data["comments"]) == 3
+        self.assertEqual(post_data["text"], post_text)
+        self.assertEqual(post_data["title"], post_title)
+        self.assertIsNone(post_data["image"])
+        self.assertEqual(post_data["creator"]["id"], str(posting_user.uuid))
+        self.assertIsNotNone(post_data["created"])
+        self.assertEqual(post_data["numberOfComments"], 3)
+        self.assertEqual(post_data["involvedUsers"]["totalResults"], 2)
+        self.assertEqual(len(post_data["comments"]), 3)
         self.assertEqual(
             post_data["comments"][0]["text"], f"comment text 1 @{posting_user.username}"
         )
-        assert post_data["commenters"]["totalResults"] == 1
+        self.assertEqual(post_data["commenters"]["totalResults"], 1)
         self.assertEqual(
             post_data["commenters"]["data"][0]["firstName"], other_user.name
         )
@@ -324,13 +304,13 @@ class GraphQLTest(TestCase):
         )
 
         post_data = response["data"]["postById"]
-        assert post_data["text"] == post_text
-        assert post_data["title"] == post_title
-        assert image_name in post_data["image"]["url"]
-        assert post_data["image"]["width"] == 1
-        assert post_data["image"]["height"] == 1
-        assert post_data["creator"]["id"] == str(posting_user.uuid)
-        assert post_data["created"] is not None
+        self.assertEqual(post_data["text"], post_text)
+        self.assertEqual(post_data["title"], post_title)
+        self.assertIn(image_name, post_data["image"]["url"])
+        self.assertEqual(post_data["image"]["width"], 1)
+        self.assertEqual(post_data["image"]["height"], 1)
+        self.assertEqual(post_data["creator"]["id"], str(posting_user.uuid))
+        self.assertIsNotNone(post_data["created"])
 
     def test_select_last_insights(self):
         insight_user = make_user()
@@ -391,33 +371,72 @@ class GraphQLTest(TestCase):
         )
 
         insights = response["data"]["lastInsights"]["data"]
-        assert 2 == len(insights)
+        self.assertEqual(2, len(insights))
         # insight1 = next(i for i in insights if i["title"] == insight1_title)
         # insight2 = next(i for i in insights if i["title"] == insight2_title)
         insight1_result = insights[0]
-        assert insight1_result["title"] == insight1.title
-        assert insight1_result["numberOfPosts"] == 3
-        assert insight1_result["involvedUsers"]["totalResults"] == 2
+        self.assertEqual(insight1_result["title"], insight1.title)
+        self.assertEqual(insight1_result["numberOfPosts"], 3)
+        self.assertEqual(insight1_result["involvedUsers"]["totalResults"], 2)
 
         insight2_result = insights[1]
-        assert insight2_result["title"] == insight2.title
-        assert insight2_result["numberOfPosts"] == 1
-        assert insight2_result["involvedUsers"]["totalResults"] == 2
+        self.assertEqual(insight2_result["title"], insight2.title)
+        self.assertEqual(insight2_result["numberOfPosts"], 1)
+        self.assertEqual(insight2_result["involvedUsers"]["totalResults"], 2)
 
     def test_notifications(self):
         followed_user = make_user(name="Peter", last_name="Pep")
         following_user = make_user(name="Other")
 
-        update_query = """
+        self.connect_to_user(following_user, followed_user)
+
+        response = self.get_notifications(followed_user)
+        self.assertGreaterEqual(response["data"]["notifications"]["totalResults"], 1)
+        notifications = response["data"]["notifications"]["data"]
+        cr_notification = next(
+            n for n in notifications if n["notificationType"] == "CR"
+        )
+        self.assertEqual(
+            cr_notification["owner"]["fullName"], followed_user.profile.full_name()
+        )
+        self.assertEqual(
+            cr_notification["options"]["user"]["fullName"],
+            following_user.profile.full_name(),
+        )
+
+        self.connect_to_user(followed_user, following_user)
+
+        notifications = self.get_notifications(followed_user)["data"]["notifications"][
+            "data"
+        ]
+        ca_notification = next(
+            n for n in notifications if n["notificationType"] == "CA"
+        )
+        self.assertEqual(
+            ca_notification["options"]["user"]["fullName"],
+            following_user.profile.full_name(),
+        )
+
+        notifications = self.get_notifications(following_user)["data"]["notifications"][
+            "data"
+        ]
+        cc_notification = next(
+            n for n in notifications if n["notificationType"] == "CC"
+        )
+        self.assertEqual(
+            cc_notification["options"]["user"]["fullName"],
+            followed_user.profile.full_name(),
+        )
+
+    def connect_to_user(self, following_user, followed_user):
+        connection_request_response = self.graphql.execute(
+            """
             mutation UpdateConnectionWithUser($input: UpdateConnectionWithUserInput) {
                 updateConnectionWithUser(input: $input) {
                     id
                 }
             }
-            """
-
-        connection_request_response = self.graphql.execute(
-            update_query,
+            """,
             variable_values={
                 "input": {
                     "userId": followed_user.username,
@@ -427,7 +446,9 @@ class GraphQLTest(TestCase):
             context_value=BeneDict({"user": following_user}),
         )
         self.assertIsNone(connection_request_response.get("errors"))
+        return connection_request_response
 
+    def get_notifications(self, user):
         response = self.graphql.execute(
             """
             query {
@@ -458,25 +479,15 @@ class GraphQLTest(TestCase):
                 }
             }
             """,
-            context_value=BeneDict({"user": followed_user}),
+            context_value=BeneDict({"user": user}),
         )
         self.assertIsNone(response.get("errors"))
-        self.assertGreaterEqual(response["data"]["notifications"]["totalResults"], 1)
-        notifications = response["data"]["notifications"]["data"]
-        cr_notification = next(
-            n for n in notifications if n["notificationType"] == "CR"
-        )
-        self.assertEqual(
-            cr_notification["owner"]["fullName"], followed_user.profile.full_name()
-        )
-        self.assertEqual(
-            cr_notification["options"]["user"]["fullName"],
-            following_user.profile.full_name(),
-        )
+        return response
 
+    def assert_paged_results_equal(
+        self, results: dict, expected_data: List[dict[str, any]]
+    ):
+        self.assertEqual(results["totalResults"], len(expected_data))
 
-def assert_paged_results_equal(results: dict, expected_data: List[dict[str, any]]):
-    assert results["totalResults"] == len(expected_data)
-
-    for el in expected_data:
-        assert el in results["data"]
+        for el in expected_data:
+            self.assertIn(el, results["data"])
