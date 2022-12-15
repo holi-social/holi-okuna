@@ -642,11 +642,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
-        self.assertTrue(
-            PostUserMention.objects.filter(
-                post_id=post.pk, user_id=mentioned_user.pk
-            ).exists()
-        )
+        self.assertTrue(post.mentions.filter(id=mentioned_user.pk).exists())
 
     def test_create_private_community_post_does_not_detects_mention_if_not_part_of(
         self,
@@ -722,11 +718,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
-        self.assertTrue(
-            PostUserMention.objects.filter(
-                post_id=post.pk, user_id=mentioned_user.pk
-            ).exists()
-        )
+        self.assertTrue(post.mentions.filter(id=mentioned_user.pk).exists())
 
     def test_create_community_post_notifies_subscribers(self):
         """should notify subscribers when creating a community post"""

@@ -138,6 +138,9 @@ class Post(ModelWithUUID):
         blank=False, null=False, choices=STATUSES, default=STATUS_DRAFT, max_length=2
     )
     links = models.ManyToManyField(LinkPreview, related_name="+", blank=True)
+    mentions = models.ManyToManyField(
+        User, related_name="mentioned_in_posts", blank=True, through="PostUserMention"
+    )
 
     class Meta:
         index_together = [
@@ -902,17 +905,15 @@ class Post(ModelWithUUID):
 
     def _process_post_mentions(self):
         if not self.text:
-            self.user_mentions.all().delete()
+            self.mentions.clear()
         else:
             usernames = extract_usernames_from_string(string=self.text)
             if not usernames:
-                self.user_mentions.all().delete()
+                self.mentions.clear()
             else:
                 existing_mention_usernames = []
-                for existing_mention in (
-                    self.user_mentions.only("id", "user__username").all().iterator()
-                ):
-                    existing_mention_username = existing_mention.user.username.lower()
+                for existing_mention in self.mentions.all().iterator():
+                    existing_mention_username = existing_mention.username.lower()
                     if existing_mention_username not in usernames:
                         existing_mention.delete()
                     else:
@@ -1265,6 +1266,12 @@ class PostComment(ModelWithUUID):
     # This only happens if the comment was reported and found with critical severity content
     is_deleted = models.BooleanField(default=False)
     links = models.ManyToManyField(LinkPreview, related_name="+", blank=True)
+    mentions = models.ManyToManyField(
+        User,
+        related_name="mentioned_in_comments",
+        blank=True,
+        through="PostCommentUserMention",
+    )
 
     @classmethod
     def create_comment(cls, text, commenter, post, parent_comment=None):
@@ -1368,13 +1375,11 @@ class PostComment(ModelWithUUID):
         usernames = extract_usernames_from_string(string=self.text)
 
         if not usernames:
-            self.user_mentions.all().delete()
+            self.mentions.clear()
         else:
             existing_mention_usernames = []
-            for existing_mention in (
-                self.user_mentions.only("id", "user__username").all().iterator()
-            ):
-                existing_mention_username = existing_mention.user.username.lower()
+            for existing_mention in self.mentions.all().iterator():
+                existing_mention_username = existing_mention.username.lower()
                 if existing_mention_username not in usernames:
                     existing_mention.delete()
                 else:

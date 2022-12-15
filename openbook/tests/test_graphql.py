@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import List
 
 from benedict import BeneDict
@@ -22,6 +23,9 @@ from openbook_common.tests.helpers import (
     simple_jpeg_bytes,
 )
 from openbook_insights.models import Insight
+
+
+logger = logging.getLogger(__name__)
 
 
 class ContextWithUser:
@@ -202,6 +206,7 @@ class GraphQLTest(TestCase):
 
     def test_can_fetch_post(self):
         posting_user = make_user()
+        mentioned_user = make_user(name="Mentioned")
         other_user = make_user(name="Other")
 
         post_text = make_fake_post_text()
@@ -211,8 +216,19 @@ class GraphQLTest(TestCase):
             text=post_text,
             title=post_title,
         )
-        post.comment(text="comment text 1", commenter=other_user)
-        post.comment(text="comment text 2", commenter=other_user)
+        post.comment(
+            text=f"comment text 1 @{posting_user.username}", commenter=other_user
+        )
+        post.comment(
+            text=f"comment text 2 @{mentioned_user.username} @{posting_user.username}",
+            commenter=other_user,
+        )
+        post.comment(
+            text=f"comment text 3 @{mentioned_user.username} @{posting_user.username}",
+            commenter=other_user,
+        )
+
+        logger.error("Fetch Post")
 
         response = self.graphql.execute(
             f"""
@@ -231,6 +247,12 @@ class GraphQLTest(TestCase):
                     }}
                     comments {{
                         text
+                        mentions {{
+                            fullName
+                        }}
+                    }}
+                    mentions {{
+                        fullName
                     }}
                     numberOfComments
                     involvedUsers {{
@@ -249,6 +271,7 @@ class GraphQLTest(TestCase):
             }}
             """
         )
+        logger.error("Post fetched")
 
         post_data = response["data"]["postById"]
         assert post_data["text"] == post_text
@@ -256,10 +279,12 @@ class GraphQLTest(TestCase):
         assert post_data["image"] is None
         assert post_data["creator"]["id"] == str(posting_user.uuid)
         assert post_data["created"] is not None
-        assert post_data["numberOfComments"] == 2
+        assert post_data["numberOfComments"] == 3
         assert post_data["involvedUsers"]["totalResults"] == 2
-        assert len(post_data["comments"]) == 2
-        assert post_data["comments"][0]["text"] == "comment text 1"
+        assert len(post_data["comments"]) == 3
+        self.assertEqual(
+            post_data["comments"][0]["text"], f"comment text 1 @{posting_user.username}"
+        )
         assert post_data["commenters"]["totalResults"] == 1
         self.assertEqual(
             post_data["commenters"]["data"][0]["firstName"], other_user.name
