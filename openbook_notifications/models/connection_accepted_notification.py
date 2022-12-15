@@ -10,9 +10,6 @@ class ConnectionAcceptedNotification(ModelWithUUID):
     notification = GenericRelation(Notification)
     connected_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
 
-    def get_options(self):
-        return {"user": self.connected_user}
-
     @classmethod
     def create_accepted_confirmed_notification(cls, connected_user_id, owner_id):
         connection_accepted_notification = cls.objects.create(
@@ -34,3 +31,6 @@ class ConnectionAcceptedNotification(ModelWithUUID):
         ) | Q(connected_user_id=user_b_id, notification__owner_id=user_a_id)
 
         cls.objects.filter(notification_query).delete()
+
+    def get_options(self):
+        return {"user": self.connected_user}
