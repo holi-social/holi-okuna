@@ -1960,7 +1960,7 @@ class User(AbstractUser):
             users_adjective=users_adjective,
             categories_names=categories_names,
             invites_enabled=invites_enabled,
-            location=location
+            location=location,
         )
 
         return community

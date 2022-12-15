@@ -222,17 +222,22 @@ def make_community_name():
 def make_community_title():
     return fake.user_name()
 
+
 def make_category():
     return mixer.blend(Category)
+
 
 def make_topic():
     return mixer.blend(Topic)
 
+
 def make_skill():
     return mixer.blend(Skill)
 
+
 def make_community_invites_enabled():
     return fake.boolean()
+
 
 def make_community_task(community, skills=None):
     if not skills:
@@ -240,8 +245,14 @@ def make_community_task(community, skills=None):
 
     return mixer.blend(Task, community=community, skills=skills)
 
+
 def make_community(
-    creator=None, type=Community.COMMUNITY_TYPE_PUBLIC, name=None, title=None, topics=None, location=None
+    creator=None,
+    type=Community.COMMUNITY_TYPE_PUBLIC,
+    name=None,
+    title=None,
+    topics=None,
+    location=None,
 ):
     if not creator:
         creator = make_user()
@@ -269,7 +280,7 @@ def make_community(
         users_adjective=make_community_users_adjective(),
         categories_names=[make_category().name],
         invites_enabled=make_community_invites_enabled(),
-        location=location
+        location=location,
     )
     community.topics.set(topics)
     community.save()
@@ -281,7 +292,7 @@ def make_moderators_community(
     creator,
 ):
     return make_community(
-        name=settings.MODERATORS_COMMUNITY_NAME,
+        name=settings.MODvERATORS_COMMUNITY_NAME,
         creator=creator,
         type=Community.COMMUNITY_TYPE_PRIVATE,
     )

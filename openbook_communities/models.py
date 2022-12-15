@@ -354,7 +354,7 @@ class Community(ModelWithUUID):
             type=type,
             rules=rules,
             invites_enabled=invites_enabled,
-            location=location
+            location=location,
         )
 
         CommunityMembership.create_membership(

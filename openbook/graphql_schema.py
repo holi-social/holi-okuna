@@ -358,7 +358,7 @@ class Query(graphene.ObjectType):
         Space,
         topic_id=graphene.UUID(required=False, default_value=None),
         location=graphene.String(required=False, default_value=None),
-        skill_ids=graphene.List(graphene.UUID, default_value=None)
+        skill_ids=graphene.List(graphene.UUID, default_value=None),
     )
     space_by_id = graphene.Field(Space, id=graphene.String())
     tasks_by_space_id = Paged.of(

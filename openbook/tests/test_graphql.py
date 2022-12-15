@@ -499,22 +499,37 @@ class GraphQLTest(TestCase):
         assert_filtered_spaces({"location": space2.location}, [space2])
 
         # Filter by topic and location
-        assert_filtered_spaces({"topicId": str(topic1.id), "location": space1.location}, [space1])
+        assert_filtered_spaces(
+            {"topicId": str(topic1.id), "location": space1.location}, [space1]
+        )
 
         # Filter by single skill
         assert_filtered_spaces({"skillIds": [str(skill1.id)]}, [space1])
 
         # Filter by multiple skills
-        assert_filtered_spaces({"skillIds": [str(skill1.id), str(skill3.id)]}, [space1, space2])
+        assert_filtered_spaces(
+            {"skillIds": [str(skill1.id), str(skill3.id)]}, [space1, space2]
+        )
 
         # Filter by skills and location
-        assert_filtered_spaces({"skillIds": [str(skill2.id)], "location": space2.location}, [space2])
+        assert_filtered_spaces(
+            {"skillIds": [str(skill2.id)], "location": space2.location}, [space2]
+        )
 
         # Filter by skills and topics
-        assert_filtered_spaces({"skillIds": [str(skill2.id)], "topicId": str(topic2.id)}, [space1])
+        assert_filtered_spaces(
+            {"skillIds": [str(skill2.id)], "topicId": str(topic2.id)}, [space1]
+        )
 
         # Filter by skills, topics and location
-        assert_filtered_spaces({"skillIds": [str(skill3.id)], "location": space1.location, "topicId": str(topic2.id)}, [])
+        assert_filtered_spaces(
+            {
+                "skillIds": [str(skill3.id)],
+                "location": space1.location,
+                "topicId": str(topic2.id),
+            },
+            [],
+        )
 
     def test_sort_spaces_by_member_count(self):
         space1 = make_community()
@@ -534,6 +549,7 @@ class GraphQLTest(TestCase):
         response = self.graphql.execute(filter_query)["data"]["spaces"]["data"]
         assert response[0]["id"] == str(space1.id)
         assert response[1]["id"] == str(space2.id)
+
 
 def assert_paged_results_equal(results: dict, expected_data: List[dict[str, any]]):
     assert results["totalResults"] == len(expected_data)
