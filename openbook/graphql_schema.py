@@ -1,7 +1,7 @@
 import graphene
 from datetime import datetime
 from django.db import Error, transaction
-from django.db.models import Q, Count, F, Value
+from django.db.models import Q, Count, F, Value, Prefetch
 from django.db.models.functions import Concat
 from django.db.models.lookups import IContains
 from graphene_django import DjangoObjectType
@@ -219,11 +219,13 @@ class Insight(DjangoObjectType):
 
     def resolve_involved_users(self, info, offset, limit):
         return Paged.data(
-            UserModel.objects.filter(
+            UserModel.objects.select_related("profile")
+            .filter(
                 Q(curated_insights=self)
                 | Q(posts__insights=self)
                 | Q(posts_comments__post__insights=self)
-            ).distinct(),
+            )
+            .distinct(),
             offset,
             limit,
         )
@@ -233,7 +235,6 @@ class Post(DjangoObjectType):
     class Meta:
         model = PostModel
 
-    mentions = graphene.List(User)
     image = graphene.Field(PostImage)
     links = graphene.List(LinkPreview)
     number_of_comments = graphene.Int(required=True)
@@ -242,9 +243,6 @@ class Post(DjangoObjectType):
         description="A list of all users involved. Author of the post plus all commenters",
     )
     commenters = Paged.of(User)
-
-    def resolve_mentions(self, info):
-        return UserModel.objects.filter(post_mentions__post=self)
 
     def resolve_image(self, info):
         if hasattr(self, "image"):
@@ -259,16 +257,18 @@ class Post(DjangoObjectType):
 
     def resolve_involved_users(self, info, offset, limit):
         return Paged.data(
-            UserModel.objects.filter(
-                Q(posts=self) | Q(posts_comments__post=self)
-            ).distinct(),
+            UserModel.objects.select_related("profile")
+            .filter(Q(posts=self) | Q(posts_comments__post=self))
+            .distinct(),
             offset,
             limit,
         )
 
     def resolve_commenters(self, info, offset, limit):
         return Paged.data(
-            UserModel.objects.filter(posts_comments__post=self).distinct(),
+            UserModel.objects.select_related("profile")
+            .filter(posts_comments__post=self)
+            .distinct(),
             offset,
             limit,
         )
@@ -279,14 +279,10 @@ class PostComment(DjangoObjectType):
         model = PostCommentModel
 
     creator = graphene.Field(User, required=True, description="Synonym for commenter")
-    mentions = graphene.List(User)
     links = graphene.List(LinkPreview)
 
     def resolve_creator(self, info):
         return self.commenter
-
-    def resolve_mentions(self, info):
-        return UserModel.objects.filter(post_comment_mentions__post_comment=self)
 
     def resolve_links(self, info):
         return self.links.all()
@@ -316,6 +312,43 @@ class Space(DjangoObjectType):
 
     def resolve_main_image(self, info):
         return self.cover.name
+
+
+def resolve_post(id):
+    try:
+        return get_posts_with_comments_query().get(id=id)
+    except PostModel.DoesNotExist:
+        raise GraphQLError("Post not found", extensions={"code": ErrorCodes.NOT_FOUND})
+
+
+def get_posts_with_comments_query():
+    return get_posts_only_query().prefetch_related(
+        Prefetch(
+            "comments",
+            queryset=PostCommentModel.objects.order_by("created")
+            .select_related("commenter__profile")
+            .prefetch_related("links")
+            .prefetch_related(
+                Prefetch(
+                    "mentions",
+                    queryset=UserModel.objects.select_related("profile"),
+                )
+            ),
+        )
+    )
+
+
+def get_posts_only_query():
+    return (
+        PostModel.objects.select_related("creator", "image")
+        .prefetch_related("links")
+        .prefetch_related(
+            Prefetch(
+                "mentions",
+                queryset=UserModel.objects.select_related("profile"),
+            )
+        )
+    )
 
 
 class NotificationOptions(graphene.ObjectType):
@@ -377,7 +410,7 @@ class Query(graphene.ObjectType):
 
     def resolve_user_by_id(self, info, id):
         try:
-            return UserModel.objects.get(username=id)
+            return UserModel.objects.select_related("profile").get(username=id)
         except UserModel.DoesNotExist:
             raise GraphQLError(
                 "User not found", extensions={"code": ErrorCodes.NOT_FOUND}
@@ -402,7 +435,7 @@ class Query(graphene.ObjectType):
 
         total_results = UserModel.objects.filter(full_name_query).count()
 
-        by_first_name_query = UserModel.objects.filter(
+        by_first_name_query = UserModel.objects.select_related("profile").filter(
             Q(profile__name__icontains=substring) & excludes_filter
         )
         by_first_name = list(by_first_name_query[offset : offset + limit])
@@ -419,7 +452,7 @@ class Query(graphene.ObjectType):
             new_limit = limit
 
         by_full_name = list(
-            UserModel.objects.filter(
+            UserModel.objects.select_related("profile").filter(
                 full_name_query & ~Q(profile__name__icontains=substring)
             )[new_offset : new_offset + new_limit]
         )
@@ -428,38 +461,43 @@ class Query(graphene.ObjectType):
     def resolve_user_suggestions(self, info, offset, limit):
         if info.context.user.id:
             return Paged.data(
-                UserModel.objects.exclude(id=info.context.user.id).order_by(
-                    "-date_joined"
-                ),
+                UserModel.objects.select_related("profile")
+                .exclude(id=info.context.user.id)
+                .order_by("-date_joined"),
                 offset,
                 limit,
             )
-        return Paged.data(UserModel.objects.order_by("-date_joined"), offset, limit)
+        return Paged.data(
+            UserModel.objects.select_related("profile").order_by("-date_joined"),
+            offset,
+            limit,
+        )
 
     def resolve_last_insights(self, info, offset, limit):
         return Paged.data(
-            InsightModel.objects.filter(date_published__lte=datetime.now()).order_by(
-                "-date_published"
-            ),
+            InsightModel.objects.select_related("creator__profile")
+            .select_related("topic")
+            .filter(date_published__lte=datetime.now())
+            .order_by("-date_published"),
             offset,
             limit,
         )
 
     def resolve_insight_by_id(self, info, id):
         try:
-            return InsightModel.objects.get(id=id)
+            return (
+                InsightModel.objects.select_related("creator__profile")
+                .select_related("topic")
+                .prefetch_related(Prefetch("posts", queryset=get_posts_only_query()))
+                .get(id=id)
+            )
         except InsightModel.DoesNotExist:
             raise GraphQLError(
                 "Insight not found", extensions={"code": ErrorCodes.NOT_FOUND}
             )
 
     def resolve_post_by_id(self, info, id):
-        try:
-            return PostModel.objects.get(id=id)
-        except PostModel.DoesNotExist:
-            raise GraphQLError(
-                "Post not found", extensions={"code": ErrorCodes.NOT_FOUND}
-            )
+        return resolve_post(id)
 
     def resolve_topics(self, info, offset, limit):
         return Paged.data(TopicModel.objects.all().order_by("title"), offset, limit)
@@ -675,10 +713,8 @@ class UpdatePostCommentMutation(graphene.Mutation):
                 post_id=post_id, text=comment_text
             )
 
-        post_by_id = PostModel.objects.get(id=post_id)
-
         return UpdatePostCommentMutation(
-            post_comment=post_comment, post_by_id=post_by_id
+            post_comment=post_comment, post_by_id=resolve_post(post_id)
         )
 
 
