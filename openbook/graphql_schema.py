@@ -462,13 +462,16 @@ class Query(graphene.ObjectType):
         if info.context.user.id:
             return Paged.data(
                 UserModel.objects.select_related("profile")
+                .exclude(profile__isnull=True)
                 .exclude(id=info.context.user.id)
                 .order_by("-date_joined"),
                 offset,
                 limit,
             )
         return Paged.data(
-            UserModel.objects.select_related("profile").order_by("-date_joined"),
+            UserModel.objects.select_related("profile")
+            .exclude(profile__isnull=True)
+            .order_by("-date_joined"),
             offset,
             limit,
         )
