@@ -453,42 +453,6 @@ class GraphQLTest(TestCase):
         self.assertIsNone(connection_request_response.get("errors"))
         return connection_request_response
 
-    def get_notifications(self, user):
-        response = self.graphql.execute(
-            """
-            query {
-                notifications {
-                    totalResults
-                    data {
-                        owner {
-                            fullName
-                        }
-                        created
-                        read
-                        notificationType
-                        options {
-                            user {
-                                fullName
-                            }
-                            post {
-                                title
-                            }
-                            postComment {
-                                text
-                            }
-                            space {
-                                title
-                            }
-                        }
-                    }
-                }
-            }
-            """,
-            context_value=BeneDict({"user": user}),
-        )
-        self.assertIsNone(response.get("errors"))
-        return response
-
     def test_filters_for_spaces(self):
         topic1 = make_topic()
         topic2 = make_topic()
@@ -519,7 +483,9 @@ class GraphQLTest(TestCase):
                 filter_query, variable_values=filter_options
             )
             expected_data = list(map(transform_space, expected_spaces))
-            self.assert_paged_results_equal(filter_response["data"]["spaces"], expected_data)
+            self.assert_paged_results_equal(
+                filter_response["data"]["spaces"], expected_data
+            )
 
         # Return all spaces for empty filter
         assert_filtered_spaces({}, [space1, space2])
@@ -663,9 +629,44 @@ class GraphQLTest(TestCase):
         assert response[0]["id"] == str(space1.id)
         assert response[1]["id"] == str(space2.id)
 
+    def get_notifications(self, user):
+        response = self.graphql.execute(
+            """
+            query {
+                notifications {
+                    totalResults
+                    data {
+                        owner {
+                            fullName
+                        }
+                        created
+                        read
+                        notificationType
+                        options {
+                            user {
+                                fullName
+                            }
+                            post {
+                                title
+                            }
+                            postComment {
+                                text
+                            }
+                            space {
+                                title
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            context_value=BeneDict({"user": user}),
+        )
+        self.assertIsNone(response.get("errors"))
+        return response
 
     def assert_paged_results_equal(
-            self, results: dict, expected_data: List[dict[str, any]]
+        self, results: dict, expected_data: List[dict[str, any]]
     ):
         self.assertEqual(results["totalResults"], len(expected_data))
 
