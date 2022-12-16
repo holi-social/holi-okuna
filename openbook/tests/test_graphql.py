@@ -556,6 +556,84 @@ class GraphQLTest(TestCase):
             [],
         )
 
+    def test_filters_for_spaces_by_topics(self):
+        topic1 = make_topic()
+        topic2 = make_topic()
+        space1 = make_community(topics=[topic1, topic2], location="Location1")
+        space2 = make_community(topics=[topic1], location="Location2")
+        space3 = make_community(topics=[topic2], location="Location2")
+        skill1 = make_skill()
+        skill2 = make_skill()
+        skill3 = make_skill()
+        make_community_task(space1, skills=[skill1, skill2])
+        make_community_task(space2, skills=[skill2, skill3])
+
+        filter_query = """
+            query($topicIds: [UUID]!, $location: String, $skillIds: [UUID]) {
+                spacesByTopic(topicIds: $topicIds, location: $location, skillIds: $skillIds) {
+                    topicId
+                    spaces {
+                        totalResults
+                        data {
+                            id
+                        }
+                    }
+                }
+            }
+        """
+
+        def transform_space(space):
+            return {"id": str(space.id)}
+
+        def assert_filtered_spaces(filter_options, expected_spaces):
+            filter_response = self.graphql.execute(
+                filter_query, variable_values=filter_options
+            )
+            expected_data = list(map(transform_space, expected_spaces))
+            assert_paged_results_equal(
+                filter_response["data"]["spacesByTopic"][0]["spaces"],
+                expected_data,
+            )
+
+        # Filter by common topic
+        assert_filtered_spaces({"topicIds": [str(topic1.id)]}, [space1, space2])
+
+        # Filter by unique topic
+        assert_filtered_spaces({"topicIds": [str(topic2.id)]}, [space1, space3])
+
+        # Filter by topic and location
+        assert_filtered_spaces(
+            {"topicIds": [str(topic1.id)], "location": space1.location}, [space1]
+        )
+
+        # Filter by skills and topics
+        assert_filtered_spaces(
+            {"skillIds": [str(skill2.id)], "topicIds": [str(topic2.id)]}, [space1]
+        )
+
+        # Filter by skills, topics and location
+        assert_filtered_spaces(
+            {
+                "skillIds": [str(skill3.id)],
+                "location": space1.location,
+                "topicIds": [str(topic2.id)],
+            },
+            [],
+        )
+
+        filter_response = self.graphql.execute(
+            filter_query, variable_values={"topicIds": [str(topic1.id), str(topic2.id)]}
+        )
+        self.assertEqual(len(filter_response["data"]["spacesByTopic"]), 2)
+        assert_paged_results_equal(
+            filter_response["data"]["spacesByTopic"][0]["spaces"],
+            list(map(transform_space, [space1, space2])),
+        )
+        assert_paged_results_equal(
+            filter_response["data"]["spacesByTopic"][1]["spaces"],
+            list(map(transform_space, [space1, space3])),
+        )
+
     def test_sort_spaces_by_member_count(self):
         space1 = make_community()
         space2 = make_community()

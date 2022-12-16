@@ -314,6 +314,20 @@ class Space(DjangoObjectType):
         return self.cover.name
 
 
+def spaces_for_topic(topic_id, location, skill_ids, offset, limit):
+    topic_filter = Q(topics__id__contains=topic_id) if topic_id is not None else Q()
+    location_filter = Q(location__icontains=location) if location is not None else Q()
+    skills_filter = Q(tasks__skills__id__in=skill_ids) if skill_ids else Q()
+    return Paged.data(
+        CommunityModel.objects.prefetch_related("links", "memberships", "tasks")
+        .filter(topic_filter, location_filter, skills_filter)
+        .annotate(member_count=Count("memberships"))
+        .order_by("-member_count", "-created"),
+        offset,
+        limit,
+    )
+
+
 def resolve_post(id):
     try:
         return get_posts_with_comments_query().get(id=id)
@@ -375,6 +389,11 @@ class Notification(DjangoObjectType):
         )
 
 
+class SpacesForTopic(graphene.ObjectType):
+    topic_id = graphene.UUID()
+    spaces = Paged.of(Space)
+
+
 class Query(graphene.ObjectType):
     authenticated_user = graphene.Field(User)
     user_by_id = graphene.Field(User, id=graphene.String())
@@ -392,6 +411,16 @@ class Query(graphene.ObjectType):
         topic_id=graphene.UUID(required=False, default_value=None),
         location=graphene.String(required=False, default_value=None),
         skill_ids=graphene.List(graphene.UUID, default_value=None),
+    )
+    spaces_by_topic = graphene.List(
+        SpacesForTopic,
+        topic_ids=graphene.List(
+            of_type=graphene.UUID, required=True, default_value=None
+        ),
+        location=graphene.String(required=False, default_value=None),
+        skill_ids=graphene.List(graphene.UUID, default_value=None),
+        offset=graphene.Int(default_value=0),
+        limit=graphene.Int(default_value=10),
     )
     space_by_id = graphene.Field(Space, id=graphene.String())
     tasks_by_space_id = Paged.of(
@@ -513,19 +542,20 @@ class Query(graphene.ObjectType):
         return Paged.data(SkillModel.objects.all().order_by("title"), offset, limit)
 
     def resolve_spaces(self, info, topic_id, location, skill_ids, offset, limit):
-        topic_filter = Q(topics__id__contains=topic_id) if topic_id is not None else Q()
-        location_filter = (
-            Q(location__icontains=location) if location is not None else Q()
-        )
-        skills_filter = Q(tasks__skills__id__in=skill_ids) if skill_ids else Q()
+        return spaces_for_topic(topic_id, location, skill_ids, offset, limit)
 
-        return Paged.data(
-            CommunityModel.objects.filter(topic_filter, location_filter, skills_filter)
-            .annotate(member_count=Count("memberships"))
-            .order_by("-member_count", "-created"),
-            offset,
-            limit,
-        )
+    def resolve_spaces_by_topic(
+        self, info, topic_ids, location, skill_ids, offset, limit
+    ):
+        result = []
+        for topic_id in topic_ids:
+            result.append(
+                SpacesForTopic(
+                    topic_id,
+                    spaces_for_topic(topic_id, location, skill_ids, offset, limit),
+                )
+            )
+        return result
 
     def resolve_space_by_id(self, info, id):
         try:
