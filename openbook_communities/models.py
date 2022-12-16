@@ -161,9 +161,14 @@ class Community(ModelWithUUID):
         default=False,
     )
     location = models.CharField(
-        max_length=settings.COMMUNITY_LOCATION_MAX_LENGTH, blank=True, null=True
+        max_length=settings.COMMUNITY_LOCATION_MAX_LENGTH,
+        blank=True,
+        null=True,
+        db_index=True,
     )
-    topics = models.ManyToManyField(Topic, related_name="communities", blank=True)
+    topics = models.ManyToManyField(
+        Topic, related_name="communities", blank=True, db_index=True
+    )
 
     class Meta:
         verbose_name_plural = "communities"
@@ -332,6 +337,7 @@ class Community(ModelWithUUID):
         rules=None,
         categories_names=None,
         invites_enabled=None,
+        location=None,
     ):
         # If it's a private community and no invites_enabled
         if type == Community.COMMUNITY_TYPE_PRIVATE and invites_enabled is None:
@@ -353,6 +359,7 @@ class Community(ModelWithUUID):
             type=type,
             rules=rules,
             invites_enabled=invites_enabled,
+            location=location,
         )
 
         CommunityMembership.create_membership(
@@ -1015,7 +1022,9 @@ class Task(ModelWithUUID):
         max_length=13,
         choices=Regularity.choices,
     )
-    skills = models.ManyToManyField(Skill, related_name="tasks", blank=True)
+    skills = models.ManyToManyField(
+        Skill, related_name="tasks", blank=True, db_index=True
+    )
 
 
 class ExternalLink(ModelWithUUID):
