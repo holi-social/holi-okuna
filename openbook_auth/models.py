@@ -1941,6 +1941,7 @@ class User(AbstractUser):
         user_adjective=None,
         users_adjective=None,
         invites_enabled=None,
+        location=None,
     ):
         check_can_create_community_with_name(user=self, name=name)
 
@@ -1959,6 +1960,7 @@ class User(AbstractUser):
             users_adjective=users_adjective,
             categories_names=categories_names,
             invites_enabled=invites_enabled,
+            location=location,
         )
 
         return community
