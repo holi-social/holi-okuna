@@ -398,14 +398,15 @@ class GraphQLTest(TestCase):
         response = self.get_notifications(followed_user)
         self.assertGreaterEqual(response["data"]["notifications"]["totalResults"], 1)
         notifications = response["data"]["notifications"]["data"]
-        cr_notification = next(
+        connection_requested_notification = next(
             n for n in notifications if n["notificationType"] == "CR"
         )
         self.assertEqual(
-            cr_notification["owner"]["fullName"], followed_user.profile.full_name()
+            connection_requested_notification["owner"]["fullName"],
+            followed_user.profile.full_name(),
         )
         self.assertEqual(
-            cr_notification["options"]["user"]["fullName"],
+            connection_requested_notification["options"]["user"]["fullName"],
             following_user.profile.full_name(),
         )
 
