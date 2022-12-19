@@ -35,6 +35,29 @@ class LinkPreviewTestCase(TestCase):
         )
 
     @mock.patch("requests.get")
+    def test_page_without_opengraph_gives_html_title(self, mock_get):
+        mock_get.return_value = MockResponse(
+            "<html><head><title>This is my title</title></head>no opengraph</html>"
+        )
+        preview = LinkPreview.from_url("www.abcd.de")
+        preview2 = LinkPreview.from_url("www.abcd.de")
+        self.assertIn(mock.call(url="http://www.abcd.de/"), mock_get.call_args_list)
+        self.assertEqual(1, len(mock_get.call_args_list))
+        self.assertEqual(preview, preview2)
+        self.assertEqual(preview.has_data(), True)
+        self.assertEqual(preview.requested_url, "http://www.abcd.de/")
+        self.assertEqual(preview.url, "")
+        self.assertEqual(preview.title, "This is my title")
+        self.assertEqual(preview.description, "")
+        self.assertEqual(preview.type, "")
+        self.assertEqual(preview.image, "")
+        self.assertTrue(
+            timezone.now() - timezone.timedelta(seconds=3)
+            <= preview.fetched_at
+            <= timezone.now()
+        )
+
+    @mock.patch("requests.get")
     def test_preview_without_data_is_note_returned(self, mock_get):
         mock_get.return_value = MockResponse("<html>no opengraph</html>")
         previews = LinkPreview.parse_text("www.abcd.de")
