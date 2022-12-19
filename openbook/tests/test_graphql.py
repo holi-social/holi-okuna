@@ -414,22 +414,22 @@ class GraphQLTest(TestCase):
         notifications = self.get_notifications(followed_user)["data"]["notifications"][
             "data"
         ]
-        ca_notification = next(
+        connection_accepted_notification = next(
             n for n in notifications if n["notificationType"] == "CA"
         )
         self.assertEqual(
-            ca_notification["options"]["user"]["fullName"],
+            connection_accepted_notification["options"]["user"]["fullName"],
             following_user.profile.full_name(),
         )
 
         notifications = self.get_notifications(following_user)["data"]["notifications"][
             "data"
         ]
-        cc_notification = next(
+        connection_confirmed_notification = next(
             n for n in notifications if n["notificationType"] == "CC"
         )
         self.assertEqual(
-            cc_notification["options"]["user"]["fullName"],
+            connection_confirmed_notification["options"]["user"]["fullName"],
             followed_user.profile.full_name(),
         )
 

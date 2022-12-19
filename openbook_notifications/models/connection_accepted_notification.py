@@ -11,7 +11,7 @@ class ConnectionAcceptedNotification(ModelWithUUID):
     connected_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
 
     @classmethod
-    def create_accepted_confirmed_notification(cls, connected_user_id, owner_id):
+    def create_connection_accepted_notification(cls, connected_user_id, owner_id):
         connection_accepted_notification = cls.objects.create(
             connected_user_id=connected_user_id
         )

@@ -28,7 +28,7 @@ class ConnectionConfirmedNotification(ModelWithUUID):
             content_object=connection_confirmed_notification,
             owner_id=owner_id,
         )
-        ConnectionAcceptedNotification.create_accepted_confirmed_notification(
+        ConnectionAcceptedNotification.create_connection_accepted_notification(
             connected_user_id=owner_id, owner_id=connection_confirmator_id
         )
         return connection_confirmed_notification
