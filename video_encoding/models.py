@@ -11,11 +11,7 @@ from .manager import FormatManager
 
 
 def upload_format_to(i, f):
-    return "formats/%s/%s%s" % (
-        i.format,
-        splitext(getattr(i.video, i.field_name).name)[0],  # keep path
-        splitext(f)[1].lower(),
-    )
+    return f"formats/{i.format}/{splitext(getattr(i.video, i.field_name).name)[0]}{splitext(f)[1].lower()}"
 
 
 class Format(ModelWithUUID):

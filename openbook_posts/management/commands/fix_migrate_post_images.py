@@ -27,4 +27,4 @@ class Command(BaseCommand):
                     logger.info("Fixed migrated post with id:" + str(post.pk))
             migrated_posts = migrated_posts + 1
 
-        logger.info("Fixed migrated %d posts" % migrated_posts)
+        logger.info("Fixed migrated %d posts", migrated_posts)

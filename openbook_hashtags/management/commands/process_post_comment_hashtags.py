@@ -32,4 +32,4 @@ class Command(BaseCommand):
             )
             migrated_postComments = migrated_postComments + 1
 
-        logger.info("Processed %d post comments for hashtags" % migrated_postComments)
+        logger.info("Processed %d post comments for hashtags", migrated_postComments)

@@ -31,4 +31,4 @@ class Command(BaseCommand):
             logger.info("Migrated post with id:" + str(post.pk))
             migrated_posts = migrated_posts + 1
 
-        logger.info("Migrated %d posts" % migrated_posts)
+        logger.info("Migrated %d posts", migrated_posts)

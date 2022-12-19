@@ -73,6 +73,7 @@ class Command(BaseCommand):
                 imported_domains += 1
 
             logger.info(
-                "Finished. Imported %d domains and skipped %d as they already existed"
-                % (imported_domains, already_existing_domains)
+                "Finished. Imported %d domains and skipped %d as they already existed",
+                imported_domains,
+                already_existing_domains,
             )

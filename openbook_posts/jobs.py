@@ -48,8 +48,12 @@ def process_post_media(post_id):
     """
     Post = get_post_model()
     PostMedia = get_post_media_model()
-    post = Post.objects.get(pk=post_id)
-    logger.info("Processing media of post with id: %d" % post_id)
+    try:
+        post = Post.objects.get(pk=post_id)
+    except PostMedia.DoesNotExist:
+        logger.warning("Post with id %d not found for postprocessing media", post_id)
+        return
+    logger.info("Processing media of post with id: %d", post_id)
 
     post_media_videos = post.media.filter(type=PostMedia.MEDIA_TYPE_VIDEO)
 
@@ -59,7 +63,7 @@ def process_post_media(post_id):
 
     # This updates the status and created attributes
     post._publish()
-    logger.info("Processed media of post with id: %d" % post_id)
+    logger.info("Processed media of post with id: %d", post_id)
 
 
 @job("low")
@@ -139,7 +143,7 @@ def curate_top_posts():
         total_curated_posts += len(top_posts_objects)
         TopPost.objects.bulk_create(top_posts_objects)
 
-    return "Checked: %d. Curated: %d" % (total_checked_posts, total_curated_posts)
+    return f"Checked: {total_checked_posts}. Curated: {total_curated_posts}"
 
 
 @job("low")
@@ -311,7 +315,7 @@ def curate_trending_posts():
 
     TrendingPost.objects.bulk_create(trending_posts_objects)
 
-    return "Curated: %d posts" % posts.count()
+    return f"Curated: {posts.count()} posts"
 
 
 @job("low")
@@ -374,7 +378,7 @@ def bootstrap_trending_posts():
         total_curated_posts += len(trending_posts_objects)
         TrendingPost.objects.bulk_create(trending_posts_objects)
 
-    return "Checked: %d. Curated: %d" % (total_checked_posts, total_curated_posts)
+    return f"Checked: {total_checked_posts}. Curated: {total_curated_posts}"
 
 
 @job("low")

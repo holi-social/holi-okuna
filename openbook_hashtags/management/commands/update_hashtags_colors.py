@@ -26,4 +26,4 @@ class Command(BaseCommand):
             logger.info("Processed hashtags for post with name:" + str(hashtag.name))
             processed_hashtags = processed_hashtags + 1
 
-        logger.info("Updated %d hashtags colors" % processed_hashtags)
+        logger.info("Updated %d hashtags colors", processed_hashtags)

@@ -35,4 +35,4 @@ class Command(BaseCommand):
             logger.info("Processed links for post with id:" + str(post.pk))
             migrated_posts = migrated_posts + 1
 
-        logger.info("Processed %d posts for links" % migrated_posts)
+        logger.info("Processed %d posts for links", migrated_posts)
