@@ -19,6 +19,7 @@ class Notification(ModelWithUUID):
     POST_COMMENT_REPLY = "PCR"
     POST_COMMENT_REACTION = "PCRA"
     CONNECTION_REQUEST = "CR"
+    CONNECTION_ACCEPTED = "CA"
     CONNECTION_CONFIRMED = "CC"
     FOLLOW = "F"
     FOLLOW_REQUEST = "FR"
@@ -35,6 +36,7 @@ class Notification(ModelWithUUID):
         (POST_COMMENT_REPLY, "Post Comment Reply"),
         (POST_COMMENT_REACTION, "Post Comment Reaction"),
         (CONNECTION_REQUEST, "Connection Request"),
+        (CONNECTION_ACCEPTED, "Connection Accepted"),
         (CONNECTION_CONFIRMED, "Connection Confirmed"),
         (FOLLOW, "Follow"),
         (FOLLOW_REQUEST, "Follow request"),
