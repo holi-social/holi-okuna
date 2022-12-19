@@ -242,7 +242,7 @@ class LinkPreview(ModelWithUUID):
             hours=settings.LINK_PREVIEW_CACHE_TIME_H
         ):
             return preview
-        og = cls.get_opengraph(normalize_url(normalized_url))
+        og = cls.get_opengraph(normalized_url)
         preview.fetched_at = timezone.now()
         for field in cls.fields:
             value = og.get(field[3:])
@@ -267,6 +267,11 @@ class LinkPreview(ModelWithUUID):
                     og["image"] = urljoin(og["url"], og["image"])
                 else:
                     og["image"] = urljoin(url, og["image"])
+
+            if not og.get("title"):
+                title = soup.find("title")
+                if title and title.string:
+                    og["title"] = title.string
             return og
         except RequestException:
             return og
