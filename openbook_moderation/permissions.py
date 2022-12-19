@@ -21,10 +21,8 @@ def check_user_is_not_suspended(user):
             longest_suspension = user.get_longest_moderation_suspension()
 
             raise PermissionDenied(
-                _(
-                    "Your account has been suspended and will be unsuspended in %s"
-                    % naturaltime(longest_suspension.expiration)
-                )
+                _("Your account has been suspended and will be unsuspended in %s")
+                % naturaltime(longest_suspension.expiration)
             )
 
     return True

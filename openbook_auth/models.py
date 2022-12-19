@@ -172,8 +172,8 @@ class User(AbstractUser):
         unique=True,
         help_text=_(
             "Required. %(username_max_length)d characters or fewer. Letters, digits and _ only."
-            % {"username_max_length": settings.USERNAME_MAX_LENGTH}
-        ),
+        )
+        % {"username_max_length": settings.USERNAME_MAX_LENGTH},
         validators=[username_validator],
         error_messages={
             "unique": _("A user with that username already exists."),
