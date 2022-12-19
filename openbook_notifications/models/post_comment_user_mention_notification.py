@@ -40,5 +40,5 @@ class PostCommentUserMentionNotification(ModelWithUUID):
     def get_options(self):
         return {
             "post_comment": self.post_comment_user_mention.post_comment,
-            "user": self.post_comment_user_mention.user,
+            "user": self.post_comment_user_mention.post_comment.commenter,
         }
