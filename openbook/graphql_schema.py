@@ -50,7 +50,7 @@ class ErrorCodes:
     UNAUTHORIZED = "UNAUTHORIZED"
 
 
-class UpdateConnectionWithUserAction:
+class UpdateConnectionAction(graphene.Enum):
     CONNECT = "CONNECT"
     DISCONNECT = "DISCONNECT"
 
@@ -293,6 +293,12 @@ class SpaceMember(DjangoObjectType):
         model = CommunityMembershipModel
 
 
+class SpaceUserConnectionType(graphene.Enum):
+    MEMBERSHIP_REQUESTOR = "MEMBERSHIP_REQUESTOR"
+    MEMBER = "MEMBER"
+    # FOLLOWER, ADMIN...
+
+
 class Space(DjangoObjectType):
     class Meta:
         model = CommunityModel
@@ -304,6 +310,7 @@ class Space(DjangoObjectType):
         required=True,
     )
     main_image = graphene.String()
+    connection_status_to_myself = graphene.List(SpaceUserConnectionType)
 
     def resolve_members(self, info, offset, limit):
         return CommunityMembershipModel.objects.filter(community=self).all()[
@@ -312,6 +319,9 @@ class Space(DjangoObjectType):
 
     def resolve_main_image(self, info):
         return self.cover.name
+
+    def resolve_connection_status_to_myself(self, info):
+        return [SpaceUserConnectionType.MEMBERSHIP_REQUESTOR]
 
 
 def spaces_for_topic(topic_id, location, skill_ids, offset, limit):
@@ -689,8 +699,9 @@ class UpdateConnectionWithUserMutation(graphene.Mutation):
             )
         )
 
+        connect_action = UpdateConnectionAction.get(data.get("action"))
         # Connect action
-        if data.get("action") == UpdateConnectionWithUserAction.CONNECT:
+        if UpdateConnectionAction.CONNECT == connect_action:
             # if current user needs to confirm connection, run confirm_connection_with_user_with_id
             if current_connection_status == UserConnectionStatus.PENDING_CONFIRMATION:
                 authenticated_user.confirm_connection_with_user_with_id(
@@ -705,7 +716,7 @@ class UpdateConnectionWithUserMutation(graphene.Mutation):
 
         # Disconnect action (only run if current connection status is different than NOT_CONNECTED)
         elif (
-            data.get("action") == UpdateConnectionWithUserAction.DISCONNECT
+            UpdateConnectionAction.DISCONNECT == connect_action
             and current_connection_status != UserConnectionStatus.NOT_CONNECTED
         ):
             authenticated_user.disconnect_from_user_with_id(
@@ -753,10 +764,36 @@ class UpdatePostCommentMutation(graphene.Mutation):
         )
 
 
+class UpdateSpaceUserConnectionMutation(graphene.Mutation):
+    class Arguments:
+        space_id = graphene.UUID()
+        user_id = graphene.UUID()
+        connection_type = graphene.Argument(SpaceUserConnectionType)
+        connect_action = graphene.Argument(UpdateConnectionAction)
+
+    Output = Space
+
+    @classmethod
+    def mutate(cls, root, info, space_id, user_id, connection_type, connect_action):
+        current_user = info.context.user
+
+        if current_user.is_anonymous:
+            raise GraphQLError(
+                "Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED}
+            )
+
+        space = CommunityModel.objects.get(id=space_id)
+        # space.add_member()
+        target_user = UserModel.objects.get(username=user_id)
+
+        return space
+
+
 class Mutation(graphene.ObjectType):
     update_authenticated_user = UpdateAuthenticatedUserMutation.Field()
     update_connection_with_user = UpdateConnectionWithUserMutation.Field()
     update_post_comment = UpdatePostCommentMutation.Field()
+    update_space_user_connection = UpdateSpaceUserConnectionMutation.Field()
 
 
 # noinspection PyTypeChecker
