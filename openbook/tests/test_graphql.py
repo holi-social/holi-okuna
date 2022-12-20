@@ -446,7 +446,7 @@ class GraphQLTest(TestCase):
             variable_values={
                 "input": {
                     "userId": followed_user.username,
-                    "action": UpdateConnectionAction.CONNECT,
+                    "action": UpdateConnectionAction.CONNECT._value_,
                 }
             },
             context_value=BeneDict({"user": following_user}),
