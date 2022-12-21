@@ -568,7 +568,7 @@ class GraphQLTest(TestCase):
             )
             expected_data = list(map(transform_space, expected_spaces))
             self.assert_paged_results_equal(
-                filter_response["data"]["spacesByTopic"][0]["spaces"],
+                filter_response["data"]["discoverSpaces"][0]["spaces"],
                 expected_data,
             )
 
@@ -601,13 +601,13 @@ class GraphQLTest(TestCase):
         filter_response = self.graphql.execute(
             filter_query, variable_values={"topicIds": [str(topic1.id), str(topic2.id)]}
         )
-        self.assertEqual(len(filter_response["data"]["spacesByTopic"]), 2)
+        self.assertEqual(len(filter_response["data"]["discoverSpaces"]), 2)
         self.assert_paged_results_equal(
-            filter_response["data"]["spacesByTopic"][0]["spaces"],
+            filter_response["data"]["discoverSpaces"][0]["spaces"],
             list(map(transform_space, [space1, space2])),
         )
         self.assert_paged_results_equal(
-            filter_response["data"]["spacesByTopic"][1]["spaces"],
+            filter_response["data"]["discoverSpaces"][1]["spaces"],
             list(map(transform_space, [space1, space3])),
         )
 
