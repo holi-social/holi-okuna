@@ -585,7 +585,7 @@ class GraphQLTest(TestCase):
 
         # Filter by skills and topics
         assert_filtered_spaces(
-            {"skillIds": [str(skill2.id)], "topicIds": [str(topic2.id)]}, [space1]
+            {"skillIds": [str(skill2.id)], "topicIds": [str(topic2.id)]}, [space1, space3]
         )
 
         # Filter by skills, topics and location
@@ -595,7 +595,7 @@ class GraphQLTest(TestCase):
                 "location": space1.location,
                 "topicIds": [str(topic2.id)],
             },
-            [],
+            [space1],
         )
 
         filter_response = self.graphql.execute(
