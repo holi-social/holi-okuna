@@ -565,7 +565,7 @@ class Query(graphene.ObjectType):
 
         # get all spaces by topic (independent of other filters)
         if topic_ids is not None:
-            for topic_id in (topic_ids or []):
+            for topic_id in topic_ids or []:
                 result.append(
                     DiscoverSpaces(
                         topic_id=topic_id,
@@ -580,7 +580,9 @@ class Query(graphene.ObjectType):
                     DiscoverSpaces(
                         skill_id=skill_id,
                         location=location,
-                        spaces=spaces_for_filter(None, location, [skill_id], offset, limit),
+                        spaces=spaces_for_filter(
+                            None, location, [skill_id], offset, limit
+                        ),
                     )
                 )
 
