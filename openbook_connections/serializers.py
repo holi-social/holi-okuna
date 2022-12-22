@@ -26,7 +26,6 @@ class UpdateConnectionWithUserSerializer(serializers.Serializer):
         validators=[username_characters_validator, user_username_exists],
         required=True,
     )
-    action = serializers.CharField(allow_blank=False, required=True)
 
 
 class ConnectWithUserSerializer(serializers.Serializer):

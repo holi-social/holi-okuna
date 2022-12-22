@@ -12,7 +12,7 @@ from rest_framework import status
 
 from openbook.graphql_schema import (
     schema,
-    UpdateConnectionWithUserAction,
+    UpdateConnectionAction,
 )
 from openbook_auth.models import User, UserConnectionStatus
 from openbook_communities.models import Community
@@ -446,7 +446,7 @@ class GraphQLTest(TestCase):
             variable_values={
                 "input": {
                     "userId": followed_user.username,
-                    "action": UpdateConnectionWithUserAction.CONNECT,
+                    "action": UpdateConnectionAction.CONNECT._value_,
                 }
             },
             context_value=BeneDict({"user": following_user}),
