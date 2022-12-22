@@ -559,7 +559,13 @@ class Query(graphene.ObjectType):
             result.append(
                 DiscoverSpaces(
                     location=location,
-                    spaces=spaces_for_filter(None, location, None, offset, limit),
+                    spaces=spaces_for_filter(
+                        topic_id=None,
+                        location=location,
+                        skill_ids=None,
+                        offset=offset,
+                        limit=limit,
+                    ),
                 )
             )
 
@@ -569,7 +575,13 @@ class Query(graphene.ObjectType):
                 result.append(
                     DiscoverSpaces(
                         topic_id=topic_id,
-                        spaces=spaces_for_filter(topic_id, None, None, offset, limit),
+                        spaces=spaces_for_filter(
+                            topic_id=topic_id,
+                            location=None,
+                            skill_ids=None,
+                            offset=offset,
+                            limit=limit,
+                        ),
                     )
                 )
 
@@ -581,7 +593,11 @@ class Query(graphene.ObjectType):
                         skill_id=skill_id,
                         location=location,
                         spaces=spaces_for_filter(
-                            None, location, [skill_id], offset, limit
+                            topic_id=None,
+                            location=location,
+                            skill_ids=[skill_id],
+                            offset=offset,
+                            limit=limit,
                         ),
                     )
                 )

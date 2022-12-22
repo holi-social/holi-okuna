@@ -549,6 +549,8 @@ class GraphQLTest(TestCase):
             query($topicIds: [UUID], $location: String, $skillIds: [UUID]) {
                 discoverSpaces(topicIds: $topicIds, location: $location, skillIds: $skillIds) {
                     topicId
+                    skillId
+                    location
                     spaces {
                         totalResults
                         data {
