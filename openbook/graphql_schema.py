@@ -323,10 +323,11 @@ class Space(DjangoObjectType):
         return [SpaceUserConnectionType.MEMBERSHIP_REQUESTOR]
 
 
-def spaces_for_topic(topic_id, location, skill_ids, offset, limit):
+def spaces_for_filter(offset, limit, topic_id=None, location=None, skill_ids=None):
     topic_filter = Q(topics__id__contains=topic_id) if topic_id is not None else Q()
     location_filter = Q(location__icontains=location) if location is not None else Q()
     skills_filter = Q(tasks__skills__id__in=skill_ids) if skill_ids else Q()
+
     return Paged.data(
         CommunityModel.objects.prefetch_related("links", "memberships", "tasks")
         .filter(topic_filter, location_filter, skills_filter)
@@ -398,8 +399,10 @@ class Notification(DjangoObjectType):
         )
 
 
-class SpacesForTopic(graphene.ObjectType):
+class DiscoverSpaces(graphene.ObjectType):
     topic_id = graphene.UUID()
+    location = graphene.String()
+    skill_id = graphene.UUID()
     spaces = Paged.of(Space)
 
 
@@ -421,13 +424,15 @@ class Query(graphene.ObjectType):
         location=graphene.String(required=False, default_value=None),
         skill_ids=graphene.List(graphene.UUID, default_value=None),
     )
-    spaces_by_topic = graphene.List(
-        SpacesForTopic,
+    discover_spaces = graphene.List(
+        DiscoverSpaces,
         topic_ids=graphene.List(
-            of_type=graphene.UUID, required=True, default_value=None
+            of_type=graphene.UUID, required=False, default_value=None
         ),
         location=graphene.String(required=False, default_value=None),
-        skill_ids=graphene.List(graphene.UUID, default_value=None),
+        skill_ids=graphene.List(
+            of_type=graphene.UUID, required=False, default_value=None
+        ),
         offset=graphene.Int(default_value=0),
         limit=graphene.Int(default_value=10),
     )
@@ -551,19 +556,56 @@ class Query(graphene.ObjectType):
         return Paged.data(SkillModel.objects.all().order_by("title"), offset, limit)
 
     def resolve_spaces(self, info, topic_id, location, skill_ids, offset, limit):
-        return spaces_for_topic(topic_id, location, skill_ids, offset, limit)
+        return spaces_for_filter(offset, limit, topic_id, location, skill_ids)
 
-    def resolve_spaces_by_topic(
+    def resolve_discover_spaces(
         self, info, topic_ids, location, skill_ids, offset, limit
     ):
         result = []
-        for topic_id in topic_ids:
+
+        # get all spaces by location (independent of other filters)
+        if location is not None:
             result.append(
-                SpacesForTopic(
-                    topic_id,
-                    spaces_for_topic(topic_id, location, skill_ids, offset, limit),
+                DiscoverSpaces(
+                    location=location,
+                    spaces=spaces_for_filter(
+                        offset=offset,
+                        limit=limit,
+                        location=location,
+                    ),
                 )
             )
+
+        # get all spaces by topic (independent of other filters)
+        if topic_ids is not None:
+            for topic_id in topic_ids or []:
+                result.append(
+                    DiscoverSpaces(
+                        topic_id=topic_id,
+                        spaces=spaces_for_filter(
+                            offset=offset,
+                            limit=limit,
+                            topic_id=topic_id,
+                        ),
+                    )
+                )
+
+        # get all spaces by skill_id (including location filter)
+        if skill_ids is not None:
+            for skill_id in skill_ids:
+                result.append(
+                    DiscoverSpaces(
+                        skill_id=skill_id,
+                        location=location,
+                        spaces=spaces_for_filter(
+                            offset=offset,
+                            limit=limit,
+                            location=location,
+                            skill_ids=[skill_id],
+                        ),
+                    )
+                )
+
         return result
 
     def resolve_space_by_id(self, info, id):
