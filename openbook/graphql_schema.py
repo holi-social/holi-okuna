@@ -323,7 +323,7 @@ class Space(DjangoObjectType):
         return [SpaceUserConnectionType.MEMBERSHIP_REQUESTOR]
 
 
-def spaces_for_filter(topic_id, location, skill_ids, offset, limit):
+def spaces_for_filter(offset, limit, topic_id=None, location=None, skill_ids=None):
     topic_filter = Q(topics__id__contains=topic_id) if topic_id is not None else Q()
     location_filter = Q(location__icontains=location) if location is not None else Q()
     skills_filter = Q(tasks__skills__id__in=skill_ids) if skill_ids else Q()
@@ -556,7 +556,7 @@ class Query(graphene.ObjectType):
         return Paged.data(SkillModel.objects.all().order_by("title"), offset, limit)
 
     def resolve_spaces(self, info, topic_id, location, skill_ids, offset, limit):
-        return spaces_for_filter(topic_id, location, skill_ids, offset, limit)
+        return spaces_for_filter(offset, limit, topic_id, location, skill_ids)
 
     def resolve_discover_spaces(
         self, info, topic_ids, location, skill_ids, offset, limit
@@ -569,11 +569,9 @@ class Query(graphene.ObjectType):
                 DiscoverSpaces(
                     location=location,
                     spaces=spaces_for_filter(
-                        topic_id=None,
-                        location=location,
-                        skill_ids=None,
                         offset=offset,
                         limit=limit,
+                        location=location,
                     ),
                 )
             )
@@ -585,11 +583,9 @@ class Query(graphene.ObjectType):
                     DiscoverSpaces(
                         topic_id=topic_id,
                         spaces=spaces_for_filter(
-                            topic_id=topic_id,
-                            location=None,
-                            skill_ids=None,
                             offset=offset,
                             limit=limit,
+                            topic_id=topic_id,
                         ),
                     )
                 )
@@ -602,11 +598,10 @@ class Query(graphene.ObjectType):
                         skill_id=skill_id,
                         location=location,
                         spaces=spaces_for_filter(
-                            topic_id=None,
-                            location=location,
-                            skill_ids=[skill_id],
                             offset=offset,
                             limit=limit,
+                            location=location,
+                            skill_ids=[skill_id],
                         ),
                     )
                 )
