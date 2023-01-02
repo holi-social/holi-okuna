@@ -20,7 +20,15 @@ class Term(ModelWithUUID):
 class Topic(Term):
     """
     A topic is something that a user can be interested in and that categorizes
-    Insights, Posts and Spaces
+    Insights, Posts and Spaces.
+    """
+
+    is_discover_spaces_default = models.BooleanField(
+        _("is discover spaces default"), default=False
+    )
+    """
+    Indicates if the topic is included in the list of default topics suggested
+    on the 'Discover spaces' page.
     """
 
 
