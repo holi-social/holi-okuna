@@ -294,6 +294,10 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         user.refresh_from_db()
 
         retrieved_value = field_selector(user)
+
+        print(retrieved_value)
+        print(update_value)
+
         self.assertEqual(retrieved_value, update_value)
 
     def test_validates_interests_constraints(self):

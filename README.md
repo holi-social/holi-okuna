@@ -44,7 +44,7 @@ Use `python okuna-cli.py clean` to reset all local state, including database and
 
 ### Step by step
 
-1. Make sure you're actually running Python 3.11.0 or later by running `python --version`, if you
+1. Make sure you're actually running the correct Python version (see .python-version file) by running `python --version`, if you
    are using pyenv, the version check will be executed implicitly for you.
 
    Use `pyenv install $PYENV_VERSION` to install the currently used interpreter and delete your `.venv` folder to remove
