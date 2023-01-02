@@ -53,7 +53,7 @@
       "title_it": null,
       "title_tr": null,
       "title_pt_br": null,
-      "is_discover_spaces_default": true
+      "is_discover_spaces_default": false
     }
   },
   {
@@ -72,7 +72,7 @@
       "title_it": null,
       "title_tr": null,
       "title_pt_br": null,
-      "is_discover_spaces_default": false
+      "is_discover_spaces_default": true
     }
   },
   {
@@ -129,7 +129,7 @@
       "title_it": null,
       "title_tr": null,
       "title_pt_br": null,
-      "is_discover_spaces_default": false
+      "is_discover_spaces_default": true
     }
   },
   {
@@ -205,7 +205,7 @@
       "title_it": null,
       "title_tr": null,
       "title_pt_br": null,
-      "is_discover_spaces_default": false
+      "is_discover_spaces_default": true
     }
   },
   {
@@ -243,7 +243,7 @@
       "title_it": null,
       "title_tr": null,
       "title_pt_br": null,
-      "is_discover_spaces_default": true
+      "is_discover_spaces_default": false
     }
   },
   {
@@ -281,7 +281,7 @@
       "title_it": null,
       "title_tr": null,
       "title_pt_br": null,
-      "is_discover_spaces_default": false
+      "is_discover_spaces_default": true
     }
   },
   {
@@ -300,7 +300,7 @@
       "title_it": null,
       "title_tr": null,
       "title_pt_br": null,
-      "is_discover_spaces_default": true
+      "is_discover_spaces_default": false
     }
   },
   {
@@ -338,7 +338,7 @@
       "title_it": null,
       "title_tr": null,
       "title_pt_br": null,
-      "is_discover_spaces_default": true
+      "is_discover_spaces_default": false
     }
   },
   {
@@ -376,7 +376,7 @@
       "title_it": null,
       "title_tr": null,
       "title_pt_br": null,
-      "is_discover_spaces_default": true
+      "is_discover_spaces_default": false
     }
   },
   {
@@ -433,7 +433,7 @@
       "title_it": null,
       "title_tr": null,
       "title_pt_br": null,
-      "is_discover_spaces_default": true
+      "is_discover_spaces_default": false
     }
   },
   {
@@ -471,7 +471,7 @@
       "title_it": null,
       "title_tr": null,
       "title_pt_br": null,
-      "is_discover_spaces_default": false
+      "is_discover_spaces_default": true
     }
   },
   {
@@ -490,7 +490,7 @@
       "title_it": null,
       "title_tr": null,
       "title_pt_br": null,
-      "is_discover_spaces_default": false
+      "is_discover_spaces_default": true
     }
   },
   {
@@ -509,7 +509,7 @@
       "title_it": null,
       "title_tr": null,
       "title_pt_br": null,
-      "is_discover_spaces_default": true
+      "is_discover_spaces_default": false
     }
   },
   {
