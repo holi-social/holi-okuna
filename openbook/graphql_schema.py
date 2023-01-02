@@ -814,13 +814,17 @@ class UpdateSpaceUserConnectionMutation(graphene.Mutation):
     Output = Space
 
     @classmethod
-    def mutate(cls, root, info, space_id, user_id, connection_type, connect_action):
+    def mutate(
+        cls, root, info, space_id, connection_type, connect_action, user_id=None
+    ):
         current_user = info.context.user
-
         if current_user.is_anonymous:
             raise GraphQLError(
                 "Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED}
             )
+
+        if user_id is None:
+            user_id = current_user.username
 
         space = CommunityModel.objects.get(id=space_id)
         # space.add_member()
