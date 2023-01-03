@@ -670,7 +670,7 @@ ONE_SIGNAL_API_KEY = os.environ.get("ONE_SIGNAL_API_KEY")
 
 IMAGEKIT_PUBLIC_KEY = os.environ.get("IMAGEKIT_PUBLIC_KEY", "none")
 IMAGEKIT_PRIVATE_KEY = os.environ.get("IMAGEKIT_PRIVATE_KEY", "none")
-IMAGEKIT_URL = os.environ.get("IMAGEKIT_URL", "https://ik.imagekit.io/holi")
+IMAGEKIT_URL = os.environ.get("IMAGEKIT_URL", "https://ik.imagekit.io/holidev")
 
 # HOLI model config settings
 
