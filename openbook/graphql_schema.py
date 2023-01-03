@@ -219,11 +219,7 @@ class Insight(DjangoObjectType):
     def resolve_involved_users(self, info, offset, limit):
         return Paged.data(
             UserModel.objects.select_related("profile")
-            .filter(
-                Q(curated_insights=self)
-                | Q(posts__insights=self)
-                | Q(posts_comments__post__insights=self)
-            )
+            .filter(Q(curated_insights=self) | Q(posts__insights=self) | Q(posts_comments__post__insights=self))
             .distinct(),
             offset,
             limit,
@@ -265,9 +261,7 @@ class Post(DjangoObjectType):
 
     def resolve_commenters(self, info, offset, limit):
         return Paged.data(
-            UserModel.objects.select_related("profile")
-            .filter(posts_comments__post=self)
-            .distinct(),
+            UserModel.objects.select_related("profile").filter(posts_comments__post=self).distinct(),
             offset,
             limit,
         )
@@ -312,9 +306,7 @@ class Space(DjangoObjectType):
     connection_status_to_myself = graphene.List(SpaceUserConnectionType)
 
     def resolve_members(self, info, offset, limit):
-        return CommunityMembershipModel.objects.filter(community=self).all()[
-            offset : offset + limit
-        ]
+        return CommunityMembershipModel.objects.filter(community=self).all()[offset : offset + limit]
 
     def resolve_main_image(self, info):
         return self.cover.name
@@ -426,13 +418,9 @@ class Query(graphene.ObjectType):
     )
     discover_spaces = graphene.List(
         DiscoverSpaces,
-        topic_ids=graphene.List(
-            of_type=graphene.UUID, required=False, default_value=None
-        ),
+        topic_ids=graphene.List(of_type=graphene.UUID, required=False, default_value=None),
         location=graphene.String(required=False, default_value=None),
-        skill_ids=graphene.List(
-            of_type=graphene.UUID, required=False, default_value=None
-        ),
+        skill_ids=graphene.List(of_type=graphene.UUID, required=False, default_value=None),
         offset=graphene.Int(default_value=0),
         limit=graphene.Int(default_value=10),
     )
@@ -456,17 +444,13 @@ class Query(graphene.ObjectType):
         try:
             return UserModel.objects.select_related("profile").get(username=id)
         except UserModel.DoesNotExist:
-            raise GraphQLError(
-                "User not found", extensions={"code": ErrorCodes.NOT_FOUND}
-            )
+            raise GraphQLError("User not found", extensions={"code": ErrorCodes.NOT_FOUND})
 
     def resolve_user_by_name(self, info, substring, offset, limit):
         string_not_empty(substring)
 
         users_to_exclude_ids = (
-            [info.context.user.id]
-            if info.context and info.context.user and not info.context.user.is_anonymous
-            else []
+            [info.context.user.id] if info.context and info.context.user and not info.context.user.is_anonymous else []
         )
         excludes_filter = ~Q(id__in=users_to_exclude_ids) & Q(profile__isnull=False)
         full_name_query = (
@@ -513,9 +497,7 @@ class Query(graphene.ObjectType):
                 limit,
             )
         return Paged.data(
-            UserModel.objects.select_related("profile")
-            .exclude(profile__isnull=True)
-            .order_by("-date_joined"),
+            UserModel.objects.select_related("profile").exclude(profile__isnull=True).order_by("-date_joined"),
             offset,
             limit,
         )
@@ -539,9 +521,7 @@ class Query(graphene.ObjectType):
                 .get(id=id)
             )
         except InsightModel.DoesNotExist:
-            raise GraphQLError(
-                "Insight not found", extensions={"code": ErrorCodes.NOT_FOUND}
-            )
+            raise GraphQLError("Insight not found", extensions={"code": ErrorCodes.NOT_FOUND})
 
     def resolve_post_by_id(self, info, id):
         return resolve_post(id)
@@ -558,9 +538,7 @@ class Query(graphene.ObjectType):
     def resolve_spaces(self, info, topic_id, location, skill_ids, offset, limit):
         return spaces_for_filter(offset, limit, topic_id, location, skill_ids)
 
-    def resolve_discover_spaces(
-        self, info, topic_ids, location, skill_ids, offset, limit
-    ):
+    def resolve_discover_spaces(self, info, topic_ids, location, skill_ids, offset, limit):
         result = []
 
         # get all spaces by location (independent of other filters)
@@ -612,13 +590,9 @@ class Query(graphene.ObjectType):
         try:
             return CommunityModel.objects.get(id=id)
         except CommunityModel.DoesNotExist:
-            raise GraphQLError(
-                "Space not found", extensions={"code": ErrorCodes.NOT_FOUND}
-            )
+            raise GraphQLError("Space not found", extensions={"code": ErrorCodes.NOT_FOUND})
 
-    def resolve_tasks_by_space_id(
-        self, info, space_id, offset=graphene.Int(), limit=graphene.Int()
-    ):
+    def resolve_tasks_by_space_id(self, info, space_id, offset=graphene.Int(), limit=graphene.Int()):
         return Paged.data(
             TaskModel.objects.filter(community__id=space_id).order_by("-created"),
             offset,
@@ -629,9 +603,7 @@ class Query(graphene.ObjectType):
         try:
             return TaskModel.objects.get(id=id)
         except TaskModel.DoesNotExist:
-            raise GraphQLError(
-                "Task not found", extensions={"code": ErrorCodes.NOT_FOUND}
-            )
+            raise GraphQLError("Task not found", extensions={"code": ErrorCodes.NOT_FOUND})
 
     def resolve_notifications(self, info, offset, limit):
         user = info.context.user
@@ -732,44 +704,32 @@ class UpdateConnectionWithUserMutation(graphene.Mutation):
         data = serializer.validated_data
 
         if info.context.user.is_anonymous:
-            raise GraphQLError(
-                "Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED}
-            )
+            raise GraphQLError("Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED})
 
         authenticated_user = info.context.user
 
-        user_to_connect_to = authenticated_user.get_user_with_username(
-            username=data.get("user_id")
-        )
+        user_to_connect_to = authenticated_user.get_user_with_username(username=data.get("user_id"))
 
-        current_connection_status = (
-            authenticated_user.get_connection_status_with_user_id(
-                user_id=user_to_connect_to.id
-            )
+        current_connection_status = authenticated_user.get_connection_status_with_user_id(
+            user_id=user_to_connect_to.id
         )
 
         # Connect action
         if input.action == UpdateConnectionAction.CONNECT:
             # if current user needs to confirm connection, run confirm_connection_with_user_with_id
             if current_connection_status == UserConnectionStatus.PENDING_CONFIRMATION:
-                authenticated_user.confirm_connection_with_user_with_id(
-                    user_id=user_to_connect_to.id
-                )
+                authenticated_user.confirm_connection_with_user_with_id(user_id=user_to_connect_to.id)
 
             # if there is no connection yet (no requests or pending confirmation), run connect_with_user_with_id
             if current_connection_status == UserConnectionStatus.NOT_CONNECTED:
-                authenticated_user.connect_with_user_with_id(
-                    user_id=user_to_connect_to.id
-                )
+                authenticated_user.connect_with_user_with_id(user_id=user_to_connect_to.id)
 
         # Disconnect action (only run if current connection status is different than NOT_CONNECTED)
         elif (
             input.action == UpdateConnectionAction.DISCONNECT
             and current_connection_status != UserConnectionStatus.NOT_CONNECTED
         ):
-            authenticated_user.disconnect_from_user_with_id(
-                user_id=user_to_connect_to.id
-            )
+            authenticated_user.disconnect_from_user_with_id(user_id=user_to_connect_to.id)
 
         return user_to_connect_to
 
@@ -789,9 +749,7 @@ class UpdatePostCommentMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         if info.context.user.is_anonymous:
-            raise GraphQLError(
-                "Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED}
-            )
+            raise GraphQLError("Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED})
 
         serializer = CommentPostSerializer(data=input)
         serializer.is_valid(raise_exception=True)
@@ -803,13 +761,9 @@ class UpdatePostCommentMutation(graphene.Mutation):
         authenticated_user = info.context.user
 
         with transaction.atomic():
-            post_comment = authenticated_user.comment_post_with_id(
-                post_id=post_id, text=comment_text
-            )
+            post_comment = authenticated_user.comment_post_with_id(post_id=post_id, text=comment_text)
 
-        return UpdatePostCommentMutation(
-            post_comment=post_comment, post_by_id=resolve_post(post_id)
-        )
+        return UpdatePostCommentMutation(post_comment=post_comment, post_by_id=resolve_post(post_id))
 
 
 class UpdateSpaceUserConnectionMutation(graphene.Mutation):
@@ -822,14 +776,10 @@ class UpdateSpaceUserConnectionMutation(graphene.Mutation):
     Output = Space
 
     @classmethod
-    def mutate(
-        cls, root, info, space_id, connection_type, connect_action, user_id=None
-    ):
+    def mutate(cls, root, info, space_id, connection_type, connect_action, user_id=None):
         current_user = info.context.user
         if current_user.is_anonymous:
-            raise GraphQLError(
-                "Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED}
-            )
+            raise GraphQLError("Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED})
 
         if user_id is None:
             user_id = current_user.username

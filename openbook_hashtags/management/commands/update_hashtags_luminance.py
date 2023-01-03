@@ -16,9 +16,7 @@ class Command(BaseCommand):
         parser.add_argument("--luminance", type=int, help="The luminance to change")
 
     def handle(self, *args, **options):
-        raise Exception(
-            "This function is not available due to removed dependency on spectra."
-        )
+        raise Exception("This function is not available due to removed dependency on spectra.")
         # luminance = options.get('luminance', None)
         #
         # if not luminance:

@@ -39,9 +39,7 @@ class SearchUsers(APIView):
 
         users = user.search_users_with_query(query=query)
 
-        users_serializer = SearchUsersUserSerializer(
-            users[:count], many=True, context={"request": request}
-        )
+        users_serializer = SearchUsersUserSerializer(users[:count], many=True, context={"request": request})
 
         return Response(users_serializer.data, status=status.HTTP_200_OK)
 
@@ -60,9 +58,7 @@ class GetUser(APIView):
 
         user = request.user
 
-        serializer = self._get_user_serializer_class_for_user_and_username(
-            user=user, username=username
-        )
+        serializer = self._get_user_serializer_class_for_user_and_username(user=user, username=username)
 
         if user.username == username:
             target_user = user
@@ -101,9 +97,7 @@ class BlockUser(APIView):
         with transaction.atomic():
             blocked_user = user.block_user_with_username(username)
 
-        user_serializer = GetBlockedUserSerializer(
-            blocked_user, context={"request": request}
-        )
+        user_serializer = GetBlockedUserSerializer(blocked_user, context={"request": request})
 
         return Response(user_serializer.data, status=status.HTTP_200_OK)
 
@@ -125,9 +119,7 @@ class UnblockUser(APIView):
         with transaction.atomic():
             unblocked_user = user.unblock_user_with_username(username)
 
-        user_serializer = GetBlockedUserSerializer(
-            unblocked_user, context={"request": request}
-        )
+        user_serializer = GetBlockedUserSerializer(unblocked_user, context={"request": request})
 
         return Response(user_serializer.data, status=status.HTTP_200_OK)
 
@@ -147,13 +139,9 @@ class SubscribeToUserNewPostNotifications(APIView):
         user = request.user
 
         with transaction.atomic():
-            user = user.enable_new_post_notifications_for_user_with_username(
-                username=username
-            )
+            user = user.enable_new_post_notifications_for_user_with_username(username=username)
 
-        response_serializer = SubscribeToUserNewPostNotificationsUserSerializer(
-            user, context={"request": request}
-        )
+        response_serializer = SubscribeToUserNewPostNotificationsUserSerializer(user, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
@@ -169,11 +157,7 @@ class SubscribeToUserNewPostNotifications(APIView):
         user = request.user
 
         with transaction.atomic():
-            unsubscribed_user = (
-                user.disable_new_post_notifications_for_user_with_username(
-                    username=username
-                )
-            )
+            unsubscribed_user = user.disable_new_post_notifications_for_user_with_username(username=username)
 
         response_serializer = SubscribeToUserNewPostNotificationsUserSerializer(
             unsubscribed_user, context={"request": request}
@@ -199,8 +183,6 @@ class GetUserPostsCount(APIView):
         else:
             target_user = user.get_user_with_username(username=username)
 
-        response_serializer = GetUserPostsCountUserSerializer(
-            target_user, context={"request": request}
-        )
+        response_serializer = GetUserPostsCountUserSerializer(target_user, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)

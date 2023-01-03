@@ -8,9 +8,7 @@ from openbook_invitations.validators import invite_id_exists, check_invite_not_u
 
 
 class CreateUserInviteSerializer(serializers.Serializer):
-    nickname = serializers.CharField(
-        max_length=PROFILE_NAME_MAX_LENGTH, required=True, allow_blank=False
-    )
+    nickname = serializers.CharField(max_length=PROFILE_NAME_MAX_LENGTH, required=True, allow_blank=False)
 
 
 class BadgeSerializer(serializers.ModelSerializer):
@@ -20,9 +18,7 @@ class BadgeSerializer(serializers.ModelSerializer):
 
 
 class InvitedUserProfileSerializer(serializers.ModelSerializer):
-    avatar = serializers.ImageField(
-        max_length=None, use_url=True, allow_null=True, required=False
-    )
+    avatar = serializers.ImageField(max_length=None, use_url=True, allow_null=True, required=False)
     badges = BadgeSerializer(many=True)
 
     class Meta:
@@ -76,9 +72,7 @@ class GetUserInvitesSerializer(serializers.Serializer):
 class SearchUserInvitesSerializer(serializers.Serializer):
     count = serializers.IntegerField(required=False, max_value=20)
     pending = serializers.BooleanField(required=False)
-    query = serializers.CharField(
-        max_length=settings.SEARCH_QUERIES_MAX_LENGTH, allow_blank=False, required=True
-    )
+    query = serializers.CharField(max_length=settings.SEARCH_QUERIES_MAX_LENGTH, allow_blank=False, required=True)
 
 
 class DeleteUserInviteSerializer(serializers.Serializer):
@@ -93,9 +87,7 @@ class EditUserInviteSerializer(serializers.Serializer):
         validators=[check_invite_not_used, invite_id_exists],
         required=True,
     )
-    nickname = serializers.CharField(
-        max_length=PROFILE_NAME_MAX_LENGTH, required=True, allow_blank=False
-    )
+    nickname = serializers.CharField(max_length=PROFILE_NAME_MAX_LENGTH, required=True, allow_blank=False)
 
 
 class EmailUserInviteSerializer(serializers.Serializer):

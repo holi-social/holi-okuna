@@ -19,9 +19,7 @@ class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         # in "production" request headers show up in `request.headers`, in unit testing they show up in `request.META`
         user_id = request.headers.get(HEADER_USER_ID, request.META.get(HEADER_USER_ID))
-        user_email = request.headers.get(
-            HEADER_USER_EMAIL, request.META.get(HEADER_USER_EMAIL)
-        )
+        user_email = request.headers.get(HEADER_USER_EMAIL, request.META.get(HEADER_USER_EMAIL))
 
         if user_id == "anonymous":
             return AnonymousUser(), None

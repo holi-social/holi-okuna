@@ -50,8 +50,6 @@ class PostMedia(APIView):
 
         post_media = user.get_media_for_post_with_id(post_id=post_id).order_by("order")
 
-        post_media_serializer = PostMediaSerializer(
-            post_media, many=True, context={"request": request}
-        )
+        post_media_serializer = PostMediaSerializer(post_media, many=True, context={"request": request})
 
         return Response(post_media_serializer.data, status=status.HTTP_200_OK)

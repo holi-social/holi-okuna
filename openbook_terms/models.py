@@ -8,9 +8,7 @@ class Term(ModelWithUUID):
     class Meta:
         abstract = True
 
-    title = models.CharField(
-        _("title"), max_length=settings.TERM_TITLE_MAX_LENGTH, blank=False
-    )
+    title = models.CharField(_("title"), max_length=settings.TERM_TITLE_MAX_LENGTH, blank=False)
 
     def __str__(self):
         return f"{self.__class__.__name__}: {self.title} ({self.id})"
@@ -23,9 +21,7 @@ class Topic(Term):
     Insights, Posts and Spaces.
     """
 
-    is_discover_spaces_default = models.BooleanField(
-        _("is discover spaces default"), default=False
-    )
+    is_discover_spaces_default = models.BooleanField(_("is discover spaces default"), default=False)
     """
     Indicates if the topic is included in the list of default topics suggested
     on the 'Discover spaces' page.

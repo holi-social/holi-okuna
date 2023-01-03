@@ -30,9 +30,7 @@ class NotificationsAPITests(OpenbookAPITestCase):
         notifications_ids = []
 
         for i in range(0, amount_of_notifications):
-            notification = make_notification(
-                owner=user, notification_type=Notification.POST_COMMENT
-            )
+            notification = make_notification(owner=user, notification_type=Notification.POST_COMMENT)
             notifications_ids.append(notification.pk)
 
         url = self._get_url()
@@ -41,9 +39,7 @@ class NotificationsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_notifications = json.loads(
-            response.content, object_hook=uuid_id_parser
-        )
+        response_notifications = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_notifications), len(notifications_ids))
 
@@ -62,9 +58,7 @@ class NotificationsAPITests(OpenbookAPITestCase):
 
         for i in range(0, amount_of_notifications):
             notification_type = Notification.NOTIFICATION_TYPES.__getitem__(i)[0]
-            notification = make_notification(
-                owner=user, notification_type=notification_type
-            )
+            notification = make_notification(owner=user, notification_type=notification_type)
             notifications_ids.append(notification.pk)
 
             if i < 3:
@@ -77,9 +71,7 @@ class NotificationsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_notifications = json.loads(
-            response.content, object_hook=uuid_id_parser
-        )
+        response_notifications = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_notifications), len(valid_types))
 
@@ -145,9 +137,7 @@ class ReadNotificationsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertTrue(
-            Notification.objects.filter(
-                owner=user, read=True, id__in=notifications_ids
-            ).count()
+            Notification.objects.filter(owner=user, read=True, id__in=notifications_ids).count()
             == len(notifications_ids)
         )
 
@@ -172,13 +162,9 @@ class ReadNotificationsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(
-            Notification.objects.filter(owner=user, read=True, id__lte=max_id).exists()
-        )
+        self.assertTrue(Notification.objects.filter(owner=user, read=True, id__lte=max_id).exists())
 
-        self.assertTrue(
-            Notification.objects.filter(owner=user, read=False, id__gt=max_id).exists()
-        )
+        self.assertTrue(Notification.objects.filter(owner=user, read=False, id__gt=max_id).exists())
 
     def test_should_be_able_to_read_notifications_by_type(self):
         """should be able to read notifications of the specified types and return 200"""
@@ -191,9 +177,7 @@ class ReadNotificationsAPITests(OpenbookAPITestCase):
 
         for i in range(0, amount_of_notifications):
             notification_type = Notification.NOTIFICATION_TYPES.__getitem__(i)[0]
-            notification = make_notification(
-                owner=user, notification_type=notification_type
-            )
+            notification = make_notification(owner=user, notification_type=notification_type)
             notifications_ids.append(notification.pk)
 
             if i < 3:
@@ -208,15 +192,11 @@ class ReadNotificationsAPITests(OpenbookAPITestCase):
 
         invalid_ids = set(notifications_ids) - set(valid_ids)
         self.assertEqual(
-            Notification.objects.filter(
-                owner=user, read=True, id__in=valid_ids
-            ).count(),
+            Notification.objects.filter(owner=user, read=True, id__in=valid_ids).count(),
             len(valid_ids),
         )
         self.assertEqual(
-            Notification.objects.filter(
-                owner=user, read=False, id__in=invalid_ids
-            ).count(),
+            Notification.objects.filter(owner=user, read=False, id__in=invalid_ids).count(),
             len(invalid_ids),
         )
 
@@ -237,9 +217,7 @@ class ReadNotificationsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            Notification.objects.filter(
-                owner=user, read=True, id__in=notifications_ids
-            ).count(),
+            Notification.objects.filter(owner=user, read=True, id__in=notifications_ids).count(),
             0,
         )
 
@@ -308,9 +286,7 @@ class ReadNotificationAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(
-            Notification.objects.filter(id=notification_id, read=True).exists()
-        )
+        self.assertTrue(Notification.objects.filter(id=notification_id, read=True).exists())
 
     def test_cannot_read_foreign_notification(self):
         """should not be able to read a foreign notification and return 400"""
@@ -327,9 +303,7 @@ class ReadNotificationAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(
-            Notification.objects.filter(id=notification_id, read=False).exists()
-        )
+        self.assertTrue(Notification.objects.filter(id=notification_id, read=False).exists())
 
     def _get_url(self, notification_id):
         return reverse("read-notification", kwargs={"notification_id": notification_id})
@@ -399,9 +373,7 @@ class UnreadNotificationsCountAPITests(OpenbookAPITestCase):
 
         for i in range(0, amount_of_notifications):
             notification_type = Notification.NOTIFICATION_TYPES.__getitem__(i)[0]
-            notification = make_notification(
-                owner=user, notification_type=notification_type
-            )
+            notification = make_notification(owner=user, notification_type=notification_type)
             notifications_ids.append(notification.pk)
 
             if i < 3:

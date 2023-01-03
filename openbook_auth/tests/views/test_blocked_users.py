@@ -39,9 +39,7 @@ class BlockedUsersAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_blocked_users = json.loads(
-            response.content, object_hook=uuid_id_parser
-        )
+        response_blocked_users = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_blocked_users), amount_of_blocked_users)
 
@@ -74,9 +72,7 @@ class SearchBlockedUsersAPITests(OpenbookAPITestCase):
             query = blocked_user_name[0:amount_of_characters_to_query]
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 
@@ -84,9 +80,7 @@ class SearchBlockedUsersAPITests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_blocked_users = json.loads(
-                response.content, object_hook=uuid_id_parser
-            )
+            response_blocked_users = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_blocked_users)
 
             self.assertEqual(response_members_count, 1)
@@ -107,15 +101,11 @@ class SearchBlockedUsersAPITests(OpenbookAPITestCase):
             user.block_user_with_id(blocked_user.pk)
 
             blocked_user_username = blocked_user.username
-            amount_of_characters_to_query = random.randint(
-                1, len(blocked_user_username)
-            )
+            amount_of_characters_to_query = random.randint(1, len(blocked_user_username))
             query = blocked_user_username[0:amount_of_characters_to_query]
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 
@@ -123,9 +113,7 @@ class SearchBlockedUsersAPITests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_blocked_users = json.loads(
-                response.content, object_hook=uuid_id_parser
-            )
+            response_blocked_users = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_blocked_users)
 
             self.assertEqual(response_members_count, 1)

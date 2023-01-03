@@ -80,12 +80,8 @@ class PostCommentReplySerializer(serializers.ModelSerializer):
         community_membership_serializer=PostCommenterCommunityMembershipSerializer,
     )
     parent_comment = PostCommentReplyParentSerializer()
-    reactions_emoji_counts = PostCommentReactionsEmojiCountField(
-        emoji_count_serializer=PostEmojiCountSerializer
-    )
-    reaction = PostCommentReactionField(
-        post_comment_reaction_serializer=PostCommentReactionSerializer
-    )
+    reactions_emoji_counts = PostCommentReactionsEmojiCountField(emoji_count_serializer=PostEmojiCountSerializer)
+    reaction = PostCommentReactionField(post_comment_reaction_serializer=PostCommentReactionSerializer)
     is_muted = PostCommentIsMutedField()
     language = PostCommentLanguageSerializer()
     hashtags = CommonHashtagSerializer(many=True)

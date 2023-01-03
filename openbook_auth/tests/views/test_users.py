@@ -108,9 +108,7 @@ class SearchUsersAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         url = self._get_url()
-        response = self.client.get(
-            url, {"query": "john", "count": limited_users}, **headers
-        )
+        response = self.client.get(url, {"query": "john", "count": limited_users}, **headers)
 
         parsed_reponse = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -306,9 +304,7 @@ class BlockUserAPITests(OpenbookAPITestCase):
         response = self.client.post(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(
-            user_to_block.is_following_user_with_id(user_id=user_to_block.pk)
-        )
+        self.assertFalse(user_to_block.is_following_user_with_id(user_id=user_to_block.pk))
 
     def test_a_blocking_user_should_remove_notifications_subscriptions(self):
         """should remove notifications subscriptions for both on blocking of a user"""
@@ -316,28 +312,16 @@ class BlockUserAPITests(OpenbookAPITestCase):
         user_to_block = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        user.enable_new_post_notifications_for_user_with_username(
-            username=user_to_block.username
-        )
-        user_to_block.enable_new_post_notifications_for_user_with_username(
-            username=user.username
-        )
+        user.enable_new_post_notifications_for_user_with_username(username=user_to_block.username)
+        user_to_block.enable_new_post_notifications_for_user_with_username(username=user.username)
 
         url = self._get_url(user_to_block)
         response = self.client.post(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         UserNotificationsSubscription = get_user_notifications_subscription_model()
-        self.assertFalse(
-            UserNotificationsSubscription.objects.filter(
-                subscriber=user, user=user_to_block
-            ).exists()
-        )
-        self.assertFalse(
-            UserNotificationsSubscription.objects.filter(
-                subscriber=user_to_block, user=user
-            ).exists()
-        )
+        self.assertFalse(UserNotificationsSubscription.objects.filter(subscriber=user, user=user_to_block).exists())
+        self.assertFalse(UserNotificationsSubscription.objects.filter(subscriber=user_to_block, user=user).exists())
 
     def test_blocking_user_should_remove_their_notifications_subscriptions(self):
         """should remove notifications subscriptions for both when a blocking user"""
@@ -345,28 +329,16 @@ class BlockUserAPITests(OpenbookAPITestCase):
         blocking_user = make_user()
         headers = make_authentication_headers_for_user(blocking_user)
 
-        blocking_user.enable_new_post_notifications_for_user_with_username(
-            username=user.username
-        )
-        user.enable_new_post_notifications_for_user_with_username(
-            username=blocking_user.username
-        )
+        blocking_user.enable_new_post_notifications_for_user_with_username(username=user.username)
+        user.enable_new_post_notifications_for_user_with_username(username=blocking_user.username)
 
         url = self._get_url(user)
         response = self.client.post(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         UserNotificationsSubscription = get_user_notifications_subscription_model()
-        self.assertFalse(
-            UserNotificationsSubscription.objects.filter(
-                subscriber=blocking_user, user=user
-            ).exists()
-        )
-        self.assertFalse(
-            UserNotificationsSubscription.objects.filter(
-                subscriber=user, user=blocking_user
-            ).exists()
-        )
+        self.assertFalse(UserNotificationsSubscription.objects.filter(subscriber=blocking_user, user=user).exists())
+        self.assertFalse(UserNotificationsSubscription.objects.filter(subscriber=user, user=blocking_user).exists())
 
     def _get_url(self, user):
         return reverse("block-user", kwargs={"user_username": user.username})
@@ -441,15 +413,9 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         UserNotificationsSubscription = get_user_notifications_subscription_model()
+        self.assertTrue(UserNotificationsSubscription.objects.filter(subscriber=user, user=user_to_subscribe).exists())
         self.assertTrue(
-            UserNotificationsSubscription.objects.filter(
-                subscriber=user, user=user_to_subscribe
-            ).exists()
-        )
-        self.assertTrue(
-            UserNotificationsSubscription.objects.get(
-                subscriber=user, user=user_to_subscribe
-            ).new_post_notifications
+            UserNotificationsSubscription.objects.get(subscriber=user, user=user_to_subscribe).new_post_notifications
         )
 
     def test_cannot_subscribe_to_own_notifications(self):
@@ -463,11 +429,7 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         UserNotificationsSubscription = get_user_notifications_subscription_model()
-        self.assertFalse(
-            UserNotificationsSubscription.objects.filter(
-                subscriber=user, user=user
-            ).exists()
-        )
+        self.assertFalse(UserNotificationsSubscription.objects.filter(subscriber=user, user=user).exists())
 
     def test_cannot_subscribe_to_notifications_from_user_if_already_subscribed(self):
         """should not be able to subscribe to a user if already subscribed and return 400"""
@@ -475,9 +437,7 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
         user_to_subscribe = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        user.enable_new_post_notifications_for_user_with_username(
-            username=user_to_subscribe.username
-        )
+        user.enable_new_post_notifications_for_user_with_username(username=user_to_subscribe.username)
 
         url = self._get_url(user_to_subscribe)
         response = self.client.put(url, **headers, format="multipart")
@@ -485,9 +445,7 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         UserNotificationsSubscription = get_user_notifications_subscription_model()
         self.assertEqual(
-            UserNotificationsSubscription.objects.filter(
-                subscriber=user, user=user_to_subscribe
-            ).count(),
+            UserNotificationsSubscription.objects.filter(subscriber=user, user=user_to_subscribe).count(),
             1,
         )
 
@@ -505,9 +463,7 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         UserNotificationsSubscription = get_user_notifications_subscription_model()
         self.assertFalse(
-            UserNotificationsSubscription.objects.filter(
-                subscriber=user, user=user_to_subscribe
-            ).exists()
+            UserNotificationsSubscription.objects.filter(subscriber=user, user=user_to_subscribe).exists()
         )
 
     def test_cannot_subscribe_to_notifications_from_user_if_user_has_blocked_us(self):
@@ -524,9 +480,7 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         UserNotificationsSubscription = get_user_notifications_subscription_model()
         self.assertFalse(
-            UserNotificationsSubscription.objects.filter(
-                subscriber=user, user=user_to_subscribe
-            ).exists()
+            UserNotificationsSubscription.objects.filter(subscriber=user, user=user_to_subscribe).exists()
         )
 
     def test_can_unsubscribe_to_notifications_from_user(self):
@@ -535,9 +489,7 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
         user_to_unsubscribe = make_user()
         headers = make_authentication_headers_for_user(user)
         # first subscribe to that user
-        user.enable_new_post_notifications_for_user_with_username(
-            username=user_to_unsubscribe.username
-        )
+        user.enable_new_post_notifications_for_user_with_username(username=user_to_unsubscribe.username)
 
         url = self._get_url(user_to_unsubscribe)
         response = self.client.delete(url, **headers)
@@ -545,9 +497,7 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         UserNotificationsSubscription = get_user_notifications_subscription_model()
         self.assertFalse(
-            UserNotificationsSubscription.objects.get(
-                subscriber=user, user=user_to_unsubscribe
-            ).new_post_notifications
+            UserNotificationsSubscription.objects.get(subscriber=user, user=user_to_unsubscribe).new_post_notifications
         )
 
     def test_cannot_unsubscribe_to_notifications_from_user_if_already_unsubscribed(
@@ -564,9 +514,7 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         UserNotificationsSubscription = get_user_notifications_subscription_model()
         self.assertFalse(
-            UserNotificationsSubscription.objects.filter(
-                subscriber=user, user=user_to_unsubscribe
-            ).exists()
+            UserNotificationsSubscription.objects.filter(subscriber=user, user=user_to_unsubscribe).exists()
         )
 
     def _get_url(self, user):

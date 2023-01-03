@@ -66,9 +66,7 @@ class Command(BaseCommand):
                 user.pk,
                 user.username,
             )
-            bootstrap_user_profile(
-                user=user, is_of_legal_age=True, avatar=None, name="Openbook"
-            )
+            bootstrap_user_profile(user=user, is_of_legal_age=True, avatar=None, name="Openbook")
 
     def _fix_missing_auth_token(self):
         users = User.objects.filter(auth_token__isnull=True).all()

@@ -7,9 +7,7 @@ from openbook_common.models import ModelWithUUID
 
 class Follow(ModelWithUUID):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="follows")
-    followed_user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="followers", null=False
-    )
+    followed_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="followers", null=False)
 
     class Meta:
         unique_together = (
@@ -22,9 +20,7 @@ class Follow(ModelWithUUID):
 
     @classmethod
     def create_follow(cls, user_id, followed_user_id, lists_ids=None):
-        follow = Follow.objects.create(
-            user_id=user_id, followed_user_id=followed_user_id
-        )
+        follow = Follow.objects.create(user_id=user_id, followed_user_id=followed_user_id)
 
         if lists_ids:
             follow.lists.add(*lists_ids)
@@ -33,9 +29,7 @@ class Follow(ModelWithUUID):
 
 
 class FollowRequest(ModelWithUUID):
-    creator = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="sent_follow_requests"
-    )
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_follow_requests")
     target_user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -54,14 +48,10 @@ class FollowRequest(ModelWithUUID):
 
     @classmethod
     def create_follow_request(cls, creator_id, target_user_id):
-        follow_request = FollowRequest.objects.create(
-            creator_id=creator_id, target_user_id=target_user_id
-        )
+        follow_request = FollowRequest.objects.create(creator_id=creator_id, target_user_id=target_user_id)
 
         return follow_request
 
     @classmethod
     def delete_follow_request(cls, creator_id, target_user_id):
-        return FollowRequest.objects.filter(
-            creator_id=creator_id, target_user_id=target_user_id
-        ).delete()
+        return FollowRequest.objects.filter(creator_id=creator_id, target_user_id=target_user_id).delete()

@@ -182,9 +182,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
 
         for i in range(0, amount_of_community_administrators):
             community_administrator = make_user()
-            community_administrator.join_community_with_name(
-                community_name=community_name
-            )
+            community_administrator.join_community_with_name(community_name=community_name)
             other_user.add_administrator_with_username_to_community_with_name(
                 username=community_administrator.username, community_name=community.name
             )
@@ -335,17 +333,11 @@ class InviteCommunityMembersAPITest(OpenbookAPITestCase):
         user_to_invite = make_user()
 
         url = self._get_url(community_name=community.name)
-        response = self.client.post(
-            url, {"username": user_to_invite.username}, **headers
-        )
+        response = self.client.post(url, {"username": user_to_invite.username}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(
-            user_to_invite.is_invited_to_community_with_name(
-                community_name=community.name
-            )
-        )
+        self.assertTrue(user_to_invite.is_invited_to_community_with_name(community_name=community.name))
 
     def test_invite_user_to_community_creates_community_invite_notification(self):
         """should create an community invite notification when a user is invited to join a community"""
@@ -361,9 +353,7 @@ class InviteCommunityMembersAPITest(OpenbookAPITestCase):
         user_to_invite = make_user()
 
         url = self._get_url(community_name=community.name)
-        response = self.client.post(
-            url, {"username": user_to_invite.username}, **headers
-        )
+        response = self.client.post(url, {"username": user_to_invite.username}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -387,17 +377,11 @@ class InviteCommunityMembersAPITest(OpenbookAPITestCase):
         user_to_invite = make_user()
 
         url = self._get_url(community_name=community.name)
-        response = self.client.post(
-            url, {"username": user_to_invite.username}, **headers
-        )
+        response = self.client.post(url, {"username": user_to_invite.username}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(
-            user_to_invite.is_invited_to_community_with_name(
-                community_name=community.name
-            )
-        )
+        self.assertFalse(user_to_invite.is_invited_to_community_with_name(community_name=community.name))
 
     def test_cannot_invite_user_to_community_part_of_with_invites_disabled(self):
         """should not able to invite a user to join a community part of with invites enabled and return 200"""
@@ -413,17 +397,11 @@ class InviteCommunityMembersAPITest(OpenbookAPITestCase):
         user_to_invite = make_user()
 
         url = self._get_url(community_name=community.name)
-        response = self.client.post(
-            url, {"username": user_to_invite.username}, **headers
-        )
+        response = self.client.post(url, {"username": user_to_invite.username}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(
-            user_to_invite.is_invited_to_community_with_name(
-                community_name=community.name
-            )
-        )
+        self.assertFalse(user_to_invite.is_invited_to_community_with_name(community_name=community.name))
 
     def test_can_invite_user_to_community_part_of_with_invites_disabled_if_admin(self):
         """should be able to invite a user to join a community when invites disabled but user is admin and return 200"""
@@ -444,17 +422,11 @@ class InviteCommunityMembersAPITest(OpenbookAPITestCase):
         user_to_invite = make_user()
 
         url = self._get_url(community_name=community.name)
-        response = self.client.post(
-            url, {"username": user_to_invite.username}, **headers
-        )
+        response = self.client.post(url, {"username": user_to_invite.username}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(
-            user_to_invite.is_invited_to_community_with_name(
-                community_name=community.name
-            )
-        )
+        self.assertTrue(user_to_invite.is_invited_to_community_with_name(community_name=community.name))
 
     def test_can_invite_user_to_community_part_of_with_invites_disabled_if_mod(self):
         """should be able to invite a user to join a community when invites disabled but user is mod and return 200"""
@@ -475,17 +447,11 @@ class InviteCommunityMembersAPITest(OpenbookAPITestCase):
         user_to_invite = make_user()
 
         url = self._get_url(community_name=community.name)
-        response = self.client.post(
-            url, {"username": user_to_invite.username}, **headers
-        )
+        response = self.client.post(url, {"username": user_to_invite.username}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(
-            user_to_invite.is_invited_to_community_with_name(
-                community_name=community.name
-            )
-        )
+        self.assertTrue(user_to_invite.is_invited_to_community_with_name(community_name=community.name))
 
     def _get_url(self, community_name):
         return reverse("community-invite", kwargs={"community_name": community_name})
@@ -513,17 +479,11 @@ class UninviteCommunityMembersAPITest(OpenbookAPITestCase):
         )
 
         url = self._get_url(community_name=community.name)
-        response = self.client.post(
-            url, {"username": user_to_invite.username}, **headers
-        )
+        response = self.client.post(url, {"username": user_to_invite.username}, **headers)
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
 
-        self.assertFalse(
-            user_to_invite.is_invited_to_community_with_name(
-                community_name=community.name
-            )
-        )
+        self.assertFalse(user_to_invite.is_invited_to_community_with_name(community_name=community.name))
 
     def test_cannot_withdraw_unexisting_invite(self):
         """should not be able to withdraw an unexisting invite and return 400"""
@@ -539,9 +499,7 @@ class UninviteCommunityMembersAPITest(OpenbookAPITestCase):
         user_to_invite = make_user()
 
         url = self._get_url(community_name=community.name)
-        response = self.client.post(
-            url, {"username": user_to_invite.username}, **headers
-        )
+        response = self.client.post(url, {"username": user_to_invite.username}, **headers)
 
         self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code)
 
@@ -567,9 +525,7 @@ class JoinCommunityAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(
-            user.is_member_of_community_with_name(community_name=community.name)
-        )
+        self.assertTrue(user.is_member_of_community_with_name(community_name=community.name))
 
     def test_can_join_private_community_with_invite(self):
         """should be able to join a private community with an invite and return 200"""
@@ -588,9 +544,7 @@ class JoinCommunityAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(
-            user.is_member_of_community_with_name(community_name=community.name)
-        )
+        self.assertTrue(user.is_member_of_community_with_name(community_name=community.name))
 
     def test_join_community_with_invite_removes_community_invite_notification(self):
         """should able to join a private community with an invite and remove the community invite notification"""
@@ -604,9 +558,7 @@ class JoinCommunityAPITest(OpenbookAPITestCase):
             username=user.username, community_name=community.name
         )
 
-        community_invite_notification = CommunityInviteNotification.objects.get(
-            community_invite=community_invite
-        )
+        community_invite_notification = CommunityInviteNotification.objects.get(community_invite=community_invite)
 
         notification = Notification.objects.get(
             owner=user,
@@ -626,11 +578,7 @@ class JoinCommunityAPITest(OpenbookAPITestCase):
             ).exists()
         )
 
-        self.assertFalse(
-            CommunityInviteNotification.objects.filter(
-                pk=community_invite_notification.pk
-            ).exists()
-        )
+        self.assertFalse(CommunityInviteNotification.objects.filter(pk=community_invite_notification.pk).exists())
         self.assertFalse(Notification.objects.filter(pk=notification.pk).exists())
 
     def test_cannot_join_private_community_without_invite(self):
@@ -646,9 +594,7 @@ class JoinCommunityAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(
-            user.is_member_of_community_with_name(community_name=community.name)
-        )
+        self.assertFalse(user.is_member_of_community_with_name(community_name=community.name))
 
     def test_cannot_join_already_joined_community(self):
         """should not be able to join a private community without an invite"""
@@ -665,9 +611,7 @@ class JoinCommunityAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(
-            user.is_member_of_community_with_name(community_name=community.name)
-        )
+        self.assertTrue(user.is_member_of_community_with_name(community_name=community.name))
 
     def _get_url(self, community_name):
         return reverse("community-join", kwargs={"community_name": community_name})
@@ -694,9 +638,7 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
             query = member_name[0:amount_of_characters_to_query]
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url(community_name=community.name)
             response = self.client.get(url, {"query": final_query}, **headers)
@@ -712,9 +654,7 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
                 # Our community creator was retrieved too
                 for response_member in response_members:
                     response_member_id = response_member["id"]
-                    self.assertTrue(
-                        response_member_id == member.id or response_member_id == user.id
-                    )
+                    self.assertTrue(response_member_id == member.id or response_member_id == user.id)
             member.leave_community_with_name(community_name=community.name)
 
     def test_can_search_community_members_by_username(self):
@@ -733,9 +673,7 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
             query = member_username[0:amount_of_characters_to_query]
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url(community_name=community.name)
             response = self.client.get(url, {"query": final_query}, **headers)
@@ -751,9 +689,7 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
                 # Our community creator was retrieved too
                 for response_member in response_members:
                     response_member_id = response_member["id"]
-                    self.assertTrue(
-                        response_member_id == member.id or response_member_id == user.id
-                    )
+                    self.assertTrue(response_member_id == member.id or response_member_id == user.id)
 
             member.leave_community_with_name(community_name=community.name)
 
@@ -949,9 +885,7 @@ class LeaveCommunityAPITests(OpenbookAPITestCase):
 
         user.join_community_with_name(community_name=community_name)
 
-        user.enable_new_post_notifications_for_community_with_name(
-            community_name=community_name
-        )
+        user.enable_new_post_notifications_for_community_with_name(community_name=community_name)
 
         url = self._get_url(community_name=community_name)
 
@@ -960,9 +894,7 @@ class LeaveCommunityAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertFalse(
-            CommunityNotificationsSubscription.objects.filter(
-                subscriber=user, community=community
-            ).exists()
+            CommunityNotificationsSubscription.objects.filter(subscriber=user, community=community).exists()
         )
 
     def _get_url(self, community_name):

@@ -96,9 +96,7 @@ ENVIRONMENT_ID = os.environ.get("ENVIRONMENT_ID", "local")
 
 if not ENVIRONMENT:
     if "test" in sys.argv:
-        logger.info(
-            "No ENVIRONMENT variable found but test detected. Setting ENVIRONMENT=TEST_VALUE"
-        )
+        logger.info("No ENVIRONMENT variable found but test detected. Setting ENVIRONMENT=TEST_VALUE")
         ENVIRONMENT = EnvironmentChecker.TEST_VALUE
     else:
         raise NameError("ENVIRONMENT environment variable is required")
@@ -123,9 +121,7 @@ TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS")
 if IS_PRODUCTION:
     if not ALLOWED_HOSTS:
-        raise NameError(
-            "ALLOWED_HOSTS environment variable is required when running on a production environment"
-        )
+        raise NameError("ALLOWED_HOSTS environment variable is required when running on a production environment")
     ALLOWED_HOSTS = [allowed_host.strip() for allowed_host in ALLOWED_HOSTS.split(",")]
 else:
     if ALLOWED_HOSTS:
@@ -346,9 +342,7 @@ WSGI_APPLICATION = "openbook.wsgi.application"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 if IS_BUILD or TESTING:
-    DATABASES = {
-        "default": {"ENGINE": "django.db.backends.sqlite3", "NAME": "open-book-api"}
-    }
+    DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": "open-book-api"}}
 else:
     # FYI: RDS is Amazons fully managed DB (which we don't have to use), somebody just chose this var name here
     RDS_DB_NAME = os.environ.get("RDS_DB_NAME")
@@ -425,9 +419,7 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.JSONParser",
     ),
     "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "openbook_auth.oathkeeper.HoliOathkeeperAuthentication",
-    ),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("openbook_auth.oathkeeper.HoliOathkeeperAuthentication",),
     "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.AcceptHeaderVersioning",
     "DEFAULT_THROTTLE_RATES": {
         "link_preview": "300/hour",
@@ -457,9 +449,7 @@ UNICODE_JSON = True
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if IS_PRODUCTION:
     if not SENTRY_DSN:
-        raise NameError(
-            "SENTRY_DSN environment variable is required when running on a production environment"
-        )
+        raise NameError("SENTRY_DSN environment variable is required when running on a production environment")
     sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration(), RqIntegration()])
 else:
     if SENTRY_DSN:
@@ -595,9 +585,7 @@ SEARCH_QUERIES_MAX_LENGTH = 120
 FEATURE_IMPORTER_ENABLED = os.environ.get("FEATURE_IMPORTER_ENABLED", "True") == "True"
 MODERATION_REPORT_DESCRIPTION_MAX_LENGTH = 1000
 MODERATED_OBJECT_DESCRIPTION_MAX_LENGTH = 1000
-GLOBAL_HIDE_CONTENT_AFTER_REPORTS_AMOUNT = int(
-    os.environ.get("GLOBAL_HIDE_CONTENT_AFTER_REPORTS_AMOUNT", "20")
-)
+GLOBAL_HIDE_CONTENT_AFTER_REPORTS_AMOUNT = int(os.environ.get("GLOBAL_HIDE_CONTENT_AFTER_REPORTS_AMOUNT", "20"))
 MODERATORS_COMMUNITY_NAME = os.environ.get("MODERATORS_COMMUNITY_NAME", "mods")
 PROXY_BLACKLIST_DOMAIN_MAX_LENGTH = 150
 
@@ -618,15 +606,9 @@ ACTIVE_JOB_THRESHOLD = 50
 ACTIVE_WORKER_THRESHOLD = 5
 ALERT_HOOK_URL = os.environ.get("ALERT_HOOK_URL")
 
-MIN_UNIQUE_TOP_POST_REACTIONS_COUNT = int(
-    os.environ.get("MIN_UNIQUE_TOP_POST_REACTIONS_COUNT", "5")
-)
-MIN_UNIQUE_TOP_POST_COMMENTS_COUNT = int(
-    os.environ.get("MIN_UNIQUE_TOP_POST_COMMENTS_COUNT", "5")
-)
-MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT = int(
-    os.environ.get("MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT", "5")
-)
+MIN_UNIQUE_TOP_POST_REACTIONS_COUNT = int(os.environ.get("MIN_UNIQUE_TOP_POST_REACTIONS_COUNT", "5"))
+MIN_UNIQUE_TOP_POST_COMMENTS_COUNT = int(os.environ.get("MIN_UNIQUE_TOP_POST_COMMENTS_COUNT", "5"))
+MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT = int(os.environ.get("MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT", "5"))
 
 # Email Config
 

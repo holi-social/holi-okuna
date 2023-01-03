@@ -94,9 +94,7 @@ class SearchFollowersAPITests(OpenbookAPITestCase):
             query = follower_name[0:amount_of_characters_to_query]
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 
@@ -104,9 +102,7 @@ class SearchFollowersAPITests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_followers = json.loads(
-                response.content, object_hook=uuid_id_parser
-            )
+            response_followers = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_followers)
 
             self.assertEqual(response_members_count, 1)
@@ -131,9 +127,7 @@ class SearchFollowersAPITests(OpenbookAPITestCase):
             query = follower_username[0:amount_of_characters_to_query]
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 
@@ -141,9 +135,7 @@ class SearchFollowersAPITests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_followers = json.loads(
-                response.content, object_hook=uuid_id_parser
-            )
+            response_followers = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_followers)
 
             self.assertEqual(response_members_count, 1)
@@ -169,9 +161,7 @@ class SearchFollowersAPITests(OpenbookAPITestCase):
             query = follower_username[0:amount_of_characters_to_query]
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 
@@ -179,9 +169,7 @@ class SearchFollowersAPITests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_followers = json.loads(
-                response.content, object_hook=uuid_id_parser
-            )
+            response_followers = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_followers)
 
             self.assertEqual(0, response_members_count)

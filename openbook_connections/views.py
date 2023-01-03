@@ -23,9 +23,7 @@ class Connections(APIView):
 
     def get(self, request):
         user = request.user
-        response_serializer = ConnectionSerializer(
-            user.connections, many=True, context={"request": request}
-        )
+        response_serializer = ConnectionSerializer(user.connections, many=True, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -48,13 +46,9 @@ class ConnectWithUser(APIView):
         user_to_connect_with = User.objects.get(username=username)
 
         with transaction.atomic():
-            connection = user.connect_with_user_with_id(
-                user_to_connect_with.pk, circles_ids=circles_ids
-            )
+            connection = user.connect_with_user_with_id(user_to_connect_with.pk, circles_ids=circles_ids)
 
-        response_serializer = ConnectionSerializer(
-            connection, context={"request": request}
-        )
+        response_serializer = ConnectionSerializer(connection, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
@@ -76,9 +70,7 @@ class DisconnectFromUser(APIView):
         with transaction.atomic():
             user.disconnect_from_user_with_id(user_to_disconnect_from.pk)
 
-        response_serializer = ConnectionUserSerializer(
-            user_to_disconnect_from, context={"request": request}
-        )
+        response_serializer = ConnectionUserSerializer(user_to_disconnect_from, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -106,9 +98,7 @@ class UpdateConnection(APIView):
                 user_to_update_connection_from.pk, circles_ids=circles_ids
             )
 
-        response_serializer = ConnectionSerializer(
-            connection, context={"request": request}
-        )
+        response_serializer = ConnectionSerializer(connection, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -136,9 +126,7 @@ class ConfirmConnection(APIView):
                 user_to_confirm_connection_with.pk, circles_ids=circles_ids
             )
 
-        response_serializer = ConnectionSerializer(
-            connection, context={"request": request}
-        )
+        response_serializer = ConnectionSerializer(connection, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 

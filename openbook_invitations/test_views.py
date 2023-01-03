@@ -47,9 +47,7 @@ class UserInvitesAPITests(OpenbookAPITestCase):
         invite_id = parsed_response["id"]
 
         self.assertEqual(user.invite_count, (original_invite_count - 1))
-        self.assertTrue(
-            UserInvite.objects.filter(invited_by=user, nickname=nickname).exists()
-        )
+        self.assertTrue(UserInvite.objects.filter(invited_by=user, nickname=nickname).exists())
         invite = UserInvite.objects.get(invited_by=user, nickname=nickname)
         self.assertEqual(invite.id, invite_id)
 
@@ -64,9 +62,7 @@ class UserInvitesAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertFalse(
-            UserInvite.objects.filter(invited_by=user, nickname=nickname).exists()
-        )
+        self.assertFalse(UserInvite.objects.filter(invited_by=user, nickname=nickname).exists())
 
     def test_cannot_create_invite_without_nickname(self):
         """should not be able to create an invite if no nickname is provided"""

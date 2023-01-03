@@ -34,13 +34,9 @@ class IsNotSuspendedCheckAPITests(OpenbookAPITestCase):
         user = make_user()
 
         reporter_user = make_user()
-        report_category = make_moderation_category(
-            severity=ModerationCategory.SEVERITY_MEDIUM
-        )
+        report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_MEDIUM)
 
-        reporter_user.report_user_with_username(
-            username=user.username, category_id=report_category.pk
-        )
+        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
             user=user, category_id=report_category.pk
@@ -67,13 +63,9 @@ class IsNotSuspendedCheckAPITests(OpenbookAPITestCase):
         user = make_user()
 
         reporter_user = make_user()
-        report_category = make_moderation_category(
-            severity=ModerationCategory.SEVERITY_MEDIUM
-        )
+        report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_MEDIUM)
 
-        reporter_user.report_user_with_username(
-            username=user.username, category_id=report_category.pk
-        )
+        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
             user=user, category_id=report_category.pk
@@ -102,13 +94,9 @@ class IsNotSuspendedCheckAPITests(OpenbookAPITestCase):
         user = make_user()
 
         reporter_user = make_user()
-        report_category = make_moderation_category(
-            severity=ModerationCategory.SEVERITY_MEDIUM
-        )
+        report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_MEDIUM)
 
-        reporter_user.report_user_with_username(
-            username=user.username, category_id=report_category.pk
-        )
+        reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_user(
             user=user, category_id=report_category.pk

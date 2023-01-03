@@ -63,16 +63,12 @@ class UpdateCommunitySerializer(serializers.Serializer):
         validators=[community_name_characters_validator],
         required=False,
     )
-    title = serializers.CharField(
-        max_length=settings.COMMUNITY_TITLE_MAX_LENGTH, required=False
-    )
+    title = serializers.CharField(max_length=settings.COMMUNITY_TITLE_MAX_LENGTH, required=False)
     description = serializers.CharField(
         required=False,
         allow_blank=True,
     )
-    rules = serializers.CharField(
-        max_length=settings.COMMUNITY_RULES_MAX_LENGTH, required=False, allow_blank=True
-    )
+    rules = serializers.CharField(max_length=settings.COMMUNITY_RULES_MAX_LENGTH, required=False, allow_blank=True)
     user_adjective = serializers.CharField(
         max_length=settings.COMMUNITY_USER_ADJECTIVE_MAX_LENGTH,
         required=False,
@@ -197,19 +193,13 @@ class GetCommunityCommunityMembershipSerializer(serializers.ModelSerializer):
 class GetCommunityCommunitySerializer(serializers.ModelSerializer):
     categories = GetCommunityCommunityCategorySerializer(many=True)
     is_invited = IsInvitedField()
-    are_new_post_notifications_enabled = (
-        AreNewPostNotificationsEnabledForCommunityField()
-    )
+    are_new_post_notifications_enabled = AreNewPostNotificationsEnabledForCommunityField()
     is_creator = IsCreatorField()
     is_favorite = IsFavoriteField()
     is_reported = IsCommunityReportedField()
     moderators = ModeratorsField(moderator_serializer=GetCommunityStaffUserSerializer)
-    administrators = AdministratorsField(
-        administrator_serializer=GetCommunityStaffUserSerializer
-    )
-    memberships = CommunityMembershipsField(
-        community_membership_serializer=GetCommunityCommunityMembershipSerializer
-    )
+    administrators = AdministratorsField(administrator_serializer=GetCommunityStaffUserSerializer)
+    memberships = CommunityMembershipsField(community_membership_serializer=GetCommunityCommunityMembershipSerializer)
     rules = RulesField()
 
     class Meta:
@@ -243,20 +233,14 @@ class GetCommunityCommunitySerializer(serializers.ModelSerializer):
 class LegacyGetCommunityCommunitySerializer(serializers.ModelSerializer):
     categories = GetCommunityCommunityCategorySerializer(many=True)
     is_invited = IsInvitedField()
-    are_new_post_notifications_enabled = (
-        AreNewPostNotificationsEnabledForCommunityField()
-    )
+    are_new_post_notifications_enabled = AreNewPostNotificationsEnabledForCommunityField()
     is_creator = IsCreatorField()
     is_favorite = IsFavoriteField()
     is_reported = IsCommunityReportedField()
     posts_count = CommunityPostsCountField()
     moderators = ModeratorsField(moderator_serializer=GetCommunityStaffUserSerializer)
-    administrators = AdministratorsField(
-        administrator_serializer=GetCommunityStaffUserSerializer
-    )
-    memberships = CommunityMembershipsField(
-        community_membership_serializer=GetCommunityCommunityMembershipSerializer
-    )
+    administrators = AdministratorsField(administrator_serializer=GetCommunityStaffUserSerializer)
+    memberships = CommunityMembershipsField(community_membership_serializer=GetCommunityCommunityMembershipSerializer)
     rules = RulesField()
 
     class Meta:
@@ -328,9 +312,7 @@ class SubscribeToCommunityNotificationsSerializer(serializers.Serializer):
 
 
 class SubscribeToCommunityNotificationsCommunitySerializer(serializers.ModelSerializer):
-    are_new_post_notifications_enabled = (
-        AreNewPostNotificationsEnabledForCommunityField()
-    )
+    are_new_post_notifications_enabled = AreNewPostNotificationsEnabledForCommunityField()
 
     class Meta:
         model = Community

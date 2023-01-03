@@ -1,16 +1,12 @@
 from django.db.models import Q
 
 
-def make_search_joined_communities_query_for_user(
-    query, user, excluded_from_profile_posts=True
-):
+def make_search_joined_communities_query_for_user(query, user, excluded_from_profile_posts=True):
     joined_communities_query = make_get_joined_communities_query_for_user(
         user=user, excluded_from_profile_posts=excluded_from_profile_posts
     )
 
-    joined_communities_query.add(
-        make_search_communities_query_for_user(query=query, user=user), Q.AND
-    )
+    joined_communities_query.add(make_search_communities_query_for_user(query=query, user=user), Q.AND)
 
     return joined_communities_query
 
@@ -20,18 +16,14 @@ def make_get_joined_communities_query_for_user(user, excluded_from_profile_posts
 
     if not excluded_from_profile_posts:
         joined_communities_query.add(
-            make_exclude_excluded_communities_from_profile_posts_query_for_user(
-                user=user
-            ),
+            make_exclude_excluded_communities_from_profile_posts_query_for_user(user=user),
             Q.AND,
         )
 
     return joined_communities_query
 
 
-def make_search_communities_query_for_user(
-    query, user, excluded_from_profile_posts=True
-):
+def make_search_communities_query_for_user(query, user, excluded_from_profile_posts=True):
     """
     :param query:
     :param user:
@@ -42,9 +34,7 @@ def make_search_communities_query_for_user(
 
     if not excluded_from_profile_posts:
         search_communities_query.add(
-            make_exclude_excluded_communities_from_profile_posts_query_for_user(
-                user=user
-            ),
+            make_exclude_excluded_communities_from_profile_posts_query_for_user(user=user),
             Q.AND,
         )
 

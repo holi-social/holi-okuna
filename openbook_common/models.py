@@ -61,9 +61,7 @@ class EmojiGroup(ModelWithUUID):
 
 
 class Emoji(ModelWithUUID):
-    group = models.ForeignKey(
-        EmojiGroup, on_delete=models.CASCADE, related_name="emojis", null=True
-    )
+    group = models.ForeignKey(EmojiGroup, on_delete=models.CASCADE, related_name="emojis", null=True)
     keyword = models.CharField(_("keyword"), max_length=16, blank=False, null=False)
     # Hex colour. #FFFFFF
     color = models.CharField(
@@ -79,9 +77,7 @@ class Emoji(ModelWithUUID):
     order = models.IntegerField(unique=False, default=100)
 
     @classmethod
-    def get_emoji_counts_for_post_comment_with_id(
-        cls, post_comment_id, emoji_id=None, reactor_id=None
-    ):
+    def get_emoji_counts_for_post_comment_with_id(cls, post_comment_id, emoji_id=None, reactor_id=None):
         emoji_query = Q(
             post_comment_reactions__post_comment_id=post_comment_id,
         )
@@ -101,10 +97,7 @@ class Emoji(ModelWithUUID):
             .all()
         )
 
-        return [
-            {"emoji": emoji, "count": emoji.post_comment_reactions__count}
-            for emoji in emojis
-        ]
+        return [{"emoji": emoji, "count": emoji.post_comment_reactions__count} for emoji in emojis]
 
     @classmethod
     def get_emoji_counts_for_post_with_id(cls, post_id, emoji_id=None, reactor_id=None):
@@ -127,9 +120,7 @@ class Emoji(ModelWithUUID):
             .all()
         )
 
-        return [
-            {"emoji": emoji, "count": emoji.post_reactions__count} for emoji in emojis
-        ]
+        return [{"emoji": emoji, "count": emoji.post_reactions__count} for emoji in emojis]
 
     def __str__(self):
         return "Emoji: " + self.keyword
@@ -143,9 +134,7 @@ class Emoji(ModelWithUUID):
 
 class Badge(ModelWithUUID):
     keyword = models.CharField(max_length=16, blank=False, null=False, unique=True)
-    keyword_description = models.CharField(
-        _("keyword_description"), max_length=64, blank=True, null=True, unique=True
-    )
+    keyword_description = models.CharField(_("keyword_description"), max_length=64, blank=True, null=True, unique=True)
     created = models.DateTimeField(editable=False)
 
     def save(self, *args, **kwargs):
@@ -169,9 +158,7 @@ class Language(ModelWithUUID):
 
 
 class ProxyBlacklistedDomain(ModelWithUUID):
-    domain = models.CharField(
-        max_length=settings.PROXY_BLACKLIST_DOMAIN_MAX_LENGTH, unique=True
-    )
+    domain = models.CharField(max_length=settings.PROXY_BLACKLIST_DOMAIN_MAX_LENGTH, unique=True)
 
     @classmethod
     def is_url_domain_blacklisted(cls, url):
@@ -186,9 +173,7 @@ class ProxyBlacklistedDomain(ModelWithUUID):
         # given test.blogspot.com
 
         # blogspot.com
-        url_root_domain = ".".join(
-            [tld_extract_result.domain, tld_extract_result.suffix]
-        )
+        url_root_domain = ".".join([tld_extract_result.domain, tld_extract_result.suffix])
 
         # test.blogspot.com
         url_full_domain = ".".join(
@@ -199,9 +184,7 @@ class ProxyBlacklistedDomain(ModelWithUUID):
             ]
         )
 
-        return cls.objects.filter(
-            Q(domain=url_root_domain) | Q(domain=url_full_domain)
-        ).exists()
+        return cls.objects.filter(Q(domain=url_root_domain) | Q(domain=url_full_domain)).exists()
 
 
 class LinkPreview(ModelWithUUID):

@@ -46,9 +46,7 @@ community_image_storage = default_storage
 
 
 class Community(ModelWithUUID):
-    moderated_object = GenericRelation(
-        ModeratedObject, related_query_name="communities"
-    )
+    moderated_object = GenericRelation(ModeratedObject, related_query_name="communities")
     creator = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -115,12 +113,8 @@ class Community(ModelWithUUID):
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     created = models.DateTimeField(default=timezone.now, editable=False)
-    starrers = models.ManyToManyField(
-        User, related_name="favorite_communities", blank=True
-    )
-    banned_users = models.ManyToManyField(
-        User, related_name="banned_of_communities", blank=True
-    )
+    starrers = models.ManyToManyField(User, related_name="favorite_communities", blank=True)
+    banned_users = models.ManyToManyField(User, related_name="banned_of_communities", blank=True)
     COMMUNITY_TYPE_PRIVATE = "T"
     COMMUNITY_TYPE_PUBLIC = "P"
     COMMUNITY_TYPES = (
@@ -166,45 +160,31 @@ class Community(ModelWithUUID):
         null=True,
         db_index=True,
     )
-    topics = models.ManyToManyField(
-        Topic, related_name="communities", blank=True, db_index=True
-    )
+    topics = models.ManyToManyField(Topic, related_name="communities", blank=True, db_index=True)
 
     class Meta:
         verbose_name_plural = "communities"
 
     @classmethod
-    def is_user_with_username_invited_to_community_with_name(
-        cls, username, community_name
-    ):
+    def is_user_with_username_invited_to_community_with_name(cls, username, community_name):
         CommunityInvite = get_community_invite_model()
         return CommunityInvite.is_user_with_username_invited_to_community_with_name(
             username=username, community_name=community_name
         )
 
     @classmethod
-    def is_user_with_username_subscribed_to_notifications_for_community_with_name(
-        cls, username, community_name
-    ):
-        CommunityNotificationsSubscription = (
-            get_community_notifications_subscription_model()
-        )
+    def is_user_with_username_subscribed_to_notifications_for_community_with_name(cls, username, community_name):
+        CommunityNotificationsSubscription = get_community_notifications_subscription_model()
         return CommunityNotificationsSubscription.are_new_post_notifications_enabled_for_user_with_username_and_community_with_name(
             username=username, community_name=community_name
         )
 
     @classmethod
-    def is_user_with_username_member_of_community_with_name(
-        cls, username, community_name
-    ):
-        return cls.objects.filter(
-            name=community_name, memberships__user__username=username
-        ).exists()
+    def is_user_with_username_member_of_community_with_name(cls, username, community_name):
+        return cls.objects.filter(name=community_name, memberships__user__username=username).exists()
 
     @classmethod
-    def is_user_with_username_administrator_of_community_with_name(
-        cls, username, community_name
-    ):
+    def is_user_with_username_administrator_of_community_with_name(cls, username, community_name):
         return cls.objects.filter(
             name=community_name,
             memberships__user__username=username,
@@ -212,9 +192,7 @@ class Community(ModelWithUUID):
         ).exists()
 
     @classmethod
-    def is_user_with_username_moderator_of_community_with_name(
-        cls, username, community_name
-    ):
+    def is_user_with_username_moderator_of_community_with_name(cls, username, community_name):
         return cls.objects.filter(
             name=community_name,
             memberships__user__username=username,
@@ -222,12 +200,8 @@ class Community(ModelWithUUID):
         ).exists()
 
     @classmethod
-    def is_user_with_username_banned_from_community_with_name(
-        cls, username, community_name
-    ):
-        return cls.objects.filter(
-            name=community_name, banned_users__username=username
-        ).exists()
+    def is_user_with_username_banned_from_community_with_name(cls, username, community_name):
+        return cls.objects.filter(name=community_name, banned_users__username=username).exists()
 
     @classmethod
     def is_community_with_name_invites_enabled(cls, community_name):
@@ -249,9 +223,7 @@ class Community(ModelWithUUID):
         return cls.objects.get(query)
 
     @classmethod
-    def search_communities_with_query_for_user(
-        cls, query, user, excluded_from_profile_posts=True
-    ):
+    def search_communities_with_query_for_user(cls, query, user, excluded_from_profile_posts=True):
         query = make_search_communities_query_for_user(
             query=query,
             user=user,
@@ -260,9 +232,7 @@ class Community(ModelWithUUID):
         return cls.objects.filter(query)
 
     @classmethod
-    def search_joined_communities_with_query_for_user(
-        cls, query, user, excluded_from_profile_posts=True
-    ):
+    def search_joined_communities_with_query_for_user(cls, query, user, excluded_from_profile_posts=True):
         query = make_search_joined_communities_query_for_user(
             query=query,
             user=user,
@@ -280,37 +250,24 @@ class Community(ModelWithUUID):
     @classmethod
     def get_new_user_suggested_communities(cls):
         community_ids = [
-            uuid.UUID(community_id)
-            for community_id in settings.NEW_USER_SUGGESTED_COMMUNITIES.split(",")
+            uuid.UUID(community_id) for community_id in settings.NEW_USER_SUGGESTED_COMMUNITIES.split(",")
         ]
         return cls.objects.filter(id__in=community_ids, type=cls.COMMUNITY_TYPE_PUBLIC)
 
     @classmethod
     def get_trending_communities_for_user_with_id(cls, user_id, category_name=None):
-        trending_communities_query = cls._make_trending_communities_query(
-            category_name=category_name
-        )
+        trending_communities_query = cls._make_trending_communities_query(category_name=category_name)
         trending_communities_query.add(~Q(banned_users__id=user_id), Q.AND)
-        return cls._get_trending_communities_with_query(
-            query=trending_communities_query
-        )
+        return cls._get_trending_communities_with_query(query=trending_communities_query)
 
     @classmethod
     def get_trending_communities(cls, category_name=None):
-        trending_communities_query = cls._make_trending_communities_query(
-            category_name=category_name
-        )
-        return cls._get_trending_communities_with_query(
-            query=trending_communities_query
-        )
+        trending_communities_query = cls._make_trending_communities_query(category_name=category_name)
+        return cls._get_trending_communities_with_query(query=trending_communities_query)
 
     @classmethod
     def _get_trending_communities_with_query(cls, query):
-        return (
-            cls.objects.annotate(Count("memberships"))
-            .filter(query)
-            .order_by("-memberships__count", "-created")
-        )
+        return cls.objects.annotate(Count("memberships")).filter(query).order_by("-memberships__count", "-created")
 
     @classmethod
     def _make_trending_communities_query(cls, category_name=None):
@@ -380,46 +337,32 @@ class Community(ModelWithUUID):
     EXCLUDE_COMMUNITY_MODERATORS_KEYWORD = "moderators"
 
     @classmethod
-    def get_community_with_name_members(
-        cls, community_name, members_max_id=None, exclude_keywords=None
-    ):
-        community_members_query = Q(
-            communities_memberships__community__name=community_name
-        )
+    def get_community_with_name_members(cls, community_name, members_max_id=None, exclude_keywords=None):
+        community_members_query = Q(communities_memberships__community__name=community_name)
 
         if members_max_id:
             community_members_query.add(Q(id__lt=members_max_id), Q.AND)
 
         if exclude_keywords:
             community_members_query.add(
-                cls._get_exclude_members_query_for_keywords(
-                    exclude_keywords=exclude_keywords
-                ),
+                cls._get_exclude_members_query_for_keywords(exclude_keywords=exclude_keywords),
                 Q.AND,
             )
 
         return User.objects.filter(community_members_query)
 
     @classmethod
-    def search_community_with_name_members(
-        cls, community_name, query, exclude_keywords=None
-    ):
+    def search_community_with_name_members(cls, community_name, query, exclude_keywords=None):
         db_query = Q(communities_memberships__community__name=community_name)
 
-        community_members_query = Q(
-            communities_memberships__user__username__icontains=query
-        )
-        community_members_query.add(
-            Q(communities_memberships__user__profile__name__icontains=query), Q.OR
-        )
+        community_members_query = Q(communities_memberships__user__username__icontains=query)
+        community_members_query.add(Q(communities_memberships__user__profile__name__icontains=query), Q.OR)
 
         db_query.add(community_members_query, Q.AND)
 
         if exclude_keywords:
             db_query.add(
-                cls._get_exclude_members_query_for_keywords(
-                    exclude_keywords=exclude_keywords
-                ),
+                cls._get_exclude_members_query_for_keywords(exclude_keywords=exclude_keywords),
                 Q.AND,
             )
 
@@ -438,18 +381,14 @@ class Community(ModelWithUUID):
         return query
 
     @classmethod
-    def get_community_with_name_administrators(
-        cls, community_name, administrators_max_id=None
-    ):
+    def get_community_with_name_administrators(cls, community_name, administrators_max_id=None):
         community_administrators_query = Q(
             communities_memberships__community__name=community_name,
             communities_memberships__is_administrator=True,
         )
 
         if administrators_max_id:
-            community_administrators_query.add(
-                Q(communities_memberships__user__id__lt=administrators_max_id), Q.AND
-            )
+            community_administrators_query.add(Q(communities_memberships__user__id__lt=administrators_max_id), Q.AND)
 
         return User.objects.filter(community_administrators_query)
 
@@ -460,12 +399,8 @@ class Community(ModelWithUUID):
             communities_memberships__is_administrator=True,
         )
 
-        community_members_query = Q(
-            communities_memberships__user__username__icontains=query
-        )
-        community_members_query.add(
-            Q(communities_memberships__user__profile__name__icontains=query), Q.OR
-        )
+        community_members_query = Q(communities_memberships__user__username__icontains=query)
+        community_members_query.add(Q(communities_memberships__user__profile__name__icontains=query), Q.OR)
 
         db_query.add(community_members_query, Q.AND)
 
@@ -479,9 +414,7 @@ class Community(ModelWithUUID):
         )
 
         if moderators_max_id:
-            community_moderators_query.add(
-                Q(communities_memberships__user__id__lt=moderators_max_id), Q.AND
-            )
+            community_moderators_query.add(Q(communities_memberships__user__id__lt=moderators_max_id), Q.AND)
 
         return User.objects.filter(community_moderators_query)
 
@@ -492,12 +425,8 @@ class Community(ModelWithUUID):
             communities_memberships__is_moderator=True,
         )
 
-        community_members_query = Q(
-            communities_memberships__user__username__icontains=query
-        )
-        community_members_query.add(
-            Q(communities_memberships__user__profile__name__icontains=query), Q.OR
-        )
+        community_members_query = Q(communities_memberships__user__username__icontains=query)
+        community_members_query.add(Q(communities_memberships__user__profile__name__icontains=query), Q.OR)
 
         db_query.add(community_members_query, Q.AND)
 
@@ -528,8 +457,7 @@ class Community(ModelWithUUID):
         User = get_user_model()
         staff_members_query = Q(communities_memberships__community_id=self.pk)
         staff_members_query.add(
-            Q(communities_memberships__is_administrator=True)
-            | Q(communities_memberships__is_moderator=True),
+            Q(communities_memberships__is_administrator=True) | Q(communities_memberships__is_moderator=True),
             Q.AND,
         )
         return User.objects.filter(staff_members_query)
@@ -608,9 +536,7 @@ class Community(ModelWithUUID):
         return user_membership
 
     def add_member(self, user):
-        user_membership = CommunityMembership.create_membership(
-            user=user, community=self
-        )
+        user_membership = CommunityMembership.create_membership(user=user, community=self)
         return user_membership
 
     def remove_member(self, user):
@@ -628,54 +554,34 @@ class Community(ModelWithUUID):
 
     def create_invite(self, creator, invited_user):
         CommunityInvite = get_community_invite_model()
-        return CommunityInvite.create_community_invite(
-            creator=creator, invited_user=invited_user, community=self
-        )
+        return CommunityInvite.create_community_invite(creator=creator, invited_user=invited_user, community=self)
 
     def create_user_ban_log(self, source_user, target_user):
-        return self._create_log(
-            action_type="B", source_user=source_user, target_user=target_user
-        )
+        return self._create_log(action_type="B", source_user=source_user, target_user=target_user)
 
     def create_user_unban_log(self, source_user, target_user):
-        return self._create_log(
-            action_type="U", source_user=source_user, target_user=target_user
-        )
+        return self._create_log(action_type="U", source_user=source_user, target_user=target_user)
 
     def create_add_administrator_log(self, source_user, target_user):
-        return self._create_log(
-            action_type="AA", source_user=source_user, target_user=target_user
-        )
+        return self._create_log(action_type="AA", source_user=source_user, target_user=target_user)
 
     def create_remove_administrator_log(self, source_user, target_user):
-        return self._create_log(
-            action_type="RA", source_user=source_user, target_user=target_user
-        )
+        return self._create_log(action_type="RA", source_user=source_user, target_user=target_user)
 
     def create_add_moderator_log(self, source_user, target_user):
-        return self._create_log(
-            action_type="AM", source_user=source_user, target_user=target_user
-        )
+        return self._create_log(action_type="AM", source_user=source_user, target_user=target_user)
 
     def create_remove_moderator_log(self, source_user, target_user):
-        return self._create_log(
-            action_type="RM", source_user=source_user, target_user=target_user
-        )
+        return self._create_log(action_type="RM", source_user=source_user, target_user=target_user)
 
     def create_remove_post_log(self, source_user, target_user):
-        return self._create_log(
-            action_type="RP", source_user=source_user, target_user=target_user
-        )
+        return self._create_log(action_type="RP", source_user=source_user, target_user=target_user)
 
     def create_remove_post_comment_log(self, source_user, target_user):
-        return self._create_log(
-            action_type="RPC", source_user=source_user, target_user=target_user
-        )
+        return self._create_log(action_type="RPC", source_user=source_user, target_user=target_user)
 
     def create_remove_post_comment_reply_log(self, source_user, target_user):
-        return self._create_log(
-            action_type="RPCR", source_user=source_user, target_user=target_user
-        )
+        return self._create_log(action_type="RPCR", source_user=source_user, target_user=target_user)
 
     def create_disable_post_comments_log(self, source_user, target_user, post):
         return self._create_log(
@@ -743,9 +649,7 @@ class Community(ModelWithUUID):
 
         # Remove all community invite notifications
         CommunityInviteNotification = get_community_invite_notification_model()
-        CommunityInviteNotification.objects.filter(
-            community_invite__community_id=self.pk
-        ).delete()
+        CommunityInviteNotification.objects.filter(community_invite__community_id=self.pk).delete()
 
     def soft_delete(self):
         self.is_deleted = True
@@ -761,9 +665,7 @@ class Community(ModelWithUUID):
 
     def count_pending_moderated_objects(self):
         ModeratedObject = get_moderated_object_model()
-        return self.moderated_objects.filter(
-            status=ModeratedObject.STATUS_PENDING
-        ).count()
+        return self.moderated_objects.filter(status=ModeratedObject.STATUS_PENDING).count()
 
     def __str__(self):
         return f"{self.title} ({self.id})"
@@ -801,9 +703,7 @@ class CommunityMembership(ModelWithUUID):
         ]
 
     @classmethod
-    def create_membership(
-        cls, user, community, is_administrator=False, is_moderator=False
-    ):
+    def create_membership(cls, user, community, is_administrator=False, is_moderator=False):
         membership = cls.objects.create(
             user=user,
             community=community,
@@ -825,15 +725,9 @@ class CommunityLog(ModelWithUUID):
     A log for community moderators user actions such as banning/unbanning
     """
 
-    source_user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="+", null=False, blank=False
-    )
-    target_user = models.ForeignKey(
-        User, on_delete=models.SET_NULL, related_name="+", null=True, blank=False
-    )
-    post = models.ForeignKey(
-        Post, on_delete=models.CASCADE, related_name="+", null=True, blank=True
-    )
+    source_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+", null=False, blank=False)
+    target_user = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="+", null=True, blank=False)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="+", null=True, blank=True)
     community = models.ForeignKey(
         Community,
         on_delete=models.CASCADE,
@@ -857,14 +751,10 @@ class CommunityLog(ModelWithUUID):
         ("DPC", "Disable Post Comments"),
         ("EPC", "Enable Post Comments"),
     )
-    action_type = models.CharField(
-        editable=False, blank=False, null=False, choices=ACTION_TYPES, max_length=5
-    )
+    action_type = models.CharField(editable=False, blank=False, null=False, choices=ACTION_TYPES, max_length=5)
 
     @classmethod
-    def create_community_log(
-        cls, community, action_type, source_user, target_user, post=None
-    ):
+    def create_community_log(cls, community, action_type, source_user, target_user, post=None):
         return cls.objects.create(
             community=community,
             action_type=action_type,
@@ -908,17 +798,11 @@ class CommunityInvite(ModelWithUUID):
 
     @classmethod
     def create_community_invite(cls, creator, invited_user, community):
-        return cls.objects.create(
-            creator=creator, invited_user=invited_user, community=community
-        )
+        return cls.objects.create(creator=creator, invited_user=invited_user, community=community)
 
     @classmethod
-    def is_user_with_username_invited_to_community_with_name(
-        cls, username, community_name
-    ):
-        return cls.objects.filter(
-            community__name=community_name, invited_user__username=username
-        ).exists()
+    def is_user_with_username_invited_to_community_with_name(cls, username, community_name):
+        return cls.objects.filter(community__name=community_name, invited_user__username=username).exists()
 
 
 class CommunityNotificationsSubscription(ModelWithUUID):
@@ -949,9 +833,7 @@ class CommunityNotificationsSubscription(ModelWithUUID):
         if not cls.objects.filter(community=community, subscriber=subscriber).exists():
             return cls.objects.create(subscriber=subscriber, community=community)
 
-        community_notifications_subscription = cls.objects.get(
-            subscriber=subscriber, community=community
-        )
+        community_notifications_subscription = cls.objects.get(subscriber=subscriber, community=community)
         community_notifications_subscription.save()
 
         return community_notifications_subscription
@@ -963,10 +845,8 @@ class CommunityNotificationsSubscription(ModelWithUUID):
                 subscriber_id=subscriber.pk, community_id=community.pk
             )
         except cls.DoesNotExist:
-            community_notifications_subscription = (
-                cls.create_community_notifications_subscription(
-                    subscriber=subscriber, community=community
-                )
+            community_notifications_subscription = cls.create_community_notifications_subscription(
+                subscriber=subscriber, community=community
             )
 
         return community_notifications_subscription
@@ -1015,16 +895,12 @@ class Task(ModelWithUUID):
     created = models.DateTimeField(default=timezone.now, editable=False)
     slots_available = models.PositiveIntegerField(blank=False)
     slots_taken = models.PositiveIntegerField(blank=False)
-    location = models.CharField(
-        max_length=settings.TASK_LOCATION_MAX_LENGTH, blank=False
-    )
+    location = models.CharField(max_length=settings.TASK_LOCATION_MAX_LENGTH, blank=False)
     regularity = models.CharField(
         max_length=13,
         choices=Regularity.choices,
     )
-    skills = models.ManyToManyField(
-        Skill, related_name="tasks", blank=True, db_index=True
-    )
+    skills = models.ManyToManyField(Skill, related_name="tasks", blank=True, db_index=True)
 
 
 class ExternalLink(ModelWithUUID):

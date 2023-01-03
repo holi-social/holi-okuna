@@ -30,23 +30,13 @@ LOCAL_API_ENV_FILE = os.path.join(current_dir, ".env")
 LOCAL_API_ENV_FILE_TEMPLATE = os.path.join(current_dir, "templates/.env")
 
 DOCKER_COMPOSE_ENV_FILE = os.path.join(current_dir, ".docker-compose.env")
-DOCKER_COMPOSE_ENV_FILE_TEMPLATE = os.path.join(
-    current_dir, "templates/.docker-compose.env"
-)
+DOCKER_COMPOSE_ENV_FILE_TEMPLATE = os.path.join(current_dir, "templates/.docker-compose.env")
 
 REQUIREMENTS_TXT_FILE = os.path.join(current_dir, "requirements.txt")
-DOCKER_API_IMAGE_REQUIREMENTS_TXT_FILE = os.path.join(
-    current_dir, ".docker", "api", "requirements.txt"
-)
-DOCKER_WORKER_IMAGE_REQUIREMENTS_TXT_FILE = os.path.join(
-    current_dir, ".docker", "worker", "requirements.txt"
-)
-DOCKER_SCHEDULER_IMAGE_REQUIREMENTS_TXT_FILE = os.path.join(
-    current_dir, ".docker", "scheduler", "requirements.txt"
-)
-DOCKER_API_TEST_IMAGE_REQUIREMENTS_TXT_FILE = os.path.join(
-    current_dir, ".docker", "api-test", "requirements.txt"
-)
+DOCKER_API_IMAGE_REQUIREMENTS_TXT_FILE = os.path.join(current_dir, ".docker", "api", "requirements.txt")
+DOCKER_WORKER_IMAGE_REQUIREMENTS_TXT_FILE = os.path.join(current_dir, ".docker", "worker", "requirements.txt")
+DOCKER_SCHEDULER_IMAGE_REQUIREMENTS_TXT_FILE = os.path.join(current_dir, ".docker", "scheduler", "requirements.txt")
+DOCKER_API_TEST_IMAGE_REQUIREMENTS_TXT_FILE = os.path.join(current_dir, ".docker", "api-test", "requirements.txt")
 
 CONTEXT_SETTINGS = dict(default_map={})
 
@@ -106,9 +96,7 @@ def _check_okuna_api_is_running(address, port):
         return False
 
 
-def _wait_until_api_is_running(
-    address, port, message="Waiting for server to come up...", sleep=None
-):
+def _wait_until_api_is_running(address, port, message="Waiting for server to come up...", sleep=None):
     spinner = Halo(text=message, spinner="dots")
     spinner.start()
 
@@ -206,9 +194,7 @@ def _ensure_has_local_api_environment_file(okuna_cli_config):
 def _ensure_has_docker_compose_api_environment_file(okuna_cli_config):
     if _file_exists(DOCKER_COMPOSE_ENV_FILE):
         return
-    logger.info(
-        f"Docker compose env file does not exist. Creating {DOCKER_COMPOSE_ENV_FILE}"
-    )
+    logger.info(f"Docker compose env file does not exist. Creating {DOCKER_COMPOSE_ENV_FILE}")
 
     if not _file_exists(DOCKER_COMPOSE_ENV_FILE_TEMPLATE):
         raise Exception("Docker compose env file template did not exist")
@@ -276,9 +262,7 @@ def _ensure_has_required_cli_config_files():
     _ensure_has_okuna_config_file()
     with open(OKUNA_CLI_CONFIG_FILE, "r+") as okuna_cli_config_file:
         okuna_cli_config = json.load(okuna_cli_config_file)
-        _ensure_has_docker_compose_api_environment_file(
-            okuna_cli_config=okuna_cli_config
-        )
+        _ensure_has_docker_compose_api_environment_file(okuna_cli_config=okuna_cli_config)
         _ensure_has_local_api_environment_file(okuna_cli_config=okuna_cli_config)
 
 
@@ -308,9 +292,7 @@ def cli():
 def _down_test():
     """Bring Okuna down"""
     logger.error("⬇️  Bringing the Okuna test services down...")
-    subprocess.run(
-        ["docker-compose", "-f", "docker-compose-test-services-only.yml", "down"]
-    )
+    subprocess.run(["docker-compose", "-f", "docker-compose-test-services-only.yml", "down"])
 
 
 def _down_full():
@@ -345,9 +327,7 @@ def up_full():
     logger.info("⬆️  Bringing the whole of Okuna up...")
 
     atexit.register(_down_full)
-    subprocess.run(
-        ["docker-compose", "-f", "docker-compose-full.yml", "up", "-d", "-V"]
-    )
+    subprocess.run(["docker-compose", "-f", "docker-compose-full.yml", "up", "-d", "-V"])
 
     okuna_api_address = "127.0.0.1"
     okuna_api_port = 8000
@@ -383,17 +363,13 @@ def up_services_only():
     logger.info("⬆️  Bringing only the Okuna services up...")
 
     atexit.register(_down_services_only)
-    subprocess.run(
-        ["docker-compose", "-f", "docker-compose-services-only.yml", "up", "-d", "-V"]
-    )
+    subprocess.run(["docker-compose", "-f", "docker-compose-services-only.yml", "up", "-d", "-V"])
 
     _ensure_was_bootstrapped(is_local_api=True)
 
     logger.info("🥳  Okuna services are up")
 
-    subprocess.run(
-        ["docker-compose", "-f", "docker-compose-services-only.yml", "logs", "--follow"]
-    )
+    subprocess.run(["docker-compose", "-f", "docker-compose-services-only.yml", "logs", "--follow"])
 
     input()
 
@@ -454,9 +430,7 @@ def build_services_only():
     _ensure_has_required_cli_config_files()
     logger.info("👷‍♀️  Rebuilding only Okuna services...")
     _copy_requirements_txt_to_docker_images_dir()
-    subprocess.run(
-        ["docker-compose", "-f", "docker-compose-services-only.yml", "build"]
-    )
+    subprocess.run(["docker-compose", "-f", "docker-compose-services-only.yml", "build"])
 
 
 @click.command()

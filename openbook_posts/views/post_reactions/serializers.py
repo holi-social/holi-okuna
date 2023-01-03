@@ -63,9 +63,7 @@ class PostReactionEmojiGroupSerializer(serializers.ModelSerializer):
         emojis = obj.emojis.all().order_by("order")
 
         request = self.context["request"]
-        return PostReactionEmojiSerializer(
-            emojis, many=True, context={"request": request}
-        ).data
+        return PostReactionEmojiSerializer(emojis, many=True, context={"request": request}).data
 
     class Meta:
         model = EmojiGroup

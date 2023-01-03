@@ -262,9 +262,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         self.client.put(url, data, **headers, format="multipart")
 
-        self.assertTrue(
-            user.is_administrator_of_community_with_name(community_name=community_name)
-        )
+        self.assertTrue(user.is_administrator_of_community_with_name(community_name=community_name))
 
     def test_create_community_should_not_make_creator_mod(self):
         """should NOT make the community creator a moderator when creating a new community"""
@@ -293,9 +291,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         self.client.put(url, data, **headers, format="multipart")
 
-        self.assertFalse(
-            user.is_moderator_of_community_with_name(community_name=community_name)
-        )
+        self.assertFalse(user.is_moderator_of_community_with_name(community_name=community_name))
 
     def test_create_private_community(self):
         """should be able to create a private community and return 201"""
@@ -304,9 +300,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         community_name = fake.user_name()
         community_title = fake.name_male()
-        community_description = fake.text(
-            max_nb_chars=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH
-        )
+        community_description = fake.text(max_nb_chars=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH)
         community_rules = fake.text(max_nb_chars=settings.COMMUNITY_RULES_MAX_LENGTH)
         community_color = fake.hex_color()
         community_categories = []
@@ -351,9 +345,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         community_name = fake.user_name()
         community_title = fake.name_male()
-        community_description = fake.text(
-            max_nb_chars=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH
-        )
+        community_description = fake.text(max_nb_chars=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH)
         community_rules = fake.text(max_nb_chars=settings.COMMUNITY_RULES_MAX_LENGTH)
         community_color = fake.hex_color()
         community_categories = []
@@ -399,9 +391,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         community_name = fake.user_name()
         community_title = fake.name_male()
-        community_description = fake.text(
-            max_nb_chars=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH
-        )
+        community_description = fake.text(max_nb_chars=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH)
         community_rules = fake.text(max_nb_chars=settings.COMMUNITY_RULES_MAX_LENGTH)
         community_color = fake.hex_color()
         community_categories = []
@@ -438,9 +428,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         community_name = fake.user_name()
         community_title = fake.name_male()
-        community_description = fake.text(
-            max_nb_chars=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH
-        )
+        community_description = fake.text(max_nb_chars=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH)
         community_rules = fake.text(max_nb_chars=settings.COMMUNITY_RULES_MAX_LENGTH)
         community_user_adjective = make_community_user_adjective()
         community_users_adjective = make_community_users_adjective()
@@ -491,9 +479,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         community_name = fake.user_name()
         community_title = fake.name_male()
-        community_description = fake.text(
-            max_nb_chars=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH
-        )
+        community_description = fake.text(max_nb_chars=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH)
         community_rules = fake.text(max_nb_chars=settings.COMMUNITY_RULES_MAX_LENGTH)
         community_user_adjective = fake.word()
         community_users_adjective = fake.word()
@@ -534,9 +520,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         community_name = fake.user_name()
         community_title = fake.name_male()
-        community_description = fake.text(
-            max_nb_chars=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH
-        )
+        community_description = fake.text(max_nb_chars=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH)
         community_rules = fake.text(max_nb_chars=settings.COMMUNITY_RULES_MAX_LENGTH)
         community_user_adjective = fake.word()
         community_users_adjective = fake.word()
@@ -619,9 +603,7 @@ class JoinedCommunities(OpenbookAPITestCase):
             communities.append(community)
 
         offsetted_communities = communities[offset:total_amount_of_communities]
-        offsetted_communities_ids = [
-            community.pk for community in offsetted_communities
-        ]
+        offsetted_communities_ids = [community.pk for community in offsetted_communities]
 
         for community in communities:
             user.join_community_with_name(community_name=community.name)
@@ -633,9 +615,7 @@ class JoinedCommunities(OpenbookAPITestCase):
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(
-            len(response_communities), total_amount_of_communities - offset
-        )
+        self.assertEqual(len(response_communities), total_amount_of_communities - offset)
 
         for response_community in response_communities:
             response_community_id = response_community.get("id")
@@ -646,14 +626,10 @@ class JoinedCommunities(OpenbookAPITestCase):
         user = make_user()
 
         non_excluded_community_owner = make_user()
-        non_excluded_community = make_community(
-            creator=non_excluded_community_owner, name="memes"
-        )
+        non_excluded_community = make_community(creator=non_excluded_community_owner, name="memes")
 
         excluded_community_owner = make_user()
-        excluded_community = make_community(
-            creator=excluded_community_owner, name="memestwo"
-        )
+        excluded_community = make_community(creator=excluded_community_owner, name="memestwo")
 
         user.join_community_with_name(community_name=non_excluded_community.name)
         user.join_community_with_name(community_name=excluded_community.name)
@@ -664,9 +640,7 @@ class JoinedCommunities(OpenbookAPITestCase):
 
         url = self._get_url()
 
-        response = self.client.get(
-            url, {"excluded_from_profile_posts": False}, **headers
-        )
+        response = self.client.get(url, {"excluded_from_profile_posts": False}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
@@ -694,9 +668,7 @@ class SearchJoinedCommunitiesAPITests(OpenbookAPITestCase):
 
         for i in range(0, amount_of_joined_communities_to_search_for):
             community_name = fake.user_name().lower()
-            community = mixer.blend(
-                Community, name=community_name, type=Community.COMMUNITY_TYPE_PUBLIC
-            )
+            community = mixer.blend(Community, name=community_name, type=Community.COMMUNITY_TYPE_PUBLIC)
 
             user.join_community_with_name(community_name)
 
@@ -705,9 +677,7 @@ class SearchJoinedCommunitiesAPITests(OpenbookAPITestCase):
 
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 
@@ -731,9 +701,7 @@ class SearchJoinedCommunitiesAPITests(OpenbookAPITestCase):
 
         for i in range(0, amount_of_joined_communities_to_search_for):
             community_title = fake.user_name().lower()
-            community = mixer.blend(
-                Community, title=community_title, type=Community.COMMUNITY_TYPE_PUBLIC
-            )
+            community = mixer.blend(Community, title=community_title, type=Community.COMMUNITY_TYPE_PUBLIC)
 
             user.join_community_with_name(community.name)
 
@@ -742,9 +710,7 @@ class SearchJoinedCommunitiesAPITests(OpenbookAPITestCase):
 
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 
@@ -764,14 +730,10 @@ class SearchJoinedCommunitiesAPITests(OpenbookAPITestCase):
         user = make_user()
 
         non_excluded_community_owner = make_user()
-        non_excluded_community = make_community(
-            creator=non_excluded_community_owner, name="memes"
-        )
+        non_excluded_community = make_community(creator=non_excluded_community_owner, name="memes")
 
         excluded_community_owner = make_user()
-        excluded_community = make_community(
-            creator=excluded_community_owner, name="memestwo"
-        )
+        excluded_community = make_community(creator=excluded_community_owner, name="memestwo")
 
         user.join_community_with_name(community_name=non_excluded_community.name)
         user.join_community_with_name(community_name=excluded_community.name)
@@ -782,9 +744,7 @@ class SearchJoinedCommunitiesAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
 
-        response = self.client.get(
-            url, {"query": "memes", "excluded_from_profile_posts": False}, **headers
-        )
+        response = self.client.get(url, {"query": "memes", "excluded_from_profile_posts": False}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
@@ -844,9 +804,7 @@ class AdministratedCommunities(OpenbookAPITestCase):
             communities.append(community)
 
         offsetted_communities = communities[offset:total_amount_of_communities]
-        offsetted_communities_ids = [
-            community.pk for community in offsetted_communities
-        ]
+        offsetted_communities_ids = [community.pk for community in offsetted_communities]
 
         for community in communities:
             user.join_community_with_name(community_name=community.name)
@@ -861,9 +819,7 @@ class AdministratedCommunities(OpenbookAPITestCase):
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(
-            len(response_communities), total_amount_of_communities - offset
-        )
+        self.assertEqual(len(response_communities), total_amount_of_communities - offset)
 
         for response_community in response_communities:
             response_community_id = response_community.get("id")
@@ -894,9 +850,7 @@ class SearchAdministratedCommunitiesAPITests(OpenbookAPITestCase):
 
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 
@@ -927,9 +881,7 @@ class SearchAdministratedCommunitiesAPITests(OpenbookAPITestCase):
 
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 
@@ -999,9 +951,7 @@ class ModeratedCommunities(OpenbookAPITestCase):
             communities.append(community)
 
         offsetted_communities = communities[offset:total_amount_of_communities]
-        offsetted_communities_ids = [
-            community.pk for community in offsetted_communities
-        ]
+        offsetted_communities_ids = [community.pk for community in offsetted_communities]
 
         for community in communities:
             user.join_community_with_name(community_name=community.name)
@@ -1016,9 +966,7 @@ class ModeratedCommunities(OpenbookAPITestCase):
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(
-            len(response_communities), total_amount_of_communities - offset
-        )
+        self.assertEqual(len(response_communities), total_amount_of_communities - offset)
 
         for response_community in response_communities:
             response_community_id = response_community.get("id")
@@ -1054,9 +1002,7 @@ class SearchModeratedCommunitiesAPITests(OpenbookAPITestCase):
 
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 
@@ -1092,9 +1038,7 @@ class SearchModeratedCommunitiesAPITests(OpenbookAPITestCase):
 
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 
@@ -1168,14 +1112,10 @@ class FavoriteCommunities(OpenbookAPITestCase):
         total_amount_of_communities = 10
         offset = 5
 
-        communities = mixer.cycle(total_amount_of_communities).blend(
-            Community, creator=user
-        )
+        communities = mixer.cycle(total_amount_of_communities).blend(Community, creator=user)
 
         offsetted_communities = communities[offset:total_amount_of_communities]
-        offsetted_communities_ids = [
-            community.pk for community in offsetted_communities
-        ]
+        offsetted_communities_ids = [community.pk for community in offsetted_communities]
 
         for community in communities:
             user.join_community_with_name(community_name=community.name)
@@ -1188,9 +1128,7 @@ class FavoriteCommunities(OpenbookAPITestCase):
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(
-            len(response_communities), total_amount_of_communities - offset
-        )
+        self.assertEqual(len(response_communities), total_amount_of_communities - offset)
 
         for response_community in response_communities:
             response_community_id = response_community.get("id")
@@ -1214,9 +1152,7 @@ class SearchFavoriteCommunitiesAPITests(OpenbookAPITestCase):
 
         for i in range(0, amount_of_subscribed_communities_to_search_for):
             community_name = fake.user_name().lower()
-            community = mixer.blend(
-                Community, name=community_name, type=Community.COMMUNITY_TYPE_PUBLIC
-            )
+            community = mixer.blend(Community, name=community_name, type=Community.COMMUNITY_TYPE_PUBLIC)
 
             user.join_community_with_name(community_name)
             user.favorite_community_with_name(community_name=community.name)
@@ -1226,9 +1162,7 @@ class SearchFavoriteCommunitiesAPITests(OpenbookAPITestCase):
 
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 
@@ -1252,9 +1186,7 @@ class SearchFavoriteCommunitiesAPITests(OpenbookAPITestCase):
 
         for i in range(0, amount_of_subscribed_communities_to_search_for):
             community_title = fake.user_name().lower()
-            community = mixer.blend(
-                Community, title=community_title, type=Community.COMMUNITY_TYPE_PUBLIC
-            )
+            community = mixer.blend(Community, title=community_title, type=Community.COMMUNITY_TYPE_PUBLIC)
 
             user.join_community_with_name(community.name)
             user.favorite_community_with_name(community_name=community.name)
@@ -1264,9 +1196,7 @@ class SearchFavoriteCommunitiesAPITests(OpenbookAPITestCase):
 
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 
@@ -1380,9 +1310,7 @@ class SearchCommunitiesAPITests(OpenbookAPITestCase):
             query = community_name[0:amount_of_characters_to_query]
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
             response = self.client.get(url, {"query": final_query}, **headers)
@@ -1407,9 +1335,7 @@ class SearchCommunitiesAPITests(OpenbookAPITestCase):
             query = community_title[0:amount_of_characters_to_query]
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
             response = self.client.get(url, {"query": final_query}, **headers)
@@ -1452,14 +1378,10 @@ class SearchCommunitiesAPITests(OpenbookAPITestCase):
         user = make_user()
 
         non_excluded_community_owner = make_user()
-        non_excluded_community = make_community(
-            creator=non_excluded_community_owner, name="memes"
-        )
+        non_excluded_community = make_community(creator=non_excluded_community_owner, name="memes")
 
         excluded_community_owner = make_user()
-        excluded_community = make_community(
-            creator=excluded_community_owner, name="memestwo"
-        )
+        excluded_community = make_community(creator=excluded_community_owner, name="memestwo")
 
         user.exclude_community_from_profile_posts(community=excluded_community)
 
@@ -1467,9 +1389,7 @@ class SearchCommunitiesAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
 
-        response = self.client.get(
-            url, {"query": "memes", "excluded_from_profile_posts": False}, **headers
-        )
+        response = self.client.get(url, {"query": "memes", "excluded_from_profile_posts": False}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
@@ -1528,9 +1448,7 @@ class TrendingCommunitiesAPITests(OpenbookAPITestCase):
 
         for i in range(0, amount_of_communities):
             community_owner = make_user()
-            community = make_community(
-                creator=community_owner, type=Community.COMMUNITY_TYPE_PRIVATE
-            )
+            community = make_community(creator=community_owner, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         headers = make_authentication_headers_for_user(user)
 
@@ -1587,9 +1505,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         communities_ids = [community.pk for community in communities]
         for community in communities:
             user.join_community_with_name(community_name=community.name)
-            user.exclude_community_with_name_from_top_posts(
-                community_name=community.name
-            )
+            user.exclude_community_with_name_from_top_posts(community_name=community.name)
 
         url = self._get_url()
         response = self.client.get(url, **headers)
@@ -1630,20 +1546,14 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         total_amount_of_communities = 10
         offset = 5
 
-        communities = mixer.cycle(total_amount_of_communities).blend(
-            Community, creator=user
-        )
+        communities = mixer.cycle(total_amount_of_communities).blend(Community, creator=user)
 
         offsetted_communities = communities[offset:total_amount_of_communities]
-        offsetted_communities_ids = [
-            community.pk for community in offsetted_communities
-        ]
+        offsetted_communities_ids = [community.pk for community in offsetted_communities]
 
         for community in communities:
             user.join_community_with_name(community_name=community.name)
-            user.exclude_community_with_name_from_top_posts(
-                community_name=community.name
-            )
+            user.exclude_community_with_name_from_top_posts(community_name=community.name)
 
         url = self._get_url()
         response = self.client.get(url, {"offset": offset}, **headers)
@@ -1652,9 +1562,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(
-            len(response_communities), total_amount_of_communities - offset
-        )
+        self.assertEqual(len(response_communities), total_amount_of_communities - offset)
 
         for response_community in response_communities:
             response_community_id = response_community.get("id")
@@ -1678,9 +1586,7 @@ class SearchTopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
         for i in range(0, amount_of_joined_communities_to_search_for):
             community_name = fake.user_name().lower()
-            community = mixer.blend(
-                Community, name=community_name, type=Community.COMMUNITY_TYPE_PUBLIC
-            )
+            community = mixer.blend(Community, name=community_name, type=Community.COMMUNITY_TYPE_PUBLIC)
 
             user.exclude_community_with_name_from_top_posts(community_name)
 
@@ -1689,9 +1595,7 @@ class SearchTopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 
@@ -1715,9 +1619,7 @@ class SearchTopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
         for i in range(0, amount_of_joined_communities_to_search_for):
             community_title = fake.user_name().lower()
-            community = mixer.blend(
-                Community, title=community_title, type=Community.COMMUNITY_TYPE_PUBLIC
-            )
+            community = mixer.blend(Community, title=community_title, type=Community.COMMUNITY_TYPE_PUBLIC)
 
             user.exclude_community_with_name_from_top_posts(community.name)
 
@@ -1726,9 +1628,7 @@ class SearchTopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 

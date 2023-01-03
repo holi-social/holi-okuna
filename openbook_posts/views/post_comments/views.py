@@ -40,18 +40,14 @@ class PostComments(APIView):
         sort_query = self.SORT_CHOICE_TO_QUERY[sort]
 
         if not max_id and not min_id:
-            all_comments = (
-                user.get_comments_for_post_with_id(post_id)
-                .order_by(sort_query)[:count_max]
-                .all()
-            )
+            all_comments = user.get_comments_for_post_with_id(post_id).order_by(sort_query)[:count_max].all()
         else:
             post_comments_max = []
             post_comments_min = []
             if max_id:
-                post_comments_max = user.get_comments_for_post_with_id(
-                    post_id, max_id=max_id
-                ).order_by("-pk")[:count_max]
+                post_comments_max = user.get_comments_for_post_with_id(post_id, max_id=max_id).order_by("-pk")[
+                    :count_max
+                ]
                 post_comments_max = sorted(
                     post_comments_max.all(),
                     key=operator.attrgetter("created"),
@@ -59,9 +55,9 @@ class PostComments(APIView):
                 )
 
             if min_id:
-                post_comments_min = user.get_comments_for_post_with_id(
-                    post_id, min_id=min_id
-                ).order_by("pk")[:count_min]
+                post_comments_min = user.get_comments_for_post_with_id(post_id, min_id=min_id).order_by("pk")[
+                    :count_min
+                ]
                 post_comments_min = sorted(
                     post_comments_min.all(),
                     key=operator.attrgetter("created"),
@@ -96,9 +92,7 @@ class PostComments(APIView):
         with transaction.atomic():
             post_comment = user.comment_post_with_id(post_id=post_id, text=comment_text)
 
-        post_comment_serializer = PostCommentSerializer(
-            post_comment, context={"request": request}
-        )
+        post_comment_serializer = PostCommentSerializer(post_comment, context={"request": request})
         return Response(post_comment_serializer.data, status=status.HTTP_201_CREATED)
 
     def _get_request_data(self, request, post_id):
@@ -125,9 +119,7 @@ class PostCommentsDisable(APIView):
         with transaction.atomic():
             post = user.disable_comments_for_post_with_id(post_id=post_id)
 
-        post_serializer = EnableDisableCommentsPostSerializer(
-            post, context={"request": request}
-        )
+        post_serializer = EnableDisableCommentsPostSerializer(post, context={"request": request})
         return Response(post_serializer.data, status=status.HTTP_200_OK)
 
 
@@ -147,7 +139,5 @@ class PostCommentsEnable(APIView):
         with transaction.atomic():
             post = user.enable_comments_for_post_with_id(post_id=post_id)
 
-        post_serializer = EnableDisableCommentsPostSerializer(
-            post, context={"request": request}
-        )
+        post_serializer = EnableDisableCommentsPostSerializer(post, context={"request": request})
         return Response(post_serializer.data, status=status.HTTP_200_OK)

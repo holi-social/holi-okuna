@@ -11,11 +11,8 @@ class CommunityPendingModeratedObjectsCountField(Field):
         request = self.context.get("request")
         request_user = request.user
 
-        if (
-            request_user.is_anonymous
-            or not request_user.is_staff_of_community_with_name(
-                community_name=community.name
-            )
+        if request_user.is_anonymous or not request_user.is_staff_of_community_with_name(
+            community_name=community.name
         ):
             return None
 

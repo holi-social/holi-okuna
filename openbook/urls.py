@@ -247,12 +247,8 @@ auth_auth_patterns = [
     path("username-check/", UsernameCheck.as_view(), name="username-check"),
     path("email-check/", EmailCheck.as_view(), name="email-check"),
     path("email/verify/", EmailVerify.as_view(), name="email-verify"),
-    path(
-        "password/reset/", PasswordResetRequest.as_view(), name="request-password-reset"
-    ),
-    path(
-        "password/verify/", PasswordResetVerify.as_view(), name="verify-reset-password"
-    ),
+    path("password/reset/", PasswordResetRequest.as_view(), name="request-password-reset"),
+    path("password/verify/", PasswordResetVerify.as_view(), name="verify-reset-password"),
 ]
 
 auth_user_patterns = [
@@ -262,9 +258,7 @@ auth_user_patterns = [
         AuthenticatedUserSettings.as_view(),
         name="authenticated-user-settings",
     ),
-    path(
-        "delete/", DeleteAuthenticatedUser.as_view(), name="delete-authenticated-user"
-    ),
+    path("delete/", DeleteAuthenticatedUser.as_view(), name="delete-authenticated-user"),
     path(
         "notifications-settings/",
         AuthenticatedUserNotificationsSettings.as_view(),
@@ -376,9 +370,7 @@ post_patterns = [
     path("", PostItem.as_view(), name="post"),
     path("notifications/", include(post_notifications_patterns)),
     path("comments/", PostComments.as_view(), name="post-comments"),
-    path(
-        "comments/disable/", PostCommentsDisable.as_view(), name="disable-post-comments"
-    ),
+    path("comments/disable/", PostCommentsDisable.as_view(), name="disable-post-comments"),
     path("comments/enable/", PostCommentsEnable.as_view(), name="enable-post-comments"),
     path("comments/<uuid:post_comment_id>/", include(post_comment_patterns)),
     path("reactions/", PostReactions.as_view(), name="post-reactions"),
@@ -444,9 +436,7 @@ posts_patterns = [
     path("", Posts.as_view(), name="posts"),
     path("trending/", TrendingPosts.as_view(), name="trending-posts"),
     path("trending/new/", TrendingPostsNew.as_view(), name="trending-posts-new"),
-    path(
-        "emojis/groups/", PostReactionEmojiGroups.as_view(), name="posts-emoji-groups"
-    ),
+    path("emojis/groups/", PostReactionEmojiGroups.as_view(), name="posts-emoji-groups"),
     path("profile/", include(posts_profile_patterns)),
     path("top/", include(posts_top_patterns)),
 ]
@@ -612,17 +602,13 @@ follow_requests_patterns = [
         ApproveUserFollowRequest.as_view(),
         name="approve-user-follow-request",
     ),
-    path(
-        "reject/", RejectUserFollowRequest.as_view(), name="reject-user-follow-request"
-    ),
+    path("reject/", RejectUserFollowRequest.as_view(), name="reject-user-follow-request"),
     path(
         "cancel/",
         CancelRequestToFollowUser.as_view(),
         name="cancel-request-to-follow-user",
     ),
-    path(
-        "received/", ReceivedFollowRequests.as_view(), name="received-follow-requests"
-    ),
+    path("received/", ReceivedFollowRequests.as_view(), name="received-follow-requests"),
 ]
 
 follows_patterns = [
@@ -673,9 +659,7 @@ moderation_moderated_object_patterns = [
     path("approve/", ApproveModeratedObject.as_view(), name="approve-moderated-object"),
     path("reject/", RejectModeratedObject.as_view(), name="reject-moderated-object"),
     path("verify/", VerifyModeratedObject.as_view(), name="verify-moderated-object"),
-    path(
-        "unverify/", UnverifyModeratedObject.as_view(), name="unverify-moderated-object"
-    ),
+    path("unverify/", UnverifyModeratedObject.as_view(), name="unverify-moderated-object"),
     path("logs/", ModeratedObjectLogs.as_view(), name="moderated-object-logs"),
     path("reports/", ModeratedObjectReports.as_view(), name="moderated-object-reports"),
 ]
@@ -750,11 +734,7 @@ urlpatterns = [
     path("health/", Health.as_view(), name="health"),
     path(
         "graphql",
-        csrf_exempt(
-            DRFAuthenticatedGraphQLView.as_view(
-                graphiql=True, schema=graphql_schema.schema
-            )
-        ),
+        csrf_exempt(DRFAuthenticatedGraphQLView.as_view(graphiql=True, schema=graphql_schema.schema)),
         name="graphql-endpoint",
     ),
 ]

@@ -72,9 +72,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         post_comment_text = make_fake_post_comment_text()
 
-        post_comment = commenter.comment_post_with_id(
-            foreign_post.pk, text=post_comment_text
-        )
+        post_comment = commenter.comment_post_with_id(foreign_post.pk, text=post_comment_text)
 
         url = self._get_url(post_comment=post_comment, post=foreign_post)
 
@@ -98,15 +96,11 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_creator.connect_with_user_with_id(commenter.pk)
         commenter.confirm_connection_with_user_with_id(post_creator.pk)
 
-        foreign_post = post_creator.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        foreign_post = post_creator.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         post_comment_text = make_fake_post_comment_text()
 
-        post_comment = commenter.comment_post_with_id(
-            foreign_post.pk, text=post_comment_text
-        )
+        post_comment = commenter.comment_post_with_id(foreign_post.pk, text=post_comment_text)
 
         url = self._get_url(post_comment=post_comment, post=foreign_post)
 
@@ -127,15 +121,11 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_creator.connect_with_user_with_id(commenter.pk)
         commenter.confirm_connection_with_user_with_id(post_creator.pk)
 
-        foreign_post = post_creator.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        foreign_post = post_creator.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         post_comment_text = make_fake_post_comment_text()
 
-        post_comment = commenter.comment_post_with_id(
-            foreign_post.pk, text=post_comment_text
-        )
+        post_comment = commenter.comment_post_with_id(foreign_post.pk, text=post_comment_text)
 
         url = self._get_url(post_comment=post_comment, post=foreign_post)
 
@@ -155,13 +145,9 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         community_post_creator.join_community_with_name(community_name=community.name)
 
         community_post_commentator = make_user()
-        community_post_commentator.join_community_with_name(
-            community_name=community.name
-        )
+        community_post_commentator.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = community_post_commentator.comment_post_with_id(
             text=make_fake_post_comment_text(), post_id=post.pk
         )
@@ -178,9 +164,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         user = make_user()
 
         community_creator = make_user()
-        community = make_community(
-            creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        community = make_community(creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         community_creator.invite_user_with_username_to_community_with_name(
             username=user.username, community_name=community.name
@@ -197,13 +181,9 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         community_creator.invite_user_with_username_to_community_with_name(
             username=community_post_commentator.username, community_name=community.name
         )
-        community_post_commentator.join_community_with_name(
-            community_name=community.name
-        )
+        community_post_commentator.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = community_post_commentator.comment_post_with_id(
             text=make_fake_post_comment_text(), post_id=post.pk
         )
@@ -220,9 +200,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         user = make_user()
 
         community_creator = make_user()
-        community = make_community(
-            creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        community = make_community(creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         community_post_creator = make_user()
         community_creator.invite_user_with_username_to_community_with_name(
@@ -234,13 +212,9 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         community_creator.invite_user_with_username_to_community_with_name(
             username=community_post_commentator.username, community_name=community.name
         )
-        community_post_commentator.join_community_with_name(
-            community_name=community.name
-        )
+        community_post_commentator.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = community_post_commentator.comment_post_with_id(
             text=make_fake_post_comment_text(), post_id=post.pk
         )
@@ -288,13 +262,9 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         community_post_creator.join_community_with_name(community_name=community.name)
 
         community_post_commentator = make_user()
-        community_post_commentator.join_community_with_name(
-            community_name=community.name
-        )
+        community_post_commentator.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = community_post_commentator.comment_post_with_id(
             text=make_fake_post_comment_text(), post_id=post.pk
         )
@@ -323,13 +293,9 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         community_post_creator.join_community_with_name(community_name=community.name)
 
         community_post_commentator = make_user()
-        community_post_commentator.join_community_with_name(
-            community_name=community.name
-        )
+        community_post_commentator.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = community_post_commentator.comment_post_with_id(
             text=make_fake_post_comment_text(), post_id=post.pk
         )
@@ -359,12 +325,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         commenter = make_user()
         commenter.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
-        post_comment = commenter.comment_post_with_id(
-            text=make_fake_post_comment_text(), post_id=post.pk
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post_comment = commenter.comment_post_with_id(text=make_fake_post_comment_text(), post_id=post.pk)
 
         post.comments_enabled = False
         post.save()
@@ -393,13 +355,9 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         community_post_creator.join_community_with_name(community_name=community.name)
 
         community_post_commentator = make_user()
-        community_post_commentator.join_community_with_name(
-            community_name=community.name
-        )
+        community_post_commentator.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = community_post_commentator.comment_post_with_id(
             text=make_fake_post_comment_text(), post_id=post.pk
         )
@@ -433,13 +391,9 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         community_post_creator.join_community_with_name(community_name=community.name)
 
         community_post_commentator = make_user()
-        community_post_commentator.join_community_with_name(
-            community_name=community.name
-        )
+        community_post_commentator.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = community_post_commentator.comment_post_with_id(
             text=make_fake_post_comment_text(), post_id=post.pk
         )
@@ -471,13 +425,9 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         community_post_creator.join_community_with_name(community_name=community.name)
 
         community_post_commentator = make_user()
-        community_post_commentator.join_community_with_name(
-            community_name=community.name
-        )
+        community_post_commentator.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = community_post_commentator.comment_post_with_id(
             text=make_fake_post_comment_text(), post_id=post.pk
         )
@@ -509,13 +459,9 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         community_post_creator.join_community_with_name(community_name=community.name)
 
         community_post_commentator = make_user()
-        community_post_commentator.join_community_with_name(
-            community_name=community.name
-        )
+        community_post_commentator.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = community_post_commentator.comment_post_with_id(
             text=make_fake_post_comment_text(), post_id=post.pk
         )
@@ -548,12 +494,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         commenter = make_user()
         commenter.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
-        post_comment = commenter.comment_post_with_id(
-            text=make_fake_post_comment_text(), post_id=post.pk
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post_comment = commenter.comment_post_with_id(text=make_fake_post_comment_text(), post_id=post.pk)
 
         post.is_closed = True
         post.save()
@@ -580,12 +522,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
-        post_comment = community_post_creator.comment_post_with_id(
-            text=make_fake_post_comment_text(), post_id=post.pk
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post_comment = community_post_creator.comment_post_with_id(text=make_fake_post_comment_text(), post_id=post.pk)
 
         post.is_closed = True
         post.save()
@@ -614,13 +552,9 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         community_post_creator.join_community_with_name(community_name=community.name)
 
         community_post_commentator = make_user()
-        community_post_commentator.join_community_with_name(
-            community_name=community.name
-        )
+        community_post_commentator.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = community_post_commentator.comment_post_with_id(
             text=make_fake_post_comment_text(), post_id=post.pk
         )
@@ -668,9 +602,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         post_comment_text = make_fake_post_comment_text()
 
-        post_comment = foreign_user.comment_post_with_id(
-            post.pk, text=post_comment_text
-        )
+        post_comment = foreign_user.comment_post_with_id(post.pk, text=post_comment_text)
 
         url = self._get_url(post_comment=post_comment, post=post)
 
@@ -718,9 +650,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         post_comment_text = make_fake_post_comment_text()
 
-        post_comment = foreign_user.comment_post_with_id(
-            post.pk, text=post_comment_text
-        )
+        post_comment = foreign_user.comment_post_with_id(post.pk, text=post_comment_text)
 
         url = self._get_url(post_comment=post_comment, post=post)
 
@@ -738,13 +668,9 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         circle = make_circle(creator=user_to_connect)
 
         user.connect_with_user_with_id(user_to_connect.pk)
-        user_to_connect.confirm_connection_with_user_with_id(
-            user.pk, circles_ids=[circle.pk]
-        )
+        user_to_connect.confirm_connection_with_user_with_id(user.pk, circles_ids=[circle.pk])
 
-        post = user_to_connect.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        post = user_to_connect.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         post_comment_text = make_fake_post_comment_text()
 
@@ -768,25 +694,17 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         circle = make_circle(creator=user_to_connect)
 
         user.connect_with_user_with_id(user_to_connect.pk)
-        user_to_connect.confirm_connection_with_user_with_id(
-            user.pk, circles_ids=[circle.pk]
-        )
+        user_to_connect.confirm_connection_with_user_with_id(user.pk, circles_ids=[circle.pk])
 
         foreign_user = make_user()
         foreign_user.connect_with_user_with_id(user_to_connect.pk)
-        user_to_connect.confirm_connection_with_user_with_id(
-            foreign_user.pk, circles_ids=[circle.pk]
-        )
+        user_to_connect.confirm_connection_with_user_with_id(foreign_user.pk, circles_ids=[circle.pk])
 
-        post = user_to_connect.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        post = user_to_connect.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         post_comment_text = make_fake_post_comment_text()
 
-        post_comment = foreign_user.comment_post_with_id(
-            post.pk, text=post_comment_text
-        )
+        post_comment = foreign_user.comment_post_with_id(post.pk, text=post_comment_text)
 
         url = self._get_url(post_comment=post_comment, post=post)
 
@@ -807,19 +725,13 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         foreign_user = make_user()
         foreign_user.connect_with_user_with_id(user_to_connect.pk)
-        user_to_connect.confirm_connection_with_user_with_id(
-            foreign_user.pk, circles_ids=[circle.pk]
-        )
+        user_to_connect.confirm_connection_with_user_with_id(foreign_user.pk, circles_ids=[circle.pk])
 
-        post = user_to_connect.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        post = user_to_connect.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         post_comment_text = make_fake_post_comment_text()
 
-        post_comment = foreign_user.comment_post_with_id(
-            post.pk, text=post_comment_text
-        )
+        post_comment = foreign_user.comment_post_with_id(post.pk, text=post_comment_text)
 
         url = self._get_url(post_comment=post_comment, post=post)
 
@@ -865,9 +777,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         post_comment_text = make_fake_post_comment_text()
 
-        post_comment = foreign_user.comment_post_with_id(
-            post.pk, text=post_comment_text
-        )
+        post_comment = foreign_user.comment_post_with_id(post.pk, text=post_comment_text)
 
         url = self._get_url(post_comment=post_comment, post=post)
 
@@ -888,19 +798,13 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         foreign_user = make_user()
         foreign_user.connect_with_user_with_id(user_to_follow.pk)
-        user_to_follow.confirm_connection_with_user_with_id(
-            foreign_user.pk, circles_ids=[circle.pk]
-        )
+        user_to_follow.confirm_connection_with_user_with_id(foreign_user.pk, circles_ids=[circle.pk])
 
-        post = user_to_follow.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        post = user_to_follow.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         post_comment_text = make_fake_post_comment_text()
 
-        post_comment = foreign_user.comment_post_with_id(
-            post.pk, text=post_comment_text
-        )
+        post_comment = foreign_user.comment_post_with_id(post.pk, text=post_comment_text)
 
         url = self._get_url(post_comment=post_comment, post=post)
 
@@ -935,11 +839,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(commenter)
         self.client.delete(url, **headers)
 
-        self.assertFalse(
-            PostCommentReplyNotification.objects.filter(
-                pk=post_comment_notification.pk
-            ).exists()
-        )
+        self.assertFalse(PostCommentReplyNotification.objects.filter(pk=post_comment_notification.pk).exists())
         self.assertFalse(Notification.objects.filter(pk=notification.pk).exists())
 
     def test_can_edit_own_post_comment_on_own_post(self):
@@ -948,9 +848,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         user = make_user()
         post = user.create_public_post(text=make_fake_post_text())
         original_post_comment_text = make_fake_post_comment_text()
-        post_comment = user.comment_post_with_id(
-            post.pk, text=original_post_comment_text
-        )
+        post_comment = user.comment_post_with_id(post.pk, text=original_post_comment_text)
 
         url = self._get_url(post_comment=post_comment, post=post)
 
@@ -992,14 +890,10 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
 
-        post_comment = PostComment.objects.get(
-            text=post_comment_text, commenter_id=user.pk
-        )
+        post_comment = PostComment.objects.get(text=post_comment_text, commenter_id=user.pk)
 
         self.assertFalse(
-            PostCommentUserMention.objects.filter(
-                user_id=mentioned_user.pk, post_comment_id=post_comment.pk
-            ).exists()
+            PostCommentUserMention.objects.filter(user_id=mentioned_user.pk, post_comment_id=post_comment.pk).exists()
         )
         self.assertEqual(
             PostCommentUserMention.objects.filter(
@@ -1045,14 +939,10 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        post_comment = PostComment.objects.get(
-            text=post_comment_text, commenter_id=user.pk
-        )
+        post_comment = PostComment.objects.get(text=post_comment_text, commenter_id=user.pk)
 
         self.assertEqual(
-            PostCommentUserMention.objects.filter(
-                post_comment_id=post_comment.pk
-            ).count(),
+            PostCommentUserMention.objects.filter(post_comment_id=post_comment.pk).count(),
             0,
         )
 
@@ -1080,14 +970,10 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
 
-        post_comment = PostComment.objects.get(
-            text=post_comment_text, commenter_id=user.pk
-        )
+        post_comment = PostComment.objects.get(text=post_comment_text, commenter_id=user.pk)
 
         self.assertEqual(
-            PostCommentUserMention.objects.filter(
-                user_id=mentioned_user.pk, post_comment_id=post_comment.pk
-            ).count(),
+            PostCommentUserMention.objects.filter(user_id=mentioned_user.pk, post_comment_id=post_comment.pk).count(),
             1,
         )
         new_post_comment_user_mention = PostCommentUserMention.objects.get(
@@ -1184,18 +1070,14 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         self.assertEqual(post_comment.hashtags.all().count(), 1)
 
     @mock.patch("openbook_posts.models.get_language_for_text")
-    def test_editing_own_post_comment_updates_language_of_comment(
-        self, get_language_for_text_call
-    ):
+    def test_editing_own_post_comment_updates_language_of_comment(self, get_language_for_text_call):
         """should update language of comment when editing post comment"""
         Language = get_language_model()
         get_language_for_text_call.return_value = Language.objects.get(code="en")
         user = make_user()
         post = user.create_public_post(text=make_fake_post_text())
         original_post_comment_text = make_fake_post_comment_text()
-        post_comment = user.comment_post_with_id(
-            post.pk, text=original_post_comment_text
-        )
+        post_comment = user.comment_post_with_id(post.pk, text=original_post_comment_text)
 
         url = self._get_url(post_comment=post_comment, post=post)
 
@@ -1214,9 +1096,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post_creator = make_user()
         post = post_creator.create_public_post(text=make_fake_post_text())
         original_post_comment_text = make_fake_post_comment_text()
-        post_comment = user.comment_post_with_id(
-            post.pk, text=original_post_comment_text
-        )
+        post_comment = user.comment_post_with_id(post.pk, text=original_post_comment_text)
 
         url = self._get_url(post_comment=post_comment, post=post)
 
@@ -1236,9 +1116,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         commenter = make_user()
         post = user.create_public_post(text=make_fake_post_text())
         original_post_comment_text = make_fake_post_comment_text()
-        post_comment = commenter.comment_post_with_id(
-            post.pk, text=original_post_comment_text
-        )
+        post_comment = commenter.comment_post_with_id(post.pk, text=original_post_comment_text)
 
         url = self._get_url(post_comment=post_comment, post=post)
 
@@ -1262,9 +1140,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post = user.create_community_post(community.name, text=make_fake_post_text())
 
         original_post_comment_text = make_fake_post_comment_text()
-        post_comment = user.comment_post_with_id(
-            post.pk, text=original_post_comment_text
-        )
+        post_comment = user.comment_post_with_id(post.pk, text=original_post_comment_text)
 
         post.comments_enabled = False
         post.save()
@@ -1291,9 +1167,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post = admin.create_community_post(community.name, text=make_fake_post_text())
 
         original_post_comment_text = make_fake_post_comment_text()
-        post_comment = user.comment_post_with_id(
-            post.pk, text=original_post_comment_text
-        )
+        post_comment = user.comment_post_with_id(post.pk, text=original_post_comment_text)
 
         post.is_closed = True
         post.save()
@@ -1320,9 +1194,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post = user.create_community_post(community.name, text=make_fake_post_text())
 
         original_post_comment_text = make_fake_post_comment_text()
-        post_comment = user.comment_post_with_id(
-            post.pk, text=original_post_comment_text
-        )
+        post_comment = user.comment_post_with_id(post.pk, text=original_post_comment_text)
 
         post.is_closed = True
         post.save()
@@ -1349,9 +1221,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         user.join_community_with_name(community_name=community.name)
         post = user.create_community_post(community.name, text=make_fake_post_text())
         original_post_comment_text = make_fake_post_comment_text()
-        post_comment = user.comment_post_with_id(
-            post.pk, text=original_post_comment_text
-        )
+        post_comment = user.comment_post_with_id(post.pk, text=original_post_comment_text)
 
         url = self._get_url(post_comment=post_comment, post=post)
 
@@ -1376,9 +1246,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         post_comment_reply_text = make_fake_post_comment_text()
 
-        post_comment = commenter.comment_post_with_id(
-            post.pk, text=make_fake_post_comment_text()
-        )
+        post_comment = commenter.comment_post_with_id(post.pk, text=make_fake_post_comment_text())
         post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(
             post_comment_id=post_comment.pk,
             post_id=post.id,
@@ -1409,22 +1277,16 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         community_post_creator.join_community_with_name(community_name=community.name)
 
         community_post_commentator = make_user()
-        community_post_commentator.join_community_with_name(
-            community_name=community.name
-        )
+        community_post_commentator.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = community_post_commentator.comment_post_with_id(
             text=make_fake_post_comment_text(), post_id=post.pk
         )
-        post_comment_reply = (
-            community_post_commentator.reply_to_comment_with_id_for_post_with_id(
-                post_comment_id=post_comment.pk,
-                post_id=post.id,
-                text=make_fake_post_comment_text(),
-            )
+        post_comment_reply = community_post_commentator.reply_to_comment_with_id_for_post_with_id(
+            post_comment_id=post_comment.pk,
+            post_id=post.id,
+            text=make_fake_post_comment_text(),
         )
 
         url = self._get_url(post_comment=post_comment_reply, post=post)
@@ -1451,22 +1313,16 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         community_post_creator.join_community_with_name(community_name=community.name)
 
         community_post_commentator = make_user()
-        community_post_commentator.join_community_with_name(
-            community_name=community.name
-        )
+        community_post_commentator.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = community_post_commentator.comment_post_with_id(
             text=make_fake_post_comment_text(), post_id=post.pk
         )
-        post_comment_reply = (
-            community_post_commentator.reply_to_comment_with_id_for_post_with_id(
-                post_comment_id=post_comment.pk,
-                post_id=post.id,
-                text=make_fake_post_comment_text(),
-            )
+        post_comment_reply = community_post_commentator.reply_to_comment_with_id_for_post_with_id(
+            post_comment_id=post_comment.pk,
+            post_id=post.id,
+            text=make_fake_post_comment_text(),
         )
 
         url = self._get_url(post_comment=post_comment_reply, post=post)
@@ -1494,12 +1350,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         commenter = make_user()
         commenter.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
-        post_comment = commenter.comment_post_with_id(
-            text=make_fake_post_comment_text(), post_id=post.pk
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post_comment = commenter.comment_post_with_id(text=make_fake_post_comment_text(), post_id=post.pk)
         post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(
             post_comment_id=post_comment.pk,
             post_id=post.id,
@@ -1535,22 +1387,16 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         community_post_creator.join_community_with_name(community_name=community.name)
 
         community_post_commentator = make_user()
-        community_post_commentator.join_community_with_name(
-            community_name=community.name
-        )
+        community_post_commentator.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = community_post_commentator.comment_post_with_id(
             text=make_fake_post_comment_text(), post_id=post.pk
         )
-        post_comment_reply = (
-            community_post_commentator.reply_to_comment_with_id_for_post_with_id(
-                post_comment_id=post_comment.pk,
-                post_id=post.id,
-                text=make_fake_post_comment_text(),
-            )
+        post_comment_reply = community_post_commentator.reply_to_comment_with_id_for_post_with_id(
+            post_comment_id=post_comment.pk,
+            post_id=post.id,
+            text=make_fake_post_comment_text(),
         )
 
         post.comments_enabled = False
@@ -1582,22 +1428,16 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         community_post_creator.join_community_with_name(community_name=community.name)
 
         community_post_commentator = make_user()
-        community_post_commentator.join_community_with_name(
-            community_name=community.name
-        )
+        community_post_commentator.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = community_post_commentator.comment_post_with_id(
             text=make_fake_post_comment_text(), post_id=post.pk
         )
-        post_comment_reply = (
-            community_post_commentator.reply_to_comment_with_id_for_post_with_id(
-                post_comment_id=post_comment.pk,
-                post_id=post.id,
-                text=make_fake_post_comment_text(),
-            )
+        post_comment_reply = community_post_commentator.reply_to_comment_with_id_for_post_with_id(
+            post_comment_id=post_comment.pk,
+            post_id=post.id,
+            text=make_fake_post_comment_text(),
         )
 
         post.comments_enabled = False
@@ -1627,22 +1467,16 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         community_post_creator.join_community_with_name(community_name=community.name)
 
         community_post_commentator = make_user()
-        community_post_commentator.join_community_with_name(
-            community_name=community.name
-        )
+        community_post_commentator.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = community_post_commentator.comment_post_with_id(
             text=make_fake_post_comment_text(), post_id=post.pk
         )
-        post_comment_reply = (
-            community_post_commentator.reply_to_comment_with_id_for_post_with_id(
-                post_comment_id=post_comment.pk,
-                post_id=post.id,
-                text=make_fake_post_comment_text(),
-            )
+        post_comment_reply = community_post_commentator.reply_to_comment_with_id_for_post_with_id(
+            post_comment_id=post_comment.pk,
+            post_id=post.id,
+            text=make_fake_post_comment_text(),
         )
 
         post.is_closed = True
@@ -1672,22 +1506,16 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         community_post_creator.join_community_with_name(community_name=community.name)
 
         community_post_commentator = make_user()
-        community_post_commentator.join_community_with_name(
-            community_name=community.name
-        )
+        community_post_commentator.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = community_post_commentator.comment_post_with_id(
             text=make_fake_post_comment_text(), post_id=post.pk
         )
-        post_comment_reply = (
-            community_post_commentator.reply_to_comment_with_id_for_post_with_id(
-                post_comment_id=post_comment.pk,
-                post_id=post.id,
-                text=make_fake_post_comment_text(),
-            )
+        post_comment_reply = community_post_commentator.reply_to_comment_with_id_for_post_with_id(
+            post_comment_id=post_comment.pk,
+            post_id=post.id,
+            text=make_fake_post_comment_text(),
         )
 
         post.is_closed = True
@@ -1718,12 +1546,8 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         commenter = make_user()
         commenter.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
-        post_comment = commenter.comment_post_with_id(
-            text=make_fake_post_comment_text(), post_id=post.pk
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post_comment = commenter.comment_post_with_id(text=make_fake_post_comment_text(), post_id=post.pk)
         post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(
             post_comment_id=post_comment.pk,
             post_id=post.id,
@@ -1755,18 +1579,12 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
-        post_comment = community_post_creator.comment_post_with_id(
-            text=make_fake_post_comment_text(), post_id=post.pk
-        )
-        post_comment_reply = (
-            community_post_creator.reply_to_comment_with_id_for_post_with_id(
-                post_comment_id=post_comment.pk,
-                post_id=post.id,
-                text=make_fake_post_comment_text(),
-            )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post_comment = community_post_creator.comment_post_with_id(text=make_fake_post_comment_text(), post_id=post.pk)
+        post_comment_reply = community_post_creator.reply_to_comment_with_id_for_post_with_id(
+            post_comment_id=post_comment.pk,
+            post_id=post.id,
+            text=make_fake_post_comment_text(),
         )
 
         post.is_closed = True
@@ -1796,22 +1614,16 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         community_post_creator.join_community_with_name(community_name=community.name)
 
         community_post_commentator = make_user()
-        community_post_commentator.join_community_with_name(
-            community_name=community.name
-        )
+        community_post_commentator.join_community_with_name(community_name=community.name)
 
-        post = community_post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = community_post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = community_post_commentator.comment_post_with_id(
             text=make_fake_post_comment_text(), post_id=post.pk
         )
-        post_comment_reply = (
-            community_post_commentator.reply_to_comment_with_id_for_post_with_id(
-                post_comment_id=post_comment.pk,
-                post_id=post.id,
-                text=make_fake_post_comment_text(),
-            )
+        post_comment_reply = community_post_commentator.reply_to_comment_with_id_for_post_with_id(
+            post_comment_id=post_comment.pk,
+            post_id=post.id,
+            text=make_fake_post_comment_text(),
         )
 
         url = self._get_url(post_comment=post_comment_reply, post=post)
@@ -1850,9 +1662,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         response = self.client.delete(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(
-            PostComment.objects.filter(id=post_comment_reply.pk).count() == 0
-        )
+        self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).count() == 0)
 
     def test_cannot_delete_foreign_comment_reply_in_foreign_public_post(self):
         """should NOT be able to delete foreign comment reply in foreign public post and return 400"""
@@ -1864,9 +1674,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         post_comment_text = make_fake_post_comment_text()
 
-        post_comment = foreign_user.comment_post_with_id(
-            post.pk, text=post_comment_text
-        )
+        post_comment = foreign_user.comment_post_with_id(post.pk, text=post_comment_text)
         post_comment_reply = foreign_user.reply_to_comment_with_id_for_post_with_id(
             post_comment_id=post_comment.pk,
             post_id=post.id,
@@ -1879,9 +1687,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         response = self.client.delete(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(
-            PostComment.objects.filter(id=post_comment_reply.pk).count() == 1
-        )
+        self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).count() == 1)
 
     def test_can_delete_own_comment_reply_in_connected_user_public_post(self):
         """should be able to delete own comment reply in a connected user public post and return 200"""
@@ -1909,9 +1715,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         response = self.client.delete(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(
-            PostComment.objects.filter(id=post_comment_reply.pk).count() == 0
-        )
+        self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).count() == 0)
 
     def test_cannot_delete_foreign_comment_reply_in_connected_user_public_post(self):
         """should not be able to delete foreign comment reply in a connected user public post and return 400"""
@@ -1928,9 +1732,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         post_comment_text = make_fake_post_comment_text()
 
-        post_comment = foreign_user.comment_post_with_id(
-            post.pk, text=post_comment_text
-        )
+        post_comment = foreign_user.comment_post_with_id(post.pk, text=post_comment_text)
         post_comment_reply = foreign_user.reply_to_comment_with_id_for_post_with_id(
             post_comment_id=post_comment.pk,
             post_id=post.id,
@@ -1943,9 +1745,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         response = self.client.delete(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(
-            PostComment.objects.filter(id=post_comment_reply.pk).count() == 1
-        )
+        self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).count() == 1)
 
     def test_can_delete_own_comment_reply_in_connected_user_encircled_post_part_of(
         self,
@@ -1957,13 +1757,9 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         circle = make_circle(creator=user_to_connect)
 
         user.connect_with_user_with_id(user_to_connect.pk)
-        user_to_connect.confirm_connection_with_user_with_id(
-            user.pk, circles_ids=[circle.pk]
-        )
+        user_to_connect.confirm_connection_with_user_with_id(user.pk, circles_ids=[circle.pk])
 
-        post = user_to_connect.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        post = user_to_connect.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         post_comment_text = make_fake_post_comment_text()
 
@@ -1980,9 +1776,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         response = self.client.delete(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(
-            PostComment.objects.filter(id=post_comment_reply.pk).count() == 0
-        )
+        self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).count() == 0)
 
     def test_cannot_delete_foreign_comment_reply_in_connected_user_encircled_post_part_of(
         self,
@@ -1994,25 +1788,17 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         circle = make_circle(creator=user_to_connect)
 
         user.connect_with_user_with_id(user_to_connect.pk)
-        user_to_connect.confirm_connection_with_user_with_id(
-            user.pk, circles_ids=[circle.pk]
-        )
+        user_to_connect.confirm_connection_with_user_with_id(user.pk, circles_ids=[circle.pk])
 
         foreign_user = make_user()
         foreign_user.connect_with_user_with_id(user_to_connect.pk)
-        user_to_connect.confirm_connection_with_user_with_id(
-            foreign_user.pk, circles_ids=[circle.pk]
-        )
+        user_to_connect.confirm_connection_with_user_with_id(foreign_user.pk, circles_ids=[circle.pk])
 
-        post = user_to_connect.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        post = user_to_connect.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         post_comment_text = make_fake_post_comment_text()
 
-        post_comment = foreign_user.comment_post_with_id(
-            post.pk, text=post_comment_text
-        )
+        post_comment = foreign_user.comment_post_with_id(post.pk, text=post_comment_text)
         post_comment_reply = foreign_user.reply_to_comment_with_id_for_post_with_id(
             post_comment_id=post_comment.pk,
             post_id=post.id,
@@ -2025,9 +1811,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         response = self.client.delete(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(
-            PostComment.objects.filter(id=post_comment_reply.pk).count() == 1
-        )
+        self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).count() == 1)
 
     def test_cannot_delete_foreign_comment_reply_in_connected_user_encircled_post_not_part_of(
         self,
@@ -2040,19 +1824,13 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         foreign_user = make_user()
         foreign_user.connect_with_user_with_id(user_to_connect.pk)
-        user_to_connect.confirm_connection_with_user_with_id(
-            foreign_user.pk, circles_ids=[circle.pk]
-        )
+        user_to_connect.confirm_connection_with_user_with_id(foreign_user.pk, circles_ids=[circle.pk])
 
-        post = user_to_connect.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        post = user_to_connect.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         post_comment_text = make_fake_post_comment_text()
 
-        post_comment = foreign_user.comment_post_with_id(
-            post.pk, text=post_comment_text
-        )
+        post_comment = foreign_user.comment_post_with_id(post.pk, text=post_comment_text)
         post_comment_reply = foreign_user.reply_to_comment_with_id_for_post_with_id(
             post_comment_id=post_comment.pk,
             post_id=post.id,
@@ -2065,9 +1843,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         response = self.client.delete(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(
-            PostComment.objects.filter(id=post_comment_reply.pk).count() == 1
-        )
+        self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).count() == 1)
 
     def test_can_delete_own_comment_reply_in_followed_user_public_post(self):
         """should be able to delete own comment reply in a followed user public post and return 200"""
@@ -2094,9 +1870,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         response = self.client.delete(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(
-            PostComment.objects.filter(id=post_comment_reply.pk).count() == 0
-        )
+        self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).count() == 0)
 
     def test_cannot_delete_foreign_comment_reply_in_followed_user_public_post(self):
         """should not be able to delete foreign comment reply in a followed user public post and return 400"""
@@ -2112,9 +1886,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         post_comment_text = make_fake_post_comment_text()
 
-        post_comment = foreign_user.comment_post_with_id(
-            post.pk, text=post_comment_text
-        )
+        post_comment = foreign_user.comment_post_with_id(post.pk, text=post_comment_text)
         post_comment_reply = foreign_user.reply_to_comment_with_id_for_post_with_id(
             post_comment_id=post_comment.pk,
             post_id=post.id,
@@ -2127,9 +1899,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         response = self.client.delete(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(
-            PostComment.objects.filter(id=post_comment_reply.pk).count() == 1
-        )
+        self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).count() == 1)
 
     def test_cannot_delete_foreign_comment_reply_in_folowed_user_encircled_post(self):
         """should not be able to delete foreign comment reply in a followed user encircled post and return 400"""
@@ -2142,19 +1912,13 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         foreign_user = make_user()
         foreign_user.connect_with_user_with_id(user_to_follow.pk)
-        user_to_follow.confirm_connection_with_user_with_id(
-            foreign_user.pk, circles_ids=[circle.pk]
-        )
+        user_to_follow.confirm_connection_with_user_with_id(foreign_user.pk, circles_ids=[circle.pk])
 
-        post = user_to_follow.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        post = user_to_follow.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         post_comment_text = make_fake_post_comment_text()
 
-        post_comment = foreign_user.comment_post_with_id(
-            post.pk, text=post_comment_text
-        )
+        post_comment = foreign_user.comment_post_with_id(post.pk, text=post_comment_text)
         post_comment_reply = foreign_user.reply_to_comment_with_id_for_post_with_id(
             post_comment_id=post_comment.pk,
             post_id=post.id,
@@ -2167,9 +1931,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         response = self.client.delete(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(
-            PostComment.objects.filter(id=post_comment_reply.pk).count() == 1
-        )
+        self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).count() == 1)
 
     def test_post_comment_reply_notification_is_deleted_when_deleting_comment(self):
         """should delete the post comment reply notification when a post comment is deleted"""
@@ -2202,11 +1964,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(commenter)
         self.client.delete(url, **headers)
 
-        self.assertFalse(
-            PostCommentReplyNotification.objects.filter(
-                pk=post_comment_reply_notification.pk
-            ).exists()
-        )
+        self.assertFalse(PostCommentReplyNotification.objects.filter(pk=post_comment_reply_notification.pk).exists())
         self.assertFalse(Notification.objects.filter(pk=notification.pk).exists())
 
     def test_can_edit_own_post_comment_reply_on_own_post(self):
@@ -2214,9 +1972,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         user = make_user()
         post = user.create_public_post(text=make_fake_post_text())
-        post_comment = user.comment_post_with_id(
-            post.pk, text=make_fake_post_comment_text()
-        )
+        post_comment = user.comment_post_with_id(post.pk, text=make_fake_post_comment_text())
         post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(
             post_comment_id=post_comment.pk,
             post_id=post.id,
@@ -2228,9 +1984,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         edited_comment_reply_text = make_fake_post_comment_text()
         headers = make_authentication_headers_for_user(user)
 
-        response = self.client.patch(
-            url, {"text": edited_comment_reply_text}, **headers
-        )
+        response = self.client.patch(url, {"text": edited_comment_reply_text}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         post_comment_reply.refresh_from_db()
@@ -2243,9 +1997,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         user = make_user()
         post_creator = make_user()
         post = post_creator.create_public_post(text=make_fake_post_text())
-        post_comment = post_creator.comment_post_with_id(
-            post.pk, text=make_fake_post_comment_text()
-        )
+        post_comment = post_creator.comment_post_with_id(post.pk, text=make_fake_post_comment_text())
         post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(
             post_comment_id=post_comment.pk,
             post_id=post.id,
@@ -2257,9 +2009,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         edited_post_comment_reply_text = make_fake_post_comment_text()
         headers = make_authentication_headers_for_user(user)
 
-        response = self.client.patch(
-            url, {"text": edited_post_comment_reply_text}, **headers
-        )
+        response = self.client.patch(url, {"text": edited_post_comment_reply_text}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         post_comment_reply.refresh_from_db()
@@ -2272,9 +2022,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         commenter = make_user()
         post = user.create_public_post(text=make_fake_post_text())
         original_post_comment_reply_text = make_fake_post_comment_text()
-        post_comment = commenter.comment_post_with_id(
-            post.pk, text=make_fake_post_comment_text()
-        )
+        post_comment = commenter.comment_post_with_id(post.pk, text=make_fake_post_comment_text())
         post_comment_reply = commenter.reply_to_comment_with_id_for_post_with_id(
             post_comment_id=post_comment.pk,
             post_id=post.id,
@@ -2286,9 +2034,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         edited_post_comment_reply_text = make_fake_post_comment_text()
         headers = make_authentication_headers_for_user(user)
 
-        response = self.client.patch(
-            url, {"text": edited_post_comment_reply_text}, **headers
-        )
+        response = self.client.patch(url, {"text": edited_post_comment_reply_text}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         post_comment_reply.refresh_from_db()
@@ -2305,9 +2051,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post = user.create_community_post(community.name, text=make_fake_post_text())
 
         original_post_comment_reply_text = make_fake_post_comment_text()
-        post_comment = user.comment_post_with_id(
-            post.pk, text=make_fake_post_comment_text()
-        )
+        post_comment = user.comment_post_with_id(post.pk, text=make_fake_post_comment_text())
         post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(
             post_comment_id=post_comment.pk,
             post_id=post.id,
@@ -2322,9 +2066,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         edited_post_comment_reply_text = make_fake_post_comment_text()
         headers = make_authentication_headers_for_user(user)
 
-        response = self.client.patch(
-            url, {"text": edited_post_comment_reply_text}, **headers
-        )
+        response = self.client.patch(url, {"text": edited_post_comment_reply_text}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         post_comment_reply.refresh_from_db()
@@ -2343,9 +2085,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         post = admin.create_community_post(community.name, text=make_fake_post_text())
 
         original_post_comment_reply_text = make_fake_post_comment_text()
-        post_comment = user.comment_post_with_id(
-            post.pk, text=make_fake_post_comment_text()
-        )
+        post_comment = user.comment_post_with_id(post.pk, text=make_fake_post_comment_text())
         post_comment_reply = user.reply_to_comment_with_id_for_post_with_id(
             post_comment_id=post_comment.pk,
             post_id=post.id,
@@ -2360,9 +2100,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         edited_post_comment_reply_text = make_fake_post_comment_text()
         headers = make_authentication_headers_for_user(user)
 
-        response = self.client.patch(
-            url, {"text": edited_post_comment_reply_text}, **headers
-        )
+        response = self.client.patch(url, {"text": edited_post_comment_reply_text}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         post_comment_reply.refresh_from_db()
@@ -2421,9 +2159,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user)
         post = foreign_user.create_public_post(text=make_fake_post_text())
-        post_comment = foreign_user.comment_post(
-            post=post, text=make_fake_post_comment_text()
-        )
+        post_comment = foreign_user.comment_post(post=post, text=make_fake_post_comment_text())
 
         url = self._get_url(post=post, post_comment=post_comment)
 
@@ -2441,12 +2177,8 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
 
         circle = make_circle(creator=foreign_user)
 
-        post = foreign_user.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
-        post_comment = foreign_user.comment_post(
-            post=post, text=make_fake_post_comment_text()
-        )
+        post = foreign_user.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
+        post_comment = foreign_user.comment_post(post=post, text=make_fake_post_comment_text())
 
         url = self._get_url(post=post, post_comment=post_comment)
 
@@ -2464,12 +2196,8 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
 
         circle = make_circle(creator=foreign_user)
 
-        post = foreign_user.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
-        post_comment = foreign_user.comment_post(
-            post=post, text=make_fake_post_comment_text()
-        )
+        post = foreign_user.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
+        post_comment = foreign_user.comment_post(post=post, text=make_fake_post_comment_text())
 
         foreign_user.connect_with_user_with_id(user_id=user.pk, circles_ids=[circle.pk])
         user.confirm_connection_with_user_with_id(user_id=foreign_user.pk)
@@ -2489,12 +2217,8 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
         community = make_community(creator=foreign_user)
 
         headers = make_authentication_headers_for_user(user)
-        post = foreign_user.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
-        post_comment = foreign_user.comment_post(
-            post=post, text=make_fake_post_comment_text()
-        )
+        post = foreign_user.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post_comment = foreign_user.comment_post(post=post, text=make_fake_post_comment_text())
 
         url = self._get_url(post=post, post_comment=post_comment)
 
@@ -2513,12 +2237,8 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
         user.join_community_with_name(community_name=community.name)
 
         headers = make_authentication_headers_for_user(user)
-        post = foreign_user.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
-        post_comment = foreign_user.comment_post(
-            post=post, text=make_fake_post_comment_text()
-        )
+        post = foreign_user.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post_comment = foreign_user.comment_post(post=post, text=make_fake_post_comment_text())
 
         post_comment.is_closed = True
         post_comment.save()
@@ -2539,9 +2259,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
         user.join_community_with_name(community_name=community.name)
 
         headers = make_authentication_headers_for_user(user)
-        post = user.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = user.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = user.comment_post(post=post, text=make_fake_post_comment_text())
 
         post_comment.is_closed = True
@@ -2563,9 +2281,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
         user.join_community_with_name(community_name=community.name)
 
         headers = make_authentication_headers_for_user(admin)
-        post = user.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = user.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = user.comment_post(post=post, text=make_fake_post_comment_text())
 
         post_comment.is_closed = True
@@ -2592,9 +2308,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
         )
 
         headers = make_authentication_headers_for_user(moderator)
-        post = user.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = user.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = user.comment_post(post=post, text=make_fake_post_comment_text())
 
         post_comment.is_closed = True
@@ -2614,12 +2328,8 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
         community = make_community(creator=foreign_user, type="T")
 
         headers = make_authentication_headers_for_user(user)
-        post = foreign_user.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
-        post_comment = foreign_user.comment_post(
-            post=post, text=make_fake_post_comment_text()
-        )
+        post = foreign_user.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post_comment = foreign_user.comment_post(post=post, text=make_fake_post_comment_text())
 
         url = self._get_url(post=post, post_comment=post_comment)
 
@@ -2636,12 +2346,8 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
         community = make_community(creator=foreign_user, type="T")
 
         headers = make_authentication_headers_for_user(user)
-        post = foreign_user.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
-        post_comment = foreign_user.comment_post(
-            post=post, text=make_fake_post_comment_text()
-        )
+        post = foreign_user.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post_comment = foreign_user.comment_post(post=post, text=make_fake_post_comment_text())
 
         foreign_user.invite_user_with_username_to_community_with_name(
             username=user.username, community_name=community.name
@@ -2715,12 +2421,8 @@ class UnmutePostCommentAPITests(OpenbookAPITestCase):
         user.join_community_with_name(community_name=community.name)
 
         headers = make_authentication_headers_for_user(user)
-        post = foreign_user.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
-        post_comment = foreign_user.comment_post(
-            post=post, text=make_fake_post_comment_text()
-        )
+        post = foreign_user.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post_comment = foreign_user.comment_post(post=post, text=make_fake_post_comment_text())
         user.mute_post_comment_with_id(post_comment.pk)
         post_comment.is_closed = True
         post_comment.save()
@@ -2741,9 +2443,7 @@ class UnmutePostCommentAPITests(OpenbookAPITestCase):
         user.join_community_with_name(community_name=community.name)
 
         headers = make_authentication_headers_for_user(user)
-        post = user.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = user.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = user.comment_post(post=post, text=make_fake_post_comment_text())
         user.mute_post_comment_with_id(post_comment.pk)
         post_comment.is_closed = True
@@ -2765,9 +2465,7 @@ class UnmutePostCommentAPITests(OpenbookAPITestCase):
         user.join_community_with_name(community_name=community.name)
 
         headers = make_authentication_headers_for_user(admin)
-        post = user.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = user.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = user.comment_post(post=post, text=make_fake_post_comment_text())
         admin.mute_post_comment_with_id(post_comment.pk)
         post_comment.is_closed = True
@@ -2794,9 +2492,7 @@ class UnmutePostCommentAPITests(OpenbookAPITestCase):
         )
 
         headers = make_authentication_headers_for_user(moderator)
-        post = user.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = user.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = user.comment_post(post=post, text=make_fake_post_comment_text())
         moderator.mute_post_comment_with_id(post_comment.pk)
         post_comment.is_closed = True
@@ -2846,9 +2542,7 @@ class TranslatePostCommentAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_post = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(
-            response_post["translated_text"], "I am a man 😀. You're a woman."
-        )
+        self.assertEqual(response_post["translated_text"], "I am a man 😀. You're a woman.")
 
     def test_cannot_translate_post_comment_text_without_user_language(self):
         """should not translate post comment text and return 400 if user language is not set"""

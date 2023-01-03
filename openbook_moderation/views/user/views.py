@@ -32,9 +32,7 @@ class UserModerationPenalties(APIView):
             "-id"
         )[:count]
 
-        response_serializer = ModerationPenaltySerializer(
-            moderated_objects, many=True, context={"request": request}
-        )
+        response_serializer = ModerationPenaltySerializer(moderated_objects, many=True, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -55,9 +53,9 @@ class UserPendingModeratedObjectsCommunities(APIView):
 
         user = request.user
 
-        communities = user.get_pending_moderated_objects_communities(
-            max_id=max_id,
-        ).order_by("-id")[:count]
+        communities = user.get_pending_moderated_objects_communities(max_id=max_id,).order_by(
+            "-id"
+        )[:count]
 
         response_serializer = PendingModeratedObjectsCommunitySerializer(
             communities, many=True, context={"request": request}

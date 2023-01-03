@@ -23,9 +23,7 @@ class ModeratedObjectItem(APIView):
         request_data = request.data.copy()
 
         request_data["moderated_object_id"] = moderated_object_id
-        serializer = UpdateModeratedObjectSerializer(
-            data=request_data, context={"request": request}
-        )
+        serializer = UpdateModeratedObjectSerializer(data=request_data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
@@ -42,9 +40,7 @@ class ModeratedObjectItem(APIView):
                 category_id=category_id,
             )
 
-        moderated_object_serializer = ModeratedObjectSerializer(
-            moderated_object, context={"request": request}
-        )
+        moderated_object_serializer = ModeratedObjectSerializer(moderated_object, context={"request": request})
 
         return Response(moderated_object_serializer.data, status=status.HTTP_200_OK)
 
@@ -69,9 +65,7 @@ class ApproveModeratedObject(APIView):
                 moderated_object_id=moderated_object_id,
             )
 
-        moderated_object_serializer = ModeratedObjectSerializer(
-            moderated_object, context={"request": request}
-        )
+        moderated_object_serializer = ModeratedObjectSerializer(moderated_object, context={"request": request})
 
         return Response(moderated_object_serializer.data, status=status.HTTP_200_OK)
 
@@ -96,9 +90,7 @@ class RejectModeratedObject(APIView):
                 moderated_object_id=moderated_object_id,
             )
 
-        moderated_object_serializer = ModeratedObjectSerializer(
-            moderated_object, context={"request": request}
-        )
+        moderated_object_serializer = ModeratedObjectSerializer(moderated_object, context={"request": request})
 
         return Response(moderated_object_serializer.data, status=status.HTTP_200_OK)
 
@@ -123,9 +115,7 @@ class VerifyModeratedObject(APIView):
                 moderated_object_id=moderated_object_id,
             )
 
-        moderated_object_serializer = ModeratedObjectSerializer(
-            moderated_object, context={"request": request}
-        )
+        moderated_object_serializer = ModeratedObjectSerializer(moderated_object, context={"request": request})
 
         return Response(moderated_object_serializer.data, status=status.HTTP_200_OK)
 
@@ -150,9 +140,7 @@ class UnverifyModeratedObject(APIView):
                 moderated_object_id=moderated_object_id,
             )
 
-        moderated_object_serializer = ModeratedObjectSerializer(
-            moderated_object, context={"request": request}
-        )
+        moderated_object_serializer = ModeratedObjectSerializer(moderated_object, context={"request": request})
 
         return Response(moderated_object_serializer.data, status=status.HTTP_200_OK)
 
@@ -164,9 +152,7 @@ class ModeratedObjectLogs(APIView):
         request_data = request.query_params.dict()
 
         request_data["moderated_object_id"] = moderated_object_id
-        serializer = GetModeratedObjectLogsSerializer(
-            data=request_data, context={"request": request}
-        )
+        serializer = GetModeratedObjectLogsSerializer(data=request_data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
@@ -185,9 +171,7 @@ class ModeratedObjectLogs(APIView):
             moderated_object_logs, many=True, context={"request": request}
         )
 
-        return Response(
-            moderated_object_logs_serializer.data, status=status.HTTP_200_OK
-        )
+        return Response(moderated_object_logs_serializer.data, status=status.HTTP_200_OK)
 
 
 class ModeratedObjectReports(APIView):
@@ -197,9 +181,7 @@ class ModeratedObjectReports(APIView):
         request_data = request.query_params.dict()
 
         request_data["moderated_object_id"] = moderated_object_id
-        serializer = GetModeratedObjectReportsSerializer(
-            data=request_data, context={"request": request}
-        )
+        serializer = GetModeratedObjectReportsSerializer(data=request_data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
@@ -218,6 +200,4 @@ class ModeratedObjectReports(APIView):
             moderated_object_reports, many=True, context={"request": request}
         )
 
-        return Response(
-            moderated_object_reports_serializer.data, status=status.HTTP_200_OK
-        )
+        return Response(moderated_object_reports_serializer.data, status=status.HTTP_200_OK)

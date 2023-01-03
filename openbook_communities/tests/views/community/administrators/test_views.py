@@ -54,9 +54,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_administrators = json.loads(
-            response.content, object_hook=uuid_id_parser
-        )
+        response_administrators = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_administrators), len(administrators_ids))
 
@@ -94,9 +92,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_administrators = json.loads(
-            response.content, object_hook=uuid_id_parser
-        )
+        response_administrators = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_administrators), len(administrators_ids))
 
@@ -131,9 +127,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_administrators = json.loads(
-            response.content, object_hook=uuid_id_parser
-        )
+        response_administrators = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_administrators), len(administrators_ids))
 
@@ -149,21 +143,15 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
         community = make_community(creator=user, type="P")
 
         user_to_make_admnistrator = make_user()
-        user_to_make_admnistrator.join_community_with_name(
-            community_name=community.name
-        )
+        user_to_make_admnistrator.join_community_with_name(community_name=community.name)
 
         url = self._get_url(community_name=community.name)
-        response = self.client.put(
-            url, {"username": user_to_make_admnistrator.username}, **headers
-        )
+        response = self.client.put(url, {"username": user_to_make_admnistrator.username}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         self.assertTrue(
-            user_to_make_admnistrator.is_administrator_of_community_with_name(
-                community_name=community.name
-            )
+            user_to_make_admnistrator.is_administrator_of_community_with_name(community_name=community.name)
         )
 
     def test_removes_member_from_moderator_when_adding_as_administrator(self):
@@ -174,25 +162,17 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
         community = make_community(creator=user, type="P")
 
         user_to_make_admnistrator = make_user()
-        user_to_make_admnistrator.join_community_with_name(
-            community_name=community.name
-        )
+        user_to_make_admnistrator.join_community_with_name(community_name=community.name)
         user.add_moderator_with_username_to_community_with_name(
             username=user_to_make_admnistrator.username, community_name=community.name
         )
 
         url = self._get_url(community_name=community.name)
-        response = self.client.put(
-            url, {"username": user_to_make_admnistrator.username}, **headers
-        )
+        response = self.client.put(url, {"username": user_to_make_admnistrator.username}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertFalse(
-            user_to_make_admnistrator.is_moderator_of_community_with_name(
-                community_name=community.name
-            )
-        )
+        self.assertFalse(user_to_make_admnistrator.is_moderator_of_community_with_name(community_name=community.name))
 
     def test_logs_community_administrator_added(self):
         """should create a log when community administrator was added"""
@@ -208,9 +188,7 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
         self.client.put(url, {"username": administrator_to_add.username}, **headers)
 
         self.assertTrue(
-            community.logs.filter(
-                action_type="AA", source_user=user, target_user=administrator_to_add
-            ).exists()
+            community.logs.filter(action_type="AA", source_user=user, target_user=administrator_to_add).exists()
         )
 
     def test_cant_add_community_administrator_if_mod(self):
@@ -227,21 +205,15 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
         )
 
         user_to_make_admnistrator = make_user()
-        user_to_make_admnistrator.join_community_with_name(
-            community_name=community.name
-        )
+        user_to_make_admnistrator.join_community_with_name(community_name=community.name)
 
         url = self._get_url(community_name=community.name)
-        response = self.client.put(
-            url, {"username": user_to_make_admnistrator.username}, **headers
-        )
+        response = self.client.put(url, {"username": user_to_make_admnistrator.username}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         self.assertFalse(
-            user_to_make_admnistrator.is_administrator_of_community_with_name(
-                community_name=community.name
-            )
+            user_to_make_admnistrator.is_administrator_of_community_with_name(community_name=community.name)
         )
 
     def test_cant_add_community_administrator_if_member(self):
@@ -255,21 +227,15 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
         user.join_community_with_name(community_name=community.name)
 
         user_to_make_admnistrator = make_user()
-        user_to_make_admnistrator.join_community_with_name(
-            community_name=community.name
-        )
+        user_to_make_admnistrator.join_community_with_name(community_name=community.name)
 
         url = self._get_url(community_name=community.name)
-        response = self.client.put(
-            url, {"username": user_to_make_admnistrator.username}, **headers
-        )
+        response = self.client.put(url, {"username": user_to_make_admnistrator.username}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         self.assertFalse(
-            user_to_make_admnistrator.is_administrator_of_community_with_name(
-                community_name=community.name
-            )
+            user_to_make_admnistrator.is_administrator_of_community_with_name(community_name=community.name)
         )
 
     def test_cant_add_community_administrator_if_not_member(self):
@@ -281,27 +247,19 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
         community = make_community(creator=other_user, type="P")
 
         user_to_make_admnistrator = make_user()
-        user_to_make_admnistrator.join_community_with_name(
-            community_name=community.name
-        )
+        user_to_make_admnistrator.join_community_with_name(community_name=community.name)
 
         url = self._get_url(community_name=community.name)
-        response = self.client.put(
-            url, {"username": user_to_make_admnistrator.username}, **headers
-        )
+        response = self.client.put(url, {"username": user_to_make_admnistrator.username}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         self.assertFalse(
-            user_to_make_admnistrator.is_administrator_of_community_with_name(
-                community_name=community.name
-            )
+            user_to_make_admnistrator.is_administrator_of_community_with_name(community_name=community.name)
         )
 
     def _get_url(self, community_name):
-        return reverse(
-            "community-administrators", kwargs={"community_name": community_name}
-        )
+        return reverse("community-administrators", kwargs={"community_name": community_name})
 
 
 class CommunityAdministratorAPITest(OpenbookAPITestCase):
@@ -322,17 +280,13 @@ class CommunityAdministratorAPITest(OpenbookAPITestCase):
             username=administrator_to_remove.username, community_name=community.name
         )
 
-        url = self._get_url(
-            community_name=community.name, username=administrator_to_remove.username
-        )
+        url = self._get_url(community_name=community.name, username=administrator_to_remove.username)
         response = self.client.delete(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertFalse(
-            administrator_to_remove.is_administrator_of_community_with_name(
-                community_name=community.name
-            )
+            administrator_to_remove.is_administrator_of_community_with_name(community_name=community.name)
         )
 
     def test_logs_community_administrator_removed(self):
@@ -348,15 +302,11 @@ class CommunityAdministratorAPITest(OpenbookAPITestCase):
             username=administrator_to_remove.username, community_name=community.name
         )
 
-        url = self._get_url(
-            community_name=community.name, username=administrator_to_remove.username
-        )
+        url = self._get_url(community_name=community.name, username=administrator_to_remove.username)
         self.client.delete(url, **headers)
 
         self.assertTrue(
-            community.logs.filter(
-                action_type="RA", source_user=user, target_user=administrator_to_remove
-            ).exists()
+            community.logs.filter(action_type="RA", source_user=user, target_user=administrator_to_remove).exists()
         )
 
     def test_cant_remove_creator_from_community_administrators(self):
@@ -377,11 +327,7 @@ class CommunityAdministratorAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(
-            other_user.is_administrator_of_community_with_name(
-                community_name=community.name
-            )
-        )
+        self.assertTrue(other_user.is_administrator_of_community_with_name(community_name=community.name))
 
     def test_cant_remove_community_administrator_if_mod(self):
         """should not be able to remove a community administrator if user is moderator"""
@@ -402,18 +348,12 @@ class CommunityAdministratorAPITest(OpenbookAPITestCase):
             username=administrator_to_remove.username, community_name=community.name
         )
 
-        url = self._get_url(
-            community_name=community.name, username=administrator_to_remove.username
-        )
+        url = self._get_url(community_name=community.name, username=administrator_to_remove.username)
         response = self.client.delete(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(
-            other_user.is_administrator_of_community_with_name(
-                community_name=community.name
-            )
-        )
+        self.assertTrue(other_user.is_administrator_of_community_with_name(community_name=community.name))
 
     def test_cant_remove_community_administrator_if_member(self):
         """should not be able to remove a community administrator if user is member"""
@@ -431,18 +371,12 @@ class CommunityAdministratorAPITest(OpenbookAPITestCase):
             username=administrator_to_remove.username, community_name=community.name
         )
 
-        url = self._get_url(
-            community_name=community.name, username=administrator_to_remove.username
-        )
+        url = self._get_url(community_name=community.name, username=administrator_to_remove.username)
         response = self.client.delete(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(
-            other_user.is_administrator_of_community_with_name(
-                community_name=community.name
-            )
-        )
+        self.assertTrue(other_user.is_administrator_of_community_with_name(community_name=community.name))
 
     def _get_url(self, community_name, username):
         return reverse(
@@ -478,16 +412,12 @@ class SearchCommunityAdministratorsAPITests(OpenbookAPITestCase):
             query = administrator_name[0:amount_of_characters_to_query]
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url(community_name=community.name)
             response = self.client.get(url, {"query": final_query}, **headers)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            response_administrators = json.loads(
-                response.content, object_hook=uuid_id_parser
-            )
+            response_administrators = json.loads(response.content, object_hook=uuid_id_parser)
             response_administrators_count = len(response_administrators)
             if response_administrators_count == 1:
                 # Our community creator was not retrieved
@@ -499,8 +429,7 @@ class SearchCommunityAdministratorsAPITests(OpenbookAPITestCase):
                 for response_administrator in response_administrators:
                     response_administrator_id = response_administrator["id"]
                     self.assertTrue(
-                        response_administrator_id == administrator.id
-                        or response_administrator_id == user.id
+                        response_administrator_id == administrator.id or response_administrator_id == user.id
                     )
             user.remove_administrator_with_username_from_community_with_name(
                 username=administrator.username, community_name=community.name
@@ -521,22 +450,16 @@ class SearchCommunityAdministratorsAPITests(OpenbookAPITestCase):
                 username=administrator.username, community_name=community.name
             )
             administrator_username = administrator.username
-            amount_of_characters_to_query = random.randint(
-                1, len(administrator_username)
-            )
+            amount_of_characters_to_query = random.randint(1, len(administrator_username))
             query = administrator_username[0:amount_of_characters_to_query]
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url(community_name=community.name)
             response = self.client.get(url, {"query": final_query}, **headers)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            response_administrators = json.loads(
-                response.content, object_hook=uuid_id_parser
-            )
+            response_administrators = json.loads(response.content, object_hook=uuid_id_parser)
             response_administrators_count = len(response_administrators)
             if response_administrators_count == 1:
                 # Our community creator was not retrieved
@@ -548,8 +471,7 @@ class SearchCommunityAdministratorsAPITests(OpenbookAPITestCase):
                 for response_administrator in response_administrators:
                     response_administrator_id = response_administrator["id"]
                     self.assertTrue(
-                        response_administrator_id == administrator.id
-                        or response_administrator_id == user.id
+                        response_administrator_id == administrator.id or response_administrator_id == user.id
                     )
 
             user.remove_administrator_with_username_from_community_with_name(

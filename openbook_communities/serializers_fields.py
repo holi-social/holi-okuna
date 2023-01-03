@@ -32,9 +32,7 @@ class AreNewPostNotificationsEnabledForCommunityField(Field):
         if request_user.is_anonymous:
             return False
 
-        return request_user.are_new_post_notifications_enabled_for_community(
-            community=community
-        )
+        return request_user.are_new_post_notifications_enabled_for_community(community=community)
 
 
 class IsCreatorField(Field):
@@ -82,11 +80,8 @@ class RulesField(Field):
         request = self.context.get("request")
         request_user = request.user
 
-        if (
-            request_user.is_anonymous
-            or not request_user.is_member_of_community_with_name(
-                community_name=community.name
-            )
+        if request_user.is_anonymous or not request_user.is_member_of_community_with_name(
+            community_name=community.name
         ):
             return None
 
@@ -103,13 +98,9 @@ class ModeratorsField(Field):
     def to_representation(self, community):
         request = self.context.get("request")
 
-        moderators = Community.get_community_with_name_moderators(
-            community_name=community.name
-        )
+        moderators = Community.get_community_with_name_moderators(community_name=community.name)
 
-        return self.moderator_serializer(
-            moderators, context={"request": request}, many=True
-        ).data
+        return self.moderator_serializer(moderators, context={"request": request}, many=True).data
 
 
 class AdministratorsField(Field):
@@ -122,13 +113,9 @@ class AdministratorsField(Field):
     def to_representation(self, community):
         request = self.context.get("request")
 
-        administrators = Community.get_community_with_name_administrators(
-            community_name=community.name
-        )
+        administrators = Community.get_community_with_name_administrators(community_name=community.name)
 
-        return self.administrator_serializer(
-            administrators, context={"request": request}, many=True
-        ).data
+        return self.administrator_serializer(administrators, context={"request": request}, many=True).data
 
 
 class CommunityMembershipsField(Field):
@@ -142,19 +129,14 @@ class CommunityMembershipsField(Field):
         request = self.context.get("request")
         request_user = request.user
 
-        if (
-            request_user.is_anonymous
-            or not request_user.is_member_of_community_with_name(
-                community_name=community.name
-            )
+        if request_user.is_anonymous or not request_user.is_member_of_community_with_name(
+            community_name=community.name
         ):
             return None
 
         membership = community.memberships.get(user=request_user)
 
-        return self.community_membership_serializer(
-            [membership], context={"request": request}, many=True
-        ).data
+        return self.community_membership_serializer([membership], context={"request": request}, many=True).data
 
 
 class UserCommunitiesMembershipsField(Field):
@@ -172,14 +154,10 @@ class UserCommunitiesMembershipsField(Field):
         if (
             not community
             or request_user.is_anonymous
-            or not request_user.is_member_of_community_with_name(
-                community_name=community.name
-            )
+            or not request_user.is_member_of_community_with_name(community_name=community.name)
         ):
             return None
 
         membership = community.memberships.get(user=request_user)
 
-        return self.community_membership_serializer(
-            [membership], context={"request": request}, many=True
-        ).data
+        return self.community_membership_serializer([membership], context={"request": request}, many=True).data

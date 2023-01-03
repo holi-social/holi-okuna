@@ -116,9 +116,7 @@ class MembersCommunityMembershipSerializer(serializers.ModelSerializer):
 
 
 class MembersCommunitySerializer(serializers.ModelSerializer):
-    memberships = CommunityMembershipsField(
-        community_membership_serializer=MembersCommunityMembershipSerializer
-    )
+    memberships = CommunityMembershipsField(community_membership_serializer=MembersCommunityMembershipSerializer)
 
     class Meta:
         model = Community
@@ -127,9 +125,7 @@ class MembersCommunitySerializer(serializers.ModelSerializer):
 
 class SearchCommunityMembersSerializer(serializers.Serializer):
     count = serializers.IntegerField(required=False, max_value=20)
-    query = serializers.CharField(
-        max_length=settings.SEARCH_QUERIES_MAX_LENGTH, allow_blank=False, required=True
-    )
+    query = serializers.CharField(max_length=settings.SEARCH_QUERIES_MAX_LENGTH, allow_blank=False, required=True)
     exclude = serializers.ListField(
         required=False,
         child=serializers.ChoiceField(
@@ -153,9 +149,7 @@ class InviteUserCommunityInviteSerializer(serializers.ModelSerializer):
 
 
 class InviteUserSerializer(serializers.ModelSerializer):
-    communities_invites = CommunitiesInvitesField(
-        community_invite_serializer=InviteUserCommunityInviteSerializer
-    )
+    communities_invites = CommunitiesInvitesField(community_invite_serializer=InviteUserCommunityInviteSerializer)
 
     class Meta:
         model = User

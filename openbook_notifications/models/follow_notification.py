@@ -22,9 +22,7 @@ class FollowNotification(ModelWithUUID):
 
     @classmethod
     def delete_follow_notification(cls, follower_id, owner_id):
-        cls.objects.filter(
-            follower_id=follower_id, notification__owner_id=owner_id
-        ).delete()
+        cls.objects.filter(follower_id=follower_id, notification__owner_id=owner_id).delete()
 
     def get_options(self):
         return {"user": self.follower}

@@ -57,9 +57,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         post_creator = make_user()
         community = make_community(creator=post_creator)
-        post = post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
         amount_of_comments = 5
         comments_ids = []
@@ -91,9 +89,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(post_creator)
         community = make_community(creator=admin)
         post_creator.join_community_with_name(community_name=community.name)
-        post = post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
         amount_of_comments = 5
         comments_ids = []
@@ -129,9 +125,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(admin)
         community = make_community(creator=admin)
         post_creator.join_community_with_name(community_name=community.name)
-        post = post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
         amount_of_comments = 5
         comments_ids = []
@@ -172,9 +166,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         )
 
         post_creator.join_community_with_name(community_name=community.name)
-        post = post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
         amount_of_comments = 5
         comments_ids = []
@@ -206,9 +198,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         post_creator = make_user()
         community = make_private_community(creator=post_creator)
-        post = post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
         amount_of_comments = 5
         comments_ids = []
@@ -234,9 +224,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         post_creator = make_user()
         community = make_private_community(creator=post_creator)
-        post = post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
         post_creator.invite_user_with_username_to_community_with_name(
             username=user.username, community_name=community.name
@@ -329,9 +317,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         circle = make_circle(creator=user)
-        post = user.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        post = user.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         amount_of_comments = 5
         comments_ids = []
@@ -339,9 +325,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         for i in range(0, amount_of_comments):
             commenter = make_user()
             commenter.connect_with_user_with_id(user.pk)
-            user.confirm_connection_with_user_with_id(
-                user_id=commenter.pk, circles_ids=[circle.pk]
-            )
+            user.confirm_connection_with_user_with_id(user_id=commenter.pk, circles_ids=[circle.pk])
             post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
             comments_ids.append(post_comment.pk)
 
@@ -365,13 +349,9 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         user = make_user()
 
         user.connect_with_user_with_id(post_creator.pk)
-        post_creator.confirm_connection_with_user_with_id(
-            user_id=user.pk, circles_ids=[circle.pk]
-        )
+        post_creator.confirm_connection_with_user_with_id(user_id=user.pk, circles_ids=[circle.pk])
 
-        post = post_creator.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        post = post_creator.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         amount_of_comments = 5
         comments_ids = []
@@ -379,9 +359,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         for i in range(0, amount_of_comments):
             commenter = make_user()
             commenter.connect_with_user_with_id(post_creator.pk)
-            post_creator.confirm_connection_with_user_with_id(
-                user_id=commenter.pk, circles_ids=[circle.pk]
-            )
+            post_creator.confirm_connection_with_user_with_id(user_id=commenter.pk, circles_ids=[circle.pk])
             post_comment = commenter.comment_post(post=post, text=make_fake_post_text())
             comments_ids.append(post_comment.pk)
 
@@ -405,18 +383,14 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         circle = make_circle(creator=post_creator)
         user = make_user()
 
-        post = post_creator.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        post = post_creator.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         amount_of_comments = 5
 
         for i in range(0, amount_of_comments):
             commenter = make_user()
             commenter.connect_with_user_with_id(post_creator.pk)
-            post_creator.confirm_connection_with_user_with_id(
-                user_id=commenter.pk, circles_ids=[circle.pk]
-            )
+            post_creator.confirm_connection_with_user_with_id(user_id=commenter.pk, circles_ids=[circle.pk])
 
         url = self._get_url(post)
 
@@ -434,9 +408,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         post = post_creator.create_public_post(text=make_fake_post_text())
 
-        blocked_user.comment_post_with_id(
-            post_id=post.pk, text=make_fake_post_comment_text()
-        )
+        blocked_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         user.block_user_with_id(user_id=blocked_user.pk)
 
@@ -460,9 +432,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         post = post_creator.create_public_post(text=make_fake_post_text())
 
-        blocking_user.comment_post_with_id(
-            post_id=post.pk, text=make_fake_post_comment_text()
-        )
+        blocking_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         blocking_user.block_user_with_id(user_id=user.pk)
 
@@ -486,13 +456,9 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         blocked_user = make_user()
 
-        post = post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
-        blocked_user.comment_post_with_id(
-            post_id=post.pk, text=make_fake_post_comment_text()
-        )
+        blocked_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         user.block_user_with_id(user_id=blocked_user.pk)
 
@@ -516,13 +482,9 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         blocking_user = make_user()
 
-        post = post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
-        blocking_user.comment_post_with_id(
-            post_id=post.pk, text=make_fake_post_comment_text()
-        )
+        blocking_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         blocking_user.block_user_with_id(user_id=user.pk)
 
@@ -546,13 +508,9 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         post_creator.join_community_with_name(community_name=community.name)
 
-        post = post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
-        post_comment = blocked_user.comment_post_with_id(
-            post_id=post.pk, text=make_fake_post_comment_text()
-        )
+        post_comment = blocked_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         user.block_user_with_id(user_id=blocked_user.pk)
 
@@ -578,13 +536,9 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         post_creator.join_community_with_name(community_name=community.name)
 
-        post = post_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
-        post_comment = blocking_user.comment_post_with_id(
-            post_id=post.pk, text=make_fake_post_comment_text()
-        )
+        post_comment = blocking_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         blocking_user.block_user_with_id(user_id=user.pk)
 
@@ -615,10 +569,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(
-            PostComment.objects.filter(post_id=post.pk, text=post_comment_text).count()
-            == 1
-        )
+        self.assertTrue(PostComment.objects.filter(post_id=post.pk, text=post_comment_text).count() == 1)
 
     def test_commenting_detects_mentions(self):
         """should be able to comment with a mention and detect it once"""
@@ -645,9 +596,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
             post_comment = PostComment.objects.get(text=post_text, commenter_id=user.pk)
 
             self.assertEqual(
-                PostCommentUserMention.objects.filter(
-                    user_id=test_user.pk, post_comment_id=post_comment.pk
-                ).count(),
+                PostCommentUserMention.objects.filter(user_id=test_user.pk, post_comment_id=post_comment.pk).count(),
                 1,
             )
 
@@ -667,14 +616,10 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        post_comment = PostComment.objects.get(
-            text=post_comment_text, commenter_id=user.pk
-        )
+        post_comment = PostComment.objects.get(text=post_comment_text, commenter_id=user.pk)
 
         self.assertEqual(
-            PostCommentUserMention.objects.filter(
-                post_comment_id=post_comment.pk
-            ).count(),
+            PostCommentUserMention.objects.filter(post_comment_id=post_comment.pk).count(),
             0,
         )
 
@@ -693,14 +638,10 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        post_comment = PostComment.objects.get(
-            text=post_comment_text, commenter_id=user.pk
-        )
+        post_comment = PostComment.objects.get(text=post_comment_text, commenter_id=user.pk)
 
         self.assertEqual(
-            PostCommentUserMention.objects.filter(
-                post_comment_id=post_comment.pk
-            ).count(),
+            PostCommentUserMention.objects.filter(post_comment_id=post_comment.pk).count(),
             0,
         )
 
@@ -722,14 +663,10 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        post_comment = PostComment.objects.get(
-            text=post_comment_text, commenter_id=user.pk
-        )
+        post_comment = PostComment.objects.get(text=post_comment_text, commenter_id=user.pk)
 
         self.assertEqual(
-            PostCommentUserMention.objects.filter(
-                post_comment_id=post_comment.pk
-            ).count(),
+            PostCommentUserMention.objects.filter(post_comment_id=post_comment.pk).count(),
             1,
         )
 
@@ -752,9 +689,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        post_comment = PostComment.objects.get(
-            text=post_comment_text, commenter_id=user.pk
-        )
+        post_comment = PostComment.objects.get(text=post_comment_text, commenter_id=user.pk)
 
         post_comment_user_mention = PostCommentUserMention.objects.get(
             user_id=test_user.pk, post_comment_id=post_comment.pk
@@ -789,9 +724,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
 
-        post_comment = PostComment.objects.get(
-            text=post_comment_text, commenter_id=user.pk
-        )
+        post_comment = PostComment.objects.get(text=post_comment_text, commenter_id=user.pk)
         created_hashtag = Hashtag.objects.get(name=hashtag)
         self.assertTrue(post_comment.hashtags.filter(pk=created_hashtag.pk).exists())
         self.assertEqual(post_comment.hashtags.all().count(), 1)
@@ -816,9 +749,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
 
-        post_comment = PostComment.objects.get(
-            text=new_post_comment_text, commenter_id=user.pk
-        )
+        post_comment = PostComment.objects.get(text=new_post_comment_text, commenter_id=user.pk)
         self.assertTrue(post_comment.hashtags.filter(pk=hashtag.pk).exists())
         self.assertEqual(Hashtag.objects.filter(pk=hashtag.pk).count(), 1)
         self.assertEqual(post_comment.hashtags.all().count(), 1)
@@ -844,9 +775,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(status.HTTP_201_CREATED, response.status_code)
 
-        post_comment = PostComment.objects.get(
-            text=post_comment_text, commenter_id=user.pk
-        )
+        post_comment = PostComment.objects.get(text=post_comment_text, commenter_id=user.pk)
         hashtag = Hashtag.objects.get(name=hashtag_name)
         self.assertEqual(post_comment.hashtags.all().count(), 1)
         self.assertEqual(post_comment.hashtags.filter(name=hashtag.name).count(), 1)
@@ -876,9 +805,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         foreign_user = make_user()
         circle = make_circle(creator=foreign_user)
-        post = foreign_user.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        post = foreign_user.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         post_comment_text = make_fake_post_comment_text()
 
@@ -888,10 +815,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(
-            PostComment.objects.filter(post_id=post.pk, text=post_comment_text).count()
-            == 0
-        )
+        self.assertTrue(PostComment.objects.filter(post_id=post.pk, text=post_comment_text).count() == 0)
 
     def test_can_comment_in_connected_user_public_post(self):
         """should be able to comment in the public post of a connected user post and return 201"""
@@ -902,9 +826,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         user.connect_with_user_with_id(user_to_connect.pk)
 
-        connected_user_post = user_to_connect.create_public_post(
-            text=make_fake_post_text()
-        )
+        connected_user_post = user_to_connect.create_public_post(text=make_fake_post_text())
 
         post_comment_text = make_fake_post_comment_text()
 
@@ -915,10 +837,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(
-            PostComment.objects.filter(
-                post_id=connected_user_post.pk, text=post_comment_text
-            ).count()
-            == 1
+            PostComment.objects.filter(post_id=connected_user_post.pk, text=post_comment_text).count() == 1
         )
 
     def test_cannot_comment_in_blocked_user_post(self):
@@ -942,9 +861,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertFalse(
-            PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists()
-        )
+        self.assertFalse(PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists())
 
     def test_cannot_comment_in_blocking_user_post(self):
         """should not be able to comment in a blocking user post and return 400"""
@@ -969,9 +886,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertFalse(
-            PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists()
-        )
+        self.assertFalse(PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists())
 
     def test_cannot_comment_in_blocked_user_community_post(self):
         """should not be able to comment in a blocked user community post and return 400"""
@@ -985,9 +900,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         user_to_block.join_community_with_name(community_name=community.name)
 
-        post = user_to_block.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = user_to_block.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -1001,9 +914,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertFalse(
-            PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists()
-        )
+        self.assertFalse(PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists())
 
     def test_cannot_comment_in_blocking_user_community_post(self):
         """should not be able to comment in a blocking user community post and return 400"""
@@ -1017,9 +928,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         user_to_block.join_community_with_name(community_name=community.name)
 
-        post = user_to_block.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = user_to_block.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -1033,9 +942,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertFalse(
-            PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists()
-        )
+        self.assertFalse(PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists())
 
     def test_can_comment_in_blocked_community_staff_member_post(self):
         """should be able to comment in a blocked community staff member post and return 201"""
@@ -1045,9 +952,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         community_owner = make_user()
         community = make_community(creator=community_owner)
 
-        post = community_owner.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -1061,10 +966,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(
-            PostComment.objects.filter(post_id=post.pk, text=post_comment_text).count()
-            == 1
-        )
+        self.assertTrue(PostComment.objects.filter(post_id=post.pk, text=post_comment_text).count() == 1)
 
     def test_can_comment_in_blocking_community_staff_member_post(self):
         """should be able to comment in a blocking community staff member post and return 201"""
@@ -1074,9 +976,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         community_owner = make_user()
         community = make_community(creator=community_owner)
 
-        post = community_owner.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -1090,10 +990,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(
-            PostComment.objects.filter(post_id=post.pk, text=post_comment_text).count()
-            == 1
-        )
+        self.assertTrue(PostComment.objects.filter(post_id=post.pk, text=post_comment_text).count() == 1)
 
     def test_owner_cannot_comment_in_community_post_with_disabled_comments(self):
         """should not be able to comment in the community post with comments disabled even if owner of post"""
@@ -1113,9 +1010,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertFalse(
-            PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists()
-        )
+        self.assertFalse(PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists())
 
     def test_foreign_user_cannot_comment_in_community_post_with_disabled_comments(self):
         """should not be able to comment in the community post with comments disabled even if foreign user"""
@@ -1137,9 +1032,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertFalse(
-            PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists()
-        )
+        self.assertFalse(PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists())
 
     def test_administrator_can_comment_in_community_post_with_disabled_comments(self):
         """should be able to comment in the community post with comments disabled if administrator"""
@@ -1160,13 +1053,9 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         response_id = parsed_response["id"]
-        post_comment = PostComment.objects.get(
-            post_id=post.pk, text=post_comment_text, commenter=admin
-        )
+        post_comment = PostComment.objects.get(post_id=post.pk, text=post_comment_text, commenter=admin)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(
-            PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists()
-        )
+        self.assertTrue(PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists())
         self.assertEqual(response_id, post_comment.id)
 
     def test_moderator_can_comment_in_community_post_with_disabled_comments(self):
@@ -1193,13 +1082,9 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         response_id = parsed_response["id"]
-        post_comment = PostComment.objects.get(
-            post_id=post.pk, text=post_comment_text, commenter=moderator
-        )
+        post_comment = PostComment.objects.get(post_id=post.pk, text=post_comment_text, commenter=moderator)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(
-            PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists()
-        )
+        self.assertTrue(PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists())
         self.assertEqual(response_id, post_comment.id)
 
     def test_owner_can_comment_on_closed_community_post(self):
@@ -1220,9 +1105,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(
-            PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists()
-        )
+        self.assertTrue(PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists())
 
     def test_foreign_user_cannot_comment_on_closed_community_post(self):
         """should not be able to comment in the community post that is closed"""
@@ -1244,9 +1127,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertFalse(
-            PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists()
-        )
+        self.assertFalse(PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists())
 
     def test_moderator_can_comment_on_closed_community_post(self):
         """should be able to comment on the community post which is closed if moderator"""
@@ -1272,13 +1153,9 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         response_id = parsed_response["id"]
-        post_comment = PostComment.objects.get(
-            post_id=post.pk, text=post_comment_text, commenter=moderator
-        )
+        post_comment = PostComment.objects.get(post_id=post.pk, text=post_comment_text, commenter=moderator)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(
-            PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists()
-        )
+        self.assertTrue(PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists())
         self.assertEqual(response_id, post_comment.id)
 
     def test_administrator_can_comment_on_closed_community_post(self):
@@ -1300,13 +1177,9 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         response_id = parsed_response["id"]
-        post_comment = PostComment.objects.get(
-            post_id=post.pk, text=post_comment_text, commenter=admin
-        )
+        post_comment = PostComment.objects.get(post_id=post.pk, text=post_comment_text, commenter=admin)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(
-            PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists()
-        )
+        self.assertTrue(PostComment.objects.filter(post_id=post.pk, text=post_comment_text).exists())
         self.assertEqual(response_id, post_comment.id)
 
     def test_can_comment_in_connected_user_encircled_post_part_of(self):
@@ -1318,9 +1191,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         circle = make_circle(creator=user_to_connect)
 
         user.connect_with_user_with_id(user_to_connect.pk)
-        user_to_connect.confirm_connection_with_user_with_id(
-            user.pk, circles_ids=[circle.pk]
-        )
+        user_to_connect.confirm_connection_with_user_with_id(user.pk, circles_ids=[circle.pk])
 
         connected_user_post = user_to_connect.create_encircled_post(
             text=make_fake_post_text(), circles_ids=[circle.pk]
@@ -1335,10 +1206,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(
-            PostComment.objects.filter(
-                post_id=connected_user_post.pk, text=post_comment_text
-            ).count()
-            == 1
+            PostComment.objects.filter(post_id=connected_user_post.pk, text=post_comment_text).count() == 1
         )
 
     def test_cannot_comment_in_connected_user_encircled_post_not_part_of(self):
@@ -1366,10 +1234,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         self.assertTrue(
-            PostComment.objects.filter(
-                post_id=connected_user_post.pk, text=post_comment_text
-            ).count()
-            == 0
+            PostComment.objects.filter(post_id=connected_user_post.pk, text=post_comment_text).count() == 0
         )
 
     def test_can_comment_in_user_public_post(self):
@@ -1389,12 +1254,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(
-            PostComment.objects.filter(
-                post_id=foreign_user_post.pk, text=post_comment_text
-            ).count()
-            == 1
-        )
+        self.assertTrue(PostComment.objects.filter(post_id=foreign_user_post.pk, text=post_comment_text).count() == 1)
 
     def test_cannot_comment_in_followed_user_encircled_post(self):
         """should be able to comment in the encircled post of a followed user return 400"""
@@ -1406,9 +1266,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         user.follow_user_with_id(user_to_follow.pk)
 
-        followed_user_post = user_to_follow.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        followed_user_post = user_to_follow.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         post_comment_text = make_fake_post_comment_text()
 
@@ -1418,12 +1276,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(
-            PostComment.objects.filter(
-                post_id=followed_user_post.pk, text=post_comment_text
-            ).count()
-            == 0
-        )
+        self.assertTrue(PostComment.objects.filter(post_id=followed_user_post.pk, text=post_comment_text).count() == 0)
 
     def test_cannot_comment_in_post_from_community_banned_from(self):
         """should not be able to comment in the post of a community banned from and return 400"""
@@ -1435,9 +1288,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         user.join_community_with_name(community_name=community.name)
 
-        post = community_owner.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         user.comment_post(post=post, text=make_fake_post_comment_text())
 
@@ -1453,12 +1304,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(
-            PostComment.objects.filter(
-                post_id=post.pk, text=new_post_comment_text
-            ).count()
-            == 0
-        )
+        self.assertTrue(PostComment.objects.filter(post_id=post.pk, text=new_post_comment_text).count() == 0)
 
     def test_commenting_in_foreign_post_creates_notification(self):
         """should create a notification when commenting on a foreign post"""
@@ -1509,9 +1355,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         blocked_user = make_user()
         headers = make_authentication_headers_for_user(blocked_user)
         post = foreign_user.create_public_post(text=make_fake_post_text())
-        post_comment = user.comment_post_with_id(
-            post_id=post.pk, text=make_fake_post_comment_text()
-        )
+        post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
         user.block_user_with_username(blocked_user.username)
         post_comment_text = make_fake_post_comment_text()
 
@@ -1526,9 +1370,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
             ).exists()
         )
 
-    @mock.patch(
-        "openbook_notifications.helpers.send_post_comment_push_notification_with_message"
-    )
+    @mock.patch("openbook_notifications.helpers.send_post_comment_push_notification_with_message")
     def test_commenting_in_post_does_not_send_push_notification_if_user_is_blocked(
         self, send_post_comment_push_notification_call
     ):
@@ -1538,9 +1380,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         blocked_user = make_user()
         headers = make_authentication_headers_for_user(blocked_user)
         post = foreign_user.create_public_post(text=make_fake_post_text())
-        post_comment = user.comment_post_with_id(
-            post_id=post.pk, text=make_fake_post_comment_text()
-        )
+        post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
         user.block_user_with_username(blocked_user.username)
         post_comment_text = make_fake_post_comment_text()
 
@@ -1550,9 +1390,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         url = self._get_url(post)
         self.client.put(url, data, **headers)
 
-        post_comment = PostComment.objects.get(
-            text=post_comment_text, commenter_id=blocked_user.pk
-        )
+        post_comment = PostComment.objects.get(text=post_comment_text, commenter_id=blocked_user.pk)
 
         # assert notification only for the post creator, not user who blocked the commenting user
         send_post_comment_push_notification_call.assert_called_once()
@@ -1573,9 +1411,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         post = post_creator.create_public_post(text=make_fake_post_text())
 
-        foreign_user.comment_post_with_id(
-            post_id=post.pk, text=make_fake_post_comment_text()
-        )
+        foreign_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         post_comment_text = make_fake_post_comment_text()
 
@@ -1604,9 +1440,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         post = post_creator.create_public_post(text=make_fake_post_text())
 
-        foreign_user.comment_post_with_id(
-            post_id=post.pk, text=make_fake_post_comment_text()
-        )
+        foreign_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         foreign_user.mute_post_with_id(post_id=post.pk)
 
@@ -1636,18 +1470,12 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         circle = make_circle(creator=post_owner)
 
         user.connect_with_user_with_id(user_id=post_owner.pk)
-        post_owner.confirm_connection_with_user_with_id(
-            user_id=user.pk, circles_ids=[circle.pk]
-        )
+        post_owner.confirm_connection_with_user_with_id(user_id=user.pk, circles_ids=[circle.pk])
 
         foreign_user.connect_with_user_with_id(user_id=post_owner.pk)
-        post_owner.confirm_connection_with_user_with_id(
-            user_id=foreign_user.pk, circles_ids=[circle.pk]
-        )
+        post_owner.confirm_connection_with_user_with_id(user_id=foreign_user.pk, circles_ids=[circle.pk])
 
-        post = post_owner.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        post = post_owner.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         # Comment so we "subscribe" for notifications
         foreign_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_text())
@@ -1683,9 +1511,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         post_creator = make_user()
 
         post = post_creator.create_public_post(text=make_fake_post_text())
-        post_comment = post_creator.comment_post_with_id(
-            post_id=post.pk, text=make_fake_post_comment_text()
-        )
+        post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
         user.reply_to_comment_with_id_for_post_with_id(
             post_comment_id=post_comment.pk,
             post_id=post.id,
@@ -1716,9 +1542,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         for i in range(amount_of_post_comments):
             post_comment_text = make_fake_post_comment_text()
-            post_comments.append(
-                user.comment_post_with_id(post_id=post.pk, text=post_comment_text)
-            )
+            post_comments.append(user.comment_post_with_id(post_id=post.pk, text=post_comment_text))
 
         url = self._get_url(post)
         response = self.client.get(url, **headers)
@@ -1742,9 +1566,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         for i in range(amount_of_post_comments):
             post_comment_text = make_fake_post_comment_text()
-            post_comments.append(
-                user.comment_post_with_id(post_id=post.pk, text=post_comment_text)
-            )
+            post_comments.append(user.comment_post_with_id(post_id=post.pk, text=post_comment_text))
 
         url = self._get_url(post)
         response = self.client.get(url, {"sort": "ASC"}, **headers)
@@ -1769,9 +1591,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         for i in range(amount_of_post_comments):
             post_comment_text = make_fake_post_comment_text()
-            post_comments.append(
-                user.comment_post_with_id(post_id=post.pk, text=post_comment_text)
-            )
+            post_comments.append(user.comment_post_with_id(post_id=post.pk, text=post_comment_text))
 
         random_int = random.randint(3, 9)
         max_id = post_comments[random_int].pk
@@ -1797,9 +1617,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         for i in range(amount_of_post_comments):
             post_comment_text = make_fake_post_comment_text()
-            post_comments.append(
-                user.comment_post_with_id(post_id=post.pk, text=post_comment_text)
-            )
+            post_comments.append(user.comment_post_with_id(post_id=post.pk, text=post_comment_text))
 
         random_int = random.randint(3, 9)
         min_id = post_comments[random_int].pk
@@ -1825,9 +1643,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         for i in range(amount_of_post_comments):
             post_comment_text = make_fake_post_comment_text()
-            post_comments.append(
-                user.comment_post_with_id(post_id=post.pk, text=post_comment_text)
-            )
+            post_comments.append(user.comment_post_with_id(post_id=post.pk, text=post_comment_text))
 
         random_int = random.randint(3, 17)
         min_id = post_comments[random_int].pk
@@ -1868,9 +1684,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         for i in range(amount_of_post_comments):
             post_comment_text = make_fake_post_comment_text()
-            post_comments.append(
-                user.comment_post_with_id(post_id=post.pk, text=post_comment_text)
-            )
+            post_comments.append(user.comment_post_with_id(post_id=post.pk, text=post_comment_text))
 
         random_int = random.randint(3, 17)
         min_id = post_comments[random_int].pk
@@ -1956,9 +1770,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
             circles_ids=[connected_user_post_comment_circle.pk],
         )
 
-        post_comment = connected_user.comment_post(
-            post=connected_user_post, text=make_fake_post_text()
-        )
+        post_comment = connected_user.comment_post(post=connected_user_post, text=make_fake_post_text())
 
         user.report_comment_for_post(
             post=connected_user_post,
@@ -1972,9 +1784,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_post_comment_comments = json.loads(
-            response.content, object_hook=uuid_id_parser
-        )
+        response_post_comment_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(0, len(response_post_comment_comments))
 
@@ -1985,12 +1795,8 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         following_user = make_user()
         user.follow_user_with_id(user_id=following_user.pk)
 
-        following_user_post = following_user.create_public_post(
-            text=make_fake_post_comment_text()
-        )
-        post_comment = following_user.comment_post(
-            post=following_user_post, text=make_fake_post_text()
-        )
+        following_user_post = following_user.create_public_post(text=make_fake_post_comment_text())
+        post_comment = following_user.comment_post(post=following_user_post, text=make_fake_post_text())
 
         user.report_comment_for_post(
             post=following_user_post,
@@ -2004,9 +1810,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_post_comment_comments = json.loads(
-            response.content, object_hook=uuid_id_parser
-        )
+        response_post_comment_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(0, len(response_post_comment_comments))
 
@@ -2021,9 +1825,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         user.join_community_with_name(community_name=community.name)
         post_creator.join_community_with_name(community_name=community.name)
 
-        post = post_creator.create_community_post(
-            community_name=community.name, text=make_fake_post_comment_text()
-        )
+        post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_comment_text())
 
         post_comment = post_creator.comment_post(post=post, text=make_fake_post_text())
 
@@ -2040,9 +1842,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_post_comment_comments = json.loads(
-            response.content, object_hook=uuid_id_parser
-        )
+        response_post_comment_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(0, len(response_post_comment_comments))
 
@@ -2067,22 +1867,16 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         )
 
         for i in range(0, number_of_post_comments):
-            post_comment = post_comment_creator.comment_post(
-                post=post, text=make_fake_post_text()
-            )
+            post_comment = post_comment_creator.comment_post(post=post, text=make_fake_post_text())
             post_reporter.report_comment_for_post(
                 post=post,
                 post_comment=post_comment,
                 category_id=make_moderation_category().pk,
             )
-            moderated_object = (
-                ModeratedObject.get_or_create_moderated_object_for_post_comment(
-                    post_comment=post_comment, category_id=report_category.pk
-                )
+            moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=post_comment, category_id=report_category.pk
             )
-            community_creator.approve_moderated_object(
-                moderated_object=moderated_object
-            )
+            community_creator.approve_moderated_object(moderated_object=moderated_object)
 
         url = self._get_url(post=post)
         headers = make_authentication_headers_for_user(user)
@@ -2090,9 +1884,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_post_comments = json.loads(
-            response.content, object_hook=uuid_id_parser
-        )
+        response_post_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(0, len(response_post_comments))
 
@@ -2116,19 +1908,15 @@ class PostCommentsAPITests(OpenbookAPITestCase):
             community_name=community.name, text=make_fake_post_comment_text()
         )
         for i in range(0, number_of_post_comments):
-            post_comment = post_comment_creator.comment_post(
-                post=post, text=make_fake_post_text()
-            )
+            post_comment = post_comment_creator.comment_post(post=post, text=make_fake_post_text())
             post_comments_ids.append(post_comment.pk)
             post_reporter.report_comment_for_post(
                 post=post,
                 post_comment=post_comment,
                 category_id=make_moderation_category().pk,
             )
-            moderated_object = (
-                ModeratedObject.get_or_create_moderated_object_for_post_comment(
-                    post_comment=post_comment, category_id=report_category.pk
-                )
+            moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
+                post_comment=post_comment, category_id=report_category.pk
             )
             community_creator.reject_moderated_object(moderated_object=moderated_object)
 
@@ -2138,15 +1926,11 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_post_comments = json.loads(
-            response.content, object_hook=uuid_id_parser
-        )
+        response_post_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(post_comments_ids), len(response_post_comments))
 
-        response_post_comments_ids = [
-            post_comment["id"] for post_comment in response_post_comments
-        ]
+        response_post_comments_ids = [post_comment["id"] for post_comment in response_post_comments]
 
         for post_id in post_comments_ids:
             self.assertIn(post_id, response_post_comments_ids)
@@ -2170,9 +1954,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
             community_name=community.name, text=make_fake_post_comment_text()
         )
         for i in range(0, number_of_post_comments):
-            post_comment = post_comment_creator.comment_post(
-                post=post, text=make_fake_post_text()
-            )
+            post_comment = post_comment_creator.comment_post(post=post, text=make_fake_post_text())
             post_comments_ids.append(post_comment.pk)
             post_reporter.report_comment_for_post(
                 post=post,
@@ -2186,15 +1968,11 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_post_comments = json.loads(
-            response.content, object_hook=uuid_id_parser
-        )
+        response_post_comments = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(post_comments_ids), len(response_post_comments))
 
-        response_post_comments_ids = [
-            post_comment["id"] for post_comment in response_post_comments
-        ]
+        response_post_comments_ids = [post_comment["id"] for post_comment in response_post_comments]
 
         for post_id in post_comments_ids:
             self.assertIn(post_id, response_post_comments_ids)
@@ -2223,9 +2001,7 @@ class PostCommentsEnableAPITests(OpenbookAPITestCase):
         community = make_community(admin)
 
         user.join_community_with_name(community_name=community.name)
-        admin.add_moderator_with_username_to_community_with_name(
-            username=user.username, community_name=community.name
-        )
+        admin.add_moderator_with_username_to_community_with_name(username=user.username, community_name=community.name)
         post = user.create_community_post(community.name, text=make_fake_post_text())
         post.comments_enabled = False
         post.save()
@@ -2270,9 +2046,7 @@ class PostCommentsEnableAPITests(OpenbookAPITestCase):
         community = make_community(admin)
 
         community_post_creator.join_community_with_name(community_name=community.name)
-        post = community_post_creator.create_community_post(
-            community.name, text=make_fake_post_text()
-        )
+        post = community_post_creator.create_community_post(community.name, text=make_fake_post_text())
         post.comments_enabled = False
         post.save()
 
@@ -2326,9 +2100,7 @@ class PostCommentsDisableAPITests(OpenbookAPITestCase):
         community = make_community(admin)
 
         user.join_community_with_name(community_name=community.name)
-        admin.add_moderator_with_username_to_community_with_name(
-            username=user.username, community_name=community.name
-        )
+        admin.add_moderator_with_username_to_community_with_name(username=user.username, community_name=community.name)
         post = user.create_community_post(community.name, text=make_fake_post_text())
 
         url = self._get_url(post)
@@ -2369,9 +2141,7 @@ class PostCommentsDisableAPITests(OpenbookAPITestCase):
         community = make_community(admin)
 
         community_post_creator.join_community_with_name(community_name=community.name)
-        post = community_post_creator.create_community_post(
-            community.name, text=make_fake_post_text()
-        )
+        post = community_post_creator.create_community_post(community.name, text=make_fake_post_text())
 
         url = self._get_url(post)
         headers = make_authentication_headers_for_user(admin)

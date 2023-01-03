@@ -37,13 +37,9 @@ class ModerationCategoriesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderation_categories = json.loads(
-            response.content, object_hook=uuid_id_parser
-        )
+        response_moderation_categories = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(
-            len(response_moderation_categories), len(moderation_categories_ids)
-        )
+        self.assertEqual(len(response_moderation_categories), len(moderation_categories_ids))
 
         for response_moderationCategory in response_moderation_categories:
             response_moderation_category_id = response_moderationCategory.get("id")

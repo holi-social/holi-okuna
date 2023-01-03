@@ -25,13 +25,9 @@ class UserInvite(ModelWithUUID):
         blank=True,
     )
     created = models.DateTimeField(_("invited datetime"), null=False, blank=False)
-    created_user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True
-    )
+    created_user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=PROFILE_NAME_MAX_LENGTH, null=True, blank=True)
-    nickname = models.CharField(
-        max_length=PROFILE_NAME_MAX_LENGTH, null=True, blank=True
-    )
+    nickname = models.CharField(max_length=PROFILE_NAME_MAX_LENGTH, null=True, blank=True)
     email = models.EmailField(_("email address"), null=True, blank=True)
     username_validator = UnicodeUsernameValidator()
     username = models.CharField(
@@ -40,9 +36,7 @@ class UserInvite(ModelWithUUID):
         null=True,
         max_length=USERNAME_MAX_LENGTH,
         unique=True,
-        help_text=_(
-            "Required. %(username_max_length)d characters or fewer. Letters, digits and _ only."
-        )
+        help_text=_("Required. %(username_max_length)d characters or fewer. Letters, digits and _ only.")
         % {"username_max_length": USERNAME_MAX_LENGTH},
         validators=[username_validator],
         error_messages={

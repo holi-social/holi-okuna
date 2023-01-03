@@ -22,6 +22,4 @@ class Command(BaseCommand):
                             "Exception occurred during send_alternate_username_survey",
                             e,
                         )
-        self.stdout.write(
-            self.style.SUCCESS("Successfully sent username survey emails")
-        )
+        self.stdout.write(self.style.SUCCESS("Successfully sent username survey emails"))
