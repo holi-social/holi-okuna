@@ -71,7 +71,7 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "RDS_DB_NAME"
-          value = random_id.main.hex
+          value = local.environment_name == "production" ? "okuna" : random_id.main.hex
         }
         env {
           name  = "RDS_USERNAME"
