@@ -638,7 +638,15 @@ class Query(graphene.ObjectType):
         if user.is_anonymous:
             return None
         return Paged.data(
-            NotificationModel.objects.filter(owner=user).order_by("-created"),
+            NotificationModel.objects.filter(
+                owner=user,
+                notification_type__in=[
+                    NotificationModel.CONNECTION_REQUEST,
+                    NotificationModel.CONNECTION_ACCEPTED,
+                    NotificationModel.CONNECTION_CONFIRMED,
+                    NotificationModel.POST_COMMENT_USER_MENTION,
+                ],
+            ).order_by("-created"),
             offset,
             limit,
         )
