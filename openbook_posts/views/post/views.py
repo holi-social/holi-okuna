@@ -49,9 +49,7 @@ class PostItem(APIView):
 
         post = user.get_post_with_id(post_id)
 
-        post_comments_serializer = GetPostPostSerializer(
-            post, context={"request": request}
-        )
+        post_comments_serializer = GetPostPostSerializer(post, context={"request": request})
 
         return Response(post_comments_serializer.data, status=status.HTTP_200_OK)
 
@@ -70,9 +68,7 @@ class PostItem(APIView):
         with transaction.atomic():
             post = user.update_post_with_id(post_id=post_id, text=text)
 
-        post_serializer = AuthenticatedUserEditPostSerializer(
-            post, context={"request": request}
-        )
+        post_serializer = AuthenticatedUserEditPostSerializer(post, context={"request": request})
 
         return Response(post_serializer.data, status=status.HTTP_200_OK)
 
@@ -112,9 +108,7 @@ class MutePost(APIView):
         with transaction.atomic():
             muted_post = user.mute_post_with_id(post_id=post_id)
 
-        post_comments_serializer = GetPostPostSerializer(
-            muted_post, context={"request": request}
-        )
+        post_comments_serializer = GetPostPostSerializer(muted_post, context={"request": request})
 
         return Response(post_comments_serializer.data, status=status.HTTP_200_OK)
 
@@ -134,9 +128,7 @@ class UnmutePost(APIView):
         with transaction.atomic():
             muted_post = user.unmute_post_with_id(post_id=post_id)
 
-        post_comments_serializer = GetPostPostSerializer(
-            muted_post, context={"request": request}
-        )
+        post_comments_serializer = GetPostPostSerializer(muted_post, context={"request": request})
 
         return Response(post_comments_serializer.data, status=status.HTTP_200_OK)
 
@@ -237,13 +229,9 @@ class GetPostParticipants(APIView):
         post_id = data["post_id"]
         count = data["count"]
 
-        post_participants = user.get_participants_for_post_with_id(post_id=post_id)[
-            :count
-        ]
+        post_participants = user.get_participants_for_post_with_id(post_id=post_id)[:count]
 
-        serialized_participants = PostParticipantSerializer(
-            post_participants, many=True, context={"request": request}
-        )
+        serialized_participants = PostParticipantSerializer(post_participants, many=True, context={"request": request})
 
         return Response(serialized_participants.data, status=status.HTTP_200_OK)
 
@@ -265,13 +253,9 @@ class SearchPostParticipants(APIView):
         post_id = data["post_id"]
         count = data["count"]
 
-        post_participants = user.search_participants_for_post_with_id(
-            post_id=post_id, query=query
-        )[:count]
+        post_participants = user.search_participants_for_post_with_id(post_id=post_id, query=query)[:count]
 
-        serialized_participants = PostParticipantSerializer(
-            post_participants, many=True, context={"request": request}
-        )
+        serialized_participants = PostParticipantSerializer(post_participants, many=True, context={"request": request})
 
         return Response(serialized_participants.data, status=status.HTTP_200_OK)
 
@@ -291,9 +275,7 @@ class PublishPost(APIView):
         with transaction.atomic():
             published_post = user.publish_post_with_id(post_id=post_id)
 
-        post_comments_serializer = GetPostPostSerializer(
-            published_post, context={"request": request}
-        )
+        post_comments_serializer = GetPostPostSerializer(published_post, context={"request": request})
 
         return Response(post_comments_serializer.data, status=status.HTTP_200_OK)
 

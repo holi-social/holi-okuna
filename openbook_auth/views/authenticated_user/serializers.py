@@ -89,9 +89,7 @@ class GetAuthenticatedUserSerializer(serializers.ModelSerializer):
     is_global_moderator = IsGlobalModeratorField()
     following_count = FollowingCountField()
     is_member_of_communities = IsMemberOfCommunities()
-    pending_communities_moderated_objects_count = (
-        UserPendingCommunitiesModeratedObjectsCountField()
-    )
+    pending_communities_moderated_objects_count = UserPendingCommunitiesModeratedObjectsCountField()
     active_moderation_penalties_count = UserActiveModerationPenaltiesCountField()
     language = UserLanguageSerializer()
 
@@ -129,9 +127,7 @@ class LegacyGetAuthenticatedUserSerializer(serializers.ModelSerializer):
     posts_count = UserPostsCountField()
     following_count = FollowingCountField()
     is_member_of_communities = IsMemberOfCommunities()
-    pending_communities_moderated_objects_count = (
-        UserPendingCommunitiesModeratedObjectsCountField()
-    )
+    pending_communities_moderated_objects_count = UserPendingCommunitiesModeratedObjectsCountField()
     active_moderation_penalties_count = UserActiveModerationPenaltiesCountField()
     language = UserLanguageSerializer()
 
@@ -192,12 +188,8 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
         allow_blank=False,
         validators=[name_characters_validator],
     )
-    followers_count_visible = serializers.BooleanField(
-        required=False, default=None, allow_null=True
-    )
-    community_posts_visible = serializers.BooleanField(
-        required=False, default=None, allow_null=True
-    )
+    followers_count_visible = serializers.BooleanField(required=False, default=None, allow_null=True)
+    community_posts_visible = serializers.BooleanField(required=False, default=None, allow_null=True)
     about_me = serializers.CharField(
         max_length=settings.PROFILE_ABOUT_ME_MAX_LENGTH,
         required=False,
@@ -223,9 +215,7 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
         validators=[],
         required=False,
     )
-    engagement_level = serializers.ChoiceField(
-        choices=EngagementLevelChoice.choices, required=False, allow_blank=True
-    )
+    engagement_level = serializers.ChoiceField(choices=EngagementLevelChoice.choices, required=False, allow_blank=True)
 
     interests = serializers.ListField(
         required=False,
@@ -269,20 +259,14 @@ class UpdateAuthenticatedUserSettingsSerializer(serializers.Serializer):
         required=False,
         allow_blank=False,
     )
-    email = serializers.EmailField(
-        validators=[email_not_taken_validator], required=False
-    )
+    email = serializers.EmailField(validators=[email_not_taken_validator], required=False)
 
     def validate(self, data):
         if "new_password" not in data and "current_password" in data:
-            raise serializers.ValidationError(
-                _("New password must be supplied together with the current password")
-            )
+            raise serializers.ValidationError(_("New password must be supplied together with the current password"))
 
         if "new_password" in data and "current_password" not in data:
-            raise serializers.ValidationError(
-                _("Current password must be supplied together with the new password")
-            )
+            raise serializers.ValidationError(_("Current password must be supplied together with the new password"))
 
         return data
 

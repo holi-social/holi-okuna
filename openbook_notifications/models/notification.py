@@ -8,9 +8,7 @@ from openbook_common.models import ModelWithUUID
 
 
 class Notification(ModelWithUUID):
-    owner = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="notifications"
-    )
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
     created = models.DateTimeField(editable=False, db_index=True)
     read = models.BooleanField(default=False)
 
@@ -57,9 +55,7 @@ class Notification(ModelWithUUID):
 
     @classmethod
     def create_notification(cls, owner_id, type, content_object):
-        return cls.objects.create(
-            notification_type=type, content_object=content_object, owner_id=owner_id
-        )
+        return cls.objects.create(notification_type=type, content_object=content_object, owner_id=owner_id)
 
     @classmethod
     def get_notification_types_values(cls):

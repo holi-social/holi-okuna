@@ -27,10 +27,6 @@ class PostCommentReactionItem(APIView):
         user = request.user
 
         with transaction.atomic():
-            user.delete_post_comment_reaction_with_id(
-                post_comment_reaction_id=post_comment_reaction_id
-            )
+            user.delete_post_comment_reaction_with_id(post_comment_reaction_id=post_comment_reaction_id)
 
-        return Response(
-            {"message": _("Post comment reaction deleted")}, status=status.HTTP_200_OK
-        )
+        return Response({"message": _("Post comment reaction deleted")}, status=status.HTTP_200_OK)

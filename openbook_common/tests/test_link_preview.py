@@ -28,17 +28,11 @@ class LinkPreviewTestCase(TestCase):
         self.assertEqual(preview.description, "")
         self.assertEqual(preview.type, "")
         self.assertEqual(preview.image, "")
-        self.assertTrue(
-            timezone.now() - timezone.timedelta(seconds=3)
-            <= preview.fetched_at
-            <= timezone.now()
-        )
+        self.assertTrue(timezone.now() - timezone.timedelta(seconds=3) <= preview.fetched_at <= timezone.now())
 
     @mock.patch("requests.get")
     def test_page_without_opengraph_gives_html_title(self, mock_get):
-        mock_get.return_value = MockResponse(
-            "<html><head><title>This is my title</title></head>no opengraph</html>"
-        )
+        mock_get.return_value = MockResponse("<html><head><title>This is my title</title></head>no opengraph</html>")
         preview = LinkPreview.from_url("www.abcd.de")
         preview2 = LinkPreview.from_url("www.abcd.de")
         self.assertIn(mock.call(url="http://www.abcd.de/"), mock_get.call_args_list)
@@ -51,11 +45,7 @@ class LinkPreviewTestCase(TestCase):
         self.assertEqual(preview.description, "")
         self.assertEqual(preview.type, "")
         self.assertEqual(preview.image, "")
-        self.assertTrue(
-            timezone.now() - timezone.timedelta(seconds=3)
-            <= preview.fetched_at
-            <= timezone.now()
-        )
+        self.assertTrue(timezone.now() - timezone.timedelta(seconds=3) <= preview.fetched_at <= timezone.now())
 
     @mock.patch("requests.get")
     def test_preview_without_data_is_note_returned(self, mock_get):
@@ -94,11 +84,7 @@ class LinkPreviewTestCase(TestCase):
         self.assertEqual(preview.type, "website")
         self.assertEqual(preview.image, "https://www.my.url/image.jpg")
         self.assertEqual(preview.get_origin(), "http://www.my.de")
-        self.assertTrue(
-            timezone.now() - timezone.timedelta(seconds=3)
-            <= preview.fetched_at
-            <= timezone.now()
-        )
+        self.assertTrue(timezone.now() - timezone.timedelta(seconds=3) <= preview.fetched_at <= timezone.now())
 
     @mock.patch("requests.get")
     def test_multiple_urls_are_parsed(self, mock_get):
@@ -126,9 +112,7 @@ class LinkPreviewTestCase(TestCase):
                 """
             ),
         )
-        previews = LinkPreview.parse_text(
-            "Two URLs: www.my.de and www.mysecond.de are in this text"
-        )
+        previews = LinkPreview.parse_text("Two URLs: www.my.de and www.mysecond.de are in this text")
         self.assertIn(mock.call(url="http://www.my.de/"), mock_get.call_args_list)
         self.assertIn(mock.call(url="http://www.mysecond.de/"), mock_get.call_args_list)
         self.assertEqual(2, len(previews))

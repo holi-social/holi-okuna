@@ -59,9 +59,7 @@ class HashtagAPITests(OpenbookAPITestCase):
 
         reporter = make_user()
         report_category = make_moderation_category()
-        reporter.report_hashtag_with_name(
-            hashtag_name=hashtag_name, category_id=report_category.pk
-        )
+        reporter.report_hashtag_with_name(hashtag_name=hashtag_name, category_id=report_category.pk)
 
         url = self._get_url(hashtag_name=hashtag_name)
 
@@ -84,9 +82,7 @@ class HashtagAPITests(OpenbookAPITestCase):
         hashtag_name = hashtag.name
 
         report_category = make_moderation_category()
-        user.report_hashtag_with_name(
-            hashtag_name=hashtag_name, category_id=report_category.pk
-        )
+        user.report_hashtag_with_name(hashtag_name=hashtag_name, category_id=report_category.pk)
 
         url = self._get_url(hashtag_name=hashtag_name)
 
@@ -104,9 +100,7 @@ class HashtagAPITests(OpenbookAPITestCase):
 
         reporter = make_user()
         report_category = make_moderation_category()
-        reporter.report_hashtag_with_name(
-            hashtag_name=hashtag_name, category_id=report_category.pk
-        )
+        reporter.report_hashtag_with_name(hashtag_name=hashtag_name, category_id=report_category.pk)
 
         global_moderator = make_global_moderator()
 
@@ -172,12 +166,8 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
 
         hashtag = make_hashtag()
 
-        fake_post_text = (
-            make_fake_post_text() + f" and a little hashtag #{hashtag.name}"
-        )
-        post_creator.create_community_post(
-            community_name=community.name, text=fake_post_text
-        )
+        fake_post_text = make_fake_post_text() + f" and a little hashtag #{hashtag.name}"
+        post_creator.create_community_post(community_name=community.name, text=fake_post_text)
 
         url = self._get_url(hashtag_name=hashtag.name)
 
@@ -201,9 +191,7 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
 
         hashtag = make_hashtag()
 
-        fake_post_text = (
-            make_fake_post_text() + f" and a little hashtag #{hashtag.name}"
-        )
+        fake_post_text = make_fake_post_text() + f" and a little hashtag #{hashtag.name}"
         post_creator.create_public_post(text=fake_post_text)
 
         url = self._get_url(hashtag_name=hashtag.name)
@@ -225,9 +213,7 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         community_creator = make_user()
-        community = make_community(
-            creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        community = make_community(creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         post_creator = make_user()
         community_creator.invite_user_with_username_to_community_with_name(
@@ -237,12 +223,8 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
 
         hashtag = make_hashtag()
 
-        fake_post_text = (
-            make_fake_post_text() + f" and a little hashtag #{hashtag.name}"
-        )
-        post_creator.create_community_post(
-            community_name=community.name, text=fake_post_text
-        )
+        fake_post_text = make_fake_post_text() + f" and a little hashtag #{hashtag.name}"
+        post_creator.create_community_post(community_name=community.name, text=fake_post_text)
 
         url = self._get_url(hashtag_name=hashtag.name)
 
@@ -260,9 +242,7 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         community_creator = make_user()
-        community = make_community(
-            creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        community = make_community(creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         post_creator = make_user()
         community_creator.invite_user_with_username_to_community_with_name(
@@ -277,12 +257,8 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
 
         hashtag = make_hashtag()
 
-        fake_post_text = (
-            make_fake_post_text() + f" and a little hashtag #{hashtag.name}"
-        )
-        post_creator.create_community_post(
-            community_name=community.name, text=fake_post_text
-        )
+        fake_post_text = make_fake_post_text() + f" and a little hashtag #{hashtag.name}"
+        post_creator.create_community_post(community_name=community.name, text=fake_post_text)
 
         url = self._get_url(hashtag_name=hashtag.name)
 
@@ -304,9 +280,7 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
 
         hashtag = make_hashtag()
 
-        fake_post_text = (
-            make_fake_post_text() + f" and a little hashtag #{hashtag.name}"
-        )
+        fake_post_text = make_fake_post_text() + f" and a little hashtag #{hashtag.name}"
         post_creator.create_encircled_post(circles_ids=[circle.pk], text=fake_post_text)
 
         url = self._get_url(hashtag_name=hashtag.name)
@@ -328,9 +302,7 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
 
         hashtag = make_hashtag()
 
-        fake_post_text = (
-            make_fake_post_text() + f" and a little hashtag #{hashtag.name}"
-        )
+        fake_post_text = make_fake_post_text() + f" and a little hashtag #{hashtag.name}"
         post_creator.create_public_post(text=fake_post_text)
 
         user.block_user_with_username(username=post_creator.username)
@@ -354,9 +326,7 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
 
         hashtag = make_hashtag()
 
-        fake_post_text = (
-            make_fake_post_text() + f" and a little hashtag #{hashtag.name}"
-        )
+        fake_post_text = make_fake_post_text() + f" and a little hashtag #{hashtag.name}"
         post_creator.create_public_post(text=fake_post_text)
 
         post_creator.block_user_with_username(username=user.username)

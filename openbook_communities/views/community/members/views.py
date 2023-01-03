@@ -27,9 +27,7 @@ class CommunityMembers(APIView):
 
     def get(self, request, community_name):
         query_params = request.query_params.dict()
-        normalize_list_value_in_request_data(
-            request_data=query_params, list_name="exclude"
-        )
+        normalize_list_value_in_request_data(request_data=query_params, list_name="exclude")
         query_params["community_name"] = community_name
 
         serializer = GetCommunityMembersSerializer(data=query_params)
@@ -47,9 +45,7 @@ class CommunityMembers(APIView):
             community_name=community_name, max_id=max_id, exclude_keywords=exclude
         ).order_by("-id")[:count]
 
-        response_serializer = GetCommunityMembersMemberSerializer(
-            members, many=True, context={"request": request}
-        )
+        response_serializer = GetCommunityMembersMemberSerializer(members, many=True, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -160,9 +156,7 @@ class SearchCommunityMembers(APIView):
     def get(self, request, community_name):
         query_params = request.query_params.dict()
         query_params["community_name"] = community_name
-        normalize_list_value_in_request_data(
-            request_data=query_params, list_name="exclude"
-        )
+        normalize_list_value_in_request_data(request_data=query_params, list_name="exclude")
 
         serializer = SearchCommunityMembersSerializer(data=query_params)
         serializer.is_valid(raise_exception=True)
@@ -179,8 +173,6 @@ class SearchCommunityMembers(APIView):
             community_name=community_name, query=query, exclude_keywords=exclude
         )[:count]
 
-        response_serializer = GetCommunityMembersMemberSerializer(
-            members, many=True, context={"request": request}
-        )
+        response_serializer = GetCommunityMembersMemberSerializer(members, many=True, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)

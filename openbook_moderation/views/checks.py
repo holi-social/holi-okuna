@@ -14,6 +14,4 @@ class IsNotSuspendedCheck(APIView):
     )
 
     def get(self, request):
-        return ApiMessageResponse(
-            message=_("Congrats, you're not suspended :-)"), status=status.HTTP_200_OK
-        )
+        return ApiMessageResponse(message=_("Congrats, you're not suspended :-)"), status=status.HTTP_200_OK)

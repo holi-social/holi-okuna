@@ -6,17 +6,13 @@ from jinja2 import Environment, FileSystemLoader
 def make_eb_config_block_admin(lb_name, utils_dir):
 
     j2_env = Environment(loader=FileSystemLoader(utils_dir), autoescape=True)
-    return j2_env.get_template("templates/eb_extensions/block_admin.config.yml").render(
-        LB_NAME=lb_name
-    )
+    return j2_env.get_template("templates/eb_extensions/block_admin.config.yml").render(LB_NAME=lb_name)
 
 
 def make_eb_config_admin(sauth_server_name, utils_dir):
 
     j2_env = Environment(loader=FileSystemLoader(utils_dir), autoescape=True)
-    return j2_env.get_template("templates/eb_extensions/admin.config.yml").render(
-        SAUTH_SERVER_NAME=sauth_server_name
-    )
+    return j2_env.get_template("templates/eb_extensions/admin.config.yml").render(SAUTH_SERVER_NAME=sauth_server_name)
 
 
 def write_eb_config(dest, contents):
@@ -29,9 +25,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="EB Extension Admin Conf Maker")
 
-    parser.add_argument(
-        "--lb-name", type=str, required=True, help="The value of the loadbalancer."
-    )
+    parser.add_argument("--lb-name", type=str, required=True, help="The value of the loadbalancer.")
 
     parser.add_argument(
         "--sauth-server-name",

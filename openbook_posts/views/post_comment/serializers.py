@@ -65,9 +65,7 @@ class CreatePostCommentSerializer(serializers.Serializer):
         validators=[post_comment_id_exists],
         required=True,
     )
-    text = serializers.CharField(
-        max_length=settings.POST_COMMENT_MAX_LENGTH, required=True, allow_blank=False
-    )
+    text = serializers.CharField(max_length=settings.POST_COMMENT_MAX_LENGTH, required=True, allow_blank=False)
 
 
 class MutePostCommentSerializer(serializers.Serializer):
@@ -81,9 +79,7 @@ class MutePostCommentSerializer(serializers.Serializer):
     )
 
     def validate(self, data):
-        post_comment_id_exists_for_post_with_id(
-            post_comment_id=data["post_comment_id"], post_id=data["post_id"]
-        )
+        post_comment_id_exists_for_post_with_id(post_comment_id=data["post_comment_id"], post_id=data["post_id"])
         return data
 
 
@@ -170,9 +166,7 @@ class GetPostCommentSerializer(serializers.ModelSerializer):
     reactions_emoji_counts = PostCommentReactionsEmojiCountField(
         emoji_count_serializer=GetPostCommentReactionEmojiCountSerializer
     )
-    reaction = PostCommentReactionField(
-        post_comment_reaction_serializer=GetPostCommentReactionSerializer
-    )
+    reaction = PostCommentReactionField(post_comment_reaction_serializer=GetPostCommentReactionSerializer)
     is_muted = PostCommentIsMutedField()
     language = PostCommentLanguageSerializer()
     hashtags = CommonHashtagSerializer(many=True)

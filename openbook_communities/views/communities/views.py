@@ -34,9 +34,7 @@ class Communities(APIView):
 
     def put(self, request):
         request_data = normalise_request_data(request.data)
-        normalize_list_value_in_request_data(
-            list_name="categories", request_data=request_data
-        )
+        normalize_list_value_in_request_data(list_name="categories", request_data=request_data)
 
         serializer = CreateCommunitySerializer(data=request_data)
         serializer.is_valid(raise_exception=True)
@@ -73,9 +71,7 @@ class Communities(APIView):
                 invites_enabled=invites_enabled,
             )
 
-        response_serializer = CommunitiesCommunitySerializer(
-            community, context={"request": request}
-        )
+        response_serializer = CommunitiesCommunitySerializer(community, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
@@ -113,9 +109,7 @@ class CommunityNameCheck(APIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        return ApiMessageResponse(
-            _("Community name available"), status=status.HTTP_202_ACCEPTED
-        )
+        return ApiMessageResponse(_("Community name available"), status=status.HTTP_202_ACCEPTED)
 
 
 class JoinedCommunities(APIView):
@@ -134,9 +128,9 @@ class JoinedCommunities(APIView):
 
         user = request.user
 
-        communities = user.get_joined_communities(
-            excluded_from_profile_posts=excluded_from_profile_posts
-        )[offset : offset + count]
+        communities = user.get_joined_communities(excluded_from_profile_posts=excluded_from_profile_posts)[
+            offset : offset + count
+        ]
 
         response_serializer = CommonSearchCommunitiesCommunitySerializer(
             communities, many=True, context={"request": request}
@@ -259,9 +253,7 @@ class SearchAdministratedCommunities(APIView):
 
         user = request.user
 
-        communities = user.search_administrated_communities_with_query(query=query)[
-            :count
-        ]
+        communities = user.search_administrated_communities_with_query(query=query)[:count]
 
         response_serializer = CommonSearchCommunitiesCommunitySerializer(
             communities, many=True, context={"request": request}

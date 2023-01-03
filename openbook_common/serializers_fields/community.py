@@ -33,9 +33,7 @@ class CommunityPostsCountField(Field):
 
         if community.is_community_with_name_private(
             community_name=community.name
-        ) and not request_user.is_member_of_community_with_name(
-            community_name=community.name
-        ):
+        ) and not request_user.is_member_of_community_with_name(community_name=community.name):
             return None
 
         return request_user.count_posts_for_community(community)

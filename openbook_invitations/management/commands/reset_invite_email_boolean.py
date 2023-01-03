@@ -15,8 +15,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--days",
             type=str,
-            help="Invites going back these many days will have their boolean"
-            " reset if no user is created",
+            help="Invites going back these many days will have their boolean" " reset if no user is created",
         )
 
     def handle(self, *args, **options):
@@ -38,8 +37,4 @@ class Command(BaseCommand):
                 invite.is_invite_email_sent = False
                 invite.save()
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Successfully reset email boolean for {total_count} invites"
-            )
-        )
+        self.stdout.write(self.style.SUCCESS(f"Successfully reset email boolean for {total_count} invites"))

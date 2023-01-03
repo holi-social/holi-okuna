@@ -24,9 +24,7 @@ class Command(BaseCommand):
             type=int,
             help="Total final amount to which each users invites will be set",
         )
-        parser.add_argument(
-            "--username", type=str, help="Username to allocate invites to"
-        )
+        parser.add_argument("--username", type=str, help="Username to allocate invites to")
 
     def handle(self, *args, **options):
         username = None

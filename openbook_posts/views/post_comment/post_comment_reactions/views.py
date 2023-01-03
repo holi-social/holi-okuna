@@ -66,9 +66,7 @@ class PostCommentReactions(APIView):
                 emoji_id=emoji_id,
             )
 
-        post_reaction_serializer = PostCommentReactionSerializer(
-            post_comment_reaction, context={"request": request}
-        )
+        post_reaction_serializer = PostCommentReactionSerializer(post_comment_reaction, context={"request": request})
         return Response(post_reaction_serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -83,9 +81,7 @@ class PostCommentReactionsEmojiCount(APIView):
 
         user = request.user
 
-        post_comment_emoji_counts = user.get_emoji_counts_for_post_comment_with_id(
-            post_comment_id=post_comment_id
-        )
+        post_comment_emoji_counts = user.get_emoji_counts_for_post_comment_with_id(post_comment_id=post_comment_id)
 
         post_reactions_serializer = PostCommentEmojiCountSerializer(
             post_comment_emoji_counts, many=True, context={"request": request}

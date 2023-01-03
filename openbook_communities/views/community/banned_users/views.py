@@ -63,9 +63,7 @@ class BanUser(APIView):
         user = request.user
 
         with transaction.atomic():
-            user.ban_user_with_username_from_community_with_name(
-                username=username, community_name=community_name
-            )
+            user.ban_user_with_username_from_community_with_name(username=username, community_name=community_name)
 
         return ApiMessageResponse(_("Banned user!"), status=status.HTTP_200_OK)
 
@@ -87,9 +85,7 @@ class UnbanUser(APIView):
         user = request.user
 
         with transaction.atomic():
-            user.unban_user_with_username_from_community_with_name(
-                username=username, community_name=community_name
-            )
+            user.unban_user_with_username_from_community_with_name(username=username, community_name=community_name)
 
         return ApiMessageResponse(_("Unbanned user!"), status=status.HTTP_200_OK)
 
@@ -111,9 +107,7 @@ class SearchCommunityBannedUsers(APIView):
 
         user = request.user
 
-        banned_users = user.search_community_with_name_banned_users(
-            community_name=community_name, query=query
-        )[:count]
+        banned_users = user.search_community_with_name_banned_users(community_name=community_name, query=query)[:count]
 
         response_serializer = GetCommunityBannedUsersUserSerializer(
             banned_users, many=True, context={"request": request}

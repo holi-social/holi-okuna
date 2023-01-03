@@ -30,9 +30,7 @@ class HashtagItem(APIView):
 
         hashtag = user.get_hashtag_with_name(hashtag_name=hashtag_name)
 
-        hashtag_serializer = GetHashtagHashtagSerializer(
-            hashtag, context={"request": request}
-        )
+        hashtag_serializer = GetHashtagHashtagSerializer(hashtag, context={"request": request})
 
         return Response(hashtag_serializer.data, status=status.HTTP_200_OK)
 
@@ -53,9 +51,9 @@ class HashtagPosts(APIView):
 
         user = request.user
 
-        hashtag_posts = user.get_posts_for_hashtag_with_name(
-            hashtag_name=hashtag_name, max_id=max_id
-        ).order_by("-id")[:count]
+        hashtag_posts = user.get_posts_for_hashtag_with_name(hashtag_name=hashtag_name, max_id=max_id).order_by("-id")[
+            :count
+        ]
 
         hashtag_posts_serializer = GetHashtagPostsPostSerializer(
             hashtag_posts, context={"request": request}, many=True

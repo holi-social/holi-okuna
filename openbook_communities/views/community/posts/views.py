@@ -32,13 +32,11 @@ class CommunityPosts(APIView):
 
         user = request.user
 
-        posts = user.get_posts_for_community_with_name(
-            community_name=community_name, max_id=max_id
-        ).order_by("-created")[:count]
+        posts = user.get_posts_for_community_with_name(community_name=community_name, max_id=max_id).order_by(
+            "-created"
+        )[:count]
 
-        response_serializer = CommunityPostSerializer(
-            posts, many=True, context={"request": request}
-        )
+        response_serializer = CommunityPostSerializer(posts, many=True, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -46,9 +44,7 @@ class CommunityPosts(APIView):
         request_data = normalise_request_data(request.data)
         request_data["community_name"] = community_name
 
-        serializer = CreateCommunityPostSerializer(
-            data=request_data, context={"request": request}
-        )
+        serializer = CreateCommunityPostSerializer(data=request_data, context={"request": request})
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
@@ -91,13 +87,11 @@ class ClosedCommunityPosts(APIView):
 
         user = request.user
 
-        posts = user.get_closed_posts_for_community_with_name(
-            community_name=community_name, max_id=max_id
-        ).order_by("-created")[:count]
+        posts = user.get_closed_posts_for_community_with_name(community_name=community_name, max_id=max_id).order_by(
+            "-created"
+        )[:count]
 
-        response_serializer = CommunityPostSerializer(
-            posts, many=True, context={"request": request}
-        )
+        response_serializer = CommunityPostSerializer(posts, many=True, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -106,16 +100,12 @@ class GetCommunityPostsCount(APIView):
     permission_classes = (IsAuthenticated, IsNotSuspended)
 
     def get(self, request, community_name):
-        serializer = GetCommunityPostsCountsSerializer(
-            data={"community_name": community_name}
-        )
+        serializer = GetCommunityPostsCountsSerializer(data={"community_name": community_name})
         serializer.is_valid(raise_exception=True)
 
         user = request.user
         community = user.get_community_with_name(community_name)
 
-        response_serializer = GetCommunityPostsCountCommunitySerializer(
-            community, context={"request": request}
-        )
+        response_serializer = GetCommunityPostsCountCommunitySerializer(community, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)

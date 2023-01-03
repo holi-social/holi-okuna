@@ -27,10 +27,7 @@ def get_detected_language_code(text):
 def get_language_for_text(text):
     language_code = get_detected_language_code(text)
     Language = get_language_model()
-    if (
-        language_code is not None
-        and Language.objects.filter(code=language_code).exists()
-    ):
+    if language_code is not None and Language.objects.filter(code=language_code).exists():
         return Language.objects.get(code=language_code)
 
     return None
@@ -38,9 +35,7 @@ def get_language_for_text(text):
 
 def get_supported_translation_language(language_code):
     Language = get_language_model()
-    supported_translation_code = (
-        translation_strategy.get_supported_translation_language_code(language_code)
-    )
+    supported_translation_code = translation_strategy.get_supported_translation_language_code(language_code)
 
     return Language.objects.get(code=supported_translation_code)
 

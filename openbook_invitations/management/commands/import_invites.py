@@ -11,12 +11,8 @@ class Command(BaseCommand):
     help = "Imports backer data into UserInvite models"
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            "--kickstarter", type=str, help="Import from kickstarter csv"
-        )
-        parser.add_argument(
-            "--indiegogo", type=str, help="Import from indiegogo typeform"
-        )
+        parser.add_argument("--kickstarter", type=str, help="Import from kickstarter csv")
+        parser.add_argument("--indiegogo", type=str, help="Import from indiegogo typeform")
         parser.add_argument("--conflicts", type=str, help="Import from conflicts csv")
 
     def handle(self, *args, **options):

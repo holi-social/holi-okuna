@@ -42,9 +42,7 @@ class ReactToPostCommentSerializer(serializers.Serializer):
     )
 
     def validate(self, data):
-        post_comment_id_exists_for_post_with_id(
-            post_comment_id=data["post_comment_id"], post_id=data["post_id"]
-        )
+        post_comment_id_exists_for_post_with_id(post_comment_id=data["post_comment_id"], post_id=data["post_id"])
         return data
 
 
@@ -59,9 +57,7 @@ class GetPostCommentReactionsEmojiCountSerializer(serializers.Serializer):
     )
 
     def validate(self, data):
-        post_comment_id_exists_for_post_with_id(
-            post_comment_id=data["post_comment_id"], post_id=data["post_id"]
-        )
+        post_comment_id_exists_for_post_with_id(post_comment_id=data["post_comment_id"], post_id=data["post_id"])
         return data
 
 
@@ -84,9 +80,7 @@ class GetPostCommentReactionsSerializer(serializers.Serializer):
     )
 
     def validate(self, data):
-        post_comment_id_exists_for_post_with_id(
-            post_comment_id=data["post_comment_id"], post_id=data["post_id"]
-        )
+        post_comment_id_exists_for_post_with_id(post_comment_id=data["post_comment_id"], post_id=data["post_id"])
         return data
 
 
@@ -97,9 +91,7 @@ class PostCommentReactionEmojiGroupSerializer(serializers.ModelSerializer):
         emojis = obj.emojis.all().order_by("order")
 
         request = self.context["request"]
-        return PostCommentReactionEmojiSerializer(
-            emojis, many=True, context={"request": request}
-        ).data
+        return PostCommentReactionEmojiSerializer(emojis, many=True, context={"request": request}).data
 
     class Meta:
         model = EmojiGroup

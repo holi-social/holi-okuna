@@ -40,9 +40,7 @@ class CommunityItem(APIView):
         community = user.get_community_with_name(community_name)
 
         community_serializer = self._get_community_serializer()
-        response_serializer = community_serializer(
-            community, context={"request": request}
-        )
+        response_serializer = community_serializer(community, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -59,9 +57,7 @@ class CommunityItem(APIView):
 
     def patch(self, request, community_name):
         request_data = normalise_request_data(request.data)
-        normalize_list_value_in_request_data(
-            list_name="categories", request_data=request_data
-        )
+        normalize_list_value_in_request_data(list_name="categories", request_data=request_data)
         request_data["community_name"] = community_name
 
         serializer = UpdateCommunitySerializer(data=request_data)
@@ -96,9 +92,7 @@ class CommunityItem(APIView):
                 invites_enabled=invites_enabled,
             )
         community_serializer = self._get_community_serializer()
-        response_serializer = community_serializer(
-            community, context={"request": request}
-        )
+        response_serializer = community_serializer(community, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -124,13 +118,9 @@ class CommunityAvatar(APIView):
         avatar = data.get("avatar")
 
         with transaction.atomic():
-            community = user.update_community_with_name_avatar(
-                community_name, avatar=avatar
-            )
+            community = user.update_community_with_name_avatar(community_name, avatar=avatar)
 
-        response_serializer = CommunityAvatarCommunitySerializer(
-            community, context={"request": request}
-        )
+        response_serializer = CommunityAvatarCommunitySerializer(community, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -140,9 +130,7 @@ class CommunityAvatar(APIView):
         with transaction.atomic():
             community = user.delete_community_with_name_avatar(community_name)
 
-        response_serializer = CommunityAvatarCommunitySerializer(
-            community, context={"request": request}
-        )
+        response_serializer = CommunityAvatarCommunitySerializer(community, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -163,13 +151,9 @@ class CommunityCover(APIView):
         cover = data.get("cover")
 
         with transaction.atomic():
-            community = user.update_community_with_name_cover(
-                community_name, cover=cover
-            )
+            community = user.update_community_with_name_cover(community_name, cover=cover)
 
-        response_serializer = CommunityCoverCommunitySerializer(
-            community, context={"request": request}
-        )
+        response_serializer = CommunityCoverCommunitySerializer(community, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -179,9 +163,7 @@ class CommunityCover(APIView):
         with transaction.atomic():
             community = user.delete_community_with_name_cover(community_name)
 
-        response_serializer = CommunityCoverCommunitySerializer(
-            community, context={"request": request}
-        )
+        response_serializer = CommunityCoverCommunitySerializer(community, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -201,9 +183,7 @@ class FavoriteCommunity(APIView):
         with transaction.atomic():
             community = user.favorite_community_with_name(community_name)
 
-        response_serializer = FavoriteCommunityCommunitySerializer(
-            community, context={"request": request}
-        )
+        response_serializer = FavoriteCommunityCommunitySerializer(community, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
@@ -219,9 +199,7 @@ class FavoriteCommunity(APIView):
         with transaction.atomic():
             community = user.unfavorite_community_with_name(community_name)
 
-        response_serializer = FavoriteCommunityCommunitySerializer(
-            community, context={"request": request}
-        )
+        response_serializer = FavoriteCommunityCommunitySerializer(community, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -242,9 +220,7 @@ class LegacyExcludeTopPostsCommunity(APIView):
         with transaction.atomic():
             user.exclude_community_with_name_from_top_posts(community_name)
 
-        return ApiMessageResponse(
-            _("Community excluded from this feed"), status=status.HTTP_202_ACCEPTED
-        )
+        return ApiMessageResponse(_("Community excluded from this feed"), status=status.HTTP_202_ACCEPTED)
 
     def delete(self, request, community_name):
         request_data = normalise_request_data(request.data)
@@ -258,9 +234,7 @@ class LegacyExcludeTopPostsCommunity(APIView):
         with transaction.atomic():
             user.remove_exclusion_for_community_with_name_from_top_posts(community_name)
 
-        return ApiMessageResponse(
-            _("Community exclusion removed"), status=status.HTTP_202_ACCEPTED
-        )
+        return ApiMessageResponse(_("Community exclusion removed"), status=status.HTTP_202_ACCEPTED)
 
 
 class SubscribeToCommunityNewPostNotifications(APIView):
@@ -278,9 +252,7 @@ class SubscribeToCommunityNewPostNotifications(APIView):
         user = request.user
 
         with transaction.atomic():
-            community = user.enable_new_post_notifications_for_community_with_name(
-                community_name=community_name
-            )
+            community = user.enable_new_post_notifications_for_community_with_name(community_name=community_name)
 
         response_serializer = SubscribeToCommunityNotificationsCommunitySerializer(
             community, context={"request": request}
@@ -300,9 +272,7 @@ class SubscribeToCommunityNewPostNotifications(APIView):
         user = request.user
 
         with transaction.atomic():
-            community = user.disable_new_post_notifications_for_community_with_name(
-                community_name=community_name
-            )
+            community = user.disable_new_post_notifications_for_community_with_name(community_name=community_name)
 
         response_serializer = SubscribeToCommunityNotificationsCommunitySerializer(
             community, context={"request": request}

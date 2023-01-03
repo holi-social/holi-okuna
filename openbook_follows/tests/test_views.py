@@ -54,9 +54,7 @@ class ReceivedFollowRequestsAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_follow_requests = json.loads(
-            response.content, object_hook=uuid_id_parser
-        )
+        response_follow_requests = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_follow_requests), number_of_own_follow_requests)
 
@@ -80,13 +78,9 @@ class ReceivedFollowRequestsAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_follow_requests = json.loads(
-            response.content, object_hook=uuid_id_parser
-        )
+        response_follow_requests = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(
-            len(response_follow_requests), max_number_of_own_follow_requests
-        )
+        self.assertEqual(len(response_follow_requests), max_number_of_own_follow_requests)
 
     def test_cannot_retrieve_received_foreign_follow_requests(self):
         """should not be able to retrieve foreign follow requests and return 200"""
@@ -103,9 +97,7 @@ class ReceivedFollowRequestsAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        response_follow_requests = json.loads(
-            response.content, object_hook=uuid_id_parser
-        )
+        response_follow_requests = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_follow_requests), 0)
 
@@ -135,9 +127,7 @@ class RequestToFollowUserAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(
-            user_to_request_to_follow.has_follow_request_from_user(user=user)
-        )
+        self.assertTrue(user_to_request_to_follow.has_follow_request_from_user(user=user))
 
     def test_cannot_request_to_follow_oneself(self):
         """should not be able to request to follow oneself user and return 500"""
@@ -175,9 +165,7 @@ class RequestToFollowUserAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         self.assertEqual(
-            FollowRequest.objects.filter(
-                creator=user, target_user=user_to_request_to_follow
-            ).count(),
+            FollowRequest.objects.filter(creator=user, target_user=user_to_request_to_follow).count(),
             1,
         )
 
@@ -202,9 +190,7 @@ class RequestToFollowUserAPITests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-            self.assertFalse(
-                user_to_request_to_follow.has_follow_request_from_user(user=user)
-            )
+            self.assertFalse(user_to_request_to_follow.has_follow_request_from_user(user=user))
 
     def test_requesting_to_follow_user_creates_database_notification(self):
         """should create a database notification when sending a request notification to a user"""
@@ -232,9 +218,7 @@ class RequestToFollowUserAPITests(OpenbookAPITestCase):
         )
 
     @mock.patch("openbook_notifications.helpers.send_follow_request_push_notification")
-    def test_requesting_to_follow_user_creates_push_notification(
-        self, send_follow_request_push_notification
-    ):
+    def test_requesting_to_follow_user_creates_push_notification(self, send_follow_request_push_notification):
         """should create a push notification when sending a request notification to a user"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
@@ -251,26 +235,18 @@ class RequestToFollowUserAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        follow_request = FollowRequest.objects.get(
-            creator=user, target_user=user_to_request_to_follow
-        )
+        follow_request = FollowRequest.objects.get(creator=user, target_user=user_to_request_to_follow)
 
-        send_follow_request_push_notification.assert_called_with(
-            follow_request=follow_request
-        )
+        send_follow_request_push_notification.assert_called_with(follow_request=follow_request)
 
     @mock.patch("openbook_notifications.helpers._send_notification_to_user")
-    def test_requesting_to_follow_user_does_not_create_push_notification_if_disabled(
-        self, _send_notification_to_user
-    ):
+    def test_requesting_to_follow_user_does_not_create_push_notification_if_disabled(self, _send_notification_to_user):
         """should not create push notification when sending a request notification to a user if disabled"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
         user_to_request_to_follow = make_user(visibility=User.VISIBILITY_TYPE_PRIVATE)
-        user_to_request_to_follow.update_notifications_settings(
-            follow_request_notifications=False
-        )
+        user_to_request_to_follow.update_notifications_settings(follow_request_notifications=False)
 
         data = {
             "username": user_to_request_to_follow.username,
@@ -298,9 +274,7 @@ class CancelRequestToFollowUserAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        user_to_cancel_request_to_follow = make_user(
-            visibility=User.VISIBILITY_TYPE_PRIVATE
-        )
+        user_to_cancel_request_to_follow = make_user(visibility=User.VISIBILITY_TYPE_PRIVATE)
 
         user.create_follow_request_for_user(user_to_cancel_request_to_follow)
 
@@ -314,18 +288,14 @@ class CancelRequestToFollowUserAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertFalse(
-            user_to_cancel_request_to_follow.has_follow_request_from_user(user=user)
-        )
+        self.assertFalse(user_to_cancel_request_to_follow.has_follow_request_from_user(user=user))
 
     def test_cannot_cancel_request_to_follow_user_if_not_exists(self):
         """should not be able to cancel a non existing request to follow and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        user_to_cancel_request_to_follow = make_user(
-            visibility=User.VISIBILITY_TYPE_PRIVATE
-        )
+        user_to_cancel_request_to_follow = make_user(visibility=User.VISIBILITY_TYPE_PRIVATE)
 
         data = {
             "username": user_to_cancel_request_to_follow.username,
@@ -342,9 +312,7 @@ class CancelRequestToFollowUserAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        user_to_cancel_request_to_follow = make_user(
-            visibility=User.VISIBILITY_TYPE_PRIVATE
-        )
+        user_to_cancel_request_to_follow = make_user(visibility=User.VISIBILITY_TYPE_PRIVATE)
 
         user.create_follow_request_for_user(user_to_cancel_request_to_follow)
 
@@ -358,9 +326,7 @@ class CancelRequestToFollowUserAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertFalse(
-            user_to_cancel_request_to_follow.has_follow_request_from_user(user=user)
-        )
+        self.assertFalse(user_to_cancel_request_to_follow.has_follow_request_from_user(user=user))
 
         self.assertFalse(
             FollowRequestNotification.objects.filter(
@@ -416,9 +382,7 @@ class ApproveUserFollowRequestAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertFalse(
-            user.has_follow_request_from_user(user=user_requesting_to_follow)
-        )
+        self.assertFalse(user.has_follow_request_from_user(user=user_requesting_to_follow))
 
     def test_approving_a_follow_request_deletes_the_follow_request_database_notification(
         self,
@@ -473,9 +437,7 @@ class ApproveUserFollowRequestAPITests(OpenbookAPITestCase):
             1,
         )
 
-    @mock.patch(
-        "openbook_notifications.helpers.send_follow_request_approved_push_notification"
-    )
+    @mock.patch("openbook_notifications.helpers.send_follow_request_approved_push_notification")
     def test_approving_a_follow_request_send_approved_push_notification(
         self, send_follow_request_approved_push_notification
     ):
@@ -501,9 +463,7 @@ class ApproveUserFollowRequestAPITests(OpenbookAPITestCase):
         send_follow_request_approved_push_notification.assert_called_with(follow=follow)
 
     @mock.patch("openbook_notifications.helpers.send_follow_push_notification")
-    def test_approving_a_follow_request_does_not_send_a_follow_push_notification(
-        self, send_follow_push_notification
-    ):
+    def test_approving_a_follow_request_does_not_send_a_follow_push_notification(self, send_follow_push_notification):
         """should not send a user followed push notification when approving a follow request"""
         user = make_user(visibility=User.VISIBILITY_TYPE_PRIVATE)
         headers = make_authentication_headers_for_user(user)
@@ -533,9 +493,7 @@ class ApproveUserFollowRequestAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         user_requesting_to_follow = make_user()
-        user_requesting_to_follow.update_notifications_settings(
-            follow_request_approved_notifications=False
-        )
+        user_requesting_to_follow.update_notifications_settings(follow_request_approved_notifications=False)
         user_requesting_to_follow.create_follow_request_for_user(user=user)
 
         data = {
@@ -618,9 +576,7 @@ class RejectUserFollowRequestAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertFalse(
-            user.has_follow_request_from_user(user=user_requesting_to_follow)
-        )
+        self.assertFalse(user.has_follow_request_from_user(user=user_requesting_to_follow))
 
     def test_rejecting_a_follow_request_deletes_the_follow_request_database_notification(
         self,
@@ -674,9 +630,7 @@ class RejectUserFollowRequestAPITests(OpenbookAPITestCase):
             ).exists()
         )
 
-    @mock.patch(
-        "openbook_notifications.helpers.send_follow_request_approved_push_notification"
-    )
+    @mock.patch("openbook_notifications.helpers.send_follow_request_approved_push_notification")
     def test_rejecting_a_follow_request_does_not_create_push_notification(
         self, send_follow_request_approved_push_notification
     ):
@@ -772,9 +726,7 @@ class FollowAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         for list_id in lists_to_follow_ids:
-            self.assertTrue(
-                user.is_following_user_with_id_in_list_with_id(user_to_follow, list_id)
-            )
+            self.assertTrue(user.is_following_user_with_id_in_list_with_id(user_to_follow, list_id))
 
     def test_cannot_follow_with_existing_follow(self):
         """should not be able to follow a user already followed with and return 400"""
@@ -810,9 +762,7 @@ class FollowAPITests(OpenbookAPITestCase):
         response = self.client.post(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(
-            Follow.objects.filter(user=user, followed_user=user).count() == 0
-        )
+        self.assertTrue(Follow.objects.filter(user=user, followed_user=user).count() == 0)
 
     def test_follow_should_create_notification(self):
         """should create a notification when a user is followed"""
@@ -830,11 +780,7 @@ class FollowAPITests(OpenbookAPITestCase):
 
         self.client.post(url, data, **headers, format="multipart")
 
-        self.assertTrue(
-            FollowNotification.objects.filter(
-                follower=user, notification__owner=user_to_follow
-            ).exists()
-        )
+        self.assertTrue(FollowNotification.objects.filter(follower=user, notification__owner=user_to_follow).exists())
 
     def _get_url(self):
         return reverse("follow-user")
@@ -864,9 +810,7 @@ class UnfollowAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertFalse(
-            user.is_following_user_in_list(user_to_unfollow, list_to_follow)
-        )
+        self.assertFalse(user.is_following_user_in_list(user_to_unfollow, list_to_follow))
 
     def test_cannot_unfollow_from_unexisting_follow(self):
         """should not be able to unfollow from an unexisting follow and return 400"""
@@ -895,9 +839,7 @@ class UnfollowAPITest(OpenbookAPITestCase):
 
         user.follow_user(user_to_unfollow, lists_ids=[list_to_follow.pk])
 
-        follow_notification = FollowNotification.objects.get(
-            follower=user, notification__owner=user_to_unfollow
-        )
+        follow_notification = FollowNotification.objects.get(follower=user, notification__owner=user_to_unfollow)
         notification = Notification.objects.get(
             notification_type=Notification.FOLLOW, object_id=follow_notification.pk
         )
@@ -910,9 +852,7 @@ class UnfollowAPITest(OpenbookAPITestCase):
 
         self.client.post(url, data, **headers, format="multipart")
 
-        self.assertFalse(
-            FollowNotification.objects.filter(pk=follow_notification.pk).exists()
-        )
+        self.assertFalse(FollowNotification.objects.filter(pk=follow_notification.pk).exists())
         self.assertFalse(Notification.objects.filter(pk=notification.pk).exists())
 
     def _get_url(self):

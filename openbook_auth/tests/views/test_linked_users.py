@@ -30,9 +30,7 @@ class LinkedUsersAPITests(OpenbookAPITestCase):
         amount_of_followers_linked_users = 5
         amount_of_connected_linked_users = 5
 
-        amount_of_linked_users = (
-            amount_of_connected_linked_users + amount_of_followers_linked_users
-        )
+        amount_of_linked_users = amount_of_connected_linked_users + amount_of_followers_linked_users
 
         for i in range(0, amount_of_followers_linked_users):
             linked_follower_user = make_user()
@@ -83,9 +81,7 @@ class SearchLinkedUsersAPITests(OpenbookAPITestCase):
             query = linked_user_name[0:amount_of_characters_to_query]
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 
@@ -93,9 +89,7 @@ class SearchLinkedUsersAPITests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_linked_users = json.loads(
-                response.content, object_hook=uuid_id_parser
-            )
+            response_linked_users = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_linked_users)
 
             self.assertEqual(response_members_count, 1)
@@ -120,9 +114,7 @@ class SearchLinkedUsersAPITests(OpenbookAPITestCase):
             query = linked_user_username[0:amount_of_characters_to_query]
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 
@@ -130,9 +122,7 @@ class SearchLinkedUsersAPITests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            response_linked_users = json.loads(
-                response.content, object_hook=uuid_id_parser
-            )
+            response_linked_users = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_linked_users)
 
             self.assertEqual(response_members_count, 1)

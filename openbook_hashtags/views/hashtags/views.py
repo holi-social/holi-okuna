@@ -26,8 +26,6 @@ class SearchHashtags(APIView):
 
         hashtags = user.search_hashtags_with_query(query=query)
 
-        hashtags_serializer = GetHashtagHashtagSerializer(
-            hashtags[:count], many=True, context={"request": request}
-        )
+        hashtags_serializer = GetHashtagHashtagSerializer(hashtags[:count], many=True, context={"request": request})
 
         return Response(hashtags_serializer.data, status=status.HTTP_200_OK)

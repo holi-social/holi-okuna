@@ -15,9 +15,7 @@ from openbook_common.validators import hex_color_validator
 
 
 class CreateCircleSerializer(serializers.Serializer):
-    name = serializers.CharField(
-        max_length=CIRCLE_MAX_LENGTH, required=True, allow_blank=False
-    )
+    name = serializers.CharField(max_length=CIRCLE_MAX_LENGTH, required=True, allow_blank=False)
     color = serializers.CharField(
         max_length=COLOR_ATTR_MAX_LENGTH,
         required=True,
@@ -32,9 +30,7 @@ class DeleteCircleSerializer(serializers.Serializer):
 
 class UpdateCircleSerializer(serializers.Serializer):
     circle_id = serializers.UUIDField(required=True, validators=[circle_id_exists])
-    name = serializers.CharField(
-        max_length=CIRCLE_MAX_LENGTH, required=False, allow_blank=False
-    )
+    name = serializers.CharField(max_length=CIRCLE_MAX_LENGTH, required=False, allow_blank=False)
     color = serializers.CharField(
         max_length=COLOR_ATTR_MAX_LENGTH,
         required=False,
@@ -60,9 +56,7 @@ class CircleUserProfileBadgeSerializer(serializers.ModelSerializer):
 
 
 class CircleUserProfileSerializer(serializers.ModelSerializer):
-    avatar = serializers.ImageField(
-        max_length=None, use_url=True, allow_null=True, required=False
-    )
+    avatar = serializers.ImageField(max_length=None, use_url=True, allow_null=True, required=False)
     badges = CircleUserProfileBadgeSerializer(many=True)
 
     class Meta:
@@ -100,6 +94,4 @@ class GetCircleCircleSerializer(serializers.ModelSerializer):
 
 
 class CircleNameCheckSerializer(serializers.Serializer):
-    name = serializers.CharField(
-        max_length=CIRCLE_MAX_LENGTH, required=True, allow_blank=False, validators=[]
-    )
+    name = serializers.CharField(max_length=CIRCLE_MAX_LENGTH, required=True, allow_blank=False, validators=[])

@@ -11,9 +11,7 @@ from openbook_communities.models import Community
 
 # Create your models here.
 class Device(ModelWithUUID):
-    owner = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="devices", null=False
-    )
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="devices", null=False)
     uuid = models.CharField(
         _("uuid"),
         null=False,
@@ -21,9 +19,7 @@ class Device(ModelWithUUID):
         unique=False,
         max_length=settings.DEVICE_UUID_MAX_LENGTH,
     )
-    name = models.CharField(
-        _("name"), max_length=settings.DEVICE_NAME_MAX_LENGTH, blank=False, null=True
-    )
+    name = models.CharField(_("name"), max_length=settings.DEVICE_NAME_MAX_LENGTH, blank=False, null=True)
     created = models.DateTimeField(editable=False)
 
     class Meta:

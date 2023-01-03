@@ -100,9 +100,7 @@ class CommunityMembershipSerializer(serializers.ModelSerializer):
 
 
 class PostCommunitySerializer(serializers.ModelSerializer):
-    memberships = CommunityMembershipsField(
-        community_membership_serializer=CommunityMembershipSerializer
-    )
+    memberships = CommunityMembershipsField(community_membership_serializer=CommunityMembershipSerializer)
 
     class Meta:
         model = Community
@@ -134,9 +132,7 @@ class GetPostPostSerializer(serializers.ModelSerializer):
         post_creator_serializer=CommonPublicUserSerializer,
         community_membership_serializer=CommunityMembershipSerializer,
     )
-    reactions_emoji_counts = PostReactionsEmojiCountField(
-        emoji_count_serializer=PostEmojiCountSerializer
-    )
+    reactions_emoji_counts = PostReactionsEmojiCountField(emoji_count_serializer=PostEmojiCountSerializer)
     reaction = ReactionField(reaction_serializer=PostReactionSerializer)
     comments_count = CommentsCountField()
     circles = CirclesField(circle_serializer=PostCircleSerializer)
@@ -219,9 +215,7 @@ class SearchPostParticipantsSerializer(serializers.Serializer):
         validators=[post_id_exists],
         required=True,
     )
-    query = serializers.CharField(
-        max_length=settings.SEARCH_QUERIES_MAX_LENGTH, required=True
-    )
+    query = serializers.CharField(max_length=settings.SEARCH_QUERIES_MAX_LENGTH, required=True)
     count = serializers.IntegerField(required=False, default=10, max_value=10)
 
 

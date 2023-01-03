@@ -75,9 +75,7 @@ class LoginSerializer(serializers.Serializer):
         allow_blank=False,
         validators=[username_characters_validator],
     )
-    password = serializers.CharField(
-        min_length=PASSWORD_MIN_LENGTH, max_length=PASSWORD_MAX_LENGTH
-    )
+    password = serializers.CharField(min_length=PASSWORD_MIN_LENGTH, max_length=PASSWORD_MAX_LENGTH)
 
 
 class AuthenticatedUserNotificationsSettingsSerializer(serializers.ModelSerializer):

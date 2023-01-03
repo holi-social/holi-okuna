@@ -16,9 +16,7 @@ class Command(BaseCommand):
         PostComment = get_post_comment_model()
 
         comments_to_process = (
-            PostComment.objects.filter(hashtags__isnull=True, text__icontains="#")
-            .only("id", "text")
-            .all()
+            PostComment.objects.filter(hashtags__isnull=True, text__icontains="#").only("id", "text").all()
         )
         migrated_postComments = 0
 
@@ -27,9 +25,7 @@ class Command(BaseCommand):
                 comment._process_post_comment_hashtags()
             except Exception as e:
                 logger.info(f"Failed to process hashtags with error {str(e)}")
-            logger.info(
-                "Processed hashtags for post comment with id:" + str(comment.pk)
-            )
+            logger.info("Processed hashtags for post comment with id:" + str(comment.pk))
             migrated_postComments = migrated_postComments + 1
 
         logger.info("Processed %d post comments for hashtags", migrated_postComments)

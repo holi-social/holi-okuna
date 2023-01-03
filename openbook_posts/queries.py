@@ -62,18 +62,13 @@ def make_exclude_closed_posts_query():
     return Q(is_closed=False)
 
 
-def make_exclude_blocked_community_posts_for_user_and_community_with_ids(
-    user_id, community_id
-):
+def make_exclude_blocked_community_posts_for_user_and_community_with_ids(user_id, community_id):
     # Don't retrieve posts of blocked users, except if they're staff members
     blocked_users_query = ~Q(
-        Q(creator__blocked_by_users__blocker_id=user_id)
-        | Q(creator__user_blocks__blocked_user_id=user_id)
+        Q(creator__blocked_by_users__blocker_id=user_id) | Q(creator__user_blocks__blocked_user_id=user_id)
     )
 
-    blocked_users_query_staff_members = Q(
-        creator__communities_memberships__community_id=community_id
-    )
+    blocked_users_query_staff_members = Q(creator__communities_memberships__community_id=community_id)
     blocked_users_query_staff_members.add(
         Q(creator__communities_memberships__is_administrator=True)
         | Q(creator__communities_memberships__is_moderator=True),
@@ -98,10 +93,7 @@ def make_exclude_community_posts_query():
 
 
 def make_exclude_blocked_posts_for_user_with_id_query(user_id):
-    return ~Q(
-        Q(creator__blocked_by_users__blocker_id=user_id)
-        | Q(creator__user_blocks__blocked_user_id=user_id)
-    )
+    return ~Q(Q(creator__blocked_by_users__blocker_id=user_id) | Q(creator__user_blocks__blocked_user_id=user_id))
 
 
 def make_only_public_community_posts_query():
@@ -118,16 +110,12 @@ def make_only_world_circle_posts_query():
 
 
 def make_only_public_posts_query():
-    return (
-        make_only_public_community_posts_query() | make_only_world_circle_posts_query()
-    )
+    return make_only_public_community_posts_query() | make_only_world_circle_posts_query()
 
 
 def make_get_hashtag_posts_for_user_with_id_query(hashtag, user_id):
     # Retrieve posts with the given hashtag
-    hashtag_posts_query = make_only_posts_with_hashtag_with_id_query(
-        hashtag_id=hashtag.pk
-    )
+    hashtag_posts_query = make_only_posts_with_hashtag_with_id_query(hashtag_id=hashtag.pk)
 
     # Only retrieve public posts
     hashtag_posts_query.add(make_only_public_posts_query(), Q.AND)
@@ -136,9 +124,7 @@ def make_get_hashtag_posts_for_user_with_id_query(hashtag, user_id):
     hashtag_posts_query.add(make_exclude_soft_deleted_posts_query(), Q.AND)
 
     # Don't retrieve posts from blocked people
-    hashtag_posts_query.add(
-        make_exclude_blocked_posts_for_user_with_id_query(user_id=user_id), Q.AND
-    )
+    hashtag_posts_query.add(make_exclude_blocked_posts_for_user_with_id_query(user_id=user_id), Q.AND)
 
     # Only retrieve published posts
     hashtag_posts_query.add(make_only_published_posts_query(), Q.AND)
@@ -147,15 +133,11 @@ def make_get_hashtag_posts_for_user_with_id_query(hashtag, user_id):
     hashtag_posts_query.add(make_exclude_reported_and_approved_posts_query(), Q.AND)
 
     # Don't retrieve items we have reported
-    hashtag_posts_query.add(
-        make_exclude_reported_posts_by_user_with_id_query(user_id=user_id), Q.AND
-    )
+    hashtag_posts_query.add(make_exclude_reported_posts_by_user_with_id_query(user_id=user_id), Q.AND)
 
     # Don't retrieve posts from communities we're  banned from
     hashtag_posts_query.add(
-        make_exclude_community_posts_banned_from_for_user_with_id_query(
-            user_id=user_id
-        ),
+        make_exclude_community_posts_banned_from_for_user_with_id_query(user_id=user_id),
         Q.AND,
     )
 
@@ -167,8 +149,7 @@ def make_get_hashtag_posts_for_user_with_id_query(hashtag, user_id):
 
 def make_circles_posts_query_for_user(user):
     target_user_circles_posts_query = (
-        make_only_posts_of_circles_part_for_user_with_id_query(user_id=user.pk)
-        | make_only_world_circle_posts_query()
+        make_only_posts_of_circles_part_for_user_with_id_query(user_id=user.pk) | make_only_world_circle_posts_query()
     )
 
     return target_user_circles_posts_query

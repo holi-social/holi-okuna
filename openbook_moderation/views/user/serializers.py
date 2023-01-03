@@ -70,9 +70,7 @@ class ModerationPenaltyUserSerializer(serializers.ModelSerializer):
         fields = ("id", "username", "profile")
 
 
-class ModerationPenaltyModeratedObjectUserProfileSerializer(
-    serializers.ModelSerializer
-):
+class ModerationPenaltyModeratedObjectUserProfileSerializer(serializers.ModelSerializer):
     badges = ModeratedObjectUserProfileBadgeSerializer(many=True)
 
     class Meta:
@@ -111,9 +109,7 @@ class ModerationPenaltyModeratedObjectPostSerializer(serializers.ModelSerializer
         fields = ("id", "text", "language", "creator", "community", "image", "created")
 
 
-class ModerationPenaltyModeratedObjectPostCommentSerializer(
-    serializers.ModelSerializer
-):
+class ModerationPenaltyModeratedObjectPostCommentSerializer(serializers.ModelSerializer):
     commenter = ModerationPenaltyModeratedObjectUserSerializer()
     post = ModerationPenaltyModeratedObjectPostSerializer()
     language = LanguageSerializer()

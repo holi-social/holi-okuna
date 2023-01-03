@@ -15,9 +15,7 @@ class CommunityNewPostNotification(ModelWithUUID):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
 
     @classmethod
-    def create_community_new_post_notification(
-        cls, community_notifications_subscription_id, post_id, owner_id
-    ):
+    def create_community_new_post_notification(cls, community_notifications_subscription_id, post_id, owner_id):
         community_new_post_notification = cls.objects.create(
             post_id=post_id,
             community_notifications_subscription_id=community_notifications_subscription_id,
@@ -30,9 +28,7 @@ class CommunityNewPostNotification(ModelWithUUID):
         return community_new_post_notification
 
     @classmethod
-    def delete_community_new_post_notification(
-        cls, community_notifications_subscription_id, post_id, owner_id
-    ):
+    def delete_community_new_post_notification(cls, community_notifications_subscription_id, post_id, owner_id):
         cls.objects.filter(
             community_notifications_subscription_id=community_notifications_subscription_id,
             post_id=post_id,

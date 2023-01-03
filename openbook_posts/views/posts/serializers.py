@@ -36,9 +36,7 @@ class GetPostsSerializer(serializers.Serializer):
         required=False,
         child=serializers.UUIDField(validators=[circle_id_exists]),
     )
-    list_id = serializers.ListField(
-        required=False, child=serializers.UUIDField(validators=[list_id_exists])
-    )
+    list_id = serializers.ListField(required=False, child=serializers.UUIDField(validators=[list_id_exists]))
     max_id = serializers.IntegerField(
         required=False,
     )
@@ -162,9 +160,7 @@ class CommunityMembershipSerializer(serializers.ModelSerializer):
 
 
 class PostCommunitySerializer(serializers.ModelSerializer):
-    memberships = CommunityMembershipsField(
-        community_membership_serializer=CommunityMembershipSerializer
-    )
+    memberships = CommunityMembershipsField(community_membership_serializer=CommunityMembershipSerializer)
 
     class Meta:
         model = Community
@@ -190,9 +186,7 @@ class PostLanguageSerializer(serializers.ModelSerializer):
 
 
 class PostImageSerializer(serializers.ModelSerializer):
-    image = serializers.ImageField(
-        read_only=True, required=False, allow_empty_file=True
-    )
+    image = serializers.ImageField(read_only=True, required=False, allow_empty_file=True)
 
     class Meta:
         model = PostImage
@@ -204,9 +198,7 @@ class AuthenticatedUserPostSerializer(serializers.ModelSerializer):
         post_creator_serializer=CommonPublicUserSerializer,
         community_membership_serializer=CommunityMembershipSerializer,
     )
-    reactions_emoji_counts = PostReactionsEmojiCountField(
-        emoji_count_serializer=PostEmojiCountSerializer
-    )
+    reactions_emoji_counts = PostReactionsEmojiCountField(emoji_count_serializer=PostEmojiCountSerializer)
     reaction = ReactionField(reaction_serializer=PostReactionSerializer)
     comments_count = CommentsCountField()
     circles = CirclesField(circle_serializer=PostCircleSerializer)
@@ -262,9 +254,7 @@ class UnauthenticatedUserPostSerializer(serializers.ModelSerializer):
         post_creator_serializer=CommonPublicUserSerializer,
         community_membership_serializer=CommunityMembershipSerializer,
     )
-    reactions_emoji_counts = PostReactionsEmojiCountField(
-        emoji_count_serializer=PostEmojiCountSerializer
-    )
+    reactions_emoji_counts = PostReactionsEmojiCountField(emoji_count_serializer=PostEmojiCountSerializer)
     comments_count = CommentsCountField()
     language = PostLanguageSerializer()
     hashtags = CommonHashtagSerializer(many=True)

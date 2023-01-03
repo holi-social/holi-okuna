@@ -43,9 +43,7 @@ class ConnectionsAPITests(OpenbookAPITestCase):
         circle = mixer.blend(Circle, creator=user)
 
         users_to_connect = mixer.cycle(5).blend(User)
-        user_to_connect_ids = [
-            user_to_connect.pk for user_to_connect in users_to_connect
-        ]
+        user_to_connect_ids = [user_to_connect.pk for user_to_connect in users_to_connect]
 
         for user_to_connect in users_to_connect:
             user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[circle.pk])
@@ -95,13 +93,9 @@ class ConnectAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+        self.assertTrue(user.is_connected_with_user_in_circle(user_to_connect, circle_to_connect))
         self.assertTrue(
-            user.is_connected_with_user_in_circle(user_to_connect, circle_to_connect)
-        )
-        self.assertTrue(
-            user.is_connected_with_user_with_id_in_circle_with_id(
-                user_to_connect.pk, user.connections_circle_id
-            )
+            user.is_connected_with_user_with_id_in_circle_with_id(user_to_connect.pk, user.connections_circle_id)
         )
 
     def test_connect_autofollows(self):
@@ -153,16 +147,10 @@ class ConnectAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         for circle_id in circles_to_connect_ids:
-            self.assertTrue(
-                user.is_connected_with_user_with_id_in_circle_with_id(
-                    user_to_connect, circle_id
-                )
-            )
+            self.assertTrue(user.is_connected_with_user_with_id_in_circle_with_id(user_to_connect, circle_id))
 
         self.assertTrue(
-            user.is_connected_with_user_with_id_in_circle_with_id(
-                user_to_connect.pk, user.connections_circle_id
-            )
+            user.is_connected_with_user_with_id_in_circle_with_id(user_to_connect.pk, user.connections_circle_id)
         )
 
     def test_cannot_connect_with_existing_connection(self):
@@ -172,9 +160,7 @@ class ConnectAPITests(OpenbookAPITestCase):
         circle_to_connect = mixer.blend(Circle, creator=user)
         user_to_connect = make_user()
 
-        user.connect_with_user_with_id(
-            user_to_connect.pk, circles_ids=[circle_to_connect.pk]
-        )
+        user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[circle_to_connect.pk])
 
         headers = make_authentication_headers_for_user(user)
 
@@ -254,9 +240,7 @@ class ConnectAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(
-            user_to_connect.is_connected_with_user_with_id(user_id=user.pk)
-        )
+        self.assertFalse(user_to_connect.is_connected_with_user_with_id(user_id=user.pk))
 
     def test_can_connect_with_private_visibility_user_previously_following(self):
         """should be able to connect with a private visibility user having previously followed it and return 400"""
@@ -321,9 +305,7 @@ class DisconnectAPITest(OpenbookAPITestCase):
         circle_to_connect = mixer.blend(Circle, creator=user)
         user_to_connect = make_user()
 
-        user.connect_with_user_with_id(
-            user_to_connect.pk, circles_ids=[circle_to_connect.pk]
-        )
+        user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[circle_to_connect.pk])
 
         headers = make_authentication_headers_for_user(user)
 
@@ -335,9 +317,7 @@ class DisconnectAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertFalse(
-            user.is_connected_with_user_in_circle(user_to_connect, circle_to_connect)
-        )
+        self.assertFalse(user.is_connected_with_user_in_circle(user_to_connect, circle_to_connect))
 
     def test_disconnect_unfollows(self):
         """should automatically unfollow a user it disconnects from"""
@@ -346,9 +326,7 @@ class DisconnectAPITest(OpenbookAPITestCase):
         circle_to_connect = mixer.blend(Circle, creator=user)
         user_to_connect = make_user()
 
-        user.connect_with_user_with_id(
-            user_to_connect.pk, circles_ids=[circle_to_connect.pk]
-        )
+        user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[circle_to_connect.pk])
         user_to_connect.confirm_connection_with_user_with_id(user.pk)
 
         headers = make_authentication_headers_for_user(user)
@@ -406,9 +384,7 @@ class DisconnectAPITest(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertFalse(
-            ConnectionConfirmedNotification.objects.filter(
-                pk=connection_confirmed_notification.pk
-            ).exists()
+            ConnectionConfirmedNotification.objects.filter(pk=connection_confirmed_notification.pk).exists()
         )
         self.assertFalse(Notification.objects.filter(pk=notification.pk).exists())
 
@@ -438,9 +414,7 @@ class DisconnectAPITest(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertFalse(
-            ConnectionConfirmedNotification.objects.filter(
-                pk=connection_confirmed_notification.pk
-            ).exists()
+            ConnectionConfirmedNotification.objects.filter(pk=connection_confirmed_notification.pk).exists()
         )
         self.assertFalse(Notification.objects.filter(pk=notification.pk).exists())
 
@@ -471,11 +445,7 @@ class DisconnectAPITest(OpenbookAPITestCase):
         response = self.client.post(url, data, **headers, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertFalse(
-            ConnectionRequestNotification.objects.filter(
-                pk=connection_request_notification.pk
-            ).exists()
-        )
+        self.assertFalse(ConnectionRequestNotification.objects.filter(pk=connection_request_notification.pk).exists())
         self.assertFalse(Notification.objects.filter(pk=notification.pk).exists())
 
     def _get_url(self):
@@ -496,9 +466,7 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
         circle_to_connect = mixer.blend(Circle, creator=user)
         user_to_connect = make_user()
 
-        user.connect_with_user_with_id(
-            user_to_connect.pk, circles_ids=[circle_to_connect.pk]
-        )
+        user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[circle_to_connect.pk])
 
         new_circle = mixer.blend(Circle, creator=user)
 
@@ -512,16 +480,10 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        self.assertTrue(user.is_connected_with_user_in_circle(user_to_connect, new_circle))
+        self.assertFalse(user.is_connected_with_user_in_circle(user_to_connect, circle_to_connect))
         self.assertTrue(
-            user.is_connected_with_user_in_circle(user_to_connect, new_circle)
-        )
-        self.assertFalse(
-            user.is_connected_with_user_in_circle(user_to_connect, circle_to_connect)
-        )
-        self.assertTrue(
-            user.is_connected_with_user_with_id_in_circle_with_id(
-                user_to_connect.pk, user.connections_circle_id
-            )
+            user.is_connected_with_user_with_id_in_circle_with_id(user_to_connect.pk, user.connections_circle_id)
         )
 
     def test_update_connect_multiple_circles(self):
@@ -531,9 +493,7 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
 
         initial_circle_to_connect_in = mixer.blend(Circle, creator=user)
 
-        user.connect_with_user_with_id(
-            user_to_connect.pk, circles_ids=[initial_circle_to_connect_in.pk]
-        )
+        user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[initial_circle_to_connect_in.pk])
 
         amount_of_circles = 4
         new_circles_to_connect_ids = []
@@ -561,17 +521,13 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
         connection_circles_ids = [circle.pk for circle in connection.circles.all()]
 
         # Plus one because the connections circle will be there
-        self.assertEqual(
-            len(new_circles_to_connect_ids) + 1, len(connection_circles_ids)
-        )
+        self.assertEqual(len(new_circles_to_connect_ids) + 1, len(connection_circles_ids))
 
         for circle_id in new_circles_to_connect_ids:
             self.assertIn(circle_id, connection_circles_ids)
 
         self.assertTrue(
-            user.is_connected_with_user_with_id_in_circle_with_id(
-                user_to_connect.pk, user.connections_circle_id
-            )
+            user.is_connected_with_user_with_id_in_circle_with_id(user_to_connect.pk, user.connections_circle_id)
         )
 
     def test_cannot_update_unexisting_connection(self):
@@ -626,9 +582,7 @@ class ConfirmConnectionAPITest(OpenbookAPITestCase):
 
         # Check user got automatically added to connections circle
         connection = user_to_connect.get_connection_for_user_with_id(user.pk)
-        self.assertTrue(
-            connection.circles.filter(id=user_to_connect.connections_circle_id).exists()
-        )
+        self.assertTrue(connection.circles.filter(id=user_to_connect.connections_circle_id).exists())
 
     def test_confirm_connection_autofollows(self):
         """should autofollow the user it confirms the connection with"""

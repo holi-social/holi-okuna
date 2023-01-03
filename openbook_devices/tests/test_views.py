@@ -194,9 +194,7 @@ class DeviceItemAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertTrue(
-            Device.objects.filter(uuid=device.uuid, name=new_device_name).exists()
-        )
+        self.assertTrue(Device.objects.filter(uuid=device.uuid, name=new_device_name).exists())
 
     def test_can_update_a_device_updatable_arguments_at_once(self):
         """should be able to update a device updatable_arguments at once and return 200"""

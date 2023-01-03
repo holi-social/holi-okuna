@@ -103,9 +103,7 @@ class zip_parser:
 
         return size
 
-    def _get_files_from_directory(
-        self, dir_name, zipf, directory=False, filename=False
-    ):
+    def _get_files_from_directory(self, dir_name, zipf, directory=False, filename=False):
 
         files = set()
         for entry in zipf.filelist:
@@ -181,9 +179,7 @@ class zip_parser:
         for album in albums:
             for value in album.values():
                 for file in value["photos"]:
-                    file["uri"] = self._get_fd_from_file(
-                        temp.name, "photos_and_videos", file["uri"], zipf, mode="rb"
-                    )
+                    file["uri"] = self._get_fd_from_file(temp.name, "photos_and_videos", file["uri"], zipf, mode="rb")
 
         return albums
 
@@ -204,9 +200,7 @@ class zip_parser:
             sort_string.append(full_name)
             sort_string.sort()
 
-            friend_string = f"{':'.join(sort_string)}:{friend['timestamp']}".encode(
-                "utf-8"
-            )
+            friend_string = f"{':'.join(sort_string)}:{friend['timestamp']}".encode("utf-8")
 
             friends_hash.append(sha3_256(friend_string).hexdigest())
             sort_string = []
@@ -224,9 +218,7 @@ class zip_parser:
 
                 if "photos" in m.keys():
                     for p in m["photos"]:
-                        p["uri"] = self._get_fd_from_file(
-                            temp.name, "messages", p["uri"], zipf
-                        )
+                        p["uri"] = self._get_fd_from_file(temp.name, "messages", p["uri"], zipf)
         else:
             raise KeyError("key messages not found in json")
 
@@ -234,9 +226,7 @@ class zip_parser:
 
     def _extract_messages(self, zipf):
 
-        message_json = self._get_files_from_directory(
-            "messages", zipf, filename="message.json"
-        )
+        message_json = self._get_files_from_directory("messages", zipf, filename="message.json")
         messages = []
         for message in message_json:
             messages.append(self._parse_message(zipf, message))

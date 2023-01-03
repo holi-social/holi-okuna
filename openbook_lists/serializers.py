@@ -11,9 +11,7 @@ from openbook_lists.validators import list_id_exists
 
 
 class CreateListSerializer(serializers.Serializer):
-    name = serializers.CharField(
-        max_length=LIST_MAX_LENGTH, required=True, allow_blank=False
-    )
+    name = serializers.CharField(max_length=LIST_MAX_LENGTH, required=True, allow_blank=False)
     emoji_id = serializers.UUIDField(validators=[emoji_id_exists])
 
 
@@ -23,9 +21,7 @@ class DeleteListSerializer(serializers.Serializer):
 
 class UpdateListSerializer(serializers.Serializer):
     list_id = serializers.UUIDField(required=False, validators=[list_id_exists])
-    name = serializers.CharField(
-        max_length=LIST_MAX_LENGTH, required=False, allow_blank=False
-    )
+    name = serializers.CharField(max_length=LIST_MAX_LENGTH, required=False, allow_blank=False)
     emoji_id = serializers.UUIDField(validators=[emoji_id_exists], required=False)
     usernames = serializers.ListSerializer(
         required=False,
@@ -46,9 +42,7 @@ class ListUserProfileBadgeSerializer(serializers.ModelSerializer):
 
 
 class ListUserProfileSerializer(serializers.ModelSerializer):
-    avatar = serializers.ImageField(
-        max_length=None, use_url=True, allow_null=True, required=False
-    )
+    avatar = serializers.ImageField(max_length=None, use_url=True, allow_null=True, required=False)
     badges = ListUserProfileBadgeSerializer(many=True)
 
     class Meta:
@@ -87,9 +81,7 @@ class GetListsListSerializer(serializers.ModelSerializer):
 
 
 class ListNameCheckSerializer(serializers.Serializer):
-    name = serializers.CharField(
-        max_length=LIST_MAX_LENGTH, required=True, allow_blank=False, validators=[]
-    )
+    name = serializers.CharField(max_length=LIST_MAX_LENGTH, required=True, allow_blank=False, validators=[])
 
 
 class GetListListSerializer(serializers.ModelSerializer):

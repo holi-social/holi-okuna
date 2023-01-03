@@ -26,9 +26,7 @@ def get_posts_for_user_collection(
     posts_collection_manager = Post.objects
 
     if posts_prefetch_related:
-        posts_collection_manager = posts_collection_manager.prefetch_related(
-            *posts_prefetch_related
-        )
+        posts_collection_manager = posts_collection_manager.prefetch_related(*posts_prefetch_related)
 
     if posts_only:
         posts_collection_manager = posts_collection_manager.only(*posts_only)
@@ -81,8 +79,4 @@ def get_posts_for_user_collection(
         Q(community__banned_users__id=source_user.pk)
     )
 
-    return (
-        posts_collection_manager.filter(query)
-        .exclude(posts_visibility_exclude_query)
-        .distinct()
-    )
+    return posts_collection_manager.filter(query).exclude(posts_visibility_exclude_query).distinct()

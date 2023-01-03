@@ -56,15 +56,11 @@ class ImagekitIoStorage(Storage):
 
         options = {"folder": object_type, "tags": tags}
         content.name = object_id + _get_file_extension(filename)
-        upload = self.imagekit.upload(
-            file=content, file_name=content.name, options=options
-        )
+        upload = self.imagekit.upload(file=content, file_name=content.name, options=options)
 
         if old_files and old_files["response"]:
             self.delete_images(map(lambda file: file["fileId"], old_files["response"]))
-            logger.info(
-                "deleted %s old versions of the file", len(old_files["response"])
-            )
+            logger.info("deleted %s old versions of the file", len(old_files["response"]))
 
         # once, the container did not start because part of the return statement was None. Therefore I integrated logging for analysis next time around.
         logger.info("UPLOAD result: %s", upload)
@@ -90,9 +86,7 @@ class ImagekitIoStorage(Storage):
                     error,
                 )
         except RequestException:
-            logger.warning(
-                "Could not delete image file with fileId: %s.", file_id, exc_info=True
-            )
+            logger.warning("Could not delete image file with fileId: %s.", file_id, exc_info=True)
 
     def _get_file_id(self, url):
         filename = os.path.basename(url)

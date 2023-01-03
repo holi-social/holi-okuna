@@ -12,9 +12,7 @@ class ConnectionAcceptedNotification(ModelWithUUID):
 
     @classmethod
     def create_connection_accepted_notification(cls, connected_user_id, owner_id):
-        connection_accepted_notification = cls.objects.create(
-            connected_user_id=connected_user_id
-        )
+        connection_accepted_notification = cls.objects.create(connected_user_id=connected_user_id)
         Notification.create_notification(
             type=Notification.CONNECTION_ACCEPTED,
             content_object=connection_accepted_notification,
@@ -23,12 +21,10 @@ class ConnectionAcceptedNotification(ModelWithUUID):
         return connection_accepted_notification
 
     @classmethod
-    def delete_connection_accepted_notification_for_users_with_ids(
-        cls, user_a_id, user_b_id
-    ):
-        notification_query = Q(
-            connected_user_id=user_a_id, notification__owner_id=user_b_id
-        ) | Q(connected_user_id=user_b_id, notification__owner_id=user_a_id)
+    def delete_connection_accepted_notification_for_users_with_ids(cls, user_a_id, user_b_id):
+        notification_query = Q(connected_user_id=user_a_id, notification__owner_id=user_b_id) | Q(
+            connected_user_id=user_b_id, notification__owner_id=user_a_id
+        )
 
         cls.objects.filter(notification_query).delete()
 

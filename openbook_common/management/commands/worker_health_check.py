@@ -30,8 +30,7 @@ class Command(BaseCommand):
 
             if active_job_count >= ACTIVE_JOB_THRESHOLD:
                 send_alert_to_channel(
-                    f"*UH-OH: we have way too many active jobs "
-                    f"in {env}:{queue} right now: {active_job_count}!!*"
+                    f"*UH-OH: we have way too many active jobs " f"in {env}:{queue} right now: {active_job_count}!!*"
                 )
                 print(f"{queue} has too many jobs {active_job_count}")
                 self.retval += 1
@@ -40,9 +39,7 @@ class Command(BaseCommand):
 
             if active_worker_count >= ACTIVE_WORKER_THRESHOLD:
                 send_alert_to_channel(
-                    f"*Hmm, we are not supposed to have "
-                    f"{active_worker_count} workers in "
-                    f"{env}:{queue}*"
+                    f"*Hmm, we are not supposed to have " f"{active_worker_count} workers in " f"{env}:{queue}*"
                 )
                 print(f"{queue} has too many workers {active_worker_count}")
 

@@ -238,13 +238,9 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
         circle = make_circle(creator=user_to_connect)
 
         user.connect_with_user_with_id(user_to_connect.pk)
-        user_to_connect.confirm_connection_with_user_with_id(
-            user.pk, circles_ids=[circle.pk]
-        )
+        user_to_connect.confirm_connection_with_user_with_id(user.pk, circles_ids=[circle.pk])
 
-        post = user_to_connect.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        post = user_to_connect.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         emoji_group = make_reactions_emoji_group()
 
@@ -273,19 +269,13 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
         circle = make_circle(creator=user_to_connect)
 
         user.connect_with_user_with_id(user_to_connect.pk)
-        user_to_connect.confirm_connection_with_user_with_id(
-            user.pk, circles_ids=[circle.pk]
-        )
+        user_to_connect.confirm_connection_with_user_with_id(user.pk, circles_ids=[circle.pk])
 
         foreign_user = make_user()
         foreign_user.connect_with_user_with_id(user_to_connect.pk)
-        user_to_connect.confirm_connection_with_user_with_id(
-            foreign_user.pk, circles_ids=[circle.pk]
-        )
+        user_to_connect.confirm_connection_with_user_with_id(foreign_user.pk, circles_ids=[circle.pk])
 
-        post = user_to_connect.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        post = user_to_connect.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         emoji_group = make_reactions_emoji_group()
 
@@ -315,13 +305,9 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
 
         foreign_user = make_user()
         foreign_user.connect_with_user_with_id(user_to_connect.pk)
-        user_to_connect.confirm_connection_with_user_with_id(
-            foreign_user.pk, circles_ids=[circle.pk]
-        )
+        user_to_connect.confirm_connection_with_user_with_id(foreign_user.pk, circles_ids=[circle.pk])
 
-        post = user_to_connect.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        post = user_to_connect.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         emoji_group = make_reactions_emoji_group()
 
@@ -407,13 +393,9 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
 
         foreign_user = make_user()
         foreign_user.connect_with_user_with_id(user_to_follow.pk)
-        user_to_follow.confirm_connection_with_user_with_id(
-            foreign_user.pk, circles_ids=[circle.pk]
-        )
+        user_to_follow.confirm_connection_with_user_with_id(foreign_user.pk, circles_ids=[circle.pk])
 
-        post = user_to_follow.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        post = user_to_follow.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         emoji_group = make_reactions_emoji_group()
 
@@ -462,11 +444,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         self.client.delete(url, **headers)
 
-        self.assertFalse(
-            PostReactionNotification.objects.filter(
-                pk=post_reaction_notification.pk
-            ).exists()
-        )
+        self.assertFalse(PostReactionNotification.objects.filter(pk=post_reaction_notification.pk).exists())
         self.assertFalse(Notification.objects.filter(pk=notification.pk).exists())
 
     def _get_url(self, post, post_reaction):

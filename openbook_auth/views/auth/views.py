@@ -111,9 +111,7 @@ class UsernameCheck(APIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         # The serializer contains the username checks, meaning at this line, it's all good.
-        return ApiMessageResponse(
-            _("Username available"), status=status.HTTP_202_ACCEPTED
-        )
+        return ApiMessageResponse(_("Username available"), status=status.HTTP_202_ACCEPTED)
 
 
 class EmailCheck(APIView):
@@ -184,9 +182,7 @@ class PasswordResetVerify(APIView):
         with transaction.atomic():
             user.verify_password_reset_token(token=token, password=new_password)
 
-        return ApiMessageResponse(
-            _("Password set successfully"), status=status.HTTP_200_OK
-        )
+        return ApiMessageResponse(_("Password set successfully"), status=status.HTTP_200_OK)
 
 
 class PasswordResetRequest(APIView):
@@ -204,9 +200,7 @@ class PasswordResetRequest(APIView):
         with transaction.atomic():
             user.request_password_reset()
 
-        return ApiMessageResponse(
-            _("A password reset link was sent to the email"), status=status.HTTP_200_OK
-        )
+        return ApiMessageResponse(_("A password reset link was sent to the email"), status=status.HTTP_200_OK)
 
 
 class PasswordResetVerify(APIView):
@@ -225,6 +219,4 @@ class PasswordResetVerify(APIView):
         with transaction.atomic():
             user.verify_password_reset_token(token=token, password=new_password)
 
-        return ApiMessageResponse(
-            _("Password set successfully"), status=status.HTTP_200_OK
-        )
+        return ApiMessageResponse(_("Password set successfully"), status=status.HTTP_200_OK)

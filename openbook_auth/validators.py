@@ -9,9 +9,7 @@ from openbook_terms.models import Topic, SDG, Skill
 def username_characters_validator(username):
     if not re.match("^[a-zA-Z0-9_.-]*$", username):
         raise ValidationError(
-            _(
-                "Usernames can only contain alphanumeric characters, periods, underscores and dashes."
-            ),
+            _("Usernames can only contain alphanumeric characters, periods, underscores and dashes."),
         )
 
 
@@ -45,9 +43,7 @@ def user_email_exists(email):
 
 def interest_with_id_exists(interest_uuid):
     if not Topic.objects.filter(id=interest_uuid).exists():
-        raise ParseError(
-            _(f"Unknown UUID '{interest_uuid}' contained in interests array")
-        )
+        raise ParseError(_(f"Unknown UUID '{interest_uuid}' contained in interests array"))
 
 
 def sdg_with_id_exists(sdg_uuid):
@@ -62,6 +58,4 @@ def skill_with_id_exists(skill_uuid):
 
 def string_not_empty(string):
     if not re.match("\\S", string):
-        raise ValidationError(
-            "You must provide at least one character in the search string"
-        )
+        raise ValidationError("You must provide at least one character in the search string")

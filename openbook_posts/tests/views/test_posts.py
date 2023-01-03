@@ -265,9 +265,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user=user)
 
-        long_hashtag = "".join(
-            ["a" for item in range(0, settings.HASHTAG_NAME_MAX_LENGTH + 1)]
-        )
+        long_hashtag = "".join(["a" for item in range(0, settings.HASHTAG_NAME_MAX_LENGTH + 1)])
         post_text = "Long hashtag #" + long_hashtag
 
         data = {"text": post_text}
@@ -329,9 +327,7 @@ class PostsAPITests(OpenbookAPITestCase):
             post = Post.objects.get(text=post_text, creator_id=user.pk)
 
             self.assertEqual(
-                PostUserMention.objects.filter(
-                    user_id=test_user.pk, post_id=post.pk
-                ).count(),
+                PostUserMention.objects.filter(user_id=test_user.pk, post_id=post.pk).count(),
                 1,
             )
 
@@ -371,9 +367,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
-        post_user_mention = PostUserMention.objects.get(
-            user_id=test_user.pk, post_id=post.pk
-        )
+        post_user_mention = PostUserMention.objects.get(user_id=test_user.pk, post_id=post.pk)
 
         self.assertEqual(
             PostUserMentionNotification.objects.filter(
@@ -402,14 +396,10 @@ class PostsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
-        post_user_mention_query = PostUserMention.objects.filter(
-            post_id=post.pk, user_id=mentioned_user.pk
-        )
+        post_user_mention_query = PostUserMention.objects.filter(post_id=post.pk, user_id=mentioned_user.pk)
         self.assertTrue(post_user_mention_query.exists())
         self.assertFalse(
-            PostUserMentionNotification.objects.filter(
-                post_user_mention=post_user_mention_query.get()
-            ).exists()
+            PostUserMentionNotification.objects.filter(post_user_mention=post_user_mention_query.get()).exists()
         )
 
     def test_create_text_detect_mention_if_encircled_and_part_of(self):
@@ -421,9 +411,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         mentioned_user = make_user()
 
-        user.connect_with_user_with_id(
-            user_id=mentioned_user.pk, circles_ids=[circle.pk]
-        )
+        user.connect_with_user_with_id(user_id=mentioned_user.pk, circles_ids=[circle.pk])
         mentioned_user.confirm_connection_with_user_with_id(user_id=user.pk)
 
         post_text = "Hello @" + mentioned_user.username
@@ -435,11 +423,7 @@ class PostsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
-        self.assertTrue(
-            PostUserMention.objects.filter(
-                post_id=post.pk, user_id=mentioned_user.pk
-            ).exists()
-        )
+        self.assertTrue(PostUserMention.objects.filter(post_id=post.pk, user_id=mentioned_user.pk).exists())
 
     def test_create_text_detect_mention_if_public(self):
         """should detect mention if the post is public"""
@@ -460,11 +444,7 @@ class PostsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
-        self.assertTrue(
-            PostUserMention.objects.filter(
-                post_id=post.pk, user_id=mentioned_user.pk
-            ).exists()
-        )
+        self.assertTrue(PostUserMention.objects.filter(post_id=post.pk, user_id=mentioned_user.pk).exists())
 
     def test_create_text_post_does_not_detect_creator_mention(self):
         """should not detect mention if the mentioned person is the creator"""
@@ -482,9 +462,7 @@ class PostsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
-        self.assertFalse(
-            PostUserMention.objects.filter(post_id=post.pk, user_id=user.pk).exists()
-        )
+        self.assertFalse(PostUserMention.objects.filter(post_id=post.pk, user_id=user.pk).exists())
 
     def test_create_post_is_added_to_world_circle(self):
         """the created text post should automatically added to world circle"""
@@ -603,9 +581,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         self.assertTrue(created_post.status, Post.STATUS_PUBLISHED)
 
-        post_media_image = created_post.media.get(
-            post_id=response_post_id, type=PostMedia.MEDIA_TYPE_IMAGE
-        )
+        post_media_image = created_post.media.get(post_id=response_post_id, type=PostMedia.MEDIA_TYPE_IMAGE)
 
         post_image = post_media_image.content_object
 
@@ -647,9 +623,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         self.assertTrue(created_post.status, Post.STATUS_PUBLISHED)
 
-        post_media_image = created_post.media.get(
-            post_id=response_post_id, type=PostMedia.MEDIA_TYPE_IMAGE
-        )
+        post_media_image = created_post.media.get(post_id=response_post_id, type=PostMedia.MEDIA_TYPE_IMAGE)
 
         post_image = post_media_image.content_object
 
@@ -700,9 +674,7 @@ class PostsAPITests(OpenbookAPITestCase):
                     f"status={created_post.status}",
                 )
 
-                post_media_video = created_post.media.get(
-                    post_id=response_post_id, type=PostMedia.MEDIA_TYPE_VIDEO
-                )
+                post_media_video = created_post.media.get(post_id=response_post_id, type=PostMedia.MEDIA_TYPE_VIDEO)
 
                 self.assertTrue(post_media_video.content_object.format_set.exists())
 
@@ -728,9 +700,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-            media = PostMedia.objects.get(
-                post_id=response_post_id, type=PostMedia.MEDIA_TYPE_VIDEO
-            )
+            media = PostMedia.objects.get(post_id=response_post_id, type=PostMedia.MEDIA_TYPE_VIDEO)
             self.assertEqual(media.content_object.hash, filehash)
 
     def test_create_video_post_creates_thumbnail(self):
@@ -752,9 +722,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
                 response_post_id = response_post.get("id")
 
-                media = PostMedia.objects.get(
-                    post_id=response_post_id, type=PostMedia.MEDIA_TYPE_VIDEO
-                )
+                media = PostMedia.objects.get(post_id=response_post_id, type=PostMedia.MEDIA_TYPE_VIDEO)
                 self.assertIsNotNone(media.content_object.thumbnail)
                 self.assertIsNotNone(media.content_object.thumbnail_width)
                 self.assertIsNotNone(media.content_object.thumbnail_height)
@@ -807,9 +775,7 @@ class PostsAPITests(OpenbookAPITestCase):
                 f"status={created_post.status}",
             )
 
-            post_media_video = created_post.media.get(
-                post_id=response_post_id, type=PostMedia.MEDIA_TYPE_VIDEO
-            )
+            post_media_video = created_post.media.get(post_id=response_post_id, type=PostMedia.MEDIA_TYPE_VIDEO)
 
             self.assertTrue(post_media_video.content_object.format_set.exists())
 
@@ -819,9 +785,7 @@ class PostsAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        video = SimpleUploadedFile(
-            "file.mp4", b"video_file_content", content_type="video/mp4"
-        )
+        video = SimpleUploadedFile("file.mp4", b"video_file_content", content_type="video/mp4")
         image = Image.new("RGB", (100, 100))
         tmp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
         image.save(tmp_file)
@@ -857,9 +821,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(
             1,
-            user.posts.filter(
-                pk=response_post_id, status=Post.STATUS_PUBLISHED
-            ).count(),
+            user.posts.filter(pk=response_post_id, status=Post.STATUS_PUBLISHED).count(),
         )
 
     def test_can_create_draft_post_with_no_text_image_nor_video(self):
@@ -880,9 +842,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response_post_id = response_post.get("id")
 
-        self.assertEqual(
-            1, user.posts.filter(pk=response_post_id, status=Post.STATUS_DRAFT).count()
-        )
+        self.assertEqual(1, user.posts.filter(pk=response_post_id, status=Post.STATUS_DRAFT).count())
 
     def test_cant_create_non_draft_post_with_no_text_image_nor_video(self):
         """should not be able to create a non-draft post with no text, image nor video and return 201"""
@@ -926,9 +886,7 @@ class PostsAPITests(OpenbookAPITestCase):
         response_post_id = response_post.get("id")
 
         self.assertEqual(
-            user.posts.filter(
-                text=post_text, pk=response_post_id, status=Post.STATUS_DRAFT
-            ).count(),
+            user.posts.filter(text=post_text, pk=response_post_id, status=Post.STATUS_DRAFT).count(),
             1,
         )
 
@@ -951,9 +909,7 @@ class PostsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         self.assertEqual(
-            user.posts.filter(
-                text=post_text, status=Post.STATUS_DRAFT, circles__id=circle.pk
-            ).count(),
+            user.posts.filter(text=post_text, status=Post.STATUS_DRAFT, circles__id=circle.pk).count(),
             1,
         )
 
@@ -974,36 +930,26 @@ class PostsAPITests(OpenbookAPITestCase):
 
         amount_of_users_to_follow = 5
 
-        lists_to_follow_in = mixer.cycle(amount_of_users_to_follow).blend(
-            List, creator=user
-        )
+        lists_to_follow_in = mixer.cycle(amount_of_users_to_follow).blend(List, creator=user)
 
         users_to_follow = mixer.cycle(amount_of_users_to_follow).blend(User)
         users_to_follow_posts_ids = []
 
         for index, user_to_follow in enumerate(users_to_follow):
             user.follow_user(user_to_follow, lists_ids=[lists_to_follow_in[index].pk])
-            post = user_to_follow.create_public_post(
-                text=fake.text(max_nb_chars=POST_MAX_LENGTH)
-            )
+            post = user_to_follow.create_public_post(text=fake.text(max_nb_chars=POST_MAX_LENGTH))
             users_to_follow_posts_ids.append(post.pk)
 
         amount_of_users_to_connect = 5
 
-        circles_to_connect_in = mixer.cycle(amount_of_users_to_connect).blend(
-            Circle, creator=user
-        )
+        circles_to_connect_in = mixer.cycle(amount_of_users_to_connect).blend(Circle, creator=user)
 
         users_to_connect = mixer.cycle(amount_of_users_to_connect).blend(User)
         users_to_connect_posts_ids = []
 
         for index, user_to_connect in enumerate(users_to_connect):
-            user.connect_with_user_with_id(
-                user_to_connect.pk, circles_ids=[circles_to_connect_in[index].pk]
-            )
-            post = user_to_connect.create_public_post(
-                text=fake.text(max_nb_chars=POST_MAX_LENGTH)
-            )
+            user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[circles_to_connect_in[index].pk])
+            post = user_to_connect.create_public_post(text=fake.text(max_nb_chars=POST_MAX_LENGTH))
             users_to_connect_posts_ids.append(post.pk)
 
         amount_of_community_posts = 5
@@ -1022,12 +968,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user)
 
-        all_posts_ids = (
-            users_to_connect_posts_ids
-            + users_to_follow_posts_ids
-            + user_posts_ids
-            + community_posts_ids
-        )
+        all_posts_ids = users_to_connect_posts_ids + users_to_follow_posts_ids + user_posts_ids + community_posts_ids
 
         url = self._get_url()
 
@@ -1048,52 +989,36 @@ class PostsAPITests(OpenbookAPITestCase):
 
         amount_of_users_to_follow = 5
 
-        lists_to_follow_in = mixer.cycle(amount_of_users_to_follow).blend(
-            List, creator=user
-        )
+        lists_to_follow_in = mixer.cycle(amount_of_users_to_follow).blend(List, creator=user)
 
         users_to_follow = mixer.cycle(amount_of_users_to_follow).blend(User)
 
         for index, user_to_follow in enumerate(users_to_follow):
             user.follow_user(user_to_follow, lists_ids=[lists_to_follow_in[index].pk])
-            user_to_follow.create_public_post(
-                text=fake.text(max_nb_chars=POST_MAX_LENGTH)
-            )
+            user_to_follow.create_public_post(text=fake.text(max_nb_chars=POST_MAX_LENGTH))
 
         amount_of_users_to_connect = 5
 
-        circles_to_connect_in = mixer.cycle(amount_of_users_to_connect).blend(
-            Circle, creator=user
-        )
+        circles_to_connect_in = mixer.cycle(amount_of_users_to_connect).blend(Circle, creator=user)
 
         users_to_connect = mixer.cycle(amount_of_users_to_connect).blend(User)
 
         for index, user_to_connect in enumerate(users_to_connect):
-            user.connect_with_user_with_id(
-                user_to_connect.pk, circles_ids=[circles_to_connect_in[index].pk]
-            )
-            user_to_connect.create_public_post(
-                text=fake.text(max_nb_chars=POST_MAX_LENGTH)
-            )
+            user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[circles_to_connect_in[index].pk])
+            user_to_connect.create_public_post(text=fake.text(max_nb_chars=POST_MAX_LENGTH))
 
         number_of_circles_to_retrieve_posts_from = 3
 
-        circles_to_retrieve_posts_from = mixer.cycle(
-            number_of_circles_to_retrieve_posts_from
-        ).blend(Circle, creator=user)
+        circles_to_retrieve_posts_from = mixer.cycle(number_of_circles_to_retrieve_posts_from).blend(
+            Circle, creator=user
+        )
 
         in_circle_posts_ids = []
 
-        for index, circle_to_retrieve_posts_from in enumerate(
-            circles_to_retrieve_posts_from
-        ):
+        for index, circle_to_retrieve_posts_from in enumerate(circles_to_retrieve_posts_from):
             user_in_circle = make_user()
-            user.connect_with_user_with_id(
-                user_in_circle.pk, circles_ids=[circle_to_retrieve_posts_from.pk]
-            )
-            post_in_circle = user_in_circle.create_public_post(
-                text=fake.text(max_nb_chars=POST_MAX_LENGTH)
-            )
+            user.connect_with_user_with_id(user_in_circle.pk, circles_ids=[circle_to_retrieve_posts_from.pk])
+            post_in_circle = user_in_circle.create_public_post(text=fake.text(max_nb_chars=POST_MAX_LENGTH))
             in_circle_posts_ids.append(post_in_circle.pk)
 
         number_of_expected_posts = number_of_circles_to_retrieve_posts_from
@@ -1102,13 +1027,9 @@ class PostsAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
 
-        circles_query_str_value = ",".join(
-            map(str, [circle.pk for circle in circles_to_retrieve_posts_from])
-        )
+        circles_query_str_value = ",".join(map(str, [circle.pk for circle in circles_to_retrieve_posts_from]))
 
-        response = self.client.get(
-            url, {"circle_id": circles_query_str_value}, **headers
-        )
+        response = self.client.get(url, {"circle_id": circles_query_str_value}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -1126,49 +1047,33 @@ class PostsAPITests(OpenbookAPITestCase):
 
         amount_of_users_to_follow = 5
 
-        lists_to_follow_in = mixer.cycle(amount_of_users_to_follow).blend(
-            List, creator=user
-        )
+        lists_to_follow_in = mixer.cycle(amount_of_users_to_follow).blend(List, creator=user)
 
         users_to_follow = mixer.cycle(amount_of_users_to_follow).blend(User)
 
         for index, user_to_follow in enumerate(users_to_follow):
             user.follow_user(user_to_follow, lists_ids=[lists_to_follow_in[index].pk])
-            user_to_follow.create_public_post(
-                text=fake.text(max_nb_chars=POST_MAX_LENGTH)
-            )
+            user_to_follow.create_public_post(text=fake.text(max_nb_chars=POST_MAX_LENGTH))
 
         amount_of_users_to_connect = 5
 
-        circles_to_connect_in = mixer.cycle(amount_of_users_to_connect).blend(
-            Circle, creator=user
-        )
+        circles_to_connect_in = mixer.cycle(amount_of_users_to_connect).blend(Circle, creator=user)
 
         users_to_connect = mixer.cycle(amount_of_users_to_connect).blend(User)
 
         for index, user_to_connect in enumerate(users_to_connect):
-            user.connect_with_user_with_id(
-                user_to_connect.pk, circles_ids=[circles_to_connect_in[index].pk]
-            )
-            user_to_connect.create_public_post(
-                text=fake.text(max_nb_chars=POST_MAX_LENGTH)
-            )
+            user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[circles_to_connect_in[index].pk])
+            user_to_connect.create_public_post(text=fake.text(max_nb_chars=POST_MAX_LENGTH))
 
         number_of_lists_to_retrieve_posts_from = 3
 
-        lists_to_retrieve_posts_from = mixer.cycle(
-            number_of_lists_to_retrieve_posts_from
-        ).blend(List, creator=user)
+        lists_to_retrieve_posts_from = mixer.cycle(number_of_lists_to_retrieve_posts_from).blend(List, creator=user)
         in_list_posts_ids = []
 
-        for index, list_to_retrieve_posts_from in enumerate(
-            lists_to_retrieve_posts_from
-        ):
+        for index, list_to_retrieve_posts_from in enumerate(lists_to_retrieve_posts_from):
             user_in_list = make_user()
             user.follow_user(user_in_list, lists_ids=[list_to_retrieve_posts_from.pk])
-            post_in_list = user_in_list.create_public_post(
-                text=fake.text(max_nb_chars=POST_MAX_LENGTH)
-            )
+            post_in_list = user_in_list.create_public_post(text=fake.text(max_nb_chars=POST_MAX_LENGTH))
             in_list_posts_ids.append(post_in_list.pk)
 
         number_of_expected_posts = number_of_lists_to_retrieve_posts_from
@@ -1177,9 +1082,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
 
-        lists_query_str_value = ",".join(
-            map(str, [list.pk for list in lists_to_retrieve_posts_from])
-        )
+        lists_query_str_value = ",".join(map(str, [list.pk for list in lists_to_retrieve_posts_from]))
 
         response = self.client.get(url, {"list_id": lists_query_str_value}, **headers)
 
@@ -1206,43 +1109,31 @@ class PostsAPITests(OpenbookAPITestCase):
 
         amount_of_users_to_follow = 5
 
-        lists_to_follow_in = mixer.cycle(amount_of_users_to_follow).blend(
-            List, creator=user
-        )
+        lists_to_follow_in = mixer.cycle(amount_of_users_to_follow).blend(List, creator=user)
 
         users_to_follow = mixer.cycle(amount_of_users_to_follow).blend(User)
         users_to_follow_posts_ids = []
 
         for index, user_to_follow in enumerate(users_to_follow):
             user.follow_user(user_to_follow, lists_ids=[lists_to_follow_in[index].pk])
-            post = user_to_follow.create_public_post(
-                text=fake.text(max_nb_chars=POST_MAX_LENGTH)
-            )
+            post = user_to_follow.create_public_post(text=fake.text(max_nb_chars=POST_MAX_LENGTH))
             users_to_follow_posts_ids.append(post.pk)
 
         amount_of_users_to_connect = 5
 
-        circles_to_connect_in = mixer.cycle(amount_of_users_to_connect).blend(
-            Circle, creator=user
-        )
+        circles_to_connect_in = mixer.cycle(amount_of_users_to_connect).blend(Circle, creator=user)
 
         users_to_connect = mixer.cycle(amount_of_users_to_connect).blend(User)
         users_to_connect_posts_ids = []
 
         for index, user_to_connect in enumerate(users_to_connect):
-            user.connect_with_user_with_id(
-                user_to_connect.pk, circles_ids=[circles_to_connect_in[index].pk]
-            )
-            post = user_to_connect.create_public_post(
-                text=fake.text(max_nb_chars=POST_MAX_LENGTH)
-            )
+            user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[circles_to_connect_in[index].pk])
+            post = user_to_connect.create_public_post(text=fake.text(max_nb_chars=POST_MAX_LENGTH))
             users_to_connect_posts_ids.append(post.pk)
 
         headers = make_authentication_headers_for_user(user)
 
-        all_posts_ids = (
-            users_to_connect_posts_ids + users_to_follow_posts_ids + user_posts_ids
-        )
+        all_posts_ids = users_to_connect_posts_ids + users_to_follow_posts_ids + user_posts_ids
 
         url = self._get_url()
 
@@ -1276,43 +1167,31 @@ class PostsAPITests(OpenbookAPITestCase):
 
         amount_of_users_to_follow = 5
 
-        lists_to_follow_in = mixer.cycle(amount_of_users_to_follow).blend(
-            List, creator=user
-        )
+        lists_to_follow_in = mixer.cycle(amount_of_users_to_follow).blend(List, creator=user)
 
         users_to_follow = mixer.cycle(amount_of_users_to_follow).blend(User)
         users_to_follow_posts_ids = []
 
         for index, user_to_follow in enumerate(users_to_follow):
             user.follow_user(user_to_follow, lists_ids=[lists_to_follow_in[index].pk])
-            post = user_to_follow.create_public_post(
-                text=fake.text(max_nb_chars=POST_MAX_LENGTH)
-            )
+            post = user_to_follow.create_public_post(text=fake.text(max_nb_chars=POST_MAX_LENGTH))
             users_to_follow_posts_ids.append(post.pk)
 
         amount_of_users_to_connect = 5
 
-        circles_to_connect_in = mixer.cycle(amount_of_users_to_connect).blend(
-            Circle, creator=user
-        )
+        circles_to_connect_in = mixer.cycle(amount_of_users_to_connect).blend(Circle, creator=user)
 
         users_to_connect = mixer.cycle(amount_of_users_to_connect).blend(User)
         users_to_connect_posts_ids = []
 
         for index, user_to_connect in enumerate(users_to_connect):
-            user.connect_with_user_with_id(
-                user_to_connect.pk, circles_ids=[circles_to_connect_in[index].pk]
-            )
-            post = user_to_connect.create_public_post(
-                text=fake.text(max_nb_chars=POST_MAX_LENGTH)
-            )
+            user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[circles_to_connect_in[index].pk])
+            post = user_to_connect.create_public_post(text=fake.text(max_nb_chars=POST_MAX_LENGTH))
             users_to_connect_posts_ids.append(post.pk)
 
         headers = make_authentication_headers_for_user(user)
 
-        all_posts_ids = (
-            users_to_connect_posts_ids + users_to_follow_posts_ids + user_posts_ids
-        )
+        all_posts_ids = users_to_connect_posts_ids + users_to_follow_posts_ids + user_posts_ids
 
         url = self._get_url()
 
@@ -1351,9 +1230,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
 
-        response = self.client.get(
-            url, {"username": user_to_retrieve_posts_from.username}, **headers
-        )
+        response = self.client.get(url, {"username": user_to_retrieve_posts_from.username}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -1385,23 +1262,17 @@ class PostsAPITests(OpenbookAPITestCase):
 
         circle = make_circle(creator=user_to_connect_with)
 
-        user_to_connect_with.update_connection_with_user_with_id(
-            user_id=user.pk, circles_ids=[circle.pk]
-        )
+        user_to_connect_with.update_connection_with_user_with_id(user_id=user.pk, circles_ids=[circle.pk])
 
         for i in range(amount_of_encircled_posts):
-            post = user_to_connect_with.create_encircled_post(
-                text=make_fake_post_text(), circles_ids=[circle.pk]
-            )
+            post = user_to_connect_with.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
             created_posts_ids.append(post.pk)
 
         headers = make_authentication_headers_for_user(user)
 
         url = self._get_url()
 
-        response = self.client.get(
-            url, {"username": user_to_connect_with.username}, **headers
-        )
+        response = self.client.get(url, {"username": user_to_connect_with.username}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -1487,9 +1358,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
 
-        response = self.client.get(
-            url, {"username": user_to_retrieve_posts_from.username}, **headers
-        )
+        response = self.client.get(url, {"username": user_to_retrieve_posts_from.username}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -1540,9 +1409,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
 
-        response = self.client.get(
-            url, {"username": user_to_retrieve_posts_from.username}, **headers
-        )
+        response = self.client.get(url, {"username": user_to_retrieve_posts_from.username}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -1571,9 +1438,7 @@ class PostsAPITests(OpenbookAPITestCase):
         circle = make_circle(creator=user)
 
         for i in range(amount_of_encircled_posts):
-            post = user.create_encircled_post(
-                text=make_fake_post_text(), circles_ids=[circle.pk]
-            )
+            post = user.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
             created_posts_ids.append(post.pk)
 
         headers = make_authentication_headers_for_user(user)
@@ -1601,9 +1466,7 @@ class PostsAPITests(OpenbookAPITestCase):
         user.update(community_posts_visible=False)
 
         community_owner = make_user()
-        community = make_community(
-            creator=community_owner, type=Community.COMMUNITY_TYPE_PUBLIC
-        )
+        community = make_community(creator=community_owner, type=Community.COMMUNITY_TYPE_PUBLIC)
 
         community_owner.invite_user_with_username_to_community_with_name(
             username=user.username, community_name=community.name
@@ -1615,9 +1478,7 @@ class PostsAPITests(OpenbookAPITestCase):
         created_posts_ids = []
 
         for i in range(amount_of_community_posts):
-            post = user.create_community_post(
-                community_name=community.name, text=make_fake_post_text()
-            )
+            post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
             created_posts_ids.append(post.pk)
 
         headers = make_authentication_headers_for_user(user)
@@ -1640,9 +1501,7 @@ class PostsAPITests(OpenbookAPITestCase):
         user.update(community_posts_visible=False)
 
         community_owner = make_user()
-        community = make_community(
-            creator=community_owner, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        community = make_community(creator=community_owner, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         community_owner.invite_user_with_username_to_community_with_name(
             username=user.username, community_name=community.name
@@ -1654,9 +1513,7 @@ class PostsAPITests(OpenbookAPITestCase):
         created_posts_ids = []
 
         for i in range(amount_of_community_posts):
-            post = user.create_community_post(
-                community_name=community.name, text=make_fake_post_text()
-            )
+            post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
             created_posts_ids.append(post.pk)
 
         headers = make_authentication_headers_for_user(user)
@@ -1679,9 +1536,7 @@ class PostsAPITests(OpenbookAPITestCase):
         user.update(community_posts_visible=True)
 
         community_owner = make_user()
-        community = make_community(
-            creator=community_owner, type=Community.COMMUNITY_TYPE_PUBLIC
-        )
+        community = make_community(creator=community_owner, type=Community.COMMUNITY_TYPE_PUBLIC)
 
         community_owner.invite_user_with_username_to_community_with_name(
             username=user.username, community_name=community.name
@@ -1693,9 +1548,7 @@ class PostsAPITests(OpenbookAPITestCase):
         created_posts_ids = []
 
         for i in range(amount_of_community_posts):
-            post = user.create_community_post(
-                community_name=community.name, text=make_fake_post_text()
-            )
+            post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
             created_posts_ids.append(post.pk)
 
         headers = make_authentication_headers_for_user(user)
@@ -1721,9 +1574,7 @@ class PostsAPITests(OpenbookAPITestCase):
         user.update(community_posts_visible=True)
 
         community_owner = make_user()
-        community = make_community(
-            creator=community_owner, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        community = make_community(creator=community_owner, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         community_owner.invite_user_with_username_to_community_with_name(
             username=user.username, community_name=community.name
@@ -1737,9 +1588,7 @@ class PostsAPITests(OpenbookAPITestCase):
         created_posts_ids = []
 
         for i in range(amount_of_community_posts):
-            post = user.create_community_post(
-                community_name=community.name, text=make_fake_post_text()
-            )
+            post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
             created_posts_ids.append(post.pk)
 
         headers = make_authentication_headers_for_user(user)
@@ -1767,9 +1616,7 @@ class PostsAPITests(OpenbookAPITestCase):
         foreign_user.update(community_posts_visible=False)
 
         community_owner = make_user()
-        community = make_community(
-            creator=community_owner, type=Community.COMMUNITY_TYPE_PUBLIC
-        )
+        community = make_community(creator=community_owner, type=Community.COMMUNITY_TYPE_PUBLIC)
 
         foreign_user.join_community_with_name(community_name=community.name)
 
@@ -1778,9 +1625,7 @@ class PostsAPITests(OpenbookAPITestCase):
         created_posts_ids = []
 
         for i in range(amount_of_community_posts):
-            post = foreign_user.create_community_post(
-                community_name=community.name, text=make_fake_post_text()
-            )
+            post = foreign_user.create_community_post(community_name=community.name, text=make_fake_post_text())
             created_posts_ids.append(post.pk)
 
         headers = make_authentication_headers_for_user(user)
@@ -1805,9 +1650,7 @@ class PostsAPITests(OpenbookAPITestCase):
         foreign_user.update(community_posts_visible=False)
 
         community_owner = make_user()
-        community = make_community(
-            creator=community_owner, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        community = make_community(creator=community_owner, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         community_owner.invite_user_with_username_to_community_with_name(
             username=foreign_user.username, community_name=community.name
@@ -1819,9 +1662,7 @@ class PostsAPITests(OpenbookAPITestCase):
         created_posts_ids = []
 
         for i in range(amount_of_community_posts):
-            post = foreign_user.create_community_post(
-                community_name=community.name, text=make_fake_post_text()
-            )
+            post = foreign_user.create_community_post(community_name=community.name, text=make_fake_post_text())
             created_posts_ids.append(post.pk)
 
         headers = make_authentication_headers_for_user(user)
@@ -1846,9 +1687,7 @@ class PostsAPITests(OpenbookAPITestCase):
         foreign_user.update(community_posts_visible=False)
 
         community_owner = make_user()
-        community = make_community(
-            creator=community_owner, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        community = make_community(creator=community_owner, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         community_owner.invite_user_with_username_to_community_with_name(
             username=foreign_user.username, community_name=community.name
@@ -1865,9 +1704,7 @@ class PostsAPITests(OpenbookAPITestCase):
         created_posts_ids = []
 
         for i in range(amount_of_community_posts):
-            post = foreign_user.create_community_post(
-                community_name=community.name, text=make_fake_post_text()
-            )
+            post = foreign_user.create_community_post(community_name=community.name, text=make_fake_post_text())
             created_posts_ids.append(post.pk)
 
         headers = make_authentication_headers_for_user(user)
@@ -1892,9 +1729,7 @@ class PostsAPITests(OpenbookAPITestCase):
         foreign_user.update(community_posts_visible=True)
 
         community_owner = make_user()
-        community = make_community(
-            creator=community_owner, type=Community.COMMUNITY_TYPE_PUBLIC
-        )
+        community = make_community(creator=community_owner, type=Community.COMMUNITY_TYPE_PUBLIC)
 
         foreign_user.join_community_with_name(community_name=community.name)
 
@@ -1903,9 +1738,7 @@ class PostsAPITests(OpenbookAPITestCase):
         created_posts_ids = []
 
         for i in range(amount_of_community_posts):
-            post = foreign_user.create_community_post(
-                community_name=community.name, text=make_fake_post_text()
-            )
+            post = foreign_user.create_community_post(community_name=community.name, text=make_fake_post_text())
             created_posts_ids.append(post.pk)
 
         headers = make_authentication_headers_for_user(user)
@@ -1933,9 +1766,7 @@ class PostsAPITests(OpenbookAPITestCase):
         foreign_user.update(community_posts_visible=True)
 
         community_owner = make_user()
-        community = make_community(
-            creator=community_owner, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        community = make_community(creator=community_owner, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         community_owner.invite_user_with_username_to_community_with_name(
             username=foreign_user.username, community_name=community.name
@@ -1952,9 +1783,7 @@ class PostsAPITests(OpenbookAPITestCase):
         created_posts_ids = []
 
         for i in range(amount_of_community_posts):
-            post = foreign_user.create_community_post(
-                community_name=community.name, text=make_fake_post_text()
-            )
+            post = foreign_user.create_community_post(community_name=community.name, text=make_fake_post_text())
             created_posts_ids.append(post.pk)
 
         headers = make_authentication_headers_for_user(user)
@@ -1982,9 +1811,7 @@ class PostsAPITests(OpenbookAPITestCase):
         foreign_user.update(community_posts_visible=True)
 
         community_owner = make_user()
-        community = make_community(
-            creator=community_owner, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        community = make_community(creator=community_owner, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         community_owner.invite_user_with_username_to_community_with_name(
             username=foreign_user.username, community_name=community.name
@@ -1996,9 +1823,7 @@ class PostsAPITests(OpenbookAPITestCase):
         created_posts_ids = []
 
         for i in range(amount_of_community_posts):
-            post = foreign_user.create_community_post(
-                community_name=community.name, text=make_fake_post_text()
-            )
+            post = foreign_user.create_community_post(community_name=community.name, text=make_fake_post_text())
             created_posts_ids.append(post.pk)
 
         headers = make_authentication_headers_for_user(user)
@@ -2021,15 +1846,11 @@ class PostsAPITests(OpenbookAPITestCase):
         foreign_user.update(community_posts_visible=True)
 
         community_owner = make_user()
-        community = make_community(
-            creator=community_owner, type=Community.COMMUNITY_TYPE_PUBLIC
-        )
+        community = make_community(creator=community_owner, type=Community.COMMUNITY_TYPE_PUBLIC)
 
         foreign_user.join_community_with_name(community_name=community.name)
 
-        foreign_user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        foreign_user.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         foreign_user.exclude_community_from_profile_posts(community=community)
 
@@ -2055,9 +1876,7 @@ class PostsAPITests(OpenbookAPITestCase):
         foreign_user.update(community_posts_visible=True)
 
         community_owner = make_user()
-        community = make_community(
-            creator=community_owner, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        community = make_community(creator=community_owner, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         community_owner.invite_user_with_username_to_community_with_name(
             username=foreign_user.username, community_name=community.name
@@ -2069,9 +1888,7 @@ class PostsAPITests(OpenbookAPITestCase):
         )
         user.join_community_with_name(community_name=community.name)
 
-        foreign_user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        foreign_user.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         foreign_user.exclude_community_from_profile_posts(community=community)
 
@@ -2109,9 +1926,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         max_id = 6
 
-        response = self.client.get(
-            url, {"username": user.username, "count": count, "max_id": max_id}
-        )
+        response = self.client.get(url, {"username": user.username, "count": count, "max_id": max_id})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -2274,9 +2089,7 @@ class PostsAPITests(OpenbookAPITestCase):
             circles_ids=[connection_requester_user.connections_circle.pk],
         )
 
-        connection_requester_user_circle = make_circle(
-            creator=connection_requester_user
-        )
+        connection_requester_user_circle = make_circle(creator=connection_requester_user)
         connection_requester_user.update_connection_with_user_with_id(
             user_id=user.pk, circles_ids=[connection_requester_user_circle.pk]
         )
@@ -2314,9 +2127,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         post_text = make_fake_post_text()
 
-        user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        user.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
@@ -2345,9 +2156,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         circle = make_circle(creator=user)
 
-        user.connect_with_user_with_id(
-            user_id=user_to_connect_to.pk, circles_ids=[circle.pk]
-        )
+        user.connect_with_user_with_id(user_id=user_to_connect_to.pk, circles_ids=[circle.pk])
 
         user_to_connect_to.confirm_connection_with_user_with_id(
             user_id=user.pk,
@@ -2390,16 +2199,12 @@ class PostsAPITests(OpenbookAPITestCase):
         report_category = make_moderation_category()
 
         for i in range(0, number_of_posts):
-            post = post_creator.create_community_post(
-                community_name=community.name, text=make_fake_post_text()
-            )
+            post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
             post_reporter.report_post(post=post, category_id=report_category.pk)
             moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
                 post=post, category_id=report_category.pk
             )
-            community_creator.approve_moderated_object(
-                moderated_object=moderated_object
-            )
+            community_creator.approve_moderated_object(moderated_object=moderated_object)
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
@@ -2428,9 +2233,7 @@ class PostsAPITests(OpenbookAPITestCase):
         posts_ids = []
 
         for i in range(0, number_of_posts):
-            post = post_creator.create_community_post(
-                community_name=community.name, text=make_fake_post_text()
-            )
+            post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
             posts_ids.append(post.pk)
             post_reporter.report_post(post=post, category_id=report_category.pk)
             moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
@@ -2470,9 +2273,7 @@ class PostsAPITests(OpenbookAPITestCase):
         posts_ids = []
 
         for i in range(0, number_of_posts):
-            post = post_creator.create_community_post(
-                community_name=community.name, text=make_fake_post_text()
-            )
+            post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
             posts_ids.append(post.pk)
             post_reporter.report_post(post=post, category_id=report_category.pk)
 
@@ -2507,9 +2308,7 @@ class PostsAPITests(OpenbookAPITestCase):
         number_of_posts = 5
 
         for i in range(0, number_of_posts):
-            post = post_creator.create_community_post(
-                community_name=community.name, text=make_fake_post_text()
-            )
+            post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
             post.soft_delete()
 
         url = self._get_url()
@@ -2529,9 +2328,7 @@ class PostsAPITests(OpenbookAPITestCase):
         following_user = make_user()
         user.follow_user_with_id(user_id=following_user.pk)
 
-        following_user_post = following_user.create_public_post(
-            text=make_fake_post_text()
-        )
+        following_user_post = following_user.create_public_post(text=make_fake_post_text())
         following_user_post.soft_delete()
 
         url = self._get_url()
@@ -2552,9 +2349,7 @@ class PostsAPITests(OpenbookAPITestCase):
         follow_list = make_list(creator=user)
         user.follow_user_with_id(user_id=following_user.pk, lists_ids=[follow_list.pk])
 
-        following_user_post = following_user.create_public_post(
-            text=make_fake_post_text()
-        )
+        following_user_post = following_user.create_public_post(text=make_fake_post_text())
         following_user_post.soft_delete()
 
         url = self._get_url()
@@ -2609,9 +2404,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
-        response = self.client.get(
-            url, {"circle_id": connected_user_post_circle.pk}, **headers
-        )
+        response = self.client.get(url, {"circle_id": connected_user_post_circle.pk}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -2632,9 +2425,7 @@ class PostsAPITests(OpenbookAPITestCase):
         connected_user_post = connected_user.create_encircled_post(
             text=make_fake_post_text(), circles_ids=[connected_user_post_circle.pk]
         )
-        user.report_post(
-            post=connected_user_post, category_id=make_moderation_category().pk
-        )
+        user.report_post(post=connected_user_post, category_id=make_moderation_category().pk)
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
@@ -2659,15 +2450,11 @@ class PostsAPITests(OpenbookAPITestCase):
         connected_user_post = connected_user.create_encircled_post(
             text=make_fake_post_text(), circles_ids=[connected_user_post_circle.pk]
         )
-        user.report_post(
-            post=connected_user_post, category_id=make_moderation_category().pk
-        )
+        user.report_post(post=connected_user_post, category_id=make_moderation_category().pk)
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
-        response = self.client.get(
-            url, {"circle_id": connected_user_post_circle.pk}, **headers
-        )
+        response = self.client.get(url, {"circle_id": connected_user_post_circle.pk}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -2682,12 +2469,8 @@ class PostsAPITests(OpenbookAPITestCase):
         following_user = make_user()
         user.follow_user_with_id(user_id=following_user.pk)
 
-        following_user_post = following_user.create_public_post(
-            text=make_fake_post_text()
-        )
-        user.report_post(
-            post=following_user_post, category_id=make_moderation_category().pk
-        )
+        following_user_post = following_user.create_public_post(text=make_fake_post_text())
+        user.report_post(post=following_user_post, category_id=make_moderation_category().pk)
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
@@ -2707,12 +2490,8 @@ class PostsAPITests(OpenbookAPITestCase):
         follow_list = make_list(creator=user)
         user.follow_user_with_id(user_id=following_user.pk, lists_ids=[follow_list.pk])
 
-        following_user_post = following_user.create_public_post(
-            text=make_fake_post_text()
-        )
-        user.report_post(
-            post=following_user_post, category_id=make_moderation_category().pk
-        )
+        following_user_post = following_user.create_public_post(text=make_fake_post_text())
+        user.report_post(post=following_user_post, category_id=make_moderation_category().pk)
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
@@ -2739,9 +2518,7 @@ class PostsAPITests(OpenbookAPITestCase):
         report_category = make_moderation_category()
 
         for i in range(0, number_of_posts):
-            post = post_creator.create_community_post(
-                community_name=community.name, text=make_fake_post_text()
-            )
+            post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
             user.report_post(post=post, category_id=report_category.pk)
 
         url = self._get_url()
@@ -2767,9 +2544,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         report_category = make_moderation_category()
 
-        post = post_creator.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
         user.report_post(post=post, category_id=report_category.pk)
 
         url = self._get_url()
@@ -2797,9 +2572,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         report_category = make_moderation_category()
 
-        post = post_creator.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
         post_reporter.report_post(post=post, category_id=report_category.pk)
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
@@ -2829,9 +2602,7 @@ class PostsAPITests(OpenbookAPITestCase):
         user.join_community_with_name(community_name=community.name)
         post_creator.join_community_with_name(community_name=community.name)
 
-        post = post_creator.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
         post.soft_delete()
 
         url = self._get_url()
@@ -2856,9 +2627,7 @@ class PostsAPITests(OpenbookAPITestCase):
         user.join_community_with_name(community_name=community.name)
         post_creator.join_community_with_name(community_name=community.name)
 
-        post = post_creator.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         community_creator.close_post(post=post)
 
@@ -2908,9 +2677,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         community_creator = make_user()
 
-        community = make_community(
-            creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        community = make_community(creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         post_creator = make_user()
 
@@ -3023,9 +2790,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
-        response = self.client.get(
-            url, {"circle_id": connected_user_post_circle.pk}, **headers
-        )
+        response = self.client.get(url, {"circle_id": connected_user_post_circle.pk}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -3059,9 +2824,7 @@ class PostsAPITests(OpenbookAPITestCase):
         """should not be able to retrieve private community part of draft posts"""
         user = make_user()
         community_creator = make_user()
-        community = make_community(
-            type=Community.COMMUNITY_TYPE_PRIVATE, creator=community_creator
-        )
+        community = make_community(type=Community.COMMUNITY_TYPE_PRIVATE, creator=community_creator)
         community_member = make_user()
 
         community_creator.invite_user_with_username_to_community_with_name(
@@ -3117,9 +2880,7 @@ class PostsAPITests(OpenbookAPITestCase):
         """should not be able to retrieve private community part of processing posts"""
         user = make_user()
         community_creator = make_user()
-        community = make_community(
-            type=Community.COMMUNITY_TYPE_PRIVATE, creator=community_creator
-        )
+        community = make_community(type=Community.COMMUNITY_TYPE_PRIVATE, creator=community_creator)
         community_member = make_user()
 
         community_creator.invite_user_with_username_to_community_with_name(
@@ -3167,9 +2928,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
-        response = self.client.get(
-            url, {"username": connected_user.username}, **headers
-        )
+        response = self.client.get(url, {"username": connected_user.username}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -3189,9 +2948,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
-        response = self.client.get(
-            url, {"username": following_user.username}, **headers
-        )
+        response = self.client.get(url, {"username": following_user.username}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -3211,9 +2968,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         report_category = make_moderation_category()
 
-        post = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
         post_reporter.report_post(post=post, category_id=report_category.pk)
 
         moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
@@ -3270,12 +3025,8 @@ class PostsAPITests(OpenbookAPITestCase):
 
         user.join_community_with_name(community_name=community.name)
 
-        post = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
-        blocked_user.comment_post_with_id(
-            post_id=post.pk, text=make_fake_post_comment_text()
-        )
+        post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
+        blocked_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         user.block_user_with_id(user_id=blocked_user.pk)
 
@@ -3305,12 +3056,8 @@ class PostsAPITests(OpenbookAPITestCase):
 
         user.join_community_with_name(community_name=community.name)
 
-        post = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
-        blocked_user.comment_post_with_id(
-            post_id=post.pk, text=make_fake_post_comment_text()
-        )
+        post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
+        blocked_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         user.block_user_with_id(user_id=blocked_user.pk)
 
@@ -3336,9 +3083,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         post = user.create_public_post(text=make_fake_post_text())
 
-        post_comment = user.comment_post_with_id(
-            post_id=post.pk, text=make_fake_post_comment_text()
-        )
+        post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         replier.reply_to_comment_with_id_for_post_with_id(
             post_comment_id=post_comment.pk,
@@ -3383,9 +3128,7 @@ class PostsAPITests(OpenbookAPITestCase):
         community = make_community()
         user.join_community_with_name(community_name=community.name)
 
-        user.create_community_post(
-            text=make_fake_post_text(), is_draft=True, community_name=community.name
-        )
+        user.create_community_post(text=make_fake_post_text(), is_draft=True, community_name=community.name)
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
@@ -3401,18 +3144,14 @@ class PostsAPITests(OpenbookAPITestCase):
         """should not be able to retrieve own private community part of draft posts by username"""
         user = make_user()
         community_creator = make_user()
-        community = make_community(
-            type=Community.COMMUNITY_TYPE_PRIVATE, creator=community_creator
-        )
+        community = make_community(type=Community.COMMUNITY_TYPE_PRIVATE, creator=community_creator)
 
         community_creator.invite_user_with_username_to_community_with_name(
             username=user.username, community_name=community.name
         )
         user.join_community_with_name(community_name=community.name)
 
-        user.create_community_post(
-            text=make_fake_post_text(), is_draft=True, community_name=community.name
-        )
+        user.create_community_post(text=make_fake_post_text(), is_draft=True, community_name=community.name)
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
@@ -3425,9 +3164,7 @@ class PostsAPITests(OpenbookAPITestCase):
         self.assertEqual(0, len(response_posts))
 
     @mock.patch("openbook_posts.jobs.process_post_media")
-    def test_cant_retrieve_processing_public_community_posts(
-        self, process_post_media_mock
-    ):
+    def test_cant_retrieve_processing_public_community_posts(self, process_post_media_mock):
         """should not be able to retrieve processing public community posts"""
         user = make_user()
 
@@ -3444,9 +3181,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         with open(test_image["path"], "rb") as file:
             file = File(file)
-            post_creator.create_community_post(
-                community_name=community.name, text=make_fake_post_text(), image=file
-            )
+            post_creator.create_community_post(community_name=community.name, text=make_fake_post_text(), image=file)
 
             url = self._get_url()
             headers = make_authentication_headers_for_user(user)
@@ -3465,9 +3200,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         community_creator = make_user()
 
-        community = make_community(
-            creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        community = make_community(creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         post_creator = make_user()
 
@@ -3483,9 +3216,7 @@ class PostsAPITests(OpenbookAPITestCase):
         test_image = get_test_image()
         with open(test_image["path"], "rb") as file:
             file = File(file)
-            post_creator.create_community_post(
-                community_name=community.name, text=make_fake_post_text(), image=file
-            )
+            post_creator.create_community_post(community_name=community.name, text=make_fake_post_text(), image=file)
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
@@ -3598,9 +3329,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
-        response = self.client.get(
-            url, {"circle_id": connected_user_post_circle.pk}, **headers
-        )
+        response = self.client.get(url, {"circle_id": connected_user_post_circle.pk}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -3631,9 +3360,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
-        response = self.client.get(
-            url, {"username": connected_user.username}, **headers
-        )
+        response = self.client.get(url, {"username": connected_user.username}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -3657,9 +3384,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
-        response = self.client.get(
-            url, {"username": following_user.username}, **headers
-        )
+        response = self.client.get(url, {"username": following_user.username}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -3688,9 +3413,7 @@ class PostsAPITests(OpenbookAPITestCase):
         self.assertEqual(0, len(response_posts))
 
     @mock.patch("openbook_posts.jobs.process_post_media")
-    def test_cant_retrieve_own_public_community_processing_posts_by_username(
-        self, mock
-    ):
+    def test_cant_retrieve_own_public_community_processing_posts_by_username(self, mock):
         """should not be able to retrieve own public community processing posts by username"""
         user = make_user()
         community = make_community()
@@ -3699,9 +3422,7 @@ class PostsAPITests(OpenbookAPITestCase):
         test_image = get_test_image()
         with open(test_image["path"], "rb") as file:
             file = File(file)
-            user.create_community_post(
-                text=make_fake_post_text(), image=file, community_name=community.name
-            )
+            user.create_community_post(text=make_fake_post_text(), image=file, community_name=community.name)
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
@@ -3714,15 +3435,11 @@ class PostsAPITests(OpenbookAPITestCase):
         self.assertEqual(0, len(response_posts))
 
     @mock.patch("openbook_posts.jobs.process_post_media")
-    def test_cant_retrieve_own_private_community_part_of_processing_posts_by_username(
-        self, mock
-    ):
+    def test_cant_retrieve_own_private_community_part_of_processing_posts_by_username(self, mock):
         """should not be able to retrieve own private community part of processing posts by username"""
         user = make_user()
         community_creator = make_user()
-        community = make_community(
-            type=Community.COMMUNITY_TYPE_PRIVATE, creator=community_creator
-        )
+        community = make_community(type=Community.COMMUNITY_TYPE_PRIVATE, creator=community_creator)
 
         community_creator.invite_user_with_username_to_community_with_name(
             username=user.username, community_name=community.name
@@ -3732,9 +3449,7 @@ class PostsAPITests(OpenbookAPITestCase):
         test_image = get_test_image()
         with open(test_image["path"], "rb") as file:
             file = File(file)
-            user.create_community_post(
-                text=make_fake_post_text(), image=file, community_name=community.name
-            )
+            user.create_community_post(text=make_fake_post_text(), image=file, community_name=community.name)
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
@@ -3760,9 +3475,7 @@ class PostsAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.put(url, data, **headers, format="multipart")
 
-        user_notifications_subscription = UserNotificationsSubscription.objects.get(
-            subscriber=subscriber, user=user
-        )
+        user_notifications_subscription = UserNotificationsSubscription.objects.get(subscriber=subscriber, user=user)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(
@@ -3823,33 +3536,23 @@ class PostsAPITests(OpenbookAPITestCase):
 
         # connect with subscriber and add them to circle
         subscriber.connect_with_user_with_id(post_creator.pk)
-        post_creator.confirm_connection_with_user_with_id(
-            user_id=subscriber.pk, circles_ids=[circle.pk]
-        )
+        post_creator.confirm_connection_with_user_with_id(user_id=subscriber.pk, circles_ids=[circle.pk])
 
         # both users subscribe
-        subscriber.enable_new_post_notifications_for_user_with_username(
-            post_creator.username
-        )
-        other_subscriber.enable_new_post_notifications_for_user_with_username(
-            post_creator.username
-        )
+        subscriber.enable_new_post_notifications_for_user_with_username(post_creator.username)
+        other_subscriber.enable_new_post_notifications_for_user_with_username(post_creator.username)
 
         data = {"text": post_text, "circle_id": circle.pk}
 
         url = self._get_url()
         response = self.client.put(url, data, **headers, format="multipart")
 
-        other_subscriber_notifications_subscription = (
-            UserNotificationsSubscription.objects.get(
-                subscriber=other_subscriber, user=post_creator
-            )
+        other_subscriber_notifications_subscription = UserNotificationsSubscription.objects.get(
+            subscriber=other_subscriber, user=post_creator
         )
 
-        subscriber_notifications_subscription = (
-            UserNotificationsSubscription.objects.get(
-                subscriber=subscriber, user=post_creator
-            )
+        subscriber_notifications_subscription = UserNotificationsSubscription.objects.get(
+            subscriber=subscriber, user=post_creator
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -3883,9 +3586,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
         community = make_community(creator=user)
 
         user.create_public_post(text=make_fake_post_text())
-        post = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         headers = make_authentication_headers_for_user(user)
 
@@ -3918,9 +3619,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
         community = make_community(creator=user)
 
         user.create_public_post(text=make_fake_post_text())
-        post = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         headers = make_authentication_headers_for_user(user)
 
@@ -3943,12 +3642,8 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
         community = make_community(creator=user)
 
         user.create_public_post(text=make_fake_post_text())
-        post = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
-        post_two = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post_two = user.create_community_post(community_name=community.name, text=make_fake_post_text())
         post_two.is_closed = True
         post_two.save()
 
@@ -3988,9 +3683,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
 
         user.join_community_with_name(community_name=community.name)
 
-        post = community_owner.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
         emoji_group = make_reactions_emoji_group()
         emoji = make_emoji(group=emoji_group)
 
@@ -4020,9 +3713,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
         user = make_user()
         community = make_community(creator=user)
         user_to_retrieve_posts_from = make_user()
-        user_to_retrieve_posts_from.join_community_with_name(
-            community_name=community.name
-        )
+        user_to_retrieve_posts_from.join_community_with_name(community_name=community.name)
 
         post = user_to_retrieve_posts_from.create_community_post(
             text=make_fake_post_text(), community_name=community.name
@@ -4054,9 +3745,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
         user = make_user()
         community = make_community(creator=user)
         user_to_retrieve_posts_from = make_user()
-        user_to_retrieve_posts_from.join_community_with_name(
-            community_name=community.name
-        )
+        user_to_retrieve_posts_from.join_community_with_name(community_name=community.name)
 
         post = user_to_retrieve_posts_from.create_community_post(
             text=make_fake_post_text(), community_name=community.name
@@ -4092,9 +3781,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
 
         user.join_community_with_name(community_name=community.name)
 
-        post = community_owner.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = community_owner.create_community_post(text=make_fake_post_text(), community_name=community.name)
         emoji_group = make_reactions_emoji_group()
         emoji = make_emoji(group=emoji_group)
 
@@ -4128,9 +3815,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
         user.confirm_connection_with_user_with_id(user_id=post_creator.pk)
 
         post_text = make_fake_post_text()
-        post = post_creator.create_encircled_post(
-            text=post_text, circles_ids=[circle.pk]
-        )
+        post = post_creator.create_encircled_post(text=post_text, circles_ids=[circle.pk])
 
         emoji_group = make_reactions_emoji_group()
         emoji = make_emoji(group=emoji_group)
@@ -4161,9 +3846,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
         user = make_user()
 
         community = make_community(creator=user, type=Community.COMMUNITY_TYPE_PRIVATE)
-        post = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         emoji_group = make_reactions_emoji_group()
         emoji = make_emoji(group=emoji_group)
@@ -4194,9 +3877,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
         user = make_user()
 
         community = make_community(creator=user, type=Community.COMMUNITY_TYPE_PUBLIC)
-        post = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         emoji_group = make_reactions_emoji_group()
         emoji = make_emoji(group=emoji_group)
@@ -4231,12 +3912,8 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
         community = make_community(creator=user)
 
         user.create_public_post(text=make_fake_post_text())
-        post = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
-        post_two = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post_two = user.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         emoji_group = make_reactions_emoji_group()
         emoji = make_emoji(group=emoji_group)
@@ -4271,12 +3948,8 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
         post_reporter.join_community_with_name(community_name=community.name)
 
         user.create_public_post(text=make_fake_post_text())
-        post = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
-        post_two = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post_two = user.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         # report and approve the report for one post
         moderation_category = make_moderation_category()
@@ -4323,12 +3996,8 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
         post_reporter.join_community_with_name(community_name=community.name)
 
         user.create_public_post(text=make_fake_post_text())
-        post = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
-        post_two = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post_two = user.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         # report and approve the report for one post
         moderation_category = make_moderation_category()
@@ -4381,9 +4050,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
         community = make_community(creator=user)
 
         public_post = user.create_public_post(text=make_fake_post_text())
-        community_post = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        community_post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         # comment on both posts to qualify for top
         user.comment_post(community_post, text=make_fake_post_comment_text())
@@ -4425,9 +4092,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
 
         # comment on both posts to qualify for top
         user.comment_post(user_community_post, text=make_fake_post_comment_text())
-        community_creator.comment_post(
-            community_post, text=make_fake_post_comment_text()
-        )
+        community_creator.comment_post(community_post, text=make_fake_post_comment_text())
 
         # curate top posts
         curate_top_posts()
@@ -4436,9 +4101,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
 
-        response = self.client.get(
-            url, {"exclude_joined_communities": True}, **headers, format="multipart"
-        )
+        response = self.client.get(url, {"exclude_joined_communities": True}, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -4456,9 +4119,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
         community = make_community(creator=user)
 
         public_post = user.create_public_post(text=make_fake_post_text())
-        community_post = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        community_post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         # comment on both posts to qualify for top
         user.comment_post(community_post, text=make_fake_post_comment_text())
@@ -4495,9 +4156,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
         user.confirm_connection_with_user_with_id(user_id=post_creator.pk)
 
         post_text = make_fake_post_text()
-        post = post_creator.create_encircled_post(
-            text=post_text, circles_ids=[circle.pk]
-        )
+        post = post_creator.create_encircled_post(text=post_text, circles_ids=[circle.pk])
 
         # comment on post to qualify for top
         user.comment_post(post, text=make_fake_post_comment_text())
@@ -4525,9 +4184,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
         user = make_user()
 
         community = make_community(creator=user, type=Community.COMMUNITY_TYPE_PRIVATE)
-        post = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         # comment on post to qualify for top
         user.comment_post(post, text=make_fake_post_comment_text())
@@ -4555,9 +4212,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
         user = make_user()
 
         community = make_community(creator=user, type=Community.COMMUNITY_TYPE_PUBLIC)
-        post = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         # comment on post to qualify for top
         user.comment_post(post, text=make_fake_post_comment_text())
@@ -4589,12 +4244,8 @@ class TopPostsAPITests(OpenbookAPITestCase):
         community = make_community(creator=user)
 
         user.create_public_post(text=make_fake_post_text())
-        post = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
-        post_two = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post_two = user.create_community_post(community_name=community.name, text=make_fake_post_text())
         post_two.is_closed = True
         post_two.save()
 
@@ -4627,12 +4278,8 @@ class TopPostsAPITests(OpenbookAPITestCase):
         community = make_community(creator=user)
 
         user.create_public_post(text=make_fake_post_text())
-        post = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
-        post_two = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post_two = user.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         # comment on both posts to qualify for top
         user.comment_post(post, text=make_fake_post_comment_text())
@@ -4664,12 +4311,8 @@ class TopPostsAPITests(OpenbookAPITestCase):
         post_reporter.join_community_with_name(community_name=community.name)
 
         user.create_public_post(text=make_fake_post_text())
-        post = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
-        post_two = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post_two = user.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         # comment on both posts to qualify for top
         user.comment_post(post, text=make_fake_post_comment_text())
@@ -4713,12 +4356,8 @@ class TopPostsAPITests(OpenbookAPITestCase):
         post_reporter.join_community_with_name(community_name=community.name)
 
         user.create_public_post(text=make_fake_post_text())
-        post = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
-        post_two = user.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post_two = user.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         # comment on both posts to qualify for top
         user.comment_post(post, text=make_fake_post_comment_text())
@@ -4760,9 +4399,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
             username=user.username, community_name=community.name
         )
 
-        post = community_owner.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
         # comment on post to qualify for top
         community_owner.comment_post(post, text=make_fake_post_comment_text())
 
@@ -4788,9 +4425,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
         post = user_to_retrieve_posts_from.create_community_post(
             community_name=community.name, text=make_fake_post_text()
         )
-        user_to_retrieve_posts_from.comment_post(
-            post, text=make_fake_post_comment_text()
-        )
+        user_to_retrieve_posts_from.comment_post(post, text=make_fake_post_comment_text())
 
         user.follow_user_with_id(user_id=user_to_retrieve_posts_from.pk)
         user.block_user_with_id(user_id=user_to_retrieve_posts_from.pk)
@@ -4818,9 +4453,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
         post = user_to_retrieve_posts_from.create_community_post(
             community_name=community.name, text=make_fake_post_text()
         )
-        user_to_retrieve_posts_from.comment_post(
-            post, text=make_fake_post_comment_text()
-        )
+        user_to_retrieve_posts_from.comment_post(post, text=make_fake_post_comment_text())
 
         user_to_retrieve_posts_from.block_user_with_id(user_id=user.pk)
 
@@ -4844,9 +4477,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
         community_owner = make_user()
 
         community = make_community(creator=community_owner)
-        post = community_owner.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
         community_owner.comment_post(post, text=make_fake_post_comment_text())
 
         user.block_user_with_id(user_id=community_owner.pk)
@@ -4871,12 +4502,8 @@ class TopPostsAPITests(OpenbookAPITestCase):
         community_owner = make_user()
 
         community = make_community(creator=community_owner)
-        post = community_owner.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
-        post_two = community_owner.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post_two = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         # comment once, min comments required while testing
         community_owner.comment_post(post, text=make_fake_post_comment_text())
@@ -4904,12 +4531,8 @@ class TopPostsAPITests(OpenbookAPITestCase):
         community_owner = make_user()
 
         community = make_community(creator=community_owner)
-        post = community_owner.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
-        post_two = community_owner.create_community_post(
-            community_name=community.name, text=make_fake_post_text()
-        )
+        post = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post_two = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
 
         emoji_group = make_reactions_emoji_group()
         emoji = make_emoji(group=emoji_group)
@@ -4944,9 +4567,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
         community = make_community(creator=user)
 
         for i in range(total_posts):
-            post = user.create_community_post(
-                community_name=community.name, text=make_fake_post_text()
-            )
+            post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
             user.comment_post(post, text=make_fake_post_comment_text())
 
         # curate top posts
@@ -4972,9 +4593,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
         community = make_community(creator=user)
 
         for i in range(total_posts):
-            post = user.create_community_post(
-                community_name=community.name, text=make_fake_post_text()
-            )
+            post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
             user.comment_post(post, text=make_fake_post_comment_text())
 
         # curate top posts
@@ -4999,9 +4618,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
         community = make_community(creator=user)
 
         for i in range(total_posts):
-            post = user.create_community_post(
-                community_name=community.name, text=make_fake_post_text()
-            )
+            post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
             user.comment_post(post, text=make_fake_post_comment_text())
 
         # curate top posts
@@ -5033,9 +4650,7 @@ class ProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         communities_ids = [community.pk for community in communities]
         for community in communities:
             user.join_community_with_name(community_name=community.name)
-            user.exclude_community_with_name_from_profile_posts(
-                community_name=community.name
-            )
+            user.exclude_community_with_name_from_profile_posts(community_name=community.name)
 
         url = self._get_url()
         response = self.client.get(url, **headers)
@@ -5076,20 +4691,14 @@ class ProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         total_amount_of_communities = 10
         offset = 5
 
-        communities = mixer.cycle(total_amount_of_communities).blend(
-            Community, creator=user
-        )
+        communities = mixer.cycle(total_amount_of_communities).blend(Community, creator=user)
 
         offsetted_communities = communities[offset:total_amount_of_communities]
-        offsetted_communities_ids = [
-            community.pk for community in offsetted_communities
-        ]
+        offsetted_communities_ids = [community.pk for community in offsetted_communities]
 
         for community in communities:
             user.join_community_with_name(community_name=community.name)
-            user.exclude_community_with_name_from_profile_posts(
-                community_name=community.name
-            )
+            user.exclude_community_with_name_from_profile_posts(community_name=community.name)
 
         url = self._get_url()
         response = self.client.get(url, {"offset": offset}, **headers)
@@ -5098,9 +4707,7 @@ class ProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(
-            len(response_communities), total_amount_of_communities - offset
-        )
+        self.assertEqual(len(response_communities), total_amount_of_communities - offset)
 
         for response_community in response_communities:
             response_community_id = response_community.get("id")
@@ -5121,11 +4728,7 @@ class ProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        self.assertTrue(
-            user.has_excluded_community_with_name_from_profile_posts(
-                community_name=community.name
-            )
-        )
+        self.assertTrue(user.has_excluded_community_with_name_from_profile_posts(community_name=community.name))
 
     def test_can_exclude_private_community(self):
         """should be able to exclude a private community from profile posts"""
@@ -5133,9 +4736,7 @@ class ProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         other_user = make_user()
-        community = make_community(
-            creator=other_user, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        community = make_community(creator=other_user, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         url = self._get_url()
 
@@ -5143,11 +4744,7 @@ class ProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        self.assertTrue(
-            user.has_excluded_community_with_name_from_profile_posts(
-                community_name=community.name
-            )
-        )
+        self.assertTrue(user.has_excluded_community_with_name_from_profile_posts(community_name=community.name))
 
     def test_cannot_exclude_community_already_excluded(self):
         """should not be able to exclude a community if already excluded from profile posts"""
@@ -5165,11 +4762,7 @@ class ProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(
-            user.has_excluded_community_with_name_from_profile_posts(
-                community_name=community.name
-            )
-        )
+        self.assertTrue(user.has_excluded_community_with_name_from_profile_posts(community_name=community.name))
 
     def _get_url(self):
         return reverse("profile-posts-excluded-communities")
@@ -5189,9 +4782,7 @@ class SearchProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
         for i in range(0, amount_of_joined_communities_to_search_for):
             community_name = fake.user_name().lower()
-            community = mixer.blend(
-                Community, name=community_name, type=Community.COMMUNITY_TYPE_PUBLIC
-            )
+            community = mixer.blend(Community, name=community_name, type=Community.COMMUNITY_TYPE_PUBLIC)
 
             user.exclude_community_with_name_from_profile_posts(community_name)
 
@@ -5200,9 +4791,7 @@ class SearchProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 
@@ -5226,9 +4815,7 @@ class SearchProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
         for i in range(0, amount_of_joined_communities_to_search_for):
             community_title = fake.user_name().lower()
-            community = mixer.blend(
-                Community, title=community_title, type=Community.COMMUNITY_TYPE_PUBLIC
-            )
+            community = mixer.blend(Community, title=community_title, type=Community.COMMUNITY_TYPE_PUBLIC)
 
             user.exclude_community_with_name_from_profile_posts(community.name)
 
@@ -5237,9 +4824,7 @@ class SearchProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 
@@ -5277,11 +4862,7 @@ class ProfilePostsExcludedCommunityAPITests(OpenbookAPITestCase):
         response = self.client.delete(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        self.assertFalse(
-            user.has_excluded_community_with_name_from_profile_posts(
-                community_name=community.name
-            )
-        )
+        self.assertFalse(user.has_excluded_community_with_name_from_profile_posts(community_name=community.name))
 
     def test_cannot_remove_exclusion_for_community_if_not_excluded(self):
         """should not be able to remove an community exclusion, if the community is not excluded in the first place"""
@@ -5296,11 +4877,7 @@ class ProfilePostsExcludedCommunityAPITests(OpenbookAPITestCase):
         response = self.client.delete(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertFalse(
-            user.has_excluded_community_with_name_from_profile_posts(
-                community_name=community.name
-            )
-        )
+        self.assertFalse(user.has_excluded_community_with_name_from_profile_posts(community_name=community.name))
 
     def _get_url(self, community):
         return reverse(
@@ -5323,9 +4900,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         communities_ids = [community.pk for community in communities]
         for community in communities:
             user.join_community_with_name(community_name=community.name)
-            user.exclude_community_with_name_from_top_posts(
-                community_name=community.name
-            )
+            user.exclude_community_with_name_from_top_posts(community_name=community.name)
 
         url = self._get_url()
         response = self.client.get(url, **headers)
@@ -5366,20 +4941,14 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         total_amount_of_communities = 10
         offset = 5
 
-        communities = mixer.cycle(total_amount_of_communities).blend(
-            Community, creator=user
-        )
+        communities = mixer.cycle(total_amount_of_communities).blend(Community, creator=user)
 
         offsetted_communities = communities[offset:total_amount_of_communities]
-        offsetted_communities_ids = [
-            community.pk for community in offsetted_communities
-        ]
+        offsetted_communities_ids = [community.pk for community in offsetted_communities]
 
         for community in communities:
             user.join_community_with_name(community_name=community.name)
-            user.exclude_community_with_name_from_top_posts(
-                community_name=community.name
-            )
+            user.exclude_community_with_name_from_top_posts(community_name=community.name)
 
         url = self._get_url()
         response = self.client.get(url, {"offset": offset}, **headers)
@@ -5388,9 +4957,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(
-            len(response_communities), total_amount_of_communities - offset
-        )
+        self.assertEqual(len(response_communities), total_amount_of_communities - offset)
 
         for response_community in response_communities:
             response_community_id = response_community.get("id")
@@ -5411,11 +4978,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        self.assertTrue(
-            user.has_excluded_community_with_name_from_top_posts(
-                community_name=community.name
-            )
-        )
+        self.assertTrue(user.has_excluded_community_with_name_from_top_posts(community_name=community.name))
 
     def test_cannot_exclude_private_community(self):
         """should be able to exclude a private community from top posts"""
@@ -5423,9 +4986,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         other_user = make_user()
-        community = make_community(
-            creator=other_user, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        community = make_community(creator=other_user, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         url = self._get_url()
 
@@ -5433,11 +4994,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertFalse(
-            user.has_excluded_community_with_name_from_top_posts(
-                community_name=community.name
-            )
-        )
+        self.assertFalse(user.has_excluded_community_with_name_from_top_posts(community_name=community.name))
 
     def test_cannot_exclude_community_already_excluded(self):
         """should not be able to exclude a community if already excluded from top posts"""
@@ -5455,11 +5012,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         response = self.client.put(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(
-            user.has_excluded_community_with_name_from_top_posts(
-                community_name=community.name
-            )
-        )
+        self.assertTrue(user.has_excluded_community_with_name_from_top_posts(community_name=community.name))
 
     def _get_url(self):
         return reverse("top-posts-excluded-communities")
@@ -5479,9 +5032,7 @@ class SearchTopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
         for i in range(0, amount_of_joined_communities_to_search_for):
             community_name = fake.user_name().lower()
-            community = mixer.blend(
-                Community, name=community_name, type=Community.COMMUNITY_TYPE_PUBLIC
-            )
+            community = mixer.blend(Community, name=community_name, type=Community.COMMUNITY_TYPE_PUBLIC)
 
             user.exclude_community_with_name_from_top_posts(community_name)
 
@@ -5490,9 +5041,7 @@ class SearchTopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 
@@ -5516,9 +5065,7 @@ class SearchTopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
         for i in range(0, amount_of_joined_communities_to_search_for):
             community_title = fake.user_name().lower()
-            community = mixer.blend(
-                Community, title=community_title, type=Community.COMMUNITY_TYPE_PUBLIC
-            )
+            community = mixer.blend(Community, title=community_title, type=Community.COMMUNITY_TYPE_PUBLIC)
 
             user.exclude_community_with_name_from_top_posts(community.name)
 
@@ -5527,9 +5074,7 @@ class SearchTopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
 
@@ -5567,11 +5112,7 @@ class TopPostsExcludedCommunityAPITests(OpenbookAPITestCase):
         response = self.client.delete(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        self.assertFalse(
-            user.has_excluded_community_with_name_from_top_posts(
-                community_name=community.name
-            )
-        )
+        self.assertFalse(user.has_excluded_community_with_name_from_top_posts(community_name=community.name))
 
     def test_cannot_remove_exclusion_for_community_if_not_excluded(self):
         """should not be able to remove an community exclusion, if the community is not excluded in the first place"""
@@ -5586,13 +5127,7 @@ class TopPostsExcludedCommunityAPITests(OpenbookAPITestCase):
         response = self.client.delete(url, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertFalse(
-            user.has_excluded_community_with_name_from_top_posts(
-                community_name=community.name
-            )
-        )
+        self.assertFalse(user.has_excluded_community_with_name_from_top_posts(community_name=community.name))
 
     def _get_url(self, community):
-        return reverse(
-            "top-posts-excluded-community", kwargs={"community_name": community.name}
-        )
+        return reverse("top-posts-excluded-community", kwargs={"community_name": community.name})

@@ -17,24 +17,13 @@ class Command(BaseCommand):
         for user in users:
             old_username = user.username
             # convert to ascii
-            normalised_username = (
-                unicodedata.normalize("NFD", old_username)
-                .encode("ascii", "ignore")
-                .decode("utf-8")
-            )
+            normalised_username = unicodedata.normalize("NFD", old_username).encode("ascii", "ignore").decode("utf-8")
             normalised_username = self.sanitise_username(normalised_username)
 
-            logger.info(
-                f"Normalised username {old_username}  to   {normalised_username}"
-            )
+            logger.info(f"Normalised username {old_username}  to   {normalised_username}")
 
     def sanitise_username(self, username):
         chars = "[@#!±$%^&*()=|/><?,:;\~`{}]"
         return (
-            re.sub(chars, "", username)
-            .lower()
-            .replace(" ", "_")
-            .replace("+", "_")
-            .replace("-", "_")
-            .replace("\\", "")
+            re.sub(chars, "", username).lower().replace(" ", "_").replace("+", "_").replace("-", "_").replace("\\", "")
         )

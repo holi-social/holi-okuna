@@ -35,9 +35,7 @@ class ConnectWithUserSerializer(serializers.Serializer):
         validators=[username_characters_validator, user_username_exists],
         required=False,
     )
-    circles_ids = serializers.ListSerializer(
-        child=serializers.UUIDField(required=True, validators=[circle_id_exists])
-    )
+    circles_ids = serializers.ListSerializer(child=serializers.UUIDField(required=True, validators=[circle_id_exists]))
 
 
 class ConnectionUserProfileBadgeSerializer(serializers.ModelSerializer):
@@ -65,9 +63,7 @@ class ConnectionUserSerializer(serializers.ModelSerializer):
     is_connected = IsConnectedField()
     is_following = IsFollowingField()
     are_new_post_notifications_enabled = AreNewPostNotificationsEnabledForUserField()
-    connected_circles = ConnectedCirclesField(
-        circle_serializer=ConnectionUserCircleSerializer
-    )
+    connected_circles = ConnectedCirclesField(circle_serializer=ConnectionUserCircleSerializer)
     is_pending_connection_confirmation = IsPendingConnectionConfirmation()
     is_fully_connected = IsFullyConnectedField()
 
@@ -115,9 +111,7 @@ class UpdateConnectionSerializer(serializers.Serializer):
         validators=[username_characters_validator, user_username_exists],
         required=False,
     )
-    circles_ids = serializers.ListSerializer(
-        child=serializers.UUIDField(required=True, validators=[circle_id_exists])
-    )
+    circles_ids = serializers.ListSerializer(child=serializers.UUIDField(required=True, validators=[circle_id_exists]))
 
 
 class ConfirmConnectionSerializer(serializers.Serializer):

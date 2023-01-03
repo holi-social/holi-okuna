@@ -31,13 +31,9 @@ if __name__ == "__main__":
         default="./.elasticbeanstalk/config.yml",
     )
 
-    parser.add_argument(
-        "--name", type=str, required=True, help="The name of the application"
-    )
+    parser.add_argument("--name", type=str, required=True, help="The name of the application")
 
-    parser.add_argument(
-        "--region", type=str, required=True, help="The default application region"
-    )
+    parser.add_argument("--region", type=str, required=True, help="The default application region")
 
     args = parser.parse_args()
 

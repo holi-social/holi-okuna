@@ -35,9 +35,7 @@ class Circle(ModelWithUUID):
         related_name="circles",
         null=True,
     )
-    name = models.CharField(
-        _("name"), max_length=CIRCLE_MAX_LENGTH, blank=False, null=False
-    )
+    name = models.CharField(_("name"), max_length=CIRCLE_MAX_LENGTH, blank=False, null=False)
     color = models.CharField(
         _("color"),
         max_length=COLOR_ATTR_MAX_LENGTH,
@@ -46,9 +44,7 @@ class Circle(ModelWithUUID):
         validators=[hex_color_validator],
     )
     posts = models.ManyToManyField(Post, related_name="circles", db_index=True)
-    connections = models.ManyToManyField(
-        Connection, related_name="circles", db_index=True, through=ConnectionCircle
-    )
+    connections = models.ManyToManyField(Connection, related_name="circles", db_index=True, through=ConnectionCircle)
     created = models.DateTimeField(editable=False)
 
     class Meta:
@@ -68,9 +64,7 @@ class Circle(ModelWithUUID):
 
     @classmethod
     def bootstrap_circles_for_user(cls, user):
-        user_connections_circle = cls.create_circle(
-            name=_("Connections"), color="#FFFFFF", creator=user
-        )
+        user_connections_circle = cls.create_circle(name=_("Connections"), color="#FFFFFF", creator=user)
         user.connections_circle = user_connections_circle
         user.save()
 
@@ -93,9 +87,7 @@ class Circle(ModelWithUUID):
     @property
     def users(self):
         Connection = get_connection_model()
-        circle_connections = Connection.objects.select_related(
-            "target_connection__user"
-        ).filter(circles__id=self.id)
+        circle_connections = Connection.objects.select_related("target_connection__user").filter(circles__id=self.id)
 
         users = []
         for connection in circle_connections:

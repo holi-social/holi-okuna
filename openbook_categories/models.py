@@ -12,9 +12,7 @@ from openbook_communities.models import Community
 
 
 class Category(ModelWithUUID):
-    creator = models.ForeignKey(
-        User, on_delete=models.SET_NULL, related_name="created_categories", null=True
-    )
+    creator = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="created_categories", null=True)
     name = models.CharField(
         _("name"),
         max_length=settings.CATEGORY_NAME_MAX_LENGTH,
@@ -35,9 +33,7 @@ class Category(ModelWithUUID):
         null=True,
     )
     created = models.DateTimeField(editable=False)
-    communities = models.ManyToManyField(
-        Community, related_name="categories", blank=True
-    )
+    communities = models.ManyToManyField(Community, related_name="categories", blank=True)
     avatar = models.ImageField(_("avatar"), blank=False, null=True)
     color = models.CharField(
         _("color"),
@@ -49,9 +45,7 @@ class Category(ModelWithUUID):
     order = models.IntegerField(unique=False, default=100)
 
     @classmethod
-    def create_category(
-        cls, creator, name, color, order=None, title=None, description=None, avatar=None
-    ):
+    def create_category(cls, creator, name, color, order=None, title=None, description=None, avatar=None):
         category = cls.objects.create(
             creator=creator,
             name=name,

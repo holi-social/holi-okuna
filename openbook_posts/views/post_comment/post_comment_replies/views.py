@@ -50,11 +50,9 @@ class PostCommentReplies(APIView):
             post_comment_replies_max = []
             post_comment_replies_min = []
             if max_id:
-                post_comment_replies_max = (
-                    user.get_comment_replies_for_comment_with_id_with_post_with_id(
-                        post_id=post_id, post_comment_id=post_comment_id, max_id=max_id
-                    ).order_by("-pk")[:count_max]
-                )
+                post_comment_replies_max = user.get_comment_replies_for_comment_with_id_with_post_with_id(
+                    post_id=post_id, post_comment_id=post_comment_id, max_id=max_id
+                ).order_by("-pk")[:count_max]
                 post_comment_replies_max = sorted(
                     post_comment_replies_max.all(),
                     key=operator.attrgetter("created"),
@@ -62,11 +60,9 @@ class PostCommentReplies(APIView):
                 )
 
             if min_id:
-                post_comment_replies_min = (
-                    user.get_comment_replies_for_comment_with_id_with_post_with_id(
-                        post_id=post_id, post_comment_id=post_comment_id, min_id=min_id
-                    ).order_by("pk")[:count_min]
-                )
+                post_comment_replies_min = user.get_comment_replies_for_comment_with_id_with_post_with_id(
+                    post_id=post_id, post_comment_id=post_comment_id, min_id=min_id
+                ).order_by("pk")[:count_min]
                 post_comment_replies_min = sorted(
                     post_comment_replies_min.all(),
                     key=operator.attrgetter("created"),
@@ -74,13 +70,9 @@ class PostCommentReplies(APIView):
                 )
 
             if sort_query == self.SORT_CHOICE_TO_QUERY["ASC"]:
-                all_comment_replies = list(
-                    chain(post_comment_replies_max, post_comment_replies_min)
-                )
+                all_comment_replies = list(chain(post_comment_replies_max, post_comment_replies_min))
             elif sort_query == self.SORT_CHOICE_TO_QUERY["DESC"]:
-                all_comment_replies = list(
-                    chain(post_comment_replies_min, post_comment_replies_max)
-                )
+                all_comment_replies = list(chain(post_comment_replies_min, post_comment_replies_max))
 
         post_comment_replies_serializer = PostCommentReplySerializer(
             all_comment_replies, many=True, context={"request": request}
@@ -106,9 +98,7 @@ class PostCommentReplies(APIView):
                 post_comment_id=post_comment_id, post_id=post_id, text=comment_text
             )
 
-        post_comment_serializer = PostCommentReplySerializer(
-            post_comment_reply, context={"request": request}
-        )
+        post_comment_serializer = PostCommentReplySerializer(post_comment_reply, context={"request": request})
         return Response(post_comment_serializer.data, status=status.HTTP_201_CREATED)
 
     def _get_request_data(self, request, post_id, post_comment_id):
