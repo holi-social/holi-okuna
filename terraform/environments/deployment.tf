@@ -117,7 +117,7 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name = "IMAGEKIT_URL"
-          value = local.environment_name == "production" ? "https://ik.imagekit.io/holi" : "https://ik.imagekit.io/holi"
+          value = local.environment_name == "production" ? "https://ik.imagekit.io/holi" : "https://ik.imagekit.io/holidev"
         }
         env {
           name = "IMAGEKIT_PUBLIC_KEY"
