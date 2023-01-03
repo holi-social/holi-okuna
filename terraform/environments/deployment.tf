@@ -57,29 +57,39 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name = "SECRET_KEY"
-          #          value_from {
-          #            secret_key_ref {
-          #              name = google_secret_manager_secret.secret.secret_id
-          #              key = "1"
-          #            }
-          #          }          
-          value = "changeme" # TODO: no secrets in git
+          value_from {
+            secret_key_ref {
+              key  = "latest"
+              name = local.environment_name == "production" ? "OKUNA_SECRET_KEY_PRODUCTION" : "OKUNA_SECRET_KEY_DEVELOPMENT"
+            }
+          }
         }
         env {
           name  = "ALLOWED_HOSTS"
-          value = "*"
+          # TODO This could break the admin interface, we need to check it after deployment
+          value = local.dns_name
         }
         env {
           name  = "RDS_DB_NAME"
-          value = random_id.main.hex
+          value = local.environment_name == "production" ? "okuna" : random_id.main.hex
         }
         env {
           name  = "RDS_USERNAME"
-          value = "admin" # TODO: env specific users or at least an unprivileged user
+          value_from {
+            secret_key_ref {
+              key  = "latest"
+              name = local.environment_name == "production" ? "OKUNA_POSTGRES_USERNAME_PRODUCTION" : "OKUNA_POSTGRES_USERNAME_DEVELOPMENT"
+            }
+          }
         }
         env {
           name  = "RDS_PASSWORD"
-          value = "zbQHRi6D2Mnm4GZK" # TODO: don't store secrets in git/plaintext!
+          value_from {
+            secret_key_ref {
+              key  = "latest"
+              name = local.environment_name == "production" ? "OKUNA_POSTGRES_PASSWORD_PRODUCTION" : "OKUNA_POSTGRES_PASSWORD_DEVELOPMENT"
+            }
+          }
         }
         env {
           name  = "RDS_PORT"
@@ -87,7 +97,7 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "RDS_HOSTNAME"
-          value = data.terraform_remote_state.holi_infra_state.outputs.database_ip_address_development
+          value = local.environment_name == "production" ? data.terraform_remote_state.holi_infra_state.outputs.database_ip_address_production : data.terraform_remote_state.holi_infra_state.outputs.database_ip_address_development
         }
         env {
           name  = "REDIS_HOST"
@@ -106,11 +116,15 @@ resource "google_cloud_run_service" "okuna" {
           value = "https://41084c0584d04b38a27d49fab9591b42@o949544.ingest.sentry.io/6421964"
         }
         env {
+          name = "IMAGEKIT_URL"
+          value = local.environment_name == "production" ? "https://ik.imagekit.io/holi" : "https://ik.imagekit.io/holi"
+        }
+        env {
           name = "IMAGEKIT_PUBLIC_KEY"
           value_from {
             secret_key_ref {
               key  = "latest"
-              name = "OKUNA_IMAGEKIT_PUBLIC_KEY"
+              name = local.environment_name == "production" ? "OKUNA_IMAGEKIT_PUBLIC_KEY_PRODUCTION" : "OKUNA_IMAGEKIT_PUBLIC_KEY_DEVELOPMENT"
             }
           }
         }
@@ -119,11 +133,10 @@ resource "google_cloud_run_service" "okuna" {
           value_from {
             secret_key_ref {
               key  = "latest"
-              name = "OKUNA_IMAGEKIT_PRIVATE_KEY"
+              name = local.environment_name == "production" ? "OKUNA_IMAGEKIT_PRIVATE_KEY_PRODUCTION" : "OKUNA_IMAGEKIT_PRIVATE_KEY_DEVELOPMENT"
             }
           }
         }
-
         resources {
           limits = {
             # cpu can only be scaled down to 1000m as long as container_concurrency is set to != 1
@@ -142,8 +155,8 @@ resource "google_cloud_run_service" "okuna" {
     # template annotations: https://cloud.google.com/run/docs/reference/rpc/google.cloud.run.v1#revisiontemplate
     metadata {
       annotations = {
-        "autoscaling.knative.dev/minScale" = local.environment == "production" ? "0" : "0"
-        "autoscaling.knative.dev/maxScale" = local.environment == "production" ? "10" : "5"
+        "autoscaling.knative.dev/minScale" = local.environment == "production" ? "1" : "0"
+        "autoscaling.knative.dev/maxScale" = local.environment == "production" ? "50" : "5"
         # Use the VPC Connector
         "run.googleapis.com/vpc-access-connector" = data.terraform_remote_state.holi_infra_state.outputs.vpc_access_connector_name
         # possible values: all-traffic/private-ranges-only(default) https://cloud.google.com/sdk/gcloud/reference/run/services/update#--vpc-egress
