@@ -26,9 +26,7 @@ class Circles(APIView):
     permission_classes = (IsAuthenticated, IsNotSuspended)
 
     def put(self, request):
-        serializer = CreateCircleSerializer(
-            data=request.data, context={"request": request}
-        )
+        serializer = CreateCircleSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         name = data.get("name")
@@ -38,18 +36,14 @@ class Circles(APIView):
         with transaction.atomic():
             circle = user.create_circle(name=name, color=color)
 
-        response_serializer = GetCirclesCircleSerializer(
-            circle, context={"request": request}
-        )
+        response_serializer = GetCirclesCircleSerializer(circle, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
     def get(self, request):
         user = request.user
         circles = user.circles.order_by("-id")
-        response_serializer = GetCirclesCircleSerializer(
-            circles, many=True, context={"request": request}
-        )
+        response_serializer = GetCirclesCircleSerializer(circles, many=True, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -62,9 +56,7 @@ class CircleItem(APIView):
 
         circle = user.get_circle_with_id(circle_id)
 
-        response_serializer = GetCircleCircleSerializer(
-            circle, context={"request": request}
-        )
+        response_serializer = GetCircleCircleSerializer(circle, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -95,13 +87,9 @@ class CircleItem(APIView):
         user = request.user
 
         with transaction.atomic():
-            circle = user.update_circle_with_id(
-                circle_id, color=color, usernames=usernames, name=name
-            )
+            circle = user.update_circle_with_id(circle_id, color=color, usernames=usernames, name=name)
 
-        response_serializer = GetCircleCircleSerializer(
-            circle, context={"request": request}
-        )
+        response_serializer = GetCircleCircleSerializer(circle, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -122,10 +110,6 @@ class CircleNameCheck(APIView):
         user = request.user
 
         if not user.has_circle_with_name(name):
-            return ApiMessageResponse(
-                _("Circle name available"), status=status.HTTP_202_ACCEPTED
-            )
+            return ApiMessageResponse(_("Circle name available"), status=status.HTTP_202_ACCEPTED)
 
-        return ApiMessageResponse(
-            _("Circle name not available"), status=status.HTTP_400_BAD_REQUEST
-        )
+        return ApiMessageResponse(_("Circle name not available"), status=status.HTTP_400_BAD_REQUEST)

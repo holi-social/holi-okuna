@@ -26,9 +26,7 @@ hashtag_image_storage = default_storage
 
 class Hashtag(ModelWithUUID):
 
-    moderated_object = GenericRelation(
-        "openbook_moderation.ModeratedObject", related_query_name="hashtags"
-    )
+    moderated_object = GenericRelation("openbook_moderation.ModeratedObject", related_query_name="hashtags")
 
     name = models.CharField(
         _("name"),
@@ -78,9 +76,7 @@ class Hashtag(ModelWithUUID):
         ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
-    emoji = models.ForeignKey(
-        Emoji, on_delete=models.SET_NULL, related_name="hashtags", null=True, blank=True
-    )
+    emoji = models.ForeignKey(Emoji, on_delete=models.SET_NULL, related_name="hashtags", null=True, blank=True)
 
     @classmethod
     def create_hashtag(cls, name, color=None, image=None):
@@ -127,9 +123,7 @@ class Hashtag(ModelWithUUID):
         if not self.has_image() and post and post.is_publicly_visible():
             post_first_media_image = post.get_first_media_image()
             if post_first_media_image:
-                image_copy = ContentFile(
-                    post_first_media_image.content_object.image.read()
-                )
+                image_copy = ContentFile(post_first_media_image.content_object.image.read())
                 image_copy.name = post_first_media_image.content_object.image.name
                 self.image.save(image_copy.name, image_copy)
                 self.save()

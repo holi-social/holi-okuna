@@ -45,9 +45,7 @@ class FollowUserRequestSerializer(serializers.Serializer):
         validators=[username_characters_validator, user_username_exists],
         required=False,
     )
-    lists_ids = serializers.ListSerializer(
-        required=False, child=serializers.UUIDField(validators=[list_id_exists])
-    )
+    lists_ids = serializers.ListSerializer(required=False, child=serializers.UUIDField(validators=[list_id_exists]))
 
 
 class UserProfileBadgeSerializer(serializers.ModelSerializer):
@@ -118,6 +116,4 @@ class UpdateFollowSerializer(serializers.Serializer):
         validators=[username_characters_validator, user_username_exists],
         required=False,
     )
-    lists_ids = serializers.ListSerializer(
-        required=False, child=serializers.UUIDField(validators=[list_id_exists])
-    )
+    lists_ids = serializers.ListSerializer(required=False, child=serializers.UUIDField(validators=[list_id_exists]))

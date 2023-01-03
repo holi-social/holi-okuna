@@ -33,9 +33,7 @@ class Devices(APIView):
         with transaction.atomic():
             device = user.create_device(name=name, uuid=uuid)
 
-        response_serializer = GetDevicesDeviceSerializer(
-            device, context={"request": request}
-        )
+        response_serializer = GetDevicesDeviceSerializer(device, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
@@ -53,9 +51,7 @@ class Devices(APIView):
 
         devices = user.get_devices(max_id=max_id).order_by("-created")[:count]
 
-        response_serializer = GetDevicesDeviceSerializer(
-            devices, many=True, context={"request": request}
-        )
+        response_serializer = GetDevicesDeviceSerializer(devices, many=True, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -76,9 +72,7 @@ class DeviceItem(APIView):
 
         device = user.get_device_with_uuid(device_uuid=device_uuid)
 
-        response_serializer = GetDevicesDeviceSerializer(
-            device, context={"request": request}
-        )
+        response_serializer = GetDevicesDeviceSerializer(device, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -98,9 +92,7 @@ class DeviceItem(APIView):
         with transaction.atomic():
             device = user.update_device_with_uuid(device_uuid=device_uuid, name=name)
 
-        response_serializer = GetDevicesDeviceSerializer(
-            device, context={"request": request}
-        )
+        response_serializer = GetDevicesDeviceSerializer(device, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 

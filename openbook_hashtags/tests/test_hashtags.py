@@ -44,9 +44,7 @@ class SearchHashtagsAPITests(OpenbookAPITestCase):
             query = hashtag_name[0:amount_of_characters_to_query]
             final_query = ""
             for character in query:
-                final_query = final_query + (
-                    character.upper() if fake.boolean() else character.lower()
-                )
+                final_query = final_query + (character.upper() if fake.boolean() else character.lower())
 
             url = self._get_url()
             response = self.client.get(url, {"query": final_query}, **headers)
@@ -68,9 +66,7 @@ class SearchHashtagsAPITests(OpenbookAPITestCase):
         hashtag = make_hashtag(name=hashtag_name)
 
         report_category = make_moderation_category()
-        reporter.report_hashtag_with_name(
-            hashtag_name=hashtag_name, category_id=report_category.pk
-        )
+        reporter.report_hashtag_with_name(hashtag_name=hashtag_name, category_id=report_category.pk)
 
         url = self._get_url()
         response = self.client.get(url, {"query": hashtag.name}, **headers)
@@ -88,9 +84,7 @@ class SearchHashtagsAPITests(OpenbookAPITestCase):
         hashtag = make_hashtag(name=hashtag_name)
 
         report_category = make_moderation_category()
-        user.report_hashtag_with_name(
-            hashtag_name=hashtag_name, category_id=report_category.pk
-        )
+        user.report_hashtag_with_name(hashtag_name=hashtag_name, category_id=report_category.pk)
 
         url = self._get_url()
         response = self.client.get(url, {"query": hashtag.name}, **headers)
@@ -110,9 +104,7 @@ class SearchHashtagsAPITests(OpenbookAPITestCase):
         hashtag = make_hashtag(name=hashtag_name)
 
         report_category = make_moderation_category()
-        reporter.report_hashtag_with_name(
-            hashtag_name=hashtag_name, category_id=report_category.pk
-        )
+        reporter.report_hashtag_with_name(hashtag_name=hashtag_name, category_id=report_category.pk)
 
         global_moderator = make_global_moderator()
 

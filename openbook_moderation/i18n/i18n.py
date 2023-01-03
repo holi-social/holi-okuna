@@ -4,25 +4,17 @@ from django.utils.translation import gettext_lazy as _
 _("Spam")
 _("Posts as spam could include clickbait, advertising, scams, script bots")
 _("Pornography")
-_(
-    "Posts showing sexual intercourse, photos and videos of sexual intercourse, nudity etc"
-)
+_("Posts showing sexual intercourse, photos and videos of sexual intercourse, nudity etc")
 _("Hatred & Bullying")
 _("Credible threats, targets people, degrades or shames them, harassment etc.")
 _("Self Harm")
 _("Posts promoting or encouraging self harm")
 _("Violent, gory and harmful")
-_(
-    "Photos or videos of extreme graphic violence, posts encouraging violence, specific threats of physical harm"
-)
+_("Photos or videos of extreme graphic violence, posts encouraging violence, specific threats of physical harm")
 _("Child Sexual Exploitation Material")
-_(
-    "Posts with photos or videos of sexual intercourse with children, posts of nude/partially nude children."
-)
+_("Posts with photos or videos of sexual intercourse with children, posts of nude/partially nude children.")
 _("Illegal Activities e.g Drug Use")
-_(
-    "Posts promoting illegal activities such as use, sale or distribution of hard drugs etc"
-)
+_("Posts promoting illegal activities such as use, sale or distribution of hard drugs etc")
 _("Deceptive content")
 _("Posts with purposefully fake or deceitful news, hoax disproved by credible sources")
 _("Copyright and trademark infringement")

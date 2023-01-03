@@ -21,9 +21,7 @@ class ReactionField(Field):
         if not request_user.is_anonymous:
             try:
                 reaction = request_user.get_reaction_for_post_with_id(post.pk)
-                serialized_reaction = self.reaction_serializer(
-                    reaction, context={"request": request}
-                ).data
+                serialized_reaction = self.reaction_serializer(reaction, context={"request": request}).data
             except PostReaction.DoesNotExist:
                 pass
 
@@ -68,9 +66,7 @@ class PostReactionsEmojiCountField(Field):
                 Post = get_post_model()
                 reaction_emoji_count = Post.get_emoji_counts_for_post_with_id(post.pk)
         else:
-            reaction_emoji_count = request_user.get_emoji_counts_for_post_with_id(
-                post.pk
-            )
+            reaction_emoji_count = request_user.get_emoji_counts_for_post_with_id(post.pk)
 
         post_reactions_serializer = self.emoji_count_serializer(
             reaction_emoji_count, many=True, context={"request": request, "post": post}
@@ -94,15 +90,11 @@ class CirclesField(Field):
         if post.creator_id == request_user.pk:
             circles = post.circles
 
-        return self.circle_serializer(
-            circles, many=True, context={"request": request, "post": post}
-        ).data
+        return self.circle_serializer(circles, many=True, context={"request": request, "post": post}).data
 
 
 class PostCreatorField(Field):
-    def __init__(
-        self, community_membership_serializer, post_creator_serializer, **kwargs
-    ):
+    def __init__(self, community_membership_serializer, post_creator_serializer, **kwargs):
         kwargs["source"] = "*"
         kwargs["read_only"] = True
         self.community_membership_serializer = community_membership_serializer
@@ -115,15 +107,11 @@ class PostCreatorField(Field):
         post_creator = post.creator
         post_community = post.community
 
-        post_creator_serializer = self.post_creator_serializer(
-            post_creator, context={"request": request}
-        ).data
+        post_creator_serializer = self.post_creator_serializer(post_creator, context={"request": request}).data
 
         if post_community:
             try:
-                post_creator_membership = post_community.memberships.get(
-                    user_id=post_creator.pk
-                )
+                post_creator_membership = post_community.memberships.get(user_id=post_creator.pk)
                 post_creator_serializer["communities_memberships"] = [
                     self.community_membership_serializer(
                         post_creator_membership,

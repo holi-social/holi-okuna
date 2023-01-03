@@ -36,9 +36,7 @@ def normalise_request_data(request_data):
 
 
 def nomalize_usernames_in_request_data(request_data):
-    normalize_list_value_in_request_data(
-        list_name="usernames", request_data=request_data
-    )
+    normalize_list_value_in_request_data(list_name="usernames", request_data=request_data)
 
 
 def normalize_list_value_in_request_data(list_name, request_data):
@@ -111,9 +109,7 @@ def _sha256sum(file):
 
 
 # matches "@<UUID>" exactly
-usernames_regexp = re.compile(
-    "@[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
-)
+usernames_regexp = re.compile("@[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}")
 
 
 def extract_usernames_from_string(string):

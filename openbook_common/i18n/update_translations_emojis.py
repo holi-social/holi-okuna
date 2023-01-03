@@ -3,9 +3,7 @@ import polib
 import os, django
 from django.conf import settings
 
-CATEGORIES_PATH = os.path.join(
-    settings.BASE_DIR, "openbook_common/fixtures/emojis.json"
-)
+CATEGORIES_PATH = os.path.join(settings.BASE_DIR, "openbook_common/fixtures/emojis.json")
 PO_LOCALES_PATH = os.path.join(settings.BASE_DIR, "locale")
 FIELDS = ["keyword"]
 
@@ -15,9 +13,7 @@ for language in settings.LANGUAGES:
         continue
     print(f"Processing locale {language_code}")
 
-    po_locale = polib.pofile(
-        os.path.join(PO_LOCALES_PATH, f"{language_code}/LC_MESSAGES/django.po")
-    )
+    po_locale = polib.pofile(os.path.join(PO_LOCALES_PATH, f"{language_code}/LC_MESSAGES/django.po"))
     po_dict = {}
     for entry in po_locale:
         po_dict[entry.msgid] = entry.msgstr

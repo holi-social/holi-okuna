@@ -23,9 +23,7 @@ class Time(APIView):
         time = timezone.localtime(timezone.now())
         time_zone = get_current_timezone()
 
-        return Response(
-            {"time": time, "timezone": str(time_zone)}, status=status.HTTP_200_OK
-        )
+        return Response({"time": time, "timezone": str(time_zone)}, status=status.HTTP_200_OK)
 
 
 class Health(APIView):
@@ -42,12 +40,8 @@ class EmojiGroups(APIView):
 
     def get(self, request):
         EmojiGroup = get_emoji_group_model()
-        emoji_groups = (
-            EmojiGroup.objects.filter(is_reaction_group=False).all().order_by("order")
-        )
-        serializer = CommonEmojiGroupSerializer(
-            emoji_groups, many=True, context={"request": request}
-        )
+        emoji_groups = EmojiGroup.objects.filter(is_reaction_group=False).all().order_by("order")
+        serializer = CommonEmojiGroupSerializer(emoji_groups, many=True, context={"request": request})
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -65,6 +59,4 @@ class ProxyDomainCheck(APIView):
 
         check_url_can_be_proxied(url)
 
-        return Response(
-            _("Domain is okay to be proxied"), status=status.HTTP_202_ACCEPTED
-        )
+        return Response(_("Domain is okay to be proxied"), status=status.HTTP_202_ACCEPTED)

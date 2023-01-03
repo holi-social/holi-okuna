@@ -35,13 +35,11 @@ class CommunityModerators(APIView):
 
         user = request.user
 
-        moderators = user.get_community_with_name_moderators(
-            community_name=community_name, max_id=max_id
-        ).order_by("-id")[:count]
+        moderators = user.get_community_with_name_moderators(community_name=community_name, max_id=max_id).order_by(
+            "-id"
+        )[:count]
 
-        response_serializer = GetCommunityModeratorsUserSerializer(
-            moderators, many=True, context={"request": request}
-        )
+        response_serializer = GetCommunityModeratorsUserSerializer(moderators, many=True, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -58,13 +56,9 @@ class CommunityModerators(APIView):
         user = request.user
 
         with transaction.atomic():
-            user.add_moderator_with_username_to_community_with_name(
-                username=username, community_name=community_name
-            )
+            user.add_moderator_with_username_to_community_with_name(username=username, community_name=community_name)
 
-        return ApiMessageResponse(
-            "Added moderator to community.", status=status.HTTP_201_CREATED
-        )
+        return ApiMessageResponse("Added moderator to community.", status=status.HTTP_201_CREATED)
 
 
 class CommunityModeratorItem(APIView):
@@ -109,12 +103,8 @@ class SearchCommunityModerators(APIView):
 
         user = request.user
 
-        moderators = user.search_community_with_name_moderators(
-            community_name=community_name, query=query
-        )[:count]
+        moderators = user.search_community_with_name_moderators(community_name=community_name, query=query)[:count]
 
-        response_serializer = GetCommunityModeratorsUserSerializer(
-            moderators, many=True, context={"request": request}
-        )
+        response_serializer = GetCommunityModeratorsUserSerializer(moderators, many=True, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)

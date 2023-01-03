@@ -193,9 +193,7 @@ class PostCommentNotificationSerializer(serializers.ModelSerializer):
 class PostCommentReplyNotificationSerializer(serializers.ModelSerializer):
     post_comment = NotificationPostCommentSerializer()
     # TODO Remove after a couple of releases. Not needed anymore as the post_comment includes parent_comment
-    parent_comment = ParentCommentField(
-        parent_comment_serializer=NotificationPostCommentParentSerializer
-    )
+    parent_comment = ParentCommentField(parent_comment_serializer=NotificationPostCommentParentSerializer)
 
     class Meta:
         model = PostCommentReplyNotification
@@ -409,12 +407,8 @@ class GetNotificationsNotificationSerializer(serializers.ModelSerializer):
 
 
 class DeleteNotificationSerializer(serializers.Serializer):
-    notification_id = serializers.UUIDField(
-        required=True, validators=[notification_id_exists]
-    )
+    notification_id = serializers.UUIDField(required=True, validators=[notification_id_exists])
 
 
 class ReadNotificationSerializer(serializers.Serializer):
-    notification_id = serializers.UUIDField(
-        required=True, validators=[notification_id_exists]
-    )
+    notification_id = serializers.UUIDField(required=True, validators=[notification_id_exists])

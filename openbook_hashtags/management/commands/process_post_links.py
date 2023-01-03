@@ -22,9 +22,7 @@ class Command(BaseCommand):
 
         links_query = Q(links__isnull=True) | Q(links__has_preview=False)
 
-        posts_to_process = (
-            Post.objects.filter(text_query & links_query).only("id", "text").all()
-        )
+        posts_to_process = Post.objects.filter(text_query & links_query).only("id", "text").all()
         migrated_posts = 0
 
         for post in _chunked_queryset_iterator(posts_to_process, 100):

@@ -47,9 +47,7 @@ class VideoField(ImageField):
             return
 
         # write `width` and `height`
-        super(VideoField, self).update_dimension_fields(
-            instance, force, *args, **kwargs
-        )
+        super(VideoField, self).update_dimension_fields(instance, force, *args, **kwargs)
         if not self.duration_field:
             return
 

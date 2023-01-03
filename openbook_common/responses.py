@@ -15,6 +15,4 @@ class ApiMessageResponse(Response):
         headers=None,
         content_type=None,
     ):
-        super().__init__(
-            {"message": message}, status, template_name, headers, content_type
-        )
+        super().__init__({"message": message}, status, template_name, headers, content_type)

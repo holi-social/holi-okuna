@@ -39,9 +39,7 @@ class CommonEmojiGroupSerializer(serializers.ModelSerializer):
         emojis = obj.emojis.all().order_by("order")
 
         request = self.context["request"]
-        return CommonEmojiSerializer(
-            emojis, many=True, context={"request": request}
-        ).data
+        return CommonEmojiSerializer(emojis, many=True, context={"request": request}).data
 
     class Meta:
         model = EmojiGroup
@@ -156,9 +154,7 @@ class CommonCircleSerializer(serializers.ModelSerializer):
 class CommonSearchCommunitiesSerializer(serializers.Serializer):
     count = serializers.IntegerField(required=False, max_value=20)
     query = serializers.CharField(
-        max_length=max(
-            settings.COMMUNITY_NAME_MAX_LENGTH, settings.COMMUNITY_TITLE_MAX_LENGTH
-        ),
+        max_length=max(settings.COMMUNITY_NAME_MAX_LENGTH, settings.COMMUNITY_TITLE_MAX_LENGTH),
         allow_blank=False,
         required=True,
     )
@@ -169,9 +165,7 @@ class CommonSearchCommunitiesSerializer(serializers.Serializer):
 class CommonSearchCommunitiesCommunitySerializer(serializers.ModelSerializer):
     is_favorite = IsFavoriteField()
 
-    memberships = CommunityMembershipsField(
-        community_membership_serializer=CommonCommunityMembershipSerializer
-    )
+    memberships = CommunityMembershipsField(community_membership_serializer=CommonCommunityMembershipSerializer)
 
     class Meta:
         model = Community

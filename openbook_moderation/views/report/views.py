@@ -35,13 +35,9 @@ class ReportPost(APIView):
         user = request.user
 
         with transaction.atomic():
-            user.report_post_with_id(
-                post_id=post_id, category_id=category_id, description=description
-            )
+            user.report_post_with_id(post_id=post_id, category_id=category_id, description=description)
 
-        return ApiMessageResponse(
-            _("Post reported, thanks!"), status=status.HTTP_201_CREATED
-        )
+        return ApiMessageResponse(_("Post reported, thanks!"), status=status.HTTP_201_CREATED)
 
 
 class ReportPostComment(APIView):
@@ -72,9 +68,7 @@ class ReportPostComment(APIView):
                 description=description,
             )
 
-        return ApiMessageResponse(
-            _("Post comment reported, thanks!"), status=status.HTTP_201_CREATED
-        )
+        return ApiMessageResponse(_("Post comment reported, thanks!"), status=status.HTTP_201_CREATED)
 
 
 class ReportUser(APIView):
@@ -96,13 +90,9 @@ class ReportUser(APIView):
         user = request.user
 
         with transaction.atomic():
-            user.report_user_with_username(
-                username=username, category_id=category_id, description=description
-            )
+            user.report_user_with_username(username=username, category_id=category_id, description=description)
 
-        return ApiMessageResponse(
-            _("User reported, thanks!"), status=status.HTTP_201_CREATED
-        )
+        return ApiMessageResponse(_("User reported, thanks!"), status=status.HTTP_201_CREATED)
 
 
 class ReportHashtag(APIView):
@@ -130,9 +120,7 @@ class ReportHashtag(APIView):
                 description=description,
             )
 
-        return ApiMessageResponse(
-            _("Hashtag reported, thanks!"), status=status.HTTP_201_CREATED
-        )
+        return ApiMessageResponse(_("Hashtag reported, thanks!"), status=status.HTTP_201_CREATED)
 
 
 class ReportCommunity(APIView):
@@ -160,6 +148,4 @@ class ReportCommunity(APIView):
                 description=description,
             )
 
-        return ApiMessageResponse(
-            _("Community reported, thanks!"), status=status.HTTP_201_CREATED
-        )
+        return ApiMessageResponse(_("Community reported, thanks!"), status=status.HTTP_201_CREATED)

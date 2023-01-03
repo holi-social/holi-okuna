@@ -38,9 +38,7 @@ class ReceivedFollowRequests(APIView):
         max_id = data.get("max_id")
         count = data.get("count", 10)
 
-        received_follow_requests = user.get_received_follow_requests(
-            max_id=max_id
-        ).order_by("-id")[:count]
+        received_follow_requests = user.get_received_follow_requests(max_id=max_id).order_by("-id")[:count]
 
         response_serializer = CommonFollowRequestSerializer(
             received_follow_requests, many=True, context={"request": request}
@@ -53,9 +51,7 @@ class RequestToFollowUser(APIView):
     permission_classes = (IsAuthenticated, IsNotSuspended)
 
     def put(self, request):
-        serializer = RequestToFollowUserSerializer(
-            data=request.data, context={"request": request}
-        )
+        serializer = RequestToFollowUserSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
@@ -64,13 +60,9 @@ class RequestToFollowUser(APIView):
         user = request.user
 
         with transaction.atomic():
-            follow_request = user.create_follow_request_for_user_with_username(
-                user_to_request_to_follow_username
-            )
+            follow_request = user.create_follow_request_for_user_with_username(user_to_request_to_follow_username)
 
-        response_serializer = CommonFollowRequestSerializer(
-            follow_request, context={"request": request}
-        )
+        response_serializer = CommonFollowRequestSerializer(follow_request, context={"request": request})
 
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
@@ -79,9 +71,7 @@ class CancelRequestToFollowUser(APIView):
     permission_classes = (IsAuthenticated, IsNotSuspended)
 
     def post(self, request):
-        serializer = RequestToFollowUserSerializer(
-            data=request.data, context={"request": request}
-        )
+        serializer = RequestToFollowUserSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
@@ -90,22 +80,16 @@ class CancelRequestToFollowUser(APIView):
         user = request.user
 
         with transaction.atomic():
-            user.delete_follow_request_for_user_with_username(
-                user_to_cancel_request_for
-            )
+            user.delete_follow_request_for_user_with_username(user_to_cancel_request_for)
 
-        return ApiMessageResponse(
-            _("Follow request cancelled."), status=status.HTTP_200_OK
-        )
+        return ApiMessageResponse(_("Follow request cancelled."), status=status.HTTP_200_OK)
 
 
 class ApproveUserFollowRequest(APIView):
     permission_classes = (IsAuthenticated, IsNotSuspended)
 
     def post(self, request):
-        serializer = ApproveUserFollowRequestSerializer(
-            data=request.data, context={"request": request}
-        )
+        serializer = ApproveUserFollowRequestSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
@@ -118,18 +102,14 @@ class ApproveUserFollowRequest(APIView):
                 user_username=user_to_approve_follow_request_from_username
             )
 
-        return ApiMessageResponse(
-            _("Follow request approved."), status=status.HTTP_200_OK
-        )
+        return ApiMessageResponse(_("Follow request approved."), status=status.HTTP_200_OK)
 
 
 class RejectUserFollowRequest(APIView):
     permission_classes = (IsAuthenticated, IsNotSuspended)
 
     def post(self, request):
-        serializer = RejectUserFollowRequestSerializer(
-            data=request.data, context={"request": request}
-        )
+        serializer = RejectUserFollowRequestSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
@@ -142,9 +122,7 @@ class RejectUserFollowRequest(APIView):
                 user_username=user_to_reject_follow_request_from_username
             )
 
-        return ApiMessageResponse(
-            _("Follow request rejected."), status=status.HTTP_200_OK
-        )
+        return ApiMessageResponse(_("Follow request rejected."), status=status.HTTP_200_OK)
 
 
 class FollowUser(APIView):
@@ -153,9 +131,7 @@ class FollowUser(APIView):
     def post(self, request):
         request_data = _prepare_request_data_for_validation(request.data)
 
-        serializer = FollowUserRequestSerializer(
-            data=request_data, context={"request": request}
-        )
+        serializer = FollowUserRequestSerializer(data=request_data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
@@ -192,9 +168,7 @@ class UnfollowUser(APIView):
         with transaction.atomic():
             user.unfollow_user_with_id(user_to_unfollow.pk)
 
-        response_serializer = FollowUserSerializer(
-            user_to_unfollow, context={"request": request}
-        )
+        response_serializer = FollowUserSerializer(user_to_unfollow, context={"request": request})
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
 
@@ -216,9 +190,7 @@ class UpdateFollowUser(APIView):
         followed_user = User.objects.get(username=followed_user_username)
 
         with transaction.atomic():
-            follow = user.update_follow_for_user_with_id(
-                followed_user.pk, lists_ids=lists_ids
-            )
+            follow = user.update_follow_for_user_with_id(followed_user.pk, lists_ids=lists_ids)
 
         response_serializer = FollowSerializer(follow, context={"request": request})
 

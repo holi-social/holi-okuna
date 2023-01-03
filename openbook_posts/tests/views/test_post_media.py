@@ -224,9 +224,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         post_media = post.get_media().all()
 
-        self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media
-        )
+        self._compare_response_media_with_post_media(post_media=post_media, response_media=response_media)
 
     @tag("failing")
     def test_can_retrieve_own_post_media_video(self):
@@ -255,9 +253,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         post_media = post.get_media().all()
 
-        self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media
-        )
+        self._compare_response_media_with_post_media(post_media=post_media, response_media=response_media)
 
         # foreign
 
@@ -289,9 +285,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         post_media = post.get_media().all()
 
-        self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media
-        )
+        self._compare_response_media_with_post_media(post_media=post_media, response_media=response_media)
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_foreign_user_post_media_video(self):
@@ -321,9 +315,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         post_media = post.get_media().all()
 
-        self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media
-        )
+        self._compare_response_media_with_post_media(post_media=post_media, response_media=response_media)
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_following_user_post_media_image(self):
@@ -355,9 +347,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         post_media = post.get_media().all()
 
-        self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media
-        )
+        self._compare_response_media_with_post_media(post_media=post_media, response_media=response_media)
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_following_user_post_media_video(self):
@@ -389,9 +379,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         post_media = post.get_media().all()
 
-        self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media
-        )
+        self._compare_response_media_with_post_media(post_media=post_media, response_media=response_media)
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_follower_user_post_media_image(self):
@@ -423,9 +411,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         post_media = post.get_media().all()
 
-        self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media
-        )
+        self._compare_response_media_with_post_media(post_media=post_media, response_media=response_media)
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_follower_user_post_media_video(self):
@@ -457,9 +443,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         post_media = post.get_media().all()
 
-        self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media
-        )
+        self._compare_response_media_with_post_media(post_media=post_media, response_media=response_media)
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_connected_user_post_media_image(self):
@@ -468,9 +452,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         connected_user = make_user()
         circle = make_circle(creator=connected_user)
 
-        connected_user.connect_with_user_with_id(
-            user_id=user.pk, circles_ids=[circle.pk]
-        )
+        connected_user.connect_with_user_with_id(user_id=user.pk, circles_ids=[circle.pk])
         user.confirm_connection_with_user_with_id(user_id=connected_user.pk)
 
         headers = make_authentication_headers_for_user(user=user)
@@ -479,9 +461,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_image["path"], "rb") as file:
             file = File(file)
-            post = connected_user.create_encircled_post(
-                image=file, circles_ids=[circle.pk]
-            )
+            post = connected_user.create_encircled_post(image=file, circles_ids=[circle.pk])
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -497,9 +477,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         post_media = post.get_media().all()
 
-        self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media
-        )
+        self._compare_response_media_with_post_media(post_media=post_media, response_media=response_media)
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_connected_user_post_media_video(self):
@@ -509,9 +487,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         circle = make_circle(creator=connected_user)
 
-        connected_user.connect_with_user_with_id(
-            user_id=user.pk, circles_ids=[circle.pk]
-        )
+        connected_user.connect_with_user_with_id(user_id=user.pk, circles_ids=[circle.pk])
         user.confirm_connection_with_user_with_id(user_id=connected_user.pk)
 
         headers = make_authentication_headers_for_user(user=user)
@@ -520,9 +496,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_video["path"], "rb") as file:
             file = File(file)
-            post = connected_user.create_encircled_post(
-                video=file, circles_ids=[circle.pk]
-            )
+            post = connected_user.create_encircled_post(video=file, circles_ids=[circle.pk])
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -538,9 +512,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         post_media = post.get_media().all()
 
-        self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media
-        )
+        self._compare_response_media_with_post_media(post_media=post_media, response_media=response_media)
 
     def test_cant_retrieve_pending_connection_user_user_encircled_post_media_image(
         self,
@@ -558,9 +530,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         with open(test_image["path"], "rb") as file:
             file = File(file)
             circle = make_circle(creator=pending_connection_user_user)
-            post = pending_connection_user_user.create_encircled_post(
-                image=file, circles_ids=[circle.pk]
-            )
+            post = pending_connection_user_user.create_encircled_post(image=file, circles_ids=[circle.pk])
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -586,9 +556,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         with open(test_video["path"], "rb") as file:
             file = File(file)
             circle = make_circle(creator=pending_connection_user_user)
-            post = pending_connection_user_user.create_encircled_post(
-                video=file, circles_ids=[circle.pk]
-            )
+            post = pending_connection_user_user.create_encircled_post(video=file, circles_ids=[circle.pk])
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -613,9 +581,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_image["path"], "rb") as file:
             file = File(file)
-            post = community_member.create_community_post(
-                image=file, community_name=public_community.name
-            )
+            post = community_member.create_community_post(image=file, community_name=public_community.name)
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -631,9 +597,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         post_media = post.get_media().all()
 
-        self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media
-        )
+        self._compare_response_media_with_post_media(post_media=post_media, response_media=response_media)
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_public_community_post_media_video(self):
@@ -650,9 +614,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_video["path"], "rb") as file:
             file = File(file)
-            post = community_member.create_community_post(
-                video=file, community_name=public_community.name
-            )
+            post = community_member.create_community_post(video=file, community_name=public_community.name)
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -668,18 +630,14 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         post_media = post.get_media().all()
 
-        self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media
-        )
+        self._compare_response_media_with_post_media(post_media=post_media, response_media=response_media)
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_private_community_part_of_post_media_image(self):
         """should be able to retrieve an private_community part of post media image"""
         user = make_user()
         community_creator = make_user()
-        private_community = make_community(
-            creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        private_community = make_community(creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         community_creator.invite_user_with_username_to_community_with_name(
             community_name=private_community.name, username=user.username
@@ -692,9 +650,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_image["path"], "rb") as file:
             file = File(file)
-            post = community_creator.create_community_post(
-                image=file, community_name=private_community.name
-            )
+            post = community_creator.create_community_post(image=file, community_name=private_community.name)
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -710,18 +666,14 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         post_media = post.get_media().all()
 
-        self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media
-        )
+        self._compare_response_media_with_post_media(post_media=post_media, response_media=response_media)
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_private_community_part_of_post_media_video(self):
         """should be able to retrieve an private_community part of post media video"""
         user = make_user()
         community_creator = make_user()
-        private_community = make_community(
-            creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        private_community = make_community(creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         community_creator.invite_user_with_username_to_community_with_name(
             community_name=private_community.name, username=user.username
@@ -734,9 +686,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_video["path"], "rb") as file:
             file = File(file)
-            post = community_creator.create_community_post(
-                video=file, community_name=private_community.name
-            )
+            post = community_creator.create_community_post(video=file, community_name=private_community.name)
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -752,17 +702,13 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         post_media = post.get_media().all()
 
-        self._compare_response_media_with_post_media(
-            post_media=post_media, response_media=response_media
-        )
+        self._compare_response_media_with_post_media(post_media=post_media, response_media=response_media)
 
     def test_cannot_retrieve_private_community_not_part_of_post_media_image(self):
         """should not be able to retrieve an private_community not part of post media image"""
         user = make_user()
         community_creator = make_user()
-        private_community = make_community(
-            creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        private_community = make_community(creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         headers = make_authentication_headers_for_user(user=user)
 
@@ -770,9 +716,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_image["path"], "rb") as file:
             file = File(file)
-            post = community_creator.create_community_post(
-                image=file, community_name=private_community.name
-            )
+            post = community_creator.create_community_post(image=file, community_name=private_community.name)
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -786,9 +730,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         """should not be able to retrieve an private_community not part of post media video"""
         user = make_user()
         community_creator = make_user()
-        private_community = make_community(
-            creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        private_community = make_community(creator=community_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         headers = make_authentication_headers_for_user(user=user)
 
@@ -796,9 +738,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_video["path"], "rb") as file:
             file = File(file)
-            post = community_creator.create_community_post(
-                video=file, community_name=private_community.name
-            )
+            post = community_creator.create_community_post(video=file, community_name=private_community.name)
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -844,15 +784,11 @@ class PostMediaAPITests(OpenbookAPITestCase):
                     response_item["content_object"]["duration"],
                 )
 
-                post_media_item_format_set = (
-                    post_media_item.content_object.format_set.all()
-                )
+                post_media_item_format_set = post_media_item.content_object.format_set.all()
 
                 for j in range(0, len(post_media_item_format_set)):
                     post_media_item_format_set_item = post_media_item_format_set[j]
-                    response_post_media_item_format_set_item = response_item[
-                        "content_object"
-                    ]["format_set"][j]
+                    response_post_media_item_format_set_item = response_item["content_object"]["format_set"][j]
                     self.assertEqual(
                         post_media_item_format_set_item.format,
                         response_post_media_item_format_set_item["format"],

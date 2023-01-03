@@ -13,12 +13,8 @@ from openbook_follows.models import Follow
 
 class List(ModelWithUUID):
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="lists")
-    emoji = models.ForeignKey(
-        Emoji, on_delete=models.SET_NULL, related_name="lists", null=True
-    )
-    name = models.CharField(
-        _("name"), max_length=settings.LIST_MAX_LENGTH, blank=False, null=False
-    )
+    emoji = models.ForeignKey(Emoji, on_delete=models.SET_NULL, related_name="lists", null=True)
+    name = models.CharField(_("name"), max_length=settings.LIST_MAX_LENGTH, blank=False, null=False)
     follows = models.ManyToManyField(Follow, related_name="lists", db_index=True)
     created = models.DateTimeField(editable=False)
 
@@ -39,9 +35,7 @@ class List(ModelWithUUID):
     @property
     def users(self):
         Follow = get_follow_model()
-        list_follows = Follow.objects.select_related("followed_user").filter(
-            lists__id=self.id
-        )
+        list_follows = Follow.objects.select_related("followed_user").filter(lists__id=self.id)
         users = []
         for follow in list_follows:
             users.append(follow.followed_user)

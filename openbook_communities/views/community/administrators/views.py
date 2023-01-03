@@ -62,9 +62,7 @@ class CommunityAdministrators(APIView):
                 username=username, community_name=community_name
             )
 
-        return ApiMessageResponse(
-            "Added administrator to community.", status=status.HTTP_201_CREATED
-        )
+        return ApiMessageResponse("Added administrator to community.", status=status.HTTP_201_CREATED)
 
 
 class CommunityAdministratorItem(APIView):
@@ -109,9 +107,9 @@ class SearchCommunityAdministrators(APIView):
 
         user = request.user
 
-        administrators = user.search_community_with_name_administrators(
-            community_name=community_name, query=query
-        )[:count]
+        administrators = user.search_community_with_name_administrators(community_name=community_name, query=query)[
+            :count
+        ]
 
         response_serializer = GetCommunityAdministratorsUserSerializer(
             administrators, many=True, context={"request": request}

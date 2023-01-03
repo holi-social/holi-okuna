@@ -29,16 +29,12 @@ class CreateCommunitySerializer(serializers.Serializer):
         allow_blank=False,
         validators=[community_name_characters_validator],
     )
-    title = serializers.CharField(
-        max_length=settings.COMMUNITY_TITLE_MAX_LENGTH, allow_blank=False
-    )
+    title = serializers.CharField(max_length=settings.COMMUNITY_TITLE_MAX_LENGTH, allow_blank=False)
     description = serializers.CharField(
         allow_blank=True,
         required=False,
     )
-    rules = serializers.CharField(
-        max_length=settings.COMMUNITY_RULES_MAX_LENGTH, allow_blank=True, required=False
-    )
+    rules = serializers.CharField(max_length=settings.COMMUNITY_RULES_MAX_LENGTH, allow_blank=True, required=False)
     user_adjective = serializers.CharField(
         max_length=settings.COMMUNITY_USER_ADJECTIVE_MAX_LENGTH,
         allow_blank=False,
@@ -49,12 +45,8 @@ class CreateCommunitySerializer(serializers.Serializer):
         allow_blank=False,
         required=False,
     )
-    avatar = RestrictedImageFileSizeField(
-        required=False, max_upload_size=settings.COMMUNITY_AVATAR_MAX_SIZE
-    )
-    cover = RestrictedImageFileSizeField(
-        required=False, max_upload_size=settings.COMMUNITY_COVER_MAX_SIZE
-    )
+    avatar = RestrictedImageFileSizeField(required=False, max_upload_size=settings.COMMUNITY_AVATAR_MAX_SIZE)
+    cover = RestrictedImageFileSizeField(required=False, max_upload_size=settings.COMMUNITY_COVER_MAX_SIZE)
     invites_enabled = serializers.BooleanField(required=False)
     color = serializers.CharField(
         max_length=COLOR_ATTR_MAX_LENGTH,
@@ -129,15 +121,11 @@ class GetCommunitiesCommunityCategorySerializer(serializers.ModelSerializer):
 class CommunitiesCommunitySerializer(serializers.ModelSerializer):
     categories = GetCommunitiesCommunityCategorySerializer(many=True)
     is_invited = IsInvitedField()
-    are_new_post_notifications_enabled = (
-        AreNewPostNotificationsEnabledForCommunityField()
-    )
+    are_new_post_notifications_enabled = AreNewPostNotificationsEnabledForCommunityField()
     is_favorite = IsFavoriteField()
     is_creator = IsCreatorField()
     posts_count = CommunityPostsCountField()
-    memberships = CommunityMembershipsField(
-        community_membership_serializer=CommonCommunityMembershipSerializer
-    )
+    memberships = CommunityMembershipsField(community_membership_serializer=CommonCommunityMembershipSerializer)
 
     class Meta:
         model = Community
@@ -165,9 +153,7 @@ class CommunitiesCommunitySerializer(serializers.ModelSerializer):
 
 class SuggestedCommunitiesCommunitySerializer(serializers.ModelSerializer):
     is_creator = IsCreatorField()
-    memberships = CommunityMembershipsField(
-        community_membership_serializer=CommonCommunityMembershipSerializer
-    )
+    memberships = CommunityMembershipsField(community_membership_serializer=CommonCommunityMembershipSerializer)
 
     class Meta:
         model = Community

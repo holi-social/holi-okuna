@@ -65,14 +65,10 @@ def convert_video(fieldfile, force=False):
 
         # TODO do not upscale videos
 
-        _, target_path = tempfile.mkstemp(
-            suffix=f"_{options['name']}.{options['extension']}"
-        )
+        _, target_path = tempfile.mkstemp(suffix=f"_{options['name']}.{options['extension']}")
 
         try:
-            encoding = encoding_backend.encode(
-                source_path, target_path, options["params"]
-            )
+            encoding = encoding_backend.encode(source_path, target_path, options["params"])
             while encoding:
                 try:
                     progress = next(encoding)

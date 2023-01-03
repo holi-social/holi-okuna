@@ -313,9 +313,7 @@ def make_notification(owner, notification_type=None):
             object_id=uuid.uuid4(),
         )
     else:
-        return mixer.blend(
-            Notification, owner=owner, content_type=content_type, object_id=uuid.uuid4()
-        )
+        return mixer.blend(Notification, owner=owner, content_type=content_type, object_id=uuid.uuid4())
 
 
 def make_device(owner):

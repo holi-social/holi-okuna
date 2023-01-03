@@ -240,9 +240,7 @@ class UserPostsCountField(Field):
             return value.count_posts_for_user_with_id(request.user.pk)
 
         User = get_user_model()
-        return User.count_unauthenticated_public_posts_for_user_with_username(
-            username=value.username
-        )
+        return User.count_unauthenticated_public_posts_for_user_with_username(username=value.username)
 
 
 class UnreadNotificationsCountField(Field):
@@ -275,17 +273,10 @@ class ConnectedCirclesField(Field):
         circles = []
 
         if not request_user.is_anonymous:
-            if (
-                not request_user.pk == user.pk
-                and request_user.is_connected_with_user_with_id(user.pk)
-            ):
-                circles = request_user.get_circles_for_connection_with_user_with_id(
-                    user.pk
-                ).all()
+            if not request_user.pk == user.pk and request_user.is_connected_with_user_with_id(user.pk):
+                circles = request_user.get_circles_for_connection_with_user_with_id(user.pk).all()
 
-        return self.circle_serializer(
-            circles, context={"request": request}, many=True
-        ).data
+        return self.circle_serializer(circles, context={"request": request}, many=True).data
 
 
 class FollowListsField(Field):
@@ -302,13 +293,8 @@ class FollowListsField(Field):
         lists = []
 
         if not request_user.is_anonymous:
-            if (
-                not request_user.pk == user.pk
-                and request_user.is_following_user_with_id(user.pk)
-            ):
-                lists = request_user.get_lists_for_follow_for_user_with_id(
-                    user.pk
-                ).all()
+            if not request_user.pk == user.pk and request_user.is_following_user_with_id(user.pk):
+                lists = request_user.get_lists_for_follow_for_user_with_id(user.pk).all()
 
         return self.list_serializer(lists, context={"request": request}, many=True).data
 
@@ -332,26 +318,20 @@ class CommunitiesMembershipsField(Field):
             if not community_name:
                 continue
 
-            if not request_user.is_member_of_community_with_name(
-                community_name=community_name
-            ):
+            if not request_user.is_member_of_community_with_name(community_name=community_name):
                 continue
 
             if not user.is_member_of_community_with_name(community_name=community_name):
                 continue
 
-            community_membership = user.communities_memberships.get(
-                community__name=community_name
-            )
+            community_membership = user.communities_memberships.get(community__name=community_name)
 
             memberships.append(community_membership)
 
         if not memberships:
             return None
 
-        return self.community_membership_serializer(
-            memberships, context={"request": request}, many=True
-        ).data
+        return self.community_membership_serializer(memberships, context={"request": request}, many=True).data
 
 
 class CommunitiesInvitesField(Field):
@@ -388,6 +368,4 @@ class CommunitiesInvitesField(Field):
         if not community_invites:
             return None
 
-        return self.community_invite_serializer(
-            community_invites, context={"request": request}, many=True
-        ).data
+        return self.community_invite_serializer(community_invites, context={"request": request}, many=True).data

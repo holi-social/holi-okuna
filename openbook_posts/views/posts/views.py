@@ -41,9 +41,7 @@ class Posts(APIView):
 
         normalize_list_value_in_request_data("circle_id", request_data)
 
-        serializer = CreatePostSerializer(
-            data=request_data, context={"request": request}
-        )
+        serializer = CreatePostSerializer(data=request_data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         title = data.get("title")
@@ -65,13 +63,9 @@ class Posts(APIView):
                     is_draft=is_draft,
                 )
             else:
-                post = user.create_public_post(
-                    title=title, text=text, image=image, video=video, is_draft=is_draft
-                )
+                post = user.create_public_post(title=title, text=text, image=image, video=video, is_draft=is_draft)
 
-        post_serializer = AuthenticatedUserPostSerializer(
-            post, context={"request": request}
-        )
+        post_serializer = AuthenticatedUserPostSerializer(post, context={"request": request})
 
         return Response(post_serializer.data, status=status.HTTP_201_CREATED)
 
@@ -102,9 +96,7 @@ class Posts(APIView):
             if username == user.username:
                 posts = user.get_posts(max_id=max_id)
             else:
-                posts = user.get_posts_for_user_with_username(
-                    username, max_id=max_id, min_id=min_id
-                )
+                posts = user.get_posts_for_user_with_username(username, max_id=max_id, min_id=min_id)
         else:
             posts = user.get_timeline_posts(
                 circles_ids=circles_ids,
@@ -116,9 +108,7 @@ class Posts(APIView):
 
         posts = posts.order_by("-id")[:count]
 
-        post_serializer_data = AuthenticatedUserPostSerializer(
-            posts, many=True, context={"request": request}
-        ).data
+        post_serializer_data = AuthenticatedUserPostSerializer(posts, many=True, context={"request": request}).data
 
         return Response(post_serializer_data, status=status.HTTP_200_OK)
 
@@ -139,9 +129,7 @@ class Posts(APIView):
             max_id=max_id, username=username
         ).order_by("-created")[:count]
 
-        post_serializer = UnauthenticatedUserPostSerializer(
-            posts, many=True, context={"request": request}
-        )
+        post_serializer = UnauthenticatedUserPostSerializer(posts, many=True, context={"request": request})
 
         return Response(post_serializer.data, status=status.HTTP_200_OK)
 
@@ -153,9 +141,7 @@ class TrendingPosts(APIView):
         user = request.user
 
         posts = user.get_trending_posts_old()[:30]
-        posts_serializer = AuthenticatedUserPostSerializer(
-            posts, many=True, context={"request": request}
-        )
+        posts_serializer = AuthenticatedUserPostSerializer(posts, many=True, context={"request": request})
         return Response(posts_serializer.data, status=status.HTTP_200_OK)
 
 
@@ -174,9 +160,7 @@ class TrendingPostsNew(APIView):
         count = data.get("count", 30)
         user = request.user
 
-        trending_posts = user.get_trending_posts(max_id=max_id, min_id=min_id).order_by(
-            "-id"
-        )[:count]
+        trending_posts = user.get_trending_posts(max_id=max_id, min_id=min_id).order_by("-id")[:count]
         posts_serializer = AuthenticatedUserTrendingPostSerializer(
             trending_posts, many=True, context={"request": request}
         )
@@ -205,9 +189,7 @@ class TopPosts(APIView):
             min_id=min_id,
             exclude_joined_communities=exclude_joined_communities,
         ).order_by("-id")[:count]
-        posts_serializer = AuthenticatedUserTopPostSerializer(
-            top_posts, many=True, context={"request": request}
-        )
+        posts_serializer = AuthenticatedUserTopPostSerializer(top_posts, many=True, context={"request": request})
         return Response(posts_serializer.data, status=status.HTTP_200_OK)
 
 
@@ -248,9 +230,7 @@ class TopPostsExcludedCommunities(APIView):
         with transaction.atomic():
             user.exclude_community_with_name_from_top_posts(community_name)
 
-        return ApiMessageResponse(
-            _("Community excluded from this feed"), status=status.HTTP_202_ACCEPTED
-        )
+        return ApiMessageResponse(_("Community excluded from this feed"), status=status.HTTP_202_ACCEPTED)
 
 
 class SearchTopPostsExcludedCommunities(APIView):
@@ -268,9 +248,7 @@ class SearchTopPostsExcludedCommunities(APIView):
 
         user = request.user
 
-        exclusions = user.search_top_posts_excluded_communities_with_query(query=query)[
-            :count
-        ]
+        exclusions = user.search_top_posts_excluded_communities_with_query(query=query)[:count]
 
         communities = [exclusion.community for exclusion in exclusions]
 
@@ -296,9 +274,7 @@ class TopPostsExcludedCommunity(APIView):
         with transaction.atomic():
             user.remove_exclusion_for_community_with_name_from_top_posts(community_name)
 
-        return ApiMessageResponse(
-            _("Community exclusion removed"), status=status.HTTP_202_ACCEPTED
-        )
+        return ApiMessageResponse(_("Community exclusion removed"), status=status.HTTP_202_ACCEPTED)
 
 
 class ProfilePostsExcludedCommunities(APIView):
@@ -315,9 +291,7 @@ class ProfilePostsExcludedCommunities(APIView):
         offset = data.get("offset", 0)
 
         user = request.user
-        exclusions = user.get_profile_posts_community_exclusions()[
-            offset : offset + count
-        ]
+        exclusions = user.get_profile_posts_community_exclusions()[offset : offset + count]
 
         communities = [exclusion.community for exclusion in exclusions]
 
@@ -340,9 +314,7 @@ class ProfilePostsExcludedCommunities(APIView):
         with transaction.atomic():
             user.exclude_community_with_name_from_profile_posts(community_name)
 
-        return ApiMessageResponse(
-            _("Community excluded from this feed"), status=status.HTTP_202_ACCEPTED
-        )
+        return ApiMessageResponse(_("Community excluded from this feed"), status=status.HTTP_202_ACCEPTED)
 
 
 class ProfilePostsExcludedCommunity(APIView):
@@ -358,13 +330,9 @@ class ProfilePostsExcludedCommunity(APIView):
         user = request.user
 
         with transaction.atomic():
-            user.remove_exclusion_for_community_with_name_from_profile_posts(
-                community_name
-            )
+            user.remove_exclusion_for_community_with_name_from_profile_posts(community_name)
 
-        return ApiMessageResponse(
-            _("Community exclusion removed"), status=status.HTTP_202_ACCEPTED
-        )
+        return ApiMessageResponse(_("Community exclusion removed"), status=status.HTTP_202_ACCEPTED)
 
 
 class SearchProfilePostsExcludedCommunities(APIView):
@@ -382,9 +350,7 @@ class SearchProfilePostsExcludedCommunities(APIView):
 
         user = request.user
 
-        exclusions = user.search_profile_posts_excluded_communities_with_query(
-            query=query
-        )[:count]
+        exclusions = user.search_profile_posts_excluded_communities_with_query(query=query)[:count]
 
         communities = [exclusion.community for exclusion in exclusions]
 

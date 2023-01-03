@@ -7,12 +7,8 @@ from openbook_common.models import ModelWithUUID
 
 class Connection(ModelWithUUID):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="connections")
-    target_user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="targeted_connections", null=False
-    )
-    target_connection = models.OneToOneField(
-        "self", on_delete=models.CASCADE, null=True
-    )
+    target_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="targeted_connections", null=False)
+    target_connection = models.OneToOneField("self", on_delete=models.CASCADE, null=True)
 
     class Meta:
         unique_together = ("user", "target_user")
@@ -23,9 +19,7 @@ class Connection(ModelWithUUID):
 
     @classmethod
     def create_connection(cls, user_id, target_user_id, circles_ids):
-        target_connection = cls.objects.create(
-            user_id=target_user_id, target_user_id=user_id
-        )
+        target_connection = cls.objects.create(user_id=target_user_id, target_user_id=user_id)
 
         connection = cls.objects.create(
             user_id=user_id,

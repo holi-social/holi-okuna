@@ -90,9 +90,7 @@ class ListItem(APIView):
         user = request.user
 
         with transaction.atomic():
-            list = user.update_list_with_id(
-                list_id, emoji_id=emoji_id, usernames=usernames, name=name
-            )
+            list = user.update_list_with_id(list_id, emoji_id=emoji_id, usernames=usernames, name=name)
 
         response_serializer = GetListListSerializer(list, context={"request": request})
 
@@ -115,10 +113,6 @@ class ListNameCheck(APIView):
         user = request.user
 
         if not user.has_list_with_name(name):
-            return ApiMessageResponse(
-                _("List name available"), status=status.HTTP_202_ACCEPTED
-            )
+            return ApiMessageResponse(_("List name available"), status=status.HTTP_202_ACCEPTED)
 
-        return ApiMessageResponse(
-            _("List name not available"), status=status.HTTP_400_BAD_REQUEST
-        )
+        return ApiMessageResponse(_("List name not available"), status=status.HTTP_400_BAD_REQUEST)

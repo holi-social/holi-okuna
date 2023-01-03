@@ -46,9 +46,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(post_reporter)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -80,9 +78,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(post_reporter)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -108,9 +104,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(post_creator)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -136,23 +130,17 @@ class ReportPostAPITests(OpenbookAPITestCase):
 
         circle = make_circle(creator=post_creator)
 
-        post_creator.connect_with_user_with_id(
-            user_id=post_reporter.pk, circles_ids=[circle.pk]
-        )
+        post_creator.connect_with_user_with_id(user_id=post_reporter.pk, circles_ids=[circle.pk])
         post_reporter.confirm_connection_with_user_with_id(user_id=post_creator.pk)
 
         post_text = make_fake_post_text()
-        post = post_creator.create_encircled_post(
-            text=post_text, circles_ids=[circle.pk]
-        )
+        post = post_creator.create_encircled_post(text=post_text, circles_ids=[circle.pk])
 
         url = self._get_url(post)
         headers = make_authentication_headers_for_user(post_reporter)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -179,17 +167,13 @@ class ReportPostAPITests(OpenbookAPITestCase):
         circle = make_circle(creator=post_creator)
 
         post_text = make_fake_post_text()
-        post = post_creator.create_encircled_post(
-            text=post_text, circles_ids=[circle.pk]
-        )
+        post = post_creator.create_encircled_post(text=post_text, circles_ids=[circle.pk])
 
         url = self._get_url(post)
         headers = make_authentication_headers_for_user(post_reporter)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -216,17 +200,13 @@ class ReportPostAPITests(OpenbookAPITestCase):
         community = make_community(creator=post_creator)
 
         post_text = make_fake_post_text()
-        post = post_creator.create_community_post(
-            text=post_text, community_name=community.name
-        )
+        post = post_creator.create_community_post(text=post_text, community_name=community.name)
 
         url = self._get_url(post)
         headers = make_authentication_headers_for_user(post_reporter)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -250,14 +230,10 @@ class ReportPostAPITests(OpenbookAPITestCase):
         report_category = make_moderation_category()
         report_description = make_moderation_report_description()
 
-        community = make_community(
-            creator=post_creator, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        community = make_community(creator=post_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         post_text = make_fake_post_text()
-        post = post_creator.create_community_post(
-            text=post_text, community_name=community.name
-        )
+        post = post_creator.create_community_post(text=post_text, community_name=community.name)
 
         post_creator.invite_user_with_username_to_community_with_name(
             username=post_reporter.username, community_name=community.name
@@ -268,9 +244,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(post_reporter)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -294,22 +268,16 @@ class ReportPostAPITests(OpenbookAPITestCase):
         report_category = make_moderation_category()
         report_description = make_moderation_report_description()
 
-        community = make_community(
-            creator=post_creator, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
+        community = make_community(creator=post_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         post_text = make_fake_post_text()
-        post = post_creator.create_community_post(
-            text=post_text, community_name=community.name
-        )
+        post = post_creator.create_community_post(text=post_text, community_name=community.name)
 
         url = self._get_url(post)
         headers = make_authentication_headers_for_user(post_reporter)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -338,18 +306,12 @@ class ReportPostAPITests(OpenbookAPITestCase):
         community = make_community(creator=post_creator)
 
         post_text = make_fake_post_text()
-        post = post_creator.create_community_post(
-            text=post_text, community_name=community.name
-        )
+        post = post_creator.create_community_post(text=post_text, community_name=community.name)
 
         url = self._get_url(post)
         headers = make_authentication_headers_for_user(post_reporter)
 
-        self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
-        )
+        self.client.post(url, data={"category_id": report_category.pk, "description": report_description}, **headers)
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -372,9 +334,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         url = self._get_url(post)
         headers = make_authentication_headers_for_user(post_reporter)
 
-        response = self.client.post(
-            url, data={"description": report_description}, **headers
-        )
+        response = self.client.post(url, data={"description": report_description}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -401,16 +361,10 @@ class ReportPostAPITests(OpenbookAPITestCase):
         url = self._get_url(post)
         headers = make_authentication_headers_for_user(post_reporter)
 
-        self.client.post(
-            url,
-            data={"description": report_description, "category_id": report_category.pk},
-            **headers
-        )
+        self.client.post(url, data={"description": report_description, "category_id": report_category.pk}, **headers)
 
         response = self.client.post(
-            url,
-            data={"description": report_description, "category_id": report_category.pk},
-            **headers
+            url, data={"description": report_description, "category_id": report_category.pk}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -477,9 +431,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         post = post_comment_creator.create_public_post(text=make_fake_post_text())
 
         post_comment_text = make_fake_post_comment_text()
-        post_comment = post_comment_creator.comment_post_with_id(
-            post_id=post.pk, text=post_comment_text
-        )
+        post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
 
         post_comment_reporter = make_user()
         report_category = make_moderation_category()
@@ -489,18 +441,12 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(post_comment_reporter)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(
-            post_comment_reporter.has_reported_post_comment_with_id(
-                post_comment_id=post_comment.pk
-            )
-        )
+        self.assertTrue(post_comment_reporter.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertTrue(
             ModerationReport.objects.filter(
                 reporter_id=post_comment_reporter.pk,
@@ -519,9 +465,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         post = post_comment_creator.create_public_post(text=make_fake_post_text())
 
         post_comment_text = make_fake_post_comment_text()
-        post_comment = post_comment_creator.comment_post_with_id(
-            post_id=post.pk, text=post_comment_text
-        )
+        post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
 
         post_comment_reporter = make_user()
         report_category = make_moderation_category()
@@ -531,9 +475,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(post_comment_reporter)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -551,9 +493,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         post = post_comment_creator.create_public_post(text=make_fake_post_text())
 
         post_comment_text = make_fake_post_comment_text()
-        post_comment = post_comment_creator.comment_post_with_id(
-            post_id=post.pk, text=post_comment_text
-        )
+        post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
 
         report_category = make_moderation_category()
         report_description = make_moderation_report_description()
@@ -562,18 +502,12 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(post_comment_creator)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(
-            post_comment_creator.has_reported_post_comment_with_id(
-                post_comment_id=post_comment.pk
-            )
-        )
+        self.assertFalse(post_comment_creator.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertFalse(
             ModerationReport.objects.filter(
                 reporter_id=post_comment_creator.pk,
@@ -590,21 +524,13 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         post_comment_reporter = make_user()
 
         circle = make_circle(creator=post_comment_creator)
-        post_comment_creator.connect_with_user_with_id(
-            user_id=post_comment_reporter.pk, circles_ids=[circle.pk]
-        )
-        post_comment_reporter.confirm_connection_with_user_with_id(
-            user_id=post_comment_creator.pk
-        )
+        post_comment_creator.connect_with_user_with_id(user_id=post_comment_reporter.pk, circles_ids=[circle.pk])
+        post_comment_reporter.confirm_connection_with_user_with_id(user_id=post_comment_creator.pk)
 
-        post = post_comment_creator.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        post = post_comment_creator.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         post_comment_text = make_fake_post_comment_text()
-        post_comment = post_comment_creator.comment_post_with_id(
-            post_id=post.pk, text=post_comment_text
-        )
+        post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
 
         report_category = make_moderation_category()
         report_description = make_moderation_report_description()
@@ -613,18 +539,12 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(post_comment_reporter)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(
-            post_comment_reporter.has_reported_post_comment_with_id(
-                post_comment_id=post_comment.pk
-            )
-        )
+        self.assertTrue(post_comment_reporter.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertTrue(
             ModerationReport.objects.filter(
                 reporter_id=post_comment_reporter.pk,
@@ -642,14 +562,10 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
 
         circle = make_circle(creator=post_comment_creator)
 
-        post = post_comment_creator.create_encircled_post(
-            text=make_fake_post_text(), circles_ids=[circle.pk]
-        )
+        post = post_comment_creator.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
         post_comment_text = make_fake_post_comment_text()
-        post_comment = post_comment_creator.comment_post_with_id(
-            post_id=post.pk, text=post_comment_text
-        )
+        post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
 
         report_category = make_moderation_category()
         report_description = make_moderation_report_description()
@@ -658,18 +574,12 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(post_comment_reporter)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(
-            post_comment_reporter.has_reported_post_comment_with_id(
-                post_comment_id=post_comment.pk
-            )
-        )
+        self.assertFalse(post_comment_reporter.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertFalse(
             ModerationReport.objects.filter(
                 reporter_id=post_comment_reporter.pk,
@@ -684,14 +594,10 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         """should be able to report an public community post_comment with a description and return 201"""
         post_comment_creator = make_user()
         community = make_community(creator=post_comment_creator)
-        post = post_comment_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = post_comment_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
         post_comment_text = make_fake_post_comment_text()
-        post_comment = post_comment_creator.comment_post_with_id(
-            post_id=post.pk, text=post_comment_text
-        )
+        post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
 
         post_comment_reporter = make_user()
         report_category = make_moderation_category()
@@ -701,18 +607,12 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(post_comment_reporter)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(
-            post_comment_reporter.has_reported_post_comment_with_id(
-                post_comment_id=post_comment.pk
-            )
-        )
+        self.assertTrue(post_comment_reporter.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertTrue(
             ModerationReport.objects.filter(
                 reporter_id=post_comment_reporter.pk,
@@ -728,12 +628,8 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         post_comment_creator = make_user()
         post_comment_reporter = make_user()
 
-        community = make_community(
-            creator=post_comment_creator, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
-        post = post_comment_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        community = make_community(creator=post_comment_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
+        post = post_comment_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
         post_comment_creator.invite_user_with_username_to_community_with_name(
             username=post_comment_reporter.username, community_name=community.name
@@ -741,9 +637,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         post_comment_reporter.join_community_with_name(community_name=community.name)
 
         post_comment_text = make_fake_post_comment_text()
-        post_comment = post_comment_creator.comment_post_with_id(
-            post_id=post.pk, text=post_comment_text
-        )
+        post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
 
         report_category = make_moderation_category()
         report_description = make_moderation_report_description()
@@ -752,18 +646,12 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(post_comment_reporter)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(
-            post_comment_reporter.has_reported_post_comment_with_id(
-                post_comment_id=post_comment.pk
-            )
-        )
+        self.assertTrue(post_comment_reporter.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertTrue(
             ModerationReport.objects.filter(
                 reporter_id=post_comment_reporter.pk,
@@ -779,17 +667,11 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         post_comment_creator = make_user()
         post_comment_reporter = make_user()
 
-        community = make_community(
-            creator=post_comment_creator, type=Community.COMMUNITY_TYPE_PRIVATE
-        )
-        post = post_comment_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        community = make_community(creator=post_comment_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
+        post = post_comment_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
         post_comment_text = make_fake_post_comment_text()
-        post_comment = post_comment_creator.comment_post_with_id(
-            post_id=post.pk, text=post_comment_text
-        )
+        post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
 
         report_category = make_moderation_category()
         report_description = make_moderation_report_description()
@@ -798,18 +680,12 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(post_comment_reporter)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(
-            post_comment_reporter.has_reported_post_comment_with_id(
-                post_comment_id=post_comment.pk
-            )
-        )
+        self.assertFalse(post_comment_reporter.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertFalse(
             ModerationReport.objects.filter(
                 reporter_id=post_comment_reporter.pk,
@@ -826,14 +702,10 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         """
         post_comment_creator = make_user()
         community = make_community(creator=post_comment_creator)
-        post = post_comment_creator.create_community_post(
-            text=make_fake_post_text(), community_name=community.name
-        )
+        post = post_comment_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
 
         post_comment_text = make_fake_post_comment_text()
-        post_comment = post_comment_creator.comment_post_with_id(
-            post_id=post.pk, text=post_comment_text
-        )
+        post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
 
         post_comment_reporter = make_user()
         report_category = make_moderation_category()
@@ -843,18 +715,12 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(post_comment_reporter)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(
-            post_comment_reporter.has_reported_post_comment_with_id(
-                post_comment_id=post_comment.pk
-            )
-        )
+        self.assertTrue(post_comment_reporter.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertTrue(
             ModeratedObject.objects.filter(
                 object_id=post_comment.pk,
@@ -868,9 +734,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         post = post_comment_creator.create_public_post(text=make_fake_post_text())
 
         post_comment_text = make_fake_post_comment_text()
-        post_comment = post_comment_creator.comment_post_with_id(
-            post_id=post.pk, text=post_comment_text
-        )
+        post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
 
         post_comment_reporter = make_user()
         report_description = make_moderation_report_description()
@@ -878,17 +742,11 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         url = self._get_url(post_comment=post_comment, post=post)
         headers = make_authentication_headers_for_user(post_comment_reporter)
 
-        response = self.client.post(
-            url, data={"description": report_description}, **headers
-        )
+        response = self.client.post(url, data={"description": report_description}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(
-            post_comment_reporter.has_reported_post_comment_with_id(
-                post_comment_id=post_comment.pk
-            )
-        )
+        self.assertFalse(post_comment_reporter.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertFalse(
             ModerationReport.objects.filter(
                 reporter_id=post_comment_reporter.pk,
@@ -904,9 +762,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         post = post_comment_creator.create_public_post(text=make_fake_post_text())
 
         post_comment_text = make_fake_post_comment_text()
-        post_comment = post_comment_creator.comment_post_with_id(
-            post_id=post.pk, text=post_comment_text
-        )
+        post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
 
         post_comment_reporter = make_user()
         report_category = make_moderation_category()
@@ -915,25 +771,15 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         url = self._get_url(post_comment=post_comment, post=post)
         headers = make_authentication_headers_for_user(post_comment_reporter)
 
-        self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
-        )
+        self.client.post(url, data={"category_id": report_category.pk, "description": report_description}, **headers)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(
-            post_comment_reporter.has_reported_post_comment_with_id(
-                post_comment_id=post_comment.pk
-            )
-        )
+        self.assertTrue(post_comment_reporter.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertEqual(
             1,
             ModerationReport.objects.filter(
@@ -950,9 +796,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         post = post_comment_creator.create_public_post(text=make_fake_post_text())
 
         post_comment_text = make_fake_post_comment_text()
-        post_comment = post_comment_creator.comment_post_with_id(
-            post_id=post.pk, text=post_comment_text
-        )
+        post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
 
         post_comment_reporter = make_user()
         report_category = make_moderation_category()
@@ -970,11 +814,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(
-            post_comment_reporter.has_reported_post_comment_with_id(
-                post_comment_id=post_comment.pk
-            )
-        )
+        self.assertTrue(post_comment_reporter.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertTrue(
             ModerationReport.objects.filter(
                 reporter_id=post_comment_reporter.pk,
@@ -1012,9 +852,7 @@ class ReportUserAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user_reporter)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -1044,9 +882,7 @@ class ReportUserAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user_reporter)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -1070,9 +906,7 @@ class ReportUserAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -1098,9 +932,7 @@ class ReportUserAPITests(OpenbookAPITestCase):
         url = self._get_url(user)
         headers = make_authentication_headers_for_user(user_reporter)
 
-        response = self.client.post(
-            url, data={"description": report_description}, **headers
-        )
+        response = self.client.post(url, data={"description": report_description}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -1125,16 +957,10 @@ class ReportUserAPITests(OpenbookAPITestCase):
         url = self._get_url(user)
         headers = make_authentication_headers_for_user(user_reporter)
 
-        self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
-        )
+        self.client.post(url, data={"category_id": report_category.pk, "description": report_description}, **headers)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -1207,16 +1033,12 @@ class ReportCommunityAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_reporter)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(
-            community_reporter.has_reported_community_with_id(community_id=community.pk)
-        )
+        self.assertTrue(community_reporter.has_reported_community_with_id(community_id=community.pk))
         self.assertTrue(
             ModerationReport.objects.filter(
                 reporter_id=community_reporter.pk,
@@ -1242,9 +1064,7 @@ class ReportCommunityAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_reporter)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -1269,16 +1089,12 @@ class ReportCommunityAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_owner)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(
-            community_owner.has_reported_community_with_id(community_id=community.pk)
-        )
+        self.assertFalse(community_owner.has_reported_community_with_id(community_id=community.pk))
         self.assertFalse(
             ModerationReport.objects.filter(
                 reporter_id=community_owner.pk,
@@ -1300,15 +1116,11 @@ class ReportCommunityAPITests(OpenbookAPITestCase):
         url = self._get_url(community)
         headers = make_authentication_headers_for_user(community_reporter)
 
-        response = self.client.post(
-            url, data={"description": report_description}, **headers
-        )
+        response = self.client.post(url, data={"description": report_description}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(
-            community_reporter.has_reported_community_with_id(community_id=community.pk)
-        )
+        self.assertFalse(community_reporter.has_reported_community_with_id(community_id=community.pk))
         self.assertFalse(
             ModerationReport.objects.filter(
                 reporter_id=community_reporter.pk,
@@ -1330,23 +1142,15 @@ class ReportCommunityAPITests(OpenbookAPITestCase):
         url = self._get_url(community)
         headers = make_authentication_headers_for_user(community_reporter)
 
-        self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
-        )
+        self.client.post(url, data={"category_id": report_category.pk, "description": report_description}, **headers)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(
-            community_reporter.has_reported_community_with_id(community_id=community.pk)
-        )
+        self.assertTrue(community_reporter.has_reported_community_with_id(community_id=community.pk))
         self.assertEqual(
             1,
             ModerationReport.objects.filter(
@@ -1379,9 +1183,7 @@ class ReportCommunityAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(
-            community_reporter.has_reported_community_with_id(community_id=community.pk)
-        )
+        self.assertTrue(community_reporter.has_reported_community_with_id(community_id=community.pk))
         self.assertTrue(
             ModerationReport.objects.filter(
                 reporter_id=community_reporter.pk,
@@ -1416,16 +1218,12 @@ class ReportHashtagAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(hashtag_reporter)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(
-            hashtag_reporter.has_reported_hashtag_with_id(hashtag_id=hashtag.pk)
-        )
+        self.assertTrue(hashtag_reporter.has_reported_hashtag_with_id(hashtag_id=hashtag.pk))
         self.assertTrue(
             ModerationReport.objects.filter(
                 reporter_id=hashtag_reporter.pk,
@@ -1446,15 +1244,11 @@ class ReportHashtagAPITests(OpenbookAPITestCase):
         url = self._get_url(hashtag)
         headers = make_authentication_headers_for_user(hashtag_reporter)
 
-        response = self.client.post(
-            url, data={"description": report_description}, **headers
-        )
+        response = self.client.post(url, data={"description": report_description}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(
-            hashtag_reporter.has_reported_hashtag_with_id(hashtag_id=hashtag.pk)
-        )
+        self.assertFalse(hashtag_reporter.has_reported_hashtag_with_id(hashtag_id=hashtag.pk))
         self.assertFalse(
             ModerationReport.objects.filter(
                 reporter_id=hashtag_reporter.pk,
@@ -1475,23 +1269,15 @@ class ReportHashtagAPITests(OpenbookAPITestCase):
         url = self._get_url(hashtag)
         headers = make_authentication_headers_for_user(hashtag_reporter)
 
-        self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
-        )
+        self.client.post(url, data={"category_id": report_category.pk, "description": report_description}, **headers)
 
         response = self.client.post(
-            url,
-            data={"category_id": report_category.pk, "description": report_description},
-            **headers
+            url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertTrue(
-            hashtag_reporter.has_reported_hashtag_with_id(hashtag_id=hashtag.pk)
-        )
+        self.assertTrue(hashtag_reporter.has_reported_hashtag_with_id(hashtag_id=hashtag.pk))
         self.assertEqual(
             1,
             ModerationReport.objects.filter(
@@ -1523,9 +1309,7 @@ class ReportHashtagAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertTrue(
-            hashtag_reporter.has_reported_hashtag_with_id(hashtag_id=hashtag.pk)
-        )
+        self.assertTrue(hashtag_reporter.has_reported_hashtag_with_id(hashtag_id=hashtag.pk))
         self.assertTrue(
             ModerationReport.objects.filter(
                 reporter_id=hashtag_reporter.pk,

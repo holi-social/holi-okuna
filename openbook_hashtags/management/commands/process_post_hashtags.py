@@ -16,9 +16,7 @@ class Command(BaseCommand):
         Post = get_post_model()
 
         posts_to_process = (
-            Post.objects.filter(
-                hashtags__isnull=True, text__isnull=False, text__icontains="#"
-            )
+            Post.objects.filter(hashtags__isnull=True, text__isnull=False, text__icontains="#")
             .only("id", "text")
             .all()
         )

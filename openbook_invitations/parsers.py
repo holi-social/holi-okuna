@@ -30,9 +30,7 @@ def parse_kickstarter_csv(filepath):
                 badge_keyword = row[badge_keyword_col]
                 badge = Badge.objects.get(keyword=badge_keyword)
                 UserInvite = get_user_invite_model()
-                UserInvite.create_invite(
-                    name=name, email=email, username=username, badge=badge
-                )
+                UserInvite.create_invite(name=name, email=email, username=username, badge=badge)
     except IOError as e:
         print("Unable to read file")
         raise e
@@ -63,9 +61,7 @@ def parse_indiegogo_csv(filepath):
                 if username is None or username == "0" or username == "":
                     print("Username was empty for:", name)
                     username = None
-                invited_user = UserInvite.create_invite(
-                    name=name, email=email, username=username, badge=badge
-                )
+                invited_user = UserInvite.create_invite(name=name, email=email, username=username, badge=badge)
                 invited_user.save()
     except IOError as e:
         print("Unable to read file")
@@ -136,9 +132,7 @@ def parse_conflicts_csv(filepath):
                 if username is None or username == "0" or username == "":
                     print("Username was empty for:", username)
                     continue
-                invited_user = UserInvite.create_invite(
-                    name=username, email=email, username=None
-                )
+                invited_user = UserInvite.create_invite(name=username, email=email, username=None)
                 invited_user.save()
     except IOError as e:
         print("Unable to read file")
@@ -147,14 +141,7 @@ def parse_conflicts_csv(filepath):
 
 def sanitise_username(username):
     chars = "[@#!±$%^&*()=|/><?,:;\~`{}]"
-    return (
-        re.sub(chars, "", username)
-        .lower()
-        .replace(" ", "_")
-        .replace("+", "_")
-        .replace("-", "_")
-        .replace("\\", "")
-    )
+    return re.sub(chars, "", username).lower().replace(" ", "_").replace("+", "_").replace("-", "_").replace("\\", "")
 
 
 def get_column_numbers_for_indiegogo(first_row):

@@ -7,9 +7,7 @@ from openbook_common.utils.model_loaders import get_post_model
 
 def check_can_be_updated(post, text=None):
     if post.is_text_only_post() and not text:
-        raise ValidationError(
-            _("Cannot remove the text of a text only post. Try deleting it instead.")
-        )
+        raise ValidationError(_("Cannot remove the text of a text only post. Try deleting it instead."))
 
 
 def check_is_draft(post):

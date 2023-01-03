@@ -6,7 +6,9 @@ from openbook_common.utils.model_loaders import get_post_model, get_post_comment
 
 
 class Command(BaseCommand):
-    help = "Assigns Language to Post and PostComment models, usage python manage.py assign_language --type posts|comments"
+    help = (
+        "Assigns Language to Post and PostComment models, usage python manage.py assign_language --type posts|comments"
+    )
 
     def add_arguments(self, parser):
         parser.add_argument(

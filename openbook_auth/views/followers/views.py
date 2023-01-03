@@ -26,9 +26,7 @@ class Followers(APIView):
         user = request.user
         users = user.get_followers(max_id=max_id).order_by("-id")[:count]
 
-        users_serializer = FollowersUserSerializer(
-            users, many=True, context={"request": request}
-        )
+        users_serializer = FollowersUserSerializer(users, many=True, context={"request": request})
 
         return Response(users_serializer.data, status=status.HTTP_200_OK)
 

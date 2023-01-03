@@ -91,9 +91,7 @@ class GetUserUserSerializer(serializers.ModelSerializer):
     are_new_post_notifications_enabled = AreNewPostNotificationsEnabledForUserField()
     is_connected = IsConnectedField()
     is_fully_connected = IsFullyConnectedField()
-    connected_circles = ConnectedCirclesField(
-        circle_serializer=GetUserUserCircleSerializer
-    )
+    connected_circles = ConnectedCirclesField(circle_serializer=GetUserUserCircleSerializer)
     follow_lists = FollowListsField(list_serializer=GetUserUserListSerializer)
     is_pending_connection_confirmation = IsPendingConnectionConfirmation()
     is_pending_follow_request_approval = IsPendingFollowRequestApproval()
@@ -135,9 +133,7 @@ class LegacyGetUserUserSerializer(serializers.ModelSerializer):
     are_new_post_notifications_enabled = AreNewPostNotificationsEnabledForUserField()
     is_connected = IsConnectedField()
     is_fully_connected = IsFullyConnectedField()
-    connected_circles = ConnectedCirclesField(
-        circle_serializer=GetUserUserCircleSerializer
-    )
+    connected_circles = ConnectedCirclesField(circle_serializer=GetUserUserCircleSerializer)
     follow_lists = FollowListsField(list_serializer=GetUserUserListSerializer)
     is_pending_connection_confirmation = IsPendingConnectionConfirmation()
     is_pending_follow_request_approval = IsPendingFollowRequestApproval()
@@ -188,9 +184,7 @@ class GetBlockedUserSerializer(serializers.ModelSerializer):
 
 
 class SearchUsersSerializer(serializers.Serializer):
-    query = serializers.CharField(
-        max_length=settings.SEARCH_QUERIES_MAX_LENGTH, required=True
-    )
+    query = serializers.CharField(max_length=settings.SEARCH_QUERIES_MAX_LENGTH, required=True)
     count = serializers.IntegerField(required=False, max_value=10)
 
 

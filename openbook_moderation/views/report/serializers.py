@@ -19,9 +19,7 @@ class ReportPostSerializer(serializers.Serializer):
         validators=[post_id_exists],
         required=True,
     )
-    category_id = serializers.UUIDField(
-        validators=[moderation_category_id_exists], required=True
-    )
+    category_id = serializers.UUIDField(validators=[moderation_category_id_exists], required=True)
     description = serializers.CharField(
         max_length=settings.MODERATION_REPORT_DESCRIPTION_MAX_LENGTH,
         required=False,
@@ -38,9 +36,7 @@ class ReportPostCommentSerializer(serializers.Serializer):
         validators=[post_id_exists],
         required=True,
     )
-    category_id = serializers.UUIDField(
-        validators=[moderation_category_id_exists], required=True
-    )
+    category_id = serializers.UUIDField(validators=[moderation_category_id_exists], required=True)
     description = serializers.CharField(
         max_length=settings.MODERATION_REPORT_DESCRIPTION_MAX_LENGTH,
         required=False,
@@ -55,9 +51,7 @@ class ReportCommunitySerializer(serializers.Serializer):
         required=True,
         validators=[community_name_characters_validator, community_name_exists],
     )
-    category_id = serializers.UUIDField(
-        validators=[moderation_category_id_exists], required=True
-    )
+    category_id = serializers.UUIDField(validators=[moderation_category_id_exists], required=True)
     description = serializers.CharField(
         max_length=settings.MODERATION_REPORT_DESCRIPTION_MAX_LENGTH,
         required=False,
@@ -72,9 +66,7 @@ class ReportUserSerializer(serializers.Serializer):
         required=True,
         validators=[username_characters_validator, user_username_exists],
     )
-    category_id = serializers.UUIDField(
-        validators=[moderation_category_id_exists], required=True
-    )
+    category_id = serializers.UUIDField(validators=[moderation_category_id_exists], required=True)
     description = serializers.CharField(
         max_length=settings.MODERATION_REPORT_DESCRIPTION_MAX_LENGTH,
         required=False,
@@ -89,9 +81,7 @@ class ReportHashtagSerializer(serializers.Serializer):
         required=True,
         validators=[hashtag_name_validator, hashtag_name_exists],
     )
-    category_id = serializers.UUIDField(
-        validators=[moderation_category_id_exists], required=True
-    )
+    category_id = serializers.UUIDField(validators=[moderation_category_id_exists], required=True)
     description = serializers.CharField(
         max_length=settings.MODERATION_REPORT_DESCRIPTION_MAX_LENGTH,
         required=False,
@@ -104,9 +94,7 @@ class ReportModeratedObjectSerializer(serializers.Serializer):
         validators=[moderated_object_id_exists],
         required=True,
     )
-    category_id = serializers.UUIDField(
-        validators=[moderation_category_id_exists], required=True
-    )
+    category_id = serializers.UUIDField(validators=[moderation_category_id_exists], required=True)
     description = serializers.CharField(
         max_length=settings.MODERATION_REPORT_DESCRIPTION_MAX_LENGTH,
         required=False,

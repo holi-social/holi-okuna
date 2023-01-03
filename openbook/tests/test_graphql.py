@@ -70,9 +70,7 @@ class GraphQLTest(TestCase):
         authenticated_user = json.loads(response.content)["data"]["authenticatedUser"]
         self.assertEqual(authenticated_user["id"], str(user.uuid))
         self.assertEqual(authenticated_user["fullName"], user.profile.full_name())
-        self.assertEqual(
-            authenticated_user["engagementLevel"], user.profile.engagement_level
-        )
+        self.assertEqual(authenticated_user["engagementLevel"], user.profile.engagement_level)
 
     def test_get_user_by_name_returns_only_matching_users_without_logged_in_user(self):
         expected_users = [
@@ -98,9 +96,7 @@ class GraphQLTest(TestCase):
         )
         self.assert_paged_results_equal(
             results=executed["data"]["userByName"],
-            expected_data=[
-                {"firstName": u.name, "lastName": u.last_name} for u in expected_users
-            ],
+            expected_data=[{"firstName": u.name, "lastName": u.last_name} for u in expected_users],
         )
 
     def test_get_user_by_name_first_name_matches_first(self):
@@ -123,23 +119,15 @@ class GraphQLTest(TestCase):
             """
         )
         self.assertEqual(executed["data"]["userByName"]["totalResults"], 3)
-        self.assertEqual(
-            executed["data"]["userByName"]["data"][0]["firstName"], "Peter"
-        )
-        self.assertEqual(
-            executed["data"]["userByName"]["data"][1]["firstName"], "Petra"
-        )
-        self.assertEqual(
-            executed["data"]["userByName"]["data"][2]["firstName"], "Thomas"
-        )
+        self.assertEqual(executed["data"]["userByName"]["data"][0]["firstName"], "Peter")
+        self.assertEqual(executed["data"]["userByName"]["data"][1]["firstName"], "Petra")
+        self.assertEqual(executed["data"]["userByName"]["data"][2]["firstName"], "Thomas")
 
     def test_can_update_authenticated_user(self):
         user = make_user(name="Fritz", last_name="Meier")
         pronouns = "She/her"
 
-        self.assertNotEqual(
-            User.objects.get(username=user.username).profile.pronouns, pronouns
-        )
+        self.assertNotEqual(User.objects.get(username=user.username).profile.pronouns, pronouns)
 
         executed = self.graphql.execute(
             """
@@ -172,9 +160,7 @@ class GraphQLTest(TestCase):
             second_user.username,
         )
 
-        self.assertTrue(
-            second_user.is_pending_confirm_connection_for_user_with_id(first_user.pk)
-        )
+        self.assertTrue(second_user.is_pending_confirm_connection_for_user_with_id(first_user.pk))
         self.assertEqual(
             first_user.get_connection_status_with_user_id(second_user.pk),
             UserConnectionStatus.REQUESTED,
@@ -201,9 +187,7 @@ class GraphQLTest(TestCase):
             text=post_text,
             title=post_title,
         )
-        post.comment(
-            text=f"comment text 1 @{posting_user.username}", commenter=other_user
-        )
+        post.comment(text=f"comment text 1 @{posting_user.username}", commenter=other_user)
         post.comment(
             text=f"comment text 2 @{mentioned_user.username} @{posting_user.username}",
             commenter=other_user,
@@ -267,13 +251,9 @@ class GraphQLTest(TestCase):
         self.assertEqual(post_data["numberOfComments"], 3)
         self.assertEqual(post_data["involvedUsers"]["totalResults"], 2)
         self.assertEqual(len(post_data["comments"]), 3)
-        self.assertEqual(
-            post_data["comments"][0]["text"], f"comment text 1 @{posting_user.username}"
-        )
+        self.assertEqual(post_data["comments"][0]["text"], f"comment text 1 @{posting_user.username}")
         self.assertEqual(post_data["commenters"]["totalResults"], 1)
-        self.assertEqual(
-            post_data["commenters"]["data"][0]["firstName"], other_user.name
-        )
+        self.assertEqual(post_data["commenters"]["data"][0]["firstName"], other_user.name)
 
     def test_can_fetch_post_with_image(self):
         posting_user = make_user()
@@ -346,9 +326,7 @@ class GraphQLTest(TestCase):
         )
         insight1.posts.add(post1, post2, post3)
 
-        insight2 = Insight.objects.create(
-            creator=posting_user, title="Insight 2", date_published=now
-        )
+        insight2 = Insight.objects.create(creator=posting_user, title="Insight 2", date_published=now)
         post4 = posting_user.create_public_post(
             text=post_text,
             title=post_title,
@@ -398,9 +376,7 @@ class GraphQLTest(TestCase):
         response = self.get_notifications(followed_user)
         self.assertGreaterEqual(response["data"]["notifications"]["totalResults"], 1)
         notifications = response["data"]["notifications"]["data"]
-        connection_requested_notification = next(
-            n for n in notifications if n["notificationType"] == "CR"
-        )
+        connection_requested_notification = next(n for n in notifications if n["notificationType"] == "CR")
         self.assertEqual(
             connection_requested_notification["owner"]["fullName"],
             followed_user.profile.full_name(),
@@ -412,23 +388,15 @@ class GraphQLTest(TestCase):
 
         self.connect_to_user(followed_user, following_user)
 
-        notifications = self.get_notifications(followed_user)["data"]["notifications"][
-            "data"
-        ]
-        connection_accepted_notification = next(
-            n for n in notifications if n["notificationType"] == "CA"
-        )
+        notifications = self.get_notifications(followed_user)["data"]["notifications"]["data"]
+        connection_accepted_notification = next(n for n in notifications if n["notificationType"] == "CA")
         self.assertEqual(
             connection_accepted_notification["options"]["user"]["fullName"],
             following_user.profile.full_name(),
         )
 
-        notifications = self.get_notifications(following_user)["data"]["notifications"][
-            "data"
-        ]
-        connection_confirmed_notification = next(
-            n for n in notifications if n["notificationType"] == "CC"
-        )
+        notifications = self.get_notifications(following_user)["data"]["notifications"]["data"]
+        connection_confirmed_notification = next(n for n in notifications if n["notificationType"] == "CC")
         self.assertEqual(
             connection_confirmed_notification["options"]["user"]["fullName"],
             followed_user.profile.full_name(),
@@ -480,13 +448,9 @@ class GraphQLTest(TestCase):
             return {"id": str(space.id)}
 
         def assert_filtered_spaces(filter_options, expected_spaces):
-            filter_response = self.graphql.execute(
-                filter_query, variable_values=filter_options
-            )
+            filter_response = self.graphql.execute(filter_query, variable_values=filter_options)
             expected_data = list(map(transform_space, expected_spaces))
-            self.assert_paged_results_equal(
-                filter_response["data"]["spaces"], expected_data
-            )
+            self.assert_paged_results_equal(filter_response["data"]["spaces"], expected_data)
 
         # Return all spaces for empty filter
         assert_filtered_spaces({}, [space1, space2])
@@ -501,27 +465,19 @@ class GraphQLTest(TestCase):
         assert_filtered_spaces({"location": space2.location}, [space2])
 
         # Filter by topic and location
-        assert_filtered_spaces(
-            {"topicId": str(topic1.id), "location": space1.location}, [space1]
-        )
+        assert_filtered_spaces({"topicId": str(topic1.id), "location": space1.location}, [space1])
 
         # Filter by single skill
         assert_filtered_spaces({"skillIds": [str(skill1.id)]}, [space1])
 
         # Filter by multiple skills
-        assert_filtered_spaces(
-            {"skillIds": [str(skill1.id), str(skill3.id)]}, [space1, space2]
-        )
+        assert_filtered_spaces({"skillIds": [str(skill1.id), str(skill3.id)]}, [space1, space2])
 
         # Filter by skills and location
-        assert_filtered_spaces(
-            {"skillIds": [str(skill2.id)], "location": space2.location}, [space2]
-        )
+        assert_filtered_spaces({"skillIds": [str(skill2.id)], "location": space2.location}, [space2])
 
         # Filter by skills and topics
-        assert_filtered_spaces(
-            {"skillIds": [str(skill2.id)], "topicId": str(topic2.id)}, [space1]
-        )
+        assert_filtered_spaces({"skillIds": [str(skill2.id)], "topicId": str(topic2.id)}, [space1])
 
         # Filter by skills, topics and location
         assert_filtered_spaces(
@@ -565,9 +521,7 @@ class GraphQLTest(TestCase):
             return {"id": str(space.id)}
 
         def assert_filtered_spaces(filter_options, expected_spaces):
-            filter_response = self.graphql.execute(
-                filter_query, variable_values=filter_options
-            )
+            filter_response = self.graphql.execute(filter_query, variable_values=filter_options)
             expected_data = list(map(transform_space, expected_spaces))
             self.assert_paged_results_equal(
                 filter_response["data"]["discoverSpaces"][0]["spaces"],
@@ -581,9 +535,7 @@ class GraphQLTest(TestCase):
         assert_filtered_spaces({"topicIds": [str(topic2.id)]}, [space1, space3])
 
         # Filter by topic and location
-        assert_filtered_spaces(
-            {"topicIds": [str(topic1.id)], "location": space1.location}, [space1]
-        )
+        assert_filtered_spaces({"topicIds": [str(topic1.id)], "location": space1.location}, [space1])
 
         # Filter by skills and topics
         assert_filtered_spaces(
@@ -669,9 +621,7 @@ class GraphQLTest(TestCase):
         self.assertIsNone(response.get("errors"))
         return response
 
-    def assert_paged_results_equal(
-        self, results: dict, expected_data: List[dict[str, any]]
-    ):
+    def assert_paged_results_equal(self, results: dict, expected_data: List[dict[str, any]]):
         self.assertEqual(results["totalResults"], len(expected_data))
 
         for el in expected_data:

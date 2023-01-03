@@ -84,16 +84,12 @@ def curate_top_posts():
         Q(community__isnull=False, community__type=Community.COMMUNITY_TYPE_PUBLIC),
         Q.AND,
     )
-    top_posts_community_query.add(
-        Q(is_closed=False, is_deleted=False, status=Post.STATUS_PUBLISHED), Q.AND
-    )
-    top_posts_community_query.add(
-        ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND
-    )
+    top_posts_community_query.add(Q(is_closed=False, is_deleted=False, status=Post.STATUS_PUBLISHED), Q.AND)
+    top_posts_community_query.add(~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
 
-    top_posts_criteria_query = Q(
-        total_comments_count__gte=settings.MIN_UNIQUE_TOP_POST_COMMENTS_COUNT
-    ) | Q(reactions_count__gte=settings.MIN_UNIQUE_TOP_POST_REACTIONS_COUNT)
+    top_posts_criteria_query = Q(total_comments_count__gte=settings.MIN_UNIQUE_TOP_POST_COMMENTS_COUNT) | Q(
+        reactions_count__gte=settings.MIN_UNIQUE_TOP_POST_REACTIONS_COUNT
+    )
 
     posts_select_related = "community"
     posts_prefetch_related = ("comments__commenter", "reactions__reactor")
@@ -158,21 +154,17 @@ def clean_top_posts():
     ModeratedObject = get_moderated_object_model()
 
     # if any of these is true, we will remove the top post
-    top_posts_community_query = Q(
-        post__community__type=Community.COMMUNITY_TYPE_PRIVATE
-    )
+    top_posts_community_query = Q(post__community__type=Community.COMMUNITY_TYPE_PRIVATE)
     top_posts_community_query.add(Q(post__is_closed=True), Q.OR)
     top_posts_community_query.add(Q(post__is_deleted=True), Q.OR)
     top_posts_community_query.add(Q(post__status=Post.STATUS_DRAFT), Q.OR)
     top_posts_community_query.add(Q(post__status=Post.STATUS_PROCESSING), Q.OR)
-    top_posts_community_query.add(
-        Q(post__moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.OR
-    )
+    top_posts_community_query.add(Q(post__moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.OR)
 
     # counts less than minimum
-    top_posts_criteria_query = Q(
-        total_comments_count__lt=settings.MIN_UNIQUE_TOP_POST_COMMENTS_COUNT
-    ) & Q(reactions_count__lt=settings.MIN_UNIQUE_TOP_POST_REACTIONS_COUNT)
+    top_posts_criteria_query = Q(total_comments_count__lt=settings.MIN_UNIQUE_TOP_POST_COMMENTS_COUNT) & Q(
+        reactions_count__lt=settings.MIN_UNIQUE_TOP_POST_REACTIONS_COUNT
+    )
 
     posts_select_related = "post__community"
     posts_prefetch_related = ("post__comments__commenter", "post__reactions__reactor")
@@ -214,13 +206,11 @@ def clean_top_posts():
         ),
         Q.AND,
     )
-    top_posts_community_query.add(
-        ~Q(post__moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND
-    )
+    top_posts_community_query.add(~Q(post__moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
 
-    top_posts_criteria_query = Q(
-        total_comments_count__gte=settings.MIN_UNIQUE_TOP_POST_COMMENTS_COUNT
-    ) | Q(reactions_count__gte=settings.MIN_UNIQUE_TOP_POST_REACTIONS_COUNT)
+    top_posts_criteria_query = Q(total_comments_count__gte=settings.MIN_UNIQUE_TOP_POST_COMMENTS_COUNT) | Q(
+        reactions_count__gte=settings.MIN_UNIQUE_TOP_POST_REACTIONS_COUNT
+    )
 
     top_posts = (
         TopPost.objects.select_related(posts_select_related)
@@ -280,9 +270,7 @@ def curate_trending_posts():
         is_closed=False,
         is_deleted=False,
     )
-    trending_posts_community_query.add(
-        ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND
-    )
+    trending_posts_community_query.add(~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
 
     trending_posts_query.add(trending_posts_community_query, Q.AND)
 
@@ -290,9 +278,7 @@ def curate_trending_posts():
     posts_prefetch_related = "reactions__reactor"
     posts_only = ("id", "status", "is_deleted", "is_closed", "community__type")
 
-    trending_posts_criteria_query = Q(
-        reactions_count__gte=settings.MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT
-    )
+    trending_posts_criteria_query = Q(reactions_count__gte=settings.MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT)
 
     posts = (
         Post.objects.select_related(posts_select_related)
@@ -338,17 +324,13 @@ def bootstrap_trending_posts():
         is_deleted=False,
     )
 
-    trending_posts_community_query.add(
-        ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND
-    )
+    trending_posts_community_query.add(~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
 
     posts_select_related = "community"
     posts_prefetch_related = "reactions__reactor"
     posts_only = ("id", "status", "is_deleted", "is_closed", "community__type")
 
-    trending_posts_criteria_query = Q(
-        reactions_count__gte=settings.MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT
-    )
+    trending_posts_criteria_query = Q(reactions_count__gte=settings.MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT)
 
     posts = (
         Post.objects.select_related(posts_select_related)
@@ -393,16 +375,12 @@ def clean_trending_posts():
     ModeratedObject = get_moderated_object_model()
 
     # if any of these is true, we will remove the trending post
-    trending_posts_community_query = Q(
-        post__community__type=Community.COMMUNITY_TYPE_PRIVATE
-    )
+    trending_posts_community_query = Q(post__community__type=Community.COMMUNITY_TYPE_PRIVATE)
     trending_posts_community_query.add(Q(post__is_closed=True), Q.OR)
     trending_posts_community_query.add(Q(post__is_deleted=True), Q.OR)
     trending_posts_community_query.add(Q(post__status=Post.STATUS_DRAFT), Q.OR)
     trending_posts_community_query.add(Q(post__status=Post.STATUS_PROCESSING), Q.OR)
-    trending_posts_community_query.add(
-        Q(post__moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.OR
-    )
+    trending_posts_community_query.add(Q(post__moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.OR)
 
     posts_select_related = "post__community"
     posts_only = (
@@ -419,17 +397,13 @@ def clean_trending_posts():
         .filter(trending_posts_community_query)
     )
 
-    direct_removable_delete_ids = [
-        trending_post.pk for trending_post in removable_trending_posts
-    ]
+    direct_removable_delete_ids = [trending_post.pk for trending_post in removable_trending_posts]
 
     # delete posts
     TrendingPost.objects.filter(id__in=direct_removable_delete_ids).delete()
 
     # Now we filter trending posts that do not meet criteria anymore
-    trending_posts_criteria_query = Q(
-        reactions_count__lt=settings.MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT
-    )
+    trending_posts_criteria_query = Q(reactions_count__lt=settings.MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT)
 
     less_than_min_reactions_trending_posts = (
         TrendingPost.objects.prefetch_related("post__reactions__reactor")
@@ -438,9 +412,7 @@ def clean_trending_posts():
         .filter(trending_posts_criteria_query)
     )
 
-    delete_ids = [
-        trending_post.pk for trending_post in less_than_min_reactions_trending_posts
-    ]
+    delete_ids = [trending_post.pk for trending_post in less_than_min_reactions_trending_posts]
     TrendingPost.objects.filter(id__in=delete_ids).delete()
 
 

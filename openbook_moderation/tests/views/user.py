@@ -43,13 +43,9 @@ class UserModerationPenaltiesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderation_penalties = json.loads(
-            response.content, object_hook=uuid_id_parser
-        )
+        response_moderation_penalties = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(
-            len(response_moderation_penalties), len(moderation_penalties_ids)
-        )
+        self.assertEqual(len(response_moderation_penalties), len(moderation_penalties_ids))
 
         for response_moderationCategory in response_moderation_penalties:
             response_moderation_category_id = response_moderationCategory.get("id")
@@ -76,9 +72,7 @@ class UserModerationPenaltiesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        response_moderation_penalties = json.loads(
-            response.content, object_hook=uuid_id_parser
-        )
+        response_moderation_penalties = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_moderation_penalties), 0)
 
@@ -118,12 +112,8 @@ class UserPendingModeratedObjectsCommunitiesAPITests(OpenbookAPITestCase):
             for j in range(0, amount_of_pending_moderated_objects):
                 post_creator = make_user()
                 post_creator.join_community_with_name(community_name=community.name)
-                post = post_creator.create_community_post(
-                    community_name=community.name, text=make_fake_post_text()
-                )
-                post_reporter.report_post(
-                    post=post, category_id=make_moderation_category().pk
-                )
+                post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+                post_reporter.report_post(post=post, category_id=make_moderation_category().pk)
 
             moderated_commmunities_ids.append(community.pk)
 
@@ -171,12 +161,8 @@ class UserPendingModeratedObjectsCommunitiesAPITests(OpenbookAPITestCase):
             for j in range(0, amount_of_pending_moderated_objects):
                 post_creator = make_user()
                 post_creator.join_community_with_name(community_name=community.name)
-                post = post_creator.create_community_post(
-                    community_name=community.name, text=make_fake_post_text()
-                )
-                post_reporter.report_post(
-                    post=post, category_id=make_moderation_category().pk
-                )
+                post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+                post_reporter.report_post(post=post, category_id=make_moderation_category().pk)
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
@@ -215,12 +201,8 @@ class UserPendingModeratedObjectsCommunitiesAPITests(OpenbookAPITestCase):
             for j in range(0, amount_of_pending_moderated_objects):
                 post_creator = make_user()
                 post_creator.join_community_with_name(community_name=community.name)
-                post = post_creator.create_community_post(
-                    community_name=community.name, text=make_fake_post_text()
-                )
-                post_reporter.report_post(
-                    post=post, category_id=make_moderation_category().pk
-                )
+                post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+                post_reporter.report_post(post=post, category_id=make_moderation_category().pk)
 
             moderated_commmunities_ids.append(community.pk)
 
@@ -268,12 +250,8 @@ class UserPendingModeratedObjectsCommunitiesAPITests(OpenbookAPITestCase):
             for j in range(0, amount_of_pending_moderated_objects):
                 post_creator = make_user()
                 post_creator.join_community_with_name(community_name=community.name)
-                post = post_creator.create_community_post(
-                    community_name=community.name, text=make_fake_post_text()
-                )
-                post_reporter.report_post(
-                    post=post, category_id=make_moderation_category().pk
-                )
+                post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+                post_reporter.report_post(post=post, category_id=make_moderation_category().pk)
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)

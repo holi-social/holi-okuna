@@ -81,9 +81,7 @@ class OathkeeperAuthTest(OpenbookAPITestCase):
 
     def test_allows_anonymous_requests(self):
         """should allow anonymous requests"""
-        url = reverse(
-            "username-check"
-        )  # just a random endpoint that doesn't require authentication
+        url = reverse("username-check")  # just a random endpoint that doesn't require authentication
         data = {"username": fake.user_name()}
         response = self.client.post(url, data, format="json")
         self.assertEqual(
@@ -406,9 +404,7 @@ class RegistrationAPITests(OpenbookAPITestCase):
         user = User.objects.get(email=email)
 
         # Check we created the connections circle
-        self.assertTrue(
-            Circle.objects.filter(id__in=(user.connections_circle_id,)).count() == 1
-        )
+        self.assertTrue(Circle.objects.filter(id__in=(user.connections_circle_id,)).count() == 1)
 
         # Check we have a circles related manager
         self.assertTrue(hasattr(user, "circles"))
@@ -573,9 +569,7 @@ class RequestPasswordResetAPITests(OpenbookAPITestCase):
         email = fake.email()
         request_data = {"email": email}
         url = self._get_url()
-        with mock.patch.object(
-            User, "_send_password_reset_email_with_token", return_value=None
-        ):
+        with mock.patch.object(User, "_send_password_reset_email_with_token", return_value=None):
             response = self.client.post(url, request_data, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -717,9 +711,7 @@ class UsernameCheckAPITests(OpenbookAPITestCase):
     def test_username_taken(self):
         """should return status 400 if the username is taken"""
         username = "lifenautjoe"
-        User.objects.create_user(
-            username=username, password="SuChSeCuRiTyWow!", email="lifenautjoe@mail.com"
-        )
+        User.objects.create_user(username=username, password="SuChSeCuRiTyWow!", email="lifenautjoe@mail.com")
         request_data = {"username": username}
         url = self._get_url()
         response = self.client.post(url, request_data, format="json")
@@ -769,9 +761,7 @@ class EmailCheckAPITests(OpenbookAPITestCase):
     def test_email_taken(self):
         """should return status 400 if the email is taken"""
         email = "joel@open-book.org"
-        User.objects.create_user(
-            email=email, password="SuChSeCuRiTyWow!", username="lifenautjoe"
-        )
+        User.objects.create_user(email=email, password="SuChSeCuRiTyWow!", username="lifenautjoe")
         request_data = {"email": email}
         url = self._get_url()
         response = self.client.post(url, request_data, format="json")
@@ -827,9 +817,7 @@ class LoginAPITests(OpenbookAPITestCase):
         username = "mike_waswski"
         password = "boo_scary!"
 
-        user = User.objects.create_user(
-            username=username, password=password, email="lifenautjoe@mail.com"
-        )
+        user = User.objects.create_user(username=username, password=password, email="lifenautjoe@mail.com")
 
         url = self._get_url()
 
@@ -852,9 +840,7 @@ class LoginAPITests(OpenbookAPITestCase):
         username = "pauly_d"
         password = "theW0rstDJEv4"
 
-        User.objects.create_user(
-            username=username, password=password, email="pauly@mail.com"
-        )
+        User.objects.create_user(username=username, password=password, email="pauly@mail.com")
 
         url = self._get_url()
 
@@ -877,9 +863,7 @@ class VerifyChangeEmailAPITests(OpenbookAPITestCase):
         new_email = fake.email()
         token = user.request_email_update(new_email)
 
-        response = self.client.post(
-            self._get_verify_email_url(), {"token": token}, **headers
-        )
+        response = self.client.post(self._get_verify_email_url(), {"token": token}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -897,9 +881,7 @@ class VerifyChangeEmailAPITests(OpenbookAPITestCase):
         user.request_email_update(new_email)
         headers = make_authentication_headers_for_user(user)
 
-        response = self.client.post(
-            self._get_verify_email_url(), {"token": foreign_token}, **headers
-        )
+        response = self.client.post(self._get_verify_email_url(), {"token": foreign_token}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 

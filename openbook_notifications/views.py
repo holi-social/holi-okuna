@@ -35,9 +35,7 @@ class Notifications(APIView):
         max_id = data.get("max_id")
         types = data.get("types")
 
-        notifications = user.get_notifications(max_id=max_id, types=types).order_by(
-            "-created"
-        )[:count]
+        notifications = user.get_notifications(max_id=max_id, types=types).order_by("-created")[:count]
 
         response_serializer = GetNotificationsNotificationSerializer(
             notifications, many=True, context={"request": request}
@@ -104,9 +102,7 @@ class NotificationItem(APIView):
     permission_classes = (IsAuthenticated, IsNotSuspended)
 
     def delete(self, request, notification_id):
-        serializer = DeleteNotificationSerializer(
-            data={"notification_id": notification_id}
-        )
+        serializer = DeleteNotificationSerializer(data={"notification_id": notification_id})
         serializer.is_valid(raise_exception=True)
 
         user = request.user
@@ -121,9 +117,7 @@ class ReadNotification(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, notification_id):
-        serializer = ReadNotificationSerializer(
-            data={"notification_id": notification_id}
-        )
+        serializer = ReadNotificationSerializer(data={"notification_id": notification_id})
         serializer.is_valid(raise_exception=True)
 
         user = request.user

@@ -28,9 +28,7 @@ class PostCommentItem(APIView):
     permission_classes = (IsAuthenticated, IsNotSuspended)
 
     def get(self, request, post_id, post_comment_id):
-        serializer = GetPostCommentRequestSerializer(
-            data={"post_id": post_id, "post_comment_id": post_comment_id}
-        )
+        serializer = GetPostCommentRequestSerializer(data={"post_id": post_id, "post_comment_id": post_comment_id})
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
@@ -39,13 +37,9 @@ class PostCommentItem(APIView):
 
         user = request.user
 
-        post_comment = user.get_comment_with_id_for_post_with_id(
-            post_comment_id=post_comment_id, post_id=post_id
-        )
+        post_comment = user.get_comment_with_id_for_post_with_id(post_comment_id=post_comment_id, post_id=post_id)
 
-        post_comment_serializer = GetPostCommentSerializer(
-            post_comment, context={"request": request}
-        )
+        post_comment_serializer = GetPostCommentSerializer(post_comment, context={"request": request})
         return Response(post_comment_serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request, post_id, post_comment_id):
@@ -61,9 +55,7 @@ class PostCommentItem(APIView):
         user = request.user
 
         with transaction.atomic():
-            user.delete_comment_with_id_for_post_with_id(
-                post_comment_id=post_comment_id, post_id=post_id
-            )
+            user.delete_comment_with_id_for_post_with_id(post_comment_id=post_comment_id, post_id=post_id)
 
         return Response({"message": _("Comment deleted")}, status=status.HTTP_200_OK)
 
@@ -85,9 +77,7 @@ class PostCommentItem(APIView):
                 post_comment_id=post_comment_id, post_id=post_id, text=comment_text
             )
 
-        post_comment_serializer = EditPostCommentSerializer(
-            post_comment, context={"request": request}
-        )
+        post_comment_serializer = EditPostCommentSerializer(post_comment, context={"request": request})
         return Response(post_comment_serializer.data, status=status.HTTP_200_OK)
 
     def _get_request_data(self, request, post_id, post_comment_id):
@@ -114,9 +104,7 @@ class MutePostComment(APIView):
         with transaction.atomic():
             user.mute_post_comment_with_id(post_comment_id=post_comment_id)
 
-        return ApiMessageResponse(
-            message=_("Post comment muted."), status=status.HTTP_200_OK
-        )
+        return ApiMessageResponse(message=_("Post comment muted."), status=status.HTTP_200_OK)
 
 
 class UnmutePostComment(APIView):
@@ -136,9 +124,7 @@ class UnmutePostComment(APIView):
         with transaction.atomic():
             user.unmute_post_comment_with_id(post_comment_id=post_comment_id)
 
-        return ApiMessageResponse(
-            message=_("Post comment unmuted."), status=status.HTTP_200_OK
-        )
+        return ApiMessageResponse(message=_("Post comment unmuted."), status=status.HTTP_200_OK)
 
 
 class TranslatePostComment(APIView):
@@ -157,9 +143,7 @@ class TranslatePostComment(APIView):
         post_comment_id = data.get("post_comment_id")
 
         try:
-            post_comment, translated_text = user.translate_post_comment_with_id(
-                post_comment_id=post_comment_id
-            )
+            post_comment, translated_text = user.translate_post_comment_with_id(post_comment_id=post_comment_id)
         except UnsupportedLanguagePairException:
             return ApiMessageResponse(
                 _("Translation between these languages is not supported."),

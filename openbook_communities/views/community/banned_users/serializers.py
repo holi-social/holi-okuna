@@ -72,9 +72,7 @@ class GetCommunityBannedUsersUserSerializer(serializers.ModelSerializer):
 
 class SearchCommunityBannedUsersSerializer(serializers.Serializer):
     count = serializers.IntegerField(required=False, max_value=20)
-    query = serializers.CharField(
-        max_length=settings.SEARCH_QUERIES_MAX_LENGTH, allow_blank=False, required=True
-    )
+    query = serializers.CharField(max_length=settings.SEARCH_QUERIES_MAX_LENGTH, allow_blank=False, required=True)
     community_name = serializers.CharField(
         max_length=settings.COMMUNITY_NAME_MAX_LENGTH,
         allow_blank=False,

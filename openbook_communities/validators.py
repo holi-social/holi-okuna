@@ -9,9 +9,7 @@ from openbook_common.utils.model_loaders import get_community_model
 def community_name_characters_validator(community_name):
     if not re.match("^[a-zA-Z0-9_]*$", community_name):
         raise ValidationError(
-            _(
-                "Community_names can only contain alphanumeric characters, underscores and dashes."
-            ),
+            _("Community_names can only contain alphanumeric characters, underscores and dashes."),
         )
 
 
