@@ -130,6 +130,7 @@ review_destroy:
     - terraform/environments/scripts/destroy-env.sh $CI_ENVIRONMENT_SLUG
   # can't use rules here: https://gitlab.com/gitlab-org/gitlab/-/issues/34077
   when: manual
+  allow_failure: false
   except:
     - main
     - /^noenv\/.*/
