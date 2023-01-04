@@ -25,7 +25,7 @@ resource "google_project_service" "service" {
 resource "google_sql_database" "database" {
   name     = random_id.main.hex
   project  = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
-  instance = data.terraform_remote_state.holi_infra_state.outputs.database_name_development # TODO: configure prod for prod
+  instance = local.environment_name == "production" ? data.terraform_remote_state.holi_infra_state.outputs.database_name_production : data.terraform_remote_state.holi_infra_state.outputs.database_name_development
 }
 
 # in CI, this is set via scripts/create-or-update-env.sh 
@@ -71,7 +71,7 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "RDS_DB_NAME"
-          value = local.environment_name == "production" ? "okuna" : random_id.main.hex
+          value = random_id.main.hex
         }
         env {
           name  = "RDS_USERNAME"
