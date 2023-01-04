@@ -585,6 +585,41 @@ class GraphQLTest(TestCase):
         assert response[0]["id"] == str(space1.id)
         assert response[1]["id"] == str(space2.id)
 
+    def test_my_spaces(self):
+        creator1 = make_user()
+        creator2 = make_user()
+        space1 = make_community(creator=creator1)
+        space2 = make_community(creator=creator2)
+        space3 = make_community()
+        space2.add_member(creator1)
+
+        response = self.graphql.execute(
+            """
+            query {
+                mySpaces {
+                    section
+                    spaces {
+                        totalResults
+                        data {
+                            id
+                        }
+                    }
+                }
+            }
+            """,
+            context_value=BeneDict({"user": creator1}),
+        )["data"]["mySpaces"]
+
+        self.assertEqual(len(response), 2)
+        created_section = response[0]
+        self.assertEqual(created_section["section"], "Created")
+        self.assertEqual(created_section["spaces"]["totalResults"], 1)
+        self.assertEqual(created_section["spaces"]["data"][0]["id"], str(space1.id))
+        joined_section = response[1]
+        self.assertEqual(joined_section["section"], "Joined")
+        self.assertEqual(joined_section["spaces"]["totalResults"], 1)
+        self.assertEqual(joined_section["spaces"]["data"][0]["id"], str(space2.id))
+
     def get_notifications(self, user):
         response = self.graphql.execute(
             """
