@@ -153,6 +153,7 @@ production_deploy:
   extends: .deploy
   needs: ['staging_deploy']
   when: manual
+  allow_failure: false
   environment:
     name: production
     deployment_tier: production
