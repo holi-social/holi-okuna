@@ -6,6 +6,7 @@ from django.db import Error, transaction
 from django.db.models import Q, Count, F, Value, Prefetch
 from django.db.models.functions import Concat
 from django.db.models.lookups import IContains
+from django.utils.translation import gettext_lazy as _
 from graphene_django import DjangoObjectType
 from graphene_file_upload.scalars import Upload
 from graphql import GraphQLError
@@ -398,6 +399,11 @@ class DiscoverSpaces(graphene.ObjectType):
     spaces = Paged.of(Space)
 
 
+class MySpaces(graphene.ObjectType):
+    section = graphene.String()
+    spaces = Paged.of(Space)
+
+
 class Query(graphene.ObjectType):
     authenticated_user = graphene.Field(User)
     user_by_id = graphene.Field(User, id=graphene.String())
@@ -424,6 +430,7 @@ class Query(graphene.ObjectType):
         offset=graphene.Int(default_value=0),
         limit=graphene.Int(default_value=10),
     )
+    my_spaces = graphene.List(MySpaces)
     space_by_id = graphene.Field(Space, id=graphene.String())
     tasks_by_space_id = Paged.of(
         Task,
@@ -585,6 +592,13 @@ class Query(graphene.ObjectType):
                 )
 
         return result
+
+    def resolve_my_spaces(self, info):
+        return [
+            (MySpaces(section=_("Created"), spaces=(spaces_for_filter(offset=0, limit=10)))),
+            (MySpaces(section=_("Joined"), spaces=(spaces_for_filter(offset=0, limit=10)))),
+            (MySpaces(section=_("Following"), spaces=(spaces_for_filter(offset=0, limit=10)))),
+        ]
 
     def resolve_space_by_id(self, info, id):
         try:
