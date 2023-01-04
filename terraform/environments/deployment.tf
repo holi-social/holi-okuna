@@ -38,6 +38,7 @@ resource "google_cloud_run_service" "okuna" {
   project  = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
   name     = random_id.main.hex
   location = "europe-north1" # finland, low CO2 emissions
+  autogenerate_revision_name=true
 
   template {
     spec {
