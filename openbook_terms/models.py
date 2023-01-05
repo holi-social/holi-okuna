@@ -9,6 +9,7 @@ class Term(ModelWithUUID):
         abstract = True
 
     title = models.CharField(_("title"), max_length=settings.TERM_TITLE_MAX_LENGTH, blank=False)
+    slug = models.SlugField(_("slug"), max_length=settings.TERM_SLUG_MAX_LENGTH, unique=True)
 
     def __str__(self):
         return f"{self.__class__.__name__}: {self.title} ({self.id})"
