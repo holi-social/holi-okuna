@@ -82,9 +82,9 @@ class Paged(graphene.ObjectType):
     def data(data, offset, limit):
         return Paged(data=data[offset : offset + limit], total_results=data.count())
 
-    def __init__(self, data, total_results):
+    def __init__(self, data=[], total_results=None):
         self.data = data
-        self.total_results = total_results
+        self.total_results = total_results if total_results is not None else len(data)
 
 
 class Task(DjangoObjectType):
@@ -403,6 +403,17 @@ class MySpaces(graphene.ObjectType):
     section = graphene.String()
     spaces = Paged.of(Space)
 
+    def resolve_spaces(self, info, offset, limit):
+        """
+        When spaces are already resolved, they are returned.
+        Otherwise: When a query is provided, it is used to create a paged result.
+        """
+        if self.spaces is not None:
+            return self.spaces
+        if hasattr(self, "query"):
+            return Paged.data(self.query, offset, limit)
+        return Paged()
+
 
 class Query(graphene.ObjectType):
     authenticated_user = graphene.Field(User)
@@ -594,11 +605,32 @@ class Query(graphene.ObjectType):
         return result
 
     def resolve_my_spaces(self, info):
-        return [
-            (MySpaces(section=_("Created"), spaces=(spaces_for_filter(offset=0, limit=10)))),
-            (MySpaces(section=_("Joined"), spaces=(spaces_for_filter(offset=0, limit=10)))),
-            (MySpaces(section=_("Following"), spaces=(spaces_for_filter(offset=0, limit=10)))),
-        ]
+        if info.context.user.is_anonymous:
+            return []
+
+        created_spaces = MySpaces(section=_("Created"))
+        created_spaces.query = (
+            CommunityModel.objects.prefetch_related("links", "memberships", "tasks")
+            .filter(creator=info.context.user)
+            .annotate(member_count=Count("memberships"))
+            .order_by("-member_count", "-created")
+        )
+        member_spaces = MySpaces(section=_("Joined"))
+        member_spaces.query = (
+            CommunityModel.objects.prefetch_related("links", "memberships", "tasks")
+            .filter(Q(memberships__user=info.context.user), ~Q(creator=info.context.user))
+            .annotate(member_count=Count("memberships"))
+            .order_by("-member_count", "-created")
+        )
+        followed_spaces = MySpaces(section=_("Following"))
+        # TODO provide correct filter, once Following of spaces is implemented
+        followed_spaces.query = (
+            CommunityModel.objects.prefetch_related("links", "memberships", "tasks")
+            .filter(Q(creator__isnull=True), ~Q(creator=info.context.user), ~Q(memberships__user=info.context.user))
+            .annotate(member_count=Count("memberships"))
+            .order_by("-member_count", "-created")
+        )
+        return filter(lambda x: x.query.count() > 0, [created_spaces, member_spaces, followed_spaces])
 
     def resolve_space_by_id(self, info, id):
         try:
