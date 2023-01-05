@@ -7,6 +7,8 @@ def slugifyNullObjects(model, db_alias):
     for obj in model.objects.using(db_alias).filter(slug__isnull=True):
         slug = slugify(obj.title)
         obj.slug = slug
+
+        # Check if another object already has that slug, and if so add a suffix (starting from 2: e.g. my-slug-2)
         suffix = 2
         while model.objects.using(db_alias).filter(slug=obj.slug).exists():
             obj.slug = f"{slug}-{suffix}"
