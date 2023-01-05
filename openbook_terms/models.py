@@ -5,6 +5,7 @@ from openbook_common.models import ModelWithUUID
 
 from django.template.defaultfilters import slugify
 
+
 class Term(ModelWithUUID):
     class Meta:
         abstract = True
