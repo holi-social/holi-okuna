@@ -3,12 +3,14 @@ from django.utils.translation import gettext_lazy as _
 from openbook import settings
 from openbook_common.models import ModelWithUUID
 
+from django.template.defaultfilters import slugify
 
 class Term(ModelWithUUID):
     class Meta:
         abstract = True
 
     title = models.CharField(_("title"), max_length=settings.TERM_TITLE_MAX_LENGTH, blank=False)
+    slug = models.SlugField(_("slug"), max_length=settings.TERM_SLUG_MAX_LENGTH, unique=True)
 
     def __str__(self):
         return f"{self.__class__.__name__}: {self.title} ({self.id})"

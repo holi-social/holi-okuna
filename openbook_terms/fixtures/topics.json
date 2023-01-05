@@ -3,6 +3,7 @@
     "model": "openbook_terms.topic",
     "pk": "13049222-f742-49f1-8091-760c2100d7c8",
     "fields": {
+      "slug": "water-ocean",
       "title": "Water & Ocean",
       "title_es": null,
       "title_en": "Water & Ocean",
@@ -22,6 +23,7 @@
     "model": "openbook_terms.topic",
     "pk": "2ebecfaa-3a6d-4f39-9389-28bbbca628c9",
     "fields": {
+      "slug": "agriculture-food",
       "title": "Agriculture & Food",
       "title_es": null,
       "title_en": "Agriculture & Food",
@@ -41,6 +43,7 @@
     "model": "openbook_terms.topic",
     "pk": "36a23973-bbdb-4a8b-b4f0-982f9406809d",
     "fields": {
+      "slug": "alternative-economy",
       "title": "Alternative Economy",
       "title_es": null,
       "title_en": "Alternative Economy",
@@ -60,6 +63,7 @@
     "model": "openbook_terms.topic",
     "pk": "3c285e6f-239e-43a5-ae83-927ce8694ca9",
     "fields": {
+      "slug": "biodiversity-animal-welfare",
       "title": "Biodiversity & Animal Welfare",
       "title_es": null,
       "title_en": "Biodiversity & Animal Welfare",
@@ -79,6 +83,7 @@
     "model": "openbook_terms.topic",
     "pk": "52776394-f255-449f-bd9c-aa880fdf0f42",
     "fields": {
+      "slug": "building-housing",
       "title": "Building & Housing",
       "title_es": null,
       "title_en": "Building & Housing",
@@ -98,6 +103,7 @@
     "model": "openbook_terms.topic",
     "pk": "5d004e15-28da-4b98-a78e-f817832b2f52",
     "fields": {
+      "slug": "children-youth",
       "title": "Children & Youth",
       "title_es": null,
       "title_en": "Children & Youth",
@@ -117,6 +123,7 @@
     "model": "openbook_terms.topic",
     "pk": "6244ff16-823b-4c51-b695-58b1aadab32c",
     "fields": {
+      "slug": "climate-protection",
       "title": "Climate Protection",
       "title_es": null,
       "title_en": "Climate Protection",
@@ -136,6 +143,7 @@
     "model": "openbook_terms.topic",
     "pk": "7b4383f4-d766-4c76-a661-e20a86812352",
     "fields": {
+      "slug": "consumption-lifestyle",
       "title": "Consumption & lifestyle",
       "title_es": null,
       "title_en": "Consumption & lifestyle",
@@ -155,6 +163,7 @@
     "model": "openbook_terms.topic",
     "pk": "871ec9d6-1014-4c86-b0b9-fdf441017411",
     "fields": {
+      "slug": "culture-social-change",
       "title": "Culture & Social Change",
       "title_es": null,
       "title_en": "Culture & Social Change",
@@ -174,6 +183,7 @@
     "model": "openbook_terms.topic",
     "pk": "8b3ffc7a-648f-4118-8f95-cd7242bf4d45",
     "fields": {
+      "slug": "urban-rural-development",
       "title": "Urban & Rural development",
       "title_es": null,
       "title_en": "Urban & Rural development",
@@ -193,6 +203,7 @@
     "model": "openbook_terms.topic",
     "pk": "9adbef9c-17ad-43fb-ba21-549be1b979a9",
     "fields": {
+      "slug": "democracy-human-rights",
       "title": "Democracy & Human Rights",
       "title_es": null,
       "title_en": "Democracy & Human Rights",
@@ -212,6 +223,7 @@
     "model": "openbook_terms.topic",
     "pk": "9b14d7f5-94e0-4c11-a4ed-35b91e376712",
     "fields": {
+      "slug": "disabilities-inclusion",
       "title": "Disabilities & Inclusion",
       "title_es": null,
       "title_en": "Disabilities & Inclusion",
@@ -231,6 +243,7 @@
     "model": "openbook_terms.topic",
     "pk": "9cafd8e2-85ab-4e54-9cca-f4327015648a",
     "fields": {
+      "slug": "diversity-gender-equality",
       "title": "Diversity & Gender Equality",
       "title_es": null,
       "title_en": "Diversity & Gender Equality",
@@ -250,6 +263,7 @@
     "model": "openbook_terms.topic",
     "pk": "a56b1a9c-d32a-4905-8253-4e7c9b4d181e",
     "fields": {
+      "slug": "eco-turism",
       "title": "Eco Tourism",
       "title_es": null,
       "title_en": "Eco Tourism",
@@ -269,6 +283,7 @@
     "model": "openbook_terms.topic",
     "pk": "a9932c46-0d75-431b-8ba7-a29e1ec040ab",
     "fields": {
+      "slug": "education-science",
       "title": "Education & Science",
       "title_es": null,
       "title_en": "Education & Science",
@@ -288,6 +303,7 @@
     "model": "openbook_terms.topic",
     "pk": "a9b99cea-bdf6-4fdc-b3ac-de776fb81526",
     "fields": {
+      "slug": "elderly-people",
       "title": "Elderly people",
       "title_es": null,
       "title_en": "Elderly people",
@@ -307,6 +323,7 @@
     "model": "openbook_terms.topic",
     "pk": "b54fb72a-fbac-463d-a6b1-eed3d547cd8f",
     "fields": {
+      "slug": "energy-transition",
       "title": "Energy Transition",
       "title_es": null,
       "title_en": "Energy Transition",
@@ -326,6 +343,7 @@
     "model": "openbook_terms.topic",
     "pk": "cb748e87-cf5d-4c28-9bb6-f6a555e0fd99",
     "fields": {
+      "slug": "governance",
       "title": "Governance",
       "title_es": null,
       "title_en": "Governance",
@@ -345,6 +363,7 @@
     "model": "openbook_terms.topic",
     "pk": "cbf11d62-eb42-4dc7-a6f9-b2d6c21d3412",
     "fields": {
+      "slug": "migration-integration",
       "title": "Migration & Integration",
       "title_es": null,
       "title_en": "Migration & Integration",
@@ -364,6 +383,7 @@
     "model": "openbook_terms.topic",
     "pk": "d61a942c-96f7-4c3e-8fda-aa55ff47a05d",
     "fields": {
+      "slug": "mobility-infrastructure",
       "title": "Mobility & Infrastructure",
       "title_es": null,
       "title_en": "Mobility & Infrastructure",
@@ -383,6 +403,7 @@
     "model": "openbook_terms.topic",
     "pk": "dc1a3af2-c911-42c0-805f-90ba385bd577",
     "fields": {
+      "slug": "natural-disaster-response",
       "title": "Natural Disaster Response",
       "title_es": null,
       "title_en": "Natural Disaster Response",
@@ -402,6 +423,7 @@
     "model": "openbook_terms.topic",
     "pk": "e1f5ba0c-77ce-4a6a-bdbb-0d484e0f6cef",
     "fields": {
+      "slug": "natural-resources",
       "title": "Natural Resources",
       "title_es": null,
       "title_en": "Natural Resources",
@@ -421,6 +443,7 @@
     "model": "openbook_terms.topic",
     "pk": "e3f03ff4-b205-4196-9eff-57b80e5b0fff",
     "fields": {
+      "slug": "other",
       "title": "Other",
       "title_es": null,
       "title_en": "Other",
@@ -440,6 +463,7 @@
     "model": "openbook_terms.topic",
     "pk": "e47ceb10-c3ae-46cb-87d2-066195c6660b",
     "fields": {
+      "slug": "peace-security",
       "title": "Peace & Security",
       "title_es": null,
       "title_en": "Peace & Security",
@@ -459,6 +483,7 @@
     "model": "openbook_terms.topic",
     "pk": "e61f3914-930e-4178-a954-73c7a129bd1f",
     "fields": {
+      "slug": "physical-mental-health",
       "title": "Physical & Mental health",
       "title_es": null,
       "title_en": "Physical & Mental health",
@@ -478,6 +503,7 @@
     "model": "openbook_terms.topic",
     "pk": "e6582e73-c2b3-460c-952a-426161e4e130",
     "fields": {
+      "slug": "politics-society",
       "title": "Politics & Society",
       "title_es": null,
       "title_en": "Politics & Society",
@@ -497,6 +523,7 @@
     "model": "openbook_terms.topic",
     "pk": "f754f9a5-3280-435f-ac64-ccae4929b0b6",
     "fields": {
+      "slug": "poverty-homelesness",
       "title": "Poverty & Homelesness",
       "title_es": null,
       "title_en": "Poverty & Homelesness",
@@ -516,6 +543,7 @@
     "model": "openbook_terms.topic",
     "pk": "fd49039a-88b9-43cc-bb0d-793c3f8e3b2b",
     "fields": {
+      "slug": "technological-innovation",
       "title": "Technological Innovation",
       "title_es": null,
       "title_en": "Technological Innovation",
