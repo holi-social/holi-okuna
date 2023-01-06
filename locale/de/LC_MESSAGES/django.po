@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: okuna\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-04 17:55+0100\n"
+"POT-Creation-Date: 2023-01-06 17:36+0100\n"
 "PO-Revision-Date: 2019-12-09 16:20\n"
 "Last-Translator: Jozsef Sallai (joexyz)\n"
 "Language-Team: German\n"
@@ -16,15 +16,15 @@ msgstr ""
 "X-Crowdin-Language: de\n"
 "X-Crowdin-File: /okuna-api/django.po\n"
 
-#: openbook/graphql_schema.py:611
+#: openbook/graphql_schema.py:615
 msgid "Created"
 msgstr "Erzeugt"
 
-#: openbook/graphql_schema.py:618
+#: openbook/graphql_schema.py:622
 msgid "Joined"
 msgstr "Beigetreten"
 
-#: openbook/graphql_schema.py:625
+#: openbook/graphql_schema.py:629
 msgid "Following"
 msgstr "Folgend"
 
@@ -123,33 +123,33 @@ msgstr "Nur Administratoren/Moderatoren können diesen Beitrag schließen"
 
 #: openbook_auth/checkers.py:125
 msgid "A community cannot be changed from private to public"
-msgstr ""
+msgstr "Eine Community kann nicht von privat auf öffentlich geändert werden"
 
 #: openbook_auth/checkers.py:165
 #, fuzzy
 #| msgid "You cannot block yourself."
 msgid "You cannot follow yourself."
-msgstr "Du kannst dich nicht selbst blockieren."
+msgstr "Du kannst Dir nicht selbst folgen."
 
 #: openbook_auth/checkers.py:179
 #, fuzzy
 #| msgid "This post is private."
 msgid "This user is private."
-msgstr "Dieser Beitrag ist privat."
+msgstr "Dieser Benutzer ist privat."
 
 #: openbook_auth/checkers.py:186
 msgid "This user content is restricted to Okuna members only."
-msgstr ""
+msgstr "Die Beträge dieses Benutzers sind nur für angemeldete Benutzer sichtbar."
 
 #: openbook_auth/checkers.py:194
 #, fuzzy
 #| msgid "This post is private."
 msgid "This user is not private."
-msgstr "Dieser Beitrag ist privat."
+msgstr "Dieser Benutzer ist nicht privat."
 
 #: openbook_auth/checkers.py:204
 msgid "This user is private, send a follow request."
-msgstr ""
+msgstr "Dieser Benutzer ist privat. Sende ihm eine Folgen Anfrage"
 
 #: openbook_auth/checkers.py:215
 msgid "Already following user."
@@ -177,7 +177,7 @@ msgstr "Maximale Anzahl an Verbindungen erreicht."
 
 #: openbook_auth/checkers.py:261
 msgid "A user cannot connect with itself."
-msgstr "Ein Benutzer kann sich nicht mit sich selbst verbinden (außer Chuck Norris)."
+msgstr "Ein Benutzer kann sich nicht mit sich selbst verbinden."
 
 #: openbook_auth/checkers.py:273
 msgid "Already connected with user."
@@ -255,7 +255,7 @@ msgstr ""
 #, fuzzy
 #| msgid "user new post notifications"
 msgid "New post notifications are not enabled"
-msgstr "Benachrichtigungen neuer Beiträge des Benutzers"
+msgstr "Benachrichtigungen über neue Beiträge sind nicht aktiv"
 
 #: openbook_auth/checkers.py:427
 msgid "Can't see the members of a private community."
@@ -595,7 +595,7 @@ msgstr "Du kannst nur eigene Kommentare löschen"
 #, fuzzy
 #| msgid "No comment found with given id for post with given uuid"
 msgid "No comment found with given id for post with given id"
-msgstr "Kein Kommentar mit gegebener ID für Beitrag mit gegebener UUID gefunden"
+msgstr "Kein Kommentar mit gegebener ID für Beitrag mit gegebener ID gefunden"
 
 #: openbook_auth/checkers.py:1162
 msgid "You can post a reply to a comment, not to an existing reply"
@@ -715,7 +715,7 @@ msgstr ""
 
 #: openbook_auth/checkers.py:1439
 msgid "You are not subscribed to new post notifications"
-msgstr ""
+msgstr "Du hast keine Benachrichtigungen für neue Beiträge aktiviert"
 
 #: openbook_auth/models.py:112 openbook_invitations/models.py:31
 msgid "email address"
@@ -803,11 +803,11 @@ msgstr "Name"
 #, fuzzy
 #| msgid "name"
 msgid "last name"
-msgstr "Name"
+msgstr "Nachname"
 
 #: openbook_auth/models.py:4439
 msgid "pronouns"
-msgstr ""
+msgstr "Pronomen"
 
 #: openbook_auth/models.py:4445
 msgid "location"
@@ -815,7 +815,7 @@ msgstr "Standort"
 
 #: openbook_auth/models.py:4451
 msgid "engagement level"
-msgstr ""
+msgstr "Level des Engagements"
 
 #: openbook_auth/models.py:4462 openbook_categories/models.py:37
 #: openbook_communities/models.py:84
@@ -828,7 +828,7 @@ msgstr "Cover"
 
 #: openbook_auth/models.py:4488
 msgid "about me"
-msgstr ""
+msgstr "Über mich"
 
 #: openbook_auth/models.py:4493
 msgid "url"
@@ -870,13 +870,13 @@ msgstr "Follower-Benachrichtigung"
 #, fuzzy
 #| msgid "follow notifications"
 msgid "follow request notifications"
-msgstr "Follower-Benachrichtigung"
+msgstr "Follower-Anfragen-Benachrichtigungen"
 
 #: openbook_auth/models.py:4536
 #, fuzzy
 #| msgid "follow notifications"
 msgid "follow request approved notifications"
-msgstr "Follower-Benachrichtigung"
+msgstr "Follower-Bestätigungsanfragen-Benachrichtigungen"
 
 #: openbook_auth/models.py:4538
 msgid "connection request notifications"
@@ -914,7 +914,7 @@ msgstr "Benachrichtigungen über Erwähnungen in Beiträgen"
 #, fuzzy
 #| msgid "This account is blocked."
 msgid "User account is disabled."
-msgstr "Dieser Account ist blockiert."
+msgstr "Dieser Account ist deaktiviert."
 
 #: openbook_auth/validators.py:12
 #, fuzzy
@@ -937,17 +937,17 @@ msgstr "Es existiert kein Nutzer mit der angegebenen E-Mail-Adresse."
 #: openbook_auth/validators.py:46
 #, python-brace-format
 msgid "Unknown UUID '{interest_uuid}' contained in interests array"
-msgstr ""
+msgstr "Unbekannte UUID '{interest_uuid}' im array der Interessen enthalten"
 
 #: openbook_auth/validators.py:51
 #, python-brace-format
 msgid "Unknown UUID '{sdg_uuid}' contained in sdgs array"
-msgstr ""
+msgstr "Unbekannte UUID '{sdg_uuid}' im array der SDGs enthalten"
 
 #: openbook_auth/validators.py:56
 #, python-brace-format
 msgid "Unknown UUID '{skill_uuid}' contained in skills array"
-msgstr ""
+msgstr "Unbekannte UUID '{skill_uuid}' im array der Fähigkeiten enthalten"
 
 #: openbook_auth/views/auth/views.py:100
 msgid "Token valid"
@@ -1410,15 +1410,15 @@ msgstr "ist Moderator"
 
 #: openbook_communities/models.py:875
 msgid "regularly"
-msgstr ""
+msgstr "regelmäßig"
 
 #: openbook_communities/models.py:876
 msgid "project-based"
-msgstr ""
+msgstr "projektbasiert"
 
 #: openbook_communities/models.py:877
 msgid "one-time"
-msgstr ""
+msgstr "einmalig"
 
 #: openbook_communities/models.py:908
 msgid "instagram"
@@ -1500,15 +1500,15 @@ msgstr "UUID"
 
 #: openbook_follows/views.py:85
 msgid "Follow request cancelled."
-msgstr ""
+msgstr "Follower-Anfrage abgebrochen."
 
 #: openbook_follows/views.py:105
 msgid "Follow request approved."
-msgstr ""
+msgstr "Follower-Anfrage bestätigt."
 
 #: openbook_follows/views.py:125
 msgid "Follow request rejected."
-msgstr ""
+msgstr "Follower-Anfrage abgelehnt."
 
 #: openbook_hashtags/models.py:47
 msgid "text color"
@@ -1531,7 +1531,7 @@ msgid "invalid archive"
 msgstr "ungültiges Archiv"
 
 #: openbook_insights/models.py:33
-msgid "header_image"
+msgid "header image"
 msgstr ""
 
 #: openbook_invitations/models.py:27
@@ -1751,13 +1751,13 @@ msgstr "%(following_user_name)s · @%(following_user_username)s folgt dir jetzt"
 #, fuzzy, python-format
 #| msgid "%(following_user_name)s · @%(following_user_username)s started following you"
 msgid "%(follow_requester_name)s · @%(follow_requester_username)s wants to follow you."
-msgstr "%(following_user_name)s · @%(following_user_username)s folgt dir jetzt"
+msgstr "%(follow_requester_name)s · @%(follow_requester_username)s möchte Dir folgen."
 
 #: openbook_notifications/helpers.py:147
 #, fuzzy, python-format
 #| msgid "%(following_user_name)s · @%(following_user_username)s started following you"
 msgid "%(followed_user_name)s · @%(followed_user_username)s has approved your follow request."
-msgstr "%(following_user_name)s · @%(following_user_username)s folgt dir jetzt"
+msgstr "%(followed_user_name)s · @%(followed_user_username)s hat Deine Follow-Anfrage bestätigt"
 
 #: openbook_notifications/helpers.py:180
 #, python-format
@@ -1932,15 +1932,19 @@ msgstr "Medien erfolgreich zum Beitrag hinzugefügt"
 msgid "Reaction deleted"
 msgstr "Reaktion gelöscht"
 
-#: openbook_terms/models.py:24
-msgid "is discover spaces default"
+#: openbook_terms/models.py:12
+msgid "slug"
 msgstr ""
+
+#: openbook_terms/models.py:25
+msgid "is discover spaces default"
+msgstr "Ist ein discover spaces Default"
 
 #: reports/cover/_venv_lib_python3_10_site-packages_django_template_defaulttags_py.html:1491
 #: reports/cover/_venv_lib_python3_11_site-packages_django_template_defaulttags_py.html:1491
 #, python-format
 msgid "The width is: %(width)s"
-msgstr ""
+msgstr "Die breite ist: %(width)s"
 
 #: video_encoding/backends/__init__.py:13
 msgid "Cannot retrieve backend '{}'. Error: '{}'."
@@ -1979,34 +1983,10 @@ msgid "Formats"
 msgstr "Formate"
 
 #~ msgid "A user cannot follow itself."
-#~ msgstr "Ein Benutzer kann sich nicht selbst folgen (außer Chuck Norris)."
-
-#~ msgid "bio"
-#~ msgstr "Über mich"
+#~ msgstr "Ein Benutzer kann sich nicht selbst folgen."
 
 #~ msgid "media height"
 #~ msgstr "Medienhöhe"
 
 #~ msgid "media width"
 #~ msgstr "Medienbreite"
-
-#~ msgid "The linked url associated for preview was not found."
-#~ msgstr "Die verknüpfte URL für die Vorschau wurde nicht gefunden."
-
-#~ msgid "The linked url associated for preview was not reachable."
-#~ msgstr "Die verknüpfte URL für die Vorschau war nicht erreichbar."
-
-#~ msgid "You can only retrieve favicon urls from protocol http and https."
-#~ msgstr "Sólo puedes obtener los favicons de las urls con protocolos http y https."
-
-#~ msgid "The specified url was not found."
-#~ msgstr "La url especificada no se encontró."
-
-#~ msgid "The specified url was not reachable."
-#~ msgstr "La url especificada no fue accesible."
-
-#~ msgid "The invite has been already used."
-#~ msgstr "La invitación ya ha sido utilizada."
-
-#~ msgid "A post requires text or an image/video."
-#~ msgstr "Un post requiere texto o una imagen/vídeo."
