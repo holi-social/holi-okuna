@@ -316,14 +316,16 @@ class Space(DjangoObjectType):
         return [SpaceUserConnectionType.MEMBERSHIP_REQUESTOR]
 
 
-def spaces_for_filter(offset, limit, topic_id=None, location=None, skill_ids=None):
+def spaces_for_filter(offset, limit, topic_id=None, location=None, skill_ids=None, topic_slug=None, skill_slugs=None):
     topic_filter = Q(topics__id__contains=topic_id) if topic_id is not None else Q()
     location_filter = Q(location__icontains=location) if location is not None else Q()
     skills_filter = Q(tasks__skills__id__in=skill_ids) if skill_ids else Q()
+    topic_slug_filter = Q(topics__slug__contains=topic_slug) if topic_slug is not None else Q()
+    skill_slugs_filter = Q(tasks__skills__slug__in=skill_slugs) if skill_slugs else Q()
 
     return Paged.data(
         CommunityModel.objects.prefetch_related("links", "memberships", "tasks")
-        .filter(topic_filter, location_filter, skills_filter)
+        .filter(topic_filter, location_filter, skills_filter, topic_slug_filter, skill_slugs_filter)
         .annotate(member_count=Count("memberships"))
         .order_by("-member_count", "-created"),
         offset,
@@ -432,6 +434,8 @@ class Query(graphene.ObjectType):
         topic_id=graphene.UUID(required=False, default_value=None),
         location=graphene.String(required=False, default_value=None),
         skill_ids=graphene.List(graphene.UUID, default_value=None),
+        topic_slug=graphene.String(required=False, default_value=None),
+        skill_slugs=graphene.List(graphene.String, default_value=None),
     )
     discover_spaces = graphene.List(
         DiscoverSpaces,
@@ -553,8 +557,8 @@ class Query(graphene.ObjectType):
     def resolve_skills(self, info, offset, limit):
         return Paged.data(SkillModel.objects.all().order_by("title"), offset, limit)
 
-    def resolve_spaces(self, info, topic_id, location, skill_ids, offset, limit):
-        return spaces_for_filter(offset, limit, topic_id, location, skill_ids)
+    def resolve_spaces(self, info, topic_id, location, skill_ids, topic_slug, skill_slugs, offset, limit):
+        return spaces_for_filter(offset, limit, topic_id, location, skill_ids, topic_slug, skill_slugs)
 
     def resolve_discover_spaces(self, info, topic_ids, location, skill_ids, offset, limit):
         result = []
