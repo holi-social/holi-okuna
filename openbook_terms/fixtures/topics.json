@@ -263,7 +263,7 @@
     "model": "openbook_terms.topic",
     "pk": "a56b1a9c-d32a-4905-8253-4e7c9b4d181e",
     "fields": {
-      "slug": "eco-turism",
+      "slug": "eco-tourism",
       "title": "Eco Tourism",
       "title_es": null,
       "title_en": "Eco Tourism",
