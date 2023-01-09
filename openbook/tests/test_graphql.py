@@ -197,8 +197,6 @@ class GraphQLTest(TestCase):
             commenter=other_user,
         )
 
-        logger.error("Fetch Post")
-
         response = self.graphql.execute(
             f"""
             query {{
@@ -240,7 +238,6 @@ class GraphQLTest(TestCase):
             }}
             """
         )
-        logger.error("Post fetched")
 
         post_data = response["data"]["postById"]
         self.assertEqual(post_data["text"], post_text)
@@ -296,6 +293,29 @@ class GraphQLTest(TestCase):
         self.assertEqual(post_data["image"]["height"], 1)
         self.assertEqual(post_data["creator"]["id"], str(posting_user.uuid))
         self.assertIsNotNone(post_data["created"])
+
+    def test_cant_fetch_post_draft(self):
+        posting_user = make_user()
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_public_post(text=post_text, title=post_title, is_draft=True)
+
+        response = self.graphql.execute(
+            f"""
+            query {{
+                postById(id: "{post.id}") {{
+                    id
+                }}
+            }}
+            """
+        )
+
+        print(response)
+        post_data = response["data"]["postById"]
+        self.assertEqual(post_data, None)
+        self.assertEqual(response["errors"][0]["message"], "Post not found")
 
     def test_select_last_insights(self):
         insight_user = make_user()
