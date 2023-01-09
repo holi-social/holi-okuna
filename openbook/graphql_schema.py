@@ -288,26 +288,29 @@ class SpaceMember(DjangoObjectType):
 
 
 class SpaceUserConnectionType(graphene.Enum):
+    FOLLOWER = "FOLLOWER"
     MEMBERSHIP_REQUESTOR = "MEMBERSHIP_REQUESTOR"
     MEMBER = "MEMBER"
-    # FOLLOWER, ADMIN...
 
 
 class Space(DjangoObjectType):
     class Meta:
         model = CommunityModel
 
-    members = graphene.List(
+    members = Paged.of(
         SpaceMember,
-        offset=graphene.Int(required=False, default_value=0),
-        limit=graphene.Int(required=False, default_value=10),
+        description="A list of all active members and their role",
         required=True,
     )
     main_image = graphene.String()
     connection_status_to_myself = graphene.List(SpaceUserConnectionType)
 
     def resolve_members(self, info, offset, limit):
-        return CommunityMembershipModel.objects.filter(community=self).all()[offset : offset + limit]
+        return Paged.data(
+            CommunityMembershipModel.objects.filter(community=self),
+            offset,
+            limit,
+        )
 
     def resolve_main_image(self, info):
         return self.cover.name
@@ -835,7 +838,6 @@ class UpdateSpaceUserConnectionMutation(graphene.Mutation):
             user_id = current_user.username
 
         space = CommunityModel.objects.get(id=space_id)
-        # space.add_member()
         target_user = UserModel.objects.get(username=user_id)
 
         return space
