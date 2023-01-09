@@ -18,15 +18,15 @@ msgstr ""
 
 #: openbook/graphql_schema.py:611
 msgid "Created"
-msgstr "Erzeugt"
+msgstr "Von Dir erstellt"
 
 #: openbook/graphql_schema.py:618
 msgid "Joined"
-msgstr "Beigetreten"
+msgstr "Mitglied"
 
 #: openbook/graphql_schema.py:625
 msgid "Following"
-msgstr "Folgend"
+msgstr "Du folgst"
 
 #: openbook/settings.py:473
 msgid "Spanish"

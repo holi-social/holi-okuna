@@ -13,6 +13,7 @@ from rest_framework import status
 from openbook.graphql_schema import (
     schema,
     UpdateConnectionAction,
+    SpaceUserConnectionType,
 )
 from openbook_auth.models import User, UserConnectionStatus
 from openbook_communities.models import Community
@@ -598,6 +599,7 @@ class GraphQLTest(TestCase):
             query {
                 mySpaces {
                     section
+                    type
                     spaces {
                         totalResults
                         data {
@@ -613,10 +615,12 @@ class GraphQLTest(TestCase):
         self.assertEqual(len(response), 2)
         created_section = response[0]
         self.assertEqual(created_section["section"], "Created")
+        self.assertEqual(created_section["type"], SpaceUserConnectionType.CREATOR.value)
         self.assertEqual(created_section["spaces"]["totalResults"], 1)
         self.assertEqual(created_section["spaces"]["data"][0]["id"], str(space1.id))
         joined_section = response[1]
         self.assertEqual(joined_section["section"], "Joined")
+        self.assertEqual(joined_section["type"], SpaceUserConnectionType.MEMBER.value)
         self.assertEqual(joined_section["spaces"]["totalResults"], 1)
         self.assertEqual(joined_section["spaces"]["data"][0]["id"], str(space2.id))
 
