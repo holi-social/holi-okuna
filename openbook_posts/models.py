@@ -586,7 +586,7 @@ class Post(ModelWithUUID):
     def publish(self):
         check_can_be_published(post=self)
 
-        if self.has_media():
+        if self.has_video():
             # After finishing, this will call _publish()
             self.status = Post.STATUS_PROCESSING
             self.save()

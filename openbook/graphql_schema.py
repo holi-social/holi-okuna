@@ -214,8 +214,11 @@ class Insight(DjangoObjectType):
         description="A list of all users involved. Curator of the insight, Authors of all the posts and all commenters of those posts",
     )
 
+    def resolve_posts(self, info):
+        return PostModel.objects.filter(Q(status=PostModel.STATUS_PUBLISHED)).filter(insights=self).all()
+
     def resolve_number_of_posts(self, info):
-        return PostModel.objects.filter(insights=self).count()
+        return PostModel.objects.filter(Q(status=PostModel.STATUS_PUBLISHED)).filter(insights=self).count()
 
     def resolve_involved_users(self, info, offset, limit):
         return Paged.data(
@@ -359,7 +362,8 @@ def get_posts_with_comments_query():
 
 def get_posts_only_query():
     return (
-        PostModel.objects.select_related("creator", "image")
+        PostModel.objects.filter(Q(status=PostModel.STATUS_PUBLISHED))
+        .select_related("creator", "image")
         .prefetch_related("links")
         .prefetch_related(
             Prefetch(
@@ -539,6 +543,7 @@ class Query(graphene.ObjectType):
             return (
                 InsightModel.objects.select_related("creator__profile")
                 .select_related("topic")
+                .filter(date_published__lte=datetime.now())
                 .prefetch_related(Prefetch("posts", queryset=get_posts_only_query()))
                 .get(id=id)
             )
