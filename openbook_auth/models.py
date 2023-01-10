@@ -911,7 +911,7 @@ class User(AbstractUser):
         return self.communities_memberships.filter(community__name=community_name).exists()
 
     def is_membership_requestor_of_community_with_name(self, community_name):
-        return self.community_membership_requests.filter(community__name=community_name)
+        return self.community_membership_requests.filter(community__name=community_name).exists()
 
     def is_banned_from_community_with_name(self, community_name):
         return self.banned_of_communities.filter(name=community_name).exists()
@@ -1961,8 +1961,6 @@ class User(AbstractUser):
         Community = get_community_model()
         community_to_join = Community.objects.get(name=community_name)
         community_to_join.remove_membership_request(self)
-
-        # @todo delete notifications for admins
 
         return community_to_join
 
@@ -3668,9 +3666,6 @@ class User(AbstractUser):
         user_notifications_subscription.save()
 
         return target_user
-
-    def get_username(self) -> str:
-        return super().get_username()
 
     def disable_new_post_notifications_for_user_with_username(self, username):
         target_user = User.objects.get(username=username)

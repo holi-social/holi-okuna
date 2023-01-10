@@ -30,7 +30,7 @@ from openbook_common.tests.helpers import (
     simple_jpeg_bytes,
 )
 from openbook_insights.models import Insight
-from openbook_notifications.models import CommunityMembershipRequestNotification, Notification
+from openbook_notifications.models import Notification
 
 logger = logging.getLogger(__name__)
 

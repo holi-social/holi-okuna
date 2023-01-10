@@ -10,7 +10,6 @@ from django.utils.translation import gettext_lazy as _
 from graphene_django import DjangoObjectType
 from graphene_file_upload.scalars import Upload
 from graphql import GraphQLError
-from rest_framework.exceptions import ValidationError
 
 from openbook_auth.images import delete_avatar
 from openbook_auth.models import UserConnectionStatus, User as UserModel
@@ -49,6 +48,7 @@ logger = getLogger(__name__)
 class ErrorCodes:
     NOT_FOUND = "NOT_FOUND"
     UNAUTHORIZED = "UNAUTHORIZED"
+    FORBIDDEN = "FORBIDDEN"
 
 
 class UpdateConnectionAction(graphene.Enum):
@@ -303,7 +303,6 @@ class Space(DjangoObjectType):
         SpaceMember,
         description="A list of all active members and their role",
     )
-
     main_image = graphene.String()
     connection_status_to_myself = graphene.List(SpaceUserConnectionType)
 
@@ -851,14 +850,14 @@ class UpdatePostCommentMutation(graphene.Mutation):
 class UpdateSpaceUserConnectionMutation(graphene.Mutation):
     class Arguments:
         space_id = graphene.UUID(required=True)
-        user_id = graphene.UUID()
+        user_id = graphene.UUID(description="If not provided, the logged in user is used instead.")
         connection_type = SpaceUserConnectionType(required=True)
         connect_action = UpdateConnectionAction(required=True)
 
     Output = Space
 
     @classmethod
-    def mutate(cls, root, info, space_id, user_id, connection_type, connect_action):
+    def mutate(cls, root, info, space_id, connection_type, connect_action, user_id=None):
         current_user: UserModel = info.context.user
         if current_user.is_anonymous:
             raise GraphQLError("Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED})
@@ -874,7 +873,7 @@ class UpdateSpaceUserConnectionMutation(graphene.Mutation):
                 case (cT.MEMBERSHIP_REQUESTOR, a.DISCONNECT):
                     return current_user.revoke_membership_request_to_community_with_name(space.name)
                 case _:
-                    raise GraphQLError("Operation not allowed", extensions={"code": ErrorCodes.UNAUTHORIZED})
+                    raise GraphQLError("Operation not allowed", extensions={"code": ErrorCodes.FORBIDDEN})
         else:
             # perform for other user
             match (connection_type, connect_action):
