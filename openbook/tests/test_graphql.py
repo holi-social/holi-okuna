@@ -1,6 +1,7 @@
 import json
 import logging
-from typing import List
+from typing import List, Optional
+from uuid import UUID
 
 from benedict import BeneDict
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -29,7 +30,7 @@ from openbook_common.tests.helpers import (
     simple_jpeg_bytes,
 )
 from openbook_insights.models import Insight
-
+from openbook_notifications.models import CommunityMembershipRequestNotification, Notification
 
 logger = logging.getLogger(__name__)
 
@@ -623,6 +624,128 @@ class GraphQLTest(TestCase):
         self.assertEqual(joined_section["type"], SpaceUserConnectionType.MEMBER.value)
         self.assertEqual(joined_section["spaces"]["totalResults"], 1)
         self.assertEqual(joined_section["spaces"]["data"][0]["id"], str(space2.id))
+
+    def test_space_membership_request(self):
+        membership_requester = make_user()
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+
+        def member_result(user):
+            return {
+                "user": {"id": user.username},
+                "isAdministrator": True,
+                "isModerator": False,
+            }
+
+        # Preconditions
+        pre_join_space = self.get_space_for_user(membership_requester, space)
+        self.assertEqual(pre_join_space["connectionStatusToMyself"], [])
+        self.assert_paged_results_equal(pre_join_space["members"], [member_result(space_creator)])
+
+        # Send Join Request
+        after_request_space = self.mutate_update_space_user_connection(
+            auth_user=membership_requester,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+
+        self.assertEqual(
+            after_request_space["connectionStatusToMyself"], [SpaceUserConnectionType.MEMBERSHIP_REQUESTOR.value]
+        )
+
+        # Notification received
+        request_notification = space_creator.get_notifications(
+            types=[Notification.COMMUNITY_MEMBERSHIP_REQUEST]
+        ).first()
+        self.assertEqual(request_notification.get_options()["space"], space)
+        self.assertEqual(request_notification.get_options()["user"], membership_requester)
+
+        # Revoke from User
+        after_revocation_space = self.mutate_update_space_user_connection(
+            auth_user=membership_requester,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
+            connect_action=UpdateConnectionAction.DISCONNECT,
+        )
+
+        self.assertEqual(after_revocation_space["connectionStatusToMyself"], [])
+
+        # Notification cleared
+        self.assertFalse(space_creator.get_notifications(types=[Notification.COMMUNITY_MEMBERSHIP_REQUEST]).exists())
+
+    def mutate_update_space_user_connection(
+        self,
+        auth_user: User,
+        space_id: UUID,
+        connection_type: SpaceUserConnectionType,
+        connect_action: UpdateConnectionAction,
+        user_id: Optional[UUID] = None,
+    ):
+        response = self.graphql.execute(
+            """
+            mutation ($spaceId: UUID!, $userId: UUID, $type: SpaceUserConnectionType!, $action: UpdateConnectionAction!){
+                updateSpaceUserConnection(spaceId: $spaceId, 
+                                            userId: $userId, 
+                                            connectionType: $type,
+                                            connectAction: $action) {
+                    id
+                    name
+                    members {
+                        totalResults
+                        data {
+                            user {
+                                id
+                            }
+                            isAdministrator
+                            isModerator
+                        }
+                    }
+                    connectionStatusToMyself
+                }
+            }
+            """,
+            context_value=BeneDict({"user": auth_user}),
+            variable_values=BeneDict(
+                {
+                    "spaceId": str(space_id),
+                    "userId": str(user_id) if user_id else None,
+                    "type": connection_type.value,
+                    "action": connect_action.value,
+                }
+            ),
+        )
+
+        self.assertIsNone(response.get("errors"))
+        return response["data"]["updateSpaceUserConnection"]
+
+    def get_space_for_user(self, user: User, space: Community):
+        response = self.graphql.execute(
+            """
+            query($id:UUID) {
+                spaceById(id:$id) {
+                    id
+                    name
+                    members {
+                        totalResults
+                        data {
+                            user {
+                                id
+                            }
+                            isAdministrator
+                            isModerator
+                        }
+                    }
+                    connectionStatusToMyself
+                }
+            }
+            """,
+            variables={"id": str(space.id)},
+            context=BeneDict({"user": user}),
+        )
+
+        self.assertIsNone(response.get("errors"))
+        return response["data"]["spaceById"]
 
     def get_notifications(self, user):
         response = self.graphql.execute(

@@ -1,38 +1,29 @@
-import secrets
-from datetime import datetime, timedelta
+import logging
 import re
+import secrets
 import uuid
+from datetime import datetime, timedelta
 
+from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.mail import EmailMultiAlternatives
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.db.models import Q, F, Count
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.utils import timezone, translation
 from django.template.loader import render_to_string
+from django.utils import timezone, translation
 from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
-from django.db.models import Q, F, Count, JSONField
-from django.core.mail import EmailMultiAlternatives
 
+from openbook_auth.checkers import *
 from openbook_auth.helpers import (
     upload_to_user_avatar_directory,
     upload_to_user_cover_directory,
 )
-from openbook_hashtags.queries import (
-    make_search_hashtag_query_for_user_with_id,
-    make_get_hashtag_with_name_for_user_with_id_query,
-)
-from openbook_notifications.helpers import (
-    get_notification_language_code_for_target_user,
-)
-from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
-from openbook_posts.query_collections import get_posts_for_user_collection
-from openbook_terms.models import Topic, SDG, Skill
-from openbook_translation import translation_strategy
 from openbook_common.helpers import get_supported_translation_language
 from openbook_common.models import Badge, ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field
@@ -67,12 +58,21 @@ from openbook_common.utils.model_loaders import (
     get_follow_request_model,
     get_follow_request_notification_model,
     get_follow_request_approved_notification_model,
+    get_community_membership_request_notification_model,
 )
 from openbook_common.validators import name_characters_validator
+from openbook_hashtags.queries import (
+    make_search_hashtag_query_for_user_with_id,
+    make_get_hashtag_with_name_for_user_with_id_query,
+)
 from openbook_notifications import helpers
-from openbook_auth.checkers import *
-
-import logging
+from openbook_notifications.helpers import (
+    get_notification_language_code_for_target_user,
+)
+from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
+from openbook_posts.query_collections import get_posts_for_user_collection
+from openbook_terms.models import Topic, SDG, Skill
+from openbook_translation import translation_strategy
 
 logger = logging.getLogger(__name__)
 
@@ -909,6 +909,9 @@ class User(AbstractUser):
 
     def is_member_of_community_with_name(self, community_name):
         return self.communities_memberships.filter(community__name=community_name).exists()
+
+    def is_membership_requestor_of_community_with_name(self, community_name):
+        return self.community_membership_requests.filter(community__name=community_name)
 
     def is_banned_from_community_with_name(self, community_name):
         return self.banned_of_communities.filter(name=community_name).exists()
@@ -1930,9 +1933,65 @@ class User(AbstractUser):
         CommunityInvite = get_community_invite_model()
         CommunityInvite.objects.filter(community__name=community_name, invited_user__username=self.username).delete()
 
+        community_to_join.remove_membership_request(self)
+
         # No need to delete community invite notifications as they are delete cascaded
+        return community_to_join
+
+    def request_membership_to_community_with_name(self, community_name):
+        check_can_request_membership_to_community_with_name(self, community_name)
+
+        Community = get_community_model()
+        community_to_join = Community.objects.get(name=community_name)
+        membership_request = community_to_join.add_membership_request(self)
+
+        # @todo send notification to admins
+
+        for staff_member in community_to_join.get_staff_members():
+            CommunityMembershipRequestNotification = get_community_membership_request_notification_model()
+            CommunityMembershipRequestNotification.create_community_membership_request_notification(
+                membership_request.id, staff_member.id
+            )
 
         return community_to_join
+
+    def revoke_membership_request_to_community_with_name(self, community_name):
+        check_is_membership_requestor_of_community_with_name(self, community_name)
+
+        Community = get_community_model()
+        community_to_join = Community.objects.get(name=community_name)
+        community_to_join.remove_membership_request(self)
+
+        # @todo delete notifications for admins
+
+        return community_to_join
+
+    def approve_membership_request_to_community_for_username(self, username, community_name):
+        check_is_staff_of_community_with_name(self, community_name)
+
+        user_to_approve: User = User.objects.get(username=username)
+        if user_to_approve.is_banned_from_community_with_name(community_name):
+            raise ValidationError(_("User is banned from community"))
+
+        Community = get_community_model()
+        community_to_join = Community.objects.get(name=community_name)
+
+        community_to_join.remove_membership_request(self)
+        community_to_join.add_member(user_to_approve)
+
+        # @todo notification to user
+
+    def revoke_membership_request_to_community_for_username(self, username, community_name):
+        check_is_staff_of_community_with_name(self, community_name)
+        Community = get_community_model()
+        community = Community.objects.get(name=community_name)
+
+        user_to_revoke_request_for: User = User.objects.get(username=username)
+        if not user_to_revoke_request_for.is_membership_requestor_of_community_with_name(community_name):
+            raise ValidationError(_("User did not request membership to community"))
+        community.remove_membership_request(user_to_revoke_request_for)
+
+        # @todo notification to user?
 
     def leave_community_with_name(self, community_name):
         check_can_leave_community_with_name(user=self, community_name=community_name)
@@ -3609,6 +3668,9 @@ class User(AbstractUser):
         user_notifications_subscription.save()
 
         return target_user
+
+    def get_username(self) -> str:
+        return super().get_username()
 
     def disable_new_post_notifications_for_user_with_username(self, username):
         target_user = User.objects.get(username=username)

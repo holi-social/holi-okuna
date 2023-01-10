@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from graphene_django import DjangoObjectType
 from graphene_file_upload.scalars import Upload
 from graphql import GraphQLError
+from rest_framework.exceptions import ValidationError
 
 from openbook_auth.images import delete_avatar
 from openbook_auth.models import UserConnectionStatus, User as UserModel
@@ -301,8 +302,8 @@ class Space(DjangoObjectType):
     members = Paged.of(
         SpaceMember,
         description="A list of all active members and their role",
-        required=True,
     )
+
     main_image = graphene.String()
     connection_status_to_myself = graphene.List(SpaceUserConnectionType)
 
@@ -317,7 +318,33 @@ class Space(DjangoObjectType):
         return self.cover.name
 
     def resolve_connection_status_to_myself(self, info):
-        return [SpaceUserConnectionType.MEMBERSHIP_REQUESTOR]
+        current_user: UserModel = info.context.user
+        if current_user.is_anonymous:
+            return []
+
+        roles = []
+
+        if current_user.are_new_post_notifications_enabled_for_community(self):
+            roles.append(SpaceUserConnectionType.FOLLOWER)
+
+        if current_user.is_membership_requestor_of_community_with_name(self.name):
+            roles.append(SpaceUserConnectionType.MEMBERSHIP_REQUESTOR)
+
+        if self.creator == current_user:
+            roles.append(SpaceUserConnectionType.CREATOR)
+
+        if membership := CommunityMembershipModel.objects.filter(community=self, user=current_user).first():
+            roles.append(SpaceUserConnectionType.MEMBER)
+
+            if membership.is_administrator:
+                # roles.append(xxx)
+                pass
+
+            if membership.is_moderator:
+                # roles.append(xxx)
+                pass
+
+        return roles
 
 
 def spaces_for_filter(offset, limit, topic_id=None, location=None, skill_ids=None, topic_slug=None, skill_slugs=None):
@@ -451,7 +478,7 @@ class Query(graphene.ObjectType):
         limit=graphene.Int(default_value=10),
     )
     my_spaces = graphene.List(MySpaces)
-    space_by_id = graphene.Field(Space, id=graphene.String())
+    space_by_id = graphene.Field(Space, id=graphene.UUID())
     tasks_by_space_id = Paged.of(
         Task,
         space_id=graphene.String(),
@@ -831,16 +858,30 @@ class UpdateSpaceUserConnectionMutation(graphene.Mutation):
     Output = Space
 
     @classmethod
-    def mutate(cls, root, info, space_id, connection_type, connect_action, user_id=None):
-        current_user = info.context.user
+    def mutate(cls, root, info, space_id, user_id, connection_type, connect_action):
+        current_user: UserModel = info.context.user
         if current_user.is_anonymous:
             raise GraphQLError("Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED})
+        space = CommunityModel.objects.get(id=space_id)  # @todo Use name as parameter, same as okuna? w
 
-        if user_id is None:
-            user_id = current_user.username
-
-        space = CommunityModel.objects.get(id=space_id)
-        target_user = UserModel.objects.get(username=user_id)
+        cT = SpaceUserConnectionType
+        a = UpdateConnectionAction
+        if not user_id or current_user.username == user_id:
+            # perform for current user
+            match (connection_type, connect_action):
+                case (cT.MEMBERSHIP_REQUESTOR, a.CONNECT):
+                    return current_user.request_membership_to_community_with_name(space.name)
+                case (cT.MEMBERSHIP_REQUESTOR, a.DISCONNECT):
+                    return current_user.revoke_membership_request_to_community_with_name(space.name)
+                case _:
+                    raise GraphQLError("Operation not allowed", extensions={"code": ErrorCodes.UNAUTHORIZED})
+        else:
+            # perform for other user
+            match (connection_type, connect_action):
+                case (cT.MEMBERSHIP_REQUESTOR, a.DISCONNECT):
+                    return current_user.revoke_membership_request_to_community_for_username(user_id, space.name)
+                case (cT.MEMBER, a.CONNECT):
+                    return current_user.approve_membership_request_to_community_for_username(user_id, space.name)
 
         return space
 
