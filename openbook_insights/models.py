@@ -30,7 +30,7 @@ class Insight(ModelWithUUID):
     )
     date_published = models.DateField(blank=False)
     header_image = ProcessedImageField(
-        verbose_name=_("header_image"),
+        verbose_name=_("header image"),
         storage=insight_image_storage,
         upload_to=upload_to_insight_directory,
         blank=False,
