@@ -536,7 +536,6 @@ class Post(ModelWithUUID):
         file_mime_subtype = file_mime_types[1]
 
         temp_files_to_close = []
-
         if file_mime_subtype == "gif":
             if is_in_memory_file:
                 file = write_in_memory_file_to_disk(file)
@@ -547,6 +546,7 @@ class Post(ModelWithUUID):
             ff = ffmpy.FFmpeg(
                 inputs={file.temporary_file_path() if hasattr(file, "temporary_file_path") else file.name: None},
                 outputs={converted_gif_file_name: None},
+                global_options="-loglevel quiet",
             )
             ff.run()
             converted_gif_file = open(converted_gif_file_name, "rb")
@@ -565,7 +565,6 @@ class Post(ModelWithUUID):
 
         for file_to_close in temp_files_to_close:
             file_to_close.close()
-
         self.save()
 
     def get_first_media(self):
@@ -585,8 +584,7 @@ class Post(ModelWithUUID):
 
     def publish(self):
         check_can_be_published(post=self)
-
-        if self.has_video():
+        if self.has_media() and self.get_media().get().type == PostMedia.MEDIA_TYPE_VIDEO:
             # After finishing, this will call _publish()
             self.status = Post.STATUS_PROCESSING
             self.save()

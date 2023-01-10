@@ -527,6 +527,8 @@ VIDEO_ENCODING_FORMATS = {
                 "-2",
                 "-preset",
                 "veryfast",
+                "-loglevel",
+                "quiet",
             ],
         },
     ]

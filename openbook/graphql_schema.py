@@ -223,7 +223,11 @@ class Insight(DjangoObjectType):
     def resolve_involved_users(self, info, offset, limit):
         return Paged.data(
             UserModel.objects.select_related("profile")
-            .filter(Q(curated_insights=self) | Q(posts__insights=self) | Q(posts_comments__post__insights=self))
+            .filter(
+                Q(curated_insights=self)
+                | (Q(posts__insights=self) & Q(posts__status=PostModel.STATUS_PUBLISHED))
+                | (Q(posts_comments__post__insights=self) & Q(posts_comments__post__status=PostModel.STATUS_PUBLISHED))
+            )
             .distinct(),
             offset,
             limit,
@@ -257,7 +261,10 @@ class Post(DjangoObjectType):
     def resolve_involved_users(self, info, offset, limit):
         return Paged.data(
             UserModel.objects.select_related("profile")
-            .filter(Q(posts=self) | Q(posts_comments__post=self))
+            .filter(
+                (Q(posts=self) & Q(posts__status=PostModel.STATUS_PUBLISHED))
+                | (Q(posts_comments__post=self) & Q(posts_comments__post__status=PostModel.STATUS_PUBLISHED))
+            )
             .distinct(),
             offset,
             limit,

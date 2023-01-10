@@ -312,7 +312,6 @@ class GraphQLTest(TestCase):
             """
         )
 
-        print(response)
         post_data = response["data"]["postById"]
         self.assertEqual(post_data, None)
         self.assertEqual(response["errors"][0]["message"], "Post not found")
@@ -380,8 +379,6 @@ class GraphQLTest(TestCase):
         # insight1 = next(i for i in insights if i["title"] == insight1_title)
         # insight2 = next(i for i in insights if i["title"] == insight2_title)
         insight1_result = insights[0]
-        print(response)
-        print(insight1_result)
         self.assertEqual(insight1_result["title"], insight1.title)
         self.assertEqual(insight1_result["numberOfPosts"], 2)
         self.assertEqual(insight1_result["posts"][0]["title"], post_title_public)

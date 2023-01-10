@@ -426,11 +426,11 @@ class PostItemAPITests(OpenbookAPITestCase):
         user = make_user()
         foreign_user = make_user()
 
-        test_image = get_test_image()
+        test_video = get_test_videos()[0]
 
-        with open(test_image["path"], "rb") as file:
+        with open(test_video["path"], "rb") as file:
             file = File(file)
-            post = foreign_user.create_public_post(text=make_fake_post_text(), image=file)
+            post = foreign_user.create_public_post(text=make_fake_post_text(), video=file)
 
         url = self._get_url(post=post)
         headers = make_authentication_headers_for_user(user)
@@ -461,11 +461,11 @@ class PostItemAPITests(OpenbookAPITestCase):
 
         user.follow_user(user=following_user)
 
-        test_image = get_test_image()
+        test_video = get_test_videos()[0]
 
-        with open(test_image["path"], "rb") as file:
+        with open(test_video["path"], "rb") as file:
             file = File(file)
-            post = following_user.create_public_post(text=make_fake_post_text(), image=file)
+            post = following_user.create_public_post(text=make_fake_post_text(), video=file)
 
         url = self._get_url(post=post)
         headers = make_authentication_headers_for_user(user)
@@ -496,11 +496,11 @@ class PostItemAPITests(OpenbookAPITestCase):
 
         follower_user.follow_user(user=user)
 
-        test_image = get_test_image()
+        test_video = get_test_videos()[0]
 
-        with open(test_image["path"], "rb") as file:
+        with open(test_video["path"], "rb") as file:
             file = File(file)
-            post = follower_user.create_public_post(text=make_fake_post_text(), image=file)
+            post = follower_user.create_public_post(text=make_fake_post_text(), video=file)
 
         url = self._get_url(post=post)
         headers = make_authentication_headers_for_user(user)
