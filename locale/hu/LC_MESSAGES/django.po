@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: okuna\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-06 17:36+0100\n"
+"POT-Creation-Date: 2023-01-10 09:51+0100\n"
 "PO-Revision-Date: 2019-12-09 16:20\n"
 "Last-Translator: Jozsef Sallai (joexyz)\n"
 "Language-Team: Hungarian\n"
@@ -16,15 +16,15 @@ msgstr ""
 "X-Crowdin-Language: hu\n"
 "X-Crowdin-File: /okuna-api/django.po\n"
 
-#: openbook/graphql_schema.py:615
+#: openbook/graphql_schema.py:620
 msgid "Created"
 msgstr ""
 
-#: openbook/graphql_schema.py:622
+#: openbook/graphql_schema.py:627
 msgid "Joined"
 msgstr ""
 
-#: openbook/graphql_schema.py:629
+#: openbook/graphql_schema.py:634
 msgid "Following"
 msgstr ""
 
