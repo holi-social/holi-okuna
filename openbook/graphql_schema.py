@@ -293,6 +293,7 @@ class SpaceUserConnectionType(graphene.Enum):
     MEMBERSHIP_REQUESTOR = "MEMBERSHIP_REQUESTOR"
     MEMBER = "MEMBER"
     CREATOR = "CREATOR"
+    ADMINISTRATOR = "ADMINISTRATOR"
 
 
 class Space(DjangoObjectType):
@@ -336,12 +337,11 @@ class Space(DjangoObjectType):
             roles.append(SpaceUserConnectionType.MEMBER)
 
             if membership.is_administrator:
-                # roles.append(xxx)
-                pass
+                roles.append(SpaceUserConnectionType.ADMINISTRATOR)
 
-            if membership.is_moderator:
-                # roles.append(xxx)
-                pass
+            # if membership.is_moderator:
+            # roles.append(xxx)
+            # pass
 
         return roles
 
