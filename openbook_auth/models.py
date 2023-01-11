@@ -1978,7 +1978,7 @@ class User(AbstractUser):
 
         CommunityMembershipApprovedNotification = get_community_membership_approved_notification_model()
         CommunityMembershipApprovedNotification.create_community_membership_approved_notification(
-            user_to_approve, community_to_join, user_to_approve
+            user_to_approve.id, community_to_join.id, user_to_approve.id
         )
 
     def revoke_membership_request_to_community_for_username(self, username, community_name):

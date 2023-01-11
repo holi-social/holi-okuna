@@ -14,7 +14,7 @@ class CommunityMembershipApprovedNotification(ModelWithUUID):
 
     @classmethod
     def create_community_membership_approved_notification(cls, owner_id, community_id, user_id):
-        membership_accepted_notification = cls.objects.create(approved_user=user_id, community_id=community_id)
+        membership_accepted_notification = cls.objects.create(approved_user_id=user_id, community_id=community_id)
         Notification.create_notification(
             type=Notification.COMMUNITY_MEMBERSHIP_APPROVED,
             content_object=membership_accepted_notification,
