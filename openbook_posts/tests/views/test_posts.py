@@ -2858,12 +2858,12 @@ class PostsAPITests(OpenbookAPITestCase):
         user.join_community_with_name(community_name=community.name)
         community_member.join_community_with_name(community_name=community.name)
 
-        test_image = get_test_image()
+        test_video = get_test_videos()[0]
 
-        with open(test_image["path"], "rb") as file:
+        with open(test_video["path"], "rb") as file:
             file = File(file)
             community_member.create_community_post(
-                text=make_fake_post_text(), image=file, community_name=community.name
+                text=make_fake_post_text(), video=file, community_name=community.name
             )
 
         url = self._get_url()
@@ -2892,12 +2892,12 @@ class PostsAPITests(OpenbookAPITestCase):
         user.join_community_with_name(community_name=community.name)
         community_member.join_community_with_name(community_name=community.name)
 
-        test_image = get_test_image()
+        test_video = get_test_videos()[0]
 
-        with open(test_image["path"], "rb") as file:
+        with open(test_video["path"], "rb") as file:
             file = File(file)
             community_member.create_community_post(
-                text=make_fake_post_text(), image=file, community_name=community.name
+                text=make_fake_post_text(), video=file, community_name=community.name
             )
 
         url = self._get_url()
@@ -3177,11 +3177,11 @@ class PostsAPITests(OpenbookAPITestCase):
         user.join_community_with_name(community_name=community.name)
         post_creator.join_community_with_name(community_name=community.name)
 
-        test_image = get_test_image()
+        test_video = get_test_videos()[0]
 
-        with open(test_image["path"], "rb") as file:
+        with open(test_video["path"], "rb") as file:
             file = File(file)
-            post_creator.create_community_post(community_name=community.name, text=make_fake_post_text(), image=file)
+            post_creator.create_community_post(community_name=community.name, text=make_fake_post_text(), video=file)
 
             url = self._get_url()
             headers = make_authentication_headers_for_user(user)
@@ -3213,10 +3213,10 @@ class PostsAPITests(OpenbookAPITestCase):
         user.join_community_with_name(community_name=community.name)
         post_creator.join_community_with_name(community_name=community.name)
 
-        test_image = get_test_image()
-        with open(test_image["path"], "rb") as file:
+        test_video = get_test_videos()[0]
+        with open(test_video["path"], "rb") as file:
             file = File(file)
-            post_creator.create_community_post(community_name=community.name, text=make_fake_post_text(), image=file)
+            post_creator.create_community_post(community_name=community.name, text=make_fake_post_text(), video=file)
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
@@ -3236,10 +3236,10 @@ class PostsAPITests(OpenbookAPITestCase):
         following_user = make_user()
         user.follow_user_with_id(user_id=following_user.pk)
 
-        test_image = get_test_image()
-        with open(test_image["path"], "rb") as file:
+        test_video = get_test_videos()[0]
+        with open(test_video["path"], "rb") as file:
             file = File(file)
-            following_user.create_public_post(text=make_fake_post_text(), image=file)
+            following_user.create_public_post(text=make_fake_post_text(), video=file)
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
@@ -3260,10 +3260,10 @@ class PostsAPITests(OpenbookAPITestCase):
         follow_list = make_list(creator=user)
         user.follow_user_with_id(user_id=following_user.pk, lists_ids=[follow_list.pk])
 
-        test_image = get_test_image()
-        with open(test_image["path"], "rb") as file:
+        test_video = get_test_videos()[0]
+        with open(test_video["path"], "rb") as file:
             file = File(file)
-            following_user.create_public_post(text=make_fake_post_text(), image=file)
+            following_user.create_public_post(text=make_fake_post_text(), video=file)
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
@@ -3287,13 +3287,13 @@ class PostsAPITests(OpenbookAPITestCase):
             user_id=user.pk, circles_ids=[connected_user_post_circle.pk]
         )
 
-        test_image = get_test_image()
-        with open(test_image["path"], "rb") as file:
+        test_video = get_test_videos()[0]
+        with open(test_video["path"], "rb") as file:
             file = File(file)
             connected_user.create_encircled_post(
                 text=make_fake_post_text(),
                 circles_ids=[connected_user_post_circle.pk],
-                image=file,
+                video=file,
             )
 
         url = self._get_url()
@@ -3303,7 +3303,6 @@ class PostsAPITests(OpenbookAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
-
         self.assertEqual(0, len(response_posts))
 
     @mock.patch("openbook_posts.jobs.process_post_media")
@@ -3349,13 +3348,13 @@ class PostsAPITests(OpenbookAPITestCase):
             user_id=user.pk, circles_ids=[connected_user_post_circle.pk]
         )
 
-        test_image = get_test_image()
-        with open(test_image["path"], "rb") as file:
+        test_video = get_test_videos()[0]
+        with open(test_video["path"], "rb") as file:
             file = File(file)
             connected_user.create_encircled_post(
                 text=make_fake_post_text(),
                 circles_ids=[connected_user_post_circle.pk],
-                image=file,
+                video=file,
             )
 
         url = self._get_url()
@@ -3377,10 +3376,10 @@ class PostsAPITests(OpenbookAPITestCase):
         follow_list = make_list(creator=user)
         user.follow_user_with_id(user_id=following_user.pk, lists_ids=[follow_list.pk])
 
-        test_image = get_test_image()
-        with open(test_image["path"], "rb") as file:
+        test_video = get_test_videos()[0]
+        with open(test_video["path"], "rb") as file:
             file = File(file)
-            following_user.create_public_post(text=make_fake_post_text(), image=file)
+            following_user.create_public_post(text=make_fake_post_text(), video=file)
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
@@ -3397,10 +3396,10 @@ class PostsAPITests(OpenbookAPITestCase):
         """should not be able to retrieve own processing posts by username"""
         user = make_user()
 
-        test_image = get_test_image()
-        with open(test_image["path"], "rb") as file:
+        test_video = get_test_videos()[0]
+        with open(test_video["path"], "rb") as file:
             file = File(file)
-            user.create_public_post(text=make_fake_post_text(), image=file)
+            user.create_public_post(text=make_fake_post_text(), video=file)
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
@@ -3419,10 +3418,10 @@ class PostsAPITests(OpenbookAPITestCase):
         community = make_community()
         user.join_community_with_name(community_name=community.name)
 
-        test_image = get_test_image()
-        with open(test_image["path"], "rb") as file:
+        test_video = get_test_videos()[0]
+        with open(test_video["path"], "rb") as file:
             file = File(file)
-            user.create_community_post(text=make_fake_post_text(), image=file, community_name=community.name)
+            user.create_community_post(text=make_fake_post_text(), video=file, community_name=community.name)
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
@@ -3446,10 +3445,10 @@ class PostsAPITests(OpenbookAPITestCase):
         )
         user.join_community_with_name(community_name=community.name)
 
-        test_image = get_test_image()
-        with open(test_image["path"], "rb") as file:
+        test_video = get_test_videos()[0]
+        with open(test_video["path"], "rb") as file:
             file = File(file)
-            user.create_community_post(text=make_fake_post_text(), image=file, community_name=community.name)
+            user.create_community_post(text=make_fake_post_text(), video=file, community_name=community.name)
 
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)

@@ -279,9 +279,6 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         retrieved_value = field_selector(user)
 
-        print(retrieved_value)
-        print(update_value)
-
         self.assertEqual(retrieved_value, update_value)
 
     def test_validates_interests_constraints(self):
@@ -1022,8 +1019,6 @@ class AuthenticatedUserLanguageAPI(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         response = self.client.post(self.url, {"language_id": 99999}, **headers)
-
-        print(response)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         user.refresh_from_db()

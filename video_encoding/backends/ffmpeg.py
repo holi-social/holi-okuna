@@ -32,6 +32,8 @@ class FFmpegBackend(BaseEncodingBackend):
             "-y",  # overwrite temporary created file
             "-strict",
             "-2",  # support aac codec (which is experimental)
+            "-loglevel",
+            "quiet",
         ]
 
         self.ffmpeg_path = getattr(settings, "VIDEO_ENCODING_FFMPEG_PATH", which("ffmpeg"))

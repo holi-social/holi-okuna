@@ -358,8 +358,6 @@ class UnreadNotificationsCountAPITests(OpenbookAPITestCase):
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        print(parsed_response["count"])
-
         self.assertTrue(parsed_response["count"] == 4)
 
     def test_should_be_able_to_get_unread_notifications_count_by_type(self):
