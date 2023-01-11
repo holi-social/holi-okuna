@@ -35,6 +35,8 @@ class VideoEncodingAppConf(AppConf):
                     "128k",
                     "-f",
                     "webm",
+                    "-loglevel",
+                    "quiet",
                 ],
             },
             {
@@ -61,6 +63,8 @@ class VideoEncodingAppConf(AppConf):
                     "128k",
                     "-f",
                     "webm",
+                    "-loglevel",
+                    "quiet",
                 ],
             },
             {
@@ -87,6 +91,8 @@ class VideoEncodingAppConf(AppConf):
                     "128k",
                     "-strict",
                     "-2",
+                    "-loglevel",
+                    "quiet",
                 ],
             },
             {
@@ -113,6 +119,8 @@ class VideoEncodingAppConf(AppConf):
                     "128k",
                     "-strict",
                     "-2",
+                    "-loglevel",
+                    "quiet",
                 ],
             },
         ]

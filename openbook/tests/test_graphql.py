@@ -199,8 +199,6 @@ class GraphQLTest(TestCase):
             commenter=other_user,
         )
 
-        logger.error("Fetch Post")
-
         response = self.graphql.execute(
             f"""
             query {{
@@ -242,7 +240,6 @@ class GraphQLTest(TestCase):
             }}
             """
         )
-        logger.error("Post fetched")
 
         post_data = response["data"]["postById"]
         self.assertEqual(post_data["text"], post_text)
@@ -299,13 +296,37 @@ class GraphQLTest(TestCase):
         self.assertEqual(post_data["creator"]["id"], str(posting_user.uuid))
         self.assertIsNotNone(post_data["created"])
 
+    def test_cant_fetch_post_draft(self):
+        posting_user = make_user()
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_public_post(text=post_text, title=post_title, is_draft=True)
+
+        response = self.graphql.execute(
+            f"""
+            query {{
+                postById(id: "{post.id}") {{
+                    id
+                }}
+            }}
+            """
+        )
+
+        post_data = response["data"]["postById"]
+        self.assertEqual(post_data, None)
+        self.assertEqual(response["errors"][0]["message"], "Post not found")
+
     def test_select_last_insights(self):
         insight_user = make_user()
         posting_user = make_user()
         other_user = make_user()
 
-        post_text = make_fake_post_text()
-        post_title = make_fake_post_title()
+        post_text_public = make_fake_post_text()
+        post_title_public = make_fake_post_title()
+        post_text_draft = make_fake_post_text()
+        post_title_draft = make_fake_post_title()
 
         now = timezone.now()
         insight1 = Insight.objects.create(
@@ -315,25 +336,22 @@ class GraphQLTest(TestCase):
         )
 
         post1 = posting_user.create_public_post(
-            text=post_text,
-            title=post_title,
+            text=post_text_public,
+            title=post_title_public,
         )
         post2 = posting_user.create_public_post(
-            text=post_text,
-            title=post_title,
+            text=post_text_public,
+            title=post_title_public,
         )
-        post3 = posting_user.create_public_post(
-            text=post_text,
-            title=post_title,
-        )
+        post3 = posting_user.create_public_post(text=post_text_draft, title=post_title_draft, is_draft=True)
         insight1.posts.add(post1, post2, post3)
 
         insight2 = Insight.objects.create(creator=posting_user, title="Insight 2", date_published=now)
         post4 = posting_user.create_public_post(
-            text=post_text,
-            title=post_title,
+            text=post_text_public,
+            title=post_title_public,
         )
-        post4.comment(text=post_text, commenter=other_user)
+        post4.comment(text=post_text_public, commenter=other_user)
         insight2.posts.add(post4)
 
         response = self.graphql.execute(
@@ -343,6 +361,9 @@ class GraphQLTest(TestCase):
                     data {{
                         title
                         numberOfPosts
+                        posts {{
+                            title
+                        }}
                         involvedUsers {{
                             totalResults
                             data {{
@@ -361,7 +382,9 @@ class GraphQLTest(TestCase):
         # insight2 = next(i for i in insights if i["title"] == insight2_title)
         insight1_result = insights[0]
         self.assertEqual(insight1_result["title"], insight1.title)
-        self.assertEqual(insight1_result["numberOfPosts"], 3)
+        self.assertEqual(insight1_result["numberOfPosts"], 2)
+        self.assertEqual(insight1_result["posts"][0]["title"], post_title_public)
+        self.assertEqual(insight1_result["posts"][1]["title"], post_title_public)
         self.assertEqual(insight1_result["involvedUsers"]["totalResults"], 2)
 
         insight2_result = insights[1]
