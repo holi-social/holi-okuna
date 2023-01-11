@@ -511,6 +511,12 @@ class Community(ModelWithUUID):
 
         self.save()
 
+    def add_membership_request(self, user):
+        return CommunityMembershipRequest.create_membership_request(self, user)
+
+    def remove_membership_request(self, user):
+        CommunityMembershipRequest.delete_membership_request(self, user)
+
     def add_moderator(self, user):
         user_membership = self.memberships.get(user=user)
         user_membership.is_moderator = True
@@ -768,6 +774,38 @@ class CommunityLog(ModelWithUUID):
         if not self.created:
             self.created = timezone.now()
         return super(CommunityLog, self).save(*args, **kwargs)
+
+
+class CommunityMembershipRequest(ModelWithUUID):
+    community = models.ForeignKey(
+        Community,
+        on_delete=models.CASCADE,
+        related_name="membership_requests",
+        null=False,
+        blank=False,
+    )
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="community_membership_requests",
+        null=False,
+        blank=False,
+    )
+
+    class Meta:
+        unique_together = ("community", "user")
+        indexes = [
+            models.Index(fields=["community", "user"]),
+        ]
+
+    @classmethod
+    def create_membership_request(cls, community, user):
+        return cls.objects.create(community=community, user=user)
+
+    @classmethod
+    def delete_membership_request(cls, community, user):
+        cls.objects.filter(community=community, user=user).delete()
 
 
 class CommunityInvite(ModelWithUUID):

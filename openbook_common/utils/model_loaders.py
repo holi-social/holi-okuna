@@ -129,6 +129,14 @@ def get_community_membership_model():
     return apps.get_model("openbook_communities.CommunityMembership")
 
 
+def get_community_membership_approved_notification_model():
+    return apps.get_model("openbook_notifications.CommunityMembershipApprovedNotification")
+
+
+def get_community_membership_request_notification_model():
+    return apps.get_model("openbook_notifications.CommunityMembershipRequestNotification")
+
+
 def get_post_comment_notification_model():
     return apps.get_model("openbook_notifications.PostCommentNotification")
 
