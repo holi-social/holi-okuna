@@ -885,9 +885,9 @@ class UpdateSpaceUserConnectionMutation(graphene.Mutation):
                 case (cT.MEMBERSHIP_REQUESTOR, a.DISCONNECT):
                     return current_user.revoke_membership_request_to_community_with_name(space.name)
                 case (cT.FOLLOWER, a.CONNECT):
-                    pass
+                    return current_user.enable_new_post_notifications_for_community_with_name(space.name)
                 case (cT.FOLLOWER, a.DISCONNECT):
-                    pass
+                    return current_user.disable_new_post_notifications_for_community_with_name(space.name)
                 case _:
                     raise GraphQLError("Operation not allowed", extensions={"code": ErrorCodes.FORBIDDEN})
         else:
@@ -897,6 +897,8 @@ class UpdateSpaceUserConnectionMutation(graphene.Mutation):
                     return current_user.revoke_membership_request_to_community_for_username(user_id, space.name)
                 case (cT.MEMBER, a.CONNECT):
                     return current_user.approve_membership_request_to_community_for_username(user_id, space.name)
+                case _:
+                    raise GraphQLError("Operation not allowed", extensions={"code": ErrorCodes.FORBIDDEN})
 
         return space
 
