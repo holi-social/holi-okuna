@@ -1981,6 +1981,11 @@ class User(AbstractUser):
             user_to_approve.id, community_to_join.id, user_to_approve.id
         )
 
+        for staff_member in community_to_join.get_staff_members():
+            CommunityMembershipApprovedNotification.create_community_membership_approved_notification(
+                staff_member.id, community_to_join.id, user_to_approve.id
+            )
+
     def revoke_membership_request_to_community_for_username(self, username, community_name):
         check_is_staff_of_community_with_name(self, community_name)
         Community = get_community_model()
