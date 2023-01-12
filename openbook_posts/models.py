@@ -374,33 +374,17 @@ class Post(ModelWithUUID):
             Q(subscriber__blocked_by_users__blocker_id=post.creator.pk)
             | Q(subscriber__user_blocks__blocked_user_id=post.creator.pk)
         )
-        community_members_query = Q(subscriber__communities_memberships__community_id=post.community.pk)
+        # community_members_query = Q(subscriber__communities_memberships__community_id=post.community.pk)
         exclude_self_query = ~Q(subscriber=post.creator)
 
         # Exclude banned users
         exclude_blocked_users_query.add(Q(subscriber__banned_of_communities__id=post.community.pk), Q.OR)
 
         # Subscriptions after excluding blocked users
-        target_subscriptions_excluding_blocked = CommunityNotificationsSubscription.objects.filter(
-            community_subscriptions_query & community_members_query & exclude_self_query
+        return CommunityNotificationsSubscription.objects.filter(
+            community_subscriptions_query
+            & exclude_self_query  # & community_members_query - Non members can follow posts
         ).exclude(exclude_blocked_users_query)
-
-        staff_members_query = Q(
-            subscriber__communities_memberships__community_id=post.community.pk,
-            subscriber__communities_memberships__is_administrator=True,
-        ) | Q(
-            subscriber__communities_memberships__community_id=post.community.pk,
-            subscriber__communities_memberships__is_moderator=True,
-        )
-
-        # Subscriptions from staff of community
-        target_subscriptions_with_staff = CommunityNotificationsSubscription.objects.filter(
-            community_subscriptions_query & community_members_query & staff_members_query & exclude_self_query
-        )
-
-        results = target_subscriptions_excluding_blocked.union(target_subscriptions_with_staff)
-
-        return results
 
     @classmethod
     def get_user_notification_target_subscriptions(cls, post):
