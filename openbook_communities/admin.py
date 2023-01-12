@@ -16,23 +16,10 @@ class CommunityAdmin(admin.ModelAdmin):
         return True  # needs to be true for adding communities via /admin (needed for creating posts)
 
     def save_model(self, request, obj, form, change):
-        if change:
-            super().save_model(request, obj, form, change)
-        else:
-            Community.create_community(
-                obj.name,
-                obj.title,
-                obj.creator,
-                obj.color,
-                obj.type,
-                obj.user_adjective,
-                obj.users_adjective,
-                obj.avatar,
-                obj.cover,
-                obj.description,
-                obj.rules,
-                invites_enabled=obj.invites_enabled,
-                location=obj.location,
+        super().save_model(request, obj, form, change)
+        if not change:
+            CommunityMembership.create_membership(
+                user=obj.creator, is_administrator=True, is_moderator=False, community=obj
             )
 
 
