@@ -59,6 +59,7 @@ from openbook_common.utils.model_loaders import (
     get_follow_request_notification_model,
     get_follow_request_approved_notification_model,
     get_community_membership_request_notification_model,
+    get_community_membership_approved_notification_model,
 )
 from openbook_common.validators import name_characters_validator
 from openbook_hashtags.queries import (
@@ -1945,8 +1946,6 @@ class User(AbstractUser):
         community_to_join = Community.objects.get(name=community_name)
         membership_request = community_to_join.add_membership_request(self)
 
-        # @todo send notification to admins
-
         for staff_member in community_to_join.get_staff_members():
             CommunityMembershipRequestNotification = get_community_membership_request_notification_model()
             CommunityMembershipRequestNotification.create_community_membership_request_notification(
@@ -1977,7 +1976,15 @@ class User(AbstractUser):
         community_to_join.remove_membership_request(self)
         community_to_join.add_member(user_to_approve)
 
-        # @todo notification to user
+        CommunityMembershipApprovedNotification = get_community_membership_approved_notification_model()
+        CommunityMembershipApprovedNotification.create_community_membership_approved_notification(
+            user_to_approve.id, community_to_join.id, user_to_approve.id
+        )
+
+        for staff_member in community_to_join.get_staff_members():
+            CommunityMembershipApprovedNotification.create_community_membership_approved_notification(
+                staff_member.id, community_to_join.id, user_to_approve.id
+            )
 
     def revoke_membership_request_to_community_for_username(self, username, community_name):
         check_is_staff_of_community_with_name(self, community_name)
