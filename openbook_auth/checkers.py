@@ -391,18 +391,20 @@ def check_can_get_closed_posts_for_community_with_name(user, community_name):
 
 
 def check_can_enable_new_post_notifications_for_community(user, community):
-    is_member = user.is_member_of_community_with_name(community_name=community.name)
+    # Non-members can follow a community.
+    # is_member = user.is_member_of_community_with_name(community_name=community.name)
+    #
+    # if not is_member:
+    #     raise ValidationError(
+    #         _("Only members can enable new post notifications"),
+    #     )
 
-    if not is_member:
-        raise ValidationError(
-            _("Only members can enable new post notifications"),
-        )
-    new_post_notifications_enabled = user.are_new_post_notifications_enabled_for_community(community=community)
-
-    if new_post_notifications_enabled:
-        raise ValidationError(
-            _("New post notifications are already enabled"),
-        )
+    # If notifications are already enabled, it does not matter to "enable" them again
+    # new_post_notifications_enabled = user.are_new_post_notifications_enabled_for_community(community=community)
+    # if new_post_notifications_enabled:
+    #     raise ValidationError(
+    #         _("New post notifications are already enabled"),
+    #     )
 
     check_is_not_banned_from_community_with_name(user=user, community_name=community.name)
 

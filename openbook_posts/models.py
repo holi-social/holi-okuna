@@ -382,7 +382,8 @@ class Post(ModelWithUUID):
 
         # Subscriptions after excluding blocked users
         target_subscriptions_excluding_blocked = CommunityNotificationsSubscription.objects.filter(
-            community_subscriptions_query & community_members_query & exclude_self_query
+            community_subscriptions_query
+            & exclude_self_query  # & community_members_query - Non members can follow posts
         ).exclude(exclude_blocked_users_query)
 
         staff_members_query = Q(
