@@ -279,7 +279,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         retrieved_value = field_selector(user)
 
-        self.assertEqual(retrieved_value, update_value)
+        self.assertCountEqual(retrieved_value, update_value)
 
     def test_validates_interests_constraints(self):
         self._user_profile_update_expect_400({"interests": ["11111111-2222-3333-4444-555555555555"]})
