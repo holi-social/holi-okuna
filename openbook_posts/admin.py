@@ -63,5 +63,16 @@ class PostAdmin(admin.ModelAdmin):
     def has_change_permission(self, request, obj=None):
         return True  # needs to be true for editing posts via /admin
 
+    def save_model(self, request, obj, form, change):
+        if change:
+            old_post = Post.objects.get(id=obj.id)
+            is_publication = old_post.status != Post.STATUS_PUBLISHED and obj.status == Post.STATUS_PUBLISHED
+        else:
+            is_publication = obj.status == Post.STATUS_PUBLISHED
+
+        super().save_model(request, obj, form, change)
+        if is_publication:
+            obj._publish()
+
 
 admin.site.register(Post, PostAdmin)
