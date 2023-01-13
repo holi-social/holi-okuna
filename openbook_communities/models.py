@@ -867,7 +867,23 @@ class CommunityNotificationsSubscription(ModelWithUUID):
         )
 
     @classmethod
-    def create_community_notifications_subscription(cls, subscriber, community):
+    def enable_new_post_notification_for_community(cls, community, subscriber):
+        cls._set_new_post_notification(community, subscriber, True)
+
+    @classmethod
+    def disable_new_post_notification_for_community(cls, community, subscriber):
+        cls._set_new_post_notification(community, subscriber, False)
+
+    @classmethod
+    def _set_new_post_notification(cls, community, subscriber, value):
+        subscription = cls._get_or_create_community_notifications_subscription(
+            community=community, subscriber=subscriber
+        )
+        subscription.new_post_notifications = value
+        subscription.save()
+
+    @classmethod
+    def _create_community_notifications_subscription(cls, subscriber, community):
         if not cls.objects.filter(community=community, subscriber=subscriber).exists():
             return cls.objects.create(subscriber=subscriber, community=community)
 
@@ -877,13 +893,13 @@ class CommunityNotificationsSubscription(ModelWithUUID):
         return community_notifications_subscription
 
     @classmethod
-    def get_or_create_community_notifications_subscription(cls, subscriber, community):
+    def _get_or_create_community_notifications_subscription(cls, subscriber, community):
         try:
             community_notifications_subscription = cls.objects.get(
                 subscriber_id=subscriber.pk, community_id=community.pk
             )
         except cls.DoesNotExist:
-            community_notifications_subscription = cls.create_community_notifications_subscription(
+            community_notifications_subscription = cls._create_community_notifications_subscription(
                 subscriber=subscriber, community=community
             )
 

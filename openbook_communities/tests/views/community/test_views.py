@@ -997,7 +997,7 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.put(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_should_not_be_able_to_subscribe_to_notifications_for_community_if_banned(
         self,
@@ -1015,7 +1015,7 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.put(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_should_not_be_able_to_subscribe_to_notifications_for_community_if_already_subscribed(
         self,
@@ -1036,7 +1036,7 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
             subscriber=community_member, community=community
         )
         self.assertEqual(len(subscriptions), 1)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_should_be_able_to_unsubscribe_to_notifications_for_community_if_member(
         self,
@@ -1111,8 +1111,9 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
         subscriptions = CommunityNotificationsSubscription.objects.filter(
             subscriber=community_member, community=community
         )
-        self.assertEqual(len(subscriptions), 0)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(subscriptions), 1)
+        self.assertFalse(subscriptions[0].new_post_notifications)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def _get_url(self, community_name):
         return reverse(
