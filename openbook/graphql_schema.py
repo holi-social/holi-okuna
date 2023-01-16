@@ -670,10 +670,14 @@ class Query(graphene.ObjectType):
             .order_by("-member_count", "-created")
         )
         followed_spaces = MySpaces(section=_("Following"), type=SpaceUserConnectionType.FOLLOWER)
-        # TODO provide correct filter, once Following of spaces is implemented
         followed_spaces.query = (
             CommunityModel.objects.prefetch_related("links", "memberships", "tasks")
-            .filter(Q(creator__isnull=True), ~Q(creator=info.context.user), ~Q(memberships__user=info.context.user))
+            .filter(
+                Q(notifications_subscriptions__subscriber=info.context.user),
+                Q(notifications_subscriptions__new_post_notifications=True),
+                ~Q(creator=info.context.user),
+                ~Q(memberships__user=info.context.user),
+            )
             .annotate(member_count=Count("memberships"))
             .order_by("-member_count", "-created")
         )

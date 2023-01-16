@@ -616,7 +616,9 @@ class GraphQLTest(TestCase):
         space1 = make_community(creator=creator1)
         space2 = make_community(creator=creator2)
         space3 = make_community()
-        space2.add_member(creator1)
+        space4 = make_community()
+        creator1.join_community_with_name(space2.name)
+        creator1.enable_new_post_notifications_for_community_with_name(space4.name)
 
         response = self.graphql.execute(
             """
@@ -636,7 +638,7 @@ class GraphQLTest(TestCase):
             context_value=BeneDict({"user": creator1}),
         )["data"]["mySpaces"]
 
-        self.assertEqual(len(response), 2)
+        self.assertEqual(len(response), 3)
         created_section = response[0]
         self.assertEqual(created_section["section"], "Created")
         self.assertEqual(created_section["type"], SpaceUserConnectionType.CREATOR.value)
@@ -647,6 +649,11 @@ class GraphQLTest(TestCase):
         self.assertEqual(joined_section["type"], SpaceUserConnectionType.MEMBER.value)
         self.assertEqual(joined_section["spaces"]["totalResults"], 1)
         self.assertEqual(joined_section["spaces"]["data"][0]["id"], str(space2.id))
+        following_section = response[2]
+        self.assertEqual(following_section["section"], "Following")
+        self.assertEqual(following_section["type"], SpaceUserConnectionType.FOLLOWER.value)
+        self.assertEqual(following_section["spaces"]["totalResults"], 1)
+        self.assertEqual(following_section["spaces"]["data"][0]["id"], str(space4.id))
 
     def test_space_membership_request(self):
         membership_requester = make_user()
