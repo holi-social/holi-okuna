@@ -10,7 +10,8 @@ class InsightAdmin(admin.ModelAdmin):
     date_hierarchy = "date_published"
     filter_horizontal = ("posts",)
     list_display = ("title", "description_preview", "creator")
-    #    list_filter = ("creator",)
+    # This filter makes the admin UI slow when there is a lot of users
+    # list_filter = ("creator",)
 
     @admin.display(description="Description Preview")
     def description_preview(self, obj):
