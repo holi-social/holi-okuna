@@ -10,7 +10,7 @@ class InsightAdmin(admin.ModelAdmin):
     date_hierarchy = "date_published"
     filter_horizontal = ("posts",)
     list_display = ("title", "description_preview", "creator")
-    list_filter = ("creator",)
+#    list_filter = ("creator",)
 
     @admin.display(description="Description Preview")
     def description_preview(self, obj):
