@@ -502,6 +502,12 @@ class Post(ModelWithUUID):
     def is_publicly_visible(self):
         return self.is_public_post() or self.is_public_community_post()
 
+    @staticmethod
+    def is_publicly_visible_query():
+        return Q(circles=get_circle_model().get_world_circle_id()) | Q(
+            community__type=get_community_model().COMMUNITY_TYPE_PUBLIC
+        )
+
     def is_encircled_post(self):
         return not self.is_public_post() and not self.community
 
