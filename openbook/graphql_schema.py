@@ -216,7 +216,12 @@ class Insight(DjangoObjectType):
     )
 
     def resolve_posts(self, info):
-        return PostModel.objects.filter(Q(status=PostModel.STATUS_PUBLISHED)).filter(insights=self).all()
+        return (
+            PostModel.objects.filter(Q(status=PostModel.STATUS_PUBLISHED) & PostModel.is_publicly_visible_query())
+            .filter(insights=self)
+            .order_by("created")
+            .all()
+        )
 
     def resolve_number_of_posts(self, info):
         return PostModel.objects.filter(Q(status=PostModel.STATUS_PUBLISHED)).filter(insights=self).count()
