@@ -322,6 +322,7 @@ class GraphQLTest(TestCase):
         insight_user = make_user()
         posting_user = make_user()
         other_user = make_user()
+        private_user = make_user()
 
         post_text_public = make_fake_post_text()
         post_title_public = make_fake_post_title()
@@ -344,7 +345,10 @@ class GraphQLTest(TestCase):
             title=post_title_public,
         )
         post3 = posting_user.create_public_post(text=post_text_draft, title=post_title_draft, is_draft=True)
-        insight1.posts.add(post1, post2, post3)
+        post_private = private_user.create_encircled_post(
+            circles_ids=[private_user.connections_circle_id], text="private post", title="private post"
+        )
+        insight1.posts.add(post1, post2, post3, post_private)
 
         insight2 = Insight.objects.create(creator=posting_user, title="Insight 2", date_published=now)
         post4 = posting_user.create_public_post(

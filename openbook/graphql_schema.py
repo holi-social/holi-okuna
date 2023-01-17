@@ -17,6 +17,7 @@ from openbook_auth.validators import string_not_empty
 from openbook_auth.views.authenticated_user.serializers import (
     UpdateAuthenticatedUserSerializer,
 )
+from openbook_circles.models import Circle
 from openbook_common.models import LinkPreview as LinkPreviewModel
 from openbook_communities.models import (
     Community as CommunityModel,
@@ -224,15 +225,33 @@ class Insight(DjangoObjectType):
         )
 
     def resolve_number_of_posts(self, info):
-        return PostModel.objects.filter(Q(status=PostModel.STATUS_PUBLISHED)).filter(insights=self).count()
+        return (
+            PostModel.objects.filter(Q(status=PostModel.STATUS_PUBLISHED) & PostModel.is_publicly_visible_query())
+            .filter(insights=self)
+            .count()
+        )
 
     def resolve_involved_users(self, info, offset, limit):
         return Paged.data(
             UserModel.objects.select_related("profile")
             .filter(
                 Q(curated_insights=self)
-                | (Q(posts__insights=self) & Q(posts__status=PostModel.STATUS_PUBLISHED))
-                | (Q(posts_comments__post__insights=self) & Q(posts_comments__post__status=PostModel.STATUS_PUBLISHED))
+                | (
+                    Q(posts__insights=self)
+                    & Q(posts__status=PostModel.STATUS_PUBLISHED)
+                    & (
+                        Q(posts__circles=Circle.get_world_circle_id())
+                        | Q(posts__community__type=CommunityModel.COMMUNITY_TYPE_PUBLIC)
+                    )
+                )
+                | (
+                    Q(posts_comments__post__insights=self)
+                    & Q(posts_comments__post__status=PostModel.STATUS_PUBLISHED)
+                    & (
+                        Q(posts_comments__post__circles=Circle.get_world_circle_id())
+                        | Q(posts_comments__post__community__type=CommunityModel.COMMUNITY_TYPE_PUBLIC)
+                    )
+                )
             )
             .distinct(),
             offset,
