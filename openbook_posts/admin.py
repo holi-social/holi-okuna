@@ -49,6 +49,7 @@ class PostAdmin(admin.ModelAdmin):
 
     list_display = (
         "id",
+        "title",
         "created",
         "creator",
         "status",
