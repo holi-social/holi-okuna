@@ -14,7 +14,7 @@ import collections
 import logging.config
 import os
 import sys
-
+import structlog
 import sentry_sdk
 from django.utils.translation import gettext_lazy as _
 from dotenv import load_dotenv, find_dotenv
@@ -50,15 +50,32 @@ logging.config.dictConfig(
         "version": 1,
         "disable_existing_loggers": False,
         "formatters": {
-            "console": {
-                # exact format is not important, this is the minimum information
-                "format": "%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
-            }
+            "json_formatter": {
+                "()": structlog.stdlib.ProcessorFormatter,
+                "processor": structlog.processors.JSONRenderer(),
+                "foreign_pre_chain": [  # Hook into std lib logging
+                    structlog.contextvars.merge_contextvars,
+                    structlog.processors.TimeStamper(fmt="iso"),
+                    structlog.stdlib.add_logger_name,
+                    structlog.stdlib.add_log_level,
+                    structlog.stdlib.PositionalArgumentsFormatter(),
+                ],
+            },
+            "plain_console": {
+                "()": structlog.stdlib.ProcessorFormatter,
+                "processor": structlog.dev.ConsoleRenderer(),
+            },
+            "key_value": {
+                "()": structlog.stdlib.ProcessorFormatter,
+                "processor": structlog.processors.KeyValueRenderer(
+                    key_order=["timestamp", "level", "event", "logger"]
+                ),
+            },
         },
         "handlers": {
             "console": {
                 "class": "logging.StreamHandler",
-                "formatter": "console",
+                "formatter": "json_formatter",
             }
         },
         # Prevent intentional graphql exceptions from displaying in log
@@ -85,7 +102,24 @@ logging.config.dictConfig(
     }
 )
 
-logger = logging.getLogger(__name__)
+structlog.configure(
+    processors=[
+        structlog.contextvars.merge_contextvars,
+        structlog.stdlib.filter_by_level,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.UnicodeDecoder(),
+        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+    ],
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    cache_logger_on_first_use=True,
+)
+
+logger = structlog.getLogger(__name__)
 
 # Load dotenv
 load_dotenv(verbose=True, dotenv_path=find_dotenv())
@@ -192,6 +226,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "openbook_common.middleware.TimezoneMiddleware",
     "openbook_common.middleware.ChunkedContentLengthMiddleware",
+    "django_structlog.middlewares.RequestMiddleware",
 ]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [

@@ -1,6 +1,5 @@
 from datetime import datetime
-from logging import getLogger
-
+import structlog
 import graphene
 from django.db import Error, transaction
 from django.db.models import Q, Count, F, Value, Prefetch
@@ -40,7 +39,7 @@ from openbook_terms.models import (
     Skill as SkillModel,
 )
 
-logger = getLogger(__name__)
+logger = structlog.getLogger(__name__)
 
 
 # noinspection PyUnresolvedReferences
