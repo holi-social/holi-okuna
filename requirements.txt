@@ -27,6 +27,7 @@ django-positions==0.6.0
 django-proxy==1.2.1
 django-redis==5.2.0
 django-replicated==2.7
+django-request-logging==0.7.5
 django-rq-scheduler==2022.11
 django-rq==2.6.0
 django-storages==1.13.1

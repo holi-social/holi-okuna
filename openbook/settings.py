@@ -78,6 +78,11 @@ logging.config.dictConfig(
                 "handlers": ["console"],
                 "filters": ["graphql_log_filter"],
             },
+            "django.request": {
+                "handlers": ["console"],
+                "level": "DEBUG",  # change debug level as appropiate
+                "propagate": False,
+            },
             # "django.db.backends": {
             #     "level": "DEBUG",
             # },
@@ -192,6 +197,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "openbook_common.middleware.TimezoneMiddleware",
     "openbook_common.middleware.ChunkedContentLengthMiddleware",
+    "request_logging.middleware.LoggingMiddleware",
 ]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
