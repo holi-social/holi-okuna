@@ -591,7 +591,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         )
 
     def test_can_report_public_community_post_comment(self):
-        """should be able to report an public community post_comment with a description and return 201"""
+        """should be able to report a public community post_comment with a description and return 201"""
         post_comment_creator = make_user()
         community = make_community(creator=post_comment_creator)
         post = post_comment_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)

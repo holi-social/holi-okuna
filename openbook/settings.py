@@ -505,9 +505,9 @@ USE_TZ = True
 LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 
 LANGUAGES = [
-    ("es", _("Spanish")),
     ("en", _("English")),
     ("de", _("German")),
+    ("es", _("Spanish")),
     ("nl", _("Dutch")),
     ("da", _("Danish")),
     ("hu", _("Hungarian")),
