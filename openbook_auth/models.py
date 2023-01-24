@@ -60,6 +60,8 @@ from openbook_common.utils.model_loaders import (
     get_follow_request_approved_notification_model,
     get_community_membership_request_notification_model,
     get_community_membership_approved_notification_model,
+    get_community_notifications_subscription_model,
+    get_user_notifications_subscription_model,
 )
 from openbook_common.validators import name_characters_validator
 from openbook_hashtags.queries import (
