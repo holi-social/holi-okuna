@@ -1,6 +1,8 @@
 from datetime import datetime
 import structlog
 import graphene
+
+from cacheops import cached_as
 from django.db import Error, transaction
 from django.db.models import Q, Count, F, Value, Prefetch
 from django.db.models.functions import Concat
@@ -379,6 +381,7 @@ class Space(DjangoObjectType):
         return roles
 
 
+@cached_as(CommunityModel)
 def spaces_for_filter(offset, limit, topic_id=None, location=None, skill_ids=None, topic_slug=None, skill_slugs=None):
     topic_filter = Q(topics__id__contains=topic_id) if topic_id is not None else Q()
     location_filter = Q(location__icontains=location) if location is not None else Q()
