@@ -3798,6 +3798,11 @@ class User(AbstractUser):
         community = Community.objects.get(name=community_name)
         return self.report_community(community=community, category_id=category_id, description=description)
 
+    def report_community_with_id(self, community_id, category_id, description=None):
+        Community = get_community_model()
+        community = Community.objects.get(id=community_id)
+        return self.report_community(community=community, category_id=category_id, description=description)
+
     def report_community(self, community, category_id, description=None):
         check_can_report_community(user=self, community=community)
         ModerationReport = get_moderation_report_model()

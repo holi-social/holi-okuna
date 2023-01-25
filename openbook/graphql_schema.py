@@ -964,8 +964,7 @@ class ReportContentMutation(graphene.Mutation):
             case ContentType.USER:
                 current_user.report_user_with_username(str(object_id), category_id, description)
             case ContentType.SPACE:
-                community = CommunityModel.objects.get(id=object_id)
-                current_user.report_community(community, category_id, description)
+                current_user.report_community_with_id(object_id, category_id, description)
             case _:
                 raise GraphQLError(
                     f"Unknown ContentType {content_type.value}", extensions={"code": ErrorCodes.FORBIDDEN}
