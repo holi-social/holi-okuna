@@ -180,6 +180,8 @@ class User(AbstractUser):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     invite_count = models.SmallIntegerField(default=0)
 
+    is_moderator = models.BooleanField(default=False)
+
     JWT_TOKEN_TYPE_CHANGE_EMAIL = "CE"
     JWT_TOKEN_TYPE_PASSWORD_RESET = "PR"
 
@@ -935,8 +937,7 @@ class User(AbstractUser):
         return self.moderation_penalties.order_by("expiration")[0:1][0]
 
     def is_global_moderator(self):
-        moderators_community_name = settings.MODERATORS_COMMUNITY_NAME
-        return self.is_member_of_community_with_name(community_name=moderators_community_name)
+        return self.is_moderator
 
     def is_invited_to_community_with_name(self, community_name):
         Community = get_community_model()
