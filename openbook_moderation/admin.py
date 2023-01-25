@@ -1,12 +1,37 @@
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin
+from django.http import HttpResponseRedirect
 from modeltranslation.admin import TranslationAdmin
+from django.utils.html import format_html
+from django.urls import reverse
 
 from openbook_moderation.models import (
     ModerationCategory,
     ModerationReport,
     ModeratedObject,
 )
+
+
+def linkify(field_name):
+    """
+    Converts a foreign key value into clickable links.
+
+    If field_name is 'parent', link text will be str(obj.parent)
+    Link will be admin url for the admin url for obj.parent.id:change
+    """
+
+    def _linkify(obj):
+        linked_obj = getattr(obj, field_name)
+        if linked_obj is None:
+            return "-"
+        app_label = linked_obj._meta.app_label
+        model_name = linked_obj._meta.model_name
+        view_name = f"admin:{app_label}_{model_name}_change"
+        link_url = reverse(view_name, args=[linked_obj.pk])
+        return format_html('<a href="{}">{}</a>', link_url, linked_obj)
+
+    _linkify.short_description = field_name  # Sets column name
+    return _linkify
 
 
 class ModerationCategoryAdmin(TranslationAdmin):
@@ -40,7 +65,8 @@ class ModeratedObjectAdmin(ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return True
 
-    list_display = ("id", "object_type", "object", "status", "verified")
+    change_form_template = "moderation_changeform.html"
+    list_display = ("id", "object_type", linkify(field_name="content_object"), "object", "status", "verified")
     readonly_fields = [
         "verified",
         "category",
@@ -50,15 +76,57 @@ class ModeratedObjectAdmin(ModelAdmin):
         "object_type",
         "object_id",
         "content_type",
+        linkify(field_name="content_object"),
+        "object_full",
     ]
+
+    def response_change(self, request, obj):
+        if "_approve" in request.POST:
+            request.user.approve_moderated_object(obj)
+            self.message_user(request, "Approved")
+            return HttpResponseRedirect(".")
+        if "_reject" in request.POST:
+            request.user.reject_moderated_object(obj)
+            self.message_user(request, "Rejected")
+            return HttpResponseRedirect(".")
+        if "_verify" in request.POST:
+            request.user.verify_moderated_object(obj)
+            self.message_user(request, "Verified")
+            return HttpResponseRedirect(".")
+        if "_unverify" in request.POST:
+            request.user.unverify_moderated_object(obj)
+            self.message_user(request, "Unverified")
+            return HttpResponseRedirect(".")
+        return super().response_change(request, obj)
 
     @admin.display(description="Content")
     def object(self, obj):
+        return self.object_to_text(obj, 100)
+
+    @admin.display(description="Content")
+    def object_full(self, obj):
+        return self.object_to_text(obj)
+
+    def object_to_text(self, obj, length=None):
         match obj.object_type:
             case ModeratedObject.OBJECT_TYPE_POST:
-                return obj.content_object.title
+                return (
+                    str(obj.content_object.id) + " / " + obj.content_object.title + " / " + obj.content_object.text
+                )[:length]
             case ModeratedObject.OBJECT_TYPE_POST_COMMENT:
-                return obj.content_object.text
+                return (str(obj.content_object.id) + " / " + obj.content_object.text)[:length]
+            case ModeratedObject.OBJECT_TYPE_USER:
+                return (
+                    obj.content_object.username
+                    + " / "
+                    + str(obj.content_object.id)
+                    + " / "
+                    + obj.content_object.email
+                    + " / "
+                    + obj.content_object.profile.full_name()
+                )[:length]
+            case ModeratedObject.OBJECT_TYPE_COMMUNITY:
+                return (str(obj.content_object.id) + " / " + obj.content_object.title)[:length]
         return None
 
     @admin.action(description="Approve Moderation Object")
