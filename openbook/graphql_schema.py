@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 import structlog
 import graphene
+import requests
 from django.db import Error, transaction
 from django.db.models import Q, Count, F, Value, Prefetch
 from django.db.models.functions import Concat
@@ -10,6 +11,7 @@ from django.utils.translation import gettext_lazy as _
 from graphene_django import DjangoObjectType
 from graphene_file_upload.scalars import Upload
 from graphql import GraphQLError
+from django.conf import settings
 
 from openbook_auth.images import delete_avatar
 from openbook_auth.models import UserConnectionStatus, User as UserModel
@@ -50,6 +52,7 @@ class ErrorCodes:
     NOT_FOUND = "NOT_FOUND"
     UNAUTHORIZED = "UNAUTHORIZED"
     FORBIDDEN = "FORBIDDEN"
+    INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR"
 
 
 class UpdateConnectionAction(graphene.Enum):
@@ -814,6 +817,31 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
         return authenticated_user
 
 
+class DeleteAuthenticatedUserMutation(graphene.Mutation):
+    success = graphene.Boolean()
+
+    @classmethod
+    def mutate(cls, root, info):
+        authenticated_user = info.context.user
+        headers = {"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"}
+        logger.info(f"Deleting user {authenticated_user.username}...")
+
+        response = requests.delete(
+            f"{settings.ORY_BASE_URL}/admin/identities/{authenticated_user.username}", headers=headers
+        )
+        # Ory returns 204 in case of success
+        if not response.ok:
+            error_message = response.error.error if response.error else "Unknown"
+            raise Exception(f"Deleting user {authenticated_user.username} in ory failed: {error_message}")
+
+        with transaction.atomic():
+            authenticated_user.delete()
+
+        logger.info(f"Successfully deleted user {authenticated_user.username}")
+
+        return DeleteAuthenticatedUserMutation(success=True)
+
+
 class UpdateConnectionWithUserInput(graphene.InputObjectType):
     user_id = graphene.String()
     action = UpdateConnectionAction(required=True)
@@ -978,6 +1006,7 @@ class Mutation(graphene.ObjectType):
     update_connection_with_user = UpdateConnectionWithUserMutation.Field()
     update_post_comment = UpdatePostCommentMutation.Field()
     update_space_user_connection = UpdateSpaceUserConnectionMutation.Field()
+    delete_authenticated_user = DeleteAuthenticatedUserMutation.Field()
     report_content = ReportContentMutation.Field()
 
 
