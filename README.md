@@ -85,7 +85,7 @@ Use `python okuna-cli.py clean` to reset all local state, including database and
    And fill the DB with some fixture data:
 
    ```bash
-   python manage.py loaddata circles.json emoji-groups.json emojis.json badges.json categories.json languages.json topics.json skills.json sdgs.json users.json
+   python manage.py loaddata circles.json emoji-groups.json emojis.json badges.json categories.json languages.json topics.json skills.json sdgs.json moderation_categories.json users.json
    ```
 
    Afterwards, you're ready to start the backend API service:
