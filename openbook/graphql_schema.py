@@ -809,17 +809,9 @@ class UpdateAuthenticatedUserMutation(graphene.Mutation):
         return authenticated_user
 
 
-class DeleteAuthenticatedUserMutationResponse(graphene.ObjectType):
-    success = graphene.Boolean()
-
 
 class DeleteAuthenticatedUserMutation(graphene.Mutation):
-
-    # Not used, but mutations can not be defined without arguments
-    class Arguments:
-        user_id = graphene.UUID()
-
-    Output = DeleteAuthenticatedUserMutationResponse
+    success = graphene.Boolean()
 
     @classmethod
     def mutate(cls, root, info):
@@ -840,7 +832,7 @@ class DeleteAuthenticatedUserMutation(graphene.Mutation):
 
         logger.info(f"Successfully deleted user {authenticated_user.username}")
 
-        return DeleteAuthenticatedUserMutationResponse(success=True)
+        return DeleteAuthenticatedUserMutation(success=True)
 
 
 class UpdateConnectionWithUserInput(graphene.InputObjectType):
