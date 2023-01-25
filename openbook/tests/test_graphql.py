@@ -667,7 +667,7 @@ class GraphQLTest(TestCase):
             """
             mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
                 reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
-                    ok
+                    success
                 }
             }
             """,
@@ -682,7 +682,7 @@ class GraphQLTest(TestCase):
         )
 
         self.assertIsNone(response.get("errors"))
-        self.assertEqual(response["data"]["reportContent"]["ok"], True)
+        self.assertEqual(response["data"]["reportContent"]["success"], True)
 
         self.assertEqual(reporting_user.can_see_post(post), False)
         self.assertEqual(other_user.can_see_post(post), True)
@@ -722,7 +722,7 @@ class GraphQLTest(TestCase):
             """
             mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
                 reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
-                    ok
+                    success
                 }
             }
             """,
@@ -737,7 +737,7 @@ class GraphQLTest(TestCase):
         )
 
         self.assertIsNone(response.get("errors"))
-        self.assertEqual(response["data"]["reportContent"]["ok"], True)
+        self.assertEqual(response["data"]["reportContent"]["success"], True)
 
         post_data = self.get_post_with_id(post, reporting_user)
         # TODO uncomment after implementation of blocking reported content.
@@ -762,7 +762,7 @@ class GraphQLTest(TestCase):
             """
             mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
                 reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
-                    ok
+                    success
                 }
             }
             """,
@@ -777,7 +777,7 @@ class GraphQLTest(TestCase):
         )
 
         self.assertIsNone(response.get("errors"))
-        self.assertEqual(response["data"]["reportContent"]["ok"], True)
+        self.assertEqual(response["data"]["reportContent"]["success"], True)
 
         response = self.graphql.execute(
             f"""
@@ -833,7 +833,7 @@ class GraphQLTest(TestCase):
             """
             mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
                 reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
-                    ok
+                    success
                 }
             }
             """,
@@ -848,7 +848,7 @@ class GraphQLTest(TestCase):
         )
 
         self.assertIsNone(response.get("errors"))
-        self.assertEqual(response["data"]["reportContent"]["ok"], True)
+        self.assertEqual(response["data"]["reportContent"]["success"], True)
 
         response = self.graphql.execute(
             f"""

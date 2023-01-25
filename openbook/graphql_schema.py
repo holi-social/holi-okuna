@@ -946,7 +946,7 @@ class ReportContentMutation(graphene.Mutation):
         content_type = ContentType(required=True)
         description = graphene.String()
 
-    ok = graphene.Boolean()
+    success = graphene.Boolean()
 
     @classmethod
     def mutate(cls, root, info, object_id, content_type, description=None):
@@ -970,7 +970,7 @@ class ReportContentMutation(graphene.Mutation):
                     f"Unknown ContentType {content_type.value}", extensions={"code": ErrorCodes.FORBIDDEN}
                 )
 
-        return ReportContentMutation(ok=True)
+        return ReportContentMutation(success=True)
 
 
 class Mutation(graphene.ObjectType):
