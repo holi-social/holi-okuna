@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from graphene_django import DjangoObjectType
 from graphene_file_upload.scalars import Upload
 from graphql import GraphQLError
+from rest_framework.exceptions import APIException
 
 from openbook_auth.images import delete_avatar
 from openbook_auth.models import UserConnectionStatus, User as UserModel
@@ -50,6 +51,7 @@ class ErrorCodes:
     NOT_FOUND = "NOT_FOUND"
     UNAUTHORIZED = "UNAUTHORIZED"
     FORBIDDEN = "FORBIDDEN"
+    SERVER_ERROR = "SERVER_ERROR"
 
 
 class UpdateConnectionAction(graphene.Enum):
@@ -940,6 +942,24 @@ class UpdateSpaceUserConnectionMutation(graphene.Mutation):
         return space
 
 
+class BlockUserMutation(graphene.Mutation):
+    class Arguments:
+        user_id = graphene.UUID(description="The user to block")
+
+    ok = graphene.Boolean()
+
+    @classmethod
+    def mutate(cls, root, info, user_id):
+        current_user: UserModel = info.context.user
+        username_of_user_to_block = str(user_id)
+        if current_user.is_anonymous:
+            raise GraphQLError("Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED})
+
+        current_user.block_user_with_username(username_of_user_to_block)
+
+        return BlockUserMutation(ok=True)
+
+
 class ReportContentMutation(graphene.Mutation):
     class Arguments:
         object_id = graphene.UUID(required=True)
@@ -979,6 +999,7 @@ class Mutation(graphene.ObjectType):
     update_post_comment = UpdatePostCommentMutation.Field()
     update_space_user_connection = UpdateSpaceUserConnectionMutation.Field()
     report_content = ReportContentMutation.Field()
+    block_user = BlockUserMutation.Field()
 
 
 # noinspection PyTypeChecker
