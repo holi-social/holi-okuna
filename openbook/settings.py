@@ -709,6 +709,10 @@ IMAGEKIT_PUBLIC_KEY = os.environ.get("IMAGEKIT_PUBLIC_KEY", "none")
 IMAGEKIT_PRIVATE_KEY = os.environ.get("IMAGEKIT_PRIVATE_KEY", "none")
 IMAGEKIT_URL = os.environ.get("IMAGEKIT_URL", "https://ik.imagekit.io/holidev")
 
+# Ory
+ORY_BASE_URL = os.environ.get("ORY_BASE_URL")
+ORY_ACCESS_TOKEN = os.environ.get("ORY_ACCESS_TOKEN")
+
 # HOLI model config settings
 
 IMAGE_URL_MAX_LENGTH = 500
