@@ -139,6 +139,19 @@ resource "google_cloud_run_service" "okuna" {
             }
           }
         }
+        env {
+          name = "ORY_BASE_URL"
+          value = local.environment == "production" ? "https://auth.project-holi.org" : "https://dev-auth.project-holi.org"
+        }
+        env {
+          name = "ORY_ACCESS_TOKEN"
+          value_from {
+            secret_key_ref {
+              key  = "latest"
+              name = local.environment_name == "production" ? "ORY_ACCESS_TOKEN_PRODUCTION" : "ORY_ACCESS_TOKEN_DEVELOPMENT"
+            }
+          }
+        }
         resources {
           limits = {
             # cpu can only be scaled down to 1000m as long as container_concurrency is set to != 1

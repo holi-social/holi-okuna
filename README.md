@@ -4,15 +4,22 @@ The Okuna-based backend for HOLI.
 
 ## Table of contents
 
-- [Introduction](#introduction)
-- [Prerequisites](#prerequisites)
-- [Quickstart](#quickstart)
-- [Changes to reduce dependencies](#changes-to-reduce-dependencies)
-  - [spectra==0.0.11](#spectra0011)
-  - [colormath==3.0.0](#colormath300)
-- [Known installation issues](#known-installation-issues)
-  - [MacOs](#macos)
-- [CI/CD](#cicd)
+- [holi-okuna](#holi-okuna)
+  - [Table of contents](#table-of-contents)
+  - [Introduction](#introduction)
+  - [Prerequisites](#prerequisites)
+  - [Quickstart](#quickstart)
+    - [Reset](#reset)
+    - [Step by step](#step-by-step)
+  - [Changes to reduce dependencies](#changes-to-reduce-dependencies)
+    - [spectra==0.0.11](#spectra0011)
+    - [colormath==3.0.0](#colormath300)
+  - [Known installation issues](#known-installation-issues)
+    - [MacOs](#macos)
+  - [CI/CD](#cicd)
+  - [Access local db](#access-local-db)
+  - [Admin Dashboard](#admin-dashboard)
+  - [Pycharm](#pycharm)
 
 ## Introduction
 
@@ -127,6 +134,15 @@ Libmagic is not found on your mac? Try this command.
 
 ```sh
 brew install libmagic
+```
+
+If the error still persists, libmagic might be [installed under a different path](http://www.brambraakman.com/blog/comments/installing_libmagic_in_mac_os_x_for_python-magic/), e.g. `/opt/homebrew/Cellar/libmagic`.
+
+Run `brew link libmagic` to find out the correct path and create a symbolic link, e.g.
+
+```sh
+cd /usr/local/lib/
+ln -s <correct path>/lib/libmagic.dylib libmagic.dylib
 ```
 
 Xcode issues - Error: python@3.9: the bottle needs  the Apple Command Line Tools to be installed.
