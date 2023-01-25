@@ -3718,6 +3718,11 @@ class User(AbstractUser):
         self.user_blocks.filter(blocked_user_id=user_id).delete()
         return User.objects.get(pk=user_id)
 
+    def report_comment_with_id(self, post_comment_id, category_id, description=None):
+        PostComment = get_post_comment_model()
+        post_comment = PostComment.objects.get(id=post_comment_id)
+        self.report_comment_for_post(post_comment, post_comment.post, category_id, description)
+
     def report_comment_with_id_for_post_with_id(self, post_comment_id, post_id, category_id, description=None):
         PostComment = get_post_comment_model()
         post_comment = PostComment.objects.get(id=post_comment_id)
@@ -3791,6 +3796,11 @@ class User(AbstractUser):
     def report_community_with_name(self, community_name, category_id, description=None):
         Community = get_community_model()
         community = Community.objects.get(name=community_name)
+        return self.report_community(community=community, category_id=category_id, description=description)
+
+    def report_community_with_id(self, community_id, category_id, description=None):
+        Community = get_community_model()
+        community = Community.objects.get(id=community_id)
         return self.report_community(community=community, category_id=category_id, description=description)
 
     def report_community(self, community, category_id, description=None):
