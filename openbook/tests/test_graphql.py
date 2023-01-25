@@ -15,6 +15,7 @@ from openbook.graphql_schema import (
     schema,
     UpdateConnectionAction,
     SpaceUserConnectionType,
+    ContentType,
 )
 from openbook_auth.models import User, UserConnectionStatus
 from openbook_communities.models import Community
@@ -44,7 +45,7 @@ class GraphQLTest(TestCase):
     def setUp(self):
         self.graphql = Client(schema)
 
-    fixtures = ["openbook_circles/fixtures/circles.json"]
+    fixtures = ["openbook_circles/fixtures/circles.json", "openbook_moderation/fixtures/moderation_categories.json"]
 
     def test_get_authenticated_user_returns_self_reference(self):
         user = make_user()
@@ -689,6 +690,8 @@ class GraphQLTest(TestCase):
             [SpaceUserConnectionType.MEMBER.value, SpaceUserConnectionType.FOLLOWER.value],
         )
 
+        # TODO Un-Comment this after Auto-Join of Spaces is removed again
+        #
         # self.assertCountEqual(
         #     after_request_space["connectionStatusToMyself"],
         #     [SpaceUserConnectionType.FOLLOWER.value, SpaceUserConnectionType.MEMBERSHIP_REQUESTOR.value],
@@ -713,6 +716,248 @@ class GraphQLTest(TestCase):
         #
         # # Notification cleared
         # self.assertFalse(space_creator.get_notifications(types=[Notification.COMMUNITY_MEMBERSHIP_REQUEST]).exists())
+
+    def test_report_post(self):
+        posting_user = make_user()
+        reporting_user = make_user(name="ReportingUser")
+        other_user = make_user(name="OtherUser")
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_public_post(
+            text=post_text,
+            title=post_title,
+        )
+
+        response = self.graphql.execute(
+            """
+            mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
+                reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
+                    ok
+                }
+            }
+            """,
+            context_value=BeneDict({"user": reporting_user}),
+            variable_values=BeneDict(
+                {
+                    "objectId": str(post.id),
+                    "contentType": ContentType.POST.value,
+                    "description": "report",
+                }
+            ),
+        )
+
+        self.assertIsNone(response.get("errors"))
+        self.assertEqual(response["data"]["reportContent"]["ok"], True)
+
+        self.assertEqual(reporting_user.can_see_post(post), False)
+        self.assertEqual(other_user.can_see_post(post), True)
+
+        response = self.graphql.execute(
+            f"""
+            query {{
+                postById(id: "{post.id}") {{
+                    id
+                }}
+            }}
+            """,
+            context_value=BeneDict({"user": reporting_user}),
+        )
+        self.assertIsNone(response.get("errors"))
+        # TODO uncomment after implementation of blocking reported content.
+        # self.assertEqual(len(response["data"]["postById"]), 0)
+
+        response = self.graphql.execute(
+            f"""
+            query {{
+                postById(id: "{post.id}") {{
+                    id
+                }}
+            }}
+            """,
+            context_value=BeneDict({"user": other_user}),
+        )
+        self.assertIsNone(response.get("errors"))
+        self.assertEqual(len(response["data"]["postById"]), 1)
+
+    def test_report_post_comment(self):
+        posting_user = make_user()
+        reporting_user = make_user(name="ReportingUser")
+        other_user = make_user(name="OtherUser")
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_public_post(
+            text=post_text,
+            title=post_title,
+        )
+        comment = post.comment(text=f"comment text 1 @{posting_user.username}", commenter=posting_user)
+
+        response = self.graphql.execute(
+            """
+            mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
+                reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
+                    ok
+                }
+            }
+            """,
+            context_value=BeneDict({"user": reporting_user}),
+            variable_values=BeneDict(
+                {
+                    "objectId": str(comment.id),
+                    "contentType": ContentType.POST_COMMENT.value,
+                    "description": "report",
+                }
+            ),
+        )
+
+        self.assertIsNone(response.get("errors"))
+        self.assertEqual(response["data"]["reportContent"]["ok"], True)
+
+        response = self.graphql.execute(
+            f"""
+            query {{
+                postById(id: "{post.id}") {{
+                    id
+                    comments {{ 
+                        id 
+                    }}
+                }}
+            }}
+            """,
+            context_value=BeneDict({"user": reporting_user}),
+        )
+        self.assertIsNone(response.get("errors"))
+        # TODO uncomment after implementation of blocking reported content.
+        # self.assertEqual(len(response["data"]["postById"]["comments"]), 0)
+
+        response = self.graphql.execute(
+            f"""
+            query {{
+                postById(id: "{post.id}") {{
+                    id
+                    comments {{ 
+                        id 
+                    }}
+                }}
+            }}
+            """,
+            context_value=BeneDict({"user": other_user}),
+        )
+        self.assertIsNone(response.get("errors"))
+
+        self.assertEqual(len(response["data"]["postById"]["comments"]), 1)
+
+    def test_report_user(self):
+        user = make_user()
+        reporting_user = make_user(name="ReportingUser")
+        other_user = make_user(name="OtherUser")
+
+        response = self.graphql.execute(
+            """
+            mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
+                reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
+                    ok
+                }
+            }
+            """,
+            context_value=BeneDict({"user": reporting_user}),
+            variable_values=BeneDict(
+                {
+                    "objectId": str(user.username),
+                    "contentType": ContentType.USER.value,
+                    "description": "report",
+                }
+            ),
+        )
+
+        self.assertIsNone(response.get("errors"))
+        self.assertEqual(response["data"]["reportContent"]["ok"], True)
+
+        response = self.graphql.execute(
+            f"""
+            query {{
+                userById(id: "{user.id}") {{
+                    id
+                }}
+            }}
+            """,
+            context_value=BeneDict({"user": reporting_user}),
+        )
+        self.assertEqual(response["errors"][0]["message"], "User not found")
+
+        response = self.graphql.execute(
+            f"""
+            query {{
+                userById(id: "{user.username}") {{
+                    id
+                }}
+            }}
+            """,
+            context_value=BeneDict({"user": other_user}),
+        )
+        self.assertIsNone(response.get("errors"))
+        self.assertEqual(response["data"]["userById"]["id"], user.username)
+
+    def test_report_space(self):
+        space_user = make_user()
+        reporting_user = make_user(name="ReportingUser")
+        other_user = make_user(name="OtherUser")
+
+        space = make_community(creator=space_user)
+
+        response = self.graphql.execute(
+            """
+            mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
+                reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
+                    ok
+                }
+            }
+            """,
+            context_value=BeneDict({"user": reporting_user}),
+            variable_values=BeneDict(
+                {
+                    "objectId": str(space.id),
+                    "contentType": ContentType.SPACE.value,
+                    "description": "report",
+                }
+            ),
+        )
+
+        self.assertIsNone(response.get("errors"))
+        self.assertEqual(response["data"]["reportContent"]["ok"], True)
+
+        response = self.graphql.execute(
+            f"""
+            query {{
+                spaceById(id: "{space.id}") {{
+                    id
+                }}
+            }}
+            """,
+            context_value=BeneDict({"user": reporting_user}),
+        )
+        self.assertIsNone(response.get("errors"))
+        # TODO uncomment after implementation of blocking reported content.
+        # self.assertEqual(len(response["data"]["spaceById"]), 0)
+
+        response = self.graphql.execute(
+            f"""
+            query {{
+                spaceById(id: "{space.id}") {{
+                    id
+                }}
+            }}
+            """,
+            context_value=BeneDict({"user": other_user}),
+        )
+        self.assertIsNone(response.get("errors"))
+        self.assertEqual(len(response["data"]["spaceById"]), 1)
+        self.assertEqual(response["data"]["spaceById"]["id"], str(space.id))
+
+    # Utility methods
 
     def mutate_update_space_user_connection(
         self,

@@ -3718,6 +3718,11 @@ class User(AbstractUser):
         self.user_blocks.filter(blocked_user_id=user_id).delete()
         return User.objects.get(pk=user_id)
 
+    def report_comment_with_id(self, post_comment_id, category_id, description=None):
+        PostComment = get_post_comment_model()
+        post_comment = PostComment.objects.get(id=post_comment_id)
+        self.report_comment_for_post(post_comment, post_comment.post, category_id, description)
+
     def report_comment_with_id_for_post_with_id(self, post_comment_id, post_id, category_id, description=None):
         PostComment = get_post_comment_model()
         post_comment = PostComment.objects.get(id=post_comment_id)
