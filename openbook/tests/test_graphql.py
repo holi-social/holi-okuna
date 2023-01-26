@@ -651,7 +651,7 @@ class GraphQLTest(TestCase):
 
     def test_report_post(self):
         posting_user = make_user()
-        make_community(posting_user, name="mods")  # members of the mods community are global moderators
+        posting_user.is_moderator = True
         reporting_user = make_user(name="ReportingUser")
         other_user = make_user(name="OtherUser")
 
@@ -667,7 +667,7 @@ class GraphQLTest(TestCase):
             """
             mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
                 reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
-                    ok
+                    success
                 }
             }
             """,
@@ -682,7 +682,7 @@ class GraphQLTest(TestCase):
         )
 
         self.assertIsNone(response.get("errors"))
-        self.assertEqual(response["data"]["reportContent"]["ok"], True)
+        self.assertEqual(response["data"]["reportContent"]["success"], True)
 
         self.assertEqual(reporting_user.can_see_post(post), False)
         self.assertEqual(other_user.can_see_post(post), True)
@@ -705,7 +705,7 @@ class GraphQLTest(TestCase):
 
     def test_report_post_comment(self):
         posting_user = make_user()
-        make_community(posting_user, name="mods")  # members of the mods community are global moderators
+        posting_user.is_moderator = True
         reporting_user = make_user(name="ReportingUser")
         other_user = make_user(name="OtherUser")
 
@@ -722,7 +722,7 @@ class GraphQLTest(TestCase):
             """
             mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
                 reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
-                    ok
+                    success
                 }
             }
             """,
@@ -737,7 +737,7 @@ class GraphQLTest(TestCase):
         )
 
         self.assertIsNone(response.get("errors"))
-        self.assertEqual(response["data"]["reportContent"]["ok"], True)
+        self.assertEqual(response["data"]["reportContent"]["success"], True)
 
         post_data = self.get_post_with_id(post, reporting_user)
         # TODO uncomment after implementation of blocking reported content.
@@ -754,7 +754,7 @@ class GraphQLTest(TestCase):
 
     def test_report_user(self):
         user = make_user()
-        make_community(user, name="mods")  # members of the mods community are global moderators
+        user.is_moderator = True
         reporting_user = make_user(name="ReportingUser")
         other_user = make_user(name="OtherUser")
 
@@ -762,7 +762,7 @@ class GraphQLTest(TestCase):
             """
             mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
                 reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
-                    ok
+                    success
                 }
             }
             """,
@@ -777,7 +777,7 @@ class GraphQLTest(TestCase):
         )
 
         self.assertIsNone(response.get("errors"))
-        self.assertEqual(response["data"]["reportContent"]["ok"], True)
+        self.assertEqual(response["data"]["reportContent"]["success"], True)
 
         response = self.get_user_with_id_unchecked(user, reporting_user)
         # TODO uncomment after implementation of blocking reported content.
@@ -795,7 +795,7 @@ class GraphQLTest(TestCase):
 
     def test_report_space(self):
         space_user = make_user()
-        make_community(space_user, name="mods")  # members of the mods community are global moderators
+        space_user.is_moderator = True
         reporting_user = make_user(name="ReportingUser")
         other_user = make_user(name="OtherUser")
 
@@ -805,7 +805,7 @@ class GraphQLTest(TestCase):
             """
             mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
                 reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
-                    ok
+                    success
                 }
             }
             """,
@@ -820,7 +820,7 @@ class GraphQLTest(TestCase):
         )
 
         self.assertIsNone(response.get("errors"))
-        self.assertEqual(response["data"]["reportContent"]["ok"], True)
+        self.assertEqual(response["data"]["reportContent"]["success"], True)
 
         response = self.graphql.execute(
             f"""
