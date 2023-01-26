@@ -2,6 +2,7 @@ import tempfile
 from json import dumps
 
 import requests
+from django.db.models import Q
 from langdetect import DetectorFactory
 from langdetect.lang_detect_exception import LangDetectException
 from django.conf import settings
@@ -98,3 +99,9 @@ def create_upload_filename(object_type, object_id, filename, username=None):
 
 def attr_filled(obj, attr):
     return bool(getattr(obj, attr, None))
+
+
+def PQ(prefix=None, **kwargs):
+    if prefix:
+        return Q(**{prefix + key: value for key, value in kwargs.items()})
+    return Q(**kwargs)

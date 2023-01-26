@@ -26,7 +26,7 @@ from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFit
 from rest_framework.exceptions import ValidationError
 
-from openbook_auth.models import User
+from openbook_auth.models import User, UserBlock
 from openbook_common.models import (
     Emoji,
     Language,
@@ -87,7 +87,7 @@ from video_encoding.fields import VideoField
 from video_encoding.models import Format
 
 magic = get_magic()
-from openbook_common.helpers import get_language_for_text, attr_filled
+from openbook_common.helpers import get_language_for_text, attr_filled, PQ
 
 post_image_storage = default_storage
 
@@ -502,12 +502,6 @@ class Post(ModelWithUUID):
     def is_publicly_visible(self):
         return self.is_public_post() or self.is_public_community_post()
 
-    @staticmethod
-    def is_publicly_visible_query():
-        return Q(circles=get_circle_model().get_world_circle_id()) | Q(
-            community__type=get_community_model().COMMUNITY_TYPE_PUBLIC
-        )
-
     def is_encircled_post(self):
         return not self.is_public_post() and not self.community
 
@@ -892,6 +886,42 @@ class Post(ModelWithUUID):
 
     def __str__(self):
         return f"{self.__class__.__name__}: {self.title}"
+
+    @staticmethod
+    def is_visible_query(user, prefix=None):
+        if user.is_anonymous:
+            return (
+                ~PQ(prefix, is_deleted=True)
+                & ModeratedObject.not_moderated_query(user, prefix)
+                & (
+                    PQ(prefix, status=Post.STATUS_PUBLISHED)
+                    & (
+                        PQ(prefix, circles__id=get_circle_model().get_world_circle_id())
+                        | PQ(prefix, community__type=get_community_model().COMMUNITY_TYPE_PUBLIC)
+                    )
+                )
+            )
+
+        return (
+            ~PQ(prefix, is_deleted=True)
+            & ModeratedObject.not_moderated_query(user, prefix)
+            & UserBlock.not_blocked_query(user, (prefix or "") + "creator__")
+            & (
+                PQ(prefix, creator=user)
+                | (
+                    PQ(prefix, status=Post.STATUS_PUBLISHED)
+                    & (
+                        PQ(prefix, circles__id=get_circle_model().get_world_circle_id())
+                        | PQ(
+                            prefix,
+                            circles__connections__target_user=user,
+                            circles__connections__target_connection__circles__isnull=False,
+                        )
+                        | PQ(prefix, community__type=get_community_model().COMMUNITY_TYPE_PUBLIC)
+                    )
+                )
+            )
+        )
 
 
 class TopPost(ModelWithUUID):
@@ -1361,6 +1391,22 @@ class PostComment(ModelWithUUID):
 
     def has_text(self):
         return attr_filled(self, "text")
+
+    @staticmethod
+    def is_visible_query(user, prefix=None):
+        if user.is_anonymous:
+            return (
+                ~PQ(prefix, is_deleted=True)
+                & ModeratedObject.not_moderated_query(user, prefix)
+                & Post.is_visible_query(user, (prefix or "") + "post__")
+            )
+
+        return (
+            ~PQ(prefix, is_deleted=True)
+            & ModeratedObject.not_moderated_query(user, prefix)
+            & UserBlock.not_blocked_query(user, (prefix or "") + "commenter__")
+            & (PQ(prefix, commenter=user) | Post.is_visible_query(user, (prefix or "") + "post__"))
+        )
 
 
 class PostReaction(ModelWithUUID):
