@@ -17,11 +17,7 @@ from openbook_common.utils.model_loaders import (
     get_emoji_group_model,
     get_post_reaction_model,
     get_user_invite_model,
-    get_community_notifications_subscription_model,
-    get_user_notifications_subscription_model,
 )
-
-from openbook_common import checkers as common_checkers
 
 
 def check_follow_lists_ids(user, lists_ids):

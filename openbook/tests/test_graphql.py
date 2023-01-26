@@ -15,6 +15,7 @@ from openbook.graphql_schema import (
     schema,
     UpdateConnectionAction,
     SpaceUserConnectionType,
+    ContentType,
 )
 from openbook_auth.models import User, UserConnectionStatus
 from openbook_communities.models import Community
@@ -30,7 +31,7 @@ from openbook_common.tests.helpers import (
     simple_jpeg_bytes,
 )
 from openbook_insights.models import Insight
-from openbook_notifications.models import Notification
+from openbook_moderation.models import ModeratedObject
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ class GraphQLTest(TestCase):
     def setUp(self):
         self.graphql = Client(schema)
 
-    fixtures = ["openbook_circles/fixtures/circles.json"]
+    fixtures = ["openbook_circles/fixtures/circles.json", "openbook_moderation/fixtures/moderation_categories.json"]
 
     def test_get_authenticated_user_returns_self_reference(self):
         user = make_user()
@@ -199,49 +200,8 @@ class GraphQLTest(TestCase):
             commenter=other_user,
         )
 
-        response = self.graphql.execute(
-            f"""
-            query {{
-                postById(id: "{post.id}") {{
-                    text
-                    title
-                    image {{
-                        url
-                        width
-                        height
-                    }}
-                    created
-                    creator {{
-                        id
-                    }}
-                    comments {{
-                        text
-                        mentions {{
-                            fullName
-                        }}
-                    }}
-                    mentions {{
-                        fullName
-                    }}
-                    numberOfComments
-                    involvedUsers {{
-                        totalResults
-                        data {{
-                            firstName
-                        }}
-                    }}
-                    commenters {{
-                        totalResults
-                        data {{
-                            firstName
-                        }}
-                    }}
-                }}
-            }}
-            """
-        )
+        post_data = self.get_post_with_id(post)
 
-        post_data = response["data"]["postById"]
         self.assertEqual(post_data["text"], post_text)
         self.assertEqual(post_data["title"], post_title)
         self.assertIsNone(post_data["image"])
@@ -267,27 +227,8 @@ class GraphQLTest(TestCase):
             image=SimpleUploadedFile(name=image_name, content=simple_jpeg_bytes),
         )
 
-        response = self.graphql.execute(
-            f"""
-            query {{
-                postById(id: "{post.id}") {{
-                    text
-                    title
-                    image {{
-                        url
-                        width
-                        height
-                    }}
-                    created
-                    creator {{
-                        id
-                    }}
-                }}
-            }}
-            """
-        )
+        post_data = self.get_post_with_id(post)
 
-        post_data = response["data"]["postById"]
         self.assertEqual(post_data["text"], post_text)
         self.assertEqual(post_data["title"], post_title)
         self.assertIn(image_name, post_data["image"]["url"])
@@ -304,15 +245,7 @@ class GraphQLTest(TestCase):
 
         post = posting_user.create_public_post(text=post_text, title=post_title, is_draft=True)
 
-        response = self.graphql.execute(
-            f"""
-            query {{
-                postById(id: "{post.id}") {{
-                    id
-                }}
-            }}
-            """
-        )
+        response = self.get_post_with_id_unchecked(post)
 
         post_data = response["data"]["postById"]
         self.assertEqual(post_data, None)
@@ -689,6 +622,8 @@ class GraphQLTest(TestCase):
             [SpaceUserConnectionType.MEMBER.value, SpaceUserConnectionType.FOLLOWER.value],
         )
 
+        # TODO Un-Comment this after Auto-Join of Spaces is removed again
+        #
         # self.assertCountEqual(
         #     after_request_space["connectionStatusToMyself"],
         #     [SpaceUserConnectionType.FOLLOWER.value, SpaceUserConnectionType.MEMBERSHIP_REQUESTOR.value],
@@ -713,6 +648,303 @@ class GraphQLTest(TestCase):
         #
         # # Notification cleared
         # self.assertFalse(space_creator.get_notifications(types=[Notification.COMMUNITY_MEMBERSHIP_REQUEST]).exists())
+
+    def test_report_post(self):
+        posting_user = make_user()
+        make_community(posting_user, name="mods")  # members of the mods community are global moderators
+        reporting_user = make_user(name="ReportingUser")
+        other_user = make_user(name="OtherUser")
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_public_post(
+            text=post_text,
+            title=post_title,
+        )
+
+        response = self.graphql.execute(
+            """
+            mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
+                reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
+                    success
+                }
+            }
+            """,
+            context_value=BeneDict({"user": reporting_user}),
+            variable_values=BeneDict(
+                {
+                    "objectId": str(post.id),
+                    "contentType": ContentType.POST.value,
+                    "description": "report",
+                }
+            ),
+        )
+
+        self.assertIsNone(response.get("errors"))
+        self.assertEqual(response["data"]["reportContent"]["success"], True)
+
+        self.assertEqual(reporting_user.can_see_post(post), False)
+        self.assertEqual(other_user.can_see_post(post), True)
+
+        post_data = self.get_post_with_id(post, reporting_user)
+        # TODO uncomment after implementation of blocking reported content.
+        self.assertFalse(reporting_user.can_see_post(post))
+        self.assertTrue(other_user.can_see_post(post))
+        # self.assertEqual(post_data, None)
+
+        post_data = self.get_post_with_id(post, other_user)
+        self.assertEqual(post_data["id"], str(post.id))
+
+        approve_verify_moderated_object(post.id, posting_user)
+
+        post_data = self.get_post_with_id(post, other_user)
+        # TODO uncomment after implementation of blocking reported content.
+        self.assertFalse(other_user.can_see_post(post))
+        # self.assertEqual(post_data, None)
+
+    def test_report_post_comment(self):
+        posting_user = make_user()
+        make_community(posting_user, name="mods")  # members of the mods community are global moderators
+        reporting_user = make_user(name="ReportingUser")
+        other_user = make_user(name="OtherUser")
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_public_post(
+            text=post_text,
+            title=post_title,
+        )
+        comment = post.comment(text=f"comment text 1 @{posting_user.username}", commenter=posting_user)
+
+        response = self.graphql.execute(
+            """
+            mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
+                reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
+                    success
+                }
+            }
+            """,
+            context_value=BeneDict({"user": reporting_user}),
+            variable_values=BeneDict(
+                {
+                    "objectId": str(comment.id),
+                    "contentType": ContentType.POST_COMMENT.value,
+                    "description": "report",
+                }
+            ),
+        )
+
+        self.assertIsNone(response.get("errors"))
+        self.assertEqual(response["data"]["reportContent"]["success"], True)
+
+        post_data = self.get_post_with_id(post, reporting_user)
+        # TODO uncomment after implementation of blocking reported content.
+        # self.assertEqual(len(post_data["comments"]), 0)
+
+        response = self.get_post_with_id(post, other_user)
+        self.assertEqual(len(post_data["comments"]), 1)
+
+        approve_verify_moderated_object(comment.id, posting_user)
+
+        post_data = self.get_post_with_id(post, other_user)
+        # TODO uncomment after implementation of blocking reported content.
+        # self.assertEqual(len(post_data["comments"]), 0)
+
+    def test_report_user(self):
+        user = make_user()
+        make_community(user, name="mods")  # members of the mods community are global moderators
+        reporting_user = make_user(name="ReportingUser")
+        other_user = make_user(name="OtherUser")
+
+        response = self.graphql.execute(
+            """
+            mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
+                reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
+                    success
+                }
+            }
+            """,
+            context_value=BeneDict({"user": reporting_user}),
+            variable_values=BeneDict(
+                {
+                    "objectId": str(user.username),
+                    "contentType": ContentType.USER.value,
+                    "description": "report",
+                }
+            ),
+        )
+
+        self.assertIsNone(response.get("errors"))
+        self.assertEqual(response["data"]["reportContent"]["success"], True)
+
+        response = self.graphql.execute(
+            f"""
+            query {{
+                userById(id: "{user.id}") {{
+                    id
+                }}
+            }}
+            """,
+            context_value=BeneDict({"user": reporting_user}),
+        )
+        self.assertEqual(response["data"]["userById"], None)
+        self.assertEqual(response["errors"][0]["message"], "User not found")
+
+        response = self.graphql.execute(
+            f"""
+            query {{
+                userById(id: "{user.username}") {{
+                    id
+                }}
+            }}
+            """,
+            context_value=BeneDict({"user": other_user}),
+        )
+        self.assertIsNone(response.get("errors"))
+        self.assertEqual(response["data"]["userById"]["id"], user.username)
+
+        approve_verify_moderated_object(user.id, user)
+
+        response = self.graphql.execute(
+            f"""
+            query {{
+                userById(id: "{user.username}") {{
+                    id
+                }}
+            }}
+            """,
+            context_value=BeneDict({"user": other_user}),
+        )
+        self.assertIsNone(response.get("errors"))
+        # TODO uncomment after implementation of blocking reported content.
+        # self.assertEqual(response["data"]["userById"], None)
+
+    def test_report_space(self):
+        space_user = make_user()
+        make_community(space_user, name="mods")  # members of the mods community are global moderators
+        reporting_user = make_user(name="ReportingUser")
+        other_user = make_user(name="OtherUser")
+
+        space = make_community(creator=space_user)
+
+        response = self.graphql.execute(
+            """
+            mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
+                reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
+                    success
+                }
+            }
+            """,
+            context_value=BeneDict({"user": reporting_user}),
+            variable_values=BeneDict(
+                {
+                    "objectId": str(space.id),
+                    "contentType": ContentType.SPACE.value,
+                    "description": "report",
+                }
+            ),
+        )
+
+        self.assertIsNone(response.get("errors"))
+        self.assertEqual(response["data"]["reportContent"]["success"], True)
+
+        response = self.graphql.execute(
+            f"""
+            query {{
+                spaceById(id: "{space.id}") {{
+                    id
+                }}
+            }}
+            """,
+            context_value=BeneDict({"user": reporting_user}),
+        )
+        self.assertIsNone(response.get("errors"))
+        # TODO uncomment after implementation of blocking reported content.
+        # self.assertEqual(len(response["data"]["spaceById"]), 0)
+
+        response = self.graphql.execute(
+            f"""
+            query {{
+                spaceById(id: "{space.id}") {{
+                    id
+                }}
+            }}
+            """,
+            context_value=BeneDict({"user": other_user}),
+        )
+        self.assertIsNone(response.get("errors"))
+        self.assertEqual(len(response["data"]["spaceById"]), 1)
+        self.assertEqual(response["data"]["spaceById"]["id"], str(space.id))
+
+        approve_verify_moderated_object(space.id, space_user)
+
+        response = self.graphql.execute(
+            f"""
+            query {{
+                spaceById(id: "{space.id}") {{
+                    id
+                }}
+            }}
+            """,
+            context_value=BeneDict({"user": other_user}),
+        )
+        # TODO uncomment after implementation of blocking reported content.
+        # self.assertEqual(response["data"]["spaceById"], None)
+
+    # Utility methods
+
+    def get_post_with_id(self, post, user=None):
+        response = self.get_post_with_id_unchecked(post, user)
+        self.assertIsNone(response.get("errors"))
+        return response["data"]["postById"]
+
+    def get_post_with_id_unchecked(self, post, user=None):
+        response = self.graphql.execute(
+            f"""
+            query {{
+                postById(id: "{post.id}") {{
+                    id
+                    text
+                    title
+                    image {{
+                        url
+                        width
+                        height
+                    }}
+                    created
+                    creator {{
+                        id
+                    }}
+                    comments {{
+                        text
+                        mentions {{
+                            fullName
+                        }}
+                    }}
+                    mentions {{
+                        fullName
+                    }}
+                    numberOfComments
+                    involvedUsers {{
+                        totalResults
+                        data {{
+                            firstName
+                        }}
+                    }}
+                    commenters {{
+                        totalResults
+                        data {{
+                            firstName
+                        }}
+                    }}
+                }}
+            }}
+            """,
+            context_value=BeneDict({"user": user}) if user is not None else None,
+        )
+        return response
 
     def mutate_update_space_user_connection(
         self,
@@ -828,3 +1060,9 @@ class GraphQLTest(TestCase):
 
         for el in expected_data:
             self.assertIn(el, results["data"])
+
+
+def approve_verify_moderated_object(object_id, user):
+    moderated_object = ModeratedObject.objects.filter(object_id=object_id).first()
+    user.approve_moderated_object(moderated_object)
+    user.verify_moderated_object(moderated_object)
