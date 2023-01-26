@@ -827,9 +827,7 @@ class GraphQLTest(TestCase):
             """,
             context_value=BeneDict({"user": reporting_user}),
         )
-        self.assertIsNone(response.get("errors"))
-        # TODO uncomment after implementation of blocking reported content.
-        # self.assertEqual(len(response["data"]["spaceById"]), 0)
+        self.assertIsNone(response["data"]["spaceById"])
 
         response = self.graphql.execute(
             f"""
@@ -857,8 +855,7 @@ class GraphQLTest(TestCase):
             """,
             context_value=BeneDict({"user": other_user}),
         )
-        # TODO uncomment after implementation of blocking reported content.
-        # self.assertEqual(response["data"]["spaceById"], None)
+        self.assertIsNone(response["data"]["spaceById"])
 
     def test_block_user(self):
         blocking_user = make_user(name="BlockingUser")

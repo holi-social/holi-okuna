@@ -719,7 +719,7 @@ class Query(graphene.ObjectType):
 
     def resolve_space_by_id(self, info, id):
         try:
-            return CommunityModel.objects.get(id=id)
+            return CommunityModel.objects.filter(ModeratedObject.not_moderated_query(info.context.user)).get(id=id)
         except CommunityModel.DoesNotExist:
             raise GraphQLError("Space not found", extensions={"code": ErrorCodes.NOT_FOUND})
 
