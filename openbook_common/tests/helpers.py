@@ -72,7 +72,7 @@ def make_user(
 
 def make_global_moderator() -> User:
     moderator = make_user()
-    make_moderators_community(creator=moderator)
+    moderator.is_moderator = True
     return moderator
 
 
@@ -286,16 +286,6 @@ def make_community(
     community.save()
 
     return community
-
-
-def make_moderators_community(
-    creator,
-):
-    return make_community(
-        name=settings.MODERATORS_COMMUNITY_NAME,
-        creator=creator,
-        type=Community.COMMUNITY_TYPE_PRIVATE,
-    )
 
 
 def make_private_community(creator):

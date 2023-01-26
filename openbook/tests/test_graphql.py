@@ -651,7 +651,7 @@ class GraphQLTest(TestCase):
 
     def test_report_post(self):
         posting_user = make_user()
-        make_community(posting_user, name="mods")  # members of the mods community are global moderators
+        posting_user.is_moderator = True
         reporting_user = make_user(name="ReportingUser")
         other_user = make_user(name="OtherUser")
 
@@ -705,7 +705,7 @@ class GraphQLTest(TestCase):
 
     def test_report_post_comment(self):
         posting_user = make_user()
-        make_community(posting_user, name="mods")  # members of the mods community are global moderators
+        posting_user.is_moderator = True
         reporting_user = make_user(name="ReportingUser")
         other_user = make_user(name="OtherUser")
 
@@ -754,7 +754,7 @@ class GraphQLTest(TestCase):
 
     def test_report_user(self):
         user = make_user()
-        make_community(user, name="mods")  # members of the mods community are global moderators
+        user.is_moderator = True
         reporting_user = make_user(name="ReportingUser")
         other_user = make_user(name="OtherUser")
 
@@ -823,7 +823,7 @@ class GraphQLTest(TestCase):
 
     def test_report_space(self):
         space_user = make_user()
-        make_community(space_user, name="mods")  # members of the mods community are global moderators
+        space_user.is_moderator = True
         reporting_user = make_user(name="ReportingUser")
         other_user = make_user(name="OtherUser")
 
