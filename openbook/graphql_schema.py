@@ -971,6 +971,24 @@ class UpdateSpaceUserConnectionMutation(graphene.Mutation):
         return space
 
 
+class BlockUserMutation(graphene.Mutation):
+    class Arguments:
+        user_id = graphene.UUID(description="The user to block")
+
+    success = graphene.Boolean()
+
+    @classmethod
+    def mutate(cls, root, info, user_id):
+        current_user: UserModel = info.context.user
+        username_of_user_to_block = str(user_id)
+        if current_user.is_anonymous:
+            raise GraphQLError("Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED})
+
+        current_user.block_user_with_username(username_of_user_to_block)
+
+        return BlockUserMutation(success=True)
+
+
 class ReportContentMutation(graphene.Mutation):
     class Arguments:
         object_id = graphene.UUID(required=True)
@@ -1011,6 +1029,7 @@ class Mutation(graphene.ObjectType):
     update_space_user_connection = UpdateSpaceUserConnectionMutation.Field()
     delete_authenticated_user = DeleteAuthenticatedUserMutation.Field()
     report_content = ReportContentMutation.Field()
+    block_user = BlockUserMutation.Field()
 
 
 # noinspection PyTypeChecker
