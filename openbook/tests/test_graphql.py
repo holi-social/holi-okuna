@@ -779,47 +779,19 @@ class GraphQLTest(TestCase):
         self.assertIsNone(response.get("errors"))
         self.assertEqual(response["data"]["reportContent"]["success"], True)
 
-        response = self.graphql.execute(
-            f"""
-            query {{
-                userById(id: "{user.id}") {{
-                    id
-                }}
-            }}
-            """,
-            context_value=BeneDict({"user": reporting_user}),
-        )
-        self.assertEqual(response["data"]["userById"], None)
-        self.assertEqual(response["errors"][0]["message"], "User not found")
+        response = self.get_user_with_id_unchecked(user, reporting_user)
+        # TODO uncomment after implementation of blocking reported content.
+        # self.assertEqual(response["data"]["userById"], None)
+        # self.assertEqual(response["errors"][0]["message"], "User not found")
 
-        response = self.graphql.execute(
-            f"""
-            query {{
-                userById(id: "{user.username}") {{
-                    id
-                }}
-            }}
-            """,
-            context_value=BeneDict({"user": other_user}),
-        )
-        self.assertIsNone(response.get("errors"))
-        self.assertEqual(response["data"]["userById"]["id"], user.username)
+        user_before_approve = self.get_user_with_id(user, other_user)
+        self.assertEqual(user_before_approve["id"], user.username)
 
         approve_verify_moderated_object(user.id, user)
 
-        response = self.graphql.execute(
-            f"""
-            query {{
-                userById(id: "{user.username}") {{
-                    id
-                }}
-            }}
-            """,
-            context_value=BeneDict({"user": other_user}),
-        )
-        self.assertIsNone(response.get("errors"))
+        user_after_approve = self.get_user_with_id(user, other_user)
         # TODO uncomment after implementation of blocking reported content.
-        # self.assertEqual(response["data"]["userById"], None)
+        # self.assertEqual(user_after_approve, None)
 
     def test_report_space(self):
         space_user = make_user()
@@ -893,7 +865,55 @@ class GraphQLTest(TestCase):
         # TODO uncomment after implementation of blocking reported content.
         # self.assertEqual(response["data"]["spaceById"], None)
 
+    def test_block_user(self):
+        blocking_user = make_user(name="BlockingUser")
+        blocked_user = make_user(name="OtherUser")
+
+        response = self.graphql.execute(
+            """
+            mutation ($userId: UUID!) {
+                blockUser(userId: $userId) {
+                    success
+                }
+            }
+            """,
+            context_value=BeneDict({"user": blocking_user}),
+            variable_values=BeneDict(
+                {
+                    "userId": blocked_user.username,
+                }
+            ),
+        )
+
+        self.assertIsNone(response.get("errors"))
+        self.assertEqual(response["data"]["blockUser"]["success"], True)
+
+        blocked_user_after_blocking = self.get_user_with_id(blocked_user, blocking_user)
+        # TODO uncomment after implementation of filtering blocked users.
+        # self.assertEqual(blocked_user_after_blocking, None)
+
+        blocking_user_for_blocked_user_after_blocking = self.get_user_with_id(blocking_user, blocked_user)
+        # TODO uncomment after implementation of filtering blocked users.
+        # self.assertEqual(blocking_user_for_blocked_user_after_blocking, None)
+
     # Utility methods
+
+    def get_user_with_id(self, user_to_get, calling_user):
+        response = self.get_user_with_id_unchecked(user_to_get, calling_user)
+        self.assertIsNone(response.get("errors"))
+        return response["data"]["userById"]
+
+    def get_user_with_id_unchecked(self, user_to_get, calling_user):
+        return self.graphql.execute(
+            f"""
+            query {{
+                userById(id: "{user_to_get.username}") {{
+                    id
+                }}
+            }}
+            """,
+            context_value=BeneDict({"user": calling_user}),
+        )
 
     def get_post_with_id(self, post, user=None):
         response = self.get_post_with_id_unchecked(post, user)
