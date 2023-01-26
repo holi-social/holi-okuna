@@ -975,7 +975,7 @@ class BlockUserMutation(graphene.Mutation):
     class Arguments:
         user_id = graphene.UUID(description="The user to block")
 
-    ok = graphene.Boolean()
+    success = graphene.Boolean()
 
     @classmethod
     def mutate(cls, root, info, user_id):
@@ -986,7 +986,7 @@ class BlockUserMutation(graphene.Mutation):
 
         current_user.block_user_with_username(username_of_user_to_block)
 
-        return BlockUserMutation(ok=True)
+        return BlockUserMutation(success=True)
 
 
 class ReportContentMutation(graphene.Mutation):

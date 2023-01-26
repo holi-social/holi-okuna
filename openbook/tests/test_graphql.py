@@ -873,7 +873,7 @@ class GraphQLTest(TestCase):
             """
             mutation ($userId: UUID!) {
                 blockUser(userId: $userId) {
-                    ok
+                    success
                 }
             }
             """,
@@ -886,7 +886,7 @@ class GraphQLTest(TestCase):
         )
 
         self.assertIsNone(response.get("errors"))
-        self.assertEqual(response["data"]["blockUser"]["ok"], True)
+        self.assertEqual(response["data"]["blockUser"]["success"], True)
 
         blocked_user_after_blocking = self.get_user_with_id(blocked_user, blocking_user)
         # TODO uncomment after implementation of filtering blocked users.
