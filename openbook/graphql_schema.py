@@ -16,7 +16,7 @@ from graphql import GraphQLError
 from django.conf import settings
 
 from openbook_auth.images import delete_avatar
-from openbook_auth.models import UserConnectionStatus, User as UserModel
+from openbook_auth.models import UserConnectionStatus, User as UserModel, UserBlock
 from openbook_auth.validators import string_not_empty
 from openbook_auth.views.authenticated_user.serializers import (
     UpdateAuthenticatedUserSerializer,
@@ -31,6 +31,7 @@ from openbook_communities.models import (
 )
 from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_insights.models import Insight as InsightModel
+from openbook_moderation.models import ModeratedObject
 from openbook_notifications.models import Notification as NotificationModel
 from openbook_posts.models import (
     Post as PostModel,
@@ -230,39 +231,24 @@ class Insight(DjangoObjectType):
 
     def resolve_posts(self, info):
         return (
-            PostModel.objects.filter(Q(status=PostModel.STATUS_PUBLISHED) & PostModel.is_publicly_visible_query())
+            PostModel.objects.filter(PostModel.is_visible_query(info.context.user))
             .filter(insights=self)
             .order_by("created")
             .all()
         )
 
     def resolve_number_of_posts(self, info):
-        return (
-            PostModel.objects.filter(Q(status=PostModel.STATUS_PUBLISHED) & PostModel.is_publicly_visible_query())
-            .filter(insights=self)
-            .count()
-        )
+        return PostModel.objects.filter(PostModel.is_visible_query(info.context.user)).filter(insights=self).count()
 
     def resolve_involved_users(self, info, offset, limit):
         return Paged.data(
             UserModel.objects.select_related("profile")
             .filter(
                 Q(curated_insights=self)
-                | (
-                    Q(posts__insights=self)
-                    & Q(posts__status=PostModel.STATUS_PUBLISHED)
-                    & (
-                        Q(posts__circles=Circle.get_world_circle_id())
-                        | Q(posts__community__type=CommunityModel.COMMUNITY_TYPE_PUBLIC)
-                    )
-                )
+                | (Q(posts__insights=self) & PostModel.is_visible_query(info.context.user, "posts__"))
                 | (
                     Q(posts_comments__post__insights=self)
-                    & Q(posts_comments__post__status=PostModel.STATUS_PUBLISHED)
-                    & (
-                        Q(posts_comments__post__circles=Circle.get_world_circle_id())
-                        | Q(posts_comments__post__community__type=CommunityModel.COMMUNITY_TYPE_PUBLIC)
-                    )
+                    & PostModel.is_visible_query(info.context.user, "posts_comments__post__")
                 )
             )
             .distinct(),
@@ -299,8 +285,11 @@ class Post(DjangoObjectType):
         return Paged.data(
             UserModel.objects.select_related("profile")
             .filter(
-                (Q(posts=self) & Q(posts__status=PostModel.STATUS_PUBLISHED))
-                | (Q(posts_comments__post=self) & Q(posts_comments__post__status=PostModel.STATUS_PUBLISHED))
+                (Q(posts=self) & PostModel.is_visible_query(info.context.user, "posts__"))
+                | (
+                    Q(posts_comments__post=self)
+                    & PostCommentModel.is_visible_query(info.context.user, "posts_comments__")
+                )
             )
             .distinct(),
             offset,
@@ -313,6 +302,9 @@ class Post(DjangoObjectType):
             offset,
             limit,
         )
+
+    def resolve_comments(self, info):
+        return PostCommentModel.objects.filter(PostCommentModel.is_visible_query(info.context.user)).filter(post=self)
 
 
 class PostComment(DjangoObjectType):
@@ -410,15 +402,15 @@ def spaces_for_filter(offset, limit, topic_id=None, location=None, skill_ids=Non
     )
 
 
-def resolve_post(id):
+def resolve_post(user, id):
     try:
-        return get_posts_with_comments_query().get(id=id)
+        return get_posts_with_comments_query(user).get(id=id)
     except PostModel.DoesNotExist:
         raise GraphQLError("Post not found", extensions={"code": ErrorCodes.NOT_FOUND})
 
 
-def get_posts_with_comments_query():
-    return get_posts_only_query().prefetch_related(
+def get_posts_with_comments_query(user):
+    return get_posts_only_query(user).prefetch_related(
         Prefetch(
             "comments",
             queryset=PostCommentModel.objects.order_by("created")
@@ -434,9 +426,9 @@ def get_posts_with_comments_query():
     )
 
 
-def get_posts_only_query():
+def get_posts_only_query(user):
     return (
-        PostModel.objects.filter(Q(status=PostModel.STATUS_PUBLISHED))
+        PostModel.objects.filter(PostModel.is_visible_query(user))
         .select_related("creator", "image")
         .prefetch_related("links")
         .prefetch_related(
@@ -543,7 +535,12 @@ class Query(graphene.ObjectType):
 
     def resolve_user_by_id(self, info, id):
         try:
-            return UserModel.objects.select_related("profile").get(username=id)
+            context_user = info.context.user
+            return (
+                UserModel.objects.select_related("profile")
+                .filter(UserBlock.not_blocked_query(context_user) & ModeratedObject.not_moderated_query(context_user))
+                .get(username=id)
+            )
         except UserModel.DoesNotExist:
             raise GraphQLError("User not found", extensions={"code": ErrorCodes.NOT_FOUND})
 
@@ -626,7 +623,7 @@ class Query(graphene.ObjectType):
             raise GraphQLError("Insight not found", extensions={"code": ErrorCodes.NOT_FOUND})
 
     def resolve_post_by_id(self, info, id):
-        return resolve_post(id)
+        return resolve_post(info.context.user, id)
 
     def resolve_topics(self, info, offset, limit):
         return Paged.data(TopicModel.objects.all().order_by("title"), offset, limit)
@@ -722,7 +719,7 @@ class Query(graphene.ObjectType):
 
     def resolve_space_by_id(self, info, id):
         try:
-            return CommunityModel.objects.get(id=id)
+            return CommunityModel.objects.filter(ModeratedObject.not_moderated_query(info.context.user)).get(id=id)
         except CommunityModel.DoesNotExist:
             raise GraphQLError("Space not found", extensions={"code": ErrorCodes.NOT_FOUND})
 

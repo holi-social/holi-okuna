@@ -4,6 +4,7 @@ from typing import List, Optional
 from uuid import UUID
 
 from benedict import BeneDict
+from django.contrib.auth.models import AnonymousUser
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
@@ -200,7 +201,7 @@ class GraphQLTest(TestCase):
             commenter=other_user,
         )
 
-        post_data = self.get_post_with_id(post)
+        post_data = self.get_post_with_id_data(post)
 
         self.assertEqual(post_data["text"], post_text)
         self.assertEqual(post_data["title"], post_title)
@@ -227,7 +228,7 @@ class GraphQLTest(TestCase):
             image=SimpleUploadedFile(name=image_name, content=simple_jpeg_bytes),
         )
 
-        post_data = self.get_post_with_id(post)
+        post_data = self.get_post_with_id_data(post)
 
         self.assertEqual(post_data["text"], post_text)
         self.assertEqual(post_data["title"], post_title)
@@ -245,7 +246,7 @@ class GraphQLTest(TestCase):
 
         post = posting_user.create_public_post(text=post_text, title=post_title, is_draft=True)
 
-        response = self.get_post_with_id_unchecked(post)
+        response = self.get_post_with_id_raw(post)
 
         post_data = response["data"]["postById"]
         self.assertEqual(post_data, None)
@@ -310,7 +311,8 @@ class GraphQLTest(TestCase):
                     }}
                 }}
             }}
-            """
+            """,
+            context_value=BeneDict({"user": AnonymousUser}),
         )
 
         insights = response["data"]["lastInsights"]["data"]
@@ -687,21 +689,19 @@ class GraphQLTest(TestCase):
         self.assertEqual(reporting_user.can_see_post(post), False)
         self.assertEqual(other_user.can_see_post(post), True)
 
-        post_data = self.get_post_with_id(post, reporting_user)
-        # TODO uncomment after implementation of blocking reported content.
+        response = self.get_post_with_id_raw(post, reporting_user)
+        self.assertIsNone(response["data"]["postById"])
         self.assertFalse(reporting_user.can_see_post(post))
         self.assertTrue(other_user.can_see_post(post))
-        # self.assertEqual(post_data, None)
 
-        post_data = self.get_post_with_id(post, other_user)
+        post_data = self.get_post_with_id_data(post, other_user)
         self.assertEqual(post_data["id"], str(post.id))
 
         approve_verify_moderated_object(post.id, posting_user)
 
-        post_data = self.get_post_with_id(post, other_user)
-        # TODO uncomment after implementation of blocking reported content.
+        response = self.get_post_with_id_raw(post, other_user)
         self.assertFalse(other_user.can_see_post(post))
-        # self.assertEqual(post_data, None)
+        self.assertIsNone(response["data"]["postById"])
 
     def test_report_post_comment(self):
         posting_user = make_user()
@@ -739,18 +739,16 @@ class GraphQLTest(TestCase):
         self.assertIsNone(response.get("errors"))
         self.assertEqual(response["data"]["reportContent"]["success"], True)
 
-        post_data = self.get_post_with_id(post, reporting_user)
-        # TODO uncomment after implementation of blocking reported content.
-        # self.assertEqual(len(post_data["comments"]), 0)
+        post_data = self.get_post_with_id_data(post, reporting_user)
+        self.assertEqual(len(post_data["comments"]), 0)
 
-        response = self.get_post_with_id(post, other_user)
+        post_data = self.get_post_with_id_data(post, other_user)
         self.assertEqual(len(post_data["comments"]), 1)
 
         approve_verify_moderated_object(comment.id, posting_user)
 
-        post_data = self.get_post_with_id(post, other_user)
-        # TODO uncomment after implementation of blocking reported content.
-        # self.assertEqual(len(post_data["comments"]), 0)
+        post_data = self.get_post_with_id_data(post, other_user)
+        self.assertEqual(len(post_data["comments"]), 0)
 
     def test_report_user(self):
         user = make_user()
@@ -779,19 +777,16 @@ class GraphQLTest(TestCase):
         self.assertIsNone(response.get("errors"))
         self.assertEqual(response["data"]["reportContent"]["success"], True)
 
-        response = self.get_user_with_id_unchecked(user, reporting_user)
-        # TODO uncomment after implementation of blocking reported content.
-        # self.assertEqual(response["data"]["userById"], None)
-        # self.assertEqual(response["errors"][0]["message"], "User not found")
+        response = self.get_user_with_id_raw(user, reporting_user)
+        self.assertIsNone(response["data"]["userById"])
 
-        user_before_approve = self.get_user_with_id(user, other_user)
+        user_before_approve = self.get_user_with_id_data(user, other_user)
         self.assertEqual(user_before_approve["id"], user.username)
 
         approve_verify_moderated_object(user.id, user)
 
-        user_after_approve = self.get_user_with_id(user, other_user)
-        # TODO uncomment after implementation of blocking reported content.
-        # self.assertEqual(user_after_approve, None)
+        response_after_approve = self.get_user_with_id_raw(user, other_user)
+        self.assertIsNone(response_after_approve["data"]["userById"])
 
     def test_report_space(self):
         space_user = make_user()
@@ -832,9 +827,7 @@ class GraphQLTest(TestCase):
             """,
             context_value=BeneDict({"user": reporting_user}),
         )
-        self.assertIsNone(response.get("errors"))
-        # TODO uncomment after implementation of blocking reported content.
-        # self.assertEqual(len(response["data"]["spaceById"]), 0)
+        self.assertIsNone(response["data"]["spaceById"])
 
         response = self.graphql.execute(
             f"""
@@ -862,8 +855,7 @@ class GraphQLTest(TestCase):
             """,
             context_value=BeneDict({"user": other_user}),
         )
-        # TODO uncomment after implementation of blocking reported content.
-        # self.assertEqual(response["data"]["spaceById"], None)
+        self.assertIsNone(response["data"]["spaceById"])
 
     def test_block_user(self):
         blocking_user = make_user(name="BlockingUser")
@@ -888,22 +880,20 @@ class GraphQLTest(TestCase):
         self.assertIsNone(response.get("errors"))
         self.assertEqual(response["data"]["blockUser"]["success"], True)
 
-        blocked_user_after_blocking = self.get_user_with_id(blocked_user, blocking_user)
-        # TODO uncomment after implementation of filtering blocked users.
-        # self.assertEqual(blocked_user_after_blocking, None)
+        response_after_blocking = self.get_user_with_id_raw(blocked_user, blocking_user)
+        self.assertIsNone(response_after_blocking["data"]["userById"])
 
-        blocking_user_for_blocked_user_after_blocking = self.get_user_with_id(blocking_user, blocked_user)
-        # TODO uncomment after implementation of filtering blocked users.
-        # self.assertEqual(blocking_user_for_blocked_user_after_blocking, None)
+        response_after_blocking = self.get_user_with_id_raw(blocking_user, blocked_user)
+        self.assertIsNone(response_after_blocking["data"]["userById"])
 
     # Utility methods
 
-    def get_user_with_id(self, user_to_get, calling_user):
-        response = self.get_user_with_id_unchecked(user_to_get, calling_user)
+    def get_user_with_id_data(self, user_to_get, calling_user):
+        response = self.get_user_with_id_raw(user_to_get, calling_user)
         self.assertIsNone(response.get("errors"))
         return response["data"]["userById"]
 
-    def get_user_with_id_unchecked(self, user_to_get, calling_user):
+    def get_user_with_id_raw(self, user_to_get, calling_user):
         return self.graphql.execute(
             f"""
             query {{
@@ -915,13 +905,13 @@ class GraphQLTest(TestCase):
             context_value=BeneDict({"user": calling_user}),
         )
 
-    def get_post_with_id(self, post, user=None):
-        response = self.get_post_with_id_unchecked(post, user)
+    def get_post_with_id_data(self, post, user=None):
+        response = self.get_post_with_id_raw(post, user)
         self.assertIsNone(response.get("errors"))
         return response["data"]["postById"]
 
-    def get_post_with_id_unchecked(self, post, user=None):
-        response = self.graphql.execute(
+    def get_post_with_id_raw(self, post, user=None):
+        return self.graphql.execute(
             f"""
             query {{
                 postById(id: "{post.id}") {{
@@ -962,9 +952,8 @@ class GraphQLTest(TestCase):
                 }}
             }}
             """,
-            context_value=BeneDict({"user": user}) if user is not None else None,
+            context_value=BeneDict({"user": user if user is not None else AnonymousUser}),
         )
-        return response
 
     def mutate_update_space_user_connection(
         self,

@@ -24,7 +24,7 @@ from openbook_auth.helpers import (
     upload_to_user_avatar_directory,
     upload_to_user_cover_directory,
 )
-from openbook_common.helpers import get_supported_translation_language
+from openbook_common.helpers import get_supported_translation_language, PQ
 from openbook_common.models import Badge, ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import (
@@ -4702,6 +4702,13 @@ class UserBlock(ModelWithUUID):
         return cls.objects.filter(
             Q(blocked_user_id=user_a_id, blocker_id=user_b_id) | Q(blocked_user_id=user_b_id, blocker_id=user_a_id)
         ).exists()
+
+    @staticmethod
+    def not_blocked_query(user, prefix=None):
+        if user.is_anonymous:
+            return Q()
+
+        return ~PQ(prefix, blocked_by_users__blocker=user) & ~PQ(prefix, user_blocks__blocked_user=user)
 
 
 @receiver(
