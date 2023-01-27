@@ -751,7 +751,7 @@ class GraphQLTest(TestCase):
         post_data = self.get_post_with_id_data(post, other_user)
         self.assertEqual(len(post_data["comments"]), 0)
 
-    @unittest.skip("QUICKFIX")
+    @unittest.skip("Fundamentally broken on Postgres, even though this test would work")
     def test_report_user(self):
         user = make_user()
         user.is_moderator = True
@@ -759,6 +759,9 @@ class GraphQLTest(TestCase):
         other_user = make_user(name="OtherUser")
 
         user_before_report = self.get_user_with_id_data(user, reporting_user)
+        self.assertEqual(user_before_report["id"], user.username)
+
+        user_before_report = self.get_user_with_id_data(user)
         self.assertEqual(user_before_report["id"], user.username)
 
         response = self.graphql.execute(
@@ -787,10 +790,14 @@ class GraphQLTest(TestCase):
 
         user_before_approve = self.get_user_with_id_data(user, other_user)
         self.assertEqual(user_before_approve["id"], user.username)
+        user_before_approve = self.get_user_with_id_data(user)
+        self.assertEqual(user_before_approve["id"], user.username)
 
         approve_verify_moderated_object(user.id, user)
 
         response_after_approve = self.get_user_with_id_raw(user, other_user)
+        self.assertIsNone(response_after_approve["data"]["userById"])
+        response_after_approve = self.get_user_with_id_raw(user)
         self.assertIsNone(response_after_approve["data"]["userById"])
 
     def test_report_space(self):
@@ -893,12 +900,12 @@ class GraphQLTest(TestCase):
 
     # Utility methods
 
-    def get_user_with_id_data(self, user_to_get, calling_user):
+    def get_user_with_id_data(self, user_to_get, calling_user=None):
         response = self.get_user_with_id_raw(user_to_get, calling_user)
         self.assertIsNone(response.get("errors"))
         return response["data"]["userById"]
 
-    def get_user_with_id_raw(self, user_to_get, calling_user):
+    def get_user_with_id_raw(self, user_to_get, calling_user=None):
         return self.graphql.execute(
             f"""
             query {{
@@ -907,7 +914,7 @@ class GraphQLTest(TestCase):
                 }}
             }}
             """,
-            context_value=BeneDict({"user": calling_user}),
+            context_value=BeneDict({"user": calling_user or AnonymousUser}),
         )
 
     def get_post_with_id_data(self, post, user=None):
@@ -957,7 +964,7 @@ class GraphQLTest(TestCase):
                 }}
             }}
             """,
-            context_value=BeneDict({"user": user if user is not None else AnonymousUser}),
+            context_value=BeneDict({"user": user or AnonymousUser}),
         )
 
     def mutate_update_space_user_connection(

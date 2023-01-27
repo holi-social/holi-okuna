@@ -21,7 +21,6 @@ from openbook_auth.validators import string_not_empty
 from openbook_auth.views.authenticated_user.serializers import (
     UpdateAuthenticatedUserSerializer,
 )
-from openbook_circles.models import Circle
 from openbook_common.models import LinkPreview as LinkPreviewModel
 from openbook_communities.models import (
     Community as CommunityModel,
