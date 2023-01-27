@@ -616,7 +616,7 @@ class Query(graphene.ObjectType):
                 InsightModel.objects.select_related("creator__profile")
                 .select_related("topic")
                 .filter(date_published__lte=datetime.now())
-                .prefetch_related(Prefetch("posts", queryset=get_posts_only_query()))
+                .prefetch_related(Prefetch("posts", queryset=get_posts_only_query(info.context.user)))
                 .get(id=id)
             )
         except InsightModel.DoesNotExist:
