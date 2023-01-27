@@ -86,9 +86,9 @@ from video_encoding.backends import get_backend
 from video_encoding.fields import VideoField
 from video_encoding.models import Format
 
-magic = get_magic()
-from openbook_common.helpers import get_language_for_text, attr_filled, PQ
+from openbook_common.helpers import get_language_for_text, attr_filled, PQ, PrefixedQ
 
+magic = get_magic()
 post_image_storage = default_storage
 
 
@@ -889,35 +889,36 @@ class Post(ModelWithUUID):
 
     @staticmethod
     def is_visible_query(user, prefix=None):
+        pQ = PrefixedQ(prefix)
+
         if user.is_anonymous:
             return (
-                ~PQ(prefix, is_deleted=True)
+                ~pQ(is_deleted=True)
                 & ModeratedObject.not_moderated_query(user, prefix)
                 & (
-                    PQ(prefix, status=Post.STATUS_PUBLISHED)
+                    pQ(status=Post.STATUS_PUBLISHED)
                     & (
-                        PQ(prefix, circles__id=get_circle_model().get_world_circle_id())
-                        | PQ(prefix, community__type=get_community_model().COMMUNITY_TYPE_PUBLIC)
+                        pQ(circles__id=get_circle_model().get_world_circle_id())
+                        | pQ(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC)
                     )
                 )
             )
 
         return (
-            ~PQ(prefix, is_deleted=True)
-            & ModeratedObject.not_moderated_query(user, prefix)
-            & UserBlock.not_blocked_query(user, (prefix or "") + "creator__")
+            ~pQ(is_deleted=True)
+            & ModeratedObject.not_moderated_query(user, pQ.prefix)
+            & UserBlock.not_blocked_query(user, pQ.prefix_plus("creator__"))
             & (
-                PQ(prefix, creator=user)
+                pQ(creator=user)
                 | (
-                    PQ(prefix, status=Post.STATUS_PUBLISHED)
+                    pQ(status=Post.STATUS_PUBLISHED)
                     & (
-                        PQ(prefix, circles__id=get_circle_model().get_world_circle_id())
-                        | PQ(
-                            prefix,
+                        pQ(circles__id=get_circle_model().get_world_circle_id())
+                        | pQ(
                             circles__connections__target_user=user,
                             circles__connections__target_connection__circles__isnull=False,
                         )
-                        | PQ(prefix, community__type=get_community_model().COMMUNITY_TYPE_PUBLIC)
+                        | pQ(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC)
                     )
                 )
             )
@@ -1394,18 +1395,19 @@ class PostComment(ModelWithUUID):
 
     @staticmethod
     def is_visible_query(user, prefix=None):
+        pQ = PrefixedQ(prefix)
         if user.is_anonymous:
             return (
-                ~PQ(prefix, is_deleted=True)
-                & ModeratedObject.not_moderated_query(user, prefix)
-                & Post.is_visible_query(user, (prefix or "") + "post__")
+                ~pQ(is_deleted=True)
+                & ModeratedObject.not_moderated_query(user, pQ.prefix)
+                & Post.is_visible_query(user, pQ.prefix_plus("post__"))
             )
 
         return (
-            ~PQ(prefix, is_deleted=True)
-            & ModeratedObject.not_moderated_query(user, prefix)
-            & UserBlock.not_blocked_query(user, (prefix or "") + "commenter__")
-            & (PQ(prefix, commenter=user) | Post.is_visible_query(user, (prefix or "") + "post__"))
+            ~pQ(is_deleted=True)
+            & ModeratedObject.not_moderated_query(user, pQ.prefix)
+            & UserBlock.not_blocked_query(user, pQ.prefix_plus("commenter__"))
+            & (pQ(commenter=user) | Post.is_visible_query(user, pQ.prefix_plus("post__")))
         )
 
 

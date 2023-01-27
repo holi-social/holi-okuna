@@ -105,3 +105,16 @@ def PQ(prefix=None, **kwargs):
     if prefix:
         return Q(**{prefix + key: value for key, value in kwargs.items()})
     return Q(**kwargs)
+
+
+class PrefixedQ:
+    def __init__(self, prefix=None):
+        self.prefix = prefix
+
+    def __call__(self, **kwargs):
+        if self.prefix:
+            return Q(**{self.prefix + key: value for key, value in kwargs.items()})
+        return Q(**kwargs)
+
+    def prefix_plus(self, prefix=None):
+        return (self.prefix or "") + prefix
