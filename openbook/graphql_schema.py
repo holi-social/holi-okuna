@@ -919,7 +919,9 @@ class UpdatePostCommentMutation(graphene.Mutation):
         with transaction.atomic():
             post_comment = authenticated_user.comment_post_with_id(post_id=post_id, text=comment_text)
 
-        return UpdatePostCommentMutation(post_comment=post_comment, post_by_id=resolve_post(post_id))
+        return UpdatePostCommentMutation(
+            post_comment=post_comment, post_by_id=resolve_post(info.context.user, post_id)
+        )
 
 
 class UpdateSpaceUserConnectionMutation(graphene.Mutation):
