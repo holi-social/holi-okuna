@@ -538,7 +538,9 @@ class Query(graphene.ObjectType):
             context_user = info.context.user
             return (
                 UserModel.objects.select_related("profile")
-                .filter(UserBlock.not_blocked_query(context_user) & ModeratedObject.not_moderated_query(context_user))
+                .filter(
+                    UserBlock.not_blocked_query(context_user)
+                )  # & ModeratedObject.not_moderated_query(context_user))
                 .get(username=id)
             )
         except UserModel.DoesNotExist:
