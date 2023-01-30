@@ -143,7 +143,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "openbook_common.middleware.TimezoneMiddleware",
     "openbook_common.middleware.ChunkedContentLengthMiddleware",
-    "django_structlog.middlewares.RequestMiddleware",
+    "openbook.middleware.slow_log_middleware",
 ]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [

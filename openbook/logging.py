@@ -44,7 +44,7 @@ def holi_gcloud_serializer(event_dict, *args, **kwargs):
 
     event_dict["message"] = event_dict.pop("event")
     event_dict["severity"] = normalize_severity_from_loglevel(event_dict.pop("level"))
-    event_dict["labels"] = LABELS
+    event_dict["logging.googleapis.com/labels"] = LABELS
     return json.dumps(event_dict, *args, **kwargs)
 
 
