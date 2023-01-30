@@ -96,10 +96,7 @@ def slow_log_middleware(get_response):
 
     def middleware(request):
         start_time = _current_millis()
-
-        # handle request
-        response = get_response(request)
-
+        response = get_response(request)  # handle request
         time_delta = _current_millis() - start_time
 
         if time_delta > SLOW_LOG_THRESHOLD:
@@ -127,4 +124,4 @@ def slow_log_middleware(get_response):
                 request_data=request.data,
             )
 
-    return middleware
+        return middleware
