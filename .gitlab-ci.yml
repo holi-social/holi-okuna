@@ -154,7 +154,6 @@ staging_deploy:
 
 production_deploy:
   extends: .deploy
-  when: manual
   allow_failure: false
   environment:
     name: production
