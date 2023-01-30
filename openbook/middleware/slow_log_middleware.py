@@ -45,7 +45,7 @@ class LoadAverage(object):
         try:
             with open("/proc/loadavg") as f:
                 content = f.read()
-            return map(float, content.split()[:3])
+            return [float(x) for x in content.split()[:3]]
         except:
             return [0.0, 0.0, 0.0]
 
