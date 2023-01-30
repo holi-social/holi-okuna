@@ -121,7 +121,6 @@ def slow_log_middleware(get_response):
                 queries=query_count,
                 hostname=hostname,
                 response_started=datetime.now(),
-                request_data=request.data,
             )
         return response
 
