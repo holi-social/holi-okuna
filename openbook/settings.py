@@ -36,7 +36,6 @@ django.utils.encoding.force_text = force_str
 # Python 3.10 moved collections.Callable to collections.abc.Callable. This is a patch to make old libs work (in particular nose)
 collections.Callable = collections.abc.Callable
 
-
 logger = structlog.getLogger(__name__)
 
 # Load dotenv

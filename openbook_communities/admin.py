@@ -26,7 +26,6 @@ class CommunityAdmin(admin.ModelAdmin):
 @admin.register(CommunityMembership)
 class CommunityMembershipAdmin(admin.ModelAdmin):
     list_display = ("community", "user")
-    pass
 
 
 @admin.register(Task)

@@ -4452,10 +4452,13 @@ class User(AbstractUser):
         return excluded_users.union(creator)
 
     def __str__(self):
-        if hasattr(self, "profile") and self.profile.full_name():
-            return f"{self.__class__.__name__}, Name {self.profile.full_name()}"
+        if hasattr(self, "profile"):
+            if self.profile.full_name():
+                return f"{self.__class__.__name__}, Name {self.profile.full_name()}"
+            else:
+                return f"{self.__class__.__name__}, ID {self.id}"
         else:
-            return f"{self.__class__.__name__}, UUID {self.id}"
+            return f"Admin {self.__class__.__name__}, ID {self.id}"
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL, dispatch_uid="bootstrap_auth_token")
