@@ -82,7 +82,7 @@ def slow_log_middleware(get_response):
     pid = os.getpid()
     memory = MemoryStatus(pid)
 
-    def _get_stats(self, time_delta):
+    def _get_stats(time_delta):
         return {
             "time": time_delta,  # millis
             "memory": memory.usage(),
