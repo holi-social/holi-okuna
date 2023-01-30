@@ -123,5 +123,6 @@ def slow_log_middleware(get_response):
                 response_started=datetime.now(),
                 request_data=request.data,
             )
+        return response
 
-        return middleware
+    return middleware
