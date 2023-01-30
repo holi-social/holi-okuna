@@ -2,7 +2,6 @@ import json
 import logging
 import os
 import sys
-from typing import Dict, Any
 
 import structlog
 
@@ -13,7 +12,6 @@ LABELS = {"environment": ENVIRONMENT_ID, "service": SERVICE_NAME}
 
 _shared_processors = [
     structlog.contextvars.merge_contextvars,
-    structlog.processors.TimeStamper(fmt="iso"),
     structlog.stdlib.add_logger_name,
     structlog.stdlib.add_log_level,
     structlog.stdlib.PositionalArgumentsFormatter(),
@@ -25,14 +23,14 @@ _shared_processors = [
 
 def normalize_severity_from_loglevel(level: str) -> int:
     gcloud_severities = {
-        "critical": 600,
-        "exception": 500,
-        "error": 500,
-        "warn": 400,
-        "warning": 400,
-        "info": 200,
-        "debug": 100,
-        "notset": 0,
+        "critical": "CRITICAL",
+        "exception": "ERROR",
+        "error": "ERROR",
+        "warn": "WARNING",
+        "warning": "WARNING",
+        "info": "INFO",
+        "debug": "DEBUG",
+        "notset": "DEFAULT",
     }
 
     return gcloud_severities.get(level, 0)
@@ -90,6 +88,9 @@ LOGGING_CONFIG = {
         "graphql.execution.utils": {
             "level": "WARNING",
             "filters": ["graphql_log_filter"],
+        },
+        "uvicorn.access": {
+            "level": "WARNING",
         },
         # "django.db.backends": {
         #     "level": "DEBUG",

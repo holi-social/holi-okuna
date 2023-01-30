@@ -1,8 +1,6 @@
 import os
 import re
 import time
-import socket
-from datetime import datetime
 
 
 from django.db import connection
@@ -84,7 +82,7 @@ def slow_log_middleware(get_response):
     pid = os.getpid()
     memory = MemoryStatus(pid)
 
-    def _get_stats(self, time_delta=int):
+    def _get_stats(self, time_delta):
         return {
             "time": time_delta,  # millis
             "memory": memory.usage(),
@@ -96,13 +94,18 @@ def slow_log_middleware(get_response):
 
     def middleware(request):
         start_time = _current_millis()
+        try:
+            initial_http_body = request.body
+        except Exception:
+            initial_http_body = "Could not parse request body"
+
         response = get_response(request)  # handle request
+
         time_delta = _current_millis() - start_time
 
         if time_delta > SLOW_LOG_THRESHOLD:
-            path = "http://" + request.get_host() + request.get_full_path()
+            path = request.get_host() + request.get_full_path()
             status_code = response.status_code if response else "500"
-            hostname = socket.gethostname()
             stats = _get_stats(time_delta)
 
             if hasattr(connection, "query_count"):
@@ -111,16 +114,13 @@ def slow_log_middleware(get_response):
                 query_count = len(connection.queries)
 
             log.warn(
-                f"Slow Request encountered at ${path}",
-                pid=pid,
+                f"Slow Request: Took {time_delta}ms to process {path}",
                 status_code=status_code,
-                time=time_delta,
                 request_method=request.META["REQUEST_METHOD"],
                 path=path,
                 stats=stats,
                 queries=query_count,
-                hostname=hostname,
-                response_started=datetime.now(),
+                request_body=initial_http_body,
             )
         return response
 
