@@ -107,6 +107,7 @@ review_deploy:
     auto_stop_in: 1 week
   except:
     - main
+    - production
     - /^noenv\/.*/
 
 review_destroy:
@@ -133,6 +134,7 @@ review_destroy:
   allow_failure: false
   except:
     - main
+    - production
     - /^noenv\/.*/
   resource_group: $CI_ENVIRONMENT_SLUG # never execute terraform in parallel on the same environment
   interruptible: false
@@ -152,7 +154,6 @@ staging_deploy:
 
 production_deploy:
   extends: .deploy
-  needs: ['staging_deploy']
   when: manual
   allow_failure: false
   environment:
@@ -162,4 +163,4 @@ production_deploy:
   variables:
     ENVIRONMENT_ID: production
   only:
-    - main
+    - production
