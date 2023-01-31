@@ -98,7 +98,7 @@ LOGGING_CONFIG = {
     },
     "root": {
         "level": "INFO",
-        "handlers": ["console" if sys.stdout.isatty() else "json"],
+        "handlers": ["console" if (sys.stdout.isatty() or "PYCHARM_HOSTED" in os.environ) else "json"],
     },
 }
 
