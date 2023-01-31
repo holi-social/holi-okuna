@@ -222,7 +222,7 @@ CACHEOPS_REDIS = f"{REDIS_LOCATION}/{CACHEOPS_REDIS_DB}"
 
 CACHEOPS_DEFAULTS = {"timeout": 60 * 60}
 
-CACHEOPS_PREFIX = f"{ENVIRONMENT_ID}-"
+CACHEOPS_PREFIX = lambda _: f"{ENVIRONMENT_ID}-"
 
 CACHEOPS = {
     # Don't cache anything automatically
