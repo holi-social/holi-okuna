@@ -28,6 +28,7 @@ from openbook_communities.models import (
     CommunityMembership as CommunityMembershipModel,
     ExternalLink as ExternalLinkModel,
 )
+from openbook_communities.views.communities.serializers import ValidateCommunitySerializer
 from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_insights.models import Insight as InsightModel
 from openbook_moderation.models import ModeratedObject
@@ -1022,6 +1023,26 @@ class ReportContentMutation(graphene.Mutation):
         return ReportContentMutation(success=True)
 
 
+class ValidateSpaceInput(graphene.InputObjectType):
+    title = graphene.String()
+    description = graphene.String()
+    topics = graphene.List(graphene.UUID)
+
+
+class ValidateSpaceMutation(graphene.Mutation):
+    class Arguments:
+        input = graphene.Argument(ValidateSpaceInput)
+
+    success = graphene.Boolean()
+
+    @classmethod
+    def mutate(cls, root, info, input):
+        serializer = ValidateCommunitySerializer(data=input)
+        serializer.is_valid(raise_exception=True)
+
+        return ValidateSpaceMutation(success=True)
+
+
 class Mutation(graphene.ObjectType):
     update_authenticated_user = UpdateAuthenticatedUserMutation.Field()
     update_connection_with_user = UpdateConnectionWithUserMutation.Field()
@@ -1030,6 +1051,7 @@ class Mutation(graphene.ObjectType):
     delete_authenticated_user = DeleteAuthenticatedUserMutation.Field()
     report_content = ReportContentMutation.Field()
     block_user = BlockUserMutation.Field()
+    validate_space = ValidateSpaceMutation.Field()
 
 
 # noinspection PyTypeChecker

@@ -1,7 +1,10 @@
 import re
 
 from django.utils.translation import gettext_lazy as _
-from rest_framework.exceptions import ValidationError, NotFound
+from rest_framework.exceptions import ParseError, ValidationError, NotFound
+from openbook_communities.helpers import create_community_name_from_title
+
+from openbook_terms.models import Topic
 
 from openbook_common.utils.model_loaders import get_community_model
 
@@ -27,3 +30,16 @@ def community_name_exists(community_name):
         raise NotFound(
             _("No community with the provided name exists."),
         )
+
+
+def topic_with_id_exists(topic_uuid):
+    if not Topic.objects.filter(id=topic_uuid).exists():
+        raise NotFound(_(f"No topic with the id '{topic_uuid}' found."))
+
+
+def can_create_valid_and_unique_community_name_from_title(title):
+    name = create_community_name_from_title(title)
+    if not name:
+        raise ValidationError(_("Can not create valid community name from title."))
+
+    return community_name_not_taken_validator(name)
