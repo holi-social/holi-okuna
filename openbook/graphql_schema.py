@@ -749,6 +749,8 @@ class Query(graphene.ObjectType):
                     NotificationModel.CONNECTION_ACCEPTED,
                     NotificationModel.CONNECTION_CONFIRMED,
                     NotificationModel.POST_COMMENT_USER_MENTION,
+                    NotificationModel.COMMUNITY_MEMBERSHIP_REQUEST,
+                    NotificationModel.COMMUNITY_MEMBERSHIP_APPROVED,
                 ],
             ).order_by("-created"),
             offset,
