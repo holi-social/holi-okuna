@@ -24,7 +24,7 @@ from openbook_auth.helpers import (
     upload_to_user_avatar_directory,
     upload_to_user_cover_directory,
 )
-from openbook_common.helpers import get_supported_translation_language, PQ
+from openbook_common.helpers import get_supported_translation_language, PQ, PrefixedQ
 from openbook_common.models import Badge, ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import (
@@ -4463,6 +4463,15 @@ class User(AbstractUser):
                 return f"{self.__class__.__name__}, ID {self.id}"
         else:
             return f"Admin {self.__class__.__name__}, ID {self.id}"
+
+    @staticmethod
+    def is_visible_query(user, prefix=None):
+        pQ = PrefixedQ(prefix)
+        # TODO find a solution for "& ModeratedObject.not_moderated_query(user, prefix))"
+        if user.is_anonymous:
+            return ~pQ(is_deleted=True) & ~pQ(profile__isnull=True)
+
+        return ~pQ(is_deleted=True) & ~pQ(profile__isnull=True) & UserBlock.not_blocked_query(user, prefix)
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL, dispatch_uid="bootstrap_auth_token")
