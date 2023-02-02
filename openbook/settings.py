@@ -146,6 +146,8 @@ MIDDLEWARE = [
     "openbook.middleware.slow_log_middleware",
 ]
 
+GRAPHENE = {"MIDDLEWARE": None}
+
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://localhost",
     r"^https://\w+\.web\.project-holi\.org",

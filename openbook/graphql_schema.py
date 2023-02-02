@@ -243,6 +243,7 @@ class Insight(DjangoObjectType):
     def resolve_involved_users(self, info, offset, limit):
         return Paged.data(
             UserModel.objects.select_related("profile")
+            .filter(UserModel.is_visible_query(info.context.user))
             .filter(
                 Q(curated_insights=self)
                 | (Q(posts__insights=self) & PostModel.is_visible_query(info.context.user, "posts__"))
@@ -279,7 +280,11 @@ class Post(DjangoObjectType):
         return self.links.all()
 
     def resolve_number_of_comments(self, info):
-        return PostCommentModel.objects.filter(post=self).count()
+        return (  # self.resolve_comments(info).count()
+            PostCommentModel.objects.filter(post=self)
+            .filter(PostCommentModel.is_visible_query(info.context.user))
+            .count()
+        )
 
     def resolve_involved_users(self, info, offset, limit):
         return Paged.data(
@@ -291,6 +296,7 @@ class Post(DjangoObjectType):
                     & PostCommentModel.is_visible_query(info.context.user, "posts_comments__")
                 )
             )
+            .filter(UserModel.is_visible_query(info.context.user))
             .distinct(),
             offset,
             limit,
@@ -298,7 +304,10 @@ class Post(DjangoObjectType):
 
     def resolve_commenters(self, info, offset, limit):
         return Paged.data(
-            UserModel.objects.select_related("profile").filter(posts_comments__post=self).distinct(),
+            UserModel.objects.select_related("profile")
+            .filter(UserModel.is_visible_query(info.context.user))
+            .filter(posts_comments__post=self)
+            .distinct(),
             offset,
             limit,
         )
@@ -538,9 +547,7 @@ class Query(graphene.ObjectType):
             context_user = info.context.user
             return (
                 UserModel.objects.select_related("profile")
-                .filter(
-                    UserBlock.not_blocked_query(context_user)
-                )  # & ModeratedObject.not_moderated_query(context_user))
+                .filter(UserModel.is_visible_query(context_user))
                 .get(username=id)
             )
         except UserModel.DoesNotExist:
@@ -552,7 +559,7 @@ class Query(graphene.ObjectType):
         users_to_exclude_ids = (
             [info.context.user.id] if info.context and info.context.user and not info.context.user.is_anonymous else []
         )
-        excludes_filter = ~Q(id__in=users_to_exclude_ids) & Q(profile__isnull=False)
+        excludes_filter = ~Q(id__in=users_to_exclude_ids) & UserModel.is_visible_query(info.context.user)
         full_name_query = (
             IContains(
                 Concat(F("profile__name"), Value(" "), F("profile__last_name")),
@@ -590,14 +597,16 @@ class Query(graphene.ObjectType):
         if info.context.user.id:
             return Paged.data(
                 UserModel.objects.select_related("profile")
-                .exclude(profile__isnull=True)
+                .filter(UserModel.is_visible_query(info.context.user))
                 .exclude(id=info.context.user.id)
                 .order_by("-date_joined"),
                 offset,
                 limit,
             )
         return Paged.data(
-            UserModel.objects.select_related("profile").exclude(profile__isnull=True).order_by("-date_joined"),
+            UserModel.objects.select_related("profile")
+            .filter(UserModel.is_visible_query(info.context.user))
+            .order_by("-date_joined"),
             offset,
             limit,
         )
@@ -750,6 +759,8 @@ class Query(graphene.ObjectType):
                     NotificationModel.CONNECTION_ACCEPTED,
                     NotificationModel.CONNECTION_CONFIRMED,
                     NotificationModel.POST_COMMENT_USER_MENTION,
+                    NotificationModel.COMMUNITY_MEMBERSHIP_REQUEST,
+                    NotificationModel.COMMUNITY_MEMBERSHIP_APPROVED,
                 ],
             ).order_by("-created"),
             offset,

@@ -24,7 +24,7 @@ from openbook_auth.helpers import (
     upload_to_user_avatar_directory,
     upload_to_user_cover_directory,
 )
-from openbook_common.helpers import get_supported_translation_language, PQ
+from openbook_common.helpers import get_supported_translation_language, PQ, PrefixedQ
 from openbook_common.models import Badge, ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import (
@@ -1942,6 +1942,8 @@ class User(AbstractUser):
             community_to_join, self
         )
 
+        self.notify_membership_approval(community_to_join, self)
+
         # No need to delete community invite notifications as they are delete cascaded
         return community_to_join
 
@@ -1985,11 +1987,13 @@ class User(AbstractUser):
         community_to_join.remove_membership_request(self)
         community_to_join.add_member(user_to_approve)
 
+        self.notify_membership_approval(community_to_join, user_to_approve)
+
+    def notify_membership_approval(self, community_to_join, user_to_approve):
         CommunityMembershipApprovedNotification = get_community_membership_approved_notification_model()
         CommunityMembershipApprovedNotification.create_community_membership_approved_notification(
             user_to_approve.id, community_to_join.id, user_to_approve.id
         )
-
         for staff_member in community_to_join.get_staff_members():
             CommunityMembershipApprovedNotification.create_community_membership_approved_notification(
                 staff_member.id, community_to_join.id, user_to_approve.id
@@ -4454,11 +4458,20 @@ class User(AbstractUser):
     def __str__(self):
         if hasattr(self, "profile"):
             if self.profile.full_name():
-                return f"{self.__class__.__name__}, Name {self.profile.full_name()}"
+                return f"{self.__class__.__name__}, Name {self.profile.full_name()} [{self.id}]"
             else:
                 return f"{self.__class__.__name__}, ID {self.id}"
         else:
             return f"Admin {self.__class__.__name__}, ID {self.id}"
+
+    @staticmethod
+    def is_visible_query(user, prefix=None):
+        pQ = PrefixedQ(prefix)
+        # TODO find a solution for "& ModeratedObject.not_moderated_query(user, prefix))"
+        if user.is_anonymous:
+            return ~pQ(is_deleted=True) & ~pQ(profile__isnull=True)
+
+        return ~pQ(is_deleted=True) & ~pQ(profile__isnull=True) & UserBlock.not_blocked_query(user, prefix)
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL, dispatch_uid="bootstrap_auth_token")
