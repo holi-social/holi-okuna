@@ -339,8 +339,8 @@ class GraphQLTest(TestCase):
         self.connect_to_user(following_user, followed_user)
 
         response = self.get_notifications(followed_user)
-        self.assertGreaterEqual(response["data"]["notifications"]["totalResults"], 1)
-        notifications = response["data"]["notifications"]["data"]
+        self.assertGreaterEqual(response["totalResults"], 1)
+        notifications = response["data"]
         connection_requested_notification = next(n for n in notifications if n["notificationType"] == "CR")
         self.assertEqual(
             connection_requested_notification["owner"]["fullName"],
@@ -353,14 +353,14 @@ class GraphQLTest(TestCase):
 
         self.connect_to_user(followed_user, following_user)
 
-        notifications = self.get_notifications(followed_user)["data"]["notifications"]["data"]
+        notifications = self.get_notifications(followed_user)["data"]
         connection_accepted_notification = next(n for n in notifications if n["notificationType"] == "CA")
         self.assertEqual(
             connection_accepted_notification["options"]["user"]["fullName"],
             following_user.profile.full_name(),
         )
 
-        notifications = self.get_notifications(following_user)["data"]["notifications"]["data"]
+        notifications = self.get_notifications(following_user)["data"]
         connection_confirmed_notification = next(n for n in notifications if n["notificationType"] == "CC")
         self.assertEqual(
             connection_confirmed_notification["options"]["user"]["fullName"],
@@ -612,6 +612,11 @@ class GraphQLTest(TestCase):
         self.assertEqual(pre_join_space["connectionStatusToMyself"], [])
         self.assert_paged_results_equal(pre_join_space["members"], [member_result(space_creator)])
 
+        data = self.get_notifications(membership_requester)
+        self.assertEqual(data["totalResults"], 0)
+        data = self.get_notifications(space_creator)
+        self.assertEqual(data["totalResults"], 0)
+
         # Send Join Request
         after_request_space = self.mutate_update_space_user_connection(
             auth_user=membership_requester,
@@ -624,6 +629,13 @@ class GraphQLTest(TestCase):
             after_request_space["connectionStatusToMyself"],
             [SpaceUserConnectionType.MEMBER.value, SpaceUserConnectionType.FOLLOWER.value],
         )
+
+        data = self.get_notifications(membership_requester)
+        self.assertEqual(data["totalResults"], 1)
+        self.assertEqual(data["data"][0]["notificationType"], "CMRA")
+        data = self.get_notifications(space_creator)
+        self.assertEqual(data["totalResults"], 1)
+        self.assertEqual(data["data"][0]["notificationType"], "CMRA")
 
         # TODO Un-Comment this after Auto-Join of Spaces is removed again
         #
@@ -1074,7 +1086,7 @@ class GraphQLTest(TestCase):
             context_value=BeneDict({"user": user}),
         )
         self.assertIsNone(response.get("errors"))
-        return response
+        return response["data"]["notifications"]
 
     def assert_paged_results_equal(self, results: dict, expected_data: List[dict[str, any]]):
         self.assertEqual(results["totalResults"], len(expected_data))
