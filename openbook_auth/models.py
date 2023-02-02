@@ -1942,6 +1942,8 @@ class User(AbstractUser):
             community_to_join, self
         )
 
+        self.notify_membership_approval(community_to_join, self)
+
         # No need to delete community invite notifications as they are delete cascaded
         return community_to_join
 
@@ -1985,11 +1987,13 @@ class User(AbstractUser):
         community_to_join.remove_membership_request(self)
         community_to_join.add_member(user_to_approve)
 
+        self.notify_membership_approval(community_to_join, user_to_approve)
+
+    def notify_membership_approval(self, community_to_join, user_to_approve):
         CommunityMembershipApprovedNotification = get_community_membership_approved_notification_model()
         CommunityMembershipApprovedNotification.create_community_membership_approved_notification(
             user_to_approve.id, community_to_join.id, user_to_approve.id
         )
-
         for staff_member in community_to_join.get_staff_members():
             CommunityMembershipApprovedNotification.create_community_membership_approved_notification(
                 staff_member.id, community_to_join.id, user_to_approve.id
@@ -4454,7 +4458,7 @@ class User(AbstractUser):
     def __str__(self):
         if hasattr(self, "profile"):
             if self.profile.full_name():
-                return f"{self.__class__.__name__}, Name {self.profile.full_name()}"
+                return f"{self.__class__.__name__}, Name {self.profile.full_name()} [{self.id}]"
             else:
                 return f"{self.__class__.__name__}, ID {self.id}"
         else:
