@@ -121,7 +121,8 @@ class GraphQLTest(TestCase):
                     }
                 }
             }
-            """
+            """,
+            context_value=BeneDict({"user": AnonymousUser}),
         )
         self.assertEqual(executed["data"]["userByName"]["totalResults"], 3)
         self.assertEqual(executed["data"]["userByName"]["data"][0]["firstName"], "Peter")
@@ -883,7 +884,35 @@ class GraphQLTest(TestCase):
 
     def test_block_user(self):
         blocking_user = make_user(name="BlockingUser")
-        blocked_user = make_user(name="OtherUser")
+        blocked_user = make_user(name="BlockedUser")
+        other_user = make_user(name="OtherUser")
+
+        other_post = other_user.create_public_post(
+            text=(make_fake_post_text()),
+            title=(make_fake_post_title()),
+        )
+        other_post.comment(text=f"comment text 1", commenter=blocked_user)
+
+        blocked_post = blocked_user.create_public_post(
+            text=(make_fake_post_text()),
+            title=(make_fake_post_title()),
+        )
+        blocked_post.comment(text=f"comment text 1", commenter=other_user)
+
+        response = self.graphql.execute(
+            """
+            query {
+                userSuggestions(limit:100) {
+                    totalResults
+                    data {
+                        fullName
+                    }
+                }
+            }
+            """,
+            context_value=BeneDict({"user": blocking_user}),
+        )
+        self.assertEqual(response["data"]["userSuggestions"]["totalResults"], 2)
 
         response = self.graphql.execute(
             """
@@ -901,6 +930,13 @@ class GraphQLTest(TestCase):
             ),
         )
 
+        blocked_post_raw = self.get_post_with_id_raw(blocked_post, blocking_user)
+        self.assertIsNone(blocked_post_raw["data"]["postById"])
+        other_post_data = self.get_post_with_id_data(other_post, blocking_user)
+        self.assertEqual(other_post_data["involvedUsers"]["totalResults"], 1)
+        self.assertEqual(other_post_data["numberOfComments"], 0)
+        self.assertEqual(other_post_data["commenters"]["totalResults"], 0)
+
         self.assertIsNone(response.get("errors"))
         self.assertEqual(response["data"]["blockUser"]["success"], True)
 
@@ -909,6 +945,22 @@ class GraphQLTest(TestCase):
 
         response_after_blocking = self.get_user_with_id_raw(blocking_user, blocked_user)
         self.assertIsNone(response_after_blocking["data"]["userById"])
+
+        response = self.graphql.execute(
+            """
+            query {
+                userSuggestions(limit:100) {
+                    totalResults
+                    data {
+                        fullName
+                    }
+                }
+            }
+            """,
+            context_value=BeneDict({"user": blocking_user}),
+        )
+        self.assertEqual(response["data"]["userSuggestions"]["totalResults"], 1)
+        self.assertEqual(response["data"]["userSuggestions"]["data"][0]["fullName"], "OtherUser")
 
     # Utility methods
 
