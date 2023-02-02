@@ -1,11 +1,22 @@
 from openbook_common.tests.models import OpenbookAPITestCase
+from openbook_common.tests.helpers import make_community
 
-from openbook_communities.helpers import create_community_name_from_title
+from openbook_communities.helpers import create_community_name_from_title_and_hash
 
 
 class CommunitiesHelperTests(OpenbookAPITestCase):
-    def test_create_community_name_from_title(self):
-        self.assertEqual("", create_community_name_from_title(""))
-        self.assertEqual("foo", create_community_name_from_title("FOO"))
-        self.assertEqual("_foo_bar_", create_community_name_from_title(" Foo Bar "))
-        self.assertEqual("foobar", create_community_name_from_title("Foo%$&bar"))
+    def test_create_community_name_from_title_and_hash(self):
+        hash = "1234567890"
+        long_name = "f" * 60
+        make_community(name="bar")
+        make_community(name="bar-12345678")
+        make_community(name=long_name)
+
+        self.assertEqual("", create_community_name_from_title_and_hash("", hash))
+        self.assertEqual("foo", create_community_name_from_title_and_hash("FOO", hash))
+        self.assertEqual("foo-bar", create_community_name_from_title_and_hash(" Foo Bar ", hash))
+        self.assertEqual("foobar", create_community_name_from_title_and_hash("Foo%$&bar", hash))
+        self.assertEqual("bar-23456789", create_community_name_from_title_and_hash("bar", "2345678901"))
+        self.assertEqual("bar-123456789", create_community_name_from_title_and_hash("bar", hash))
+        self.assertEqual("bar-1234", create_community_name_from_title_and_hash("bar", "1234"))
+        self.assertEqual(f"{long_name[:51]}-12345678", create_community_name_from_title_and_hash(long_name, hash))

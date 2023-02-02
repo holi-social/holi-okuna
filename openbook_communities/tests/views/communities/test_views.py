@@ -40,7 +40,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        mandatory_params = ["name", "type", "title", "categories"]
+        mandatory_params = ["name", "title", "description", "categories"]
 
         url = self._get_url()
 
@@ -56,7 +56,6 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
     def test_cannot_create_community_without_credentials(self):
         """should NOT be able to create a community without providing credentials and return 400"""
-
         community_name = fake.user_name()
         community_title = fake.name_male()
         community_color = fake.hex_color()
@@ -69,6 +68,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         data = {
             "name": community_name,
+            "description": community_name,
             "type": community_type,
             "title": community_title,
             "color": community_color,
@@ -112,6 +112,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         data = {
             "name": community_name,
+            "description": community_name,
             "type": community_type,
             "title": community_title,
             "color": community_color,
@@ -121,6 +122,8 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         url = self._get_url()
 
         response = self.client.put(url, data, **headers, format="multipart")
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
+        print(parsed_response)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -151,6 +154,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         data = {
             "name": community_name,
+            "description": community_name,
             "type": community_type,
             "title": community_title,
             "color": community_color,
@@ -160,6 +164,8 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         url = self._get_url()
 
         response = self.client.put(url, data, **headers, format="json")
+        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
+        print(parsed_response)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -190,6 +196,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         data = {
             "name": community_name,
+            "description": community_name,
             "type": community_type,
             "title": community_title,
             "color": community_color,
@@ -221,6 +228,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         data = {
             "name": community_name,
+            "description": community_name,
             "type": community_type,
             "title": community_title,
             "color": community_color,
@@ -252,6 +260,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         data = {
             "name": community_name,
+            "description": community_name,
             "type": community_type,
             "title": community_title,
             "color": community_color,
@@ -281,6 +290,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         data = {
             "name": community_name,
+            "description": community_name,
             "type": community_type,
             "title": community_title,
             "color": community_color,
@@ -312,6 +322,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         data = {
             "name": community_name,
+            "description": community_name,
             "type": community_type,
             "title": community_title,
             "description": community_description,
@@ -357,6 +368,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         data = {
             "name": community_name,
+            "description": community_name,
             "type": community_type,
             "title": community_title,
             "description": community_description,

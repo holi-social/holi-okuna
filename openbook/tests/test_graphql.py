@@ -1170,8 +1170,6 @@ class GraphQLTest(TestCase):
             {"input": {"title": "f"}, "expected_code": "min_length"},
             {"input": {"title": "f" * 61}, "expected_code": "max_length"},
             {"input": {"description": "f" * 601}, "expected_code": "max_length"},
-            {"input": {"title": '%&$"#'}, "expected_error": "Can not create valid community name from title."},
-            {"input": {"title": community.name}, "expected_error": "Community name already taken."},
             {"input": {"topics": None}, "expected_code": "null"},
             {"input": {"topics": []}, "expected_code": "min_length"},
             {"input": {"topics": topic_ids}, "expected_code": "max_length"},
