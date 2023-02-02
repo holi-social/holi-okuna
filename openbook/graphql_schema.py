@@ -280,15 +280,14 @@ class Post(DjangoObjectType):
 
     def resolve_number_of_comments(self, info):
         return (  # self.resolve_comments(info).count()
-            PostCommentModel.objects.filter(PostCommentModel.is_visible_query(info.context.user))
-            .filter(post=self)
+            PostCommentModel.objects.filter(post=self)
+            .filter(PostCommentModel.is_visible_query(info.context.user))
             .count()
         )
 
     def resolve_involved_users(self, info, offset, limit):
         return Paged.data(
             UserModel.objects.select_related("profile")
-            .filter(UserModel.is_visible_query(info.context.user))
             .filter(
                 (Q(posts=self) & PostModel.is_visible_query(info.context.user, "posts__"))
                 | (
@@ -296,6 +295,7 @@ class Post(DjangoObjectType):
                     & PostCommentModel.is_visible_query(info.context.user, "posts_comments__")
                 )
             )
+            .filter(UserModel.is_visible_query(info.context.user))
             .distinct(),
             offset,
             limit,
