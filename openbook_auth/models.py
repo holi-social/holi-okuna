@@ -1768,8 +1768,10 @@ class User(AbstractUser):
         users_adjective=None,
         invites_enabled=None,
         location=None,
+        topic_ids=None,
     ):
-        check_can_create_community_with_name(user=self, name=name)
+        if name:
+            check_can_create_community_with_name(user=self, name=name)
 
         Community = get_community_model()
         community = Community.create_community(
@@ -1787,6 +1789,7 @@ class User(AbstractUser):
             categories_names=categories_names,
             invites_enabled=invites_enabled,
             location=location,
+            topic_ids=topic_ids,
         )
 
         return community

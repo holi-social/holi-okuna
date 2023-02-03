@@ -24,12 +24,7 @@ from openbook_communities.validators import (
 
 
 class CreateCommunitySerializer(serializers.Serializer):
-    type = serializers.ChoiceField(allow_blank=False, choices=Community.COMMUNITY_TYPES)
-    name = serializers.CharField(
-        max_length=settings.COMMUNITY_NAME_MAX_LENGTH,
-        required=True,
-        validators=[community_name_characters_validator, community_name_not_taken_validator],
-    )
+    type = serializers.ChoiceField(allow_blank=False, required=False, choices=Community.COMMUNITY_TYPES)
     title = serializers.CharField(
         min_length=settings.COMMUNITY_TITLE_MIN_LENGTH,
         max_length=settings.COMMUNITY_TITLE_MAX_LENGTH,
@@ -52,7 +47,7 @@ class CreateCommunitySerializer(serializers.Serializer):
     )
     avatar = RestrictedImageFileSizeField(required=False, max_upload_size=settings.COMMUNITY_AVATAR_MAX_SIZE)
     cover = RestrictedImageFileSizeField(
-        required=False,
+        required=True,
         max_upload_size=settings.COMMUNITY_COVER_MAX_SIZE,
         allow_empty_file=False,
     )
@@ -63,7 +58,7 @@ class CreateCommunitySerializer(serializers.Serializer):
         validators=[hex_color_validator],
     )
     categories = serializers.ListField(
-        required=True,
+        required=False,
         min_length=settings.COMMUNITY_CATEGORIES_MIN_AMOUNT,
         max_length=settings.COMMUNITY_CATEGORIES_MAX_AMOUNT,
         child=serializers.CharField(
@@ -74,7 +69,7 @@ class CreateCommunitySerializer(serializers.Serializer):
     topics = serializers.ListField(
         min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
         max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
-        required=False,
+        required=True,
         child=serializers.UUIDField(validators=[topic_with_id_exists]),
     )
 

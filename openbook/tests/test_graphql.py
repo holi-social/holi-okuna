@@ -1148,9 +1148,9 @@ class GraphQLTest(TestCase):
         for el in expected_data:
             self.assertIn(el, results["data"])
 
-    def test_validate_space(self):
+    def test_invalid_spaces_do_not_pass_validation(self):
+        user = make_user()
         topic_ids = [str(make_topic().id) for _ in range(7)]
-        valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
         empty_image = SimpleUploadedFile(name="cover.jpg", content="")
 
         validate_space_mutation = """
@@ -1161,7 +1161,6 @@ class GraphQLTest(TestCase):
             }
             """
         valid_input = {"title": "valid", "description": "valid"}
-        full_valid_input = valid_input | {"topics": topic_ids[:2], "cover": valid_image}
         invalid_uuid = str(uuid4())
 
         expectedErrors = [
@@ -1190,6 +1189,7 @@ class GraphQLTest(TestCase):
         for testCase in expectedErrors:
             response = self.graphql.execute(
                 validate_space_mutation,
+                context_value=BeneDict({"user": user}),
                 variable_values={
                     "input": testCase["full_input"] if "full_input" in testCase else valid_input | testCase["input"],
                 },
@@ -1201,13 +1201,169 @@ class GraphQLTest(TestCase):
             self.assertIn(expected_error, str(response["errors"][0]["message"]))
             self.assertIsNone(response["data"]["validateSpace"])
 
+    def test_valid_partial_spaces_pass_validation(self):
+        user = make_user()
+        valid_input = {"title": "valid", "description": "valid"}
+        topic_ids = [str(make_topic().id) for _ in range(2)]
+        cover = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+
+        validate_space_mutation = """
+            mutation test($input: ValidateSpaceInput) {
+                validateSpace(input: $input) {
+                    success
+                }
+            }
+            """
+
+        valid_inputs = [
+            valid_input,
+            valid_input | {"topics": topic_ids},
+            valid_input | {"cover": cover},
+            valid_input | {"topics": topic_ids, "cover": cover},
+        ]
+
+        for input in valid_inputs:
+            response = self.graphql.execute(
+                validate_space_mutation,
+                context_value=BeneDict({"user": user}),
+                variable_values={"input": input},
+            )
+
+            self.assertTrue(response["data"]["validateSpace"]["success"])
+            self.assertNotIn("errors", response)
+
+    def test_can_not_validate_space_if_not_logged_in(self):
+        validate_space_mutation = """
+            mutation test($input: ValidateSpaceInput) {
+                validateSpace(input: $input) {
+                    success
+                }
+            }
+            """
+        valid_input = {"title": "valid", "description": "valid"}
+
         response = self.graphql.execute(
             validate_space_mutation,
-            variable_values={"input": full_valid_input},
+            variable_values={"input": valid_input},
         )
 
-        self.assertTrue(response["data"]["validateSpace"]["success"])
+        self.assertIsNone(response["data"]["validateSpace"])
+        self.assertIn("Unauthorized", str(response["errors"][0]["message"]))
+
+    def test_validates_space_before_creation(self):
+        user = make_user()
+        topic_ids = [str(make_topic().id) for _ in range(7)]
+        valid_topics = topic_ids[:2]
+        valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+        empty_image = SimpleUploadedFile(name="cover.jpg", content="")
+
+        create_space_mutation = """
+            mutation test($input: CreateSpaceInput) {
+                createSpace(input: $input) {
+                    id
+                }
+            }
+            """
+        valid_input = {"title": "valid", "description": "valid", "topics": valid_topics, "cover": valid_image}
+        invalid_uuid = str(uuid4())
+
+        expectedErrors = [
+            {
+                "full_input": {"title": "valid", "description": "valid", "topics": valid_topics},
+                "expected_error": "was not provided",
+            },
+            {
+                "full_input": {"title": "valid", "description": "valid", "cover": valid_image},
+                "expected_error": "was not provided",
+            },
+            {
+                "full_input": {"title": "valid", "topics": valid_topics, "cover": valid_image},
+                "expected_error": "was not provided",
+            },
+            {
+                "full_input": {"description": "valid", "topics": valid_topics, "cover": valid_image},
+                "expected_error": "was not provided",
+            },
+            {"input": {"title": None}, "expected_error": "Expected non-nullable type"},
+            {"input": {"title": ""}, "expected_code": "blank"},
+            {"input": {"title": "f"}, "expected_code": "min_length"},
+            {"input": {"title": "f" * 61}, "expected_code": "max_length"},
+            {"input": {"description": None}, "expected_error": "Expected non-nullable type"},
+            {"input": {"description": ""}, "expected_code": "blank"},
+            {"input": {"description": "f" * 601}, "expected_code": "max_length"},
+            {"input": {"topics": None}, "expected_error": "Expected non-nullable type"},
+            {"input": {"topics": []}, "expected_code": "min_length"},
+            {"input": {"topics": topic_ids}, "expected_code": "max_length"},
+            {"input": {"topics": [invalid_uuid]}, "expected_error": f"No topic with the id '{invalid_uuid}' found."},
+            {"input": {"cover": None}, "expected_error": "Expected non-nullable type"},
+            {"input": {"cover": {}}, "expected_code": "invalid"},
+            {"input": {"cover": ""}, "expected_code": "invalid"},
+            {"input": {"cover": "foobar"}, "expected_code": "invalid"},
+            {"input": {"cover": empty_image}, "expected_code": "empty"},
+            {"input": {"cover": create_large_image_file()}, "expected_code": "invalid"},
+            {"input": {"cover": create_video_file()}, "expected_code": "invalid_image"},
+        ]
+
+        for testCase in expectedErrors:
+            response = self.graphql.execute(
+                create_space_mutation,
+                context_value=BeneDict({"user": user}),
+                variable_values={
+                    "input": testCase["full_input"] if "full_input" in testCase else valid_input | testCase["input"],
+                },
+            )
+
+            expected_error = (
+                testCase["expected_error"] if "expected_error" in testCase else f'code=\'{testCase["expected_code"]}\''
+            )
+            self.assertIn(expected_error, str(response["errors"][0]["message"]))
+            self.assertIsNone(response["data"]["createSpace"] if response["data"] else response["data"])
+
+    def test_can_create_space(self):
+        user = make_user()
+        topic_ids = [str(make_topic().id) for _ in range(7)]
+        valid_topics = topic_ids[:2]
+        valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+
+        create_space_mutation = """
+            mutation test($input: CreateSpaceInput) {
+                createSpace(input: $input) {
+                    id
+                }
+            }
+            """
+        valid_input = {"title": "valid", "description": "valid", "topics": valid_topics, "cover": valid_image}
+
+        response = self.graphql.execute(
+            create_space_mutation,
+            context_value=BeneDict({"user": user}),
+            variable_values={"input": valid_input},
+        )
+
+        self.assertIn("id", response["data"]["createSpace"])
         self.assertNotIn("errors", response)
+
+    def test_can_not_create_space_if_not_logged_in(self):
+        topic_ids = [str(make_topic().id) for _ in range(7)]
+        valid_topics = topic_ids[:2]
+        valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+
+        create_space_mutation = """
+            mutation test($input: CreateSpaceInput) {
+                createSpace(input: $input) {
+                    id
+                }
+            }
+            """
+        valid_input = {"title": "valid", "description": "valid", "topics": valid_topics, "cover": valid_image}
+
+        response = self.graphql.execute(
+            create_space_mutation,
+            variable_values={"input": valid_input},
+        )
+
+        self.assertIsNone(response["data"]["createSpace"])
+        self.assertIn("Unauthorized", str(response["errors"][0]["message"]))
 
 
 def approve_verify_moderated_object(object_id, user):

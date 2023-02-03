@@ -20,6 +20,7 @@ from openbook_common.utils.model_loaders import (
     get_community_invite_model,
     get_community_log_model,
     get_category_model,
+    get_topic_model,
     get_user_model,
     get_moderated_object_model,
     get_community_notifications_subscription_model,
@@ -285,7 +286,7 @@ class Community(ModelWithUUID):
         title,
         creator,
         color=None,
-        type=None,
+        type=COMMUNITY_TYPE_PUBLIC,
         user_adjective=None,
         users_adjective=None,
         avatar=None,
@@ -295,6 +296,7 @@ class Community(ModelWithUUID):
         categories_names=None,
         invites_enabled=None,
         location=None,
+        topic_ids=None,
     ):
         # If it's a private community and no invites_enabled
         if type == Community.COMMUNITY_TYPE_PRIVATE and invites_enabled is None:
@@ -325,6 +327,8 @@ class Community(ModelWithUUID):
 
         if categories_names:
             community.set_categories_with_names(categories_names=categories_names)
+        if topic_ids:
+            community.set_topics_with_ids(topic_ids=topic_ids)
 
         community.save()
         return community
@@ -477,6 +481,7 @@ class Community(ModelWithUUID):
         rules=None,
         categories_names=None,
         invites_enabled=None,
+        topic_ids=None,
     ):
 
         if name:
@@ -508,6 +513,9 @@ class Community(ModelWithUUID):
 
         if categories_names is not None:
             self.set_categories_with_names(categories_names=categories_names)
+
+        if topic_ids is not None:
+            self.set_topics_with_ids(topic_ids=topic_ids)
 
         self.save()
 
@@ -557,6 +565,15 @@ class Community(ModelWithUUID):
 
     def clear_categories(self):
         self.categories.clear()
+
+    def set_topics_with_ids(self, topic_ids):
+        self.clear_topics()
+        Topic = get_topic_model()
+        topics = Topic.objects.filter(id__in=topic_ids)
+        self.topics.set(topics)
+
+    def clear_topics(self):
+        self.topics.clear()
 
     def create_invite(self, creator, invited_user):
         CommunityInvite = get_community_invite_model()

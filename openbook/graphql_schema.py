@@ -28,7 +28,7 @@ from openbook_communities.models import (
     CommunityMembership as CommunityMembershipModel,
     ExternalLink as ExternalLinkModel,
 )
-from openbook_communities.views.communities.serializers import ValidateCommunitySerializer
+from openbook_communities.views.communities.serializers import CreateCommunitySerializer, ValidateCommunitySerializer
 from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_insights.models import Insight as InsightModel
 from openbook_moderation.models import ModeratedObject
@@ -449,6 +449,13 @@ def get_posts_only_query(user):
     )
 
 
+def verify_authorized_user(info):
+    current_user: UserModel = info.context.user if info.context and "user" in info.context else None
+    if not current_user or current_user.is_anonymous:
+        raise GraphQLError("Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED})
+    return current_user
+
+
 class NotificationOptions(graphene.ObjectType):
     user = graphene.Field(User)
     post = graphene.Field(Post)
@@ -697,8 +704,7 @@ class Query(graphene.ObjectType):
         return result
 
     def resolve_my_spaces(self, info):
-        if info.context.user.is_anonymous:
-            raise GraphQLError("Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED})
+        verify_authorized_user(info)
 
         created_spaces = MySpaces(section=_("Created"), type=SpaceUserConnectionType.CREATOR)
         created_spaces.query = (
@@ -872,8 +878,7 @@ class UpdateConnectionWithUserMutation(graphene.Mutation):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        if info.context.user.is_anonymous:
-            raise GraphQLError("Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED})
+        verify_authorized_user(info)
 
         authenticated_user = info.context.user
 
@@ -917,8 +922,7 @@ class UpdatePostCommentMutation(graphene.Mutation):
 
     @classmethod
     def mutate(cls, root, info, input):
-        if info.context.user.is_anonymous:
-            raise GraphQLError("Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED})
+        verify_authorized_user(info)
 
         serializer = CommentPostSerializer(data=input)
         serializer.is_valid(raise_exception=True)
@@ -948,9 +952,7 @@ class UpdateSpaceUserConnectionMutation(graphene.Mutation):
 
     @classmethod
     def mutate(cls, root, info, space_id, connection_type, connect_action, user_id=None):
-        current_user: UserModel = info.context.user
-        if current_user.is_anonymous:
-            raise GraphQLError("Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED})
+        current_user = verify_authorized_user(info)
         space = CommunityModel.objects.get(id=space_id)  # @todo Use name as parameter, same as okuna? w
 
         cT = SpaceUserConnectionType
@@ -991,10 +993,8 @@ class BlockUserMutation(graphene.Mutation):
 
     @classmethod
     def mutate(cls, root, info, user_id):
-        current_user: UserModel = info.context.user
+        current_user = verify_authorized_user(info)
         username_of_user_to_block = str(user_id)
-        if current_user.is_anonymous:
-            raise GraphQLError("Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED})
 
         current_user.block_user_with_username(username_of_user_to_block)
 
@@ -1011,9 +1011,7 @@ class ReportContentMutation(graphene.Mutation):
 
     @classmethod
     def mutate(cls, root, info, object_id, content_type, description=None):
-        current_user: UserModel = info.context.user
-        if current_user.is_anonymous:
-            raise GraphQLError("Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED})
+        current_user = verify_authorized_user(info)
 
         # hardcoded category_id to block user content. Needs to be imported via fixture!
         category_id = uuid.UUID("00000000-0000-0000-0000-000000000001")
@@ -1049,10 +1047,53 @@ class ValidateSpaceMutation(graphene.Mutation):
 
     @classmethod
     def mutate(cls, root, info, input):
+        verify_authorized_user(info)
+
         serializer = ValidateCommunitySerializer(data=input)
         serializer.is_valid(raise_exception=True)
 
         return ValidateSpaceMutation(success=True)
+
+
+class CreateSpaceInput(graphene.InputObjectType):
+    title = graphene.String(required=True)
+    description = graphene.String(required=True)
+    topics = graphene.List(graphene.UUID, required=True)
+    cover = Upload(required=True)
+
+
+class CreateSpaceMutation(graphene.Mutation):
+    class Arguments:
+        input = graphene.Argument(CreateSpaceInput)
+
+    Output = Space
+
+    @classmethod
+    def mutate(cls, root, info, input):
+        authenticated_user = verify_authorized_user(info)
+
+        # TODO(SF) necessary?
+        # if input["cover"] in ("", {}, None):
+        #     raise GraphQLError(f"Attribute 'cover' should contain a file, but was: '{input['cover']}'")
+        # input["name"] = create_community_name_from_title(input["title"] if "title" in input else "")
+
+        serializer = CreateCommunitySerializer(data=input)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        try:
+            return authenticated_user.create_community(
+                name=data.get("name"),
+                title=data.get("title"),
+                type=CommunityModel.COMMUNITY_TYPE_PUBLIC,
+                description=data.get("description"),
+                cover=data.get("cover"),
+                invites_enabled=True,
+                topic_ids=data.get("topics"),
+            )
+        except Error:
+            # delete_cover(data["cover"]) TODO(SF) necessary?
+            raise
 
 
 class Mutation(graphene.ObjectType):
@@ -1064,6 +1105,7 @@ class Mutation(graphene.ObjectType):
     report_content = ReportContentMutation.Field()
     block_user = BlockUserMutation.Field()
     validate_space = ValidateSpaceMutation.Field()
+    create_space = CreateSpaceMutation.Field()
 
 
 # noinspection PyTypeChecker
