@@ -10,6 +10,7 @@ from openbook_communities.models import (
 
 @admin.register(Community)
 class CommunityAdmin(admin.ModelAdmin):
+    readonly_fields = ["name"]
     list_display = ("title", "creator", "created")
 
     def has_add_permission(self, request, obj=None):

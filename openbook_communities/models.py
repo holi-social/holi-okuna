@@ -1,3 +1,4 @@
+from hashlib import sha256
 import uuid
 
 from django.conf import settings
@@ -27,6 +28,7 @@ from openbook_common.utils.model_loaders import (
 )
 from openbook_common.validators import hex_color_validator
 from openbook_communities.helpers import (
+    create_community_name_from_title_and_hash,
     upload_to_community_avatar_directory,
     upload_to_community_cover_directory,
 )
@@ -35,8 +37,7 @@ from openbook_communities.queries import (
     make_search_joined_communities_query_for_user,
     make_get_joined_communities_query_for_user,
 )
-from openbook_communities.validators import community_name_characters_validator
-from openbook_moderation.models import ModeratedObject, ModerationCategory
+from openbook_moderation.models import ModeratedObject
 from openbook_posts.models import Post
 from imagekit.models import ProcessedImageField
 
@@ -54,13 +55,12 @@ class Community(ModelWithUUID):
         null=False,
         blank=False,
     )
-    name = models.CharField(
+    name = models.SlugField(
         _("name"),
         max_length=settings.COMMUNITY_NAME_MAX_LENGTH,
         blank=False,
         null=False,
         unique=True,
-        validators=(community_name_characters_validator,),
     )
     title = models.CharField(
         _("title"),
@@ -636,7 +636,9 @@ class Community(ModelWithUUID):
         if not self.created:
             self.created = timezone.now()
 
-        self.name = self.name.lower()
+        if not self.name:
+            hash = sha256(str(self).encode("utf-8")).hexdigest()
+            self.name = create_community_name_from_title_and_hash(self.title, hash)
 
         if self.user_adjective:
             self.user_adjective = self.user_adjective.title()
