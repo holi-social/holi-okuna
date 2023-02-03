@@ -1,3 +1,5 @@
+from rest_framework.exceptions import ValidationError
+
 from openbook_common.tests.models import OpenbookAPITestCase
 from openbook_common.tests.helpers import make_community
 
@@ -20,3 +22,10 @@ class CommunitiesHelperTests(OpenbookAPITestCase):
         self.assertEqual("bar-123456789", create_community_name_from_title_and_hash("bar", hash))
         self.assertEqual("bar-1234", create_community_name_from_title_and_hash("bar", "1234"))
         self.assertEqual(f"{long_name[:51]}-12345678", create_community_name_from_title_and_hash(long_name, hash))
+
+        with self.assertRaises(Exception) as context:
+            create_community_name_from_title_and_hash("bar", "12345678")
+        self.assertTrue("Community name already taken." in str(context.exception))
+        with self.assertRaises(Exception) as context:
+            create_community_name_from_title_and_hash("bar", "")
+        self.assertTrue("Community name already taken." in str(context.exception))

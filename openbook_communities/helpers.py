@@ -31,7 +31,7 @@ def create_community_name_from_title_and_hash(title, hash):
         return name
     except ValidationError:
         name_suffix_length = min(8, len(hash))
-        while name_suffix_length <= len(hash):
+        while name_suffix_length <= len(hash) and name_suffix_length > 0:
             name = (
                 f"{title[: settings.COMMUNITY_NAME_MAX_LENGTH - name_suffix_length - 1]}-{hash[: name_suffix_length]}"
             )
@@ -40,3 +40,4 @@ def create_community_name_from_title_and_hash(title, hash):
                 return name
             except ValidationError:
                 name_suffix_length = name_suffix_length + 1
+        raise
