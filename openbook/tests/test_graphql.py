@@ -22,6 +22,8 @@ from openbook.graphql_schema import (
 from openbook_auth.models import User, UserConnectionStatus
 from openbook_communities.models import Community
 from openbook_common.tests.helpers import (
+    get_test_images,
+    get_test_videos,
     make_user,
     make_authentication_headers_for_user,
     make_fake_post_text,
@@ -1147,8 +1149,10 @@ class GraphQLTest(TestCase):
             self.assertIn(el, results["data"])
 
     def test_validate_space(self):
-        community = make_community(name="existing_space")
-        topic_ids = [str(make_topic().id) for x in range(7)]
+        topic_ids = [str(make_topic().id) for _ in range(7)]
+        valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+        empty_image = SimpleUploadedFile(name="cover.jpg", content="")
+
         validate_space_mutation = """
             mutation test($input: ValidateSpaceInput) {
                 validateSpace(input: $input) {
@@ -1157,23 +1161,30 @@ class GraphQLTest(TestCase):
             }
             """
         valid_input = {"title": "valid", "description": "valid"}
-        full_valid_input = valid_input | {"topics": topic_ids[:2]}
+        full_valid_input = valid_input | {"topics": topic_ids[:2], "cover": valid_image}
         invalid_uuid = str(uuid4())
 
         expectedErrors = [
             {"full_input": {"description": "valid"}, "expected_code": "required"},
             {"full_input": {"title": "valid"}, "expected_code": "required"},
             {"input": {"title": None}, "expected_code": "null"},
-            {"input": {"description": None}, "expected_code": "null"},
             {"input": {"title": ""}, "expected_code": "blank"},
-            {"input": {"description": ""}, "expected_code": "blank"},
             {"input": {"title": "f"}, "expected_code": "min_length"},
             {"input": {"title": "f" * 61}, "expected_code": "max_length"},
+            {"input": {"description": None}, "expected_code": "null"},
+            {"input": {"description": ""}, "expected_code": "blank"},
             {"input": {"description": "f" * 601}, "expected_code": "max_length"},
             {"input": {"topics": None}, "expected_code": "null"},
             {"input": {"topics": []}, "expected_code": "min_length"},
             {"input": {"topics": topic_ids}, "expected_code": "max_length"},
             {"input": {"topics": [invalid_uuid]}, "expected_error": f"No topic with the id '{invalid_uuid}' found."},
+            {"input": {"cover": None}, "expected_code": "null"},
+            {"input": {"cover": {}}, "expected_code": "invalid"},
+            {"input": {"cover": ""}, "expected_code": "invalid"},
+            {"input": {"cover": "foobar"}, "expected_code": "invalid"},
+            {"input": {"cover": empty_image}, "expected_code": "empty"},
+            {"input": {"cover": create_large_image_file()}, "expected_code": "invalid"},
+            {"input": {"cover": create_video_file()}, "expected_code": "invalid_image"},
         ]
 
         for testCase in expectedErrors:
@@ -1203,3 +1214,19 @@ def approve_verify_moderated_object(object_id, user):
     moderated_object = ModeratedObject.objects.filter(object_id=object_id).first()
     user.approve_moderated_object(moderated_object)
     user.verify_moderated_object(moderated_object)
+
+
+def create_large_image_file():
+    test_image = get_test_images()[-1]
+
+    with open(test_image["path"], "rb") as file:
+        content = file.read()
+        return SimpleUploadedFile(name="image.jpg", content=content)
+
+
+def create_video_file():
+    test_video = get_test_videos()[0]
+
+    with open(test_video["path"], "rb") as file:
+        content = file.read()
+        return SimpleUploadedFile(name="video.mp4", content=content)

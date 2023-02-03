@@ -1038,6 +1038,7 @@ class ValidateSpaceInput(graphene.InputObjectType):
     title = graphene.String()
     description = graphene.String()
     topics = graphene.List(graphene.UUID)
+    cover = Upload(required=False)
 
 
 class ValidateSpaceMutation(graphene.Mutation):
