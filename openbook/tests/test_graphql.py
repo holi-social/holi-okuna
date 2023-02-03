@@ -2,7 +2,7 @@ import json
 import logging
 import unittest
 from typing import List, Optional
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from benedict import BeneDict
 from django.contrib.auth.models import AnonymousUser
@@ -1145,6 +1145,58 @@ class GraphQLTest(TestCase):
 
         for el in expected_data:
             self.assertIn(el, results["data"])
+
+    def test_validate_space(self):
+        community = make_community(name="existing_space")
+        topic_ids = [str(make_topic().id) for x in range(7)]
+        validate_space_mutation = """
+            mutation test($input: ValidateSpaceInput) {
+                validateSpace(input: $input) {
+                    success
+                }
+            }
+            """
+        valid_input = {"title": "valid", "description": "valid"}
+        full_valid_input = valid_input | {"topics": topic_ids[:2]}
+        invalid_uuid = str(uuid4())
+
+        expectedErrors = [
+            {"full_input": {"description": "valid"}, "expected_code": "required"},
+            {"full_input": {"title": "valid"}, "expected_code": "required"},
+            {"input": {"title": None}, "expected_code": "null"},
+            {"input": {"description": None}, "expected_code": "null"},
+            {"input": {"title": ""}, "expected_code": "blank"},
+            {"input": {"description": ""}, "expected_code": "blank"},
+            {"input": {"title": "f"}, "expected_code": "min_length"},
+            {"input": {"title": "f" * 61}, "expected_code": "max_length"},
+            {"input": {"description": "f" * 601}, "expected_code": "max_length"},
+            {"input": {"topics": None}, "expected_code": "null"},
+            {"input": {"topics": []}, "expected_code": "min_length"},
+            {"input": {"topics": topic_ids}, "expected_code": "max_length"},
+            {"input": {"topics": [invalid_uuid]}, "expected_error": f"No topic with the id '{invalid_uuid}' found."},
+        ]
+
+        for testCase in expectedErrors:
+            response = self.graphql.execute(
+                validate_space_mutation,
+                variable_values={
+                    "input": testCase["full_input"] if "full_input" in testCase else valid_input | testCase["input"],
+                },
+            )
+
+            expected_error = (
+                testCase["expected_error"] if "expected_error" in testCase else f'code=\'{testCase["expected_code"]}\''
+            )
+            self.assertIn(expected_error, str(response["errors"][0]["message"]))
+            self.assertIsNone(response["data"]["validateSpace"])
+
+        response = self.graphql.execute(
+            validate_space_mutation,
+            variable_values={"input": full_valid_input},
+        )
+
+        self.assertTrue(response["data"]["validateSpace"]["success"])
+        self.assertNotIn("errors", response)
 
 
 def approve_verify_moderated_object(object_id, user):

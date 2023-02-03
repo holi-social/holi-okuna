@@ -19,6 +19,7 @@ from openbook_communities.serializers_fields import (
 from openbook_communities.validators import (
     community_name_characters_validator,
     community_name_not_taken_validator,
+    topic_with_id_exists,
 )
 
 
@@ -26,13 +27,17 @@ class CreateCommunitySerializer(serializers.Serializer):
     type = serializers.ChoiceField(allow_blank=False, choices=Community.COMMUNITY_TYPES)
     name = serializers.CharField(
         max_length=settings.COMMUNITY_NAME_MAX_LENGTH,
-        allow_blank=False,
-        validators=[community_name_characters_validator],
+        required=True,
+        validators=[community_name_characters_validator, community_name_not_taken_validator],
     )
-    title = serializers.CharField(max_length=settings.COMMUNITY_TITLE_MAX_LENGTH, allow_blank=False)
+    title = serializers.CharField(
+        min_length=settings.COMMUNITY_TITLE_MIN_LENGTH,
+        max_length=settings.COMMUNITY_TITLE_MAX_LENGTH,
+        required=True,
+    )
     description = serializers.CharField(
-        allow_blank=True,
-        required=False,
+        max_length=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH,
+        required=True,
     )
     rules = serializers.CharField(max_length=settings.COMMUNITY_RULES_MAX_LENGTH, allow_blank=True, required=False)
     user_adjective = serializers.CharField(
@@ -46,7 +51,11 @@ class CreateCommunitySerializer(serializers.Serializer):
         required=False,
     )
     avatar = RestrictedImageFileSizeField(required=False, max_upload_size=settings.COMMUNITY_AVATAR_MAX_SIZE)
-    cover = RestrictedImageFileSizeField(required=False, max_upload_size=settings.COMMUNITY_COVER_MAX_SIZE)
+    cover = RestrictedImageFileSizeField(
+        required=False,
+        max_upload_size=settings.COMMUNITY_COVER_MAX_SIZE,
+        allow_empty_file=False,
+    )
     invites_enabled = serializers.BooleanField(required=False)
     color = serializers.CharField(
         max_length=COLOR_ATTR_MAX_LENGTH,
@@ -61,6 +70,35 @@ class CreateCommunitySerializer(serializers.Serializer):
             max_length=settings.HASHTAG_NAME_MAX_LENGTH,
             validators=[category_name_exists],
         ),
+    )
+    topics = serializers.ListField(
+        min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
+        max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
+        required=False,
+        child=serializers.UUIDField(validators=[topic_with_id_exists]),
+    )
+
+
+class ValidateCommunitySerializer(serializers.Serializer):
+    title = serializers.CharField(
+        min_length=settings.COMMUNITY_TITLE_MIN_LENGTH,
+        max_length=settings.COMMUNITY_TITLE_MAX_LENGTH,
+        required=True,
+    )
+    description = serializers.CharField(
+        max_length=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH,
+        required=True,
+    )
+    topics = serializers.ListField(
+        min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
+        max_length=settings.COMMUNITY_TOPICS_MAX_AMOUNT,
+        required=False,
+        child=serializers.UUIDField(validators=[topic_with_id_exists]),
+    )
+    cover = RestrictedImageFileSizeField(
+        allow_empty_file=False,
+        required=False,
+        max_upload_size=settings.COMMUNITY_COVER_MAX_SIZE,
     )
 
 
