@@ -454,6 +454,7 @@ class GraphQLTest(TestCase):
             [],
         )
 
+    @unittest.skip("our native SQL does not execute correctly in SQLite")
     def test_filters_for_discover_spaces(self):
         topic1 = make_topic()
         topic2 = make_topic()
