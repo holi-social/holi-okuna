@@ -1,4 +1,5 @@
 import uuid
+from collections import defaultdict
 from datetime import datetime
 import structlog
 import graphene
@@ -93,8 +94,8 @@ class Paged(graphene.ObjectType):
         )
 
     @staticmethod
-    def data(data, offset, limit):
-        return Paged(data=data[offset : offset + limit], total_results=data.count())
+    def data(query, offset, limit):
+        return Paged(data=query[offset : offset + limit], total_results=query.count())
 
     def __init__(self, data=[], total_results=None):
         self.data = data
@@ -383,6 +384,14 @@ class Space(DjangoObjectType):
         return roles
 
 
+def get_id_spaces_count_map(query):
+    with_num_spaces = list(query)
+    id_to_num_spaces = {}
+    for s in with_num_spaces:
+        id_to_num_spaces[s.id] = s.num_spaces
+    return id_to_num_spaces
+
+
 @cached_as(CommunityModel)
 def spaces_for_filter(offset, limit, topic_id=None, location=None, skill_ids=None, topic_slug=None, skill_slugs=None):
     topic_filter = Q(topics__id__contains=topic_id) if topic_id is not None else Q()
@@ -656,31 +665,67 @@ class Query(graphene.ObjectType):
 
         # get all spaces by topic (independent of other filters)
         if topic_ids is not None:
-            for topic_id in topic_ids or []:
+            topic_id_to_num_spaces = get_id_spaces_count_map(
+                TopicModel.objects.filter(id__in=topic_ids).annotate(num_spaces=Count("communities"))
+            )
+
+            spaces_from_db = CommunityModel.objects.raw(
+                """
+                select s.* 
+                from openbook_terms_topic t, (
+                    select occtopics.topic_id, occ.*, row_number() OVER (partition by occtopics.topic_id ORDER BY occ.id) AS rn
+                    FROM   openbook_communities_community occ, openbook_communities_community_topics occtopics
+                    where occtopics.community_id = occ.id 
+                ) s
+                where s.topic_id = t.id 
+                and s.rn <= %s
+                and t.id = ANY(%s)
+                order by t.id
+                """,
+                [limit, topic_ids],
+            )
+            spaces_map = defaultdict(list)
+            for sp in spaces_from_db:
+                spaces_map[sp.topic_id].append(sp)
+            for topic_id, spaces in spaces_map.items():
                 result.append(
                     DiscoverSpaces(
                         topic_id=topic_id,
-                        spaces=spaces_for_filter(
-                            offset=offset,
-                            limit=limit,
-                            topic_id=topic_id,
-                        ),
+                        spaces=Paged(spaces, topic_id_to_num_spaces[topic_id]),
                     )
                 )
 
         # get all spaces by skill_id (including location filter)
         if skill_ids is not None:
-            for skill_id in skill_ids:
+            skill_id_to_num_spaces = get_id_spaces_count_map(
+                SkillModel.objects.filter(id__in=skill_ids).annotate(num_spaces=Count("tasks__community"))
+            )
+
+            spaces_from_db = CommunityModel.objects.raw(
+                """
+                select s.*
+                from openbook_terms_skill skill, (
+                    select octskill.skill_id, occ.*, row_number() OVER (partition by octskill.skill_id ORDER BY occ.id) AS rn
+                    FROM   openbook_communities_community occ, openbook_communities_task octask, openbook_communities_task_skills octskill
+                    where occ.id = octask.community_id and octask.id = octskill.task_id  
+                ) s
+                where s.skill_id = skill.id 
+                and UPPER(s.location) like UPPER(%s)
+                and s.rn <= %s
+                and skill.id = ANY(%s)
+                order by skill.id
+                """,
+                [f"%{location}%", limit, skill_ids],
+            )
+            spaces_map = defaultdict(list)
+            for sp in spaces_from_db:
+                spaces_map[sp.skill_id].append(sp)
+            for skill_id, spaces in spaces_map.items():
                 result.append(
                     DiscoverSpaces(
                         skill_id=skill_id,
                         location=location,
-                        spaces=spaces_for_filter(
-                            offset=offset,
-                            limit=limit,
-                            location=location,
-                            skill_ids=[skill_id],
-                        ),
+                        spaces=Paged(spaces, skill_id_to_num_spaces[skill_id]),
                     )
                 )
 

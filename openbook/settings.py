@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import collections
-import logging.config
 import os
 import sys
 import structlog
@@ -19,7 +18,6 @@ import sentry_sdk
 from django.utils.translation import gettext_lazy as _
 from dotenv import load_dotenv, find_dotenv
 from sentry_sdk.integrations.django import DjangoIntegration
-from django_replicated.settings import *
 
 # Logging config
 from sentry_sdk.integrations.rq import RqIntegration
