@@ -1755,7 +1755,6 @@ class User(AbstractUser):
 
     def create_community(
         self,
-        name,
         title,
         type,
         color=None,
@@ -1770,12 +1769,8 @@ class User(AbstractUser):
         location=None,
         topic_ids=None,
     ):
-        if name:
-            check_can_create_community_with_name(user=self, name=name)
-
         Community = get_community_model()
         community = Community.create_community(
-            name=name,
             creator=self,
             title=title,
             description=description,
@@ -1809,7 +1804,6 @@ class User(AbstractUser):
         self,
         community,
         title=None,
-        name=None,
         description=None,
         color=None,
         type=None,
@@ -1819,7 +1813,6 @@ class User(AbstractUser):
     ):
         return self.update_community_with_name(
             community.name,
-            name=name,
             title=title,
             description=description,
             color=color,
@@ -1833,7 +1826,6 @@ class User(AbstractUser):
         self,
         community_name,
         title=None,
-        name=None,
         description=None,
         color=None,
         type=None,
@@ -1848,10 +1840,9 @@ class User(AbstractUser):
         Community = get_community_model()
         community_to_update = Community.objects.get(name=community_name)
 
-        check_community_data(user=self, community=community_to_update, name=name, type=type)
+        check_community_data(user=self, community=community_to_update, type=type)
 
         community_to_update.update(
-            name=name,
             title=title,
             description=description,
             color=color,

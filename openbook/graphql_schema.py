@@ -1072,28 +1072,18 @@ class CreateSpaceMutation(graphene.Mutation):
     def mutate(cls, root, info, input):
         authenticated_user = verify_authorized_user(info)
 
-        # TODO(SF) necessary?
-        # if input["cover"] in ("", {}, None):
-        #     raise GraphQLError(f"Attribute 'cover' should contain a file, but was: '{input['cover']}'")
-        # input["name"] = create_community_name_from_title(input["title"] if "title" in input else "")
-
         serializer = CreateCommunitySerializer(data=input)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        try:
-            return authenticated_user.create_community(
-                name=data.get("name"),
-                title=data.get("title"),
-                type=CommunityModel.COMMUNITY_TYPE_PUBLIC,
-                description=data.get("description"),
-                cover=data.get("cover"),
-                invites_enabled=True,
-                topic_ids=data.get("topics"),
-            )
-        except Error:
-            # delete_cover(data["cover"]) TODO(SF) necessary?
-            raise
+        return authenticated_user.create_community(
+            title=data.get("title"),
+            type=CommunityModel.COMMUNITY_TYPE_PUBLIC,
+            description=data.get("description"),
+            cover=data.get("cover"),
+            invites_enabled=True,
+            topic_ids=data.get("topics"),
+        )
 
 
 class Mutation(graphene.ObjectType):

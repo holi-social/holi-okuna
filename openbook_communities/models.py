@@ -83,7 +83,7 @@ class Community(ModelWithUUID):
     avatar = ProcessedImageField(
         storage=community_image_storage,
         verbose_name=_("avatar"),
-        blank=False,
+        blank=True,
         null=True,
         format="JPEG",
         options={"quality": 90},
@@ -161,7 +161,7 @@ class Community(ModelWithUUID):
         null=True,
         db_index=True,
     )
-    topics = models.ManyToManyField(Topic, related_name="communities", blank=True, db_index=True)
+    topics = models.ManyToManyField(Topic, related_name="communities", blank=False, db_index=True)
 
     class Meta:
         verbose_name_plural = "communities"
@@ -282,7 +282,6 @@ class Community(ModelWithUUID):
     @classmethod
     def create_community(
         cls,
-        name,
         title,
         creator,
         color=None,
@@ -307,7 +306,6 @@ class Community(ModelWithUUID):
 
         community = cls.objects.create(
             title=title,
-            name=name,
             creator=creator,
             avatar=avatar,
             cover=cover,
@@ -472,7 +470,6 @@ class Community(ModelWithUUID):
     def update(
         self,
         title=None,
-        name=None,
         description=None,
         color=None,
         type=None,
@@ -483,9 +480,6 @@ class Community(ModelWithUUID):
         invites_enabled=None,
         topic_ids=None,
     ):
-
-        if name:
-            self.name = name.lower()
 
         if title:
             self.title = title

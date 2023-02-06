@@ -171,26 +171,6 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         self.assertNotEqual(community.name, new_community_name)
 
-    def test_can_update_administrated_community_name(self):
-        """should be able to update an administrated community name"""
-        user = make_user()
-        headers = make_authentication_headers_for_user(user)
-
-        community = make_community(creator=user)
-        new_community_name = make_community_name()
-
-        data = {"name": new_community_name}
-
-        url = self._get_url(community_name=community.name)
-
-        response = self.client.patch(url, data, **headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        community.refresh_from_db()
-
-        self.assertEqual(community.name, new_community_name)
-
     def test_cannot_update_administrated_community_name_to_taken_name(self):
         """should not be able to update an administrated community name to an existing one and return 400"""
         user = make_user()
@@ -207,7 +187,8 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # Request is successful as name parameter gets ignored
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         community.refresh_from_db()
 

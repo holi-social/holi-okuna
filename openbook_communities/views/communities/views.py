@@ -35,12 +35,12 @@ class Communities(APIView):
     def put(self, request):
         request_data = normalise_request_data(request.data)
         normalize_list_value_in_request_data(list_name="categories", request_data=request_data)
+        normalize_list_value_in_request_data(list_name="topics", request_data=request_data)
 
         serializer = CreateCommunitySerializer(data=request_data)
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
-        name = data.get("name")
         type = data.get("type")
         title = data.get("title")
         description = data.get("description")
@@ -52,12 +52,12 @@ class Communities(APIView):
         users_adjective = data.get("users_adjective")
         categories = data.get("categories")
         invites_enabled = data.get("invites_enabled")
+        topics = data.get("topics")
 
         user = request.user
 
         with transaction.atomic():
             community = user.create_community(
-                name=name,
                 title=title,
                 description=description,
                 rules=rules,
@@ -66,6 +66,7 @@ class Communities(APIView):
                 type=type,
                 color=color,
                 categories_names=categories,
+                topic_ids=topics,
                 users_adjective=users_adjective,
                 user_adjective=user_adjective,
                 invites_enabled=invites_enabled,

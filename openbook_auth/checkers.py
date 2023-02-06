@@ -106,10 +106,7 @@ def check_list_data(user, name):
         check_list_name_not_taken(user=user, list_name=name)
 
 
-def check_community_data(user, community, name=None, cover=None, avatar=None, type=None):
-    if name:
-        check_community_name_not_taken(user=user, community_name=name)
-
+def check_community_data(user, community, cover=None, avatar=None, type=None):
     if type:
         check_community_type_can_be_updated(type=type, community=community)
 
@@ -703,18 +700,6 @@ def check_list_name_not_taken(user, list_name):
     if user.has_list_with_name(list_name):
         raise ValidationError(
             _("You already have a list with that name."),
-        )
-
-
-def check_can_create_community_with_name(user, name):
-    check_community_name_not_taken(user=user, community_name=name)
-
-
-def check_community_name_not_taken(user, community_name):
-    Community = get_community_model()
-    if Community.is_name_taken(community_name):
-        raise ValidationError(
-            _("A community with that name already exists."),
         )
 
 
