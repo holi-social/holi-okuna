@@ -23,3 +23,6 @@ core
 /.okuna-cli.json
 /.docker-compose.env
 .venv
+
+# don't accidentally commit the .envrc.local file
+.envrc.local
