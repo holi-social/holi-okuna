@@ -4,6 +4,7 @@ import unittest
 
 from django.urls import reverse
 from django.conf import settings
+from django.template.defaultfilters import slugify
 from faker import Faker
 from rest_framework import status
 from openbook_common.tests.models import OpenbookAPITestCase
@@ -13,6 +14,8 @@ import logging
 import json
 
 from openbook_common.tests.helpers import (
+    make_community_topics,
+    make_topic,
     make_user,
     make_authentication_headers_for_user,
     make_community_avatar,
@@ -40,7 +43,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        mandatory_params = ["name", "title", "description", "categories"]
+        mandatory_params = ["title", "description", "cover", "topics"]
 
         url = self._get_url()
 
@@ -56,23 +59,17 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
     def test_cannot_create_community_without_credentials(self):
         """should NOT be able to create a community without providing credentials and return 400"""
-        community_name = fake.user_name()
         community_title = fake.name_male()
-        community_color = fake.hex_color()
-        community_categories = []
+        community_cover = make_community_cover()
+        community_topics = make_community_topics()
         community_type = "T"
 
-        for i in range(0, settings.COMMUNITY_CATEGORIES_MAX_AMOUNT):
-            category = make_category()
-            community_categories.append(category.name)
-
         data = {
-            "name": community_name,
-            "description": community_name,
+            "description": community_title,
             "type": community_type,
             "title": community_title,
-            "color": community_color,
-            "categories": community_categories,
+            "cover": community_cover,
+            "topics": community_topics,
         }
 
         url = self._get_url()
@@ -87,9 +84,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         self.assertFalse(
             Community.objects.filter(
-                name=community_name,
                 title=community_title,
-                color=community_color,
                 type=community_type,
             ).count()
             == 1
@@ -100,23 +95,17 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        community_name = fake.user_name()
         community_title = fake.name_male()
-        community_color = fake.hex_color()
-        community_categories = []
+        community_cover = make_community_cover()
+        community_topics = make_community_topics()
         community_type = "T"
 
-        for i in range(0, settings.COMMUNITY_CATEGORIES_MAX_AMOUNT):
-            category = make_category()
-            community_categories.append(category.name)
-
         data = {
-            "name": community_name,
-            "description": community_name,
+            "description": community_title,
             "type": community_type,
             "title": community_title,
-            "color": community_color,
-            "categories": community_categories,
+            "cover": community_cover,
+            "topics": community_topics,
         }
 
         url = self._get_url()
@@ -127,22 +116,32 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         self.assertTrue(
             Community.objects.filter(
-                name=community_name,
                 title=community_title,
-                color=community_color,
                 type=community_type,
             ).count()
             == 1
         )
+
+        community = Community.objects.get(title=community_title)
+
+        self.assertEqual(community.name, slugify(community_title))
+
+        topics = community.topics.all()
+        topic_ids = [topic.id for topic in topics]
+
+        self.assertEqual(len(topic_ids), len(community_topics))
+
+        for topic in community_topics:
+            self.assertIn(topic, topic_ids)
 
     def test_can_create_community_with_categories(self):
         """should be able to create a community with categories and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        community_name = fake.user_name()
         community_title = fake.name_male()
-        community_color = fake.hex_color()
+        community_cover = make_community_cover()
+        community_topics = make_community_topics()
         community_categories = []
         community_type = "T"
 
@@ -151,21 +150,21 @@ class CommunitiesAPITests(OpenbookAPITestCase):
             community_categories.append(category.name)
 
         data = {
-            "name": community_name,
-            "description": community_name,
+            "description": community_title,
             "type": community_type,
             "title": community_title,
-            "color": community_color,
+            "cover": community_cover,
+            "topics": community_topics,
             "categories": community_categories,
         }
 
         url = self._get_url()
 
-        response = self.client.put(url, data, **headers, format="json")
+        response = self.client.put(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        community = Community.objects.get(name=community_name)
+        community = Community.objects.get(title=community_title)
 
         categories = community.categories.all()
         categories_names = [category.name for category in categories]
@@ -175,14 +174,44 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         for community_category in community_categories:
             self.assertIn(community_category, categories_names)
 
-    def test_cannot_create_a_category_with_exceeding_categories(self):
+    def test_cannot_create_a_community_with_exceeding_topics(self):
+        """should NOT be able to create a community with an exceeding topic amount and return 400"""
+        user = make_user()
+        headers = make_authentication_headers_for_user(user)
+
+        community_title = fake.name_male()
+        community_cover = make_community_cover()
+        community_topics = []
+        community_type = "T"
+
+        for i in range(0, settings.COMMUNITY_TOPICS_MAX_AMOUNT + 1):
+            topic = make_topic()
+            community_topics.append(topic.id)
+
+        data = {
+            "description": community_title,
+            "type": community_type,
+            "title": community_title,
+            "cover": community_cover,
+            "topics": community_topics,
+        }
+
+        url = self._get_url()
+
+        response = self.client.put(url, data, **headers, format="multipart")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        self.assertFalse(Community.objects.filter(title=community_title).exists())
+
+    def test_cannot_create_a_community_with_exceeding_categories(self):
         """should NOT be able to create a community with an exceeding category amount and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        community_name = fake.user_name()
         community_title = fake.name_male()
-        community_color = fake.hex_color()
+        community_cover = make_community_cover()
+        community_topics = make_community_topics()
         community_categories = []
         community_type = "T"
 
@@ -191,140 +220,117 @@ class CommunitiesAPITests(OpenbookAPITestCase):
             community_categories.append(category.name)
 
         data = {
-            "name": community_name,
-            "description": community_name,
+            "description": community_title,
             "type": community_type,
             "title": community_title,
-            "color": community_color,
+            "cover": community_cover,
+            "topics": community_topics,
             "categories": community_categories,
         }
 
         url = self._get_url()
 
-        response = self.client.put(url, data, **headers, format="json")
+        response = self.client.put(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(Community.objects.filter(name=community_name).exists())
+        self.assertFalse(Community.objects.filter(title=community_title).exists())
 
-    def test_cannot_create_a_category_with_less_than_minimal_categories(self):
+    def test_cannot_create_a_community_with_less_than_minimal_topics(self):
         """should NOT be able to create a community with a less that minimal category amount and return 400"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        community_name = fake.user_name()
         community_title = fake.name_male()
-        community_color = fake.hex_color()
-        community_categories = []
+        community_cover = make_community_cover()
+        community_topics = []
         community_type = "T"
 
-        for i in range(0, settings.COMMUNITY_CATEGORIES_MIN_AMOUNT - 1):
-            category = make_category()
-            community_categories.append(category.name)
-
         data = {
-            "name": community_name,
-            "description": community_name,
+            "description": community_title,
             "type": community_type,
             "title": community_title,
-            "color": community_color,
-            "categories": community_categories,
+            "cover": community_cover,
+            "categories": community_topics,
         }
 
         url = self._get_url()
 
-        response = self.client.put(url, data, **headers, format="json")
+        response = self.client.put(url, data, **headers, format="multipart")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-        self.assertFalse(Community.objects.filter(name=community_name).exists())
+        self.assertFalse(Community.objects.filter(title=community_title).exists())
 
     def test_create_community_should_make_creator_admin(self):
         """should make the community creator an administrator when creating a new community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        community_name = fake.user_name()
         community_title = fake.name_male()
-        community_color = fake.hex_color()
-        community_categories = []
+        community_cover = make_community_cover()
+        community_topics = make_community_topics()
         community_type = "T"
 
-        for i in range(0, settings.COMMUNITY_CATEGORIES_MAX_AMOUNT):
-            category = make_category()
-            community_categories.append(category.name)
-
         data = {
-            "name": community_name,
-            "description": community_name,
+            "description": community_title,
             "type": community_type,
             "title": community_title,
-            "color": community_color,
-            "categories": community_categories,
+            "cover": community_cover,
+            "topics": community_topics,
         }
 
         url = self._get_url()
 
         self.client.put(url, data, **headers, format="multipart")
 
-        self.assertTrue(user.is_administrator_of_community_with_name(community_name=community_name))
+        community = Community.objects.get(title=community_title)
+        self.assertTrue(user.is_administrator_of_community_with_name(community_name=community.name))
 
     def test_create_community_should_not_make_creator_mod(self):
         """should NOT make the community creator a moderator when creating a new community"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        community_name = fake.user_name()
         community_title = fake.name_male()
-        community_color = fake.hex_color()
-        community_categories = []
+        community_cover = make_community_cover()
+        community_topics = make_community_topics()
         community_type = "T"
 
-        for i in range(0, settings.COMMUNITY_CATEGORIES_MAX_AMOUNT):
-            category = make_category()
-            community_categories.append(category.name)
-
         data = {
-            "name": community_name,
-            "description": community_name,
+            "description": community_title,
             "type": community_type,
             "title": community_title,
-            "color": community_color,
-            "categories": community_categories,
+            "cover": community_cover,
+            "topics": community_topics,
         }
 
         url = self._get_url()
 
         self.client.put(url, data, **headers, format="multipart")
 
-        self.assertFalse(user.is_moderator_of_community_with_name(community_name=community_name))
+        community = Community.objects.get(title=community_title)
+        self.assertFalse(user.is_moderator_of_community_with_name(community_name=community.name))
 
     def test_create_private_community(self):
         """should be able to create a private community and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        community_name = fake.user_name()
         community_title = fake.name_male()
         community_description = fake.text(max_nb_chars=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH)
         community_rules = fake.text(max_nb_chars=settings.COMMUNITY_RULES_MAX_LENGTH)
-        community_color = fake.hex_color()
-        community_categories = []
+        community_cover = make_community_cover()
+        community_topics = make_community_topics()
         community_type = "T"
 
-        for i in range(0, settings.COMMUNITY_CATEGORIES_MAX_AMOUNT):
-            category = make_category()
-            community_categories.append(category.name)
-
         data = {
-            "name": community_name,
-            "description": community_name,
             "type": community_type,
             "title": community_title,
             "description": community_description,
             "rules": community_rules,
-            "color": community_color,
-            "categories": community_categories,
+            "cover": community_cover,
+            "topics": community_topics,
         }
 
         url = self._get_url()
@@ -335,11 +341,9 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         self.assertTrue(
             Community.objects.filter(
-                name=community_name,
                 title=community_title,
                 description=community_description,
                 rules=community_rules,
-                color=community_color,
                 type=community_type,
             ).count()
             == 1
@@ -350,27 +354,20 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        community_name = fake.user_name()
         community_title = fake.name_male()
         community_description = fake.text(max_nb_chars=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH)
         community_rules = fake.text(max_nb_chars=settings.COMMUNITY_RULES_MAX_LENGTH)
-        community_color = fake.hex_color()
-        community_categories = []
+        community_cover = make_community_cover()
+        community_topics = make_community_topics()
         community_type = Community.COMMUNITY_TYPE_PRIVATE
 
-        for i in range(0, settings.COMMUNITY_CATEGORIES_MAX_AMOUNT):
-            category = make_category()
-            community_categories.append(category.name)
-
         data = {
-            "name": community_name,
-            "description": community_name,
             "type": community_type,
             "title": community_title,
             "description": community_description,
             "rules": community_rules,
-            "color": community_color,
-            "categories": community_categories,
+            "cover": community_cover,
+            "topics": community_topics,
         }
 
         url = self._get_url()
@@ -381,11 +378,9 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         self.assertTrue(
             Community.objects.filter(
-                name=community_name,
                 title=community_title,
                 description=community_description,
                 rules=community_rules,
-                color=community_color,
                 type=community_type,
                 invites_enabled=False,
             ).count()
@@ -397,26 +392,20 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        community_name = fake.user_name()
         community_title = fake.name_male()
         community_description = fake.text(max_nb_chars=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH)
         community_rules = fake.text(max_nb_chars=settings.COMMUNITY_RULES_MAX_LENGTH)
-        community_color = fake.hex_color()
-        community_categories = []
+        community_cover = make_community_cover()
+        community_topics = make_community_topics()
         community_type = Community.COMMUNITY_TYPE_PUBLIC
 
-        for i in range(0, settings.COMMUNITY_CATEGORIES_MAX_AMOUNT):
-            category = make_category()
-            community_categories.append(category.name)
-
         data = {
-            "name": community_name,
             "type": community_type,
             "title": community_title,
             "description": community_description,
             "rules": community_rules,
-            "color": community_color,
-            "categories": community_categories,
+            "cover": community_cover,
+            "topics": community_topics,
         }
 
         url = self._get_url()
@@ -425,7 +414,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        community = Community.objects.get(name=community_name)
+        community = Community.objects.get(title=community_title)
 
         self.assertTrue(community.invites_enabled)
 
@@ -434,30 +423,24 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        community_name = fake.user_name()
         community_title = fake.name_male()
         community_description = fake.text(max_nb_chars=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH)
         community_rules = fake.text(max_nb_chars=settings.COMMUNITY_RULES_MAX_LENGTH)
         community_user_adjective = make_community_user_adjective()
         community_users_adjective = make_community_users_adjective()
-        community_color = fake.hex_color()
-        community_categories = []
+        community_cover = make_community_cover()
+        community_topics = make_community_topics()
         community_type = "P"
 
-        for i in range(0, settings.COMMUNITY_CATEGORIES_MAX_AMOUNT):
-            category = make_category()
-            community_categories.append(category.name)
-
         data = {
-            "name": community_name,
             "type": community_type,
             "title": community_title,
             "description": community_description,
             "rules": community_rules,
             "user_adjective": community_user_adjective,
             "users_adjective": community_users_adjective,
-            "color": community_color,
-            "categories": community_categories,
+            "cover": community_cover,
+            "topics": community_topics,
         }
 
         url = self._get_url()
@@ -468,13 +451,11 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         self.assertTrue(
             Community.objects.filter(
-                name=community_name,
                 title=community_title,
                 description=community_description,
                 rules=community_rules,
                 user_adjective=community_user_adjective,
                 users_adjective=community_users_adjective,
-                color=community_color,
                 type=community_type,
             ).count()
             == 1
@@ -485,30 +466,24 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        community_name = fake.user_name()
         community_title = fake.name_male()
         community_description = fake.text(max_nb_chars=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH)
         community_rules = fake.text(max_nb_chars=settings.COMMUNITY_RULES_MAX_LENGTH)
         community_user_adjective = fake.word()
         community_users_adjective = fake.word()
         community_avatar = make_community_avatar()
-        community_color = fake.hex_color()
-        community_categories = []
-
-        for i in range(0, settings.COMMUNITY_CATEGORIES_MAX_AMOUNT):
-            category = make_category()
-            community_categories.append(category.name)
+        community_cover = make_community_cover()
+        community_topics = make_community_topics()
 
         data = {
-            "name": community_name,
             "type": "P",
             "title": community_title,
             "description": community_description,
             "rules": community_rules,
             "user_adjective": community_user_adjective,
             "users_adjective": community_users_adjective,
-            "color": community_color,
-            "categories": community_categories,
+            "cover": community_cover,
+            "topics": community_topics,
             "avatar": community_avatar,
         }
 
@@ -518,7 +493,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        community = Community.objects.get(name=community_name)
+        community = Community.objects.get(title=community_title)
         self.assertTrue(hasattr(community, "avatar"))
 
     def test_create_community_with_cover(self):
@@ -526,30 +501,24 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        community_name = fake.user_name()
         community_title = fake.name_male()
         community_description = fake.text(max_nb_chars=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH)
         community_rules = fake.text(max_nb_chars=settings.COMMUNITY_RULES_MAX_LENGTH)
         community_user_adjective = fake.word()
         community_users_adjective = fake.word()
         community_cover = make_community_cover()
-        community_color = fake.hex_color()
-        community_categories = []
-
-        for i in range(0, settings.COMMUNITY_CATEGORIES_MAX_AMOUNT):
-            category = make_category()
-            community_categories.append(category.name)
+        community_cover = make_community_cover()
+        community_topics = make_community_topics()
 
         data = {
-            "name": community_name,
             "type": "P",
             "title": community_title,
             "description": community_description,
             "rules": community_rules,
             "user_adjective": community_user_adjective,
             "users_adjective": community_users_adjective,
-            "color": community_color,
-            "categories": community_categories,
+            "cover": community_cover,
+            "topics": community_topics,
             "cover": community_cover,
         }
 
@@ -559,7 +528,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        community = Community.objects.get(name=community_name)
+        community = Community.objects.get(title=community_title)
         self.assertTrue(hasattr(community, "cover"))
 
     def _get_url(self):
@@ -634,10 +603,10 @@ class JoinedCommunities(OpenbookAPITestCase):
         user = make_user()
 
         non_excluded_community_owner = make_user()
-        non_excluded_community = make_community(creator=non_excluded_community_owner, name="memes")
+        non_excluded_community = make_community(creator=non_excluded_community_owner)
 
         excluded_community_owner = make_user()
-        excluded_community = make_community(creator=excluded_community_owner, name="memestwo")
+        excluded_community = make_community(creator=excluded_community_owner)
 
         user.join_community_with_name(community_name=non_excluded_community.name)
         user.join_community_with_name(community_name=excluded_community.name)
@@ -675,8 +644,9 @@ class SearchJoinedCommunitiesAPITests(OpenbookAPITestCase):
         amount_of_joined_communities_to_search_for = 5
 
         for i in range(0, amount_of_joined_communities_to_search_for):
-            community_name = fake.user_name().lower()
-            community = mixer.blend(Community, name=community_name, type=Community.COMMUNITY_TYPE_PUBLIC)
+            community_title = fake.user_name().lower()
+            community = mixer.blend(Community, title=community_title, type=Community.COMMUNITY_TYPE_PUBLIC)
+            community_name = community.name
 
             user.join_community_with_name(community_name)
 
@@ -697,7 +667,7 @@ class SearchJoinedCommunitiesAPITests(OpenbookAPITestCase):
             self.assertEqual(len(parsed_response), 1)
 
             retrieved_community = parsed_response[0]
-            self.assertEqual(retrieved_community["name"], community_name.lower())
+            self.assertEqual(retrieved_community["name"], community_name)
             community.delete()
 
     def test_can_search_joined_communities_by_title(self):
@@ -738,10 +708,10 @@ class SearchJoinedCommunitiesAPITests(OpenbookAPITestCase):
         user = make_user()
 
         non_excluded_community_owner = make_user()
-        non_excluded_community = make_community(creator=non_excluded_community_owner, name="memes")
+        non_excluded_community = make_community(creator=non_excluded_community_owner)
 
         excluded_community_owner = make_user()
-        excluded_community = make_community(creator=excluded_community_owner, name="memestwo")
+        excluded_community = make_community(creator=excluded_community_owner)
 
         user.join_community_with_name(community_name=non_excluded_community.name)
         user.join_community_with_name(community_name=excluded_community.name)
@@ -752,7 +722,9 @@ class SearchJoinedCommunitiesAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
 
-        response = self.client.get(url, {"query": "memes", "excluded_from_profile_posts": False}, **headers)
+        response = self.client.get(
+            url, {"query": non_excluded_community.name, "excluded_from_profile_posts": False}, **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
@@ -850,8 +822,8 @@ class SearchAdministratedCommunitiesAPITests(OpenbookAPITestCase):
         amount_of_administrated_communities_to_search_for = 5
 
         for i in range(0, amount_of_administrated_communities_to_search_for):
-            community_name = fake.user_name().lower()
-            community = make_community(creator=user, name=community_name)
+            community = make_community(creator=user)
+            community_name = community.name
 
             amount_of_characters_to_query = random.randint(1, len(community_name))
             query = community_name[0:amount_of_characters_to_query]
@@ -870,7 +842,7 @@ class SearchAdministratedCommunitiesAPITests(OpenbookAPITestCase):
             self.assertEqual(len(parsed_response), 1)
 
             retrieved_community = parsed_response[0]
-            self.assertEqual(retrieved_community["name"], community_name.lower())
+            self.assertEqual(retrieved_community["name"], community_name)
             community.delete()
 
     def test_can_search_administrated_communities_by_title(self):
@@ -998,8 +970,8 @@ class SearchModeratedCommunitiesAPITests(OpenbookAPITestCase):
         amount_of_moderated_communities_to_search_for = 5
 
         for i in range(0, amount_of_moderated_communities_to_search_for):
-            community_name = fake.user_name().lower()
-            community = make_community(creator=community_creator, name=community_name)
+            community = make_community(creator=community_creator)
+            community_name = community.name
             user.join_community_with_name(community_name=community.name)
             community_creator.add_moderator_with_username_to_community_with_name(
                 username=user.username, community_name=community.name
@@ -1022,7 +994,7 @@ class SearchModeratedCommunitiesAPITests(OpenbookAPITestCase):
             self.assertEqual(len(parsed_response), 1)
 
             retrieved_community = parsed_response[0]
-            self.assertEqual(retrieved_community["name"], community_name.lower())
+            self.assertEqual(retrieved_community["name"], community_name)
             community.delete()
 
     def test_can_search_moderated_communities_by_title(self):
@@ -1159,8 +1131,8 @@ class SearchFavoriteCommunitiesAPITests(OpenbookAPITestCase):
         amount_of_subscribed_communities_to_search_for = 5
 
         for i in range(0, amount_of_subscribed_communities_to_search_for):
-            community_name = fake.user_name().lower()
-            community = mixer.blend(Community, name=community_name, type=Community.COMMUNITY_TYPE_PUBLIC)
+            community = mixer.blend(Community, type=Community.COMMUNITY_TYPE_PUBLIC)
+            community_name = community.name
 
             user.join_community_with_name(community_name)
             user.favorite_community_with_name(community_name=community.name)
@@ -1182,7 +1154,7 @@ class SearchFavoriteCommunitiesAPITests(OpenbookAPITestCase):
             self.assertEqual(len(parsed_response), 1)
 
             retrieved_community = parsed_response[0]
-            self.assertEqual(retrieved_community["name"], community_name.lower())
+            self.assertEqual(retrieved_community["name"], community_name)
             community.delete()
 
     def test_can_search_favorite_communities_by_title(self):
@@ -1312,8 +1284,8 @@ class SearchCommunitiesAPITests(OpenbookAPITestCase):
         amount_of_communities_to_search_for = 5
 
         for i in range(0, amount_of_communities_to_search_for):
-            community_name = fake.user_name().lower()
-            community = mixer.blend(Community, name=community_name)
+            community = mixer.blend(Community)
+            community_name = community.name
             amount_of_characters_to_query = random.randint(1, len(community_name))
             query = community_name[0:amount_of_characters_to_query]
             final_query = ""
@@ -1326,7 +1298,7 @@ class SearchCommunitiesAPITests(OpenbookAPITestCase):
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertEqual(len(parsed_response), 1)
             retrieved_community = parsed_response[0]
-            self.assertEqual(retrieved_community["name"], community_name.lower())
+            self.assertEqual(retrieved_community["name"], community_name)
             community.delete()
 
     def test_can_search_communities_by_title(self):
@@ -1386,10 +1358,10 @@ class SearchCommunitiesAPITests(OpenbookAPITestCase):
         user = make_user()
 
         non_excluded_community_owner = make_user()
-        non_excluded_community = make_community(creator=non_excluded_community_owner, name="memes")
+        non_excluded_community = make_community(creator=non_excluded_community_owner)
 
         excluded_community_owner = make_user()
-        excluded_community = make_community(creator=excluded_community_owner, name="memestwo")
+        excluded_community = make_community(creator=excluded_community_owner)
 
         user.exclude_community_from_profile_posts(community=excluded_community)
 
@@ -1397,7 +1369,9 @@ class SearchCommunitiesAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
 
-        response = self.client.get(url, {"query": "memes", "excluded_from_profile_posts": False}, **headers)
+        response = self.client.get(
+            url, {"query": non_excluded_community.name, "excluded_from_profile_posts": False}, **headers
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
@@ -1593,8 +1567,8 @@ class SearchTopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         amount_of_joined_communities_to_search_for = 5
 
         for i in range(0, amount_of_joined_communities_to_search_for):
-            community_name = fake.user_name().lower()
-            community = mixer.blend(Community, name=community_name, type=Community.COMMUNITY_TYPE_PUBLIC)
+            community = mixer.blend(Community, type=Community.COMMUNITY_TYPE_PUBLIC)
+            community_name = community.name
 
             user.exclude_community_with_name_from_top_posts(community_name)
 
@@ -1615,7 +1589,7 @@ class SearchTopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
             self.assertEqual(len(parsed_response), 1)
 
             retrieved_community = parsed_response[0]
-            self.assertEqual(retrieved_community["name"], community_name.lower())
+            self.assertEqual(retrieved_community["name"], community_name)
             community.delete()
 
     def test_can_search_excluded_communities_by_title(self):

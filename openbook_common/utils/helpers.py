@@ -31,7 +31,13 @@ def normalise_request_data(request_data):
         return {}
 
     if isinstance(request_data, QueryDict):
-        return request_data.dict()
+        data = {}
+        for key in request_data.keys():
+            v = request_data.getlist(key)
+            if len(v) == 1:
+                v = v[0]
+            data[key] = v
+        return data
     return {**request_data}
 
 
