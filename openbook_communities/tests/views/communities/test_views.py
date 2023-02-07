@@ -122,8 +122,6 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         url = self._get_url()
 
         response = self.client.put(url, data, **headers, format="multipart")
-        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
-        print(parsed_response)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -164,8 +162,6 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         url = self._get_url()
 
         response = self.client.put(url, data, **headers, format="json")
-        parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
-        print(parsed_response)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
