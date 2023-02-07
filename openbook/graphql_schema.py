@@ -28,7 +28,11 @@ from openbook_communities.models import (
     CommunityMembership as CommunityMembershipModel,
     ExternalLink as ExternalLinkModel,
 )
-from openbook_communities.views.communities.serializers import CreateCommunitySerializer, ValidateCommunitySerializer
+from openbook_communities.views.communities.serializers import (
+    CreateCommunitySerializer,
+    UpdateCommunitySerializer,
+    ValidateCommunitySerializer,
+)
 from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_insights.models import Insight as InsightModel
 from openbook_moderation.models import ModeratedObject
@@ -1086,6 +1090,37 @@ class CreateSpaceMutation(graphene.Mutation):
         )
 
 
+class UpdateSpaceInput(graphene.InputObjectType):
+    id = graphene.UUID()
+    title = graphene.String()
+    description = graphene.String()
+    topics = graphene.List(graphene.UUID)
+    cover = Upload(required=False)
+
+
+class UpdateSpaceMutation(graphene.Mutation):
+    class Arguments:
+        input = graphene.Argument(UpdateSpaceInput)
+
+    Output = Space
+
+    @classmethod
+    def mutate(cls, root, info, input):
+        authenticated_user = verify_authorized_user(info)
+
+        serializer = UpdateCommunitySerializer(data=input)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        return authenticated_user.update_community_with_id(
+            community_id=data.get("id"),
+            title=data.get("title"),
+            description=data.get("description"),
+            cover=data.get("cover"),
+            topic_ids=data.get("topics"),
+        )
+
+
 class Mutation(graphene.ObjectType):
     update_authenticated_user = UpdateAuthenticatedUserMutation.Field()
     update_connection_with_user = UpdateConnectionWithUserMutation.Field()
@@ -1096,6 +1131,7 @@ class Mutation(graphene.ObjectType):
     block_user = BlockUserMutation.Field()
     validate_space = ValidateSpaceMutation.Field()
     create_space = CreateSpaceMutation.Field()
+    update_space = UpdateSpaceMutation.Field()
 
 
 # noinspection PyTypeChecker
