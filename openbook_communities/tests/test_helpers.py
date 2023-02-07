@@ -10,9 +10,9 @@ class CommunitiesHelperTests(OpenbookAPITestCase):
     def test_create_community_name_from_title_and_hash(self):
         hash = "1234567890"
         long_name = "f" * 60
-        make_community(name="bar")
-        make_community(name="bar-12345678")
-        make_community(name=long_name)
+        make_community(title="bar")
+        make_community(title="bar-12345678")
+        make_community(title=long_name)
 
         self.assertEqual("", create_community_name_from_title_and_hash("", hash))
         self.assertEqual("foo", create_community_name_from_title_and_hash("FOO", hash))

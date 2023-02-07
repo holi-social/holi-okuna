@@ -231,6 +231,16 @@ def make_topic():
     return mixer.blend(Topic)
 
 
+def make_community_topics():
+    community_topics = []
+
+    for i in range(0, settings.COMMUNITY_TOPICS_MAX_AMOUNT):
+        topic = make_topic()
+        community_topics.append(topic.id)
+
+    return community_topics
+
+
 def make_skill():
     return mixer.blend(Skill)
 
@@ -249,7 +259,6 @@ def make_community_task(community, skills=None):
 def make_community(
     creator=None,
     type=Community.COMMUNITY_TYPE_PUBLIC,
-    name=None,
     title=None,
     topics=None,
     location=None,
@@ -257,20 +266,16 @@ def make_community(
     if not creator:
         creator = make_user()
 
-    if not name:
-        name = make_community_name()
-
     if not title:
         title = make_community_title()
 
     if not topics:
-        topics = [make_topic()]
+        topics = make_community_topics()
 
     if not location:
         location = fake.text(max_nb_chars=settings.COMMUNITY_LOCATION_MAX_LENGTH)
 
     community = creator.create_community(
-        name=name,
         title=title,
         type=type,
         color=fake.hex_color(),
