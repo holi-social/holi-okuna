@@ -1246,6 +1246,7 @@ class GraphQLTest(TestCase):
         response = self.graphql.execute(
             validate_space_mutation,
             variable_values={"input": valid_input},
+            context_value=BeneDict({"user": AnonymousUser}),
         )
 
         self.assertIsNone(response["data"]["validateSpace"])
@@ -1384,6 +1385,7 @@ class GraphQLTest(TestCase):
         response = self.graphql.execute(
             create_space_mutation,
             variable_values={"input": valid_input},
+            context_value=BeneDict({"user": AnonymousUser}),
         )
 
         self.assertIsNone(response["data"]["createSpace"])
@@ -1566,6 +1568,7 @@ class GraphQLTest(TestCase):
         response = self.graphql.execute(
             update_space_mutation,
             variable_values={"input": {"id": str(community.id), "title": "new title"}},
+            context_value=BeneDict({"user": AnonymousUser}),
         )
 
         self.assertIsNone(response["data"]["updateSpace"])

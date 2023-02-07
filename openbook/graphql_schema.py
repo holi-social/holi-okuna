@@ -463,7 +463,7 @@ def get_posts_only_query(user):
 
 
 def verify_authorized_user(info):
-    current_user: UserModel = info.context.user if info.context and hasattr(info.context, "user") else None
+    current_user: UserModel = info.context.user
     if not current_user or current_user.is_anonymous:
         raise GraphQLError("Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED})
     return current_user
