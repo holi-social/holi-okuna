@@ -1,325 +1,325 @@
 [
-  {
-    "model": "openbook_terms.sdg",
-    "pk": "23dc1c6f-44e7-40c4-b556-4104824913be",
-    "fields": {
-      "slug": "life-on-land",
-      "title": "Life on Land",
-      "title_es": null,
-      "title_en": "Life on Land",
-      "title_de": "Leben an Land",
-      "title_nl": null,
-      "title_da": null,
-      "title_hu": null,
-      "title_sv": null,
-      "title_fr": null,
-      "title_it": null,
-      "title_tr": null,
-      "title_pt_br": null
-    }
-  },
-  {
-    "model": "openbook_terms.sdg",
-    "pk": "26c82524-9f75-40a5-b017-d72d3377c7e9",
-    "fields": {
-      "slug": "good-health-and-well-being",
-      "title": "Good Health and Well-being",
-      "title_es": null,
-      "title_en": "Good Health and Well-being",
-      "title_de": "Gesundheit und Wohlergehen",
-      "title_nl": null,
-      "title_da": null,
-      "title_hu": null,
-      "title_sv": null,
-      "title_fr": null,
-      "title_it": null,
-      "title_tr": null,
-      "title_pt_br": null
-    }
-  },
-  {
-    "model": "openbook_terms.sdg",
-    "pk": "47225062-8970-4a09-bcdf-46b129f66814",
-    "fields": {
-      "slug": "peace-justice-and-strong-institutions",
-      "title": "Peace, Justice and Strong Institutions",
-      "title_es": null,
-      "title_en": "Peace, Justice and Strong Institutions",
-      "title_de": "Frieden, Gerechtigkeit und starke Institutionen",
-      "title_nl": null,
-      "title_da": null,
-      "title_hu": null,
-      "title_sv": null,
-      "title_fr": null,
-      "title_it": null,
-      "title_tr": null,
-      "title_pt_br": null
-    }
-  },
-  {
-    "model": "openbook_terms.sdg",
-    "pk": "4c832a1f-9b1d-4bb7-8186-57a8eaacf1ef",
-    "fields": {
-      "slug": "sustainable-cities-and-communities",
-      "title": "Sustainable Cities and Communities",
-      "title_es": null,
-      "title_en": "Sustainable Cities and Communities",
-      "title_de": "Nachhaltige Städte und Gemeinden",
-      "title_nl": null,
-      "title_da": null,
-      "title_hu": null,
-      "title_sv": null,
-      "title_fr": null,
-      "title_it": null,
-      "title_tr": null,
-      "title_pt_br": null
-    }
-  },
-  {
-    "model": "openbook_terms.sdg",
-    "pk": "65683f50-3139-4dcb-812b-3d868aa38235",
-    "fields": {
-      "slug": "quality-education",
-      "title": "Quality Education",
-      "title_es": null,
-      "title_en": "Quality Education",
-      "title_de": "Hochwertige Bildung",
-      "title_nl": null,
-      "title_da": null,
-      "title_hu": null,
-      "title_sv": null,
-      "title_fr": null,
-      "title_it": null,
-      "title_tr": null,
-      "title_pt_br": null
-    }
-  },
-  {
-    "model": "openbook_terms.sdg",
-    "pk": "681124cc-1acb-4b59-b616-868b48837c74",
-    "fields": {
-      "slug": "life-below-water",
-      "title": "Life Below Water",
-      "title_es": null,
-      "title_en": "Life Below Water",
-      "title_de": "Leben unter Wasser",
-      "title_nl": null,
-      "title_da": null,
-      "title_hu": null,
-      "title_sv": null,
-      "title_fr": null,
-      "title_it": null,
-      "title_tr": null,
-      "title_pt_br": null
-    }
-  },
-  {
-    "model": "openbook_terms.sdg",
-    "pk": "6f7f2935-4760-4f83-841b-447f9f7f57e1",
-    "fields": {
-      "slug": "reduced-inequality",
-      "title": "Reduced Inequality",
-      "title_es": null,
-      "title_en": "Reduced Inequality",
-      "title_de": "Weniger Ungleichheiten",
-      "title_nl": null,
-      "title_da": null,
-      "title_hu": null,
-      "title_sv": null,
-      "title_fr": null,
-      "title_it": null,
-      "title_tr": null,
-      "title_pt_br": null
-    }
-  },
-  {
-    "model": "openbook_terms.sdg",
-    "pk": "7c786326-d1cf-4d59-a125-22046402981a",
-    "fields": {
-      "slug": "no-poverty",
-      "title": "No Poverty",
-      "title_es": null,
-      "title_en": "No Poverty",
-      "title_de": "Keine Armut",
-      "title_nl": null,
-      "title_da": null,
-      "title_hu": null,
-      "title_sv": null,
-      "title_fr": null,
-      "title_it": null,
-      "title_tr": null,
-      "title_pt_br": null
-    }
-  },
-  {
-    "model": "openbook_terms.sdg",
-    "pk": "9fbb8ea2-c82d-44cc-867e-2f94032f4d37",
-    "fields": {
-      "slug": "decent-work-and-economic-growth",
-      "title": "Decent Work and Economic Growth",
-      "title_es": null,
-      "title_en": "Decent Work and Economic Growth",
-      "title_de": "Menschenwürdige Arbeit und Wirtschaftswachstum",
-      "title_nl": null,
-      "title_da": null,
-      "title_hu": null,
-      "title_sv": null,
-      "title_fr": null,
-      "title_it": null,
-      "title_tr": null,
-      "title_pt_br": null
-    }
-  },
-  {
-    "model": "openbook_terms.sdg",
-    "pk": "a0f852b3-c312-45fd-b5a0-d704d7c00149",
-    "fields": {
-      "slug": "clean-water-and-sanitation",
-      "title": "Clean Water and Sanitation",
-      "title_es": null,
-      "title_en": "Clean Water and Sanitation",
-      "title_de": "Sauberes Wasser und Sanitäreinrichtungen",
-      "title_nl": null,
-      "title_da": null,
-      "title_hu": null,
-      "title_sv": null,
-      "title_fr": null,
-      "title_it": null,
-      "title_tr": null,
-      "title_pt_br": null
-    }
-  },
-  {
-    "model": "openbook_terms.sdg",
-    "pk": "cc49e46f-be16-40ea-ac99-7c481418afdf",
-    "fields": {
-      "slug": "responsible-consumption-and-production",
-      "title": "Responsible Consumption and Production",
-      "title_es": null,
-      "title_en": "Responsible Consumption and Production",
-      "title_de": "Verantwortung bei Konsum und Produktion",
-      "title_nl": null,
-      "title_da": null,
-      "title_hu": null,
-      "title_sv": null,
-      "title_fr": null,
-      "title_it": null,
-      "title_tr": null,
-      "title_pt_br": null
-    }
-  },
-  {
-    "model": "openbook_terms.sdg",
-    "pk": "d13882f7-d1e3-4452-b9ac-d6503f49a0b2",
-    "fields": {
-      "slug": "gender-equality",
-      "title": "Gender Equality",
-      "title_es": null,
-      "title_en": "Gender Equality",
-      "title_de": "Geschlechtergleichheit",
-      "title_nl": null,
-      "title_da": null,
-      "title_hu": null,
-      "title_sv": null,
-      "title_fr": null,
-      "title_it": null,
-      "title_tr": null,
-      "title_pt_br": null
-    }
-  },
-  {
-    "model": "openbook_terms.sdg",
-    "pk": "d8127832-d763-4dab-895e-0693859c916f",
-    "fields": {
-      "slug": "affordable-and-clean-energy",
-      "title": "Affordable and Clean Energy",
-      "title_es": null,
-      "title_en": "Affordable and Clean Energy",
-      "title_de": "Bezahlbare und saubere Energie",
-      "title_nl": null,
-      "title_da": null,
-      "title_hu": null,
-      "title_sv": null,
-      "title_fr": null,
-      "title_it": null,
-      "title_tr": null,
-      "title_pt_br": null
-    }
-  },
-  {
-    "model": "openbook_terms.sdg",
-    "pk": "de8b264d-d5d0-4620-a85e-030aefd85fe9",
-    "fields": {
-      "slug": "partnerships-to-achieve-the-goal",
-      "title": "Partnerships to achieve the Goal",
-      "title_es": null,
-      "title_en": "Partnerships to achieve the Goal",
-      "title_de": "Partnerschaften zur Erreichung der Ziele",
-      "title_nl": null,
-      "title_da": null,
-      "title_hu": null,
-      "title_sv": null,
-      "title_fr": null,
-      "title_it": null,
-      "title_tr": null,
-      "title_pt_br": null
-    }
-  },
-  {
-    "model": "openbook_terms.sdg",
-    "pk": "e6f9faf8-7045-49e1-875b-09b1e28a0e3b",
-    "fields": {
-      "slug": "industry-innovation-and-infrastructure",
-      "title": "Industry, Innovation and Infrastructure",
-      "title_es": null,
-      "title_en": "Industry, Innovation and Infrastructure",
-      "title_de": "Industrie, Innovation und Infrastruktur",
-      "title_nl": null,
-      "title_da": null,
-      "title_hu": null,
-      "title_sv": null,
-      "title_fr": null,
-      "title_it": null,
-      "title_tr": null,
-      "title_pt_br": null
-    }
-  },
-  {
-    "model": "openbook_terms.sdg",
-    "pk": "ec00e781-ed8f-4295-9429-28be990bb42d",
-    "fields": {
-      "slug": "climate-action",
-      "title": "Climate Action",
-      "title_es": null,
-      "title_en": "Climate Action",
-      "title_de": "Maßnahmen zum Klimaschutz",
-      "title_nl": null,
-      "title_da": null,
-      "title_hu": null,
-      "title_sv": null,
-      "title_fr": null,
-      "title_it": null,
-      "title_tr": null,
-      "title_pt_br": null
-    }
-  },
-  {
-    "model": "openbook_terms.sdg",
-    "pk": "f4e2a571-72bf-4d70-8286-96b918f63306",
-    "fields": {
-      "slug": "zero-hunger",
-      "title": "Zero Hunger",
-      "title_es": null,
-      "title_en": "Zero Hunger",
-      "title_de": "Kein Hunger",
-      "title_nl": null,
-      "title_da": null,
-      "title_hu": null,
-      "title_sv": null,
-      "title_fr": null,
-      "title_it": null,
-      "title_tr": null,
-      "title_pt_br": null
-    }
-  }
+	{
+		"model": "openbook_terms.sdg",
+		"pk": "7c786326-d1cf-4d59-a125-22046402981a",
+		"fields": {
+			"slug": "no-poverty",
+			"title": "No Poverty",
+			"title_es": null,
+			"title_en": "No Poverty",
+			"title_de": "Keine Armut",
+			"title_nl": null,
+			"title_da": null,
+			"title_hu": null,
+			"title_sv": null,
+			"title_fr": null,
+			"title_it": null,
+			"title_tr": null,
+			"title_pt_br": null
+		}
+	},
+	{
+		"model": "openbook_terms.sdg",
+		"pk": "f4e2a571-72bf-4d70-8286-96b918f63306",
+		"fields": {
+			"slug": "zero-hunger",
+			"title": "Zero Hunger",
+			"title_es": null,
+			"title_en": "Zero Hunger",
+			"title_de": "Kein Hunger",
+			"title_nl": null,
+			"title_da": null,
+			"title_hu": null,
+			"title_sv": null,
+			"title_fr": null,
+			"title_it": null,
+			"title_tr": null,
+			"title_pt_br": null
+		}
+	},
+	{
+		"model": "openbook_terms.sdg",
+		"pk": "26c82524-9f75-40a5-b017-d72d3377c7e9",
+		"fields": {
+			"slug": "good-health-and-well-being",
+			"title": "Good Health and Well-Being",
+			"title_es": null,
+			"title_en": "Good Health and Well-Being",
+			"title_de": "Gesundheit und Wohlergehen",
+			"title_nl": null,
+			"title_da": null,
+			"title_hu": null,
+			"title_sv": null,
+			"title_fr": null,
+			"title_it": null,
+			"title_tr": null,
+			"title_pt_br": null
+		}
+	},
+	{
+		"model": "openbook_terms.sdg",
+		"pk": "65683f50-3139-4dcb-812b-3d868aa38235",
+		"fields": {
+			"slug": "quality-education",
+			"title": "Quality Education",
+			"title_es": null,
+			"title_en": "Quality Education",
+			"title_de": "Hochwertige Bildung",
+			"title_nl": null,
+			"title_da": null,
+			"title_hu": null,
+			"title_sv": null,
+			"title_fr": null,
+			"title_it": null,
+			"title_tr": null,
+			"title_pt_br": null
+		}
+	},
+	{
+		"model": "openbook_terms.sdg",
+		"pk": "d13882f7-d1e3-4452-b9ac-d6503f49a0b2",
+		"fields": {
+			"slug": "gender-equality",
+			"title": "Gender equality",
+			"title_es": null,
+			"title_en": "Gender equality",
+			"title_de": "Geschlechtergleichheit",
+			"title_nl": null,
+			"title_da": null,
+			"title_hu": null,
+			"title_sv": null,
+			"title_fr": null,
+			"title_it": null,
+			"title_tr": null,
+			"title_pt_br": null
+		}
+	},
+	{
+		"model": "openbook_terms.sdg",
+		"pk": "a0f852b3-c312-45fd-b5a0-d704d7c00149",
+		"fields": {
+			"slug": "clean-water-and-sanitation",
+			"title": "Clean water and sanitation",
+			"title_es": null,
+			"title_en": "Clean water and sanitation",
+			"title_de": "Sauberes Wasser und Sanitäreinrichtungen",
+			"title_nl": null,
+			"title_da": null,
+			"title_hu": null,
+			"title_sv": null,
+			"title_fr": null,
+			"title_it": null,
+			"title_tr": null,
+			"title_pt_br": null
+		}
+	},
+	{
+		"model": "openbook_terms.sdg",
+		"pk": "d8127832-d763-4dab-895e-0693859c916f",
+		"fields": {
+			"slug": "affordable-and-clean-energy",
+			"title": "Affordable and clean energy",
+			"title_es": null,
+			"title_en": "Affordable and clean energy",
+			"title_de": "Bezahlbare und saubere Energie",
+			"title_nl": null,
+			"title_da": null,
+			"title_hu": null,
+			"title_sv": null,
+			"title_fr": null,
+			"title_it": null,
+			"title_tr": null,
+			"title_pt_br": null
+		}
+	},
+	{
+		"model": "openbook_terms.sdg",
+		"pk": "9fbb8ea2-c82d-44cc-867e-2f94032f4d37",
+		"fields": {
+			"slug": "decent-work-and-economic-growth",
+			"title": "Decent work and economic growth",
+			"title_es": null,
+			"title_en": "Decent work and economic growth",
+			"title_de": "Menschenwürdige Arbeit und Wirtschaftswachstum",
+			"title_nl": null,
+			"title_da": null,
+			"title_hu": null,
+			"title_sv": null,
+			"title_fr": null,
+			"title_it": null,
+			"title_tr": null,
+			"title_pt_br": null
+		}
+	},
+	{
+		"model": "openbook_terms.sdg",
+		"pk": "e6f9faf8-7045-49e1-875b-09b1e28a0e3b",
+		"fields": {
+			"slug": "industry-innovation-and-infrastructure",
+			"title": "Industry, innovation and infrastructure",
+			"title_es": null,
+			"title_en": "Industry, innovation and infrastructure",
+			"title_de": "Industrie, Innovation und Infrastruktur",
+			"title_nl": null,
+			"title_da": null,
+			"title_hu": null,
+			"title_sv": null,
+			"title_fr": null,
+			"title_it": null,
+			"title_tr": null,
+			"title_pt_br": null
+		}
+	},
+	{
+		"model": "openbook_terms.sdg",
+		"pk": "6f7f2935-4760-4f83-841b-447f9f7f57e1",
+		"fields": {
+			"slug": "reduced-inequalities",
+			"title": "Reduced inequality",
+			"title_es": null,
+			"title_en": "Reduced inequality",
+			"title_de": "Weniger Ungleichheiten",
+			"title_nl": null,
+			"title_da": null,
+			"title_hu": null,
+			"title_sv": null,
+			"title_fr": null,
+			"title_it": null,
+			"title_tr": null,
+			"title_pt_br": null
+		}
+	},
+	{
+		"model": "openbook_terms.sdg",
+		"pk": "4c832a1f-9b1d-4bb7-8186-57a8eaacf1ef",
+		"fields": {
+			"slug": "sustainable-cities-and-communities",
+			"title": "Sustainable cities and communities",
+			"title_es": null,
+			"title_en": "Sustainable cities and communities",
+			"title_de": "Nachhaltige Städte und Gemeinden",
+			"title_nl": null,
+			"title_da": null,
+			"title_hu": null,
+			"title_sv": null,
+			"title_fr": null,
+			"title_it": null,
+			"title_tr": null,
+			"title_pt_br": null
+		}
+	},
+	{
+		"model": "openbook_terms.sdg",
+		"pk": "cc49e46f-be16-40ea-ac99-7c481418afdf",
+		"fields": {
+			"slug": "responsible-consumption-and-production",
+			"title": "Responsible consumption and production",
+			"title_es": null,
+			"title_en": "Responsible consumption and production",
+			"title_de": "Nachhaltige/r Konsum und Produktion",
+			"title_nl": null,
+			"title_da": null,
+			"title_hu": null,
+			"title_sv": null,
+			"title_fr": null,
+			"title_it": null,
+			"title_tr": null,
+			"title_pt_br": null
+		}
+	},
+	{
+		"model": "openbook_terms.sdg",
+		"pk": "ec00e781-ed8f-4295-9429-28be990bb42d",
+		"fields": {
+			"slug": "climate-action",
+			"title": "Climate action",
+			"title_es": null,
+			"title_en": "Climate action",
+			"title_de": "Massnahmen zum Klimaschutz",
+			"title_nl": null,
+			"title_da": null,
+			"title_hu": null,
+			"title_sv": null,
+			"title_fr": null,
+			"title_it": null,
+			"title_tr": null,
+			"title_pt_br": null
+		}
+	},
+	{
+		"model": "openbook_terms.sdg",
+		"pk": "681124cc-1acb-4b59-b616-868b48837c74",
+		"fields": {
+			"slug": "life-below-water",
+			"title": "Life below water",
+			"title_es": null,
+			"title_en": "Life below water",
+			"title_de": "Leben unter Wasser",
+			"title_nl": null,
+			"title_da": null,
+			"title_hu": null,
+			"title_sv": null,
+			"title_fr": null,
+			"title_it": null,
+			"title_tr": null,
+			"title_pt_br": null
+		}
+	},
+	{
+		"model": "openbook_terms.sdg",
+		"pk": "23dc1c6f-44e7-40c4-b556-4104824913be",
+		"fields": {
+			"slug": "life-on-land",
+			"title": "Life on land",
+			"title_es": null,
+			"title_en": "Life on land",
+			"title_de": "Leben an Land",
+			"title_nl": null,
+			"title_da": null,
+			"title_hu": null,
+			"title_sv": null,
+			"title_fr": null,
+			"title_it": null,
+			"title_tr": null,
+			"title_pt_br": null
+		}
+	},
+	{
+		"model": "openbook_terms.sdg",
+		"pk": "47225062-8970-4a09-bcdf-46b129f66814",
+		"fields": {
+			"slug": "peace-justice-and-strong-institutions",
+			"title": "Peace, justice and strong institutions",
+			"title_es": null,
+			"title_en": "Peace, justice and strong institutions",
+			"title_de": "Frieden, Gerechtigkeit und starke Institutionen",
+			"title_nl": null,
+			"title_da": null,
+			"title_hu": null,
+			"title_sv": null,
+			"title_fr": null,
+			"title_it": null,
+			"title_tr": null,
+			"title_pt_br": null
+		}
+	},
+	{
+		"model": "openbook_terms.sdg",
+		"pk": "de8b264d-d5d0-4620-a85e-030aefd85fe9",
+		"fields": {
+			"slug": "partnerships-for-the-goals",
+			"title": "Partnerships for the goals",
+			"title_es": null,
+			"title_en": "Partnerships for the goals",
+			"title_de": "Partnerschaften zur Erreichung der Ziele",
+			"title_nl": null,
+			"title_da": null,
+			"title_hu": null,
+			"title_sv": null,
+			"title_fr": null,
+			"title_it": null,
+			"title_tr": null,
+			"title_pt_br": null
+		}
+	}
 ]
