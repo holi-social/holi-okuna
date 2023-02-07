@@ -16,6 +16,7 @@ from openbook_auth.models import User
 from django.utils.translation import gettext_lazy as _
 
 from openbook_common.models import ModelWithUUID
+from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import (
     get_community_invite_model,
     get_community_log_model,
@@ -215,6 +216,11 @@ class Community(ModelWithUUID):
     @classmethod
     def community_with_name_exists(cls, community_name):
         query = Q(name=community_name, is_deleted=False)
+        return cls.objects.filter(query).exists()
+
+    @classmethod
+    def community_with_id_exists(cls, community_id):
+        query = Q(id=community_id, is_deleted=False)
         return cls.objects.filter(query).exists()
 
     @classmethod
@@ -479,6 +485,7 @@ class Community(ModelWithUUID):
         categories_names=None,
         invites_enabled=None,
         topic_ids=None,
+        cover=None,
     ):
 
         if title:
@@ -510,6 +517,9 @@ class Community(ModelWithUUID):
 
         if topic_ids is not None:
             self.set_topics_with_ids(topic_ids=topic_ids)
+
+        if cover is not None:
+            self.update_cover(cover, save=False)
 
         self.save()
 
@@ -685,6 +695,20 @@ class Community(ModelWithUUID):
     def count_pending_moderated_objects(self):
         ModeratedObject = get_moderated_object_model()
         return self.moderated_objects.filter(status=ModeratedObject.STATUS_PENDING).count()
+
+    def update_cover(self, cover, save=True):
+        if self.cover is not None:
+            self.delete_cover(save=False)
+        if cover is not None:
+            self.cover = cover
+
+        if save:
+            self.save()
+
+    def delete_cover(self, save=True):
+        delete_file_field(self.cover)
+        self.cover = None
+        self.cover.delete(save=save)
 
     def __str__(self):
         return f"{self.title} ({self.id})"
