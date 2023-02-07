@@ -1810,6 +1810,8 @@ class User(AbstractUser):
         user_adjective=None,
         users_adjective=None,
         rules=None,
+        topic_ids=None,
+        cover=None,
     ):
         return self.update_community_with_name(
             community.name,
@@ -1820,6 +1822,41 @@ class User(AbstractUser):
             user_adjective=user_adjective,
             users_adjective=users_adjective,
             rules=rules,
+            topic_ids=topic_ids,
+            cover=cover,
+        )
+
+    def update_community_with_id(
+        self,
+        community_id,
+        title=None,
+        description=None,
+        color=None,
+        type=None,
+        user_adjective=None,
+        users_adjective=None,
+        rules=None,
+        categories_names=None,
+        invites_enabled=None,
+        topic_ids=None,
+        cover=None,
+    ):
+        Community = get_community_model()
+        community = Community.objects.get(id=community_id)
+
+        return self.update_community_with_name(
+            community.name,
+            title=title,
+            description=description,
+            color=color,
+            type=type,
+            user_adjective=user_adjective,
+            users_adjective=users_adjective,
+            rules=rules,
+            categories_names=categories_names,
+            invites_enabled=invites_enabled,
+            topic_ids=topic_ids,
+            cover=cover,
         )
 
     def update_community_with_name(
@@ -1834,6 +1871,8 @@ class User(AbstractUser):
         rules=None,
         categories_names=None,
         invites_enabled=None,
+        topic_ids=None,
+        cover=None,
     ):
         check_can_update_community_with_name(user=self, community_name=community_name)
 
@@ -1852,6 +1891,8 @@ class User(AbstractUser):
             rules=rules,
             categories_names=categories_names,
             invites_enabled=invites_enabled,
+            topic_ids=topic_ids,
+            cover=cover,
         )
 
         return community_to_update
