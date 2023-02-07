@@ -1246,6 +1246,7 @@ class GraphQLTest(TestCase):
         response = self.graphql.execute(
             validate_space_mutation,
             variable_values={"input": valid_input},
+            context_value=BeneDict({"user": AnonymousUser}),
         )
 
         self.assertIsNone(response["data"]["validateSpace"])
@@ -1322,18 +1323,26 @@ class GraphQLTest(TestCase):
 
     def test_can_create_space(self):
         user = make_user()
-        topic_ids = [str(make_topic().id) for _ in range(7)]
-        valid_topics = topic_ids[:2]
+        topic_ids = [str(make_topic().id) for _ in range(2)]
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
 
         create_space_mutation = """
             mutation test($input: CreateSpaceInput) {
                 createSpace(input: $input) {
                     id
+                    name
+                    title
+                    description
+                    topics { id }
+                    cover
+                    memberships {
+                        user { id }
+                        isAdministrator
+                    }
                 }
             }
             """
-        valid_input = {"title": "valid", "description": "valid", "topics": valid_topics, "cover": valid_image}
+        valid_input = {"title": "valid", "description": "valid", "topics": topic_ids, "cover": valid_image}
 
         response = self.graphql.execute(
             create_space_mutation,
@@ -1341,8 +1350,23 @@ class GraphQLTest(TestCase):
             variable_values={"input": valid_input},
         )
 
-        self.assertIn("id", response["data"]["createSpace"])
         self.assertNotIn("errors", response)
+
+        created_space = response["data"]["createSpace"]
+        self.assertIn("id", created_space)
+        self.assertEqual("valid", created_space["name"])
+        self.assertEqual("valid", created_space["title"])
+        self.assertEqual("valid", created_space["description"])
+        self.assertEqual(len(topic_ids), len(created_space["topics"]))
+        for topic in created_space["topics"]:
+            self.assertIn(topic["id"], topic_ids)
+        self.assertIn("cover.jpg", created_space["cover"])
+
+        # Verify that creator is admin
+        self.assertEqual(1, len(created_space["memberships"]))
+        member = created_space["memberships"][0]
+        self.assertEqual(str(user.username), member["user"]["id"])
+        self.assertTrue(member["isAdministrator"])
 
     def test_can_not_create_space_if_not_logged_in(self):
         topic_ids = [str(make_topic().id) for _ in range(7)]
@@ -1361,9 +1385,193 @@ class GraphQLTest(TestCase):
         response = self.graphql.execute(
             create_space_mutation,
             variable_values={"input": valid_input},
+            context_value=BeneDict({"user": AnonymousUser}),
         )
 
         self.assertIsNone(response["data"]["createSpace"])
+        self.assertIn("Unauthorized", str(response["errors"][0]["message"]))
+
+    def test_validates_space_update(self):
+        user = make_user()
+        community = make_community()
+        topic_ids = [str(make_topic().id) for _ in range(7)]
+        empty_image = SimpleUploadedFile(name="cover.jpg", content="")
+
+        update_space_mutation = """
+            mutation test($input: UpdateSpaceInput) {
+                updateSpace(input: $input) {
+                    id
+                }
+            }
+            """
+        base_input = {"id": str(community.id)}
+        invalid_uuid = str(uuid4())
+
+        expectedErrors = [
+            {"input": {"id": None}, "expected_code": "null"},
+            {"input": {"id": invalid_uuid}, "expected_error": "No community with the provided id exists."},
+            {"input": {"title": ""}, "expected_code": "blank"},
+            {"input": {"title": "f"}, "expected_code": "min_length"},
+            {"input": {"title": "f" * 61}, "expected_code": "max_length"},
+            {"input": {"description": ""}, "expected_code": "blank"},
+            {"input": {"description": "f" * 601}, "expected_code": "max_length"},
+            {"input": {"topics": []}, "expected_code": "min_length"},
+            {"input": {"topics": topic_ids}, "expected_code": "max_length"},
+            {"input": {"topics": [invalid_uuid]}, "expected_error": f"No topic with the id '{invalid_uuid}' found."},
+            {"input": {"cover": {}}, "expected_code": "invalid"},
+            {"input": {"cover": ""}, "expected_code": "invalid"},
+            {"input": {"cover": "foobar"}, "expected_code": "invalid"},
+            {"input": {"cover": empty_image}, "expected_code": "empty"},
+            {"input": {"cover": create_large_image_file()}, "expected_code": "invalid"},
+            {"input": {"cover": create_video_file()}, "expected_code": "invalid_image"},
+        ]
+
+        for testCase in expectedErrors:
+            response = self.graphql.execute(
+                update_space_mutation,
+                context_value=BeneDict({"user": user}),
+                variable_values={
+                    "input": base_input | testCase["input"],
+                },
+            )
+
+            expected_error = (
+                testCase["expected_error"] if "expected_error" in testCase else f'code=\'{testCase["expected_code"]}\''
+            )
+            self.assertIn(expected_error, str(response["errors"][0]["message"]))
+            self.assertIsNone(response["data"]["updateSpace"] if response["data"] else response["data"])
+
+    def test_can_not_update_space_without_passing_id(self):
+        user = make_user()
+        update_space_mutation = """
+            mutation test($input: UpdateSpaceInput) {
+                updateSpace(input: $input) {
+                    id
+                }
+            }
+            """
+
+        response = self.graphql.execute(
+            update_space_mutation,
+            context_value=BeneDict({"user": user}),
+            variable_values={"input": {"title": "new title"}},
+        )
+
+        self.assertIsNone(response["data"]["updateSpace"])
+        self.assertIn(f"code='required'", str(response["errors"][0]["message"]))
+
+    def test_can_update_space(self):
+        user = make_user()
+        community = make_community(creator=user)
+        topic_ids = [str(make_topic().id) for _ in range(3)]
+        cover = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+        cover2 = SimpleUploadedFile(name="cover2.jpg", content=simple_jpeg_bytes)
+
+        update_space_mutation = """
+            mutation test($input: UpdateSpaceInput) {
+                updateSpace(input: $input) {
+                    id
+                }
+            }
+            """
+        base_input = {"id": str(community.id)}
+        valid_inputs = [
+            {"title": "new title"},
+            {"description": "new description"},
+            {"topics": topic_ids[:2]},
+            {"cover": cover},
+            {"title": "newest title", "description": "newest description", "topics": topic_ids, "cover": cover2},
+        ]
+
+        for input in valid_inputs:
+            response = self.graphql.execute(
+                update_space_mutation,
+                context_value=BeneDict({"user": user}),
+                variable_values={"input": base_input | input},
+            )
+
+            self.assertEqual(str(community.id), response["data"]["updateSpace"]["id"])
+            self.assertNotIn("errors", response)
+
+    def test_updated_space_has_new_values(self):
+        user = make_user()
+        community = make_community(creator=user)
+        topic_ids = [str(make_topic().id) for _ in range(2)]
+        cover = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+
+        update_space_mutation = """
+            mutation test($input: UpdateSpaceInput) {
+                updateSpace(input: $input) {
+                    id
+                    title
+                    description
+                    topics { id }
+                    cover
+                }
+            }
+            """
+        input = {
+            "id": str(community.id),
+            "title": "newest title",
+            "description": "newest description",
+            "topics": topic_ids,
+            "cover": cover,
+        }
+
+        response = self.graphql.execute(
+            update_space_mutation,
+            context_value=BeneDict({"user": user}),
+            variable_values={"input": input},
+        )
+
+        self.assertNotIn("errors", response)
+
+        updated_space = response["data"]["updateSpace"]
+        self.assertEqual(str(community.id), updated_space["id"])
+        self.assertEqual("newest title", updated_space["title"])
+        self.assertEqual("newest description", updated_space["description"])
+        self.assertEqual(len(topic_ids), len(updated_space["topics"]))
+        for topic in updated_space["topics"]:
+            self.assertIn(topic["id"], topic_ids)
+        self.assertIn("cover.jpg", updated_space["cover"])
+
+    def test_can_not_update_space_if_not_admin(self):
+        user = make_user()
+        community = make_community()
+        update_space_mutation = """
+            mutation test($input: UpdateSpaceInput) {
+                updateSpace(input: $input) {
+                    id
+                }
+            }
+            """
+
+        response = self.graphql.execute(
+            update_space_mutation,
+            context_value=BeneDict({"user": user}),
+            variable_values={"input": {"id": str(community.id), "title": "new title"}},
+        )
+
+        self.assertIsNone(response["data"]["updateSpace"])
+        self.assertIn("Can't update a community that you do not administrate.", str(response["errors"][0]["message"]))
+
+    def test_can_not_update_space_if_not_logged_in(self):
+        community = make_community()
+        update_space_mutation = """
+            mutation test($input: UpdateSpaceInput) {
+                updateSpace(input: $input) {
+                    id
+                }
+            }
+            """
+
+        response = self.graphql.execute(
+            update_space_mutation,
+            variable_values={"input": {"id": str(community.id), "title": "new title"}},
+            context_value=BeneDict({"user": AnonymousUser}),
+        )
+
+        self.assertIsNone(response["data"]["updateSpace"])
         self.assertIn("Unauthorized", str(response["errors"][0]["message"]))
 
 
