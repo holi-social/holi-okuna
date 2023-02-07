@@ -360,11 +360,7 @@ class Space(DjangoObjectType):
     connection_status_to_myself = graphene.List(SpaceUserConnectionType)
 
     def resolve_members(self, info, offset, limit):
-        return Paged.data(
-            CommunityMembershipModel.objects.filter(community=self),
-            offset,
-            limit,
-        )
+        return Paged(self.memberships.all()[offset : offset + limit], self.memberships.count())
 
     def resolve_main_image(self, info):
         return self.cover.name
@@ -415,7 +411,7 @@ def spaces_for_filter(offset, limit, topic_id=None, location=None, skill_ids=Non
     skill_slugs_filter = Q(tasks__skills__slug__in=skill_slugs) if skill_slugs else Q()
 
     return Paged.data(
-        CommunityModel.objects.prefetch_related("links", "memberships", "tasks")
+        CommunityModel.objects.prefetch_related("links", "memberships__user__profile", "tasks")
         .filter(topic_filter, location_filter, skills_filter, topic_slug_filter, skill_slugs_filter)
         .annotate(member_count=Count("memberships"))
         .order_by("-member_count", "-created"),
@@ -704,7 +700,7 @@ class Query(graphene.ObjectType):
                 order by t.id
                 """,
                 [limit, topic_ids],
-            )
+            ).prefetch_related("memberships__user__profile")
             spaces_map = defaultdict(list)
             for sp in spaces_from_db:
                 spaces_map[sp.topic_id].append(sp)
@@ -737,7 +733,7 @@ class Query(graphene.ObjectType):
                 order by skill.id
                 """,
                 [f"%{location}%", limit, skill_ids],
-            )
+            ).prefetch_related("memberships__user__profile")
             spaces_map = defaultdict(list)
             for sp in spaces_from_db:
                 spaces_map[sp.skill_id].append(sp)
@@ -757,21 +753,21 @@ class Query(graphene.ObjectType):
 
         created_spaces = MySpaces(section=_("Created"), type=SpaceUserConnectionType.CREATOR)
         created_spaces.query = (
-            CommunityModel.objects.prefetch_related("links", "memberships", "tasks")
+            CommunityModel.objects.prefetch_related("links", "memberships__user__profile", "tasks")
             .filter(creator=info.context.user)
             .annotate(member_count=Count("memberships"))
             .order_by("-member_count", "-created")
         )
         member_spaces = MySpaces(section=_("Joined"), type=SpaceUserConnectionType.MEMBER)
         member_spaces.query = (
-            CommunityModel.objects.prefetch_related("links", "memberships", "tasks")
+            CommunityModel.objects.prefetch_related("links", "memberships__user__profile", "tasks")
             .filter(Q(memberships__user=info.context.user), ~Q(creator=info.context.user))
             .annotate(member_count=Count("memberships"))
             .order_by("-member_count", "-created")
         )
         followed_spaces = MySpaces(section=_("Following"), type=SpaceUserConnectionType.FOLLOWER)
         followed_spaces.query = (
-            CommunityModel.objects.prefetch_related("links", "memberships", "tasks")
+            CommunityModel.objects.prefetch_related("links", "memberships__user__profile", "tasks")
             .filter(
                 Q(notifications_subscriptions__subscriber=info.context.user),
                 Q(notifications_subscriptions__new_post_notifications=True),
@@ -785,7 +781,11 @@ class Query(graphene.ObjectType):
 
     def resolve_space_by_id(self, info, id):
         try:
-            return CommunityModel.objects.filter(ModeratedObject.not_moderated_query(info.context.user)).get(id=id)
+            return (
+                CommunityModel.objects.prefetch_related("links", "memberships__user__profile", "tasks")
+                .filter(ModeratedObject.not_moderated_query(info.context.user))
+                .get(id=id)
+            )
         except CommunityModel.DoesNotExist:
             raise GraphQLError("Space not found", extensions={"code": ErrorCodes.NOT_FOUND})
 
