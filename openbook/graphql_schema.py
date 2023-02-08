@@ -5,7 +5,10 @@ import structlog
 import graphene
 
 from cacheops import cached_as
+import hashlib
+
 import requests
+from django.core.cache import cache
 from django.db import Error, transaction
 from django.db.models import Q, Count, F, Value, Prefetch
 from django.db.models.functions import Concat
@@ -406,6 +409,43 @@ def spaces_for_filter(offset, limit, topic_id=None, location=None, skill_ids=Non
     )
 
 
+def filter_spaces_by_skill_ids(location, skill_ids, limit):
+    return CommunityModel.objects.raw(
+        """
+            select s.*
+            from openbook_terms_skill skill, (
+                select octskill.skill_id, occ.*, row_number() OVER (partition by octskill.skill_id ORDER BY occ.id) AS rn
+                FROM   openbook_communities_community occ, openbook_communities_task octask, openbook_communities_task_skills octskill
+                where occ.id = octask.community_id and octask.id = octskill.task_id  
+            ) s
+            where s.skill_id = skill.id 
+            and UPPER(s.location) like UPPER(%s)
+            and s.rn <= %s
+            and skill.id = ANY(%s)
+            order by skill.id
+            """,
+        [f"%{location}%", limit, skill_ids],
+    ).prefetch_related("memberships__user__profile")
+
+
+def filter_spaces_by_topic_ids(topic_ids, limit):
+    return CommunityModel.objects.raw(
+        """
+            select s.* 
+            from openbook_terms_topic t, (
+                select occtopics.topic_id, occ.*, row_number() OVER (partition by occtopics.topic_id ORDER BY occ.id) AS rn
+                FROM   openbook_communities_community occ, openbook_communities_community_topics occtopics
+                where occtopics.community_id = occ.id 
+            ) s
+            where s.topic_id = t.id 
+            and s.rn <= %s
+            and t.id = ANY(%s)
+            order by t.id
+            """,
+        [limit, topic_ids],
+    ).prefetch_related("memberships__user__profile")
+
+
 def resolve_post(user, id):
     try:
         return get_posts_with_comments_query(user).get(id=id)
@@ -644,88 +684,100 @@ class Query(graphene.ObjectType):
         return spaces_for_filter(offset, limit, topic_id, location, skill_ids, topic_slug, skill_slugs)
 
     def resolve_discover_spaces(self, info, topic_ids, location, skill_ids, offset, limit):
+
+        # Inner utility function for generating a unique cache key consisting of
+        # prefix and SHA-256 hash of the discover spaces filters
+        # e.g discover_spaces:2cbce4f20876d36947b2db0d6b229c8b2b80741434ceca8e7e3f2258114c2511
+        def generate_discover_spaces_hash_key(topic_ids, location, skill_ids, offset, limit):
+            key_prefix = "discover_spaces"
+
+            key_parts = []
+
+            if location is not None:
+                key_parts.append(location)
+
+            if topic_ids is not None:
+                key_parts.extend([str(topic_id) for topic_id in topic_ids])
+
+            if skill_ids is not None:
+                key_parts.extend([str(skill_id) for skill_id in skill_ids])
+
+            if offset is not None:
+                key_parts.append(str(offset))
+
+            if limit is not None:
+                key_parts.append(str(limit))
+
+            key = "_".join(key_parts)
+
+            key_hash = hashlib.sha256(key.encode()).hexdigest()
+            return f"{key_prefix}:{key_hash}"
+
         result = []
 
-        # get all spaces by location (independent of other filters)
-        if location is not None:
-            result.append(
-                DiscoverSpaces(
-                    location=location,
-                    spaces=spaces_for_filter(
-                        offset=offset,
-                        limit=limit,
-                        location=location,
-                    ),
-                )
-            )
+        hash_key = generate_discover_spaces_hash_key(topic_ids, location, skill_ids, offset, limit)
 
-        # get all spaces by topic (independent of other filters)
-        if topic_ids is not None:
-            topic_id_to_num_spaces = get_id_spaces_count_map(
-                TopicModel.objects.filter(id__in=topic_ids).annotate(num_spaces=Count("communities"))
-            )
-
-            spaces_from_db = CommunityModel.objects.raw(
-                """
-                select s.* 
-                from openbook_terms_topic t, (
-                    select occtopics.topic_id, occ.*, row_number() OVER (partition by occtopics.topic_id ORDER BY occ.id) AS rn
-                    FROM   openbook_communities_community occ, openbook_communities_community_topics occtopics
-                    where occtopics.community_id = occ.id 
-                ) s
-                where s.topic_id = t.id 
-                and s.rn <= %s
-                and t.id = ANY(%s)
-                order by t.id
-                """,
-                [limit, topic_ids],
-            ).prefetch_related("memberships__user__profile")
-            spaces_map = defaultdict(list)
-            for sp in spaces_from_db:
-                spaces_map[sp.topic_id].append(sp)
-            for topic_id, spaces in spaces_map.items():
+        # Check whether the resolver result has already been cached and return it,
+        # otherwise, query the database, create the result, and cache it.
+        if cache.has_key(hash_key):
+            return cache.get(hash_key)
+        else:
+            # get all spaces by location (independent of other filters)
+            if location is not None:
                 result.append(
                     DiscoverSpaces(
-                        topic_id=topic_id,
-                        spaces=Paged(spaces, topic_id_to_num_spaces[topic_id]),
+                        location=location,
+                        spaces=spaces_for_filter(
+                            offset=offset,
+                            limit=limit,
+                            location=location,
+                        ),
                     )
                 )
 
-        # get all spaces by skill_id (including location filter)
-        if skill_ids is not None:
-            skill_id_to_num_spaces = get_id_spaces_count_map(
-                SkillModel.objects.filter(id__in=skill_ids).annotate(num_spaces=Count("tasks__community"))
-            )
-
-            spaces_from_db = CommunityModel.objects.raw(
-                """
-                select s.*
-                from openbook_terms_skill skill, (
-                    select octskill.skill_id, occ.*, row_number() OVER (partition by octskill.skill_id ORDER BY occ.id) AS rn
-                    FROM   openbook_communities_community occ, openbook_communities_task octask, openbook_communities_task_skills octskill
-                    where occ.id = octask.community_id and octask.id = octskill.task_id  
-                ) s
-                where s.skill_id = skill.id 
-                and UPPER(s.location) like UPPER(%s)
-                and s.rn <= %s
-                and skill.id = ANY(%s)
-                order by skill.id
-                """,
-                [f"%{location}%", limit, skill_ids],
-            ).prefetch_related("memberships__user__profile")
-            spaces_map = defaultdict(list)
-            for sp in spaces_from_db:
-                spaces_map[sp.skill_id].append(sp)
-            for skill_id, spaces in spaces_map.items():
-                result.append(
-                    DiscoverSpaces(
-                        skill_id=skill_id,
-                        location=location,
-                        spaces=Paged(spaces, skill_id_to_num_spaces[skill_id]),
-                    )
+            # get all spaces by topic (independent of other filters)
+            if topic_ids is not None:
+                topic_id_to_num_spaces = get_id_spaces_count_map(
+                    TopicModel.objects.filter(id__in=topic_ids).annotate(num_spaces=Count("communities"))
                 )
 
-        return result
+                spaces_from_db = filter_spaces_by_topic_ids(topic_ids, limit)
+
+                spaces_map = defaultdict(list)
+
+                for sp in spaces_from_db:
+                    spaces_map[sp.topic_id].append(sp)
+                for topic_id, spaces in spaces_map.items():
+                    result.append(
+                        DiscoverSpaces(
+                            topic_id=topic_id,
+                            spaces=Paged(spaces, topic_id_to_num_spaces[topic_id]),
+                        )
+                    )
+
+                # get all spaces by skill_id (including location filter)
+                if skill_ids is not None:
+                    skill_id_to_num_spaces = get_id_spaces_count_map(
+                        SkillModel.objects.filter(id__in=skill_ids).annotate(num_spaces=Count("tasks__community"))
+                    )
+
+                    spaces_from_db = filter_spaces_by_skill_ids(location, skill_ids, limit)
+
+                    spaces_map = defaultdict(list)
+
+                    for sp in spaces_from_db:
+                        spaces_map[sp.skill_id].append(sp)
+                    for skill_id, spaces in spaces_map.items():
+                        result.append(
+                            DiscoverSpaces(
+                                skill_id=skill_id,
+                                location=location,
+                                spaces=Paged(spaces, skill_id_to_num_spaces[skill_id]),
+                            )
+                        )
+                # Set the result to be cached for future calls until the cache key expires after the default TTL.
+                cache.set(hash_key, result)
+                return result
 
     def resolve_my_spaces(self, info):
         if info.context.user.is_anonymous:
