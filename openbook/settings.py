@@ -193,7 +193,7 @@ CACHES = {
         "LOCATION": REDIS_DEFAULT_CACHE_LOCATION,
         "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
         "KEY_PREFIX": "ob-api-" + ENVIRONMENT_ID + "-",
-        "TIMEOUT": 60 * 60
+        "TIMEOUT": 60 * 60,
     },
     "rq-default-jobs": {
         "BACKEND": "django_redis.cache.RedisCache",
