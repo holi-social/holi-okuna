@@ -123,6 +123,11 @@ class UpdateCommunitySerializer(serializers.Serializer):
         required=False,
         max_upload_size=settings.COMMUNITY_COVER_MAX_SIZE,
     )
+    avatar = RestrictedImageFileSizeField(
+        allow_empty_file=False,
+        required=False,
+        max_upload_size=settings.COMMUNITY_AVATAR_MAX_SIZE,
+    )
 
 
 class CommunityNameCheckSerializer(serializers.Serializer):

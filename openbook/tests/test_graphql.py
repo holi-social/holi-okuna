@@ -1424,6 +1424,12 @@ class GraphQLTest(TestCase):
             {"input": {"cover": empty_image}, "expected_code": "empty"},
             {"input": {"cover": create_large_image_file()}, "expected_code": "invalid"},
             {"input": {"cover": create_video_file()}, "expected_code": "invalid_image"},
+            {"input": {"avatar": {}}, "expected_code": "invalid"},
+            {"input": {"avatar": ""}, "expected_code": "invalid"},
+            {"input": {"avatar": "foobar"}, "expected_code": "invalid"},
+            {"input": {"avatar": empty_image}, "expected_code": "empty"},
+            {"input": {"avatar": create_large_image_file()}, "expected_code": "invalid"},
+            {"input": {"avatar": create_video_file()}, "expected_code": "invalid_image"},
         ]
 
         for testCase in expectedErrors:
@@ -1466,6 +1472,8 @@ class GraphQLTest(TestCase):
         topic_ids = [str(make_topic().id) for _ in range(3)]
         cover = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
         cover2 = SimpleUploadedFile(name="cover2.jpg", content=simple_jpeg_bytes)
+        avatar = SimpleUploadedFile(name="avatar.jpg", content=simple_jpeg_bytes)
+        avatar2 = SimpleUploadedFile(name="avatar2.jpg", content=simple_jpeg_bytes)
 
         update_space_mutation = """
             mutation test($input: UpdateSpaceInput) {
@@ -1480,7 +1488,14 @@ class GraphQLTest(TestCase):
             {"description": "new description"},
             {"topics": topic_ids[:2]},
             {"cover": cover},
-            {"title": "newest title", "description": "newest description", "topics": topic_ids, "cover": cover2},
+            {"avatar": avatar},
+            {
+                "title": "newest title",
+                "description": "newest description",
+                "topics": topic_ids,
+                "cover": cover2,
+                "avatar": avatar2,
+            },
         ]
 
         for input in valid_inputs:
@@ -1490,6 +1505,7 @@ class GraphQLTest(TestCase):
                 variable_values={"input": base_input | input},
             )
 
+            print(response)
             self.assertEqual(str(community.id), response["data"]["updateSpace"]["id"])
             self.assertNotIn("errors", response)
 
@@ -1498,6 +1514,7 @@ class GraphQLTest(TestCase):
         community = make_community(creator=user)
         topic_ids = [str(make_topic().id) for _ in range(2)]
         cover = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+        avatar = SimpleUploadedFile(name="avatar.jpg", content=simple_jpeg_bytes)
 
         update_space_mutation = """
             mutation test($input: UpdateSpaceInput) {
@@ -1507,6 +1524,7 @@ class GraphQLTest(TestCase):
                     description
                     topics { id }
                     cover
+                    avatar
                 }
             }
             """
@@ -1516,6 +1534,7 @@ class GraphQLTest(TestCase):
             "description": "newest description",
             "topics": topic_ids,
             "cover": cover,
+            "avatar": avatar,
         }
 
         response = self.graphql.execute(
@@ -1534,6 +1553,7 @@ class GraphQLTest(TestCase):
         for topic in updated_space["topics"]:
             self.assertIn(topic["id"], topic_ids)
         self.assertIn("cover.jpg", updated_space["cover"])
+        self.assertIn("avatar.jpg", updated_space["avatar"])
 
     def test_can_not_update_space_if_not_admin(self):
         user = make_user()
