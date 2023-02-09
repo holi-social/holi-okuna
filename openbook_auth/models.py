@@ -91,9 +91,6 @@ class UserWithProfileManager(UserManager):
     def get_queryset(self):
         return super().get_queryset().select_related("profile")
 
-    def bla_user(self):
-        return self.filter(profile__name="Malte")
-
 
 class User(AbstractUser):
     """
