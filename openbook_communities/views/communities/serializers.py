@@ -127,6 +127,7 @@ class UpdateCommunitySerializer(serializers.Serializer):
         allow_empty_file=False,
         required=False,
         max_upload_size=settings.COMMUNITY_AVATAR_MAX_SIZE,
+        allow_null=True,
     )
 
 

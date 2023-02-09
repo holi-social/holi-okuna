@@ -1494,7 +1494,7 @@ class GraphQLTest(TestCase):
                 "description": "newest description",
                 "topics": topic_ids,
                 "cover": cover2,
-                "avatar": avatar2,
+                "avatar": None,
             },
         ]
 
@@ -1554,6 +1554,36 @@ class GraphQLTest(TestCase):
             self.assertIn(topic["id"], topic_ids)
         self.assertIn("cover.jpg", updated_space["cover"])
         self.assertIn("avatar.jpg", updated_space["avatar"])
+
+    def test_can_remove_optional_values_in_space_update(self):
+        user = make_user()
+        community = make_community(creator=user)
+        avatar = SimpleUploadedFile(name="avatar.jpg", content=simple_jpeg_bytes)
+        community.update(avatar=avatar)
+
+        update_space_mutation = """
+            mutation test($input: UpdateSpaceInput) {
+                updateSpace(input: $input) {
+                    id
+                    avatar
+                }
+            }
+            """
+        input = {
+            "id": str(community.id),
+            "avatar": None,
+        }
+
+        response = self.graphql.execute(
+            update_space_mutation,
+            context_value=BeneDict({"user": user}),
+            variable_values={"input": input},
+        )
+
+        self.assertNotIn("errors", response)
+
+        updated_space = response["data"]["updateSpace"]
+        self.assertEqual("", updated_space["avatar"])
 
     def test_can_not_update_space_if_not_admin(self):
         user = make_user()

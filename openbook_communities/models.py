@@ -487,6 +487,7 @@ class Community(ModelWithUUID):
         topic_ids=None,
         cover=None,
         avatar=None,
+        update_avatar=False,
     ):
 
         if title:
@@ -522,7 +523,7 @@ class Community(ModelWithUUID):
         if cover is not None:
             self.update_cover(cover, save=False)
 
-        if avatar is not None:
+        if avatar is not None or update_avatar:
             self.update_avatar(avatar, save=False)
 
         self.save()

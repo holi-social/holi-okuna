@@ -1205,6 +1205,7 @@ class UpdateSpaceMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info, input):
         authenticated_user = verify_authorized_user(info)
+        update_avatar = "avatar" in input
 
         serializer = UpdateCommunitySerializer(data=input)
         serializer.is_valid(raise_exception=True)
@@ -1217,6 +1218,7 @@ class UpdateSpaceMutation(graphene.Mutation):
             cover=data.get("cover"),
             topic_ids=data.get("topics"),
             avatar=data.get("avatar"),
+            update_avatar=update_avatar,
         )
 
 
