@@ -4,7 +4,7 @@ import secrets
 import uuid
 from datetime import datetime, timedelta
 
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.mail import EmailMultiAlternatives
@@ -87,11 +87,18 @@ class UserConnectionStatus:
     PENDING_CONFIRMATION = "PENDING_CONFIRMATION"  # pending confirmation by currently authenticated user
 
 
+class UserWithProfileManager(UserManager):
+    def get_queryset(self):
+        return super().get_queryset().select_related("profile")
+
+
 class User(AbstractUser):
     """
     Custom user model to change behaviour of the default user model
     such as validation and required fields.
     """
+
+    objects = UserWithProfileManager()
 
     moderated_object = GenericRelation("openbook_moderation.ModeratedObject", related_query_name="users")
     first_name = None  # TODO where except from the db scheme is this actually used
