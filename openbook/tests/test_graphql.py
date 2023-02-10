@@ -1184,7 +1184,7 @@ class GraphQLTest(TestCase):
             {"input": {"cover": ""}, "expected_code": "invalid"},
             {"input": {"cover": "foobar"}, "expected_code": "invalid"},
             {"input": {"cover": empty_image}, "expected_code": "empty"},
-            {"input": {"cover": create_large_image_file()}, "expected_code": "invalid"},
+            {"input": {"cover": create_large_image_file()}, "expected_code": "max_upload_size"},
             {"input": {"cover": create_video_file()}, "expected_code": "invalid_image"},
             {"input": {"sdgs": None}, "expected_code": "null"},
             {"input": {"sdgs": [invalid_uuid]}, "expected_error": f"No sdg with the id '{invalid_uuid}' found."},
@@ -1308,7 +1308,7 @@ class GraphQLTest(TestCase):
             {"input": {"cover": ""}, "expected_code": "invalid"},
             {"input": {"cover": "foobar"}, "expected_code": "invalid"},
             {"input": {"cover": empty_image}, "expected_code": "empty"},
-            {"input": {"cover": create_large_image_file()}, "expected_code": "invalid"},
+            {"input": {"cover": create_large_image_file()}, "expected_code": "max_upload_size"},
             {"input": {"cover": create_video_file()}, "expected_code": "invalid_image"},
         ]
 
@@ -1428,13 +1428,13 @@ class GraphQLTest(TestCase):
             {"input": {"cover": ""}, "expected_code": "invalid"},
             {"input": {"cover": "foobar"}, "expected_code": "invalid"},
             {"input": {"cover": empty_image}, "expected_code": "empty"},
-            {"input": {"cover": create_large_image_file()}, "expected_code": "invalid"},
+            {"input": {"cover": create_large_image_file()}, "expected_code": "max_upload_size"},
             {"input": {"cover": create_video_file()}, "expected_code": "invalid_image"},
             {"input": {"avatar": {}}, "expected_code": "invalid"},
             {"input": {"avatar": ""}, "expected_code": "invalid"},
             {"input": {"avatar": "foobar"}, "expected_code": "invalid"},
             {"input": {"avatar": empty_image}, "expected_code": "empty"},
-            {"input": {"avatar": create_large_image_file()}, "expected_code": "invalid"},
+            {"input": {"avatar": create_large_image_file()}, "expected_code": "max_upload_size"},
             {"input": {"avatar": create_video_file()}, "expected_code": "invalid_image"},
             {"input": {"sdgs": [invalid_uuid]}, "expected_error": f"No sdg with the id '{invalid_uuid}' found."},
         ]

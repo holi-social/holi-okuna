@@ -1,3 +1,4 @@
+import json
 import uuid
 from collections import defaultdict
 from datetime import datetime
@@ -18,6 +19,7 @@ from graphene_django import DjangoObjectType
 from graphene_file_upload.scalars import Upload
 from graphql import GraphQLError
 from django.conf import settings
+from rest_framework.exceptions import ValidationError
 
 from openbook_auth.images import delete_avatar
 from openbook_auth.models import UserConnectionStatus, User as UserModel, UserBlock
@@ -64,6 +66,7 @@ class ErrorCodes:
     UNAUTHORIZED = "UNAUTHORIZED"
     FORBIDDEN = "FORBIDDEN"
     INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR"
+    BAD_USER_INPUT = "BAD_USER_INPUT"
 
 
 class UpdateConnectionAction(graphene.Enum):
@@ -1209,18 +1212,28 @@ class UpdateSpaceMutation(graphene.Mutation):
         authenticated_user = verify_authorized_user(info)
 
         serializer = UpdateCommunitySerializer(data=input)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
 
-        return authenticated_user.update_community_with_id(
-            community_id=data.get("id"),
-            title=data.get("title"),
-            description=data.get("description"),
-            cover=data.get("cover"),
-            topic_ids=data.get("topics"),
-            avatar=data.get("avatar"),
-            sdg_ids=data.get("sdgs"),
-        )
+        try:
+            serializer.is_valid(raise_exception=True)
+            data = serializer.validated_data
+
+            return authenticated_user.update_community_with_id(
+                community_id=data.get("id"),
+                title=data.get("title"),
+                description=data.get("description"),
+                cover=data.get("cover"),
+                topic_ids=data.get("topics"),
+                avatar=data.get("avatar"),
+                sdg_ids=data.get("sdgs"),
+            )
+        except ValidationError as error:
+            raise GraphQLError(
+                "Could not update space",
+                extensions={
+                    "code": ErrorCodes.BAD_USER_INPUT,
+                    "errors": json.dumps(error.get_full_details()),
+                },
+            )
 
 
 class Mutation(graphene.ObjectType):
