@@ -91,7 +91,8 @@ def delete_file_field(filefield):
             cache = get_cache()
             cache.delete(cache.get(file))
 
-        filefield.storage.delete(file.name)
+        if file.name:
+            filefield.storage.delete(file.name)
 
 
 def sha256sum(filename=None, file=None):

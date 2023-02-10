@@ -1505,7 +1505,6 @@ class GraphQLTest(TestCase):
                 variable_values={"input": base_input | input},
             )
 
-            print(response)
             self.assertEqual(str(community.id), response["data"]["updateSpace"]["id"])
             self.assertNotIn("errors", response)
 
