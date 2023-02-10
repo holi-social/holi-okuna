@@ -3,7 +3,7 @@ import re
 from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import ValidationError, NotFound
 
-from openbook_terms.models import Topic
+from openbook_terms.models import SDG, Topic
 
 from openbook_common.utils.model_loaders import get_community_model
 
@@ -34,6 +34,11 @@ def community_name_exists(community_name):
 def topic_with_id_exists(topic_uuid):
     if not Topic.objects.filter(id=topic_uuid).exists():
         raise NotFound(_(f"No topic with the id '{topic_uuid}' found."))
+
+
+def sdg_with_id_exists(sdg_uuid):
+    if not SDG.objects.filter(id=sdg_uuid).exists():
+        raise NotFound(_(f"No sdg with the id '{sdg_uuid}' found."))
 
 
 def community_id_exists(community_id):

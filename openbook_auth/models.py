@@ -1819,6 +1819,7 @@ class User(AbstractUser):
         rules=None,
         topic_ids=None,
         cover=None,
+        sdg_ids=None,
     ):
         return self.update_community_with_name(
             community.name,
@@ -1831,6 +1832,7 @@ class User(AbstractUser):
             rules=rules,
             topic_ids=topic_ids,
             cover=cover,
+            sdg_ids=sdg_ids,
         )
 
     def update_community_with_id(
@@ -1848,6 +1850,7 @@ class User(AbstractUser):
         topic_ids=None,
         cover=None,
         avatar=None,
+        sdg_ids=None,
     ):
         Community = get_community_model()
         community = Community.objects.get(id=community_id)
@@ -1866,6 +1869,7 @@ class User(AbstractUser):
             topic_ids=topic_ids,
             cover=cover,
             avatar=avatar,
+            sdg_ids=sdg_ids,
         )
 
     def update_community_with_name(
@@ -1883,6 +1887,7 @@ class User(AbstractUser):
         topic_ids=None,
         cover=None,
         avatar=None,
+        sdg_ids=None,
     ):
         check_can_update_community_with_name(user=self, community_name=community_name)
 
@@ -1904,6 +1909,7 @@ class User(AbstractUser):
             topic_ids=topic_ids,
             cover=cover,
             avatar=avatar,
+            sdg_ids=sdg_ids,
         )
 
         return community_to_update
