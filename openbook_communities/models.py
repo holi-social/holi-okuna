@@ -701,9 +701,9 @@ class Community(ModelWithUUID):
         return self.moderated_objects.filter(status=ModeratedObject.STATUS_PENDING).count()
 
     def update_cover(self, cover, save=True):
-        if self.cover is not None:
+        if cover is None:
             self.delete_cover(save=False)
-        if cover is not None:
+        else:
             self.cover = cover
 
         if save:
@@ -715,9 +715,9 @@ class Community(ModelWithUUID):
         self.cover.delete(save=save)
 
     def update_avatar(self, avatar, save=True):
-        if self.avatar is not None:
+        if avatar is None:
             self.delete_avatar(save=False)
-        if avatar is not None:
+        else:
             self.avatar = avatar
 
         if save:
