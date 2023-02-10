@@ -486,6 +486,7 @@ class Community(ModelWithUUID):
         invites_enabled=None,
         topic_ids=None,
         cover=None,
+        avatar=None,
     ):
 
         if title:
@@ -520,6 +521,9 @@ class Community(ModelWithUUID):
 
         if cover is not None:
             self.update_cover(cover, save=False)
+
+        if avatar is not None:
+            self.update_avatar(avatar, save=False)
 
         self.save()
 
@@ -697,9 +701,9 @@ class Community(ModelWithUUID):
         return self.moderated_objects.filter(status=ModeratedObject.STATUS_PENDING).count()
 
     def update_cover(self, cover, save=True):
-        if self.cover is not None:
+        if cover is None:
             self.delete_cover(save=False)
-        if cover is not None:
+        else:
             self.cover = cover
 
         if save:
@@ -709,6 +713,20 @@ class Community(ModelWithUUID):
         delete_file_field(self.cover)
         self.cover = None
         self.cover.delete(save=save)
+
+    def update_avatar(self, avatar, save=True):
+        if avatar is None:
+            self.delete_avatar(save=False)
+        else:
+            self.avatar = avatar
+
+        if save:
+            self.save()
+
+    def delete_avatar(self, save=True):
+        delete_file_field(self.avatar)
+        self.avatar = None
+        self.avatar.delete(save=save)
 
     def __str__(self):
         return f"{self.title} ({self.id})"
