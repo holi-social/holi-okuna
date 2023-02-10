@@ -34,3 +34,11 @@ def community_name_exists(community_name):
 def topic_with_id_exists(topic_uuid):
     if not Topic.objects.filter(id=topic_uuid).exists():
         raise NotFound(_(f"No topic with the id '{topic_uuid}' found."))
+
+
+def community_id_exists(community_id):
+    Community = get_community_model()
+    if not Community.community_with_id_exists(community_id=community_id):
+        raise NotFound(
+            _("No community with the provided id exists."),
+        )
