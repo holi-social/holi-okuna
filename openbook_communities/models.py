@@ -21,6 +21,7 @@ from openbook_common.utils.model_loaders import (
     get_community_invite_model,
     get_community_log_model,
     get_category_model,
+    get_sdg_model,
     get_topic_model,
     get_user_model,
     get_moderated_object_model,
@@ -43,7 +44,7 @@ from openbook_moderation.models import ModeratedObject
 from openbook_posts.models import Post
 from imagekit.models import ProcessedImageField
 
-from openbook_terms.models import Topic, Skill
+from openbook_terms.models import SDG, Topic, Skill
 
 community_image_storage = default_storage
 
@@ -163,6 +164,7 @@ class Community(ModelWithUUID):
         db_index=True,
     )
     topics = models.ManyToManyField(Topic, related_name="communities", blank=False, db_index=True)
+    sdgs = models.ManyToManyField(SDG, related_name="communities", blank=False, db_index=True)
 
     class Meta:
         verbose_name_plural = "communities"
@@ -485,6 +487,7 @@ class Community(ModelWithUUID):
         categories_names=None,
         invites_enabled=None,
         topic_ids=None,
+        sdg_ids=None,
         cover=None,
         avatar=None,
     ):
@@ -524,6 +527,9 @@ class Community(ModelWithUUID):
 
         if avatar is not None:
             self.update_avatar(avatar, save=False)
+
+        if sdg_ids is not None:
+            self.set_sdgs_with_ids(sdg_ids=sdg_ids)
 
         self.save()
 
@@ -582,6 +588,15 @@ class Community(ModelWithUUID):
 
     def clear_topics(self):
         self.topics.clear()
+
+    def set_sdgs_with_ids(self, sdg_ids):
+        self.clear_sdgs()
+        Sdg = get_sdg_model()
+        sdgs = Sdg.objects.filter(id__in=sdg_ids)
+        self.sdgs.set(sdgs)
+
+    def clear_sdgs(self):
+        self.sdgs.clear()
 
     def create_invite(self, creator, invited_user):
         CommunityInvite = get_community_invite_model()
