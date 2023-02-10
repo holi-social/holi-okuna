@@ -1186,7 +1186,7 @@ class GraphQLTest(TestCase):
             {"input": {"cover": empty_image}, "expected_code": "empty"},
             {"input": {"cover": create_large_image_file()}, "expected_code": "invalid"},
             {"input": {"cover": create_video_file()}, "expected_code": "invalid_image"},
-            {"input": {"topics": None}, "expected_code": "null"},
+            {"input": {"sdgs": None}, "expected_code": "null"},
             {"input": {"sdgs": [invalid_uuid]}, "expected_error": f"No sdg with the id '{invalid_uuid}' found."},
         ]
 
@@ -1226,6 +1226,7 @@ class GraphQLTest(TestCase):
             valid_input | {"cover": cover},
             valid_input | {"sdgs": sdg_ids},
             valid_input | {"topics": topic_ids, "cover": cover, "sdgs": sdg_ids},
+            valid_input | {"topics": topic_ids, "cover": cover, "sdgs": []},
         ]
 
         for input in valid_inputs:
