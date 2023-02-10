@@ -27,7 +27,7 @@ from openbook_moderation.models import (
 )
 from openbook_notifications.models import Notification
 from openbook_common.models import ProxyBlacklistedDomain
-from openbook_terms.models import Topic, Skill
+from openbook_terms.models import SDG, Topic, Skill
 
 fake = Faker()
 
@@ -229,6 +229,10 @@ def make_category():
 
 def make_topic():
     return mixer.blend(Topic)
+
+
+def make_sdg():
+    return mixer.blend(SDG)
 
 
 def make_community_topics():

@@ -24,6 +24,7 @@ from openbook_communities.models import Community
 from openbook_common.tests.helpers import (
     get_test_images,
     get_test_videos,
+    make_sdg,
     make_user,
     make_authentication_headers_for_user,
     make_fake_post_text,
@@ -1185,6 +1186,8 @@ class GraphQLTest(TestCase):
             {"input": {"cover": empty_image}, "expected_code": "empty"},
             {"input": {"cover": create_large_image_file()}, "expected_code": "invalid"},
             {"input": {"cover": create_video_file()}, "expected_code": "invalid_image"},
+            {"input": {"sdgs": None}, "expected_code": "null"},
+            {"input": {"sdgs": [invalid_uuid]}, "expected_error": f"No sdg with the id '{invalid_uuid}' found."},
         ]
 
         for testCase in expectedErrors:
@@ -1207,6 +1210,7 @@ class GraphQLTest(TestCase):
         valid_input = {"title": "valid", "description": "valid"}
         topic_ids = [str(make_topic().id) for _ in range(2)]
         cover = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+        sdg_ids = [str(make_sdg().id) for _ in range(2)]
 
         validate_space_mutation = """
             mutation test($input: ValidateSpaceInput) {
@@ -1220,7 +1224,9 @@ class GraphQLTest(TestCase):
             valid_input,
             valid_input | {"topics": topic_ids},
             valid_input | {"cover": cover},
-            valid_input | {"topics": topic_ids, "cover": cover},
+            valid_input | {"sdgs": sdg_ids},
+            valid_input | {"topics": topic_ids, "cover": cover, "sdgs": sdg_ids},
+            valid_input | {"topics": topic_ids, "cover": cover, "sdgs": []},
         ]
 
         for input in valid_inputs:
@@ -1430,6 +1436,7 @@ class GraphQLTest(TestCase):
             {"input": {"avatar": empty_image}, "expected_code": "empty"},
             {"input": {"avatar": create_large_image_file()}, "expected_code": "invalid"},
             {"input": {"avatar": create_video_file()}, "expected_code": "invalid_image"},
+            {"input": {"sdgs": [invalid_uuid]}, "expected_error": f"No sdg with the id '{invalid_uuid}' found."},
         ]
 
         for testCase in expectedErrors:
@@ -1474,6 +1481,7 @@ class GraphQLTest(TestCase):
         cover2 = SimpleUploadedFile(name="cover2.jpg", content=simple_jpeg_bytes)
         avatar = SimpleUploadedFile(name="avatar.jpg", content=simple_jpeg_bytes)
         avatar2 = SimpleUploadedFile(name="avatar2.jpg", content=simple_jpeg_bytes)
+        sdg_ids = [str(make_sdg().id) for _ in range(3)]
 
         update_space_mutation = """
             mutation test($input: UpdateSpaceInput) {
@@ -1489,12 +1497,14 @@ class GraphQLTest(TestCase):
             {"topics": topic_ids[:2]},
             {"cover": cover},
             {"avatar": avatar},
+            {"sdgs": sdg_ids[:2]},
             {
                 "title": "newest title",
                 "description": "newest description",
                 "topics": topic_ids,
                 "cover": cover2,
                 "avatar": avatar2,
+                "sdgs": sdg_ids,
             },
         ]
 
@@ -1514,6 +1524,7 @@ class GraphQLTest(TestCase):
         topic_ids = [str(make_topic().id) for _ in range(2)]
         cover = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
         avatar = SimpleUploadedFile(name="avatar.jpg", content=simple_jpeg_bytes)
+        sdg_ids = [str(make_sdg().id) for _ in range(2)]
 
         update_space_mutation = """
             mutation test($input: UpdateSpaceInput) {
@@ -1524,6 +1535,7 @@ class GraphQLTest(TestCase):
                     topics { id }
                     cover
                     avatar
+                    sdgs { id }
                 }
             }
             """
@@ -1534,6 +1546,7 @@ class GraphQLTest(TestCase):
             "topics": topic_ids,
             "cover": cover,
             "avatar": avatar,
+            "sdgs": sdg_ids,
         }
 
         response = self.graphql.execute(
@@ -1553,6 +1566,9 @@ class GraphQLTest(TestCase):
             self.assertIn(topic["id"], topic_ids)
         self.assertIn("cover.jpg", updated_space["cover"])
         self.assertIn("avatar.jpg", updated_space["avatar"])
+        self.assertEqual(len(sdg_ids), len(updated_space["sdgs"]))
+        for sdg in updated_space["sdgs"]:
+            self.assertIn(sdg["id"], sdg_ids)
 
     def test_can_not_update_space_if_not_admin(self):
         user = make_user()

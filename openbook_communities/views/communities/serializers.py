@@ -20,6 +20,7 @@ from openbook_communities.validators import (
     community_name_characters_validator,
     community_name_not_taken_validator,
     community_id_exists,
+    sdg_with_id_exists,
     topic_with_id_exists,
 )
 
@@ -96,6 +97,10 @@ class ValidateCommunitySerializer(serializers.Serializer):
         required=False,
         max_upload_size=settings.COMMUNITY_COVER_MAX_SIZE,
     )
+    sdgs = serializers.ListField(
+        required=False,
+        child=serializers.UUIDField(validators=[sdg_with_id_exists]),
+    )
 
 
 class UpdateCommunitySerializer(serializers.Serializer):
@@ -127,6 +132,10 @@ class UpdateCommunitySerializer(serializers.Serializer):
         allow_empty_file=False,
         required=False,
         max_upload_size=settings.COMMUNITY_AVATAR_MAX_SIZE,
+    )
+    sdgs = serializers.ListField(
+        required=False,
+        child=serializers.UUIDField(validators=[sdg_with_id_exists]),
     )
 
 

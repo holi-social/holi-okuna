@@ -1138,6 +1138,7 @@ class ValidateSpaceInput(graphene.InputObjectType):
     description = graphene.String()
     topics = graphene.List(graphene.UUID)
     cover = Upload(required=False)
+    sdgs = graphene.List(graphene.UUID)
 
 
 class ValidateSpaceMutation(graphene.Mutation):
@@ -1194,6 +1195,7 @@ class UpdateSpaceInput(graphene.InputObjectType):
     topics = graphene.List(graphene.UUID)
     cover = Upload(required=False)
     avatar = Upload(required=False)
+    sdgs = graphene.List(graphene.UUID)
 
 
 class UpdateSpaceMutation(graphene.Mutation):
@@ -1217,6 +1219,7 @@ class UpdateSpaceMutation(graphene.Mutation):
             cover=data.get("cover"),
             topic_ids=data.get("topics"),
             avatar=data.get("avatar"),
+            sdg_ids=data.get("sdgs"),
         )
 
 
