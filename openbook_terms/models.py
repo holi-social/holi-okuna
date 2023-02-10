@@ -28,12 +28,14 @@ class Topic(Term):
     on the 'Discover spaces' page.
     """
 
-
 class SDG(Term):
     """
     SDG == Sustainable Development Goals. The 17 goals defined by the UN.
     see: https://sdgs.un.org/
     """
+
+    sort_nr = models.IntegerField(_("sort_nr"), default=0)
+
 
 
 class Skill(Term):
