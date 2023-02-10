@@ -1193,6 +1193,7 @@ class UpdateSpaceInput(graphene.InputObjectType):
     description = graphene.String()
     topics = graphene.List(graphene.UUID)
     cover = Upload(required=False)
+    avatar = Upload(required=False)
 
 
 class UpdateSpaceMutation(graphene.Mutation):
@@ -1215,6 +1216,7 @@ class UpdateSpaceMutation(graphene.Mutation):
             description=data.get("description"),
             cover=data.get("cover"),
             topic_ids=data.get("topics"),
+            avatar=data.get("avatar"),
         )
 
 
