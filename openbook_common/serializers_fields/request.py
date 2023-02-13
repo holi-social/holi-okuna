@@ -38,8 +38,8 @@ class RestrictedFileSizeField(FileField):
         size = data.size
         if size > self.max_upload_size:
             raise ValidationError(
-                _("Please keep filesize under %s. Current filesize %s")
-                % (filesizeformat(self.max_upload_size), filesizeformat(size))
+                _("The file you uploaded is bigger than %s.") % (filesizeformat(self.max_upload_size)),
+                code="max_upload_size",
             )
 
         return data
@@ -47,9 +47,7 @@ class RestrictedFileSizeField(FileField):
 
 class RestrictedImageFileSizeField(RestrictedFileSizeField):
     default_error_messages = {
-        "invalid_image": _(
-            "Upload a valid image. The file you uploaded was either not an image or a corrupted image."
-        ),
+        "invalid_image": _("The file you uploaded is not a valid image or the file is corrupt."),
     }
 
     def __init__(self, *args, **kwargs):
