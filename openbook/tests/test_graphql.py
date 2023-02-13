@@ -1414,29 +1414,37 @@ class GraphQLTest(TestCase):
         invalid_uuid = str(uuid4())
 
         expectedErrors = [
-            {"input": {"id": None}, "expected_code": "null"},
-            {"input": {"id": invalid_uuid}, "expected_error": "No community with the provided id exists."},
-            {"input": {"title": ""}, "expected_code": "blank"},
-            {"input": {"title": "f"}, "expected_code": "min_length"},
-            {"input": {"title": "f" * 61}, "expected_code": "max_length"},
-            {"input": {"description": ""}, "expected_code": "blank"},
-            {"input": {"description": "f" * 601}, "expected_code": "max_length"},
-            {"input": {"topics": []}, "expected_code": "min_length"},
-            {"input": {"topics": topic_ids}, "expected_code": "max_length"},
-            {"input": {"topics": [invalid_uuid]}, "expected_error": f"No topic with the id '{invalid_uuid}' found."},
-            {"input": {"cover": {}}, "expected_code": "invalid"},
-            {"input": {"cover": ""}, "expected_code": "invalid"},
-            {"input": {"cover": "foobar"}, "expected_code": "invalid"},
-            {"input": {"cover": empty_image}, "expected_code": "empty"},
-            {"input": {"cover": create_large_image_file()}, "expected_code": "max_upload_size"},
-            {"input": {"cover": create_video_file()}, "expected_code": "invalid_image"},
-            {"input": {"avatar": {}}, "expected_code": "invalid"},
-            {"input": {"avatar": ""}, "expected_code": "invalid"},
-            {"input": {"avatar": "foobar"}, "expected_code": "invalid"},
-            {"input": {"avatar": empty_image}, "expected_code": "empty"},
-            {"input": {"avatar": create_large_image_file()}, "expected_code": "max_upload_size"},
-            {"input": {"avatar": create_video_file()}, "expected_code": "invalid_image"},
-            {"input": {"sdgs": [invalid_uuid]}, "expected_error": f"No sdg with the id '{invalid_uuid}' found."},
+            {"field": "id", "value": None, "expected_code": "null"},
+            {"field": "id", "value": invalid_uuid, "expected_error": "No community with the provided id exists."},
+            {"field": "title", "value": "", "expected_code": "blank"},
+            {"field": "title", "value": "f", "expected_code": "min_length"},
+            {"field": "title", "value": "f" * 61, "expected_code": "max_length"},
+            {"field": "description", "value": "", "expected_code": "blank"},
+            {"field": "description", "value": "f" * 601, "expected_code": "max_length"},
+            {"field": "topics", "value": [], "expected_code": "min_length"},
+            {"field": "topics", "value": topic_ids, "expected_code": "max_length"},
+            {
+                "field": "topics",
+                "value": [invalid_uuid],
+                "expected_error": f"No topic with the id '{invalid_uuid}' found.",
+            },
+            {"field": "cover", "value": {}, "expected_code": "invalid"},
+            {"field": "cover", "value": "", "expected_code": "invalid"},
+            {"field": "cover", "value": "foobar", "expected_code": "invalid"},
+            {"field": "cover", "value": empty_image, "expected_code": "empty"},
+            {"field": "cover", "value": create_large_image_file(), "expected_code": "max_upload_size"},
+            {"field": "cover", "value": create_video_file(), "expected_code": "invalid_image"},
+            {"field": "avatar", "value": {}, "expected_code": "invalid"},
+            {"field": "avatar", "value": "", "expected_code": "invalid"},
+            {"field": "avatar", "value": "foobar", "expected_code": "invalid"},
+            {"field": "avatar", "value": empty_image, "expected_code": "empty"},
+            {"field": "avatar", "value": create_large_image_file(), "expected_code": "max_upload_size"},
+            {"field": "avatar", "value": create_video_file(), "expected_code": "invalid_image"},
+            {
+                "field": "sdgs",
+                "value": [invalid_uuid],
+                "expected_error": f"No sdg with the id '{invalid_uuid}' found.",
+            },
         ]
 
         for testCase in expectedErrors:
@@ -1444,14 +1452,15 @@ class GraphQLTest(TestCase):
                 update_space_mutation,
                 context_value=BeneDict({"user": user}),
                 variable_values={
-                    "input": base_input | testCase["input"],
+                    "input": base_input | {testCase["field"]: testCase["value"]},
                 },
             )
 
-            expected_error = (
-                testCase["expected_error"] if "expected_error" in testCase else f'code=\'{testCase["expected_code"]}\''
-            )
-            self.assertIn(expected_error, str(response["errors"][0]["message"]))
+            if "expected_code" in testCase:
+                field_errors = json.loads(str(response["errors"][0]["extensions"]["errors"]))
+                self.assertEqual(testCase["expected_code"], field_errors[testCase["field"]][0]["code"])
+            else:
+                self.assertIn(testCase["expected_error"], str(response["errors"][0]["message"]))
             self.assertIsNone(response["data"]["updateSpace"] if response["data"] else response["data"])
 
     def test_can_not_update_space_without_passing_id(self):
@@ -1471,7 +1480,8 @@ class GraphQLTest(TestCase):
         )
 
         self.assertIsNone(response["data"]["updateSpace"])
-        self.assertIn(f"code='required'", str(response["errors"][0]["message"]))
+        field_errors = json.loads(str(response["errors"][0]["extensions"]["errors"]))
+        self.assertEqual("required", field_errors["id"][0]["code"])
 
     def test_can_update_space(self):
         user = make_user()
@@ -1588,7 +1598,9 @@ class GraphQLTest(TestCase):
         )
 
         self.assertIsNone(response["data"]["updateSpace"])
-        self.assertIn("Can't update a community that you do not administrate.", str(response["errors"][0]["message"]))
+        self.assertIn(
+            "Can\\'t update a community that you do not administrate.", str(response["errors"][0]["extensions"])
+        )
 
     def test_can_not_update_space_if_not_logged_in(self):
         community = make_community()
@@ -1608,6 +1620,7 @@ class GraphQLTest(TestCase):
 
         self.assertIsNone(response["data"]["updateSpace"])
         self.assertIn("Unauthorized", str(response["errors"][0]["message"]))
+        self.assertEqual("UNAUTHORIZED", str(response["errors"][0]["extensions"]["code"]))
 
 
 def approve_verify_moderated_object(object_id, user):
