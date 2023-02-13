@@ -1351,7 +1351,7 @@ msgid "The file you uploaded is bigger than %s."
 msgstr ""
 
 #: openbook_common/serializers_fields/request.py:51
-msgid "The file you uploaded is no JPG/PNG or the file is corrupt."
+msgid "The file you uploaded is not a valid image or the file is corrupt."
 msgstr "Upload een geldige afbeelding. Het geüploade bestand was geen afbeelding of was verminkt."
 
 #: openbook_common/validators.py:20

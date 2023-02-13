@@ -47,7 +47,7 @@ class RestrictedFileSizeField(FileField):
 
 class RestrictedImageFileSizeField(RestrictedFileSizeField):
     default_error_messages = {
-        "invalid_image": _("The file you uploaded is no JPG/PNG or the file is corrupt."),
+        "invalid_image": _("The file you uploaded is not a valid image or the file is corrupt."),
     }
 
     def __init__(self, *args, **kwargs):
