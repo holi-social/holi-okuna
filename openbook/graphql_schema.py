@@ -210,7 +210,7 @@ class User(DjangoObjectType):
         return self.profile.interests.all()
 
     def resolve_sdgs(self, info):
-        return self.profile.sdgs.all()
+        return self.profile.sdgs.all().order_by("number")
 
     def resolve_skills(self, info):
         return self.profile.skills.all()
@@ -690,7 +690,7 @@ class Query(graphene.ObjectType):
         return Paged.data(TopicModel.objects.all().order_by("title"), offset, limit)
 
     def resolve_sdgs(self, info, offset, limit):
-        return Paged.data(SDGModel.objects.all().order_by("title"), offset, limit)
+        return Paged.data(SDGModel.objects.all().order_by("number"), offset, limit)
 
     def resolve_skills(self, info, offset, limit):
         return Paged.data(SkillModel.objects.all().order_by("title"), offset, limit)
