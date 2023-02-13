@@ -13,6 +13,7 @@ from django.utils import timezone
 from graphene.test import Client
 from rest_framework import status
 
+from openbook.middleware import graphql_error_context_middleware
 from openbook.graphql_schema import (
     schema,
     UpdateConnectionAction,
@@ -48,7 +49,7 @@ class ContextWithUser:
 
 class GraphQLTest(TestCase):
     def setUp(self):
-        self.graphql = Client(schema)
+        self.graphql = Client(schema, middleware=[graphql_error_context_middleware])
 
     fixtures = ["openbook_circles/fixtures/circles.json", "openbook_moderation/fixtures/moderation_categories.json"]
 
@@ -1150,6 +1151,28 @@ class GraphQLTest(TestCase):
         for el in expected_data:
             self.assertIn(el, results["data"])
 
+    def test_spaces_missing_required_fields_do_not_pass_validation(self):
+        user = make_user()
+
+        validate_space_mutation = """
+            mutation test($input: ValidateSpaceInput) {
+                validateSpace(input: $input) {
+                    success
+                }
+            }
+            """
+
+        response = self.graphql.execute(
+            validate_space_mutation,
+            context_value=BeneDict({"user": user}),
+            variable_values={"input": {}},
+        )
+
+        field_errors = json.loads(str(response["errors"][0]["extensions"]["errors"]))
+        self.assertEqual("required", field_errors["title"][0]["code"])
+        self.assertEqual("required", field_errors["description"][0]["code"])
+        self.assertIsNone(response["data"]["validateSpace"])
+
     def test_invalid_spaces_do_not_pass_validation(self):
         user = make_user()
         topic_ids = [str(make_topic().id) for _ in range(7)]
@@ -1166,43 +1189,48 @@ class GraphQLTest(TestCase):
         invalid_uuid = str(uuid4())
 
         expectedErrors = [
-            {"full_input": {"description": "valid"}, "expected_code": "required"},
-            {"full_input": {"title": "valid"}, "expected_code": "required"},
-            {"input": {"title": None}, "expected_code": "null"},
-            {"input": {"title": ""}, "expected_code": "blank"},
-            {"input": {"title": "f"}, "expected_code": "min_length"},
-            {"input": {"title": "f" * 61}, "expected_code": "max_length"},
-            {"input": {"description": None}, "expected_code": "null"},
-            {"input": {"description": ""}, "expected_code": "blank"},
-            {"input": {"description": "f" * 601}, "expected_code": "max_length"},
-            {"input": {"topics": None}, "expected_code": "null"},
-            {"input": {"topics": []}, "expected_code": "min_length"},
-            {"input": {"topics": topic_ids}, "expected_code": "max_length"},
-            {"input": {"topics": [invalid_uuid]}, "expected_error": f"No topic with the id '{invalid_uuid}' found."},
-            {"input": {"cover": None}, "expected_code": "null"},
-            {"input": {"cover": {}}, "expected_code": "invalid"},
-            {"input": {"cover": ""}, "expected_code": "invalid"},
-            {"input": {"cover": "foobar"}, "expected_code": "invalid"},
-            {"input": {"cover": empty_image}, "expected_code": "empty"},
-            {"input": {"cover": create_large_image_file()}, "expected_code": "max_upload_size"},
-            {"input": {"cover": create_video_file()}, "expected_code": "invalid_image"},
-            {"input": {"sdgs": None}, "expected_code": "null"},
-            {"input": {"sdgs": [invalid_uuid]}, "expected_error": f"No sdg with the id '{invalid_uuid}' found."},
+            {"field": "title", "value": None, "expected_code": "null"},
+            {"field": "title", "value": "", "expected_code": "blank"},
+            {"field": "title", "value": "f", "expected_code": "min_length"},
+            {"field": "title", "value": "f" * 61, "expected_code": "max_length"},
+            {"field": "description", "value": None, "expected_code": "null"},
+            {"field": "description", "value": "", "expected_code": "blank"},
+            {"field": "description", "value": "f" * 601, "expected_code": "max_length"},
+            {"field": "topics", "value": None, "expected_code": "null"},
+            {"field": "topics", "value": [], "expected_code": "min_length"},
+            {"field": "topics", "value": topic_ids, "expected_code": "max_length"},
+            {
+                "field": "topics",
+                "value": [invalid_uuid],
+                "expected_error": f"No topic with the id '{invalid_uuid}' found.",
+            },
+            {"field": "cover", "value": None, "expected_code": "null"},
+            {"field": "cover", "value": {}, "expected_code": "invalid"},
+            {"field": "cover", "value": "", "expected_code": "invalid"},
+            {"field": "cover", "value": "foobar", "expected_code": "invalid"},
+            {"field": "cover", "value": empty_image, "expected_code": "empty"},
+            {"field": "cover", "value": create_large_image_file(), "expected_code": "max_upload_size"},
+            {"field": "cover", "value": create_video_file(), "expected_code": "invalid_image"},
+            {"field": "sdgs", "value": None, "expected_code": "null"},
+            {
+                "field": "sdgs",
+                "value": [invalid_uuid],
+                "expected_error": f"No sdg with the id '{invalid_uuid}' found.",
+            },
         ]
 
         for testCase in expectedErrors:
             response = self.graphql.execute(
                 validate_space_mutation,
                 context_value=BeneDict({"user": user}),
-                variable_values={
-                    "input": testCase["full_input"] if "full_input" in testCase else valid_input | testCase["input"],
-                },
+                variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
             )
 
-            expected_error = (
-                testCase["expected_error"] if "expected_error" in testCase else f'code=\'{testCase["expected_code"]}\''
-            )
-            self.assertIn(expected_error, str(response["errors"][0]["message"]))
+            if "expected_code" in testCase:
+                field_errors = json.loads(str(response["errors"][0]["extensions"]["errors"]))
+                self.assertEqual(testCase["expected_code"], field_errors[testCase["field"]][0]["code"])
+            else:
+                self.assertIn(testCase["expected_error"], str(response["errors"][0]["message"]))
             self.assertIsNone(response["data"]["validateSpace"])
 
     def test_valid_partial_spaces_pass_validation(self):
@@ -1257,6 +1285,50 @@ class GraphQLTest(TestCase):
 
         self.assertIsNone(response["data"]["validateSpace"])
         self.assertIn("Unauthorized", str(response["errors"][0]["message"]))
+        self.assertEqual("UNAUTHORIZED", str(response["errors"][0]["extensions"]["code"]))
+
+    def test_can_not_create_spaces_missing_required_fields(self):
+        user = make_user()
+        topic_ids = [str(make_topic().id) for _ in range(7)]
+        valid_topics = topic_ids[:2]
+        valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+
+        create_space_mutation = """
+            mutation test($input: CreateSpaceInput) {
+                createSpace(input: $input) {
+                    id
+                }
+            }
+            """
+
+        expectedErrors = [
+            {
+                "input": {"title": "valid", "description": "valid", "topics": valid_topics},
+                "expected_error": "was not provided",
+            },
+            {
+                "input": {"title": "valid", "description": "valid", "cover": valid_image},
+                "expected_error": "was not provided",
+            },
+            {
+                "input": {"title": "valid", "topics": valid_topics, "cover": valid_image},
+                "expected_error": "was not provided",
+            },
+            {
+                "input": {"description": "valid", "topics": valid_topics, "cover": valid_image},
+                "expected_error": "was not provided",
+            },
+        ]
+
+        for testCase in expectedErrors:
+            response = self.graphql.execute(
+                create_space_mutation,
+                context_value=BeneDict({"user": user}),
+                variable_values={"input": testCase["input"]},
+            )
+
+            self.assertIn(testCase["expected_error"], str(response["errors"][0]["message"]))
+            self.assertIsNone(response["data"]["createSpace"] if response["data"] else response["data"])
 
     def test_validates_space_before_creation(self):
         user = make_user()
@@ -1276,55 +1348,42 @@ class GraphQLTest(TestCase):
         invalid_uuid = str(uuid4())
 
         expectedErrors = [
+            {"field": "title", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "title", "value": "", "expected_code": "blank"},
+            {"field": "title", "value": "f", "expected_code": "min_length"},
+            {"field": "title", "value": "f" * 61, "expected_code": "max_length"},
+            {"field": "description", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "description", "value": "", "expected_code": "blank"},
+            {"field": "description", "value": "f" * 601, "expected_code": "max_length"},
+            {"field": "topics", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "topics", "value": [], "expected_code": "min_length"},
+            {"field": "topics", "value": topic_ids, "expected_code": "max_length"},
             {
-                "full_input": {"title": "valid", "description": "valid", "topics": valid_topics},
-                "expected_error": "was not provided",
+                "field": "topics",
+                "value": [invalid_uuid],
+                "expected_error": f"No topic with the id '{invalid_uuid}' found.",
             },
-            {
-                "full_input": {"title": "valid", "description": "valid", "cover": valid_image},
-                "expected_error": "was not provided",
-            },
-            {
-                "full_input": {"title": "valid", "topics": valid_topics, "cover": valid_image},
-                "expected_error": "was not provided",
-            },
-            {
-                "full_input": {"description": "valid", "topics": valid_topics, "cover": valid_image},
-                "expected_error": "was not provided",
-            },
-            {"input": {"title": None}, "expected_error": "Expected non-nullable type"},
-            {"input": {"title": ""}, "expected_code": "blank"},
-            {"input": {"title": "f"}, "expected_code": "min_length"},
-            {"input": {"title": "f" * 61}, "expected_code": "max_length"},
-            {"input": {"description": None}, "expected_error": "Expected non-nullable type"},
-            {"input": {"description": ""}, "expected_code": "blank"},
-            {"input": {"description": "f" * 601}, "expected_code": "max_length"},
-            {"input": {"topics": None}, "expected_error": "Expected non-nullable type"},
-            {"input": {"topics": []}, "expected_code": "min_length"},
-            {"input": {"topics": topic_ids}, "expected_code": "max_length"},
-            {"input": {"topics": [invalid_uuid]}, "expected_error": f"No topic with the id '{invalid_uuid}' found."},
-            {"input": {"cover": None}, "expected_error": "Expected non-nullable type"},
-            {"input": {"cover": {}}, "expected_code": "invalid"},
-            {"input": {"cover": ""}, "expected_code": "invalid"},
-            {"input": {"cover": "foobar"}, "expected_code": "invalid"},
-            {"input": {"cover": empty_image}, "expected_code": "empty"},
-            {"input": {"cover": create_large_image_file()}, "expected_code": "max_upload_size"},
-            {"input": {"cover": create_video_file()}, "expected_code": "invalid_image"},
+            {"field": "cover", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "cover", "value": {}, "expected_code": "invalid"},
+            {"field": "cover", "value": "", "expected_code": "invalid"},
+            {"field": "cover", "value": "foobar", "expected_code": "invalid"},
+            {"field": "cover", "value": empty_image, "expected_code": "empty"},
+            {"field": "cover", "value": create_large_image_file(), "expected_code": "max_upload_size"},
+            {"field": "cover", "value": create_video_file(), "expected_code": "invalid_image"},
         ]
 
         for testCase in expectedErrors:
             response = self.graphql.execute(
                 create_space_mutation,
                 context_value=BeneDict({"user": user}),
-                variable_values={
-                    "input": testCase["full_input"] if "full_input" in testCase else valid_input | testCase["input"],
-                },
+                variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
             )
 
-            expected_error = (
-                testCase["expected_error"] if "expected_error" in testCase else f'code=\'{testCase["expected_code"]}\''
-            )
-            self.assertIn(expected_error, str(response["errors"][0]["message"]))
+            if "expected_code" in testCase:
+                field_errors = json.loads(str(response["errors"][0]["extensions"]["errors"]))
+                self.assertEqual(testCase["expected_code"], field_errors[testCase["field"]][0]["code"])
+            else:
+                self.assertIn(testCase["expected_error"], str(response["errors"][0]["message"]))
             self.assertIsNone(response["data"]["createSpace"] if response["data"] else response["data"])
 
     def test_can_create_space(self):
@@ -1396,6 +1455,7 @@ class GraphQLTest(TestCase):
 
         self.assertIsNone(response["data"]["createSpace"])
         self.assertIn("Unauthorized", str(response["errors"][0]["message"]))
+        self.assertEqual("UNAUTHORIZED", str(response["errors"][0]["extensions"]["code"]))
 
     def test_validates_space_update(self):
         user = make_user()
