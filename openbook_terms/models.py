@@ -35,6 +35,9 @@ class SDG(Term):
     see: https://sdgs.un.org/
     """
 
+    number = models.IntegerField(_("number"), null=False, blank=False, default=False)
+
+    
 
 class Skill(Term):
     """
