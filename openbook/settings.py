@@ -144,7 +144,11 @@ MIDDLEWARE = [
     "openbook.middleware.slow_log_middleware",
 ]
 
-GRAPHENE = {"MIDDLEWARE": None}
+GRAPHENE = {
+    "MIDDLEWARE": [
+        "openbook.middleware.graphql_error_context_middleware",
+    ]
+}
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://localhost",

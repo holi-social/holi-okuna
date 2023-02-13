@@ -1349,11 +1349,11 @@ msgstr "codice"
 
 #: openbook_common/serializers_fields/request.py:41
 #, python-format
-msgid "Please keep filesize under %s. Current filesize %s"
-msgstr "Mantieni le dimensioni del file sotto %s. La dimensione corrente è %s"
+msgid "The file you uploaded is bigger than %s."
+msgstr "Mantieni le dimensioni del file sotto %s."
 
 #: openbook_common/serializers_fields/request.py:51
-msgid "Upload a valid image. The file you uploaded was either not an image or a corrupted image."
+msgid "The file you uploaded is not a valid image or the file is corrupt."
 msgstr "Carica un'immagine valida. Il file che hai caricato non è un'immagine o è un'immagine corrotta."
 
 #: openbook_common/validators.py:20

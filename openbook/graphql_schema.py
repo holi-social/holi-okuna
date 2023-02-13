@@ -19,6 +19,7 @@ from graphene_file_upload.scalars import Upload
 from graphql import GraphQLError
 from django.conf import settings
 
+from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_auth.images import delete_avatar
 from openbook_auth.models import UserConnectionStatus, User as UserModel, UserBlock
 from openbook_auth.validators import string_not_empty
@@ -57,13 +58,6 @@ logger = structlog.getLogger(__name__)
 
 
 # noinspection PyUnresolvedReferences
-
-
-class ErrorCodes:
-    NOT_FOUND = "NOT_FOUND"
-    UNAUTHORIZED = "UNAUTHORIZED"
-    FORBIDDEN = "FORBIDDEN"
-    INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR"
 
 
 class UpdateConnectionAction(graphene.Enum):
@@ -464,7 +458,7 @@ def resolve_post(user, id):
     try:
         return get_posts_with_comments_query(user).get(id=id)
     except PostModel.DoesNotExist:
-        raise GraphQLError("Post not found", extensions={"code": ErrorCodes.NOT_FOUND})
+        raise GraphQLError("Post not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
 
 
 def get_posts_with_comments_query(user):
@@ -501,7 +495,7 @@ def get_posts_only_query(user):
 def verify_authorized_user(info):
     current_user: UserModel = info.context.user
     if not current_user or current_user.is_anonymous:
-        raise GraphQLError("Unauthorized", extensions={"code": ErrorCodes.UNAUTHORIZED})
+        raise GraphQLError("Unauthorized", extensions={"code": GraphQLErrorCodes.UNAUTHORIZED})
     return current_user
 
 
@@ -607,7 +601,7 @@ class Query(graphene.ObjectType):
                 .get(username=id)
             )
         except UserModel.DoesNotExist:
-            raise GraphQLError("User not found", extensions={"code": ErrorCodes.NOT_FOUND})
+            raise GraphQLError("User not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
 
     def resolve_user_by_name(self, info, substring, offset, limit):
         string_not_empty(substring)
@@ -687,7 +681,7 @@ class Query(graphene.ObjectType):
                 .get(id=id)
             )
         except InsightModel.DoesNotExist:
-            raise GraphQLError("Insight not found", extensions={"code": ErrorCodes.NOT_FOUND})
+            raise GraphQLError("Insight not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
 
     def resolve_post_by_id(self, info, id):
         return resolve_post(info.context.user, id)
@@ -839,7 +833,7 @@ class Query(graphene.ObjectType):
                 .get(id=id)
             )
         except CommunityModel.DoesNotExist:
-            raise GraphQLError("Space not found", extensions={"code": ErrorCodes.NOT_FOUND})
+            raise GraphQLError("Space not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
 
     def resolve_tasks_by_space_id(self, info, space_id, offset=graphene.Int(), limit=graphene.Int()):
         return Paged.data(
@@ -852,7 +846,7 @@ class Query(graphene.ObjectType):
         try:
             return TaskModel.objects.get(id=id)
         except TaskModel.DoesNotExist:
-            raise GraphQLError("Task not found", extensions={"code": ErrorCodes.NOT_FOUND})
+            raise GraphQLError("Task not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
 
     def resolve_notifications(self, info, offset, limit):
         user = info.context.user
@@ -1072,7 +1066,7 @@ class UpdateSpaceUserConnectionMutation(graphene.Mutation):
                 case (cT.FOLLOWER, a.DISCONNECT):
                     return current_user.disable_new_post_notifications_for_community_with_name(space.name)
                 case _:
-                    raise GraphQLError("Operation not allowed", extensions={"code": ErrorCodes.FORBIDDEN})
+                    raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
         else:
             # perform for other user
             match (connection_type, connect_action):
@@ -1081,7 +1075,7 @@ class UpdateSpaceUserConnectionMutation(graphene.Mutation):
                 case (cT.MEMBER, a.CONNECT):
                     return current_user.approve_membership_request_to_community_for_username(user_id, space.name)
                 case _:
-                    raise GraphQLError("Operation not allowed", extensions={"code": ErrorCodes.FORBIDDEN})
+                    raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
 
         return space
 
@@ -1127,7 +1121,7 @@ class ReportContentMutation(graphene.Mutation):
                 current_user.report_community_with_id(object_id, category_id, description)
             case _:
                 raise GraphQLError(
-                    f"Unknown ContentType {content_type.value}", extensions={"code": ErrorCodes.FORBIDDEN}
+                    f"Unknown ContentType {content_type.value}", extensions={"code": GraphQLErrorCodes.FORBIDDEN}
                 )
 
         return ReportContentMutation(success=True)

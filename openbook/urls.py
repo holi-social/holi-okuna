@@ -23,6 +23,7 @@ from proxy.views import proxy_view
 from graphene_file_upload.django import FileUploadGraphQLView
 
 from openbook import graphql_schema
+from openbook.middleware import graphql_error_context_middleware
 from openbook_auth.views.auth.views import (
     Register,
     Login,
