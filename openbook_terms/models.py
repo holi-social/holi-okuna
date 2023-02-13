@@ -37,7 +37,6 @@ class SDG(Term):
 
     number = models.IntegerField(_("number"), null=False, blank=False, default=False)
 
-    
 
 class Skill(Term):
     """
