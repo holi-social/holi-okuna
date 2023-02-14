@@ -164,7 +164,7 @@ class Community(ModelWithUUID):
         db_index=True,
     )
     topics = models.ManyToManyField(Topic, related_name="communities", blank=False, db_index=True)
-    sdgs = models.ManyToManyField(SDG, related_name="communities", blank=False, db_index=True)
+    sdgs = models.ManyToManyField(SDG, related_name="communities", blank=True, db_index=True, null=True)
 
     class Meta:
         verbose_name_plural = "communities"
