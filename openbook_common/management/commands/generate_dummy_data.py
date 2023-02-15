@@ -1,5 +1,10 @@
 import random
+import io
+import sys
+from contextlib import contextmanager
+from urllib import request
 
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.management import BaseCommand
 from django.utils.timezone import now
 
@@ -15,6 +20,16 @@ from openbook_insights.models import Insight
 from openbook_posts.models import Post
 
 prefix = "generate_"
+
+
+@contextmanager
+def image_fetcher(url):
+    with request.urlopen("https://ik.imagekit.io/holidev/tr:w-300,h-300/default-image.jpg") as response:
+        with io.BytesIO(response.read()) as image_io:
+            in_memory_file = InMemoryUploadedFile(
+                image_io, "ImageField", "default-image.jpg", "JPEG", sys.getsizeof(image_io), None
+            )
+            yield in_memory_file
 
 
 class Command(BaseCommand):
@@ -44,27 +59,37 @@ class Command(BaseCommand):
     def generate_post(self, nr):
         print(f"generate {nr} posts")
         users = self._get_random_users(int(nr / 1.5))
-        for i in range(nr):
-            random.choice(users).create_public_post(title=make_fake_post_title(), text=make_fake_post_text())
+        with image_fetcher("https://ik.imagekit.io/holidev/tr:w-300,h-300/default-image.jpg") as image_file:
+            for i in range(nr):
+                random.choice(users).create_public_post(
+                    title=make_fake_post_title(),
+                    text=make_fake_post_text(),
+                    image=image_file,
+                )
 
     def generate_post_with_comment(self, nr):
         print(f"generate {nr} posts with comments")
         users = self._get_random_users(int(nr / 1.5))
-        for i in range(nr):
-            post = random.choice(users).create_public_post(title=make_fake_post_title(), text=make_fake_post_text())
-            comment_count = random.randint(1, 5)
-            for j in range(comment_count):
-                post.comment(make_fake_post_comment_text(), random.choice(users))
+        with image_fetcher("https://ik.imagekit.io/holidev/tr:w-300,h-300/default-image.jpg") as image_file:
+            for i in range(nr):
+                post = random.choice(users).create_public_post(
+                    title=make_fake_post_title(), text=make_fake_post_text(), image=image_file
+                )
+                comment_count = random.randint(1, 5)
+                for j in range(comment_count):
+                    post.comment(make_fake_post_comment_text(), random.choice(users))
 
     def generate_insight(self, nr):
         print(f"generate {nr} insights")
         users = self._get_random_users(int(nr / 1.5))
         posts = Post.objects.filter(circles__id=Circle.get_world_circle_id()).all()[: int(nr * 4)]
-        for i in range(nr):
-            insight = Insight.objects.create(
-                creator=random.choice(users),
-                title=make_fake_post_title(),
-                date_published=now(),
-            )
-            for j in range(random.randint(1, 5)):
-                insight.posts.add(random.choice(posts))
+        with image_fetcher("https://ik.imagekit.io/holidev/tr:w-300,h-300/default-image.jpg") as image_file:
+            for i in range(nr):
+                insight = Insight.objects.create(
+                    creator=random.choice(users),
+                    title=make_fake_post_title(),
+                    date_published=now(),
+                    header_image=image_file,
+                )
+                for j in range(random.randint(1, 5)):
+                    insight.posts.add(random.choice(posts))
