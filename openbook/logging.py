@@ -1,5 +1,6 @@
 import json
 import logging
+from logging import config as logging_config
 import os
 import sys
 
@@ -104,7 +105,7 @@ LOGGING_CONFIG = {
 
 
 def initialize_logging():
-    logging.config.dictConfig(LOGGING_CONFIG)
+    logging_config.dictConfig(LOGGING_CONFIG)
 
     structlog.configure(
         processors=[
