@@ -578,7 +578,7 @@ MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT = int(os.environ.get("MIN_UNIQUE_TRENDI
 
 # Email Config
 
-EMAIL_BACKEND = "django_amazon_ses.EmailBackend"
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 AWS_SES_REGION = os.environ.get("AWS_SES_REGION")
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
