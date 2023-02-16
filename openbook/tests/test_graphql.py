@@ -1191,6 +1191,7 @@ class GraphQLTest(TestCase):
         expectedErrors = [
             {"field": "title", "value": None, "expected_code": "null"},
             {"field": "title", "value": "", "expected_code": "blank"},
+            {"field": "title", "value": "  ", "expected_code": "blank"},
             {"field": "title", "value": "f", "expected_code": "min_length"},
             {"field": "title", "value": "f" * 61, "expected_code": "max_length"},
             {"field": "description", "value": None, "expected_code": "null"},
@@ -1211,12 +1212,6 @@ class GraphQLTest(TestCase):
             {"field": "cover", "value": empty_image, "expected_code": "empty"},
             {"field": "cover", "value": create_large_image_file(), "expected_code": "max_upload_size"},
             {"field": "cover", "value": create_video_file(), "expected_code": "invalid_image"},
-            {"field": "sdgs", "value": None, "expected_code": "null"},
-            {
-                "field": "sdgs",
-                "value": [invalid_uuid],
-                "expected_error": f"No sdg with the id '{invalid_uuid}' found.",
-            },
         ]
 
         for testCase in expectedErrors:
@@ -1500,6 +1495,7 @@ class GraphQLTest(TestCase):
             {"field": "avatar", "value": empty_image, "expected_code": "empty"},
             {"field": "avatar", "value": create_large_image_file(), "expected_code": "max_upload_size"},
             {"field": "avatar", "value": create_video_file(), "expected_code": "invalid_image"},
+            {"field": "sdgs", "value": None, "expected_code": "null"},
             {
                 "field": "sdgs",
                 "value": [invalid_uuid],
@@ -1568,6 +1564,7 @@ class GraphQLTest(TestCase):
             {"cover": cover},
             {"avatar": avatar},
             {"sdgs": sdg_ids[:2]},
+            {"sdgs": []},
             {
                 "title": "newest title",
                 "description": "newest description",
