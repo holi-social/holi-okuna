@@ -88,6 +88,7 @@ class Command(BaseCommand):
                 insight = Insight.objects.create(
                     creator=random.choice(users),
                     title=make_fake_post_title(),
+                    description=make_fake_post_text(),
                     date_published=now(),
                     header_image=image_file,
                 )
