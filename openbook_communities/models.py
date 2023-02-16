@@ -85,7 +85,7 @@ class Community(ModelWithUUID):
     avatar = ProcessedImageField(
         storage=community_image_storage,
         verbose_name=_("avatar"),
-        blank=True,
+        blank=False,
         null=True,
         format="JPEG",
         options={"quality": 90},
@@ -97,6 +97,7 @@ class Community(ModelWithUUID):
         ],
         upload_to=upload_to_community_avatar_directory,
         max_length=settings.IMAGE_URL_MAX_LENGTH,
+        default=None,
     )
     cover = ProcessedImageField(
         storage=community_image_storage,

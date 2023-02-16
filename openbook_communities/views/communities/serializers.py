@@ -47,7 +47,11 @@ class CreateCommunitySerializer(serializers.Serializer):
         allow_blank=False,
         required=False,
     )
-    avatar = RestrictedImageFileSizeField(required=False, max_upload_size=settings.COMMUNITY_AVATAR_MAX_SIZE)
+    avatar = RestrictedImageFileSizeField(
+        allow_empty_file=False,
+        required=False,
+        max_upload_size=settings.COMMUNITY_AVATAR_MAX_SIZE,
+    )
     cover = RestrictedImageFileSizeField(
         required=True,
         max_upload_size=settings.COMMUNITY_COVER_MAX_SIZE,
