@@ -353,14 +353,10 @@ class Space(DjangoObjectType):
         SpaceMember,
         description="A list of all active members and their role",
     )
-    main_image = graphene.String()
     connection_status_to_myself = graphene.List(SpaceUserConnectionType)
 
     def resolve_members(self, info, offset, limit):
         return Paged(self.memberships.all()[offset : offset + limit], self.memberships.count())
-
-    def resolve_main_image(self, info):
-        return self.cover.name
 
     def resolve_connection_status_to_myself(self, info):
         current_user: UserModel = info.context.user
