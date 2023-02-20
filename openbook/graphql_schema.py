@@ -354,6 +354,7 @@ class Space(DjangoObjectType):
         description="A list of all active members and their role",
     )
     connection_status_to_myself = graphene.List(SpaceUserConnectionType)
+    avatar_default_color = graphene.NonNull(graphene.String)
 
     def resolve_members(self, info, offset, limit):
         return Paged(self.memberships.all()[offset : offset + limit], self.memberships.count())
@@ -385,6 +386,9 @@ class Space(DjangoObjectType):
             # pass
 
         return roles
+
+    def resolve_avatar_default_color(self, info):
+        return self.avatar_default_color
 
 
 def get_id_spaces_count_map(query):

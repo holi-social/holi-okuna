@@ -216,6 +216,7 @@ class CommunitiesCommunitySerializer(serializers.ModelSerializer):
             "cover",
             "members_count",
             "posts_count",
+            "avatar_default_color",
             "color",
             "user_adjective",
             "users_adjective",
