@@ -146,14 +146,7 @@ class User(AbstractUser):
     VISIBILITY_TYPE_PUBLIC = "P"
     VISIBILITY_TYPE_OKUNA = "O"
 
-    DEFAULT_AVATAR_COLORS = [
-        "#FFAE86",
-        "#F8F860",
-        "#78EDA8",
-        "#7BD7EA",
-        "#7571EC",
-        "#D782FB",
-    ]
+    DEFAULT_AVATAR_COLORS = settings.DEFAULT_AVATAR_COLORS
 
     VISIBILITY_TYPES = (
         (VISIBILITY_TYPE_PUBLIC, "Public"),
