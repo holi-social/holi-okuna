@@ -125,6 +125,8 @@ class Community(ModelWithUUID):
         (COMMUNITY_TYPE_PUBLIC, "Public"),
         (COMMUNITY_TYPE_PRIVATE, "Private"),
     )
+    DEFAULT_AVATAR_COLORS = settings.DEFAULT_AVATAR_COLORS
+
     type = models.CharField(
         editable=False,
         blank=False,
@@ -169,6 +171,12 @@ class Community(ModelWithUUID):
 
     class Meta:
         verbose_name_plural = "communities"
+
+    @property
+    def avatar_default_color(self):
+        color_count = len(Community.DEFAULT_AVATAR_COLORS) - 1
+        color = sum(list(self.title.encode("utf8"))) % color_count
+        return Community.DEFAULT_AVATAR_COLORS[color]
 
     @classmethod
     def is_user_with_username_invited_to_community_with_name(cls, username, community_name):
