@@ -240,7 +240,7 @@ class Insight(DjangoObjectType):
         )
 
     def resolve_number_of_posts(self, info):
-        return PostModel.objects.filter(PostModel.is_visible_query(info.context.user)).filter(insights=self).count()
+        return PostModel.objects.filter(insights=self).filter(PostModel.is_visible_query(info.context.user)).count()
 
     def resolve_involved_users(self, info, offset, limit):
         return Paged.data(

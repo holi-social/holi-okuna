@@ -914,10 +914,10 @@ class Post(ModelWithUUID):
                     pQ(status=Post.STATUS_PUBLISHED)
                     & (
                         pQ(circles__id=get_circle_model().get_world_circle_id())
-                        | pQ(  # is in a circle, that I'm connected to
-                            circles__connections__target_user=user,
-                            circles__connections__target_connection__circles__isnull=False,
-                        )
+                        # | pQ(  # is in a circle, that I'm connected to
+                        #     circles__connections__target_user=user,
+                        #     circles__connections__target_connection__circles__isnull=False,
+                        # )
                         | pQ(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC)
                     )
                 )
