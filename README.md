@@ -85,8 +85,20 @@ Use `python okuna-cli.py clean` to reset all local state, including database and
    And fill the DB with some fixture data:
 
    ```bash
-   python manage.py loaddata circles.json emoji-groups.json emojis.json badges.json categories.json languages.json topics.json skills.json sdgs.json moderation_categories.json users.json
+   python manage.py loaddata circles.json emoji-groups.json emojis.json badges.json categories.json languages.json topics.json skills.json sdgs.json moderation_categories.json
    ```
+
+   In addition, there is also a users.json you can load, if you want.
+   
+   You can generate more test data with a custom command:
+
+   ```bash
+   manage.py generate_dummy_data --user 20 --post 10 --post_with_comment 20 --insight 10
+   ```
+
+   All parameters are optional.
+   Users for posts, comments and insights are chosen at random.
+   Insights get some random posts assigned as well.
 
    Afterwards, you're ready to start the backend API service:
 
