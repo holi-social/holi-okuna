@@ -2,7 +2,7 @@ version: '3'
 
 services:
   db:
-    image: postgres:14.2-alpine
+    image: postgis/postgis:12-3.3-alpine
     container_name: okuna-postgres
     hostname: db.okuna
     volumes:
