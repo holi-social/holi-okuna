@@ -1792,6 +1792,11 @@ class User(AbstractUser):
     def delete_community(self, community):
         return self.delete_community_with_name(community.name)
 
+    def delete_community_with_id(self, community_id):
+        Community = get_community_model()
+        community = Community.objects.get(id=community_id)
+        return self.delete_community_with_name(community.name)
+
     def delete_community_with_name(self, community_name):
         check_can_delete_community_with_name(user=self, community_name=community_name)
 
