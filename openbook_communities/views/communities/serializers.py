@@ -105,6 +105,10 @@ class ValidateCommunitySerializer(serializers.Serializer):
         required=False,
         child=serializers.UUIDField(validators=[sdg_with_id_exists]),
     )
+    location = serializers.CharField(
+        max_length=settings.COMMUNITY_LOCATION_MAX_LENGTH,
+        required=False,
+    )
 
 
 class UpdateCommunitySerializer(serializers.Serializer):
@@ -140,6 +144,10 @@ class UpdateCommunitySerializer(serializers.Serializer):
     sdgs = serializers.ListField(
         required=False,
         child=serializers.UUIDField(validators=[sdg_with_id_exists]),
+    )
+    location = serializers.CharField(
+        max_length=settings.COMMUNITY_LOCATION_MAX_LENGTH,
+        required=False,
     )
 
 
