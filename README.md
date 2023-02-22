@@ -33,20 +33,39 @@ The project uses
 
 - Python 3.11+
 - Django 4
-- PostgreSQL
+- PostgreSQL (with [PostGIS](https://postgis.net/) extension)
 - Redis
 - `docker` / `docker-compose`
 - [pyenv](https://github.com/pyenv/pyenv) (optional)
 - [Black code formatter](https://github.com/psf/black) (see the [docs](https://black.readthedocs.io/en/stable/) for IDE integrations)
 
+### Geospatial libraries
+
+The following geospatial libraries should be installed prior to building PostGIS.
+
+- [GEOS](https://libgeos.org/)
+- [PROJ](https://proj.org/)
+- [GDAL](https://gdal.org/)
+
+You should also update your local `.env` and `.docker-compose.env` to include the geospatial libraries paths in your local machine.
+
+```
+GDAL_LIBRARY_PATH = "/path/to/libgdal.dylib"
+GEOS_LIBRARY_PATH = "/path/to/libgeos_c.dylib"
+PROJ_LIBRARY_PATH = "/path/to/libproj.dylib"
+```
+
 ## Quickstart
+
 If you have installed pyenv, you can execute `./reset_environment.sh` to install the required python interpreter,
 set up the virtual environment and install the required dependencies.
 
 Start the required services using `python okuna-cli.py up-services-only`
 
 Start the dev server using `python manage.py runserver 0.0.0.0:8000`
+
 ### Reset
+
 Use `python okuna-cli.py clean` to reset all local state, including database and config files.
 
 ### Step by step
@@ -89,7 +108,7 @@ Use `python okuna-cli.py clean` to reset all local state, including database and
    ```
 
    In addition, there is also a users.json you can load, if you want.
-   
+
    You can generate more test data with a custom command:
 
    ```bash
@@ -104,11 +123,11 @@ Use `python okuna-cli.py clean` to reset all local state, including database and
 
    ```sh
    python start_server.py # this binds to http://127.0.0.1:8000
-   
+
    #should you need more control you can also use:
    uvicorn openbook.asgi:application --reload [...more uvicorn options, like --host or --port...]
    ```
-   
+
    Alternatively you can also start the Django development server, but then file uploads don't work:
 
    ```sh
@@ -157,16 +176,16 @@ cd /usr/local/lib/
 ln -s <correct path>/lib/libmagic.dylib libmagic.dylib
 ```
 
-Xcode issues - Error: python@3.9: the bottle needs  the Apple Command Line Tools to be installed.
+Xcode issues - Error: python@3.9: the bottle needs the Apple Command Line Tools to be installed.
 
 ```sh
  xcode-select --install
- ```
+```
 
 ffpmeg is missing?
 
 ```sh
-brew install ffmpeg 
+brew install ffmpeg
 ```
 
 ## CI/CD
@@ -183,6 +202,7 @@ psql -h localhost okuna -U <RDS_USERNAME>
 ```
 
 ## Admin Dashboard
+
 When using a local database, first execute `python manage.py createsuperuser` to create an admin account with your
 desired credentials.
 If you are connected to the staging database, use the credentials found in [Passbolt](https://cloud.passbolt.com/holi/app/passwords)
@@ -190,5 +210,6 @@ If you are connected to the staging database, use the credentials found in [Pass
 After starting Okuna, you can access the admin ui at `http://localhost:8000/admin/`
 
 ## Pycharm
+
 Shared run configurations can be found in the `.run` subfolder.
 You can use these to start your dev server or run tests.

@@ -1,6 +1,11 @@
 FROM python:3.11.0
 
-RUN apt-get -y update && apt-get -y upgrade && apt-get install -y ffmpeg
+RUN apt-get -y update && apt-get -y upgrade && apt-get install -y \
+    ffmpeg \
+    binutils \
+    libproj-dev \
+    libgdal-dev \
+    libgeos-dev 
 
 COPY requirements.txt /requirements.txt
 
@@ -21,7 +26,7 @@ RUN chmod +x /wait-for-it.sh
 
 WORKDIR /opt/okuna-api
 # SECRET_KEY must be set, but the value is never used
-run ENVIRONMENT=build SECRET_KEY=foo python manage.py collectstatic --no-input
+RUN ENVIRONMENT=build SECRET_KEY=foo python manage.py collectstatic --no-input
 
 ENTRYPOINT ["/entrypoint.sh"]
 

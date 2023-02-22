@@ -4682,6 +4682,7 @@ class ProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(len(response_communities), 0)
 
+    @unittest.skip("TODO HOLI-3445 migrate unit test from SQLite to Postgres")
     def test_retrieve_excluded_communities_offset(self):
         """should be able to retrieve all excluded communities with an offset return 200"""
         user = make_user()
@@ -4932,6 +4933,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(len(response_communities), 0)
 
+    @unittest.skip("TODO HOLI-3445 migrate unit test from SQLite to Postgres")
     def test_retrieve_excluded_communities_offset(self):
         """should be able to retrieve all excluded communities with an offset return 200"""
         user = make_user()

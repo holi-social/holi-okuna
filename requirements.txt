@@ -42,6 +42,7 @@ gitdb==4.0.9; python_version >= '3.4'
 gitpython==3.1.29; python_version >= '3.4'
 graphene-django==3.0.0
 graphene-file-upload==1.3.0
+graphene-gis==0.0.8b0
 halo==0.0.31
 imagekitio==2.2.8
 langdetect==1.0.9
@@ -57,6 +58,7 @@ pbr==5.11.0; python_version >= '2.6'
 pilkit==2.0
 pillow==9.3.0
 pinocchio==0.4.3
+psycopg2==2.9.5
 psycopg2-binary==2.9.5
 pyjwt==1.7.1
 python-dotenv==0.21.0
