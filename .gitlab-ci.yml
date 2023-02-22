@@ -26,7 +26,7 @@ default:
     - holi-small # build on smaller machine
 
 setup:
-  image: 'registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder'
+  image: "registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder"
   stage: "setup"
   script:
     - python3 -m venv venv
@@ -35,10 +35,17 @@ setup:
     - pip install -r requirements.txt --exists-action s
 
 test:
-  image: 'registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder'
+  image: "registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder"
+  services:
+    - name: postgis/postgis:12-3.3-alpine
+      alias: postgres
   stage: "test"
   variables:
     SECRET_KEY: "secret"
+    POSTGRES_DB: okuna_test_db
+    POSTGRES_USER: okuna_test_user
+    POSTGRES_PASSWORD: okuna_test_pass
+    POSTGRES_HOST_AUTH_METHOD: trust
   script:
     - /etc/init.d/redis-server start
     - source venv/bin/activate
@@ -70,7 +77,7 @@ build_docker:
 .deploy:
   stage: "deploy"
   image:
-    name: 'hashicorp/terraform:1.1.9'
+    name: "hashicorp/terraform:1.1.9"
     # default entrypoint is terraform command, but we want to run shell scripts
     entrypoint: ["/bin/sh", "-c"]
   variables:
@@ -92,7 +99,7 @@ build_docker:
 
 .e2e:
   stage: "deploy"
-  image: 'archlinux:base'
+  image: "archlinux:base"
   script:
     - API_BASE_URL=`cat $API_BASE_URL_PATH`
     - echo "e2e tests against $CI_ENVIRONMENT_SLUG environment go here and against $API_BASE_URL"
@@ -113,7 +120,7 @@ review_deploy:
 review_destroy:
   stage: destroy
   image:
-    name: 'hashicorp/terraform:1.1.9'
+    name: "hashicorp/terraform:1.1.9"
     # default entrypoint is terraform command, but we want to run shell scripts
     entrypoint: ["/bin/sh", "-c"]
   variables:

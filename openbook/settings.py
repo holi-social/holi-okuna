@@ -91,6 +91,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.gis",
     "rest_framework",
     "rest_framework.authtoken",
     "django_nose",
@@ -104,6 +105,7 @@ INSTALLED_APPS = [
     "scheduler",
     "django_extensions",
     "graphene_django",
+    "graphene_gis",
     "openbook_common",
     "openbook_auth",
     "openbook_posts",
@@ -302,7 +304,22 @@ WSGI_APPLICATION = "openbook.wsgi.application"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 if IS_BUILD or TESTING:
-    DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": "open-book-api"}}
+    TEST_DB_NAME = os.environ.get("TEST_DB_NAME", "okuna_test_db")
+    TEST_DB_USERNAME = os.environ.get("TEST_DB_USERNAME", "okuna_test_user")
+    TEST_DB_PASSWORD = os.environ.get("TEST_DB_PASSWORD", "okuna_test_password")
+    TEST_DB_HOSTNAME = os.environ.get("TEST_DB_HOSTNAME", "postgres")
+    TEST_DB_PORT = os.environ.get("TEST_DB_PORT")
+
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.contrib.gis.db.backends.postgis",
+            "NAME": TEST_DB_NAME,
+            "USER": TEST_DB_USERNAME,
+            "PASSWORD": TEST_DB_PASSWORD,
+            "HOST": TEST_DB_HOSTNAME,
+            "PORT": TEST_DB_PORT,
+        }
+    }
 else:
     # FYI: RDS is Amazons fully managed DB (which we don't have to use), somebody just chose this var name here
     RDS_DB_NAME = os.environ.get("RDS_DB_NAME")
@@ -320,7 +337,7 @@ else:
     # }
 
     writer_db_config = {
-        "ENGINE": "django.db.backends.postgresql",
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": RDS_DB_NAME,
         "USER": RDS_USERNAME,
         "PASSWORD": RDS_PASSWORD,
@@ -664,3 +681,8 @@ TASK_NAME_MAX_LENGTH = 128
 TASK_LOCATION_MAX_LENGTH = 128
 
 LINK_PREVIEW_CACHE_TIME_H = 24
+
+# Geospatial libraries required by GeoDjango
+GDAL_LIBRARY_PATH = os.environ.get("GDAL_LIBRARY_PATH")
+GEOS_LIBRARY_PATH = os.environ.get("GEOS_LIBRARY_PATH")
+PROJ_LIBRARY_PATH = os.environ.get("PROJ_LIBRARY_PATH")

@@ -1,6 +1,11 @@
 FROM python:3.11.0
 
-RUN apt-get -y update && apt-get -y upgrade &&  apt-get install -y ffmpeg
+RUN apt-get -y update && apt-get -y upgrade && apt-get install -y \
+    ffmpeg \
+    binutils \
+    libproj-dev \
+    libgdal-dev \
+    libgeos-dev 
 
 # Copy any files over
 COPY wait-for-it.sh /wait-for-it.sh
