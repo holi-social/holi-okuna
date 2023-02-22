@@ -1,18 +1,16 @@
 from collections import defaultdict
-from enum import Enum
 import requests
 
 import structlog
 import hashlib
-from datetime import datetime
-from typing import List, TypeVar, Optional
+
+from django.db.models import Count, F, Value, Prefetch
+from django.db.models.functions import Concat
+from django.db.models.lookups import IContains
 from django.utils.translation import gettext_lazy as _
 
-import strawberry
 from strawberry.file_uploads import Upload
 from strawberry_django_plus.optimizer import DjangoOptimizerExtension
-from strawberry_django_plus import gql
-from django.db.models import QuerySet
 from django.core.cache import cache
 from django.db import Error, transaction
 from cacheops import cached_as
@@ -20,6 +18,17 @@ from graphql import GraphQLError
 from django.conf import settings
 
 from openbook.graphql_errors import GraphQLErrorCodes
+from openbook_auth.images import delete_avatar
+from openbook_auth.validators import string_not_empty
+from openbook_auth.views.authenticated_user.serializers import UpdateAuthenticatedUserSerializer
+from openbook_communities.views.communities.serializers import (
+    ValidateCommunitySerializer,
+    CreateCommunitySerializer,
+    UpdateCommunitySerializer,
+)
+from openbook_connections.serializers import UpdateConnectionWithUserSerializer
+from openbook_moderation.models import ModeratedObject
+from openbook_posts.views.post_comments.serializers import CommentPostSerializer
 
 from .graphql_types import *
 
@@ -450,329 +459,97 @@ class Query:
         )
 
 
+def to_input_dict(input):
+    """
+    converts a strawberry input object to a dict without null values, so it can be validated
+    """
+    return {k: v for k, v in strawberry.asdict(input).items() if v}
+
+
 @gql.input
 class UpdateAuthenticatedUserInput:
+    avatar: Optional[Upload] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    about_me: Optional[str] = None
+    pronouns: Optional[str] = None
+    location: Optional[str] = None
+    engagement_level: Optional[str] = None
+    interests: Optional[List[Optional[uuid.UUID]]] = None
+    sdgs: Optional[List[Optional[uuid.UUID]]] = None
+    skills: Optional[List[Optional[uuid.UUID]]] = None
+
+
+@gql.input
+class UpdateConnectionWithUserInput:
+    user_id: uuid.UUID
+    action: UpdateConnectionAction
+
+
+@gql.input
+class CreatePostCommentInput:
+    post_id: uuid.UUID
+    text: str
+
+
+@gql.type
+class CreatePostCommentOutput:
+    post_comment: PostComment
+    post_by_id: Post
+
+
+@gql.input
+class ValidateSpaceInput:
+    title: Optional[str] = None
+    description: Optional[str] = None
+    topics: Optional[List[Optional[uuid.UUID]]] = None
+    cover: Optional[Upload] = None
+    sdgs: Optional[List[Optional[uuid.UUID]]] = None
+
+
+@gql.input
+class CreateSpaceInput:
+    title: str
+    description: str
+    topics: List[Optional[uuid.UUID]]
+    cover: Upload
+
+
+@gql.input
+class UpdateSpaceInput:
+    id: uuid.UUID
+    title: str
+    description: str
+    topics: List[uuid.UUID]
+    cover: Optional[Upload]
     avatar: Optional[Upload]
-    first_name: Optional[str]
-    last_name: Optional[str]
-    about_me: Optional[str]
-    pronouns: Optional[str]
-    location: Optional[str]
-    engagement_level: Optional[str]
-    interests: Optional[List[uuid.UUID]]
-    sdgs: Optional[List[uuid.UUID]]
-    skills: Optional[List[uuid.UUID]]
+    sdgs: List[uuid.UUID]
 
 
-# class DeleteAuthenticatedUserMutation(graphene.Mutation):
-#     success: bool
-#
-#     @classmethod
-#     def mutate(cls, root, info):
-#         authenticated_user = info.context.request.user
-#         headers = {"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"}
-#         logger.info(f"Deleting user {authenticated_user.username}...")
-#
-#         response = requests.delete(
-#             f"{settings.ORY_BASE_URL}/admin/identities/{authenticated_user.username}", headers=headers
-#         )
-#         # Ory returns 204 in case of success
-#         if not response.ok:
-#             error_message = response.error.error if response.error else "Unknown"
-#             raise Exception(f"Deleting user {authenticated_user.username} in ory failed: {error_message}")
-#
-#         with transaction.atomic():
-#             authenticated_user.delete()
-#
-#         logger.info(f"Successfully deleted user {authenticated_user.username}")
-#
-#         return DeleteAuthenticatedUserMutation(success=True)
-#
-#
-# class UpdateConnectionWithUserInput(graphene.InputObjectType):
-#     user_id: str
-#     action: UpdateConnectionAction(required=True)
-#
-#
-# class UpdateConnectionWithUserMutation(graphene.Mutation):
-#     class Arguments:
-#         input: UpdateConnectionWithUserInput
-#
-#     Output: User
-#
-#     @classmethod
-#     def mutate(cls, root, info, input):
-#         serializer = UpdateConnectionWithUserSerializer(data=input)
-#         serializer.is_valid(raise_exception=True)
-#         data = serializer.validated_data
-#
-#         verify_authorized_user(info)
-#
-#         authenticated_user = info.context.request.user
-#
-#         user_to_connect_to = authenticated_user.get_user_with_username(username=data.get("user_id"))
-#
-#         current_connection_status = authenticated_user.get_connection_status_with_user_id(
-#             user_id=user_to_connect_to.id
-#         )
-#
-#         # Connect action
-#         if input.action == UpdateConnectionAction.CONNECT:
-#             # if current user needs to confirm connection, run confirm_connection_with_user_with_id
-#             if current_connection_status == UserConnectionStatus.PENDING_CONFIRMATION:
-#                 authenticated_user.confirm_connection_with_user_with_id(user_id=user_to_connect_to.id)
-#
-#             # if there is no connection yet (no requests or pending confirmation), run connect_with_user_with_id
-#             if current_connection_status == UserConnectionStatus.NOT_CONNECTED:
-#                 authenticated_user.connect_with_user_with_id(user_id=user_to_connect_to.id)
-#
-#         # Disconnect action (only run if current connection status is different than NOT_CONNECTED)
-#         elif (
-#             input.action == UpdateConnectionAction.DISCONNECT
-#             and current_connection_status != UserConnectionStatus.NOT_CONNECTED
-#         ):
-#             authenticated_user.disconnect_from_user_with_id(user_id=user_to_connect_to.id)
-#
-#         return user_to_connect_to
-#
-#
-# @gql.django.input
-# class CreatePostCommentInput:
-#     post_id: str
-#     text: str
-#
-#
-# class UpdatePostCommentMutation(graphene.Mutation):
-#     class Arguments:
-#         input: CreatePostCommentInput
-#
-#     post_comment: PostComment
-#     post_by_id: Post
-#
-#     @classmethod
-#     def mutate(cls, root, info, input):
-#         verify_authorized_user(info)
-#
-#         serializer = CommentPostSerializer(data=input)
-#         serializer.is_valid(raise_exception=True)
-#         data = serializer.validated_data
-#
-#         comment_text = data.get("text")
-#         post_id = data.get("post_id")
-#
-#         authenticated_user = info.context.request.user
-#
-#         with transaction.atomic():
-#             post_comment = authenticated_user.comment_post_with_id(post_id=post_id, text=comment_text)
-#
-#         return UpdatePostCommentMutation(
-#             post_comment=post_comment, post_by_id=resolve_post(info.context.request.user, post_id)
-#         )
-#
-#
-# class UpdateSpaceUserConnectionMutation(graphene.Mutation):
-#     class Arguments:
-#         space_id: graphene.UUID(required=True)
-#         user_id: graphene.UUID(description="If not provided, the logged in user is used instead.")
-#         connection_type: SpaceUserConnectionType(required=True)
-#         connect_action: UpdateConnectionAction(required=True)
-#
-#     Output: Space
-#
-#     @classmethod
-#     def mutate(cls, root, info, space_id, connection_type, connect_action, user_id=None):
-#         current_user = verify_authorized_user(info)
-#         space = CommunityModel.objects.get(id=space_id)  # @todo Use name as parameter, same as okuna? w
-#
-#         cT = SpaceUserConnectionType
-#         a = UpdateConnectionAction
-#         if not user_id or current_user.username == user_id:
-#             # perform for current user
-#             match (connection_type, connect_action):
-#                 case (cT.MEMBERSHIP_REQUESTOR, a.CONNECT):
-#                     # Auto-Join Spaces directly. Needs to be removed, once requests with approval are needed
-#                     return current_user.join_community_with_name(space.name)
-#                     # return current_user.request_membership_to_community_with_name(space.name)
-#                 case (cT.MEMBERSHIP_REQUESTOR, a.DISCONNECT):
-#                     return current_user.revoke_membership_request_to_community_with_name(space.name)
-#                 case (cT.FOLLOWER, a.CONNECT):
-#                     return current_user.enable_new_post_notifications_for_community_with_name(space.name)
-#                 case (cT.FOLLOWER, a.DISCONNECT):
-#                     return current_user.disable_new_post_notifications_for_community_with_name(space.name)
-#                 case _:
-#                     raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
-#         else:
-#             # perform for other user
-#             match (connection_type, connect_action):
-#                 case (cT.MEMBERSHIP_REQUESTOR, a.DISCONNECT):
-#                     return current_user.revoke_membership_request_to_community_for_username(user_id, space.name)
-#                 case (cT.MEMBER, a.CONNECT):
-#                     return current_user.approve_membership_request_to_community_for_username(user_id, space.name)
-#                 case _:
-#                     raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
-#
-#         return space
-#
-#
-# class BlockUserMutation(graphene.Mutation):
-#     class Arguments:
-#         user_id: uuid.UUID = gql.django.field(description="The user to block")
-#
-#     success: bool
-#
-#     @classmethod
-#     def mutate(cls, root, info, user_id):
-#         current_user = verify_authorized_user(info)
-#         username_of_user_to_block = str(user_id)
-#
-#         current_user.block_user_with_username(username_of_user_to_block)
-#
-#         return BlockUserMutation(success=True)
-#
-#
-# class ReportContentMutation(graphene.Mutation):
-#     class Arguments:
-#         object_id: graphene.UUID(required=True)
-#         content_type: ContentType(required=True)
-#         description: str
-#
-#     success: bool
-#
-#     @classmethod
-#     def mutate(cls, root, info, object_id, content_type, description=None):
-#         current_user = verify_authorized_user(info)
-#
-#         # hardcoded category_id to block user content. Needs to be imported via fixture!
-#         category_id = uuid.UUID("00000000-0000-0000-0000-000000000001")
-#         match content_type:
-#             case ContentType.POST:
-#                 current_user.report_post_with_id(object_id, category_id, description)
-#             case ContentType.POST_COMMENT:
-#                 current_user.report_comment_with_id(object_id, category_id, description)
-#             case ContentType.USER:
-#                 current_user.report_user_with_username(str(object_id), category_id, description)
-#             case ContentType.SPACE:
-#                 current_user.report_community_with_id(object_id, category_id, description)
-#             case _:
-#                 raise GraphQLError(
-#                     f"Unknown ContentType {content_type.value}", extensions={"code": GraphQLErrorCodes.FORBIDDEN}
-#                 )
-#
-#         return ReportContentMutation(success=True)
-#
-#
-# @gql.django.input
-# class ValidateSpaceInput:
-#     title: str
-#     description: str
-#     topics: List[uuid.UUID]
-#     cover: Upload(required=False)
-#     sdgs: List[uuid.UUID]
-#
-#
-# class ValidateSpaceMutation(graphene.Mutation):
-#     class Arguments:
-#         input: ValidateSpaceInput
-#
-#     success: bool
-#
-#     @classmethod
-#     def mutate(cls, root, info, input):
-#         verify_authorized_user(info)
-#
-#         serializer = ValidateCommunitySerializer(data=input)
-#         serializer.is_valid(raise_exception=True)
-#
-#         return ValidateSpaceMutation(success=True)
-#
-#
-# @gql.django.input
-# class CreateSpaceInput:
-#     title: str
-#     description: str
-#     topics: List[uuid.UUID]
-#     cover: Upload(required=True)
-#
-#
-# class CreateSpaceMutation(graphene.Mutation):
-#     class Arguments:
-#         input: CreateSpaceInput
-#
-#     Output: Space
-#
-#     @classmethod
-#     def mutate(cls, root, info, input):
-#         authenticated_user = verify_authorized_user(info)
-#
-#         serializer = CreateCommunitySerializer(data=input)
-#         serializer.is_valid(raise_exception=True)
-#         data = serializer.validated_data
-#
-#         return authenticated_user.create_community(
-#             title=data.get("title"),
-#             type=CommunityModel.COMMUNITY_TYPE_PUBLIC,
-#             description=data.get("description"),
-#             cover=data.get("cover"),
-#             invites_enabled=True,
-#             topic_ids=data.get("topics"),
-#         )
-#
-#
-# @gql.django.input
-# class UpdateSpaceInput:
-#     id: uuid.UUID
-#     title: str
-#     description: str
-#     topics: List[uuid.UUID]
-#     cover: Upload(required=False)
-#     avatar: Upload(required=False)
-#     sdgs: List[uuid.UUID]
-#
-#
-# class UpdateSpaceMutation(graphene.Mutation):
-#     class Arguments:
-#         input: UpdateSpaceInput
-#
-#     Output: Space
-#
-#     @classmethod
-#     def mutate(cls, root, info, input):
-#         authenticated_user = verify_authorized_user(info)
-#
-#         serializer = UpdateCommunitySerializer(data=input)
-#         serializer.is_valid(raise_exception=True)
-#         data = serializer.validated_data
-#
-#         return authenticated_user.update_community_with_id(
-#             community_id=data.get("id"),
-#             title=data.get("title"),
-#             description=data.get("description"),
-#             cover=data.get("cover"),
-#             topic_ids=data.get("topics"),
-#             avatar=data.get("avatar"),
-#             sdg_ids=data.get("sdgs"),
-#         )
+@gql.type
+class Result:
+    success: bool
 
 
 @gql.type
 class Mutation:
     @gql.mutation
-    def update_connection_with_user(self, info, input: UpdateAuthenticatedUserInput) -> User:
+    def update_authenticated_user(self, info, input: UpdateAuthenticatedUserInput) -> User:
         authenticated_user = info.context.request.user
         update_avatar = False
 
-        if "avatar" in input:
-            if input["avatar"] in ("", {}, None):
+        if input.avatar:
+            if input.avatar in ("", {}):
                 raise GraphQLError(
-                    f"Attribute 'avatar' should be missing or contain a file, but was: '{input['avatar']}'"
+                    f"Attribute 'avatar' should be missing or contain a file, but was: '{input.avatar}'"
                 )
             else:
                 update_avatar = True
 
-        if "first_name" in input:
-            input["name"] = input.pop("first_name")
+        if input.first_name:
+            input.name = input.first_name
 
-        serializer = UpdateAuthenticatedUserSerializer(data=input)
+        serializer = UpdateAuthenticatedUserSerializer(data=(to_input_dict(input)))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
@@ -798,14 +575,199 @@ class Mutation:
 
         return authenticated_user
 
-    # update_post_comment = UpdatePostCommentMutation.Field()
-    # update_space_user_connection = UpdateSpaceUserConnectionMutation.Field()
-    # delete_authenticated_user = DeleteAuthenticatedUserMutation.Field()
-    # report_content = ReportContentMutation.Field()
-    # block_user = BlockUserMutation.Field()
-    # validate_space = ValidateSpaceMutation.Field()
-    # create_space = CreateSpaceMutation.Field()
-    # update_space = UpdateSpaceMutation.Field()
+    @gql.mutation
+    def update_connection_with_user(self, info, input: UpdateConnectionWithUserInput) -> User:
+        verify_authorized_user(info)
+
+        serializer = UpdateConnectionWithUserSerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        authenticated_user = info.context.request.user
+
+        user_to_connect_to = authenticated_user.get_user_with_username(username=data.get("user_id"))
+
+        current_connection_status = authenticated_user.get_connection_status_with_user_id(
+            user_id=user_to_connect_to.id
+        )
+
+        # Connect action
+        if input.action == UpdateConnectionAction.CONNECT:
+            # if current user needs to confirm connection, run confirm_connection_with_user_with_id
+            if current_connection_status == UserConnectionStatus.PENDING_CONFIRMATION:
+                authenticated_user.confirm_connection_with_user_with_id(user_id=user_to_connect_to.id)
+
+            # if there is no connection yet (no requests or pending confirmation), run connect_with_user_with_id
+            if current_connection_status == UserConnectionStatus.NOT_CONNECTED:
+                authenticated_user.connect_with_user_with_id(user_id=user_to_connect_to.id)
+
+        # Disconnect action (only run if current connection status is different than NOT_CONNECTED)
+        elif (
+            input.action == UpdateConnectionAction.DISCONNECT
+            and current_connection_status != UserConnectionStatus.NOT_CONNECTED
+        ):
+            authenticated_user.disconnect_from_user_with_id(user_id=user_to_connect_to.id)
+
+        return user_to_connect_to
+
+    @gql.mutation
+    def update_post_comment(self, info, input: CreatePostCommentInput) -> CreatePostCommentOutput:
+        verify_authorized_user(info)
+
+        serializer = CommentPostSerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        comment_text = data.get("text")
+        post_id = data.get("post_id")
+
+        authenticated_user = info.context.request.user
+
+        with transaction.atomic():
+            post_comment = authenticated_user.comment_post_with_id(post_id=post_id, text=comment_text)
+
+        return CreatePostCommentOutput(
+            post_comment=post_comment, post_by_id=resolve_post(info.context.request.user, post_id)
+        )
+
+    @gql.mutation(description="When no userId is provided, the logged in user is used instead.")
+    def update_space_user_connection(
+        self,
+        info,
+        space_id: uuid.UUID,
+        connection_type: SpaceUserConnectionType,
+        connect_action: UpdateConnectionAction,
+        user_id: Optional[uuid.UUID],
+    ) -> Space:
+        current_user = verify_authorized_user(info)
+        space = CommunityModel.objects.get(id=space_id)  # @todo Use name as parameter, same as okuna? w
+
+        cT = SpaceUserConnectionType
+        a = UpdateConnectionAction
+        if not user_id or current_user.username == user_id:
+            # perform for current user
+            match (connection_type, connect_action):
+                case (cT.MEMBERSHIP_REQUESTOR, a.CONNECT):
+                    # Auto-Join Spaces directly. Needs to be removed, once requests with approval are needed
+                    return current_user.join_community_with_name(space.name)
+                    # return current_user.request_membership_to_community_with_name(space.name)
+                case (cT.MEMBERSHIP_REQUESTOR, a.DISCONNECT):
+                    return current_user.revoke_membership_request_to_community_with_name(space.name)
+                case (cT.FOLLOWER, a.CONNECT):
+                    return current_user.enable_new_post_notifications_for_community_with_name(space.name)
+                case (cT.FOLLOWER, a.DISCONNECT):
+                    return current_user.disable_new_post_notifications_for_community_with_name(space.name)
+                case _:
+                    raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
+        else:
+            # perform for other user
+            match (connection_type, connect_action):
+                case (cT.MEMBERSHIP_REQUESTOR, a.DISCONNECT):
+                    return current_user.revoke_membership_request_to_community_for_username(user_id, space.name)
+                case (cT.MEMBER, a.CONNECT):
+                    return current_user.approve_membership_request_to_community_for_username(user_id, space.name)
+                case _:
+                    raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
+
+        return space
+
+    @gql.mutation
+    def delete_authenticated_user(self, info) -> Result:
+        authenticated_user = info.context.request.user
+        headers = {"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"}
+        logger.info(f"Deleting user {authenticated_user.username}...")
+
+        response = requests.delete(
+            f"{settings.ORY_BASE_URL}/admin/identities/{authenticated_user.username}", headers=headers
+        )
+        # Ory returns 204 in case of success
+        if not response.ok:
+            error_message = response.error.error if response.error else "Unknown"
+            raise Exception(f"Deleting user {authenticated_user.username} in ory failed: {error_message}")
+
+        with transaction.atomic():
+            authenticated_user.delete()
+
+        logger.info(f"Successfully deleted user {authenticated_user.username}")
+
+        return Result(success=True)
+
+    @gql.mutation
+    def report_content(
+        self, info, object_id: uuid.UUID, content_type: ContentType, description: Optional[str] = None
+    ) -> Result:
+        current_user = verify_authorized_user(info)
+
+        # hardcoded category_id to block user content. Needs to be imported via fixture!
+        category_id = uuid.UUID("00000000-0000-0000-0000-000000000001")
+        match content_type:
+            case ContentType.POST:
+                current_user.report_post_with_id(object_id, category_id, description)
+            case ContentType.POST_COMMENT:
+                current_user.report_comment_with_id(object_id, category_id, description)
+            case ContentType.USER:
+                current_user.report_user_with_username(str(object_id), category_id, description)
+            case ContentType.SPACE:
+                current_user.report_community_with_id(object_id, category_id, description)
+            case _:
+                raise GraphQLError(
+                    f"Unknown ContentType {content_type.value}", extensions={"code": GraphQLErrorCodes.FORBIDDEN}
+                )
+
+        return Result(success=True)
+
+    @gql.mutation
+    def block_user(self, info, user_id: uuid.UUID) -> Result:
+        current_user = verify_authorized_user(info)
+        username_of_user_to_block = str(user_id)
+
+        current_user.block_user_with_username(username_of_user_to_block)
+
+        return Result(success=True)
+
+    @gql.mutation
+    def validate_space(self, info, input: ValidateSpaceInput) -> Result:
+        verify_authorized_user(info)
+
+        serializer = ValidateCommunitySerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+
+        return Result(success=True)
+
+    @gql.mutation
+    def create_space(self, info, input: CreateSpaceInput) -> Space:
+        authenticated_user = verify_authorized_user(info)
+
+        serializer = CreateCommunitySerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        return authenticated_user.create_community(
+            title=data.get("title"),
+            type=CommunityModel.COMMUNITY_TYPE_PUBLIC,
+            description=data.get("description"),
+            cover=data.get("cover"),
+            invites_enabled=True,
+            topic_ids=data.get("topics"),
+        )
+
+    @gql.mutation
+    def update_space(self, info, input: UpdateSpaceInput) -> Space:
+        authenticated_user = verify_authorized_user(info)
+
+        serializer = UpdateCommunitySerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        return authenticated_user.update_community_with_id(
+            community_id=data.get("id"),
+            title=data.get("title"),
+            description=data.get("description"),
+            cover=data.get("cover"),
+            topic_ids=data.get("topics"),
+            avatar=data.get("avatar"),
+            sdg_ids=data.get("sdgs"),
+        )
 
 
 schema = strawberry.Schema(

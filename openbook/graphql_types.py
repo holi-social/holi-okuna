@@ -5,7 +5,7 @@ import strawberry
 from datetime import datetime
 from typing import List, TypeVar, Optional
 
-from django.db.models import Q, Count, F, Value, Prefetch
+from django.db.models import Q
 from strawberry_django_plus import gql
 from django.db.models import QuerySet
 
@@ -121,7 +121,6 @@ class Skill:
     id: gql.auto
     title: gql.auto
     slug: gql.auto
-
 
 
 @gql.django.type(ExternalLinkModel)
