@@ -125,6 +125,7 @@ INSTALLED_APPS = [
     "openbook_moderation",
     "openbook_translation",
     "openbook_terms",
+    "strawberry.django",
 ]
 
 MODELTRANSLATION_FALLBACK_LANGUAGES = ("en",)

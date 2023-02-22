@@ -93,9 +93,9 @@ LOGGING_CONFIG = {
         "uvicorn.access": {
             "level": "WARNING",
         },
-        # "django.db.backends": {
-        #     "level": "DEBUG",
-        # },
+        "django.db.backends": {
+            "level": "DEBUG",
+        },
     },
     "root": {
         "level": "INFO",

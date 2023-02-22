@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.db.models import Q
 from django.db.models import Count
 from pilkit.processors import ResizeToFill, ResizeToFit
+from strawberry_django_plus import gql
 
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
 from openbook_auth.models import User
@@ -1036,15 +1037,18 @@ class Task(ModelWithUUID):
     skills = models.ManyToManyField(Skill, related_name="tasks", blank=True, db_index=True)
 
 
+@gql.enum
+class ExternalLinkType(models.TextChoices):
+    INSTAGRAM = "instagram", _("instagram")
+    FACEBOOK = "facebook", _("facebook")
+    LINKEDIN = "linkedin", _("linkedin")
+    DISCORD = "discord", _("discord")
+    TWITTER = "twitter", _("twitter")
+    WHATSAPP = "whatsapp", _("whatsapp")
+    OTHER = "other", _("other")
+
+
 class ExternalLink(ModelWithUUID):
-    class ExternalLinkType(models.TextChoices):
-        INSTAGRAM = "instagram", _("instagram")
-        FACEBOOK = "facebook", _("facebook")
-        LINKEDIN = "linkedin", _("linkedin")
-        DISCORD = "discord", _("discord")
-        TWITTER = "twitter", _("twitter")
-        WHATSAPP = "whatsapp", _("whatsapp")
-        OTHER = "other", _("other")
 
     url = models.TextField(blank=False)
     community = models.ForeignKey(

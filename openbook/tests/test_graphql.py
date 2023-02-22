@@ -14,7 +14,7 @@ from graphene.test import Client
 from rest_framework import status
 
 from openbook.middleware import graphql_error_context_middleware
-from openbook.graphql_schema import (
+from openbook.graphql_schema_graphene import (
     schema,
     UpdateConnectionAction,
     SpaceUserConnectionType,
