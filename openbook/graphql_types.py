@@ -471,7 +471,7 @@ class Notification:
 @gql.type
 class DiscoverSpaces:
     topic_id: Optional[uuid.UUID] = None
-    location: Optional[str]
+    location: Optional[str] = None
     skill_id: Optional[uuid.UUID] = None
     spaces: Paged[Space]
 
