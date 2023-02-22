@@ -1217,6 +1217,24 @@ class UpdateSpaceMutation(graphene.Mutation):
         )
 
 
+class DeleteSpaceMutation(graphene.Mutation):
+    class Arguments:
+        id = graphene.UUID(description="The space to delete")
+
+    success = graphene.Boolean()
+
+    @classmethod
+    def mutate(cls, root, info, id):
+        authenticated_user = verify_authorized_user(info)
+
+        with transaction.atomic():
+            authenticated_user.delete_community_with_id(
+                community_id=id,
+            )
+
+        return DeleteSpaceMutation(success=True)
+
+
 class Mutation(graphene.ObjectType):
     update_authenticated_user = UpdateAuthenticatedUserMutation.Field()
     update_connection_with_user = UpdateConnectionWithUserMutation.Field()
@@ -1228,6 +1246,7 @@ class Mutation(graphene.ObjectType):
     validate_space = ValidateSpaceMutation.Field()
     create_space = CreateSpaceMutation.Field()
     update_space = UpdateSpaceMutation.Field()
+    delete_space = DeleteSpaceMutation.Field()
 
 
 # noinspection PyTypeChecker

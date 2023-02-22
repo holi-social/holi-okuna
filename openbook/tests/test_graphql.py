@@ -1679,6 +1679,72 @@ class GraphQLTest(TestCase):
         self.assertIn("Unauthorized", str(response["errors"][0]["message"]))
         self.assertEqual("UNAUTHORIZED", str(response["errors"][0]["extensions"]["code"]))
 
+    def test_can_not_delete_space_if_not_admin(self):
+        user = make_user()
+        community = make_community()
+        delete_space_mutation = """
+            mutation test($id: UUID) {
+                deleteSpace(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = self.graphql.execute(
+            delete_space_mutation,
+            context_value=BeneDict({"user": user}),
+            variable_values={"id": str(community.id)},
+        )
+        print(response)
+
+        self.assertIsNone(response["data"]["deleteSpace"])
+        self.assertIn(
+            "Can\\'t delete a community that you do not administrate.", str(response["errors"][0]["extensions"])
+        )
+
+    def test_can_not_delete_space_if_not_logged_in(self):
+        community = make_community()
+        delete_space_mutation = """
+            mutation test($id: UUID) {
+                deleteSpace(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = self.graphql.execute(
+            delete_space_mutation,
+            variable_values={"id": str(community.id)},
+            context_value=BeneDict({"user": AnonymousUser}),
+        )
+        print(response)
+
+        self.assertIsNone(response["data"]["deleteSpace"])
+        self.assertIn("Unauthorized", str(response["errors"][0]["message"]))
+        self.assertEqual("UNAUTHORIZED", str(response["errors"][0]["extensions"]["code"]))
+
+    def test_can_delete_space(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        delete_space_mutation = """
+            mutation test($id: UUID) {
+                deleteSpace(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = self.graphql.execute(
+            delete_space_mutation,
+            variable_values={"id": str(community.id)},
+            context_value=BeneDict({"user": user}),
+        )
+        print(response)
+
+        self.assertTrue(response["data"]["deleteSpace"]["success"])
+        self.assertNotIn("errors", response)
+
 
 def approve_verify_moderated_object(object_id, user):
     moderated_object = ModeratedObject.objects.filter(object_id=object_id).first()
