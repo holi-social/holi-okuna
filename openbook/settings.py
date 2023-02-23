@@ -104,8 +104,6 @@ INSTALLED_APPS = [
     "django_rq",
     "scheduler",
     "django_extensions",
-    "graphene_django",
-    "graphene_gis",
     "openbook_common",
     "openbook_auth",
     "openbook_posts",
