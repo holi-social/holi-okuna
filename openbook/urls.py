@@ -751,7 +751,6 @@ urlpatterns = [
         # name="graphql-endpoint",
     ),
     path("graphql", csrf_exempt(AuthenticatedStrawberryGraphQLView.as_view(schema=schema)), name="graphql-endpoint"),
-    path("graphqla/", csrf_exempt(AsyncGraphQLView.as_view(schema=schema))),
 ]
 
 # The static helper works only in debug mode

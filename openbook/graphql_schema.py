@@ -505,6 +505,7 @@ class ValidateSpaceInput:
     topics: Optional[List[Optional[uuid.UUID]]] = None
     cover: Optional[Upload] = None
     sdgs: Optional[List[Optional[uuid.UUID]]] = None
+    location: Optional[str] = None
 
 
 @gql.input
@@ -524,6 +525,7 @@ class UpdateSpaceInput:
     cover: Optional[Upload]
     avatar: Optional[Upload]
     sdgs: List[uuid.UUID]
+    location: Optional[str] = None
 
 
 @gql.type
@@ -767,6 +769,7 @@ class Mutation:
             topic_ids=data.get("topics"),
             avatar=data.get("avatar"),
             sdg_ids=data.get("sdgs"),
+            location=data.get("location"),
         )
 
 
