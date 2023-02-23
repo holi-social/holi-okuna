@@ -49,7 +49,7 @@ class Paged(List[GenericType]):
 
 
 @gql.enum
-class UserConnectionStatus(Enum):
+class UserConnectionStatusEnum(Enum):
     NOT_CONNECTED = "NOT_CONNECTED"
     CONNECTED = "CONNECTED"
     REQUESTED = "REQUESTED"  # requested by currently authenticated user
@@ -72,23 +72,23 @@ class ContentType(Enum):
 
 @gql.enum
 class NotificationType(Enum):
-    PR = strawberry.enum_value("POST_REACTION", description="POST_REACTION")
-    PC = strawberry.enum_value("POST_COMMENT", description="POST_COMMENT")
-    PCR = strawberry.enum_value("POST_COMMENT_REPLY", description="POST_COMMENT_REPLY")
-    PCRA = strawberry.enum_value("POST_COMMENT_REACTION", description="POST_COMMENT_REACTION")
-    CR = strawberry.enum_value("CONNECTION_REQUEST", description="CONNECTION_REQUEST")
-    CA = strawberry.enum_value("CONNECTION_ACCEPTED", description="CONNECTION_ACCEPTED")
-    CC = strawberry.enum_value("CONNECTION_CONFIRMED", description="CONNECTION_CONFIRMED")
-    F = strawberry.enum_value("FOLLOW", description="FOLLOW")
-    FR = strawberry.enum_value("FOLLOW_REQUEST", description="FOLLOW_REQUEST")
-    FRA = strawberry.enum_value("FOLLOW_REQUEST_APPROVED", description="FOLLOW_REQUEST_APPROVED")
-    CMR = strawberry.enum_value("COMMUNITY_MEMBERSHIP_REQUEST", description="COMMUNITY_MEMBERSHIP_REQUEST")
-    CMRA = strawberry.enum_value("COMMUNITY_MEMBERSHIP_APPROVED", description="COMMUNITY_MEMBERSHIP_APPROVED")
-    CI = strawberry.enum_value("COMMUNITY_INVITE", description="COMMUNITY_INVITE")
-    PUM = strawberry.enum_value("POST_USER_MENTION", description="POST_USER_MENTION")
-    PCUM = strawberry.enum_value("POST_COMMENT_USER_MENTION", description="POST_COMMENT_USER_MENTION")
-    CNP = strawberry.enum_value("COMMUNITY_NEW_POST", description="COMMUNITY_NEW_POST")
-    UNP = strawberry.enum_value("USER_NEW_POST", description="USER_NEW_POST")
+    PR = strawberry.enum_value("PR", description="POST_REACTION")
+    PC = strawberry.enum_value("PC", description="POST_COMMENT")
+    PCR = strawberry.enum_value("PCR", description="POST_COMMENT_REPLY")
+    PCRA = strawberry.enum_value("PCRA", description="POST_COMMENT_REACTION")
+    CR = strawberry.enum_value("CR", description="CONNECTION_REQUEST")
+    CA = strawberry.enum_value("CA", description="CONNECTION_ACCEPTED")
+    CC = strawberry.enum_value("CC", description="CONNECTION_CONFIRMED")
+    F = strawberry.enum_value("F", description="FOLLOW")
+    FR = strawberry.enum_value("FR", description="FOLLOW_REQUEST")
+    FRA = strawberry.enum_value("FRA", description="FOLLOW_REQUEST_APPROVED")
+    CMR = strawberry.enum_value("CMR", description="COMMUNITY_MEMBERSHIP_REQUEST")
+    CMRA = strawberry.enum_value("CMRA", description="COMMUNITY_MEMBERSHIP_APPROVED")
+    CI = strawberry.enum_value("CI", description="COMMUNITY_INVITE")
+    PUM = strawberry.enum_value("PUM", description="POST_USER_MENTION")
+    PCUM = strawberry.enum_value("PCUM", description="POST_COMMENT_USER_MENTION")
+    CNP = strawberry.enum_value("CNP", description="COMMUNITY_NEW_POST")
+    UNP = strawberry.enum_value("UNP", description="USER_NEW_POST")
 
 
 @gql.enum
@@ -218,7 +218,7 @@ class User:
         return self.profile.skills.all()
 
     @gql.django.field(select_related=["profile"])
-    def connection_status_to_myself(self, info) -> Optional[UserConnectionStatus]:
+    def connection_status_to_myself(self, info) -> Optional[UserConnectionStatusEnum]:
         if info.context.request.user.is_anonymous:
             return None
         return info.context.request.user.get_connection_status_with_user_id(user_id=self.id)
@@ -443,10 +443,10 @@ class PostComment:
 
 @gql.type
 class NotificationOptions:
-    user: User
-    post: Post
-    post_comment: PostComment
-    space: Space
+    user: Optional[User]
+    post: Optional[Post]
+    post_comment: Optional[PostComment]
+    space: Optional[Space]
 
 
 @gql.django.type(NotificationModel)

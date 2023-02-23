@@ -19,6 +19,7 @@ from django.conf import settings
 
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_auth.images import delete_avatar
+from openbook_auth.models import UserConnectionStatus
 from openbook_auth.validators import string_not_empty
 from openbook_auth.views.authenticated_user.serializers import UpdateAuthenticatedUserSerializer
 from openbook_communities.views.communities.serializers import (
@@ -463,26 +464,26 @@ def to_input_dict(input):
     """
     converts a strawberry input object to a dict without null values, so it can be validated
     """
-    return {k: v for k, v in strawberry.asdict(input).items() if v}
+    return {k: v for k, v in strawberry.asdict(input).items() if v != strawberry.UNSET}
 
 
 @gql.input
 class UpdateAuthenticatedUserInput:
-    avatar: Optional[Upload] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    about_me: Optional[str] = None
-    pronouns: Optional[str] = None
-    location: Optional[str] = None
-    engagement_level: Optional[str] = None
-    interests: Optional[List[Optional[uuid.UUID]]] = None
-    sdgs: Optional[List[Optional[uuid.UUID]]] = None
-    skills: Optional[List[Optional[uuid.UUID]]] = None
+    avatar: Optional[Upload] = strawberry.UNSET
+    first_name: Optional[str] = strawberry.UNSET
+    last_name: Optional[str] = strawberry.UNSET
+    about_me: Optional[str] = strawberry.UNSET
+    pronouns: Optional[str] = strawberry.UNSET
+    location: Optional[str] = strawberry.UNSET
+    engagement_level: Optional[str] = strawberry.UNSET
+    interests: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
 
 
 @gql.input
 class UpdateConnectionWithUserInput:
-    user_id: uuid.UUID
+    user_id: Optional[str]
     action: UpdateConnectionAction
 
 
@@ -500,12 +501,12 @@ class CreatePostCommentOutput:
 
 @gql.input
 class ValidateSpaceInput:
-    title: Optional[str] = None
-    description: Optional[str] = None
-    topics: Optional[List[Optional[uuid.UUID]]] = None
-    cover: Optional[Upload] = None
-    sdgs: Optional[List[Optional[uuid.UUID]]] = None
-    location: Optional[str] = None
+    title: Optional[str] = strawberry.UNSET
+    description: Optional[str] = strawberry.UNSET
+    topics: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    cover: Optional[Upload] = strawberry.UNSET
+    sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    location: Optional[str] = strawberry.UNSET
 
 
 @gql.input
@@ -519,13 +520,13 @@ class CreateSpaceInput:
 @gql.input
 class UpdateSpaceInput:
     id: uuid.UUID
-    title: Optional[str] = None
-    description: Optional[str] = None
-    topics: Optional[List[Optional[uuid.UUID]]] = None
-    cover: Optional[Upload] = None
-    avatar: Optional[Upload] = None
-    sdgs: Optional[List[Optional[uuid.UUID]]] = None
-    location: Optional[str] = None
+    title: Optional[str] = strawberry.UNSET
+    description: Optional[str] = strawberry.UNSET
+    topics: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    cover: Optional[Upload] = strawberry.UNSET
+    avatar: Optional[Upload] = strawberry.UNSET
+    sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    location: Optional[str] = strawberry.UNSET
 
 
 @gql.type
@@ -579,13 +580,11 @@ class Mutation:
 
     @gql.mutation
     def update_connection_with_user(self, info, input: UpdateConnectionWithUserInput) -> User:
-        verify_authorized_user(info)
+        authenticated_user = verify_authorized_user(info)
 
         serializer = UpdateConnectionWithUserSerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-
-        authenticated_user = info.context.request.user
 
         user_to_connect_to = authenticated_user.get_user_with_username(username=data.get("user_id"))
 

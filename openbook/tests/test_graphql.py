@@ -105,7 +105,7 @@ class GraphQLTest(TestCase):
             context_value=BeneDict({"request": {"user": user}}),
         )
         self.assert_paged_results_equal(
-            results=executed["data"]["userByName"],
+            results=executed.data["userByName"],
             expected_data=[{"firstName": u.name, "lastName": u.last_name} for u in expected_users],
         )
 
@@ -129,10 +129,10 @@ class GraphQLTest(TestCase):
             """,
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
         )
-        self.assertEqual(executed["data"]["userByName"]["totalResults"], 3)
-        self.assertEqual(executed["data"]["userByName"]["data"][0]["firstName"], "Peter")
-        self.assertEqual(executed["data"]["userByName"]["data"][1]["firstName"], "Petra")
-        self.assertEqual(executed["data"]["userByName"]["data"][2]["firstName"], "Thomas")
+        self.assertEqual(executed.data["userByName"]["totalResults"], 3)
+        self.assertEqual(executed.data["userByName"]["data"][0]["firstName"], "Peter")
+        self.assertEqual(executed.data["userByName"]["data"][1]["firstName"], "Petra")
+        self.assertEqual(executed.data["userByName"]["data"][2]["firstName"], "Thomas")
 
     def test_can_update_authenticated_user(self):
         user = make_user(name="Fritz", last_name="Meier")
@@ -142,7 +142,7 @@ class GraphQLTest(TestCase):
 
         executed = schema.execute_sync(
             """
-            mutation test($input: UpdateAuthenticatedUserInput) {
+            mutation test($input: UpdateAuthenticatedUserInput!) {
                 updateAuthenticatedUser(input: $input) {
                     id
                     pronouns
@@ -152,7 +152,7 @@ class GraphQLTest(TestCase):
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": {"pronouns": pronouns}},
         )
-        graphql_pronouns = executed["data"]["updateAuthenticatedUser"]["pronouns"]
+        graphql_pronouns = executed.data["updateAuthenticatedUser"]["pronouns"]
         persisted_pronouns = User.objects.get(username=user.username).profile.pronouns
 
         self.assertEqual(graphql_pronouns, persisted_pronouns)
@@ -167,7 +167,7 @@ class GraphQLTest(TestCase):
         connection_request_response = self.connect_to_user(first_user, second_user)
 
         self.assertEqual(
-            connection_request_response["data"]["updateConnectionWithUser"]["id"],
+            connection_request_response.data["updateConnectionWithUser"]["id"],
             second_user.username,
         )
 
@@ -180,7 +180,7 @@ class GraphQLTest(TestCase):
         connection_confirm_response = self.connect_to_user(second_user, first_user)
 
         self.assertEqual(
-            connection_confirm_response["data"]["updateConnectionWithUser"]["id"],
+            connection_confirm_response.data["updateConnectionWithUser"]["id"],
             first_user.username,
         )
         self.assertTrue(first_user.is_fully_connected_with_user_with_id(second_user.pk))
@@ -255,9 +255,9 @@ class GraphQLTest(TestCase):
 
         response = self.get_post_with_id_raw(post)
 
-        post_data = response["data"]["postById"]
+        post_data = response.data["postById"]
         self.assertEqual(post_data, None)
-        self.assertEqual(response["errors"][0]["message"], "Post not found")
+        self.assertIn("Post not found", response.errors[0].message)
 
     def test_select_last_insights(self):
         insight_user = make_user()
@@ -322,7 +322,7 @@ class GraphQLTest(TestCase):
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
         )
 
-        insights = response["data"]["lastInsights"]["data"]
+        insights = response.data["lastInsights"]["data"]
         self.assertEqual(2, len(insights))
         # insight1 = next(i for i in insights if i["title"] == insight1_title)
         # insight2 = next(i for i in insights if i["title"] == insight2_title)
@@ -376,7 +376,7 @@ class GraphQLTest(TestCase):
     def connect_to_user(self, following_user, followed_user):
         connection_request_response = schema.execute_sync(
             """
-            mutation UpdateConnectionWithUser($input: UpdateConnectionWithUserInput) {
+            mutation UpdateConnectionWithUser($input: UpdateConnectionWithUserInput!) {
                 updateConnectionWithUser(input: $input) {
                     id
                 }
@@ -390,7 +390,7 @@ class GraphQLTest(TestCase):
             },
             context_value=BeneDict({"request": {"user": following_user}}),
         )
-        self.assertIsNone(connection_request_response.get("errors"))
+        self.assertIsNone(connection_request_response.errors)
         return connection_request_response
 
     def test_filters_for_spaces(self):
@@ -421,7 +421,7 @@ class GraphQLTest(TestCase):
         def assert_filtered_spaces(filter_options, expected_spaces):
             filter_response = schema.execute_sync(filter_query, variable_values=filter_options)
             expected_data = list(map(transform_space, expected_spaces))
-            self.assert_paged_results_equal(filter_response["data"]["spaces"], expected_data)
+            self.assert_paged_results_equal(filter_response.data["spaces"], expected_data)
 
         # Return all spaces for empty filter
         assert_filtered_spaces({}, [space1, space2])
@@ -496,7 +496,7 @@ class GraphQLTest(TestCase):
             filter_response = schema.execute_sync(filter_query, variable_values=filter_options)
             expected_data = list(map(transform_space, expected_spaces))
             self.assert_paged_results_equal(
-                filter_response["data"]["discoverSpaces"][0]["spaces"],
+                filter_response.data["discoverSpaces"][0]["spaces"],
                 expected_data,
             )
 
@@ -528,13 +528,13 @@ class GraphQLTest(TestCase):
         filter_response = schema.execute_sync(
             filter_query, variable_values={"topicIds": [str(topic1.id), str(topic2.id)]}
         )
-        self.assertEqual(len(filter_response["data"]["discoverSpaces"]), 2)
+        self.assertEqual(len(filter_response.data["discoverSpaces"]), 2)
         self.assert_paged_results_equal(
-            filter_response["data"]["discoverSpaces"][0]["spaces"],
+            filter_response.data["discoverSpaces"][0]["spaces"],
             list(map(transform_space, [space1, space2])),
         )
         self.assert_paged_results_equal(
-            filter_response["data"]["discoverSpaces"][1]["spaces"],
+            filter_response.data["discoverSpaces"][1]["spaces"],
             list(map(transform_space, [space1, space3])),
         )
 
@@ -611,7 +611,6 @@ class GraphQLTest(TestCase):
             return {
                 "user": {"id": user.username},
                 "isAdministrator": True,
-                "isModerator": False,
             }
 
         # Preconditions
@@ -703,14 +702,14 @@ class GraphQLTest(TestCase):
             ),
         )
 
-        self.assertIsNone(response.get("errors"))
-        self.assertEqual(response["data"]["reportContent"]["success"], True)
+        self.assertIsNone(response.errors)
+        self.assertEqual(response.data["reportContent"]["success"], True)
 
         self.assertEqual(reporting_user.can_see_post(post), False)
         self.assertEqual(other_user.can_see_post(post), True)
 
         response = self.get_post_with_id_raw(post, reporting_user)
-        self.assertIsNone(response["data"]["postById"])
+        self.assertIsNone(response.data["postById"])
         self.assertFalse(reporting_user.can_see_post(post))
         self.assertTrue(other_user.can_see_post(post))
 
@@ -721,7 +720,7 @@ class GraphQLTest(TestCase):
 
         response = self.get_post_with_id_raw(post, other_user)
         self.assertFalse(other_user.can_see_post(post))
-        self.assertIsNone(response["data"]["postById"])
+        self.assertIsNone(response.data["postById"])
 
     def test_report_post_comment(self):
         posting_user = make_user()
@@ -756,8 +755,8 @@ class GraphQLTest(TestCase):
             ),
         )
 
-        self.assertIsNone(response.get("errors"))
-        self.assertEqual(response["data"]["reportContent"]["success"], True)
+        self.assertIsNone(response.errors)
+        self.assertEqual(response.data["reportContent"]["success"], True)
 
         post_data = self.get_post_with_id_data(post, reporting_user)
         self.assertEqual(len(post_data["comments"]), 0)
@@ -801,11 +800,11 @@ class GraphQLTest(TestCase):
             ),
         )
 
-        self.assertIsNone(response.get("errors"))
-        self.assertEqual(response["data"]["reportContent"]["success"], True)
+        self.assertIsNone(response.errors)
+        self.assertEqual(response.data["reportContent"]["success"], True)
 
         response = self.get_user_with_id_raw(user, reporting_user)
-        self.assertIsNone(response["data"]["userById"])
+        self.assertIsNone(response.data)
 
         user_before_approve = self.get_user_with_id_data(user, other_user)
         self.assertEqual(user_before_approve["id"], user.username)
@@ -815,9 +814,9 @@ class GraphQLTest(TestCase):
         approve_verify_moderated_object(user.id, user)
 
         response_after_approve = self.get_user_with_id_raw(user, other_user)
-        self.assertIsNone(response_after_approve["data"]["userById"])
+        self.assertIsNone(response_after_approve.data["userById"])
         response_after_approve = self.get_user_with_id_raw(user)
-        self.assertIsNone(response_after_approve["data"]["userById"])
+        self.assertIsNone(response_after_approve.data["userById"])
 
     def test_report_space(self):
         space_user = make_user()
@@ -845,8 +844,8 @@ class GraphQLTest(TestCase):
             ),
         )
 
-        self.assertIsNone(response.get("errors"))
-        self.assertEqual(response["data"]["reportContent"]["success"], True)
+        self.assertIsNone(response.errors)
+        self.assertEqual(response.data["reportContent"]["success"], True)
 
         response = schema.execute_sync(
             f"""
@@ -858,7 +857,7 @@ class GraphQLTest(TestCase):
             """,
             context_value=BeneDict({"request": {"user": reporting_user}}),
         )
-        self.assertIsNone(response["data"]["spaceById"])
+        self.assertIsNone(response.data["spaceById"])
 
         response = schema.execute_sync(
             f"""
@@ -870,9 +869,9 @@ class GraphQLTest(TestCase):
             """,
             context_value=BeneDict({"request": {"user": other_user}}),
         )
-        self.assertIsNone(response.get("errors"))
-        self.assertEqual(len(response["data"]["spaceById"]), 1)
-        self.assertEqual(response["data"]["spaceById"]["id"], str(space.id))
+        self.assertIsNone(response.errors)
+        self.assertEqual(len(response.data["spaceById"]), 1)
+        self.assertEqual(response.data["spaceById"]["id"], str(space.id))
 
         approve_verify_moderated_object(space.id, space_user)
 
@@ -886,7 +885,7 @@ class GraphQLTest(TestCase):
             """,
             context_value=BeneDict({"request": {"user": other_user}}),
         )
-        self.assertIsNone(response["data"]["spaceById"])
+        self.assertIsNone(response.data["spaceById"])
 
     def test_block_user(self):
         blocking_user = make_user(name="BlockingUser")
@@ -918,7 +917,7 @@ class GraphQLTest(TestCase):
             """,
             context_value=BeneDict({"request": {"user": blocking_user}}),
         )
-        self.assertEqual(response["data"]["userSuggestions"]["totalResults"], 2)
+        self.assertEqual(response.data["userSuggestions"]["totalResults"], 2)
 
         response = schema.execute_sync(
             """
@@ -937,20 +936,20 @@ class GraphQLTest(TestCase):
         )
 
         blocked_post_raw = self.get_post_with_id_raw(blocked_post, blocking_user)
-        self.assertIsNone(blocked_post_raw["data"]["postById"])
+        self.assertIsNone(blocked_post_raw.data["postById"])
         other_post_data = self.get_post_with_id_data(other_post, blocking_user)
         self.assertEqual(other_post_data["involvedUsers"]["totalResults"], 1)
         self.assertEqual(other_post_data["numberOfComments"], 0)
         self.assertEqual(other_post_data["commenters"]["totalResults"], 0)
 
-        self.assertIsNone(response.get("errors"))
-        self.assertEqual(response["data"]["blockUser"]["success"], True)
+        self.assertIsNone(response.errors)
+        self.assertEqual(response.data["blockUser"]["success"], True)
 
         response_after_blocking = self.get_user_with_id_raw(blocked_user, blocking_user)
-        self.assertIsNone(response_after_blocking["data"]["userById"])
+        self.assertIsNone(response_after_blocking.data["userById"])
 
         response_after_blocking = self.get_user_with_id_raw(blocking_user, blocked_user)
-        self.assertIsNone(response_after_blocking["data"]["userById"])
+        self.assertIsNone(response_after_blocking.data["userById"])
 
         response = schema.execute_sync(
             """
@@ -965,15 +964,15 @@ class GraphQLTest(TestCase):
             """,
             context_value=BeneDict({"request": {"user": blocking_user}}),
         )
-        self.assertEqual(response["data"]["userSuggestions"]["totalResults"], 1)
-        self.assertEqual(response["data"]["userSuggestions"]["data"][0]["fullName"], "OtherUser")
+        self.assertEqual(response.data["userSuggestions"]["totalResults"], 1)
+        self.assertEqual(response.data["userSuggestions"]["data"][0]["fullName"], "OtherUser")
 
     # Utility methods
 
     def get_user_with_id_data(self, user_to_get, calling_user=None):
         response = self.get_user_with_id_raw(user_to_get, calling_user)
-        self.assertIsNone(response.get("errors"))
-        return response["data"]["userById"]
+        self.assertIsNone(response.errors)
+        return response.data["userById"]
 
     def get_user_with_id_raw(self, user_to_get, calling_user=None):
         return schema.execute_sync(
@@ -989,8 +988,8 @@ class GraphQLTest(TestCase):
 
     def get_post_with_id_data(self, post, user=None):
         response = self.get_post_with_id_raw(post, user)
-        self.assertIsNone(response.get("errors"))
-        return response["data"]["postById"]
+        self.assertIsNone(response.errors)
+        return response.data["postById"]
 
     def get_post_with_id_raw(self, post, user=None):
         return schema.execute_sync(
@@ -1061,7 +1060,6 @@ class GraphQLTest(TestCase):
                                 id
                             }
                             isAdministrator
-                            isModerator
                         }
                     }
                     connectionStatusToMyself
@@ -1079,13 +1077,13 @@ class GraphQLTest(TestCase):
             ),
         )
 
-        self.assertIsNone(response.get("errors"))
-        return response["data"]["updateSpaceUserConnection"]
+        self.assertIsNone(response.errors)
+        return response.data["updateSpaceUserConnection"]
 
     def get_space_for_user(self, user: User, space: Community):
         response = schema.execute_sync(
             """
-            query($id:UUID) {
+            query($id:UUID!) {
                 spaceById(id:$id) {
                     id
                     name
@@ -1096,19 +1094,18 @@ class GraphQLTest(TestCase):
                                 id
                             }
                             isAdministrator
-                            isModerator
                         }
                     }
                     connectionStatusToMyself
                 }
             }
             """,
-            variables={"id": str(space.id)},
-            context=BeneDict({"request": {"user": user}}),
+            variable_values={"id": str(space.id)},
+            context_value=BeneDict({"request": {"user": user}}),
         )
 
-        self.assertIsNone(response.get("errors"))
-        return response["data"]["spaceById"]
+        self.assertIsNone(response.errors)
+        return response.data["spaceById"]
 
     def get_notifications(self, user):
         response = schema.execute_sync(
@@ -1143,8 +1140,8 @@ class GraphQLTest(TestCase):
             """,
             context_value=BeneDict({"request": {"user": user}}),
         )
-        self.assertIsNone(response.get("errors"))
-        return response["data"]["notifications"]
+        self.assertIsNone(response.errors)
+        return response.data["notifications"]
 
     def assert_paged_results_equal(self, results: dict, expected_data: List[dict[str, any]]):
         self.assertEqual(results["totalResults"], len(expected_data))
@@ -1169,10 +1166,9 @@ class GraphQLTest(TestCase):
             variable_values={"input": {}},
         )
 
-        field_errors = json.loads(str(response["errors"][0]["extensions"]["errors"]))
-        self.assertEqual("required", field_errors["title"][0]["code"])
-        self.assertEqual("required", field_errors["description"][0]["code"])
-        self.assertIsNone(response["data"]["validateSpace"])
+        self.assertEqual("required", response.errors[0].original_error.detail["title"][0].code)
+        self.assertEqual("required", response.errors[0].original_error.detail["description"][0].code)
+        self.assertIsNone(response.data)
 
     def test_invalid_spaces_do_not_pass_validation(self):
         user = make_user()
@@ -1222,12 +1218,16 @@ class GraphQLTest(TestCase):
                 variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
             )
 
+            self.assertIsNotNone(response.errors, testCase)
             if "expected_code" in testCase:
-                field_errors = json.loads(str(response["errors"][0]["extensions"]["errors"]))
-                self.assertEqual(testCase["expected_code"], field_errors[testCase["field"]][0]["code"])
+                self.assertIn(
+                    testCase["expected_code"],
+                    str(response.errors[0].message),
+                    f"{str(response.errors[0].message)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
+                )
             else:
-                self.assertIn(testCase["expected_error"], str(response["errors"][0]["message"]))
-            self.assertIsNone(response["data"]["validateSpace"])
+                self.assertIn(testCase["expected_error"], str(response.errors[0].message))
+            self.assertIsNone(response.data)
 
     def test_valid_partial_spaces_pass_validation(self):
         user = make_user()
@@ -1261,8 +1261,8 @@ class GraphQLTest(TestCase):
                 variable_values={"input": input},
             )
 
-            self.assertTrue(response["data"]["validateSpace"]["success"])
-            self.assertNotIn("errors", response)
+            self.assertTrue(response.data["validateSpace"]["success"])
+            self.assertIsNone(response.errors)
 
     def test_can_not_validate_space_if_not_logged_in(self):
         validate_space_mutation = """
@@ -1280,9 +1280,12 @@ class GraphQLTest(TestCase):
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
         )
 
-        self.assertIsNone(response["data"]["validateSpace"])
-        self.assertIn("Unauthorized", str(response["errors"][0]["message"]))
-        self.assertEqual("UNAUTHORIZED", str(response["errors"][0]["extensions"]["code"]))
+        self.assert_is_unauthorized(response)
+
+    def assert_is_unauthorized(self, response):
+        self.assertIsNone(response.data)
+        self.assertIn("Unauthorized", str(response.errors[0].message))
+        self.assertEqual("UNAUTHORIZED", str(response.errors[0].extensions["code"]))
 
     def test_can_not_create_spaces_missing_required_fields(self):
         user = make_user()
@@ -1324,8 +1327,8 @@ class GraphQLTest(TestCase):
                 variable_values={"input": testCase["input"]},
             )
 
-            self.assertIn(testCase["expected_error"], str(response["errors"][0]["message"]))
-            self.assertIsNone(response["data"]["createSpace"] if response["data"] else response["data"])
+            self.assertIn(testCase["expected_error"], str(response.errors[0].message))
+            self.assertIsNone(response.data["createSpace"] if response.data else response.data)
 
     def test_validates_space_before_creation(self):
         user = make_user()
@@ -1377,11 +1380,14 @@ class GraphQLTest(TestCase):
             )
 
             if "expected_code" in testCase:
-                field_errors = json.loads(str(response["errors"][0]["extensions"]["errors"]))
-                self.assertEqual(testCase["expected_code"], field_errors[testCase["field"]][0]["code"])
+                self.assertIn(
+                    testCase["expected_code"],
+                    str(response.errors[0].message),
+                    f"{str(response.errors[0].message)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
+                )
             else:
-                self.assertIn(testCase["expected_error"], str(response["errors"][0]["message"]))
-            self.assertIsNone(response["data"]["createSpace"] if response["data"] else response["data"])
+                self.assertIn(testCase["expected_error"], str(response.errors[0].message))
+            self.assertIsNone(response.data["createSpace"] if response.data else response.data)
 
     def test_can_create_space(self):
         user = make_user()
@@ -1397,9 +1403,11 @@ class GraphQLTest(TestCase):
                     description
                     topics { id }
                     cover
-                    memberships {
-                        user { id }
-                        isAdministrator
+                    members {
+                        data {
+                            user {id}
+                            isAdministrator
+                        }
                     }
                 }
             }
@@ -1412,9 +1420,9 @@ class GraphQLTest(TestCase):
             variable_values={"input": valid_input},
         )
 
-        self.assertNotIn("errors", response)
+        self.assertIsNone(response.errors)
 
-        created_space = response["data"]["createSpace"]
+        created_space = response.data["createSpace"]
         self.assertIn("id", created_space)
         self.assertEqual("valid", created_space["name"])
         self.assertEqual("valid", created_space["title"])
@@ -1425,8 +1433,8 @@ class GraphQLTest(TestCase):
         self.assertIn("cover.jpg", created_space["cover"])
 
         # Verify that creator is admin
-        self.assertEqual(1, len(created_space["memberships"]))
-        member = created_space["memberships"][0]
+        self.assertEqual(1, len(created_space["members"]["data"]))
+        member = created_space["members"]["data"][0]
         self.assertEqual(str(user.username), member["user"]["id"])
         self.assertTrue(member["isAdministrator"])
 
@@ -1450,9 +1458,7 @@ class GraphQLTest(TestCase):
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
         )
 
-        self.assertIsNone(response["data"]["createSpace"])
-        self.assertIn("Unauthorized", str(response["errors"][0]["message"]))
-        self.assertEqual("UNAUTHORIZED", str(response["errors"][0]["extensions"]["code"]))
+        self.assert_is_unauthorized(response)
 
     def test_validates_space_update(self):
         user = make_user()
@@ -1516,16 +1522,19 @@ class GraphQLTest(TestCase):
             )
 
             if "expected_code" in testCase:
-                field_errors = json.loads(str(response["errors"][0]["extensions"]["errors"]))
-                self.assertEqual(testCase["expected_code"], field_errors[testCase["field"]][0]["code"])
+                self.assertIn(
+                    testCase["expected_code"],
+                    str(response.errors[0].message),
+                    f"{str(response.errors[0].message)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
+                )
             else:
-                self.assertIn(testCase["expected_error"], str(response["errors"][0]["message"]))
-            self.assertIsNone(response["data"]["updateSpace"] if response["data"] else response["data"])
+                self.assertIn(testCase["expected_error"], str(response.errors[0].message))
+            self.assertIsNone(response.data["updateSpace"] if response.data else response.data)
 
     def test_can_not_update_space_without_passing_id(self):
         user = make_user()
         update_space_mutation = """
-            mutation test($input: UpdateSpaceInput) {
+            mutation test($input: UpdateSpaceInput!) {
                 updateSpace(input: $input) {
                     id
                 }
@@ -1538,9 +1547,8 @@ class GraphQLTest(TestCase):
             variable_values={"input": {"title": "new title"}},
         )
 
-        self.assertIsNone(response["data"]["updateSpace"])
-        field_errors = json.loads(str(response["errors"][0]["extensions"]["errors"]))
-        self.assertEqual("required", field_errors["id"][0]["code"])
+        self.assertIsNone(response.data)
+        self.assertIn("Field 'id' of required type 'UUID!' was not provided", response.errors[0].message)
 
     def test_can_update_space(self):
         user = make_user()
@@ -1553,7 +1561,7 @@ class GraphQLTest(TestCase):
         sdg_ids = [str(make_sdg().id) for _ in range(3)]
         location = "Hamburg, Germany"
         update_space_mutation = """
-            mutation test($input: UpdateSpaceInput) {
+            mutation test($input: UpdateSpaceInput!) {
                 updateSpace(input: $input) {
                     id
                 }
@@ -1586,8 +1594,8 @@ class GraphQLTest(TestCase):
                 variable_values={"input": base_input | input},
             )
 
-            self.assertEqual(str(community.id), response["data"]["updateSpace"]["id"])
-            self.assertNotIn("errors", response)
+            self.assertEqual(str(community.id), response.data["updateSpace"]["id"])
+            self.assertIsNone(response.errors)
 
     def test_updated_space_has_new_values(self):
         user = make_user()
@@ -1598,7 +1606,7 @@ class GraphQLTest(TestCase):
         sdg_ids = [str(make_sdg().id) for _ in range(2)]
         location = "Hamburg, Germany"
         update_space_mutation = """
-            mutation test($input: UpdateSpaceInput) {
+            mutation test($input: UpdateSpaceInput!) {
                 updateSpace(input: $input) {
                     id
                     title
@@ -1628,9 +1636,9 @@ class GraphQLTest(TestCase):
             variable_values={"input": input},
         )
 
-        self.assertNotIn("errors", response)
+        self.assertIsNone(response.errors)
 
-        updated_space = response["data"]["updateSpace"]
+        updated_space = response.data["updateSpace"]
         self.assertEqual(str(community.id), updated_space["id"])
         self.assertEqual("newest title", updated_space["title"])
         self.assertEqual("newest description", updated_space["description"])
@@ -1648,7 +1656,7 @@ class GraphQLTest(TestCase):
         user = make_user()
         community = make_community()
         update_space_mutation = """
-            mutation test($input: UpdateSpaceInput) {
+            mutation test($input: UpdateSpaceInput!) {
                 updateSpace(input: $input) {
                     id
                 }
@@ -1661,15 +1669,13 @@ class GraphQLTest(TestCase):
             variable_values={"input": {"id": str(community.id), "title": "new title"}},
         )
 
-        self.assertIsNone(response["data"]["updateSpace"])
-        self.assertIn(
-            "Can\\'t update a community that you do not administrate.", str(response["errors"][0]["extensions"])
-        )
+        self.assertIsNone(response.data)
+        self.assertIn("Can't update a community that you do not administrate.", str(response.errors[0].message))
 
     def test_can_not_update_space_if_not_logged_in(self):
         community = make_community()
         update_space_mutation = """
-            mutation test($input: UpdateSpaceInput) {
+            mutation test($input: UpdateSpaceInput!) {
                 updateSpace(input: $input) {
                     id
                 }
@@ -1682,15 +1688,13 @@ class GraphQLTest(TestCase):
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
         )
 
-        self.assertIsNone(response["data"]["updateSpace"])
-        self.assertIn("Unauthorized", str(response["errors"][0]["message"]))
-        self.assertEqual("UNAUTHORIZED", str(response["errors"][0]["extensions"]["code"]))
+        self.assert_is_unauthorized(response)
 
     def test_can_not_delete_space_if_not_admin(self):
         user = make_user()
         community = make_community()
         delete_space_mutation = """
-            mutation test($id: UUID) {
+            mutation test($id: UUID!) {
                 deleteSpace(id: $id) {
                     success
                 }
@@ -1704,15 +1708,13 @@ class GraphQLTest(TestCase):
         )
         print(response)
 
-        self.assertIsNone(response["data"]["deleteSpace"])
-        self.assertIn(
-            "Can\\'t delete a community that you do not administrate.", str(response["errors"][0]["extensions"])
-        )
+        self.assertIsNone(response.data)
+        self.assertIn("Can't delete a community that you do not administrate.", str(response.errors[0].message))
 
     def test_can_not_delete_space_if_not_logged_in(self):
         community = make_community()
         delete_space_mutation = """
-            mutation test($id: UUID) {
+            mutation test($id: UUID!) {
                 deleteSpace(id: $id) {
                     success
                 }
@@ -1726,16 +1728,14 @@ class GraphQLTest(TestCase):
         )
         print(response)
 
-        self.assertIsNone(response["data"]["deleteSpace"])
-        self.assertIn("Unauthorized", str(response["errors"][0]["message"]))
-        self.assertEqual("UNAUTHORIZED", str(response["errors"][0]["extensions"]["code"]))
+        self.assert_is_unauthorized(response)
 
     def test_can_delete_space(self):
         user = make_user()
         community = make_community(creator=user)
 
         delete_space_mutation = """
-            mutation test($id: UUID) {
+            mutation test($id: UUID!) {
                 deleteSpace(id: $id) {
                     success
                 }
@@ -1749,8 +1749,8 @@ class GraphQLTest(TestCase):
         )
         print(response)
 
-        self.assertTrue(response["data"]["deleteSpace"]["success"])
-        self.assertNotIn("errors", response)
+        self.assertTrue(response.data["deleteSpace"]["success"])
+        self.assertIsNone(response.errors)
 
 
 def approve_verify_moderated_object(object_id, user):
