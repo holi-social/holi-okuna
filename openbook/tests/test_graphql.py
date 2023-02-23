@@ -1234,7 +1234,7 @@ class GraphQLTest(TestCase):
         topic_ids = [str(make_topic().id) for _ in range(2)]
         cover = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
         sdg_ids = [str(make_sdg().id) for _ in range(2)]
-
+        location = "Hamburg, Germany"
         validate_space_mutation = """
             mutation test($input: ValidateSpaceInput) {
                 validateSpace(input: $input) {
@@ -1248,7 +1248,8 @@ class GraphQLTest(TestCase):
             valid_input | {"topics": topic_ids},
             valid_input | {"cover": cover},
             valid_input | {"sdgs": sdg_ids},
-            valid_input | {"topics": topic_ids, "cover": cover, "sdgs": sdg_ids},
+            valid_input | {"location": location},
+            valid_input | {"topics": topic_ids, "cover": cover, "sdgs": sdg_ids, "location": location},
             valid_input | {"topics": topic_ids, "cover": cover, "sdgs": []},
         ]
 
@@ -1501,6 +1502,7 @@ class GraphQLTest(TestCase):
                 "value": [invalid_uuid],
                 "expected_error": f"No sdg with the id '{invalid_uuid}' found.",
             },
+            {"field": "location", "value": None, "expected_code": "null"},
         ]
 
         for testCase in expectedErrors:
@@ -1548,7 +1550,7 @@ class GraphQLTest(TestCase):
         avatar = SimpleUploadedFile(name="avatar.jpg", content=simple_jpeg_bytes)
         avatar2 = SimpleUploadedFile(name="avatar2.jpg", content=simple_jpeg_bytes)
         sdg_ids = [str(make_sdg().id) for _ in range(3)]
-
+        location = "Hamburg, Germany"
         update_space_mutation = """
             mutation test($input: UpdateSpaceInput) {
                 updateSpace(input: $input) {
@@ -1573,6 +1575,7 @@ class GraphQLTest(TestCase):
                 "avatar": avatar2,
                 "sdgs": sdg_ids,
             },
+            {"location": location},
         ]
 
         for input in valid_inputs:
@@ -1592,7 +1595,7 @@ class GraphQLTest(TestCase):
         cover = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
         avatar = SimpleUploadedFile(name="avatar.jpg", content=simple_jpeg_bytes)
         sdg_ids = [str(make_sdg().id) for _ in range(2)]
-
+        location = "Hamburg, Germany"
         update_space_mutation = """
             mutation test($input: UpdateSpaceInput) {
                 updateSpace(input: $input) {
@@ -1603,6 +1606,7 @@ class GraphQLTest(TestCase):
                     cover
                     avatar
                     sdgs { id }
+                    location
                 }
             }
             """
@@ -1614,6 +1618,7 @@ class GraphQLTest(TestCase):
             "cover": cover,
             "avatar": avatar,
             "sdgs": sdg_ids,
+            "location": location,
         }
 
         response = self.graphql.execute(
@@ -1636,6 +1641,7 @@ class GraphQLTest(TestCase):
         self.assertEqual(len(sdg_ids), len(updated_space["sdgs"]))
         for sdg in updated_space["sdgs"]:
             self.assertIn(sdg["id"], sdg_ids)
+        self.assertEqual("Hamburg, Germany", updated_space["location"])
 
     def test_can_not_update_space_if_not_admin(self):
         user = make_user()

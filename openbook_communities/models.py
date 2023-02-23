@@ -500,6 +500,7 @@ class Community(ModelWithUUID):
         sdg_ids=None,
         cover=None,
         avatar=None,
+        location=None,
     ):
 
         if title:
@@ -540,6 +541,9 @@ class Community(ModelWithUUID):
 
         if sdg_ids is not None:
             self.set_sdgs_with_ids(sdg_ids=sdg_ids)
+
+        if location:
+            self.location = location
 
         self.save()
 
