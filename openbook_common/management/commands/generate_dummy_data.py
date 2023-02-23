@@ -18,6 +18,7 @@ from openbook_common.tests.helpers import (
 )
 from openbook_insights.models import Insight
 from openbook_posts.models import Post
+from openbook_terms.models import Topic
 
 prefix = "generate_"
 
@@ -59,8 +60,8 @@ class Command(BaseCommand):
     def generate_post(self, nr):
         print(f"generate {nr} posts")
         users = self._get_random_users(int(nr / 1.5))
-        with image_fetcher("https://ik.imagekit.io/holidev/tr:w-300,h-300/default-image.jpg") as image_file:
-            for i in range(nr):
+        for i in range(nr):
+            with image_fetcher("https://ik.imagekit.io/holidev/tr:w-300,h-300/default-image.jpg") as image_file:
                 random.choice(users).create_public_post(
                     title=make_fake_post_title(),
                     text=make_fake_post_text(),
@@ -70,8 +71,8 @@ class Command(BaseCommand):
     def generate_post_with_comment(self, nr):
         print(f"generate {nr} posts with comments")
         users = self._get_random_users(int(nr / 1.5))
-        with image_fetcher("https://ik.imagekit.io/holidev/tr:w-300,h-300/default-image.jpg") as image_file:
-            for i in range(nr):
+        for i in range(nr):
+            with image_fetcher("https://ik.imagekit.io/holidev/tr:w-300,h-300/default-image.jpg") as image_file:
                 post = random.choice(users).create_public_post(
                     title=make_fake_post_title(), text=make_fake_post_text(), image=image_file
                 )
@@ -83,8 +84,8 @@ class Command(BaseCommand):
         print(f"generate {nr} insights")
         users = self._get_random_users(int(nr / 1.5))
         posts = Post.objects.filter(circles__id=Circle.get_world_circle_id()).all()[: int(nr * 4)]
-        with image_fetcher("https://ik.imagekit.io/holidev/tr:w-300,h-300/default-image.jpg") as image_file:
-            for i in range(nr):
+        for i in range(nr):
+            with image_fetcher("https://ik.imagekit.io/holidev/tr:w-300,h-300/default-image.jpg") as image_file:
                 insight = Insight.objects.create(
                     creator=random.choice(users),
                     title=make_fake_post_title(),
@@ -94,3 +95,19 @@ class Command(BaseCommand):
                 )
                 for j in range(random.randint(1, 5)):
                     insight.posts.add(random.choice(posts))
+
+    def generate_space(self, nr):
+        print(f"generate {nr} spaces")
+        users = self._get_random_users(int(nr / 1.5))
+        topic_ids = [t.id for t in Topic.objects.all()]
+        for i in range(nr):
+            with image_fetcher("https://ik.imagekit.io/holidev/tr:w-300,h-300/default-image.jpg") as image_file:
+                random.choice(users).create_community(
+                    title=make_fake_post_title(),
+                    type="P",
+                    description=make_fake_post_text(),
+                    avatar=image_file,
+                    cover=image_file,
+                    topic_ids=[random.choice(topic_ids)],
+                    location="Germany",
+                )

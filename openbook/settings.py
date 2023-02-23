@@ -24,13 +24,6 @@ from sentry_sdk.integrations.rq import RqIntegration
 
 from openbook_common.utils.environment import EnvironmentChecker
 
-# TODO due to https://github.com/graphql-python/graphene-django/issues/1284 we have to monkey patch
-#  the force_text method back into django so graphene-django can work. should be updated once released
-import django
-from django.utils.encoding import force_str
-
-django.utils.encoding.force_text = force_str
-
 # Python 3.10 moved collections.Callable to collections.abc.Callable. This is a patch to make old libs work (in particular nose)
 collections.Callable = collections.abc.Callable
 
@@ -104,8 +97,6 @@ INSTALLED_APPS = [
     "django_rq",
     "scheduler",
     "django_extensions",
-    "graphene_django",
-    "graphene_gis",
     "openbook_common",
     "openbook_auth",
     "openbook_posts",
@@ -125,6 +116,7 @@ INSTALLED_APPS = [
     "openbook_moderation",
     "openbook_translation",
     "openbook_terms",
+    "strawberry.django",
 ]
 
 MODELTRANSLATION_FALLBACK_LANGUAGES = ("en",)
@@ -145,12 +137,6 @@ MIDDLEWARE = [
     "openbook_common.middleware.ChunkedContentLengthMiddleware",
     "openbook.middleware.slow_log_middleware",
 ]
-
-GRAPHENE = {
-    "MIDDLEWARE": [
-        "openbook.middleware.graphql_error_context_middleware",
-    ]
-}
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://localhost",
