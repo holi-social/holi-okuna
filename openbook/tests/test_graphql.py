@@ -10,7 +10,6 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
-from graphene.test import Client
 from rest_framework import status
 
 from openbook.middleware import graphql_error_context_middleware
