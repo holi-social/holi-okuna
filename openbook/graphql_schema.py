@@ -19,7 +19,6 @@ from django.conf import settings
 
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_auth.images import delete_avatar
-from openbook_auth.models import UserConnectionStatus
 from openbook_auth.validators import string_not_empty
 from openbook_auth.views.authenticated_user.serializers import UpdateAuthenticatedUserSerializer
 from openbook_communities.views.communities.serializers import (
