@@ -772,6 +772,17 @@ class Mutation:
             location=data.get("location"),
         )
 
+    @gql.mutation
+    def delete_space(self, info, id: uuid.UUID) -> Result:
+        authenticated_user = verify_authorized_user(info)
+
+        with transaction.atomic():
+            authenticated_user.delete_community_with_id(
+                community_id=id,
+            )
+
+        return Result(success=True)
+
 
 schema = strawberry.Schema(
     query=Query,

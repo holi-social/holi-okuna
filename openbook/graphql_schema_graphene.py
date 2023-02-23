@@ -1133,6 +1133,7 @@ class ValidateSpaceInput(graphene.InputObjectType):
     topics = graphene.List(graphene.UUID)
     cover = Upload(required=False)
     sdgs = graphene.List(graphene.UUID)
+    location = graphene.String()
 
 
 class ValidateSpaceMutation(graphene.Mutation):
@@ -1190,6 +1191,7 @@ class UpdateSpaceInput(graphene.InputObjectType):
     cover = Upload(required=False)
     avatar = Upload(required=False)
     sdgs = graphene.List(graphene.UUID)
+    location = graphene.String()
 
 
 class UpdateSpaceMutation(graphene.Mutation):
@@ -1214,7 +1216,26 @@ class UpdateSpaceMutation(graphene.Mutation):
             topic_ids=data.get("topics"),
             avatar=data.get("avatar"),
             sdg_ids=data.get("sdgs"),
+            location=data.get("location"),
         )
+
+
+class DeleteSpaceMutation(graphene.Mutation):
+    class Arguments:
+        id = graphene.UUID(description="The space to delete")
+
+    success = graphene.Boolean()
+
+    @classmethod
+    def mutate(cls, root, info, id):
+        authenticated_user = verify_authorized_user(info)
+
+        with transaction.atomic():
+            authenticated_user.delete_community_with_id(
+                community_id=id,
+            )
+
+        return DeleteSpaceMutation(success=True)
 
 
 class Mutation(graphene.ObjectType):
@@ -1228,6 +1249,7 @@ class Mutation(graphene.ObjectType):
     validate_space = ValidateSpaceMutation.Field()
     create_space = CreateSpaceMutation.Field()
     update_space = UpdateSpaceMutation.Field()
+    delete_space = DeleteSpaceMutation.Field()
 
 
 # noinspection PyTypeChecker
