@@ -548,10 +548,11 @@ class Mutation:
             else:
                 update_avatar = True
 
+        input_dict = to_input_dict(input)
         if input.first_name:
-            input.name = input.first_name
+            input_dict["name"] = input.first_name
 
-        serializer = UpdateAuthenticatedUserSerializer(data=(to_input_dict(input)))
+        serializer = UpdateAuthenticatedUserSerializer(data=(input_dict))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 

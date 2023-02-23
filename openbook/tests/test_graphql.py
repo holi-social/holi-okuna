@@ -136,6 +136,8 @@ class GraphQLTest(TestCase):
 
         self.assertNotEqual(User.objects.get(username=user.username).profile.pronouns, pronouns)
 
+        first_name = "Peter"
+        last_name = "Shaw"
         executed = schema.execute_sync(
             """
             mutation test($input: UpdateAuthenticatedUserInput!) {
@@ -146,13 +148,21 @@ class GraphQLTest(TestCase):
             }
             """,
             context_value=BeneDict({"request": {"user": user}}),
-            variable_values={"input": {"pronouns": pronouns}},
+            variable_values={
+                "input": {
+                    "pronouns": pronouns,
+                    "firstName": first_name,
+                    "lastName": last_name,
+                }
+            },
         )
-        graphql_pronouns = executed.data["updateAuthenticatedUser"]["pronouns"]
-        persisted_pronouns = User.objects.get(username=user.username).profile.pronouns
-
-        self.assertEqual(graphql_pronouns, persisted_pronouns)
+        updated_user = executed.data["updateAuthenticatedUser"]
+        graphql_pronouns = updated_user["pronouns"]
+        persisted_profile = User.objects.get(username=user.username).profile
+        self.assertEqual(graphql_pronouns, persisted_profile.pronouns)
         self.assertEqual(graphql_pronouns, pronouns)
+        self.assertEqual(last_name, persisted_profile.last_name)
+        self.assertEqual(first_name, persisted_profile.name)
 
     def test_can_perform_connection_workflow(self):
         first_user = make_user(name="Fritz", last_name="Meier")
