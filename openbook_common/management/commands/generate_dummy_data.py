@@ -18,6 +18,7 @@ from openbook_common.tests.helpers import (
 )
 from openbook_insights.models import Insight
 from openbook_posts.models import Post
+from openbook_terms.models import Topic
 
 prefix = "generate_"
 
@@ -41,12 +42,10 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         for g in [key[len(prefix) :] for key in dir(Command) if key.startswith(prefix)]:
-            print(f"Adding: {g}")
             parser.add_argument(f"--{g}", nargs=1, type=int)
 
     def handle(self, *args, **options):
         for key, value in options.items():
-            print(f"Key {key} - Value {value}")
             if hasattr(self, prefix + key) and value:
                 fn = getattr(self, prefix + key)
                 fn(value[0])
@@ -96,3 +95,19 @@ class Command(BaseCommand):
                 )
                 for j in range(random.randint(1, 5)):
                     insight.posts.add(random.choice(posts))
+
+    def generate_space(self, nr):
+        print(f"generate {nr} spaces")
+        users = self._get_random_users(int(nr / 1.5))
+        topic_ids = [t.id for t in Topic.objects.all()]
+        for i in range(nr):
+            with image_fetcher("https://ik.imagekit.io/holidev/tr:w-300,h-300/default-image.jpg") as image_file:
+                random.choice(users).create_community(
+                    title=make_fake_post_title(),
+                    type="P",
+                    description=make_fake_post_text(),
+                    avatar=image_file,
+                    cover=image_file,
+                    topic_ids=[random.choice(topic_ids)],
+                    location="Germany",
+                )
