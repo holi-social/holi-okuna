@@ -28,7 +28,7 @@ from openbook_terms.models import (
     SDG as SDGModel,
     Skill as SkillModel,
 )
-from openbook_auth.models import User as UserModel
+from openbook_auth.models import User as UserModel, UserConnectionStatus
 from openbook_insights.models import Insight as InsightModel
 
 GenericType = TypeVar("GenericType")
@@ -46,14 +46,6 @@ class Paged(List[GenericType]):
     def __init__(self, data, total_results):
         self.data = data
         self.total_results = total_results
-
-
-@gql.enum
-class UserConnectionStatusEnum(Enum):
-    NOT_CONNECTED = "NOT_CONNECTED"
-    CONNECTED = "CONNECTED"
-    REQUESTED = "REQUESTED"  # requested by currently authenticated user
-    PENDING_CONFIRMATION = "PENDING_CONFIRMATION"  # pending confirmation by currently authenticated user
 
 
 @gql.enum
@@ -218,7 +210,7 @@ class User:
         return self.profile.skills.all()
 
     @gql.django.field(select_related=["profile"])
-    def connection_status_to_myself(self, info) -> Optional[UserConnectionStatusEnum]:
+    def connection_status_to_myself(self, info) -> Optional[UserConnectionStatus]:
         if info.context.request.user.is_anonymous:
             return None
         return info.context.request.user.get_connection_status_with_user_id(user_id=self.id)
