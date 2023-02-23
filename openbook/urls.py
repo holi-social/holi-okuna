@@ -22,7 +22,6 @@ from django.views.decorators.csrf import csrf_exempt
 from proxy.views import proxy_view
 from graphene_file_upload.django import FileUploadGraphQLView
 
-from openbook import graphql_schema_graphene
 from openbook.middleware import graphql_error_context_middleware
 from openbook.graphql_schema import schema
 from openbook_auth.views.auth.views import (
@@ -745,11 +744,6 @@ urlpatterns = [
     path("admin/", admin.site.urls, name="admin-endpoint"),
     path("django-rq/", include("django_rq.urls")),
     path("health/", Health.as_view(), name="health"),
-    path(
-        "graphql2",
-        csrf_exempt(DRFAuthenticatedGraphQLView.as_view(graphiql=True, schema=graphql_schema_graphene.schema)),
-        # name="graphql-endpoint",
-    ),
     path("graphql", csrf_exempt(AuthenticatedStrawberryGraphQLView.as_view(schema=schema)), name="graphql-endpoint"),
 ]
 

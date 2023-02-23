@@ -14,7 +14,6 @@ from graphene.test import Client
 from rest_framework import status
 
 from openbook.middleware import graphql_error_context_middleware
-from openbook.graphql_schema_graphene import schema as old_schema
 from openbook.graphql_schema import (
     schema,
     UpdateConnectionAction,
@@ -49,8 +48,6 @@ class ContextWithUser:
 
 
 class GraphQLTest(TestCase):
-    def setUp(self):
-        self.graphql = Client(old_schema, middleware=[graphql_error_context_middleware])
 
     fixtures = ["openbook_circles/fixtures/circles.json", "openbook_moderation/fixtures/moderation_categories.json"]
 
