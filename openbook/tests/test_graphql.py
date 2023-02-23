@@ -14,7 +14,8 @@ from graphene.test import Client
 from rest_framework import status
 
 from openbook.middleware import graphql_error_context_middleware
-from openbook.graphql_schema_graphene import (
+from openbook.graphql_schema_graphene import schema as old_schema
+from openbook.graphql_schema import (
     schema,
     UpdateConnectionAction,
     SpaceUserConnectionType,
@@ -49,7 +50,7 @@ class ContextWithUser:
 
 class GraphQLTest(TestCase):
     def setUp(self):
-        self.graphql = Client(schema, middleware=[graphql_error_context_middleware])
+        self.graphql = Client(old_schema, middleware=[graphql_error_context_middleware])
 
     fixtures = ["openbook_circles/fixtures/circles.json", "openbook_moderation/fixtures/moderation_categories.json"]
 
@@ -89,7 +90,7 @@ class GraphQLTest(TestCase):
         make_user(name="Fritz", last_name="Meier")
         user = make_user(name="Peter", last_name="Moser")
 
-        executed = self.graphql.execute(
+        executed = schema.execute_sync(
             """
             query {
                 userByName(substring: "er M") {
@@ -101,7 +102,7 @@ class GraphQLTest(TestCase):
                 }
             }
             """,
-            context_value=BeneDict({"user": user}),
+            context_value=BeneDict({"request": {"user": user}}),
         )
         self.assert_paged_results_equal(
             results=executed["data"]["userByName"],
@@ -114,7 +115,7 @@ class GraphQLTest(TestCase):
         make_user(name="Petra", last_name="Meier"),
         make_user(name="Fritz", last_name="Meier")
 
-        executed = self.graphql.execute(
+        executed = schema.execute_sync(
             """
             query {
                 userByName(substring: "Pet") {
@@ -126,7 +127,7 @@ class GraphQLTest(TestCase):
                 }
             }
             """,
-            context_value=BeneDict({"user": AnonymousUser}),
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
         )
         self.assertEqual(executed["data"]["userByName"]["totalResults"], 3)
         self.assertEqual(executed["data"]["userByName"]["data"][0]["firstName"], "Peter")
@@ -139,7 +140,7 @@ class GraphQLTest(TestCase):
 
         self.assertNotEqual(User.objects.get(username=user.username).profile.pronouns, pronouns)
 
-        executed = self.graphql.execute(
+        executed = schema.execute_sync(
             """
             mutation test($input: UpdateAuthenticatedUserInput) {
                 updateAuthenticatedUser(input: $input) {
@@ -148,7 +149,7 @@ class GraphQLTest(TestCase):
                 }
             }
             """,
-            context_value=BeneDict({"user": user}),
+            context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": {"pronouns": pronouns}},
         )
         graphql_pronouns = executed["data"]["updateAuthenticatedUser"]["pronouns"]
@@ -298,7 +299,7 @@ class GraphQLTest(TestCase):
         post4.comment(text=post_text_public, commenter=other_user)
         insight2.posts.add(post4)
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             f"""
             query {{
                 lastInsights {{
@@ -318,7 +319,7 @@ class GraphQLTest(TestCase):
                 }}
             }}
             """,
-            context_value=BeneDict({"user": AnonymousUser}),
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
         )
 
         insights = response["data"]["lastInsights"]["data"]
@@ -373,7 +374,7 @@ class GraphQLTest(TestCase):
         )
 
     def connect_to_user(self, following_user, followed_user):
-        connection_request_response = self.graphql.execute(
+        connection_request_response = schema.execute_sync(
             """
             mutation UpdateConnectionWithUser($input: UpdateConnectionWithUserInput) {
                 updateConnectionWithUser(input: $input) {
@@ -387,7 +388,7 @@ class GraphQLTest(TestCase):
                     "action": UpdateConnectionAction.CONNECT._value_,
                 }
             },
-            context_value=BeneDict({"user": following_user}),
+            context_value=BeneDict({"request": {"user": following_user}}),
         )
         self.assertIsNone(connection_request_response.get("errors"))
         return connection_request_response
@@ -418,7 +419,7 @@ class GraphQLTest(TestCase):
             return {"id": str(space.id)}
 
         def assert_filtered_spaces(filter_options, expected_spaces):
-            filter_response = self.graphql.execute(filter_query, variable_values=filter_options)
+            filter_response = schema.execute_sync(filter_query, variable_values=filter_options)
             expected_data = list(map(transform_space, expected_spaces))
             self.assert_paged_results_equal(filter_response["data"]["spaces"], expected_data)
 
@@ -492,7 +493,7 @@ class GraphQLTest(TestCase):
             return {"id": str(space.id)}
 
         def assert_filtered_spaces(filter_options, expected_spaces):
-            filter_response = self.graphql.execute(filter_query, variable_values=filter_options)
+            filter_response = schema.execute_sync(filter_query, variable_values=filter_options)
             expected_data = list(map(transform_space, expected_spaces))
             self.assert_paged_results_equal(
                 filter_response["data"]["discoverSpaces"][0]["spaces"],
@@ -524,7 +525,7 @@ class GraphQLTest(TestCase):
             [space1],
         )
 
-        filter_response = self.graphql.execute(
+        filter_response = schema.execute_sync(
             filter_query, variable_values={"topicIds": [str(topic1.id), str(topic2.id)]}
         )
         self.assertEqual(len(filter_response["data"]["discoverSpaces"]), 2)
@@ -552,7 +553,7 @@ class GraphQLTest(TestCase):
                 }
             }
         """
-        response = self.graphql.execute(filter_query)["data"]["spaces"]["data"]
+        response = schema.execute_sync(filter_query).data["spaces"]["data"]
         assert response[0]["id"] == str(space1.id)
         assert response[1]["id"] == str(space2.id)
 
@@ -566,7 +567,7 @@ class GraphQLTest(TestCase):
         creator1.join_community_with_name(space2.name)
         creator1.enable_new_post_notifications_for_community_with_name(space4.name)
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             """
             query {
                 mySpaces {
@@ -581,8 +582,8 @@ class GraphQLTest(TestCase):
                 }
             }
             """,
-            context_value=BeneDict({"user": creator1}),
-        )["data"]["mySpaces"]
+            context_value=BeneDict({"request": {"user": creator1}}),
+        ).data["mySpaces"]
 
         self.assertEqual(len(response), 3)
         created_section = response[0]
@@ -684,7 +685,7 @@ class GraphQLTest(TestCase):
             title=post_title,
         )
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             """
             mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
                 reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
@@ -692,7 +693,7 @@ class GraphQLTest(TestCase):
                 }
             }
             """,
-            context_value=BeneDict({"user": reporting_user}),
+            context_value=BeneDict({"request": {"user": reporting_user}}),
             variable_values=BeneDict(
                 {
                     "objectId": str(post.id),
@@ -737,7 +738,7 @@ class GraphQLTest(TestCase):
         )
         comment = post.comment(text=f"comment text 1 @{posting_user.username}", commenter=posting_user)
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             """
             mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
                 reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
@@ -745,7 +746,7 @@ class GraphQLTest(TestCase):
                 }
             }
             """,
-            context_value=BeneDict({"user": reporting_user}),
+            context_value=BeneDict({"request": {"user": reporting_user}}),
             variable_values=BeneDict(
                 {
                     "objectId": str(comment.id),
@@ -782,7 +783,7 @@ class GraphQLTest(TestCase):
         user_before_report = self.get_user_with_id_data(user)
         self.assertEqual(user_before_report["id"], user.username)
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             """
             mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
                 reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
@@ -790,7 +791,7 @@ class GraphQLTest(TestCase):
                 }
             }
             """,
-            context_value=BeneDict({"user": reporting_user}),
+            context_value=BeneDict({"request": {"user": reporting_user}}),
             variable_values=BeneDict(
                 {
                     "objectId": str(user.username),
@@ -826,7 +827,7 @@ class GraphQLTest(TestCase):
 
         space = make_community(creator=space_user)
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             """
             mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
                 reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
@@ -834,7 +835,7 @@ class GraphQLTest(TestCase):
                 }
             }
             """,
-            context_value=BeneDict({"user": reporting_user}),
+            context_value=BeneDict({"request": {"user": reporting_user}}),
             variable_values=BeneDict(
                 {
                     "objectId": str(space.id),
@@ -847,7 +848,7 @@ class GraphQLTest(TestCase):
         self.assertIsNone(response.get("errors"))
         self.assertEqual(response["data"]["reportContent"]["success"], True)
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             f"""
             query {{
                 spaceById(id: "{space.id}") {{
@@ -855,11 +856,11 @@ class GraphQLTest(TestCase):
                 }}
             }}
             """,
-            context_value=BeneDict({"user": reporting_user}),
+            context_value=BeneDict({"request": {"user": reporting_user}}),
         )
         self.assertIsNone(response["data"]["spaceById"])
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             f"""
             query {{
                 spaceById(id: "{space.id}") {{
@@ -867,7 +868,7 @@ class GraphQLTest(TestCase):
                 }}
             }}
             """,
-            context_value=BeneDict({"user": other_user}),
+            context_value=BeneDict({"request": {"user": other_user}}),
         )
         self.assertIsNone(response.get("errors"))
         self.assertEqual(len(response["data"]["spaceById"]), 1)
@@ -875,7 +876,7 @@ class GraphQLTest(TestCase):
 
         approve_verify_moderated_object(space.id, space_user)
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             f"""
             query {{
                 spaceById(id: "{space.id}") {{
@@ -883,7 +884,7 @@ class GraphQLTest(TestCase):
                 }}
             }}
             """,
-            context_value=BeneDict({"user": other_user}),
+            context_value=BeneDict({"request": {"user": other_user}}),
         )
         self.assertIsNone(response["data"]["spaceById"])
 
@@ -904,7 +905,7 @@ class GraphQLTest(TestCase):
         )
         blocked_post.comment(text=f"comment text 1", commenter=other_user)
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             """
             query {
                 userSuggestions(limit:100) {
@@ -915,11 +916,11 @@ class GraphQLTest(TestCase):
                 }
             }
             """,
-            context_value=BeneDict({"user": blocking_user}),
+            context_value=BeneDict({"request": {"user": blocking_user}}),
         )
         self.assertEqual(response["data"]["userSuggestions"]["totalResults"], 2)
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             """
             mutation ($userId: UUID!) {
                 blockUser(userId: $userId) {
@@ -927,7 +928,7 @@ class GraphQLTest(TestCase):
                 }
             }
             """,
-            context_value=BeneDict({"user": blocking_user}),
+            context_value=BeneDict({"request": {"user": blocking_user}}),
             variable_values=BeneDict(
                 {
                     "userId": blocked_user.username,
@@ -951,7 +952,7 @@ class GraphQLTest(TestCase):
         response_after_blocking = self.get_user_with_id_raw(blocking_user, blocked_user)
         self.assertIsNone(response_after_blocking["data"]["userById"])
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             """
             query {
                 userSuggestions(limit:100) {
@@ -962,7 +963,7 @@ class GraphQLTest(TestCase):
                 }
             }
             """,
-            context_value=BeneDict({"user": blocking_user}),
+            context_value=BeneDict({"request": {"user": blocking_user}}),
         )
         self.assertEqual(response["data"]["userSuggestions"]["totalResults"], 1)
         self.assertEqual(response["data"]["userSuggestions"]["data"][0]["fullName"], "OtherUser")
@@ -975,7 +976,7 @@ class GraphQLTest(TestCase):
         return response["data"]["userById"]
 
     def get_user_with_id_raw(self, user_to_get, calling_user=None):
-        return self.graphql.execute(
+        return schema.execute_sync(
             f"""
             query {{
                 userById(id: "{user_to_get.username}") {{
@@ -983,7 +984,7 @@ class GraphQLTest(TestCase):
                 }}
             }}
             """,
-            context_value=BeneDict({"user": calling_user or AnonymousUser}),
+            context_value=BeneDict({"request": {"user": calling_user or AnonymousUser}}),
         )
 
     def get_post_with_id_data(self, post, user=None):
@@ -992,7 +993,7 @@ class GraphQLTest(TestCase):
         return response["data"]["postById"]
 
     def get_post_with_id_raw(self, post, user=None):
-        return self.graphql.execute(
+        return schema.execute_sync(
             f"""
             query {{
                 postById(id: "{post.id}") {{
@@ -1033,7 +1034,7 @@ class GraphQLTest(TestCase):
                 }}
             }}
             """,
-            context_value=BeneDict({"user": user or AnonymousUser}),
+            context_value=BeneDict({"request": {"user": user or AnonymousUser}}),
         )
 
     def mutate_update_space_user_connection(
@@ -1044,7 +1045,7 @@ class GraphQLTest(TestCase):
         connect_action: UpdateConnectionAction,
         user_id: Optional[UUID] = None,
     ):
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             """
             mutation ($spaceId: UUID!, $userId: UUID, $type: SpaceUserConnectionType!, $action: UpdateConnectionAction!){
                 updateSpaceUserConnection(spaceId: $spaceId, 
@@ -1067,7 +1068,7 @@ class GraphQLTest(TestCase):
                 }
             }
             """,
-            context_value=BeneDict({"user": auth_user}),
+            context_value=BeneDict({"request": {"user": auth_user}}),
             variable_values=BeneDict(
                 {
                     "spaceId": str(space_id),
@@ -1082,7 +1083,7 @@ class GraphQLTest(TestCase):
         return response["data"]["updateSpaceUserConnection"]
 
     def get_space_for_user(self, user: User, space: Community):
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             """
             query($id:UUID) {
                 spaceById(id:$id) {
@@ -1103,14 +1104,14 @@ class GraphQLTest(TestCase):
             }
             """,
             variables={"id": str(space.id)},
-            context=BeneDict({"user": user}),
+            context=BeneDict({"request": {"user": user}}),
         )
 
         self.assertIsNone(response.get("errors"))
         return response["data"]["spaceById"]
 
     def get_notifications(self, user):
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             """
             query {
                 notifications {
@@ -1140,7 +1141,7 @@ class GraphQLTest(TestCase):
                 }
             }
             """,
-            context_value=BeneDict({"user": user}),
+            context_value=BeneDict({"request": {"user": user}}),
         )
         self.assertIsNone(response.get("errors"))
         return response["data"]["notifications"]
@@ -1155,16 +1156,16 @@ class GraphQLTest(TestCase):
         user = make_user()
 
         validate_space_mutation = """
-            mutation test($input: ValidateSpaceInput) {
+            mutation test($input: ValidateSpaceInput!) {
                 validateSpace(input: $input) {
                     success
                 }
             }
             """
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             validate_space_mutation,
-            context_value=BeneDict({"user": user}),
+            context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": {}},
         )
 
@@ -1179,7 +1180,7 @@ class GraphQLTest(TestCase):
         empty_image = SimpleUploadedFile(name="cover.jpg", content="")
 
         validate_space_mutation = """
-            mutation test($input: ValidateSpaceInput) {
+            mutation test($input: ValidateSpaceInput!) {
                 validateSpace(input: $input) {
                     success
                 }
@@ -1215,9 +1216,9 @@ class GraphQLTest(TestCase):
         ]
 
         for testCase in expectedErrors:
-            response = self.graphql.execute(
+            response = schema.execute_sync(
                 validate_space_mutation,
-                context_value=BeneDict({"user": user}),
+                context_value=BeneDict({"request": {"user": user}}),
                 variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
             )
 
@@ -1236,7 +1237,7 @@ class GraphQLTest(TestCase):
         sdg_ids = [str(make_sdg().id) for _ in range(2)]
         location = "Hamburg, Germany"
         validate_space_mutation = """
-            mutation test($input: ValidateSpaceInput) {
+            mutation test($input: ValidateSpaceInput!) {
                 validateSpace(input: $input) {
                     success
                 }
@@ -1254,9 +1255,9 @@ class GraphQLTest(TestCase):
         ]
 
         for input in valid_inputs:
-            response = self.graphql.execute(
+            response = schema.execute_sync(
                 validate_space_mutation,
-                context_value=BeneDict({"user": user}),
+                context_value=BeneDict({"request": {"user": user}}),
                 variable_values={"input": input},
             )
 
@@ -1265,7 +1266,7 @@ class GraphQLTest(TestCase):
 
     def test_can_not_validate_space_if_not_logged_in(self):
         validate_space_mutation = """
-            mutation test($input: ValidateSpaceInput) {
+            mutation test($input: ValidateSpaceInput!) {
                 validateSpace(input: $input) {
                     success
                 }
@@ -1273,10 +1274,10 @@ class GraphQLTest(TestCase):
             """
         valid_input = {"title": "valid", "description": "valid"}
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             validate_space_mutation,
             variable_values={"input": valid_input},
-            context_value=BeneDict({"user": AnonymousUser}),
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
         )
 
         self.assertIsNone(response["data"]["validateSpace"])
@@ -1290,7 +1291,7 @@ class GraphQLTest(TestCase):
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
 
         create_space_mutation = """
-            mutation test($input: CreateSpaceInput) {
+            mutation test($input: CreateSpaceInput!) {
                 createSpace(input: $input) {
                     id
                 }
@@ -1317,9 +1318,9 @@ class GraphQLTest(TestCase):
         ]
 
         for testCase in expectedErrors:
-            response = self.graphql.execute(
+            response = schema.execute_sync(
                 create_space_mutation,
-                context_value=BeneDict({"user": user}),
+                context_value=BeneDict({"request": {"user": user}}),
                 variable_values={"input": testCase["input"]},
             )
 
@@ -1334,7 +1335,7 @@ class GraphQLTest(TestCase):
         empty_image = SimpleUploadedFile(name="cover.jpg", content="")
 
         create_space_mutation = """
-            mutation test($input: CreateSpaceInput) {
+            mutation test($input: CreateSpaceInput!) {
                 createSpace(input: $input) {
                     id
                 }
@@ -1369,9 +1370,9 @@ class GraphQLTest(TestCase):
         ]
 
         for testCase in expectedErrors:
-            response = self.graphql.execute(
+            response = schema.execute_sync(
                 create_space_mutation,
-                context_value=BeneDict({"user": user}),
+                context_value=BeneDict({"request": {"user": user}}),
                 variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
             )
 
@@ -1388,7 +1389,7 @@ class GraphQLTest(TestCase):
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
 
         create_space_mutation = """
-            mutation test($input: CreateSpaceInput) {
+            mutation test($input: CreateSpaceInput!) {
                 createSpace(input: $input) {
                     id
                     name
@@ -1405,9 +1406,9 @@ class GraphQLTest(TestCase):
             """
         valid_input = {"title": "valid", "description": "valid", "topics": topic_ids, "cover": valid_image}
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             create_space_mutation,
-            context_value=BeneDict({"user": user}),
+            context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": valid_input},
         )
 
@@ -1435,7 +1436,7 @@ class GraphQLTest(TestCase):
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
 
         create_space_mutation = """
-            mutation test($input: CreateSpaceInput) {
+            mutation test($input: CreateSpaceInput!) {
                 createSpace(input: $input) {
                     id
                 }
@@ -1443,10 +1444,10 @@ class GraphQLTest(TestCase):
             """
         valid_input = {"title": "valid", "description": "valid", "topics": valid_topics, "cover": valid_image}
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             create_space_mutation,
             variable_values={"input": valid_input},
-            context_value=BeneDict({"user": AnonymousUser}),
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
         )
 
         self.assertIsNone(response["data"]["createSpace"])
@@ -1460,7 +1461,7 @@ class GraphQLTest(TestCase):
         empty_image = SimpleUploadedFile(name="cover.jpg", content="")
 
         update_space_mutation = """
-            mutation test($input: UpdateSpaceInput) {
+            mutation test($input: UpdateSpaceInput!) {
                 updateSpace(input: $input) {
                     id
                 }
@@ -1506,9 +1507,9 @@ class GraphQLTest(TestCase):
         ]
 
         for testCase in expectedErrors:
-            response = self.graphql.execute(
+            response = schema.execute_sync(
                 update_space_mutation,
-                context_value=BeneDict({"user": user}),
+                context_value=BeneDict({"request": {"user": user}}),
                 variable_values={
                     "input": base_input | {testCase["field"]: testCase["value"]},
                 },
@@ -1531,9 +1532,9 @@ class GraphQLTest(TestCase):
             }
             """
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             update_space_mutation,
-            context_value=BeneDict({"user": user}),
+            context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": {"title": "new title"}},
         )
 
@@ -1579,9 +1580,9 @@ class GraphQLTest(TestCase):
         ]
 
         for input in valid_inputs:
-            response = self.graphql.execute(
+            response = schema.execute_sync(
                 update_space_mutation,
-                context_value=BeneDict({"user": user}),
+                context_value=BeneDict({"request": {"user": user}}),
                 variable_values={"input": base_input | input},
             )
 
@@ -1621,9 +1622,9 @@ class GraphQLTest(TestCase):
             "location": location,
         }
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             update_space_mutation,
-            context_value=BeneDict({"user": user}),
+            context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": input},
         )
 
@@ -1654,9 +1655,9 @@ class GraphQLTest(TestCase):
             }
             """
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             update_space_mutation,
-            context_value=BeneDict({"user": user}),
+            context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": {"id": str(community.id), "title": "new title"}},
         )
 
@@ -1675,10 +1676,10 @@ class GraphQLTest(TestCase):
             }
             """
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             update_space_mutation,
             variable_values={"input": {"id": str(community.id), "title": "new title"}},
-            context_value=BeneDict({"user": AnonymousUser}),
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
         )
 
         self.assertIsNone(response["data"]["updateSpace"])
@@ -1696,9 +1697,9 @@ class GraphQLTest(TestCase):
             }
             """
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             delete_space_mutation,
-            context_value=BeneDict({"user": user}),
+            context_value=BeneDict({"request": {"user": user}}),
             variable_values={"id": str(community.id)},
         )
         print(response)
@@ -1718,10 +1719,10 @@ class GraphQLTest(TestCase):
             }
             """
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             delete_space_mutation,
             variable_values={"id": str(community.id)},
-            context_value=BeneDict({"user": AnonymousUser}),
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
         )
         print(response)
 
@@ -1741,10 +1742,10 @@ class GraphQLTest(TestCase):
             }
             """
 
-        response = self.graphql.execute(
+        response = schema.execute_sync(
             delete_space_mutation,
             variable_values={"id": str(community.id)},
-            context_value=BeneDict({"user": user}),
+            context_value=BeneDict({"request": {"user": user}}),
         )
         print(response)
 

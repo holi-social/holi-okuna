@@ -519,12 +519,12 @@ class CreateSpaceInput:
 @gql.input
 class UpdateSpaceInput:
     id: uuid.UUID
-    title: str
-    description: str
-    topics: List[uuid.UUID]
-    cover: Optional[Upload]
-    avatar: Optional[Upload]
-    sdgs: List[uuid.UUID]
+    title: Optional[str] = None
+    description: Optional[str] = None
+    topics: Optional[List[Optional[uuid.UUID]]] = None
+    cover: Optional[Upload] = None
+    avatar: Optional[Upload] = None
+    sdgs: Optional[List[Optional[uuid.UUID]]] = None
     location: Optional[str] = None
 
 
