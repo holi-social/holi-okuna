@@ -42,7 +42,7 @@ class ConnectionsAPITests(OpenbookAPITestCase):
 
         circle = mixer.blend(Circle, creator=user)
 
-        users_to_connect = mixer.cycle(5).blend(User)
+        users_to_connect = mixer.cycle(5).blend(User, username=uuid.uuid4)
         user_to_connect_ids = [user_to_connect.pk for user_to_connect in users_to_connect]
 
         for user_to_connect in users_to_connect:

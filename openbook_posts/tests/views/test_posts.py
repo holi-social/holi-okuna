@@ -932,7 +932,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         lists_to_follow_in = mixer.cycle(amount_of_users_to_follow).blend(List, creator=user)
 
-        users_to_follow = mixer.cycle(amount_of_users_to_follow).blend(User)
+        users_to_follow = mixer.cycle(amount_of_users_to_follow).blend(User, username=uuid.uuid4)
         users_to_follow_posts_ids = []
 
         for index, user_to_follow in enumerate(users_to_follow):
@@ -944,7 +944,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         circles_to_connect_in = mixer.cycle(amount_of_users_to_connect).blend(Circle, creator=user)
 
-        users_to_connect = mixer.cycle(amount_of_users_to_connect).blend(User)
+        users_to_connect = mixer.cycle(amount_of_users_to_connect).blend(User, username=uuid.uuid4)
         users_to_connect_posts_ids = []
 
         for index, user_to_connect in enumerate(users_to_connect):
@@ -991,7 +991,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         lists_to_follow_in = mixer.cycle(amount_of_users_to_follow).blend(List, creator=user)
 
-        users_to_follow = mixer.cycle(amount_of_users_to_follow).blend(User)
+        users_to_follow = mixer.cycle(amount_of_users_to_follow).blend(User, username=uuid.uuid4)
 
         for index, user_to_follow in enumerate(users_to_follow):
             user.follow_user(user_to_follow, lists_ids=[lists_to_follow_in[index].pk])
@@ -1001,7 +1001,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         circles_to_connect_in = mixer.cycle(amount_of_users_to_connect).blend(Circle, creator=user)
 
-        users_to_connect = mixer.cycle(amount_of_users_to_connect).blend(User)
+        users_to_connect = mixer.cycle(amount_of_users_to_connect).blend(User, username=uuid.uuid4)
 
         for index, user_to_connect in enumerate(users_to_connect):
             user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[circles_to_connect_in[index].pk])
@@ -1049,7 +1049,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         lists_to_follow_in = mixer.cycle(amount_of_users_to_follow).blend(List, creator=user)
 
-        users_to_follow = mixer.cycle(amount_of_users_to_follow).blend(User)
+        users_to_follow = mixer.cycle(amount_of_users_to_follow).blend(User, username=uuid.uuid4)
 
         for index, user_to_follow in enumerate(users_to_follow):
             user.follow_user(user_to_follow, lists_ids=[lists_to_follow_in[index].pk])
@@ -1059,7 +1059,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         circles_to_connect_in = mixer.cycle(amount_of_users_to_connect).blend(Circle, creator=user)
 
-        users_to_connect = mixer.cycle(amount_of_users_to_connect).blend(User)
+        users_to_connect = mixer.cycle(amount_of_users_to_connect).blend(User, username=uuid.uuid4)
 
         for index, user_to_connect in enumerate(users_to_connect):
             user.connect_with_user_with_id(user_to_connect.pk, circles_ids=[circles_to_connect_in[index].pk])
@@ -1111,7 +1111,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         lists_to_follow_in = mixer.cycle(amount_of_users_to_follow).blend(List, creator=user)
 
-        users_to_follow = mixer.cycle(amount_of_users_to_follow).blend(User)
+        users_to_follow = mixer.cycle(amount_of_users_to_follow).blend(User, username=uuid.uuid4)
         users_to_follow_posts_ids = []
 
         for index, user_to_follow in enumerate(users_to_follow):
@@ -1123,7 +1123,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         circles_to_connect_in = mixer.cycle(amount_of_users_to_connect).blend(Circle, creator=user)
 
-        users_to_connect = mixer.cycle(amount_of_users_to_connect).blend(User)
+        users_to_connect = mixer.cycle(amount_of_users_to_connect).blend(User, username=uuid.uuid4)
         users_to_connect_posts_ids = []
 
         for index, user_to_connect in enumerate(users_to_connect):
@@ -1169,7 +1169,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         lists_to_follow_in = mixer.cycle(amount_of_users_to_follow).blend(List, creator=user)
 
-        users_to_follow = mixer.cycle(amount_of_users_to_follow).blend(User)
+        users_to_follow = mixer.cycle(amount_of_users_to_follow).blend(User, username=uuid.uuid4)
         users_to_follow_posts_ids = []
 
         for index, user_to_follow in enumerate(users_to_follow):
@@ -1181,7 +1181,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         circles_to_connect_in = mixer.cycle(amount_of_users_to_connect).blend(Circle, creator=user)
 
-        users_to_connect = mixer.cycle(amount_of_users_to_connect).blend(User)
+        users_to_connect = mixer.cycle(amount_of_users_to_connect).blend(User, username=uuid.uuid4)
         users_to_connect_posts_ids = []
 
         for index, user_to_connect in enumerate(users_to_connect):
