@@ -195,7 +195,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
             {
                 "exclude": Community.EXCLUDE_COMMUNITY_ADMINISTRATORS_KEYWORD,
             },
-            **headers
+            **headers,
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
@@ -240,7 +240,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
             {
                 "exclude": Community.EXCLUDE_COMMUNITY_MODERATORS_KEYWORD,
             },
-            **headers
+            **headers,
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
@@ -299,7 +299,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
                     ]
                 ),
             },
-            **headers
+            **headers,
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
@@ -739,7 +739,7 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
                 "query": similar_username,
                 "exclude": Community.EXCLUDE_COMMUNITY_ADMINISTRATORS_KEYWORD,
             },
-            **headers
+            **headers,
         )
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
@@ -794,7 +794,7 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
                 "query": similar_username,
                 "exclude": Community.EXCLUDE_COMMUNITY_MODERATORS_KEYWORD,
             },
-            **headers
+            **headers,
         )
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
@@ -848,7 +848,7 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
                     ]
                 ),
             },
-            **headers
+            **headers,
         )
 
         self.assertEqual(status.HTTP_200_OK, response.status_code)
