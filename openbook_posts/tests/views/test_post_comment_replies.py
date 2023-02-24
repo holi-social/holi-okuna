@@ -59,7 +59,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), amount_of_replies)
@@ -101,7 +101,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post.save()
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), amount_of_replies)
@@ -143,7 +143,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post.save()
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), amount_of_replies)
@@ -190,7 +190,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         post.save()
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), amount_of_replies)
@@ -229,7 +229,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_can_retrieve_comment_replies_from_private_community_part_of_post(self):
         user = make_user()
@@ -266,7 +266,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), amount_of_replies)
@@ -301,7 +301,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), amount_of_replies)
@@ -334,7 +334,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), amount_of_replies)
@@ -370,7 +370,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), amount_of_replies)
@@ -411,7 +411,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_comment_replies), amount_of_replies)
@@ -446,7 +446,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cannot_retrieve_comment_replies_from_blocked_user(self):
         """should not be able to retrieve the comment replies from a blocked user"""
@@ -471,7 +471,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -499,7 +499,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -530,7 +530,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -561,7 +561,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -594,7 +594,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -629,7 +629,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_comment_replies = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -650,7 +650,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(post, post_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             PostComment.objects.filter(
                 parent_comment_id=post_comment.pk,
@@ -679,7 +679,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(post, post_comment_reply)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertFalse(
             PostComment.objects.filter(
                 parent_comment_id=post_comment_reply.pk,
@@ -704,7 +704,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(post, post_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(post_id=post.pk, text=reply_comment_text).count() == 0)
 
     def test_can_reply_comment_in_connected_user_public_post(self):
@@ -727,7 +727,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(connected_user_post, post_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             PostComment.objects.filter(post_id=connected_user_post.pk, text=reply_comment_text).count() == 1
         )
@@ -752,7 +752,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(post, post_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertFalse(
             PostComment.objects.filter(
                 post_id=post.pk,
@@ -783,7 +783,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(post, post_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertFalse(
             PostComment.objects.filter(
                 post_id=post.pk,
@@ -817,7 +817,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(post, post_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertFalse(
             PostComment.objects.filter(
                 post_id=post.pk,
@@ -851,7 +851,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(post, post_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertFalse(PostComment.objects.filter(post_id=post.pk, text=reply_comment_text).exists())
 
     def test_can_comment_reply_in_blocked_community_staff_member_post(self):
@@ -875,7 +875,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(post, post_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(post_id=post.pk, text=reply_comment_text).count() == 1)
 
     def test_can_comment_reply_in_blocking_community_staff_member_post(self):
@@ -899,7 +899,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(post, post_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(post_id=post.pk, text=reply_comment_text).count() == 1)
 
     def test_owner_cannot_comment_reply_in_community_post_with_disabled_comments(self):
@@ -920,7 +920,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(post, post_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertFalse(
             PostComment.objects.filter(
                 post_id=post.pk,
@@ -951,7 +951,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(post, post_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertFalse(
             PostComment.objects.filter(
                 post_id=post.pk,
@@ -988,7 +988,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
             text=reply_comment_text,
             commenter=admin,
         )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             PostComment.objects.filter(
                 post_id=post.pk,
@@ -1029,7 +1029,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
             text=reply_comment_text,
             commenter=moderator,
         )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             PostComment.objects.filter(
                 post_id=post.pk,
@@ -1057,7 +1057,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(post, post_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             PostComment.objects.filter(
                 post_id=post.pk,
@@ -1086,7 +1086,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(post, post_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertFalse(
             PostComment.objects.filter(
                 post_id=post.pk,
@@ -1126,7 +1126,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
             text=reply_comment_text,
             commenter=moderator,
         )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             PostComment.objects.filter(
                 post_id=post.pk,
@@ -1162,7 +1162,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
             text=reply_comment_text,
             commenter=admin,
         )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             PostComment.objects.filter(
                 post_id=post.pk,
@@ -1197,7 +1197,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(connected_user_post, post_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             PostComment.objects.filter(
                 post_id=connected_user_post.pk,
@@ -1231,7 +1231,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(connected_user_post, post_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(
             PostComment.objects.filter(
@@ -1261,7 +1261,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(foreign_user_post, post_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             PostComment.objects.filter(
                 post_id=foreign_user_post.pk,
@@ -1293,7 +1293,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(followed_user_post, post_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(
             PostComment.objects.filter(
                 post_id=followed_user_post.pk,
@@ -1329,7 +1329,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(post, post_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(
             PostComment.objects.filter(
                 post_id=post.pk,
@@ -1886,7 +1886,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(post, parent_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             PostComment.objects.filter(
                 post_id=post.pk,
@@ -1923,7 +1923,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(post, parent_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         post_comment = PostComment.objects.get(text=reply_comment_text, commenter_id=user.pk)
 
@@ -1949,7 +1949,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(post, parent_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             PostComment.objects.filter(
                 post_id=post.pk,
@@ -1984,7 +1984,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         url = self._get_url(post, parent_comment)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             PostComment.objects.filter(
                 post_id=post.pk,
@@ -2025,7 +2025,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         response_ids = [reply["id"] for reply in parsed_response]
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(len(parsed_response) == amount_of_replies)
 
         for comment in comment_replies:
@@ -2055,7 +2055,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         response_ids = [reply["id"] for reply in parsed_response]
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(len(parsed_response) == amount_of_replies)
 
         for comment in comment_replies:
@@ -2089,7 +2089,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         response_ids = [reply["id"] for reply in parsed_response]
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         for returned_id in response_ids:
             self.assertTrue(returned_id < max_id)
 
@@ -2121,7 +2121,7 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         response_ids = [reply["id"] for reply in parsed_response]
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         for returned_id in response_ids:
             self.assertTrue(returned_id >= min_id)
 
@@ -2160,12 +2160,12 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
                 "count_max": count_max,
                 "count_min": count_min,
             },
-            **headers
+            **headers,
         )
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         response_ids = [reply["id"] for reply in parsed_response]
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(len(parsed_response) == (count_max + count_min))
         replies_after_min_id = [id for id in response_ids if id >= min_id]
         replies_before_max_id = [id for id in response_ids if id < max_id]
@@ -2210,12 +2210,12 @@ class PostCommentRepliesAPITests(OpenbookAPITestCase):
                 "count_min": count_min,
                 "sort": "ASC",
             },
-            **headers
+            **headers,
         )
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         response_ids = [reply["id"] for reply in parsed_response]
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(len(parsed_response) == (count_max + count_min))
         self.assertTrue(sorted(response_ids) == response_ids)
         replies_after_min_id = [id for id in response_ids if id >= min_id]

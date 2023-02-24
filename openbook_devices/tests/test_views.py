@@ -35,7 +35,7 @@ class DevicesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.put(url, request_body, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(Device.objects.filter(uuid=device_uuid, owner=user).exists())
 
@@ -55,7 +55,7 @@ class DevicesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.put(url, request_body, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(Device.objects.filter(uuid=device_uuid, owner=user).exists())
 
@@ -74,7 +74,7 @@ class DevicesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_devices = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -99,7 +99,7 @@ class DevicesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(Device.objects.filter(owner=user).exists())
 
@@ -124,7 +124,7 @@ class DeviceItemAPITests(OpenbookAPITestCase):
         url = self._get_url(device_uuid)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_device = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -143,7 +143,7 @@ class DeviceItemAPITests(OpenbookAPITestCase):
         url = self._get_url(device_uuid)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, f"Response: {response.data}")
 
     def test_can_delete_own_device(self):
         """should be able to delete an own device and return 200"""
@@ -157,7 +157,7 @@ class DeviceItemAPITests(OpenbookAPITestCase):
         url = self._get_url(device_uuid)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(Device.objects.filter(uuid=device_uuid).exists())
 
@@ -174,7 +174,7 @@ class DeviceItemAPITests(OpenbookAPITestCase):
         url = self._get_url(device_uuid)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, f"Response: {response.data}")
 
         self.assertTrue(Device.objects.filter(uuid=device_uuid).exists())
 
@@ -192,7 +192,7 @@ class DeviceItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.patch(url, request_body, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(Device.objects.filter(uuid=device.uuid, name=new_device_name).exists())
 
@@ -212,7 +212,7 @@ class DeviceItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.patch(url, request_body, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             Device.objects.filter(
@@ -238,7 +238,7 @@ class DeviceItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.patch(url, request_body, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, f"Response: {response.data}")
 
         self.assertFalse(
             Device.objects.filter(

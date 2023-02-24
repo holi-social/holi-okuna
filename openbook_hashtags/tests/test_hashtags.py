@@ -48,7 +48,7 @@ class SearchHashtagsAPITests(OpenbookAPITestCase):
 
             url = self._get_url()
             response = self.client.get(url, {"query": final_query}, **headers)
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertEqual(len(parsed_response), 1)
             retrieved_hashtag = parsed_response[0]
@@ -71,7 +71,7 @@ class SearchHashtagsAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, {"query": hashtag.name}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(len(parsed_response), 1)
 
@@ -89,7 +89,7 @@ class SearchHashtagsAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, {"query": hashtag.name}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(len(parsed_response), 0)
 
@@ -116,7 +116,7 @@ class SearchHashtagsAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, {"query": hashtag.name}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(len(parsed_response), 0)
 

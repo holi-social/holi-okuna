@@ -48,7 +48,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -69,7 +69,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -95,7 +95,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
     def test_non_member_cannot_update_community(self):
         """a non member of a community should not be able to update a community"""
@@ -113,7 +113,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -137,7 +137,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -165,7 +165,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -188,7 +188,7 @@ class CommunityAPITests(OpenbookAPITestCase):
         response = self.client.patch(url, data, **headers)
 
         # Request is successful as name parameter gets ignored
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -208,7 +208,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -228,7 +228,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         community.refresh_from_db()
 
         self.assertEqual(community.type, "T")
@@ -247,7 +247,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -267,7 +267,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -290,7 +290,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -310,7 +310,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -330,7 +330,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -350,7 +350,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -370,7 +370,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -390,7 +390,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -409,7 +409,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -428,7 +428,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -447,7 +447,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -466,7 +466,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -493,7 +493,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -518,7 +518,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -536,7 +536,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(Community.objects.filter(pk=community.pk).exists())
 
@@ -559,7 +559,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(Community.objects.filter(pk=community.pk).exists())
 
@@ -582,7 +582,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(Community.objects.filter(pk=community.pk).exists())
 
@@ -602,7 +602,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(Community.objects.filter(pk=community.pk).exists())
 
@@ -620,7 +620,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(Community.objects.filter(pk=community.pk).exists())
 
@@ -649,7 +649,7 @@ class CommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, f"Response: {response.data}")
 
     def _get_url(self, community_name):
         return reverse("community", kwargs={"community_name": community_name})
@@ -677,7 +677,7 @@ class CommunityAvatarAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         user.refresh_from_db()
 
@@ -695,7 +695,7 @@ class CommunityAvatarAPITests(OpenbookAPITestCase):
 
         response = self.client.delete(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -727,7 +727,7 @@ class CommunityCoverAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         user.refresh_from_db()
 
@@ -745,7 +745,7 @@ class CommunityCoverAPITests(OpenbookAPITestCase):
 
         response = self.client.delete(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         community.refresh_from_db()
 
@@ -772,7 +772,7 @@ class FavoriteCommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user.has_favorite_community_with_name(community.name))
 
@@ -790,7 +790,7 @@ class FavoriteCommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(user.has_favorite_community_with_name(community.name))
 
@@ -809,7 +809,7 @@ class FavoriteCommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(user.has_favorite_community_with_name(community.name))
 
@@ -828,7 +828,7 @@ class FavoriteCommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.delete(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(user.has_favorite_community_with_name(community.name))
 
@@ -846,7 +846,7 @@ class FavoriteCommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.delete(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user.has_favorite_community_with_name(community.name))
 
@@ -871,7 +871,7 @@ class ExcludeTopPostsCommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, f"Response: {response.data}")
         self.assertTrue(user.has_excluded_community_with_name_from_top_posts(community_name=community.name))
 
     def test_cannot_exclude_private_community(self):
@@ -886,7 +886,7 @@ class ExcludeTopPostsCommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertFalse(user.has_excluded_community_with_name_from_top_posts(community_name=community.name))
 
     def test_cannot_exclude_community_already_excluded(self):
@@ -902,7 +902,7 @@ class ExcludeTopPostsCommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(user.has_excluded_community_with_name_from_top_posts(community_name=community.name))
 
     def test_can_remove_excluded_community(self):
@@ -918,7 +918,7 @@ class ExcludeTopPostsCommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.delete(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, f"Response: {response.data}")
         self.assertFalse(user.has_excluded_community_with_name_from_top_posts(community_name=community.name))
 
     def test_cannot_remove_exclusion_for_community_if_not_excluded(self):
@@ -933,7 +933,7 @@ class ExcludeTopPostsCommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.delete(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertFalse(user.has_excluded_community_with_name_from_top_posts(community_name=community.name))
 
     def _get_url(self, community_name):
@@ -960,7 +960,7 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.put(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         subscription = CommunityNotificationsSubscription.objects.get(subscriber=community_member)
         self.assertEqual(subscription.community.name, community.name)
         self.assertTrue(subscription.new_post_notifications)
@@ -978,7 +978,7 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.put(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
     def test_should_not_be_able_to_subscribe_to_notifications_for_community_if_banned(
         self,
@@ -996,7 +996,7 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.put(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
     def test_should_not_be_able_to_subscribe_to_notifications_for_community_if_already_subscribed(
         self,
@@ -1017,7 +1017,7 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
             subscriber=community_member, community=community
         )
         self.assertEqual(len(subscriptions), 1)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
     def test_should_be_able_to_unsubscribe_to_notifications_for_community_if_member(
         self,
@@ -1034,7 +1034,7 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(
             CommunityNotificationsSubscription.objects.get(
                 subscriber=community_member, community=community
@@ -1054,7 +1054,7 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_should_not_be_able_to_unsubscribe_to_notifications_for_community_if_banned(
         self,
@@ -1073,7 +1073,7 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_should_not_be_able_to_unsubscribe_to_notifications_for_community_if_already_subscribed(
         self,
@@ -1094,7 +1094,7 @@ class SubscribeToCommunityNotificationsAPITests(OpenbookAPITestCase):
         )
         self.assertEqual(len(subscriptions), 1)
         self.assertFalse(subscriptions[0].new_post_notifications)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
     def _get_url(self, community_name):
         return reverse(

@@ -67,7 +67,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         draft_post.refresh_from_db()
 
@@ -112,7 +112,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
                 response = self.client.put(url, data, **headers, format="multipart")
 
-                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
                 draft_post.refresh_from_db()
 
@@ -152,7 +152,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertFalse(post.has_media())
 
     def test_cannot_add_media_to_draft_if_exceeds_settings_maximum(self):
@@ -176,7 +176,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_can_retrieve_post_empty_media_if_no_media(self):
         """should be able to retrieve a posts empty media if the pos has no media"""
@@ -192,7 +192,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -216,7 +216,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -245,7 +245,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -277,7 +277,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -307,7 +307,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -339,7 +339,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -371,7 +371,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -403,7 +403,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -435,7 +435,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -469,7 +469,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -504,7 +504,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -538,7 +538,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cant_retrieve_pending_connection_user_user_encircled_post_media_video(
         self,
@@ -564,7 +564,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     @unittest.skip("TODO HOLI-1425")
     def test_can_retrieve_public_community_post_media_image(self):
@@ -589,7 +589,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -622,7 +622,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -658,7 +658,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -694,7 +694,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_media = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -724,7 +724,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cannot_retrieve_private_community_not_part_of_post_media_video(self):
         """should not be able to retrieve an private_community not part of post media video"""
@@ -746,7 +746,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def _compare_response_media_with_post_media(self, response_media, post_media):
         for i in range(0, len(post_media)):

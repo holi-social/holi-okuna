@@ -86,7 +86,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(PostCommentReaction.objects.filter(id=post_comment_reaction.pk).count() == 0)
 
     def test_cannot_delete_foreign_reaction_in_foreign_public_post_comment(self):
@@ -116,7 +116,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostCommentReaction.objects.filter(id=post_comment_reaction.pk).count() == 1)
 
     def test_cannot_delete_reaction_in_closed_community_post_comment_when_not_creator(
@@ -157,7 +157,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostCommentReaction.objects.filter(id=post_comment_reaction.pk).count() == 1)
 
     def test_cant_delete_reaction_in_closed_community_post_comment_if_creator(self):
@@ -229,7 +229,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(PostCommentReaction.objects.filter(id=post_comment_reaction.pk).count() == 0)
 
     def test_cannot_delete_foreign_reaction_in_connected_user_public_post_comment(self):
@@ -264,7 +264,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostCommentReaction.objects.filter(id=post_comment_reaction.pk).count() == 1)
 
     def test_can_delete_own_reaction_in_connected_user_encircled_post_comment_part_of(
@@ -300,7 +300,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(PostCommentReaction.objects.filter(id=post_comment_reaction.pk).count() == 0)
 
     def test_cannot_delete_foreign_reaction_in_connected_user_encircled_post_comment_part_of(
@@ -340,7 +340,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostCommentReaction.objects.filter(id=post_comment_reaction.pk).count() == 1)
 
     def test_cannot_delete_foreign_reaction_in_connected_user_encircled_post_comment_not_part_of(
@@ -377,7 +377,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostCommentReaction.objects.filter(id=post_comment_reaction.pk).count() == 1)
 
     def test_can_delete_own_reaction_in_followed_user_public_post_comment(self):
@@ -409,7 +409,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(PostCommentReaction.objects.filter(id=post_comment_reaction.pk).count() == 0)
 
     def test_cannot_delete_foreign_reaction_in_followed_user_public_post_comment(self):
@@ -443,7 +443,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostCommentReaction.objects.filter(id=post_comment_reaction.pk).count() == 1)
 
     def test_cannot_delete_foreign_reaction_in_followed_user_encircled_post_comment(
@@ -482,7 +482,7 @@ class PostCommentReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostCommentReaction.objects.filter(id=post_comment_reaction.pk).count() == 1)
 
     def test_post_comment_reaction_notification_is_deleted_when_deleting_reaction(self):

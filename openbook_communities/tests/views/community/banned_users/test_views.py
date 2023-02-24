@@ -41,7 +41,7 @@ class CommunityBannedUsersAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cannot_retrieve_banned_users_of_public_community(self):
         """should not be able to retrieve the banned users of a public community and return 400"""
@@ -60,7 +60,7 @@ class CommunityBannedUsersAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cannot_retrieve_banned_users_of_community_member_of(self):
         """should not be able to retrieve the banned users of a community member of and return 400"""
@@ -81,7 +81,7 @@ class CommunityBannedUsersAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_can_retrieve_banned_users_of_community_if_admin(self):
         """should be able to retrieve the banned users of a community if is an admin and return 200"""
@@ -110,7 +110,7 @@ class CommunityBannedUsersAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_banned_users = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -147,7 +147,7 @@ class CommunityBannedUsersAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_banned_users = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -185,7 +185,7 @@ class BanCommunityUserAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, {"username": user_to_ban.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(user_to_ban.is_banned_from_community_with_name(community.name))
 
@@ -226,7 +226,7 @@ class BanCommunityUserAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(user_to_ban.is_banned_from_community_with_name(community.name))
 
@@ -249,7 +249,7 @@ class BanCommunityUserAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, {"username": user_to_ban.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(user_to_ban.is_banned_from_community_with_name(community.name))
 
@@ -269,7 +269,7 @@ class BanCommunityUserAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, {"username": user_to_ban.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user_to_ban.is_banned_from_community_with_name(community.name))
 
@@ -286,7 +286,7 @@ class BanCommunityUserAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, {"username": user_to_ban.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user_to_ban.is_banned_from_community_with_name(community.name))
 
@@ -309,7 +309,7 @@ class BanCommunityUserAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, {"username": user_to_ban.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(user_to_ban.is_member_of_community_with_name(community_name))
 
     def _get_url(self, community_name):
@@ -344,7 +344,7 @@ class UnbanCommunityUserAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, {"username": user_to_unban.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(user_to_unban.is_banned_from_community_with_name(community.name))
 
@@ -392,7 +392,7 @@ class UnbanCommunityUserAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, {"username": user_to_unban.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user_to_unban.is_banned_from_community_with_name(community.name))
 
@@ -419,7 +419,7 @@ class UnbanCommunityUserAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, {"username": user_to_unban.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(user_to_unban.is_banned_from_community_with_name(community.name))
 
@@ -443,7 +443,7 @@ class UnbanCommunityUserAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, {"username": user_to_unban.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(user_to_unban.is_banned_from_community_with_name(community.name))
 
@@ -465,7 +465,7 @@ class UnbanCommunityUserAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, {"username": user_to_unban.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(user_to_unban.is_banned_from_community_with_name(community.name))
 
@@ -501,7 +501,7 @@ class SearchCommunityBannedUsersAPITests(OpenbookAPITestCase):
 
             url = self._get_url(community_name=community.name)
             response = self.client.get(url, {"query": final_query}, **headers)
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
             response_banned_users = json.loads(response.content, object_hook=uuid_id_parser)
             response_banned_users_count = len(response_banned_users)
             if response_banned_users_count == 1:
@@ -541,7 +541,7 @@ class SearchCommunityBannedUsersAPITests(OpenbookAPITestCase):
 
             url = self._get_url(community_name=community.name)
             response = self.client.get(url, {"query": final_query}, **headers)
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
             response_banned_users = json.loads(response.content, object_hook=uuid_id_parser)
             response_banned_users_count = len(response_banned_users)
             if response_banned_users_count == 1:

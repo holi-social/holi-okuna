@@ -37,7 +37,7 @@ class NotificationsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_notifications = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -69,7 +69,7 @@ class NotificationsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_notifications = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -89,7 +89,7 @@ class NotificationsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_can_delete_notifications(self):
         """should be able to delete all notifications and return 200"""
@@ -106,7 +106,7 @@ class NotificationsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(Notification.objects.filter(owner=user).exists())
 
@@ -134,7 +134,7 @@ class ReadNotificationsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.post(url, {}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             Notification.objects.filter(owner=user, read=True, id__in=notifications_ids).count()
@@ -160,7 +160,7 @@ class ReadNotificationsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.post(url, {"max_id": max_id}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(Notification.objects.filter(owner=user, read=True, id__lte=max_id).exists())
 
@@ -188,7 +188,7 @@ class ReadNotificationsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.post(url, {"types": ",".join(valid_types)}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         invalid_ids = set(notifications_ids) - set(valid_ids)
         self.assertEqual(
@@ -215,7 +215,7 @@ class ReadNotificationsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.post(url, {"types": "AA"}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertEqual(
             Notification.objects.filter(owner=user, read=True, id__in=notifications_ids).count(),
             0,
@@ -242,7 +242,7 @@ class NotificationItemAPITests(OpenbookAPITestCase):
         url = self._get_url(notification_id)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(Notification.objects.filter(id=notification_id).exists())
 
@@ -259,7 +259,7 @@ class NotificationItemAPITests(OpenbookAPITestCase):
         url = self._get_url(notification_id)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(Notification.objects.filter(id=notification_id).exists())
 
@@ -284,7 +284,7 @@ class ReadNotificationAPITests(OpenbookAPITestCase):
         url = self._get_url(notification_id)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(Notification.objects.filter(id=notification_id, read=True).exists())
 
@@ -301,7 +301,7 @@ class ReadNotificationAPITests(OpenbookAPITestCase):
         url = self._get_url(notification_id)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(Notification.objects.filter(id=notification_id, read=False).exists())
 
@@ -331,7 +331,7 @@ class UnreadNotificationsCountAPITests(OpenbookAPITestCase):
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(parsed_response["count"] == 5)
 
@@ -354,7 +354,7 @@ class UnreadNotificationsCountAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"max_id": max_id}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -382,7 +382,7 @@ class UnreadNotificationsCountAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"types": ",".join(valid_types)}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -403,7 +403,7 @@ class UnreadNotificationsCountAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"types": "AA"}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def _get_url(self):
         return reverse("unread-notifications-count")

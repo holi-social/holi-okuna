@@ -41,7 +41,7 @@ class UserModerationPenaltiesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderation_penalties = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -70,7 +70,7 @@ class UserModerationPenaltiesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(other_user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderation_penalties = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -121,7 +121,7 @@ class UserPendingModeratedObjectsCommunitiesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -168,7 +168,7 @@ class UserPendingModeratedObjectsCommunitiesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -210,7 +210,7 @@ class UserPendingModeratedObjectsCommunitiesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -257,7 +257,7 @@ class UserPendingModeratedObjectsCommunitiesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 

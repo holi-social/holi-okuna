@@ -52,7 +52,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderators = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -90,7 +90,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderators = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -125,7 +125,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderators = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -160,7 +160,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
     def test_can_add_community_moderator_if_creator(self):
         """should be able to add a community moderator if user is creator of community"""
@@ -175,7 +175,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.put(url, {"username": user_to_make_moderator.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(user_to_make_moderator.is_moderator_of_community_with_name(community_name=community.name))
 
@@ -216,7 +216,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.put(url, {"username": user_to_make_admnistrator.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(user_to_make_admnistrator.is_moderator_of_community_with_name(community_name=community.name))
 
@@ -239,7 +239,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.put(url, {"username": user_to_make_admnistrator.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user_to_make_admnistrator.is_moderator_of_community_with_name(community_name=community.name))
 
@@ -259,7 +259,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.put(url, {"username": user_to_make_admnistrator.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user_to_make_admnistrator.is_moderator_of_community_with_name(community_name=community.name))
 
@@ -276,7 +276,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.put(url, {"username": user_to_make_moderator.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user_to_make_moderator.is_moderator_of_community_with_name(community_name=community.name))
 
@@ -296,7 +296,7 @@ class CommunityModeratorsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.put(url, {"username": user_to_make_moderator.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user_to_make_moderator.is_moderator_of_community_with_name(community_name=community.name))
 
@@ -325,7 +325,7 @@ class CommunityModeratorAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name, username=moderator_to_remove.username)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(moderator_to_remove.is_moderator_of_community_with_name(community_name=community.name))
 
@@ -371,7 +371,7 @@ class CommunityModeratorAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name, username=moderator_to_remove.username)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(moderator_to_remove.is_moderator_of_community_with_name(community_name=community.name))
 
@@ -394,7 +394,7 @@ class CommunityModeratorAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name, username=moderator_to_remove.username)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(moderator_to_remove.is_moderator_of_community_with_name(community_name=community.name))
 
@@ -436,7 +436,7 @@ class SearchCommunityModeratorsAPITests(OpenbookAPITestCase):
 
             url = self._get_url(community_name=community.name)
             response = self.client.get(url, {"query": final_query}, **headers)
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
             response_moderators = json.loads(response.content, object_hook=uuid_id_parser)
             response_moderators_count = len(response_moderators)
             if response_moderators_count == 1:
@@ -476,7 +476,7 @@ class SearchCommunityModeratorsAPITests(OpenbookAPITestCase):
 
             url = self._get_url(community_name=community.name)
             response = self.client.get(url, {"query": final_query}, **headers)
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
             response_moderators = json.loads(response.content, object_hook=uuid_id_parser)
             response_moderators_count = len(response_moderators)
             if response_moderators_count == 1:

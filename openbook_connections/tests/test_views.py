@@ -1,4 +1,6 @@
 # Create your tests here.
+import uuid
+
 from django.urls import reverse
 from rest_framework import status
 from openbook_common.tests.models import OpenbookAPITestCase
@@ -51,7 +53,7 @@ class ConnectionsAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_connections = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -91,7 +93,7 @@ class ConnectAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(user.is_connected_with_user_in_circle(user_to_connect, circle_to_connect))
         self.assertTrue(
@@ -144,7 +146,7 @@ class ConnectAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         for circle_id in circles_to_connect_ids:
             self.assertTrue(user.is_connected_with_user_with_id_in_circle_with_id(user_to_connect, circle_id))
@@ -173,7 +175,7 @@ class ConnectAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cannot_connect_in_world_circle(self):
         """should not be able to connect with a user in the world circle and return 400"""
@@ -192,7 +194,7 @@ class ConnectAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_connect_should_create_connection_request_notification(self):
         """should create a connection request notification when trying to connect with an user"""
@@ -212,7 +214,7 @@ class ConnectAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(
             ConnectionRequestNotification.objects.filter(
@@ -238,7 +240,7 @@ class ConnectAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user_to_connect.is_connected_with_user_with_id(user_id=user.pk))
 
@@ -262,7 +264,7 @@ class ConnectAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(user_to_connect.is_connected_with_user_with_id(user_id=user.pk))
 
@@ -283,7 +285,7 @@ class ConnectAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(user_to_connect.is_connected_with_user_with_id(user_id=user.pk))
 
@@ -315,7 +317,7 @@ class DisconnectAPITest(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(user.is_connected_with_user_in_circle(user_to_connect, circle_to_connect))
 
@@ -353,7 +355,7 @@ class DisconnectAPITest(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user.is_connected_with_user(not_connected_user))
 
@@ -381,7 +383,7 @@ class DisconnectAPITest(OpenbookAPITestCase):
         url = self._get_url()
 
         response = self.client.post(url, data, **headers, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(
             ConnectionConfirmedNotification.objects.filter(pk=connection_confirmed_notification.pk).exists()
@@ -411,7 +413,7 @@ class DisconnectAPITest(OpenbookAPITestCase):
         url = self._get_url()
 
         response = self.client.post(url, data, **headers, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(
             ConnectionConfirmedNotification.objects.filter(pk=connection_confirmed_notification.pk).exists()
@@ -443,7 +445,7 @@ class DisconnectAPITest(OpenbookAPITestCase):
         url = self._get_url()
 
         response = self.client.post(url, data, **headers, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(ConnectionRequestNotification.objects.filter(pk=connection_request_notification.pk).exists())
         self.assertFalse(Notification.objects.filter(pk=notification.pk).exists())
@@ -478,7 +480,7 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(user.is_connected_with_user_in_circle(user_to_connect, new_circle))
         self.assertFalse(user.is_connected_with_user_in_circle(user_to_connect, circle_to_connect))
@@ -515,7 +517,7 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         connection = user.get_connection_for_user_with_id(user_to_connect.pk)
         connection_circles_ids = [circle.pk for circle in connection.circles.all()]
@@ -546,7 +548,7 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def _get_url(self):
         return reverse("update-connection")
@@ -575,7 +577,7 @@ class ConfirmConnectionAPITest(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(user.is_fully_connected_with_user_with_id(user_to_connect.pk))
         self.assertTrue(user_to_connect.is_fully_connected_with_user_with_id(user.pk))
@@ -619,7 +621,7 @@ class ConfirmConnectionAPITest(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(user.is_fully_connected_with_user_with_id(user_to_connect.pk))
         self.assertTrue(user_to_connect.is_fully_connected_with_user_with_id(user.pk))
@@ -641,7 +643,7 @@ class ConfirmConnectionAPITest(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user.is_fully_connected_with_user_with_id(user_to_connect.pk))
         self.assertFalse(user_to_connect.is_fully_connected_with_user_with_id(user.pk))
@@ -662,7 +664,7 @@ class ConfirmConnectionAPITest(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ConnectionConfirmedNotification.objects.filter(
@@ -687,7 +689,7 @@ class ConfirmConnectionAPITest(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(
             ConnectionRequestNotification.objects.filter(

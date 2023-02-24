@@ -46,7 +46,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -78,7 +78,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -115,7 +115,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -150,7 +150,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -183,7 +183,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -226,7 +226,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.get(url, {"statuses": ModeratedObject.STATUS_APPROVED}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -267,7 +267,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.get(url, {"statuses": ModeratedObject.STATUS_PENDING}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -307,7 +307,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.get(url, {"statuses": ModeratedObject.STATUS_REJECTED}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -348,7 +348,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.get(url, {"verified": True}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -390,7 +390,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.get(url, {"verified": False}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -426,7 +426,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.get(url, {"types": ModeratedObject.OBJECT_TYPE_POST}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -461,7 +461,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.get(url, {"types": ModeratedObject.OBJECT_TYPE_POST_COMMENT}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -498,7 +498,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.get(url, {"types": ModeratedObject.OBJECT_TYPE_USER}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -532,7 +532,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.get(url, {"types": ModeratedObject.OBJECT_TYPE_COMMUNITY}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -568,7 +568,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(regular_user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
     def test_cant_retrieve_moderated_objects_if_community_moderator(self):
         """should not be able to retrieve all moderated objects if community moderator and return 400"""
@@ -596,7 +596,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
     def _get_url(self):
         return reverse("global-moderated-objects")
@@ -635,7 +635,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -682,7 +682,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -724,7 +724,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -754,7 +754,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -796,7 +796,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.get(url, {"statuses": ModeratedObject.STATUS_APPROVED}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -846,7 +846,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.get(url, {"statuses": ModeratedObject.STATUS_PENDING}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -895,7 +895,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.get(url, {"statuses": ModeratedObject.STATUS_REJECTED}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -946,7 +946,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.get(url, {"verified": True}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -999,7 +999,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.get(url, {"verified": False}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1045,7 +1045,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.get(url, {"types": ModeratedObject.OBJECT_TYPE_POST}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1089,7 +1089,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.get(url, {"types": ModeratedObject.OBJECT_TYPE_POST_COMMENT}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderated_objects = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1130,7 +1130,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.get(url, {"types": ModeratedObject.OBJECT_TYPE_USER}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cant_filter_community_moderated_objects(self):
         """should not be able to filter community moderated objects and return 400"""
@@ -1152,7 +1152,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.get(url, {"types": ModeratedObject.OBJECT_TYPE_COMMUNITY}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cant_retrieve_moderated_objects_if_not_community_moderator(self):
         """should not be able to retrieve all moderated objects if not community moderators and return 400"""
@@ -1179,7 +1179,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
     def _get_url(self, community):
         return reverse("community-moderated-objects", kwargs={"community_name": community.name})

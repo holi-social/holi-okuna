@@ -79,7 +79,7 @@ class PostItemAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_post = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -97,7 +97,7 @@ class PostItemAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_post = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -120,7 +120,7 @@ class PostItemAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_post = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -162,7 +162,7 @@ class PostItemAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_post = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -189,7 +189,7 @@ class PostItemAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cant_retrieve_private_community_not_member_of_post(self):
         """should not be able to retrieve a private community not member of post and return 400"""
@@ -205,7 +205,7 @@ class PostItemAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_can_retrieve_private_community_member_of_post(self):
         """should be able to retrieve a private community member of post and return 200"""
@@ -226,7 +226,7 @@ class PostItemAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_post = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -246,7 +246,7 @@ class PostItemAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cant_retrieve_blocked_user_post(self):
         """should not be able to retrieve a post from a blocked user and return 400"""
@@ -380,7 +380,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_post = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -401,7 +401,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_post = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -418,7 +418,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     @mock.patch("openbook_posts.jobs.process_post_media")
     def test_cant_retrieve_processing_foreign_user_post(self, mock):
@@ -436,7 +436,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cant_retrieve_draft_following_user_post(self):
         """should not be able to retrieve a following user draft post"""
@@ -451,7 +451,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     @mock.patch("openbook_posts.jobs.process_post_media")
     def test_cant_retrieve_processing_following_user_post(self, mock):
@@ -471,7 +471,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cant_retrieve_draft_follower_user_post(self):
         """should not be able to retrieve a follower user draft post"""
@@ -486,7 +486,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     @mock.patch("openbook_posts.jobs.process_post_media")
     def test_cant_retrieve_processing_follower_user_post(self, mock):
@@ -506,7 +506,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cant_retrieve_draft_connected_user_post(self):
         """should not be able to retrieve a follower user draft post"""
@@ -523,7 +523,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     @mock.patch("openbook_posts.jobs.process_post_media")
     def test_cant_retrieve_processing_connected_user_post(self, mock):
@@ -547,7 +547,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cant_retrieve_draft_pending_connection_user_post(self):
         """should not be able to retrieve a follower user draft post"""
@@ -565,7 +565,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     @mock.patch("openbook_posts.jobs.process_post_media")
     def test_cant_retrieve_processing_pending_connection_user_post(self, mock):
@@ -588,7 +588,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_can_delete_own_post(self):
         """should be able to delete own post and return 200"""
@@ -600,7 +600,7 @@ class PostItemAPITests(OpenbookAPITestCase):
 
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(Post.objects.filter(pk=post.pk).count() == 0)
 
     def test_delete_image_post(self):
@@ -671,7 +671,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(Post.objects.filter(pk=post.pk).count() == 0)
 
     def test_can_delete_post_of_community_if_admin(self):
@@ -696,7 +696,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(Post.objects.filter(pk=post.pk).count() == 0)
 
     def test_logs_community_post_deleted_by_non_creator(self):
@@ -737,7 +737,7 @@ class PostItemAPITests(OpenbookAPITestCase):
 
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(Post.objects.filter(pk=post.pk).count() == 1)
 
     def test_can_edit_own_post(self):
@@ -839,7 +839,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         url = self._get_url(post=post)
 
         response = self.client.patch(url, data, **headers, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
         self.assertEqual(PostUserMention.objects.filter(post_id=post.pk).count(), 0)
@@ -1086,7 +1086,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cant_retrieve_soft_deleted_following_user_post(self):
         """should not be able to retrieve soft deleted following user post"""
@@ -1102,7 +1102,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cant_retrieve_soft_deleted_connected_user_post(self):
         """should not be able to retrieve soft deleted connected user post"""
@@ -1124,7 +1124,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cant_retrieve_reported_community_post(self):
         """should not be able to retrieve reported community post"""
@@ -1146,7 +1146,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cant_retrieve_reported_following_user_post(self):
         """should not be able to retrieve reported following user post"""
@@ -1162,7 +1162,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cant_retrieve_reported_connected_user_post(self):
         """should not be able to retrieve reported connected user post"""
@@ -1183,7 +1183,7 @@ class PostItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def _get_url(self, post):
         return reverse("post", kwargs={"post_id": post.id})
@@ -1206,7 +1206,7 @@ class MutePostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(user.has_muted_post_with_id(post.pk))
 
@@ -1222,7 +1222,7 @@ class MutePostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(user.has_muted_post_with_id(post.pk))
 
@@ -1237,7 +1237,7 @@ class MutePostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(user.has_muted_post_with_id(post.pk))
 
@@ -1255,7 +1255,7 @@ class MutePostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user.has_muted_post_with_id(post.pk))
 
@@ -1276,7 +1276,7 @@ class MutePostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(user.has_muted_post_with_id(post.pk))
 
@@ -1293,7 +1293,7 @@ class MutePostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(user.has_muted_post_with_id(post.pk))
 
@@ -1314,7 +1314,7 @@ class MutePostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertFalse(user.has_muted_post_with_id(post.pk))
 
     def test_can_mute_closed_community_post_if_creator(self):
@@ -1334,7 +1334,7 @@ class MutePostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(user.has_muted_post_with_id(post.pk))
 
     def test_can_mute_closed_community_post_administrator(self):
@@ -1354,7 +1354,7 @@ class MutePostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(admin.has_muted_post_with_id(post.pk))
 
     def test_can_mute_closed_community_post_if_moderator(self):
@@ -1379,7 +1379,7 @@ class MutePostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(moderator.has_muted_post_with_id(post.pk))
 
     def test_cant_mute_community_post_if_private_and_not_member(self):
@@ -1395,7 +1395,7 @@ class MutePostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user.has_muted_post_with_id(post.pk))
 
@@ -1418,7 +1418,7 @@ class MutePostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(user.has_muted_post_with_id(post.pk))
 
@@ -1445,7 +1445,7 @@ class UnmutePostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(user.has_muted_post_with_id(post.pk))
 
@@ -1459,7 +1459,7 @@ class UnmutePostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user.has_muted_post_with_id(post.pk))
 
@@ -1481,7 +1481,7 @@ class UnmutePostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(user.has_muted_post_with_id(post.pk))
 
     def test_can_unmute_closed_community_post_if_creator(self):
@@ -1502,7 +1502,7 @@ class UnmutePostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(user.has_muted_post_with_id(post.pk))
 
     def test_can_unmute_closed_community_post_administrator(self):
@@ -1523,7 +1523,7 @@ class UnmutePostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(admin.has_muted_post_with_id(post.pk))
 
     def test_can_unmute_closed_community_post_if_moderator(self):
@@ -1549,7 +1549,7 @@ class UnmutePostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(moderator.has_muted_post_with_id(post.pk))
 
     def _get_url(self, post):
@@ -1982,7 +1982,7 @@ class TranslatePostAPITests(OpenbookAPITestCase):
         url = self._get_url(post=post)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_post = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(response_post["translated_text"], "I am a man 😀. You're a woman.")
 
@@ -1996,7 +1996,7 @@ class TranslatePostAPITests(OpenbookAPITestCase):
         url = self._get_url(post=post)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cannot_translate_encircled_post(self):
         """should not be able to translate encircled post and return 400"""
@@ -2009,7 +2009,7 @@ class TranslatePostAPITests(OpenbookAPITestCase):
         url = self._get_url(post=post)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cannot_translate_post_text_without_post_comment_language(self):
         """should not translate post text and return 400 if post language is not set"""
@@ -2023,7 +2023,7 @@ class TranslatePostAPITests(OpenbookAPITestCase):
         url = self._get_url(post=post)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_return_error_between_unsupported_translate_pairs(self):
         """should return error when translating post between unsupported pairs (Norwegian to arabic) and return 400"""
@@ -2039,7 +2039,7 @@ class TranslatePostAPITests(OpenbookAPITestCase):
         url = self._get_url(post=post)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_return_error_when_text_length_exceeds_max_setting(self):
         """should return appropriate error when length of text is more than maximum in settings.py return 400"""
@@ -2055,7 +2055,7 @@ class TranslatePostAPITests(OpenbookAPITestCase):
         url = self._get_url(post=post)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def _get_url(self, post):
         return reverse("translate-post", kwargs={"post_id": post.id})
@@ -2084,7 +2084,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, {"query": search_query}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_participants = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2110,7 +2110,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, {"query": search_query}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_participants = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2134,7 +2134,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, {"query": search_query}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_participants = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2158,7 +2158,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, {"query": search_query}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_participants = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2186,7 +2186,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, {"query": search_query}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_participants = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2216,7 +2216,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, {"query": search_query}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_participants = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2249,7 +2249,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, {"query": search_query}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_participants = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2282,7 +2282,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, {"query": search_query}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_participants = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2312,7 +2312,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, {"query": search_query}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_participants = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2342,7 +2342,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, {"query": search_query}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_participants = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2374,7 +2374,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, {"query": search_query}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_participants = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2406,7 +2406,7 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, {"query": search_query}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_participants = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2444,7 +2444,7 @@ class GetPostParticipantsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_participants = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2496,7 +2496,7 @@ class GetPostParticipantsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_participants = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2611,7 +2611,7 @@ class PublishPostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(Post.objects.filter(pk=post.pk, status=Post.STATUS_PUBLISHED).exists())
 
@@ -2627,7 +2627,7 @@ class PublishPostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(Post.objects.filter(pk=post.pk, status=Post.STATUS_PUBLISHED).exists())
 
@@ -2645,7 +2645,7 @@ class PublishPostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(Post.objects.filter(pk=post.pk, status=Post.STATUS_PUBLISHED).exists())
 
@@ -2664,7 +2664,7 @@ class PublishPostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertTrue(Post.objects.filter(pk=post.pk, status=Post.STATUS_DRAFT).exists())
 
@@ -2686,7 +2686,7 @@ class PublishPostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertTrue(Post.objects.filter(pk=post.pk, status=Post.STATUS_DRAFT).exists())
 
@@ -2706,7 +2706,7 @@ class PublishPostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertTrue(Post.objects.filter(pk=post.pk, status=Post.STATUS_DRAFT))
 
@@ -2734,7 +2734,7 @@ class PublishPostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         post = Post.objects.get(pk=post.pk)
 
@@ -2778,7 +2778,7 @@ class PostStatusAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2799,7 +2799,7 @@ class PostStatusAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
     def _get_url(self, post):
         return reverse("post-status", kwargs={"post_id": post.id})

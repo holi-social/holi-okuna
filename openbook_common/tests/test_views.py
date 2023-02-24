@@ -31,7 +31,7 @@ class TimeAPITests(OpenbookAPITestCase):
         response = self.client.get(url, **header)
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(parsed_response["timezone"], timezone_to_set)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
     def _get_url(self):
         return reverse("time")
@@ -117,7 +117,7 @@ class ProxyDomainCheckAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"url": request_url}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
     def test_fails_on_blacklisted_root_domain(self):
         """should fail when calling with a blacklisted root domain and return 403"""
@@ -164,7 +164,7 @@ class ProxyDomainCheckAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"url": preview_url}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, f"Response: {response.data}")
 
     def test_fails_on_invalid_domain(self):
         """should fail when calling with an invalid domain and return 403"""
@@ -175,7 +175,7 @@ class ProxyDomainCheckAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"url": request_url}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
     def _get_url(self):
         return reverse("proxy-domain-check")

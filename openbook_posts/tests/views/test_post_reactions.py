@@ -47,7 +47,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         url = self._get_url(post)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             PostReaction.objects.filter(post_id=post.pk, emoji_id=post_reaction_emoji_id, reactor_id=user.pk).count()
             == 1
@@ -71,7 +71,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         url = self._get_url(post)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(
             PostReaction.objects.filter(post_id=post.pk, emoji_id=post_reaction_emoji_id, reactor_id=user.pk).count()
             == 0
@@ -92,7 +92,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         url = self._get_url(post)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(
             PostReaction.objects.filter(post_id=post.pk, emoji_id=post_reaction_emoji_id, reactor_id=user.pk).count()
             == 0
@@ -118,7 +118,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         url = self._get_url(connected_user_post)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             PostReaction.objects.filter(
                 post_id=connected_user_post.pk,
@@ -152,7 +152,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         url = self._get_url(connected_user_post)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             PostReaction.objects.filter(
                 post_id=connected_user_post.pk,
@@ -186,7 +186,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         url = self._get_url(connected_user_post)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(
             PostReaction.objects.filter(
@@ -215,7 +215,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         url = self._get_url(foreign_user_post)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             PostReaction.objects.filter(
                 post_id=foreign_user_post.pk,
@@ -246,7 +246,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         url = self._get_url(followed_user_post)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(
             PostReaction.objects.filter(
                 post_id=followed_user_post.pk,
@@ -281,7 +281,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         url = self._get_url(post)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(
             PostReaction.objects.filter(post_id=post.pk, emoji_id=post_reaction_emoji_id, reactor_id=user.pk).count()
@@ -313,7 +313,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         url = self._get_url(community_post)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(
             PostReaction.objects.filter(
                 post_id=community_post.pk,
@@ -348,7 +348,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         url = self._get_url(community_post)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             PostReaction.objects.filter(
                 post_id=community_post.pk,
@@ -382,7 +382,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         url = self._get_url(post)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(
             PostReaction.objects.filter(post_id=post.pk, emoji_id=post_reaction_emoji_id, reactor_id=user.pk).count()
             == 0
@@ -412,7 +412,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         url = self._get_url(post)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(
             PostReaction.objects.filter(post_id=post.pk, emoji_id=post_reaction_emoji_id, reactor_id=user.pk).count()
             == 0
@@ -507,7 +507,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         url = self._get_url(post)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             PostReaction.objects.filter(post_id=post.pk, emoji_id=post_reaction_emoji_id, reactor_id=user.pk).count()
             == 1
@@ -536,7 +536,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         url = self._get_url(post)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             PostReaction.objects.filter(post_id=post.pk, emoji_id=post_reaction_emoji_id, reactor_id=user.pk).count()
             == 1
@@ -562,7 +562,7 @@ class PostReactionsAPITests(OpenbookAPITestCase):
         data = self._get_create_post_reaction_request_data(new_post_reaction_emoji_id, emoji_group.pk)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(PostReaction.objects.filter(post_id=post.pk, reactor_id=user.pk).count() == 1)
 
     def test_reacting_in_foreign_post_creates_notification(self):
@@ -663,7 +663,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_emojis_counts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -701,7 +701,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_reactions = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -730,7 +730,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_reactions = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -761,7 +761,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_reactions = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -792,7 +792,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_reactions = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -823,7 +823,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_emoji_counts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -862,7 +862,7 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_emoji_counts = json.loads(response.content, object_hook=uuid_id_parser)
 

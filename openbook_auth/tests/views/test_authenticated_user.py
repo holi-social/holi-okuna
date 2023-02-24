@@ -65,7 +65,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -86,7 +86,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         user.refresh_from_db()
 
@@ -103,7 +103,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         user.refresh_from_db()
 
@@ -122,7 +122,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         user.refresh_from_db()
 
@@ -318,7 +318,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         user.refresh_from_db()
 
@@ -337,7 +337,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         user.refresh_from_db()
 
@@ -356,7 +356,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         user.refresh_from_db()
 
@@ -376,7 +376,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         user.refresh_from_db()
 
@@ -398,7 +398,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         user.refresh_from_db()
 
@@ -417,7 +417,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         user.refresh_from_db()
 
@@ -438,7 +438,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         user.refresh_from_db()
 
@@ -459,7 +459,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         user.refresh_from_db()
 
@@ -480,7 +480,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         user.refresh_from_db()
 
@@ -501,7 +501,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         user.refresh_from_db()
 
@@ -520,7 +520,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         user.refresh_from_db()
 
@@ -543,7 +543,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         user.refresh_from_db()
 
@@ -565,7 +565,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
                 response = self.client.patch(url, data, **headers)
 
-                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
                 user.refresh_from_db()
 
@@ -590,7 +590,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(user.has_follow_request_from_user(user_requesting_to_follow))
 
@@ -617,7 +617,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertEqual(user.targeted_connections.count(), 0)
 
@@ -650,7 +650,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
                 response = self.client.patch(url, data, **headers)
 
-                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
                 self.assertEqual(user.targeted_connections.count(), number_of_connection_requests)
 
@@ -679,7 +679,7 @@ class AuthenticatedUserDeleteTests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(User.objects.filter(pk=user.pk).exists())
 
@@ -699,7 +699,7 @@ class AuthenticatedUserDeleteTests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED, f"Response: {response.data}")
 
         self.assertTrue(User.objects.filter(pk=user.pk).exists())
 
@@ -715,7 +715,7 @@ class AuthenticatedUserDeleteTests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(User.objects.filter(pk=user.pk).exists())
 
@@ -738,7 +738,7 @@ class AuthenticatedUserNotificationsSettingsTests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -808,7 +808,7 @@ class AuthenticatedUserNotificationsSettingsTests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         notifications_settings.refresh_from_db()
 
@@ -884,7 +884,7 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
         response = self.client.patch(self.url, data, **headers)
         parsed_reponse = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertEqual(parsed_reponse["username"], user.username)
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
@@ -898,7 +898,7 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
         data = {"new_password": new_password}
 
         response = self.client.patch(self.url, data, **headers)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_cannot_change_password_without_correct_password(self):
@@ -915,7 +915,7 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
         }
 
         response = self.client.patch(self.url, data, **headers)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED, f"Response: {response.data}")
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_cannot_change_password_without_new_password(self):
@@ -928,7 +928,7 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
         data = {"current_password": current_raw_password}
 
         response = self.client.patch(self.url, data, **headers)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_cannot_change_email_to_existing_email(self):
@@ -941,7 +941,7 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
         with mock.patch.object(AuthenticatedUserSettings, "send_confirmation_email", return_value=None):
             response = self.client.patch(self.url, data, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
 
 class AuthenticatedUserAcceptGuidelines(OpenbookAPITestCase):
@@ -960,7 +960,7 @@ class AuthenticatedUserAcceptGuidelines(OpenbookAPITestCase):
 
         response = self.client.post(self.url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         user.refresh_from_db()
         self.assertTrue(user.are_guidelines_accepted)
@@ -974,7 +974,7 @@ class AuthenticatedUserAcceptGuidelines(OpenbookAPITestCase):
 
         response = self.client.post(self.url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         user.refresh_from_db()
         self.assertTrue(user.are_guidelines_accepted)
@@ -994,7 +994,7 @@ class AuthenticatedUserLanguageAPI(OpenbookAPITestCase):
 
         response = self.client.get(self.url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertTrue(len(parsed_response), 25)
 
@@ -1006,7 +1006,7 @@ class AuthenticatedUserLanguageAPI(OpenbookAPITestCase):
 
         response = self.client.post(self.url, {"language_id": language.id}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         user.refresh_from_db()
         self.assertTrue(user.language.id, language.id)
 
@@ -1020,7 +1020,7 @@ class AuthenticatedUserLanguageAPI(OpenbookAPITestCase):
 
         response = self.client.post(self.url, {"language_id": 99999}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         user.refresh_from_db()
         self.assertTrue(user.language.id, language.id)
 

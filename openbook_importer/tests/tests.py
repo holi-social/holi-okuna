@@ -17,7 +17,7 @@ class UploadFileTests(OpenbookAPITestCase):
         with open("openbook_importer/tests/facebook-jaybeenote5.zip", "rb") as fd:
             response = self.client.post(reverse("uploads"), {"file": fd}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         number_of_posts = 9
 
@@ -33,7 +33,7 @@ class UploadFileTests(OpenbookAPITestCase):
         with open("openbook_importer/tests/evil.zip", "rb") as fd:
             response = self.client.post(reverse("uploads"), {"file": fd}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_upload_file_invalid(self):
         """the file is invalid needs to return 400"""
@@ -44,7 +44,7 @@ class UploadFileTests(OpenbookAPITestCase):
         with open("openbook_importer/tests/invalid.zip", "rb") as fd:
             response = self.client.post(reverse("uploads"), {"file": fd}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def upload_file_duplicate(self):
         """Uploading duplicate archive, should skip all imported posts and return 200."""
@@ -57,7 +57,7 @@ class UploadFileTests(OpenbookAPITestCase):
                 response = self.client.post(reverse("uploads"), {"file": fd}, **headers)
                 fd.seek(0)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         number_of_posts = 9
 

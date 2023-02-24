@@ -50,7 +50,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
         response = self.client.put(url, {}, **headers, format="multipart")
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         for param in mandatory_params:
             self.assertIn(param, parsed_response)
@@ -112,7 +112,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(
             Community.objects.filter(
@@ -162,7 +162,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         community = Community.objects.get(title=community_title)
 
@@ -200,7 +200,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(Community.objects.filter(title=community_title).exists())
 
@@ -232,7 +232,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(Community.objects.filter(title=community_title).exists())
 
@@ -258,7 +258,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(Community.objects.filter(title=community_title).exists())
 
@@ -337,7 +337,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(
             Community.objects.filter(
@@ -374,7 +374,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(
             Community.objects.filter(
@@ -412,7 +412,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         community = Community.objects.get(title=community_title)
 
@@ -447,7 +447,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(
             Community.objects.filter(
@@ -491,7 +491,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         community = Community.objects.get(title=community_title)
         self.assertTrue(hasattr(community, "avatar"))
@@ -526,7 +526,7 @@ class CommunitiesAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         community = Community.objects.get(title=community_title)
         self.assertTrue(hasattr(community, "cover"))
@@ -553,7 +553,7 @@ class JoinedCommunities(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -588,7 +588,7 @@ class JoinedCommunities(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, {"offset": offset}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -619,7 +619,7 @@ class JoinedCommunities(OpenbookAPITestCase):
 
         response = self.client.get(url, {"excluded_from_profile_posts": False}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(len(parsed_response), 1)
 
@@ -661,7 +661,7 @@ class SearchJoinedCommunitiesAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertEqual(len(parsed_response), 1)
@@ -694,7 +694,7 @@ class SearchJoinedCommunitiesAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertEqual(len(parsed_response), 1)
@@ -726,7 +726,7 @@ class SearchJoinedCommunitiesAPITests(OpenbookAPITestCase):
             url, {"query": non_excluded_community.name, "excluded_from_profile_posts": False}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(len(parsed_response), 1)
 
@@ -758,7 +758,7 @@ class AdministratedCommunities(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -796,7 +796,7 @@ class AdministratedCommunities(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, {"offset": offset}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -837,7 +837,7 @@ class SearchAdministratedCommunitiesAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertEqual(len(parsed_response), 1)
@@ -868,7 +868,7 @@ class SearchAdministratedCommunitiesAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertEqual(len(parsed_response), 1)
@@ -906,7 +906,7 @@ class ModeratedCommunities(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -944,7 +944,7 @@ class ModeratedCommunities(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, {"offset": offset}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -990,7 +990,7 @@ class SearchModeratedCommunitiesAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertEqual(len(parsed_response), 1)
@@ -1026,7 +1026,7 @@ class SearchModeratedCommunitiesAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertEqual(len(parsed_response), 1)
@@ -1058,7 +1058,7 @@ class FavoriteCommunities(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1080,7 +1080,7 @@ class FavoriteCommunities(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1107,7 +1107,7 @@ class FavoriteCommunities(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, {"offset": offset}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1151,7 +1151,7 @@ class SearchFavoriteCommunitiesAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertEqual(len(parsed_response), 1)
@@ -1185,7 +1185,7 @@ class SearchFavoriteCommunitiesAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertEqual(len(parsed_response), 1)
@@ -1213,7 +1213,7 @@ class CommunityNameCheckAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
         response = self.client.post(url, request_data, **headers, format="json")
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, f"Response: {response.data}")
 
     def test_community_name_taken(self):
         """should return status 400 if the communityName is taken"""
@@ -1231,7 +1231,7 @@ class CommunityNameCheckAPITests(OpenbookAPITestCase):
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertIn("name", parsed_response)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_invalid_community_name(self):
         """should return 400 if the communityName is not a valid one"""
@@ -1253,7 +1253,7 @@ class CommunityNameCheckAPITests(OpenbookAPITestCase):
             response = self.client.post(url, request_data, **headers, format="json")
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertIn("name", parsed_response)
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_valid_community_name(self):
         """should return 202 if the communityName is a valid name"""
@@ -1265,7 +1265,7 @@ class CommunityNameCheckAPITests(OpenbookAPITestCase):
         for community_name in community_names:
             request_data = self._get_request_data(community_name)
             response = self.client.post(url, request_data, **headers, format="json")
-            self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+            self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, f"Response: {response.data}")
 
     def _get_request_data(self, name):
         return {"name": name}
@@ -1297,7 +1297,7 @@ class SearchCommunitiesAPITests(OpenbookAPITestCase):
 
             url = self._get_url()
             response = self.client.get(url, {"query": final_query}, **headers)
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertEqual(len(parsed_response), 1)
             retrieved_community = parsed_response[0]
@@ -1322,7 +1322,7 @@ class SearchCommunitiesAPITests(OpenbookAPITestCase):
 
             url = self._get_url()
             response = self.client.get(url, {"query": final_query}, **headers)
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertEqual(len(parsed_response), 1)
             retrieved_community = parsed_response[0]
@@ -1349,7 +1349,7 @@ class SearchCommunitiesAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"query": community_title}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(len(parsed_response), 1)
 
@@ -1376,7 +1376,7 @@ class SearchCommunitiesAPITests(OpenbookAPITestCase):
             url, {"query": non_excluded_community.name, "excluded_from_profile_posts": False}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(len(parsed_response), 1)
 
@@ -1413,7 +1413,7 @@ class TrendingCommunitiesAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1441,7 +1441,7 @@ class TrendingCommunitiesAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1466,7 +1466,7 @@ class TrendingCommunitiesAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1495,7 +1495,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1517,7 +1517,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1544,7 +1544,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, {"offset": offset}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1587,7 +1587,7 @@ class SearchTopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertEqual(len(parsed_response), 1)
@@ -1620,7 +1620,7 @@ class SearchTopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertEqual(len(parsed_response), 1)

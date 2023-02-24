@@ -43,7 +43,7 @@ class CirclesAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(Circle.objects.filter(name=circle_name, color=circle_color, creator_id=user.pk).count() == 1)
 
@@ -61,7 +61,7 @@ class CirclesAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_circles = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -94,7 +94,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
         url = self._get_url(circle_id)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(Circle.objects.filter(id=circle_id).count() == 0)
 
     def test_cannot_delete_world_circle(self):
@@ -107,7 +107,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
         url = self._get_url(circle_id)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(Circle.objects.filter(id=circle_id).count() == 1)
 
     def test_cannot_delete_connections_circle(self):
@@ -121,7 +121,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
         url = self._get_url(circle_id)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(Circle.objects.filter(id=circle_id).count() == 1)
 
     def test_cannot_delete_other_user_circle(self):
@@ -138,7 +138,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
         url = self._get_url(circle_id)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(Circle.objects.filter(id=circle_id).count() == 1)
 
     def test_can_update_own_circle(self):
@@ -159,7 +159,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
         url = self._get_url(circle_id)
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(Circle.objects.filter(name=new_circle_name, id=circle_id, color=new_circle_color).count() == 1)
 
     def test_can_update_own_circle_users(self):
@@ -190,7 +190,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         for new_user_to_connect_with in new_users_to_connect_with_in_circle:
             self.assertTrue(
@@ -216,7 +216,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         circle.refresh_from_db()
 
@@ -241,7 +241,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
         url = self._get_url(circle_id)
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(Circle.objects.filter(name=new_circle_name, id=circle_id, color=new_circle_color).count() == 0)
 
     def test_cannot_update_world_circle(self):
@@ -260,7 +260,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
         url = self._get_url(circle_id)
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(Circle.objects.filter(name=new_circle_name, id=circle_id, color=new_circle_color).count() == 0)
 
     def test_cannot_update_connections_circle(self):
@@ -279,7 +279,7 @@ class CircleItemAPITests(OpenbookAPITestCase):
         url = self._get_url(circle_id)
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(Circle.objects.filter(name=new_circle_name, id=circle_id, color=new_circle_color).count() == 0)
 
     def _get_url(self, circle_id):
@@ -303,7 +303,7 @@ class CircleNameCheckAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.post(url, request_data, format="json", **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, f"Response: {response.data}")
 
     def test_circle_name_taken(self):
         """should return status 400 if the circleName is taken"""
@@ -319,7 +319,7 @@ class CircleNameCheckAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, request_data, format="json", **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def _get_url(self):
         return reverse("circle-name-check")

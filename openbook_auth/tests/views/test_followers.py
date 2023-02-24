@@ -38,7 +38,7 @@ class FollowersAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_followers = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -63,7 +63,7 @@ class FollowersAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_followers = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -100,7 +100,7 @@ class SearchFollowersAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             response_followers = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_followers)
@@ -133,7 +133,7 @@ class SearchFollowersAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             response_followers = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_followers)
@@ -167,7 +167,7 @@ class SearchFollowersAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             response_followers = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_followers)

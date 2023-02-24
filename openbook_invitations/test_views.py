@@ -40,7 +40,7 @@ class UserInvitesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
         user.refresh_from_db()
 
@@ -61,7 +61,7 @@ class UserInvitesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.put(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertFalse(UserInvite.objects.filter(invited_by=user, nickname=nickname).exists())
 
     def test_cannot_create_invite_without_nickname(self):
@@ -72,7 +72,7 @@ class UserInvitesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.put(url, {}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertFalse(UserInvite.objects.filter(invited_by=user).exists())
 
     def test_get_invites(self):
@@ -91,7 +91,7 @@ class UserInvitesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_invites = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(total_invites, len(response_invites))
@@ -121,7 +121,7 @@ class UserInvitesAPITests(OpenbookAPITestCase):
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(len(parsed_response) == 1)
         invite.refresh_from_db()
         self.assertTrue(invite.pk == parsed_response[0]["id"])
@@ -148,7 +148,7 @@ class UserInvitesAPITests(OpenbookAPITestCase):
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(len(parsed_response) == 4)
         for invite in parsed_response:
             self.assertIn(invite["id"], pending_invited_ids)
@@ -172,7 +172,7 @@ class UserInvitesAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"count": count, "offset": offset}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_invites = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_invites), count)
@@ -204,7 +204,7 @@ class UserInviteSearchAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"query": search, "pending": True}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_invites = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertTrue(len(response_invites) == 1)
@@ -230,7 +230,7 @@ class UserInviteItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         user.refresh_from_db()
         self.assertEqual(user.invite_count, original_invite_count)
         self.assertFalse(UserInvite.objects.filter(id=invite.pk).exists())
@@ -249,7 +249,7 @@ class UserInviteItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         user.refresh_from_db()
         self.assertEqual(user.invite_count, original_invite_count - 1)
         self.assertTrue(UserInvite.objects.filter(id=invite.pk).exists())
@@ -265,7 +265,7 @@ class UserInviteItemAPITests(OpenbookAPITestCase):
         new_nickname = fake.name()
         response = self.client.patch(url, {"nickname": new_nickname}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         invite.refresh_from_db()
         self.assertEqual(invite.nickname, new_nickname)
 
@@ -316,7 +316,7 @@ class UserInviteItemEmailAPI(OpenbookAPITestCase):
         ):
             response = self.client.post(url, {"email": fake.email()}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         invite.refresh_from_db()
         self.assertTrue(invite.is_invite_email_sent)
 

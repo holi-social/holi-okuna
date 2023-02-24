@@ -51,7 +51,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(PostReaction.objects.filter(id=post_reaction.pk).count() == 0)
 
     def test_can_delete_own_reaction_in_foreign_public_post(self):
@@ -76,7 +76,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(PostReaction.objects.filter(id=post_reaction.pk).count() == 0)
 
     def test_cannot_delete_foreign_reaction_in_foreign_public_post(self):
@@ -101,7 +101,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostReaction.objects.filter(id=post_reaction.pk).count() == 1)
 
     def test_cannot_delete_reaction_in_closed_community_post_when_not_creator(self):
@@ -135,7 +135,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostReaction.objects.filter(id=post_reaction.pk).count() == 1)
 
     def test_can_delete_reaction_in_closed_community_post_if_creator(self):
@@ -169,7 +169,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(post_creator)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(PostReaction.objects.filter(id=post_reaction.pk).count() == 0)
 
     def test_can_delete_own_reaction_in_connected_user_public_post(self):
@@ -197,7 +197,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(PostReaction.objects.filter(id=post_reaction.pk).count() == 0)
 
     def test_cannot_delete_foreign_reaction_in_connected_user_public_post(self):
@@ -227,7 +227,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostReaction.objects.filter(id=post_reaction.pk).count() == 1)
 
     def test_can_delete_own_reaction_in_connected_user_encircled_post_part_of(self):
@@ -256,7 +256,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(PostReaction.objects.filter(id=post_reaction.pk).count() == 0)
 
     def test_cannot_delete_foreign_reaction_in_connected_user_encircled_post_part_of(
@@ -291,7 +291,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostReaction.objects.filter(id=post_reaction.pk).count() == 1)
 
     def test_cannot_delete_foreign_reaction_in_connected_user_encircled_post_not_part_of(
@@ -323,7 +323,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostReaction.objects.filter(id=post_reaction.pk).count() == 1)
 
     def test_can_delete_own_reaction_in_followed_user_public_post(self):
@@ -350,7 +350,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(PostReaction.objects.filter(id=post_reaction.pk).count() == 0)
 
     def test_cannot_delete_foreign_reaction_in_followed_user_public_post(self):
@@ -379,7 +379,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostReaction.objects.filter(id=post_reaction.pk).count() == 1)
 
     def test_cannot_delete_foreign_reaction_in_folowed_user_encircled_post(self):
@@ -411,7 +411,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostReaction.objects.filter(id=post_reaction.pk).count() == 1)
 
     def test_post_reaction_notification_is_deleted_when_deleting_reaction(self):

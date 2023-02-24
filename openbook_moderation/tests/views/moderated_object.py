@@ -89,10 +89,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -129,10 +129,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -169,10 +169,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -211,10 +211,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -250,10 +250,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(
             ModeratedObject.objects.filter(
@@ -298,10 +298,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(
             ModeratedObject.objects.filter(
@@ -335,10 +335,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
             data={
                 "description": new_moderated_object_description,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertEqual(
             1,
@@ -374,10 +374,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
             data={
                 "category_id": new_moderated_object_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertEqual(
             1,
@@ -415,10 +415,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -453,10 +453,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(
             ModeratedObject.objects.filter(
@@ -501,10 +501,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(
             ModeratedObject.objects.filter(
@@ -544,10 +544,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -593,10 +593,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -639,10 +639,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(
             ModeratedObject.objects.filter(
@@ -696,10 +696,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(
             ModeratedObject.objects.filter(
@@ -751,10 +751,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertFalse(
             ModeratedObject.objects.filter(
@@ -806,10 +806,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertFalse(
             ModeratedObject.objects.filter(
@@ -852,10 +852,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -904,10 +904,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -950,10 +950,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(
             ModeratedObject.objects.filter(
@@ -1008,10 +1008,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(
             ModeratedObject.objects.filter(
@@ -1064,10 +1064,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertFalse(
             ModeratedObject.objects.filter(
@@ -1120,10 +1120,10 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
                 "description": new_moderated_object_description,
                 "category_id": new_report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertFalse(
             ModeratedObject.objects.filter(
@@ -1161,7 +1161,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(object_id=user.pk, status=ModeratedObject.STATUS_APPROVED).exists()
@@ -1191,7 +1191,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         UserNewPostNotification = get_user_new_post_notification_model()
         self.assertFalse(UserNewPostNotification.objects.filter(post=post).exists())
 
@@ -1218,7 +1218,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         FollowNotification = get_follow_notification_model()
         self.assertFalse(FollowNotification.objects.filter(follower=user).exists())
 
@@ -1245,7 +1245,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         ConnectionRequestNotification = get_connection_request_notification_model()
         self.assertFalse(ConnectionRequestNotification.objects.filter(connection_requester=user).exists())
 
@@ -1276,7 +1276,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(ConnectionConfirmedNotification.objects.filter(connection_confirmator=user).exists())
 
@@ -1305,7 +1305,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(object_id=user.pk, status=ModeratedObject.STATUS_PENDING).exists()
@@ -1330,7 +1330,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(regular_user)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(object_id=user.pk, status=ModeratedObject.STATUS_PENDING).exists()
@@ -1355,7 +1355,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(object_id=community.pk, status=ModeratedObject.STATUS_APPROVED).exists()
@@ -1387,7 +1387,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         CommunityNewPostNotification = get_community_new_post_notification_model()
         self.assertFalse(CommunityNewPostNotification.objects.filter(post=post).exists())
 
@@ -1418,7 +1418,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         CommunityInviteNotification = get_community_invite_notification_model()
         self.assertFalse(CommunityInviteNotification.objects.filter(community_invite=community_invite).exists())
@@ -1448,7 +1448,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(object_id=community.pk, status=ModeratedObject.STATUS_PENDING).exists()
@@ -1473,7 +1473,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(regular_community)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(object_id=community.pk, status=ModeratedObject.STATUS_PENDING).exists()
@@ -1504,7 +1504,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -1548,7 +1548,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         PostReactionNotification = get_post_reaction_notification_model()
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(PostReactionNotification.objects.filter(post_reaction=community_post_reaction))
 
     def test_approving_community_post_moderated_object_deletes_comment_notifications(
@@ -1587,7 +1587,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         PostCommentNotification = get_post_comment_notification_model()
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(PostCommentNotification.objects.filter(post_comment=community_post_comment).exists())
 
     def test_approving_community_post_moderated_object_deletes_comment_reply_notifications(
@@ -1634,7 +1634,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         PostCommentReplyNotification = get_post_comment_reply_notification_model()
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(
             PostCommentReplyNotification.objects.filter(post_comment=community_post_comment_reply).exists()
         )
@@ -1683,7 +1683,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(
             PostCommentReactionNotification.objects.filter(
                 post_comment_reaction=community_post_comment_reaction
@@ -1743,7 +1743,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(
             PostCommentReactionNotification.objects.filter(
                 post_comment_reaction=community_post_comment_reply_reaction
@@ -1792,7 +1792,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         PostCommentUserMentionNotification = get_post_comment_user_mention_notification_model()
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(
             PostCommentUserMentionNotification.objects.filter(
                 post_comment_user_mention=community_post_comment_user_mention
@@ -1838,7 +1838,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         PostUserMentionNotification = get_post_user_mention_notification_model()
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(
             PostUserMentionNotification.objects.filter(post_user_mention=community_post_user_mention).exists()
         )
@@ -1874,7 +1874,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -1907,7 +1907,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(regular_user)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(object_id=community_post.pk, status=ModeratedObject.STATUS_PENDING).exists()
@@ -1947,7 +1947,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -2001,7 +2001,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         PostCommentNotification = get_post_comment_notification_model()
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(PostCommentNotification.objects.filter(post_comment=community_post_comment).exists())
         self.assertFalse(PostCommentNotification.objects.filter(post_comment=community_post_second_comment).exists())
 
@@ -2053,7 +2053,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         PostCommentReplyNotification = get_post_comment_reply_notification_model()
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(
             PostCommentReplyNotification.objects.filter(post_comment=community_post_comment_reply).exists()
         )
@@ -2107,7 +2107,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         PostCommentReplyNotification = get_post_comment_reply_notification_model()
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(
             PostCommentReplyNotification.objects.filter(post_comment=community_post_comment_reply).exists()
         )
@@ -2160,7 +2160,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(
             PostCommentReactionNotification.objects.filter(
                 post_comment_reaction=community_post_comment_reaction
@@ -2224,7 +2224,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(
             PostCommentReactionNotification.objects.filter(
                 post_comment_reaction=community_post_comment_reply_reaction
@@ -2277,7 +2277,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         PostCommentUserMentionNotification = get_post_comment_user_mention_notification_model()
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(
             PostCommentUserMentionNotification.objects.filter(
                 post_comment_user_mention=community_post_comment_user_mention
@@ -2323,7 +2323,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -2366,7 +2366,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(regular_user)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -2394,7 +2394,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertEqual(
             1,
@@ -2437,7 +2437,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(object_id=user.pk, status=ModeratedObject.STATUS_REJECTED).exists()
@@ -2468,7 +2468,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(object_id=user.pk, status=ModeratedObject.STATUS_PENDING).exists()
@@ -2493,7 +2493,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(regular_user)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(object_id=user.pk, status=ModeratedObject.STATUS_PENDING).exists()
@@ -2518,7 +2518,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(object_id=community.pk, status=ModeratedObject.STATUS_REJECTED).exists()
@@ -2549,7 +2549,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(object_id=community.pk, status=ModeratedObject.STATUS_PENDING).exists()
@@ -2574,7 +2574,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(regular_community)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(object_id=community.pk, status=ModeratedObject.STATUS_PENDING).exists()
@@ -2605,7 +2605,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -2644,7 +2644,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -2679,7 +2679,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(regular_user)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(object_id=community_post.pk, status=ModeratedObject.STATUS_PENDING).exists()
@@ -2719,7 +2719,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -2767,7 +2767,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -2810,7 +2810,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(regular_user)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -2838,7 +2838,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertEqual(
             1,
@@ -2893,7 +2893,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
             headers = make_authentication_headers_for_user(global_moderator)
             response = self.client.post(url, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             penalties_count = user.count_moderation_penalties_for_moderation_severity(
                 moderation_severity=ModerationCategory.SEVERITY_LOW
@@ -2942,7 +2942,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
             headers = make_authentication_headers_for_user(global_moderator)
             response = self.client.post(url, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             penalties_count = user.count_moderation_penalties_for_moderation_severity(
                 moderation_severity=ModerationCategory.SEVERITY_MEDIUM
@@ -2990,7 +2990,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
             headers = make_authentication_headers_for_user(global_moderator)
             response = self.client.post(url, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             penalties_count = user.count_moderation_penalties_for_moderation_severity(
                 moderation_severity=ModerationCategory.SEVERITY_HIGH
@@ -3031,7 +3031,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         expected_expiration_date = (timezone.now() + timezone.timedelta(weeks=5000)).date()
         moderation_penalty = ModerationPenalty.objects.get(
@@ -3071,7 +3071,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
             headers = make_authentication_headers_for_user(global_moderator)
             response = self.client.post(url, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             self.assertTrue(
                 PostComment.objects.filter(
@@ -3109,7 +3109,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
             headers = make_authentication_headers_for_user(global_moderator)
             response = self.client.post(url, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             self.assertTrue(
                 Community.objects.filter(
@@ -3147,7 +3147,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
             headers = make_authentication_headers_for_user(global_moderator)
             response = self.client.post(url, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             self.assertTrue(
                 Post.objects.filter(
@@ -3186,7 +3186,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         post.refresh_from_db()
         community.refresh_from_db()
@@ -3226,7 +3226,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         post.refresh_from_db()
         community.refresh_from_db()
@@ -3269,7 +3269,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             len(post_comment_ids),
@@ -3314,7 +3314,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             len(post_ids),
@@ -3350,7 +3350,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             User.objects.filter(
@@ -3385,7 +3385,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             User.objects.filter(
@@ -3420,7 +3420,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(
             ModerationPenalty.objects.filter(
@@ -3456,7 +3456,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModerationPenalty.objects.filter(
@@ -3493,7 +3493,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModerationPenalty.objects.filter(
@@ -3542,7 +3542,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertEqual(
             3,
@@ -3585,7 +3585,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(
             ModerationPenalty.objects.filter(
@@ -3616,7 +3616,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=user.pk, verified=True).exists())
 
@@ -3641,7 +3641,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=user.pk, verified=True).exists())
 
@@ -3664,7 +3664,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -3702,7 +3702,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=user.pk, verified=False).exists())
 
@@ -3728,7 +3728,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(regular_user)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=user.pk, verified=False).exists())
 
@@ -3753,7 +3753,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=community.pk, verified=True).exists())
 
@@ -3785,7 +3785,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=community.pk, verified=False).exists())
 
@@ -3811,7 +3811,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(regular_user)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=community.pk, verified=False).exists())
 
@@ -3842,7 +3842,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=community_post.pk, verified=True).exists())
 
@@ -3877,7 +3877,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=community_post.pk, verified=False).exists())
 
@@ -3909,7 +3909,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(regular_user)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=community_post.pk, verified=False).exists())
 
@@ -3949,7 +3949,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=community_post_comment.pk, verified=True).exists())
 
@@ -3995,7 +3995,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=community_post_comment.pk, verified=False).exists())
 
@@ -4034,7 +4034,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(regular_user)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=community_post_comment.pk, verified=False).exists())
 
@@ -4059,7 +4059,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertEqual(
             1,
@@ -4103,7 +4103,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         post.refresh_from_db()
 
@@ -4152,7 +4152,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=user.pk, verified=False).exists())
 
@@ -4178,7 +4178,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=user.pk, verified=False).exists())
 
@@ -4213,7 +4213,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=user.pk, verified=True).exists())
 
@@ -4240,7 +4240,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(regular_user)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=user.pk, verified=True).exists())
 
@@ -4266,7 +4266,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=community.pk, verified=False).exists())
 
@@ -4299,7 +4299,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=community.pk, verified=True).exists())
 
@@ -4326,7 +4326,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(regular_user)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=community.pk, verified=True).exists())
 
@@ -4358,7 +4358,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=community_post.pk, verified=False).exists())
 
@@ -4394,7 +4394,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=community_post.pk, verified=True).exists())
 
@@ -4427,7 +4427,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(regular_user)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=community_post.pk, verified=True).exists())
 
@@ -4468,7 +4468,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=community_post_comment.pk, verified=False).exists())
 
@@ -4515,7 +4515,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=community_post_comment.pk, verified=True).exists())
 
@@ -4557,7 +4557,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(regular_user)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
         self.assertTrue(ModeratedObject.objects.filter(object_id=community_post_comment.pk, verified=True).exists())
 
@@ -4583,7 +4583,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertEqual(
             1,
@@ -4627,7 +4627,7 @@ class ModeratedObjectLogs(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderation_categories = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -4657,7 +4657,7 @@ class ModeratedObjectLogs(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
     def test_can_retrieve_global_moderation_object_logs_if_global_moderator(self):
         """should be able to retrieve global moderation object logs if global moderator and return 200"""
@@ -4676,7 +4676,7 @@ class ModeratedObjectLogs(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderation_categories = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -4703,7 +4703,7 @@ class ModeratedObjectLogs(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
     def _get_url(self, moderated_object):
         return reverse("moderated-object-logs", kwargs={"moderated_object_id": moderated_object.pk})
@@ -4734,7 +4734,7 @@ class ModeratedObjectReports(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_moderator)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderation_categories = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -4764,7 +4764,7 @@ class ModeratedObjectReports(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
     def test_can_retrieve_global_moderation_object_reports_if_global_moderator(self):
         """should be able to retrieve global moderation object reports if global moderator and return 200"""
@@ -4783,7 +4783,7 @@ class ModeratedObjectReports(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(global_moderator)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_moderation_categories = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -4812,7 +4812,7 @@ class ModeratedObjectReports(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
     def _get_url(self, moderated_object):
         return reverse(

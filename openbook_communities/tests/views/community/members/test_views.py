@@ -48,7 +48,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_members = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -69,7 +69,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cannot_retrieve_members_of_community_banned_from(self):
         """should not be able to retrieve the community members if user has been banned from community"""
@@ -88,7 +88,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
 
     def test_can_retrieve_members_of_private_community_part_of(self):
         """should be able to retrieve the members of a private community part of"""
@@ -118,7 +118,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_members = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -153,7 +153,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, {"count": count, "max_id": max_id}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_members = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -198,7 +198,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
             **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_members = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -243,7 +243,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
             **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_members = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -302,7 +302,7 @@ class CommunityMembersAPITest(OpenbookAPITestCase):
             **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_members = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -337,7 +337,7 @@ class InviteCommunityMembersAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, {"username": user_to_invite.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(user_to_invite.is_invited_to_community_with_name(community_name=community.name))
 
@@ -357,7 +357,7 @@ class InviteCommunityMembersAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, {"username": user_to_invite.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(
             CommunityInviteNotification.objects.filter(
@@ -381,7 +381,7 @@ class InviteCommunityMembersAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, {"username": user_to_invite.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user_to_invite.is_invited_to_community_with_name(community_name=community.name))
 
@@ -401,7 +401,7 @@ class InviteCommunityMembersAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, {"username": user_to_invite.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user_to_invite.is_invited_to_community_with_name(community_name=community.name))
 
@@ -426,7 +426,7 @@ class InviteCommunityMembersAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, {"username": user_to_invite.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(user_to_invite.is_invited_to_community_with_name(community_name=community.name))
 
@@ -451,7 +451,7 @@ class InviteCommunityMembersAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, {"username": user_to_invite.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(user_to_invite.is_invited_to_community_with_name(community_name=community.name))
 
@@ -525,7 +525,7 @@ class JoinCommunityAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(user.is_member_of_community_with_name(community_name=community.name))
 
@@ -544,7 +544,7 @@ class JoinCommunityAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(user.is_member_of_community_with_name(community_name=community.name))
 
@@ -571,7 +571,7 @@ class JoinCommunityAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertFalse(
             CommunityInviteNotification.objects.filter(
@@ -594,7 +594,7 @@ class JoinCommunityAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user.is_member_of_community_with_name(community_name=community.name))
 
@@ -611,7 +611,7 @@ class JoinCommunityAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(user.is_member_of_community_with_name(community_name=community.name))
 
@@ -644,7 +644,7 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
 
             url = self._get_url(community_name=community.name)
             response = self.client.get(url, {"query": final_query}, **headers)
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
             response_members = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_members)
             if response_members_count == 1:
@@ -679,7 +679,7 @@ class SearchCommunityMembersAPITests(OpenbookAPITestCase):
 
             url = self._get_url(community_name=community.name)
             response = self.client.get(url, {"query": final_query}, **headers)
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
             response_members = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_members)
             if response_members_count == 1:
@@ -893,7 +893,7 @@ class LeaveCommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(
             CommunityNotificationsSubscription.objects.filter(subscriber=user, community=community).exists()

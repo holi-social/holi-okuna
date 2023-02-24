@@ -49,7 +49,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(post_reporter.has_reported_post_with_id(post_id=post.pk))
         self.assertTrue(
@@ -81,7 +81,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -107,7 +107,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(post_creator.has_reported_post_with_id(post_id=post.pk))
         self.assertFalse(
@@ -143,7 +143,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(post_reporter.has_reported_post_with_id(post_id=post.pk))
         self.assertTrue(
@@ -176,7 +176,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(post_reporter.has_reported_post_with_id(post_id=post.pk))
         self.assertFalse(
@@ -209,7 +209,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(post_reporter.has_reported_post_with_id(post_id=post.pk))
         self.assertTrue(
@@ -247,7 +247,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(post_reporter.has_reported_post_with_id(post_id=post.pk))
         self.assertTrue(
@@ -280,7 +280,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(post_reporter.has_reported_post_with_id(post_id=post.pk))
         self.assertFalse(
@@ -336,7 +336,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data={"description": report_description}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(post_reporter.has_reported_post_with_id(post_id=post.pk))
         self.assertFalse(
@@ -367,7 +367,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
             url, data={"description": report_description, "category_id": report_category.pk}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(post_reporter.has_reported_post_with_id(post_id=post.pk))
         self.assertEqual(
@@ -397,10 +397,10 @@ class ReportPostAPITests(OpenbookAPITestCase):
             data={
                 "category_id": report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(post_reporter.has_reported_post_with_id(post_id=post.pk))
         self.assertTrue(
@@ -444,7 +444,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(post_comment_reporter.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertTrue(
@@ -478,7 +478,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -505,7 +505,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(post_comment_creator.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertFalse(
@@ -542,7 +542,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(post_comment_reporter.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertTrue(
@@ -577,7 +577,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(post_comment_reporter.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertFalse(
@@ -610,7 +610,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(post_comment_reporter.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertTrue(
@@ -649,7 +649,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(post_comment_reporter.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertTrue(
@@ -683,7 +683,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(post_comment_reporter.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertFalse(
@@ -718,7 +718,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(post_comment_reporter.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertTrue(
@@ -744,7 +744,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data={"description": report_description}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(post_comment_reporter.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertFalse(
@@ -777,7 +777,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(post_comment_reporter.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertEqual(
@@ -809,10 +809,10 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
             data={
                 "category_id": report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(post_comment_reporter.has_reported_post_comment_with_id(post_comment_id=post_comment.pk))
         self.assertTrue(
@@ -855,7 +855,7 @@ class ReportUserAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(user_reporter.has_reported_user_with_id(user_id=user.pk))
         self.assertTrue(
@@ -885,7 +885,7 @@ class ReportUserAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -909,7 +909,7 @@ class ReportUserAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user.has_reported_user_with_id(user_id=user.pk))
         self.assertFalse(
@@ -934,7 +934,7 @@ class ReportUserAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data={"description": report_description}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user_reporter.has_reported_user_with_id(user_id=user.pk))
         self.assertFalse(
@@ -963,7 +963,7 @@ class ReportUserAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(user_reporter.has_reported_user_with_id(user_id=user.pk))
         self.assertEqual(
@@ -992,10 +992,10 @@ class ReportUserAPITests(OpenbookAPITestCase):
             data={
                 "category_id": report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(user_reporter.has_reported_user_with_id(user_id=user.pk))
         self.assertTrue(
@@ -1036,7 +1036,7 @@ class ReportCommunityAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(community_reporter.has_reported_community_with_id(community_id=community.pk))
         self.assertTrue(
@@ -1067,7 +1067,7 @@ class ReportCommunityAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(
             ModeratedObject.objects.filter(
@@ -1092,7 +1092,7 @@ class ReportCommunityAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(community_owner.has_reported_community_with_id(community_id=community.pk))
         self.assertFalse(
@@ -1118,7 +1118,7 @@ class ReportCommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data={"description": report_description}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(community_reporter.has_reported_community_with_id(community_id=community.pk))
         self.assertFalse(
@@ -1148,7 +1148,7 @@ class ReportCommunityAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(community_reporter.has_reported_community_with_id(community_id=community.pk))
         self.assertEqual(
@@ -1178,10 +1178,10 @@ class ReportCommunityAPITests(OpenbookAPITestCase):
             data={
                 "category_id": report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(community_reporter.has_reported_community_with_id(community_id=community.pk))
         self.assertTrue(
@@ -1221,7 +1221,7 @@ class ReportHashtagAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(hashtag_reporter.has_reported_hashtag_with_id(hashtag_id=hashtag.pk))
         self.assertTrue(
@@ -1246,7 +1246,7 @@ class ReportHashtagAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data={"description": report_description}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(hashtag_reporter.has_reported_hashtag_with_id(hashtag_id=hashtag.pk))
         self.assertFalse(
@@ -1275,7 +1275,7 @@ class ReportHashtagAPITests(OpenbookAPITestCase):
             url, data={"category_id": report_category.pk, "description": report_description}, **headers
         )
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(hashtag_reporter.has_reported_hashtag_with_id(hashtag_id=hashtag.pk))
         self.assertEqual(
@@ -1304,10 +1304,10 @@ class ReportHashtagAPITests(OpenbookAPITestCase):
             data={
                 "category_id": report_category.pk,
             },
-            **headers
+            **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(hashtag_reporter.has_reported_hashtag_with_id(hashtag_id=hashtag.pk))
         self.assertTrue(

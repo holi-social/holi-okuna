@@ -53,7 +53,7 @@ class ReceivedFollowRequestsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_follow_requests = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_follow_requests), number_of_own_follow_requests)
@@ -77,7 +77,7 @@ class ReceivedFollowRequestsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_follow_requests = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_follow_requests), max_number_of_own_follow_requests)
@@ -96,7 +96,7 @@ class ReceivedFollowRequestsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_follow_requests = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(len(response_follow_requests), 0)
@@ -125,7 +125,7 @@ class RequestToFollowUserAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(user_to_request_to_follow.has_follow_request_from_user(user=user))
 
@@ -142,7 +142,7 @@ class RequestToFollowUserAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user.has_follow_request_from_user(user=user))
 
@@ -162,7 +162,7 @@ class RequestToFollowUserAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertEqual(
             FollowRequest.objects.filter(creator=user, target_user=user_to_request_to_follow).count(),
@@ -188,7 +188,7 @@ class RequestToFollowUserAPITests(OpenbookAPITestCase):
 
             response = self.client.put(url, data, **headers, format="multipart")
 
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
             self.assertFalse(user_to_request_to_follow.has_follow_request_from_user(user=user))
 
@@ -207,7 +207,7 @@ class RequestToFollowUserAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertEqual(
             FollowRequestNotification.objects.filter(
@@ -233,7 +233,7 @@ class RequestToFollowUserAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         follow_request = FollowRequest.objects.get(creator=user, target_user=user_to_request_to_follow)
 
@@ -256,7 +256,7 @@ class RequestToFollowUserAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         _send_notification_to_user.assert_not_called()
 
@@ -286,7 +286,7 @@ class CancelRequestToFollowUserAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(user_to_cancel_request_to_follow.has_follow_request_from_user(user=user))
 
@@ -305,7 +305,7 @@ class CancelRequestToFollowUserAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cancelling_a_request_to_follow_deletes_database_notification(self):
         """should delete the database notification when cancelling a request notification to a user"""
@@ -324,7 +324,7 @@ class CancelRequestToFollowUserAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(user_to_cancel_request_to_follow.has_follow_request_from_user(user=user))
 
@@ -360,7 +360,7 @@ class ApproveUserFollowRequestAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(user_requesting_to_follow.is_following_user(user=user))
 
@@ -380,7 +380,7 @@ class ApproveUserFollowRequestAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(user.has_follow_request_from_user(user=user_requesting_to_follow))
 
@@ -402,7 +402,7 @@ class ApproveUserFollowRequestAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(
             FollowRequestNotification.objects.filter(
@@ -427,7 +427,7 @@ class ApproveUserFollowRequestAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertEqual(
             FollowRequestApprovedNotification.objects.filter(
@@ -456,7 +456,7 @@ class ApproveUserFollowRequestAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         follow = Follow.objects.get(followed_user=user, user=user_requesting_to_follow)
 
@@ -479,7 +479,7 @@ class ApproveUserFollowRequestAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         send_follow_push_notification.assert_not_called()
 
@@ -506,7 +506,7 @@ class ApproveUserFollowRequestAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertEqual(_send_notification_to_user.call_count, 0)
 
@@ -525,7 +525,7 @@ class ApproveUserFollowRequestAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user_requesting_to_follow.is_following_user(user=user))
 
@@ -554,7 +554,7 @@ class RejectUserFollowRequestAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(user_requesting_to_follow.is_following_user(user=user))
 
@@ -574,7 +574,7 @@ class RejectUserFollowRequestAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(user.has_follow_request_from_user(user=user_requesting_to_follow))
 
@@ -596,7 +596,7 @@ class RejectUserFollowRequestAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(
             FollowRequestNotification.objects.filter(
@@ -621,7 +621,7 @@ class RejectUserFollowRequestAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(
             FollowRequestApprovedNotification.objects.filter(
@@ -649,7 +649,7 @@ class RejectUserFollowRequestAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         send_follow_request_approved_push_notification.assert_not_called()
 
@@ -668,7 +668,7 @@ class RejectUserFollowRequestAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user_requesting_to_follow.is_following_user(user=user))
 
@@ -696,7 +696,7 @@ class FollowAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(user.is_following_user_in_list(user_to_follow, list_to_follow))
 
@@ -723,7 +723,7 @@ class FollowAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         for list_id in lists_to_follow_ids:
             self.assertTrue(user.is_following_user_with_id_in_list_with_id(user_to_follow, list_id))
@@ -745,7 +745,7 @@ class FollowAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cannot_follow_oneself(self):
         """should not be able to follow oneself and return 400"""
@@ -761,7 +761,7 @@ class FollowAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(Follow.objects.filter(user=user, followed_user=user).count() == 0)
 
     def test_follow_should_create_notification(self):
@@ -808,7 +808,7 @@ class UnfollowAPITest(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(user.is_following_user_in_list(user_to_unfollow, list_to_follow))
 
@@ -826,7 +826,7 @@ class UnfollowAPITest(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user.is_following_user(not_followed_user))
 
@@ -883,7 +883,7 @@ class UpdateFollowAPITest(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(user.is_following_user_in_list(user_to_follow, new_list))
 
@@ -913,7 +913,7 @@ class UpdateFollowAPITest(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         follow = user.get_follow_for_user_with_id(user_to_follow.pk)
         follow_lists_ids = [list.pk for list in follow.lists.all()]
@@ -939,7 +939,7 @@ class UpdateFollowAPITest(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def _get_url(self):
         return reverse("update-follow")

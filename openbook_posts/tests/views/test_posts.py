@@ -1,6 +1,7 @@
 # Create your tests here.
 import tempfile
 import unittest
+import uuid
 from unittest import mock
 
 from PIL import Image
@@ -96,7 +97,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(user.posts.filter(text=post_text).count() == 1)
 
@@ -118,7 +119,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(user.posts.filter(text=post_text).count() == 1)
         world_circle = Circle.get_world_circle()
         self.assertTrue(world_circle.posts.filter(text=post_text).count() == 1)
@@ -137,7 +138,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(user.posts.get(text=post_text).language.code is not None)
 
@@ -322,7 +323,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
             response = self.client.put(url, data, **headers, format="multipart")
 
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
             post = Post.objects.get(text=post_text, creator_id=user.pk)
 
@@ -343,7 +344,7 @@ class PostsAPITests(OpenbookAPITestCase):
         data = {"text": post_text}
         url = self._get_url()
         response = self.client.put(url, data, **headers, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
         self.assertEqual(PostUserMention.objects.filter(post_id=post.pk).count(), 0)
@@ -363,7 +364,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
@@ -393,7 +394,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
         response = self.client.put(url, data, **headers, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
         post_user_mention_query = PostUserMention.objects.filter(post_id=post.pk, user_id=mentioned_user.pk)
@@ -420,7 +421,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
         response = self.client.put(url, data, **headers, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
         self.assertTrue(PostUserMention.objects.filter(post_id=post.pk, user_id=mentioned_user.pk).exists())
@@ -441,7 +442,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
         response = self.client.put(url, data, **headers, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
         self.assertTrue(PostUserMention.objects.filter(post_id=post.pk, user_id=mentioned_user.pk).exists())
@@ -459,7 +460,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         url = self._get_url()
         response = self.client.put(url, data, **headers, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
         self.assertFalse(PostUserMention.objects.filter(post_id=post.pk, user_id=user.pk).exists())
@@ -498,7 +499,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(user.posts.filter(text=post_text).count() == 1)
 
@@ -521,7 +522,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(user.posts.filter(text=post_text).count() == 0)
 
@@ -543,7 +544,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertTrue(user.posts.filter(text=post_text).exists())
 
@@ -566,7 +567,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         response_post = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -606,7 +607,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         response_post = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -698,7 +699,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
             response_post_id = response_post.get("id")
 
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
             media = PostMedia.objects.get(post_id=response_post_id, type=PostMedia.MEDIA_TYPE_VIDEO)
             self.assertEqual(media.content_object.hash, filehash)
@@ -716,7 +717,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
                 response = self.client.put(url, data, **headers, format="multipart")
 
-                self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+                self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
                 response_post = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -797,7 +798,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_create_post_publishes_post_by_default(self):
         """should be able to create a post and have it automatically published"""
@@ -813,7 +814,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         response_post = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -836,7 +837,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         response_post = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -861,7 +862,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user.posts.filter(text=post_text).exists())
 
@@ -879,7 +880,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         response_post = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -906,7 +907,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
 
         self.assertEqual(
             user.posts.filter(text=post_text, status=Post.STATUS_DRAFT, circles__id=circle.pk).count(),
@@ -974,7 +975,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"count": len(all_posts_ids)}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1031,7 +1032,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"circle_id": circles_query_str_value}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1086,7 +1087,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"list_id": lists_query_str_value}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1143,7 +1144,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"count": count, "max_id": max_id}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1201,7 +1202,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"count": count, "min_id": min_id}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1232,7 +1233,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": user_to_retrieve_posts_from.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1274,7 +1275,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": user_to_connect_with.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1308,7 +1309,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": user.username})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1336,7 +1337,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": user.username})
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_can_get_public_posts_for_okuna_visibility_user_authenticated(self):
         """should be able to retrieve the public posts of an specific okuna visibility user being authenticated and return 400"""
@@ -1360,7 +1361,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": user_to_retrieve_posts_from.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1388,7 +1389,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": user.username})
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_can_get_public_posts_for_public_visibility_user_authenticated(self):
         """should be able to retrieve the public posts of an specific public visibility user being authenticated and return 400"""
@@ -1411,7 +1412,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": user_to_retrieve_posts_from.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1447,7 +1448,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1487,7 +1488,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1522,7 +1523,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1557,7 +1558,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1597,7 +1598,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1634,7 +1635,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": foreign_user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1671,7 +1672,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": foreign_user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1713,7 +1714,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": foreign_user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1747,7 +1748,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": foreign_user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1792,7 +1793,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": foreign_user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1832,7 +1833,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": foreign_user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1860,7 +1861,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": foreign_user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1898,7 +1899,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": foreign_user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1928,7 +1929,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"username": user.username, "count": count, "max_id": max_id})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1960,7 +1961,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"circle_id": connections_circle_id}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -1988,7 +1989,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"circle_id": circle_id}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2020,7 +2021,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2048,7 +2049,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2104,7 +2105,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2134,7 +2135,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2172,7 +2173,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2209,7 +2210,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2244,7 +2245,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2281,7 +2282,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2315,7 +2316,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2335,7 +2336,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2356,7 +2357,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"list_id": follow_list.pk}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2381,7 +2382,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2406,7 +2407,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"circle_id": connected_user_post_circle.pk}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2431,7 +2432,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2456,7 +2457,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"circle_id": connected_user_post_circle.pk}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2476,7 +2477,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2497,7 +2498,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"list_id": follow_list.pk}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2525,7 +2526,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2551,7 +2552,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"username": post_creator.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2584,7 +2585,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"username": post_creator.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2609,7 +2610,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"username": post_creator.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2635,7 +2636,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"username": post_creator.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2665,7 +2666,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2701,7 +2702,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2720,7 +2721,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2740,7 +2741,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"list_id": follow_list.pk}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2766,7 +2767,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2792,7 +2793,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"circle_id": connected_user_post_circle.pk}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2814,7 +2815,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2844,7 +2845,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2870,7 +2871,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2904,7 +2905,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2930,7 +2931,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"username": connected_user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2950,7 +2951,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"username": following_user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -2980,7 +2981,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"username": user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3008,7 +3009,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"username": user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3035,7 +3036,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3066,7 +3067,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3096,7 +3097,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3116,7 +3117,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"username": user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3134,7 +3135,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"username": user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3157,7 +3158,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"username": user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3187,7 +3188,7 @@ class PostsAPITests(OpenbookAPITestCase):
             headers = make_authentication_headers_for_user(user)
             response = self.client.get(url, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3222,7 +3223,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3245,7 +3246,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3269,7 +3270,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"list_id": follow_list.pk}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3300,7 +3301,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(0, len(response_posts))
@@ -3330,7 +3331,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"circle_id": connected_user_post_circle.pk}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3361,7 +3362,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"username": connected_user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3385,7 +3386,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"username": following_user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3405,7 +3406,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"username": user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3427,7 +3428,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"username": user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3454,7 +3455,7 @@ class PostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, {"username": user.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3476,7 +3477,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         user_notifications_subscription = UserNotificationsSubscription.objects.get(subscriber=subscriber, user=user)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             UserNewPostNotification.objects.filter(
                 user_notifications_subscription=user_notifications_subscription
@@ -3501,7 +3502,7 @@ class PostsAPITests(OpenbookAPITestCase):
         response_post = json.loads(response.content, object_hook=uuid_id_parser)
         post = Post.objects.get(id=response_post["id"])
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(UserNewPostNotification.objects.filter(post=post).count() == 0)
 
     def test_create_post_does_not_notify_subscribers_if_they_have_been_blocked(self):
@@ -3521,7 +3522,7 @@ class PostsAPITests(OpenbookAPITestCase):
         response_post = json.loads(response.content, object_hook=uuid_id_parser)
         post = Post.objects.get(id=response_post["id"])
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(UserNewPostNotification.objects.filter(post=post).count() == 0)
 
     def test_encircled_post_should_notify_only_subscribers_in_that_circle(self):
@@ -3554,7 +3555,7 @@ class PostsAPITests(OpenbookAPITestCase):
             subscriber=subscriber, user=post_creator
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
         self.assertTrue(
             UserNewPostNotification.objects.filter(
                 user_notifications_subscription=other_subscriber_notifications_subscription
@@ -3601,7 +3602,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3628,7 +3629,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3661,7 +3662,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3701,7 +3702,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3733,7 +3734,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3765,7 +3766,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3797,7 +3798,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -3831,7 +3832,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(0, len(response_posts))
@@ -3862,7 +3863,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(0, len(response_posts))
@@ -3896,7 +3897,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(0, len(response_posts))
@@ -3933,7 +3934,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(1, len(response_posts))
         response_post = response_posts[0]
@@ -3975,7 +3976,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(1, len(response_posts))
         response_post = response_posts[0]
@@ -4024,7 +4025,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(1, len(response_posts))
         response_post = response_posts[0]
@@ -4064,7 +4065,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(1, len(response_posts))
@@ -4102,7 +4103,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, {"exclude_joined_communities": True}, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(1, len(response_posts))
@@ -4135,7 +4136,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(0, len(response_posts))
@@ -4169,7 +4170,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(0, len(response_posts))
@@ -4197,7 +4198,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(0, len(response_posts))
@@ -4228,7 +4229,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(0, len(response_posts))
@@ -4261,7 +4262,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(1, len(response_posts))
         response_post = response_posts[0]
@@ -4296,7 +4297,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(1, len(response_posts))
         response_post = response_posts[0]
@@ -4335,7 +4336,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(1, len(response_posts))
         response_post = response_posts[0]
@@ -4381,7 +4382,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(1, len(response_posts))
         response_post = response_posts[0]
@@ -4411,7 +4412,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(0, len(response_posts))
 
@@ -4437,7 +4438,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -4464,7 +4465,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -4489,7 +4490,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -4516,7 +4517,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         response = self.client.get(url, **headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(1, len(response_posts))
 
@@ -4549,7 +4550,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         response = self.client.get(url, **headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(1, len(response_posts))
 
@@ -4576,7 +4577,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         response = self.client.get(url, {"max_id": 5}, **headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(4, len(response_posts))
 
@@ -4602,7 +4603,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         response = self.client.get(url, {"min_id": 5}, **headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(5, len(response_posts))
 
@@ -4627,7 +4628,7 @@ class TopPostsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         response = self.client.get(url, {"count": 5}, **headers)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
         self.assertEqual(5, len(response_posts))
 
@@ -4654,7 +4655,7 @@ class ProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -4676,7 +4677,7 @@ class ProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -4703,7 +4704,7 @@ class ProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, {"offset": offset}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -4727,7 +4728,7 @@ class ProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, f"Response: {response.data}")
         self.assertTrue(user.has_excluded_community_with_name_from_profile_posts(community_name=community.name))
 
     def test_can_exclude_private_community(self):
@@ -4743,7 +4744,7 @@ class ProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         data = {"community_name": community.name}
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, f"Response: {response.data}")
         self.assertTrue(user.has_excluded_community_with_name_from_profile_posts(community_name=community.name))
 
     def test_cannot_exclude_community_already_excluded(self):
@@ -4761,7 +4762,7 @@ class ProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(user.has_excluded_community_with_name_from_profile_posts(community_name=community.name))
 
     def _get_url(self):
@@ -4797,7 +4798,7 @@ class SearchProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertEqual(len(parsed_response), 1)
@@ -4830,7 +4831,7 @@ class SearchProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertEqual(len(parsed_response), 1)
@@ -4861,7 +4862,7 @@ class ProfilePostsExcludedCommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.delete(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, f"Response: {response.data}")
         self.assertFalse(user.has_excluded_community_with_name_from_profile_posts(community_name=community.name))
 
     def test_cannot_remove_exclusion_for_community_if_not_excluded(self):
@@ -4876,7 +4877,7 @@ class ProfilePostsExcludedCommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.delete(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertFalse(user.has_excluded_community_with_name_from_profile_posts(community_name=community.name))
 
     def _get_url(self, community):
@@ -4905,7 +4906,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -4927,7 +4928,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -4954,7 +4955,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, {"offset": offset}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_communities = json.loads(response.content, object_hook=uuid_id_parser)
 
@@ -4978,7 +4979,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, f"Response: {response.data}")
         self.assertTrue(user.has_excluded_community_with_name_from_top_posts(community_name=community.name))
 
     def test_cannot_exclude_private_community(self):
@@ -4994,7 +4995,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         data = {"community_name": community.name}
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertFalse(user.has_excluded_community_with_name_from_top_posts(community_name=community.name))
 
     def test_cannot_exclude_community_already_excluded(self):
@@ -5012,7 +5013,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
         response = self.client.put(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(user.has_excluded_community_with_name_from_top_posts(community_name=community.name))
 
     def _get_url(self):
@@ -5048,7 +5049,7 @@ class SearchTopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertEqual(len(parsed_response), 1)
@@ -5081,7 +5082,7 @@ class SearchTopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
             self.assertEqual(len(parsed_response), 1)
@@ -5112,7 +5113,7 @@ class TopPostsExcludedCommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.delete(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, f"Response: {response.data}")
         self.assertFalse(user.has_excluded_community_with_name_from_top_posts(community_name=community.name))
 
     def test_cannot_remove_exclusion_for_community_if_not_excluded(self):
@@ -5127,7 +5128,7 @@ class TopPostsExcludedCommunityAPITests(OpenbookAPITestCase):
 
         response = self.client.delete(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertFalse(user.has_excluded_community_with_name_from_top_posts(community_name=community.name))
 
     def _get_url(self, community):

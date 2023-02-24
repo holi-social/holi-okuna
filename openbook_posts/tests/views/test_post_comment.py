@@ -58,7 +58,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
     def test_can_get_foreign_public_post_comment(self):
         """should be able to get an own comment in a foreign public post and return 200"""
@@ -79,7 +79,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
     def test_can_get_foreign_encircled_post_comment_part_of(self):
         """should be able to get a foreign encircled post comment part of and return 200"""
@@ -107,7 +107,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
     def test_cant_get_foreign_encircled_post_comment_part_of(self):
         """should NOT be able to get a foreign encircled post comment NOT part of and return 400"""
@@ -132,7 +132,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_can_get_public_community_post_comment(self):
         """should be able to get a comment in a public community post and return 200"""
@@ -157,7 +157,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
     def test_can_get_private_community_post_comment_part_of(self):
         """should be able to get a comment in a private community part of post and return 200"""
@@ -193,7 +193,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
     def test_cant_get_private_community_post_comment_not_part_of(self):
         """should NOT be able to get a comment in a private community NOT part of post and return 200"""
@@ -224,7 +224,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_can_delete_foreign_comment_in_own_post(self):
         """should be able to delete a foreign comment in own post and return 200"""
@@ -243,7 +243,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(PostComment.objects.filter(id=post_comment.pk).exists())
 
     def test_can_delete_community_post_comment_if_mod(self):
@@ -274,7 +274,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(PostComment.objects.filter(id=post_comment.pk).exists())
 
     def test_can_delete_community_post_comment_if_admin(self):
@@ -305,7 +305,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(PostComment.objects.filter(id=post_comment.pk).exists())
 
     def test_can_delete_community_post_comment_for_post_with_disabled_comments_if_comment_owner(
@@ -336,7 +336,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(commenter)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(PostComment.objects.filter(id=post_comment.pk).exists())
 
     def test_can_delete_community_post_comment_with_disabled_comments_if_admin(self):
@@ -370,7 +370,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(PostComment.objects.filter(id=post_comment.pk).exists())
 
     def test_can_delete_community_post_comment_for_post_with_disabled_comments_if_moderator(
@@ -406,7 +406,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(PostComment.objects.filter(id=post_comment.pk).exists())
 
     def test_can_delete_community_post_comment_with_closed_post_if_admin(self):
@@ -440,7 +440,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(PostComment.objects.filter(id=post_comment.pk).exists())
 
     def test_can_delete_community_post_comment_for_closed_post_if_moderator(self):
@@ -474,7 +474,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(PostComment.objects.filter(id=post_comment.pk).exists())
 
     def test_cannot_delete_community_post_comment_for_closed_post_if_comment_owner(
@@ -505,7 +505,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(commenter)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).exists())
 
     def test_cannot_delete_own_community_post_comment_for_closed_post_if_post_creator(
@@ -533,7 +533,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_post_creator)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).exists())
 
     def test_logs_community_post_comment_deleted_by_non_creator(self):
@@ -589,7 +589,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).count() == 0)
 
     def test_cannot_delete_foreign_comment_in_foreign_public_post(self):
@@ -609,7 +609,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).count() == 1)
 
     def test_can_delete_own_comment_in_connected_user_public_post(self):
@@ -632,7 +632,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).count() == 0)
 
     def test_cannot_delete_foreign_comment_in_connected_user_public_post(self):
@@ -657,7 +657,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).count() == 1)
 
     def test_can_delete_own_comment_in_connected_user_encircled_post_part_of(self):
@@ -681,7 +681,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).count() == 0)
 
     def test_cannot_delete_foreign_comment_in_connected_user_encircled_post_part_of(
@@ -711,7 +711,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).count() == 1)
 
     def test_cannot_delete_foreign_comment_in_connected_user_encircled_post_not_part_of(
@@ -738,7 +738,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).count() == 1)
 
     def test_can_delete_own_comment_in_followed_user_public_post(self):
@@ -760,7 +760,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).count() == 0)
 
     def test_cannot_delete_foreign_comment_in_followed_user_public_post(self):
@@ -784,7 +784,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).count() == 1)
 
     def test_cannot_delete_foreign_comment_in_folowed_user_encircled_post(self):
@@ -811,7 +811,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment.pk).count() == 1)
 
     def test_post_comment_notification_is_deleted_when_deleting_comment(self):
@@ -857,7 +857,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, {"text": edited_post_comment_text}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         post_comment.refresh_from_db()
         self.assertTrue(post_comment.text == edited_post_comment_text)
         self.assertTrue(post_comment.is_edited)
@@ -938,7 +938,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         url = self._get_url(post_comment=post_comment, post=post)
 
         response = self.client.patch(url, data, **headers, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         post_comment = PostComment.objects.get(text=post_comment_text, commenter_id=user.pk)
 
         self.assertEqual(
@@ -1086,7 +1086,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, {"text": edited_post_comment_text}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         get_language_for_text_call.assert_called_with(edited_post_comment_text)
 
     def test_can_edit_own_post_comment_on_others_post(self):
@@ -1105,7 +1105,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, {"text": edited_post_comment_text}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         post_comment.refresh_from_db()
         self.assertTrue(post_comment.text == edited_post_comment_text)
 
@@ -1125,7 +1125,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, {"text": edited_post_comment_text}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         post_comment.refresh_from_db()
         self.assertTrue(post_comment.text == original_post_comment_text)
         self.assertFalse(post_comment.is_edited)
@@ -1152,7 +1152,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, {"text": edited_post_comment_text}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         post_comment.refresh_from_db()
         self.assertTrue(post_comment.text == original_post_comment_text)
         self.assertFalse(post_comment.is_edited)
@@ -1179,7 +1179,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, {"text": edited_post_comment_text}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         post_comment.refresh_from_db()
         self.assertTrue(post_comment.text == original_post_comment_text)
         self.assertFalse(post_comment.is_edited)
@@ -1206,7 +1206,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, {"text": edited_post_comment_text}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         post_comment.refresh_from_db()
         self.assertTrue(post_comment.text == original_post_comment_text)
         self.assertFalse(post_comment.is_edited)
@@ -1230,7 +1230,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, {"text": edited_post_comment_text}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         post_comment.refresh_from_db()
         self.assertTrue(post_comment.text == original_post_comment_text)
 
@@ -1258,7 +1258,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(PostComment.objects.filter(id=post_comment_reply.pk).exists())
 
     def test_can_delete_community_post_comment_reply_if_mod(self):
@@ -1294,7 +1294,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(PostComment.objects.filter(id=post_comment_reply.pk).exists())
 
     def test_can_delete_community_post_comment_reply_if_admin(self):
@@ -1330,7 +1330,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(PostComment.objects.filter(id=post_comment_reply.pk).exists())
 
     def test_can_delete_community_post_comment_reply_for_post_with_disabled_comments_if_comment_owner(
@@ -1366,7 +1366,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(commenter)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(PostComment.objects.filter(id=post_comment_reply.pk).exists())
 
     def test_can_delete_community_post_comment_reply_with_disabled_comments_if_admin(
@@ -1407,7 +1407,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(PostComment.objects.filter(id=post_comment_reply.pk).exists())
 
     def test_can_delete_community_post_comment_reply_for_post_with_disabled_comments_if_moderator(
@@ -1448,7 +1448,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(PostComment.objects.filter(id=post_comment_reply.pk).exists())
 
     def test_can_delete_community_post_comment_reply_with_closed_post_if_admin(self):
@@ -1487,7 +1487,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(PostComment.objects.filter(id=post_comment_reply.pk).exists())
 
     def test_can_delete_community_post_comment_reply_for_closed_post_if_moderator(self):
@@ -1526,7 +1526,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(PostComment.objects.filter(id=post_comment_reply.pk).exists())
 
     def test_cannot_delete_community_post_comment_reply_for_closed_post_if_comment_owner(
@@ -1562,7 +1562,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(commenter)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).exists())
 
     def test_cannot_delete_own_community_post_comment_reply_for_closed_post_if_post_creator(
@@ -1595,7 +1595,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(community_post_creator)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).exists())
 
     def test_logs_community_post_comment_reply_deleted_by_non_creator(self):
@@ -1661,7 +1661,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).count() == 0)
 
     def test_cannot_delete_foreign_comment_reply_in_foreign_public_post(self):
@@ -1686,7 +1686,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).count() == 1)
 
     def test_can_delete_own_comment_reply_in_connected_user_public_post(self):
@@ -1714,7 +1714,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).count() == 0)
 
     def test_cannot_delete_foreign_comment_reply_in_connected_user_public_post(self):
@@ -1744,7 +1744,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).count() == 1)
 
     def test_can_delete_own_comment_reply_in_connected_user_encircled_post_part_of(
@@ -1775,7 +1775,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).count() == 0)
 
     def test_cannot_delete_foreign_comment_reply_in_connected_user_encircled_post_part_of(
@@ -1810,7 +1810,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).count() == 1)
 
     def test_cannot_delete_foreign_comment_reply_in_connected_user_encircled_post_not_part_of(
@@ -1842,7 +1842,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).count() == 1)
 
     def test_can_delete_own_comment_reply_in_followed_user_public_post(self):
@@ -1869,7 +1869,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).count() == 0)
 
     def test_cannot_delete_foreign_comment_reply_in_followed_user_public_post(self):
@@ -1898,7 +1898,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).count() == 1)
 
     def test_cannot_delete_foreign_comment_reply_in_folowed_user_encircled_post(self):
@@ -1930,7 +1930,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         self.assertTrue(PostComment.objects.filter(id=post_comment_reply.pk).count() == 1)
 
     def test_post_comment_reply_notification_is_deleted_when_deleting_comment(self):
@@ -1986,7 +1986,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, {"text": edited_comment_reply_text}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         post_comment_reply.refresh_from_db()
         self.assertTrue(post_comment_reply.text == edited_comment_reply_text)
         self.assertTrue(post_comment_reply.is_edited)
@@ -2011,7 +2011,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, {"text": edited_post_comment_reply_text}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         post_comment_reply.refresh_from_db()
         self.assertTrue(post_comment_reply.text == edited_post_comment_reply_text)
 
@@ -2036,7 +2036,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, {"text": edited_post_comment_reply_text}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         post_comment_reply.refresh_from_db()
         self.assertTrue(post_comment_reply.text == original_post_comment_reply_text)
         self.assertFalse(post_comment_reply.is_edited)
@@ -2068,7 +2068,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, {"text": edited_post_comment_reply_text}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         post_comment_reply.refresh_from_db()
         self.assertTrue(post_comment_reply.text == original_post_comment_reply_text)
         self.assertFalse(post_comment_reply.is_edited)
@@ -2102,7 +2102,7 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, {"text": edited_post_comment_reply_text}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
         post_comment_reply.refresh_from_db()
         self.assertTrue(post_comment_reply.text == original_post_comment_reply_text)
         self.assertFalse(post_comment_reply.is_edited)
@@ -2132,7 +2132,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(user.has_muted_post_comment_with_id(post_comment.pk))
 
@@ -2149,7 +2149,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertTrue(user.has_muted_post_comment_with_id(post_comment.pk))
 
@@ -2165,7 +2165,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(user.has_muted_post_comment_with_id(post_comment.pk))
 
@@ -2184,7 +2184,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user.has_muted_post_comment_with_id(post_comment.pk))
 
@@ -2206,7 +2206,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(user.has_muted_post_comment_with_id(post_comment.pk))
 
@@ -2224,7 +2224,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(user.has_muted_post_comment_with_id(post_comment.pk))
 
@@ -2269,7 +2269,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(user.has_muted_post_comment_with_id(post_comment.pk))
 
     def test_can_mute_closed_community_post_comment_administrator(self):
@@ -2291,7 +2291,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(admin.has_muted_post_comment_with_id(post_comment.pk))
 
     def test_can_mute_closed_community_post_comment_if_moderator(self):
@@ -2318,7 +2318,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(moderator.has_muted_post_comment_with_id(post_comment.pk))
 
     def test_cant_mute_community_post_comment_if_private_and_not_member(self):
@@ -2335,7 +2335,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user.has_muted_post_comment_with_id(post_comment.pk))
 
@@ -2359,7 +2359,7 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertTrue(user.has_muted_post_comment_with_id(post_comment.pk))
 
@@ -2393,7 +2393,7 @@ class UnmutePostCommentAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         self.assertFalse(user.has_muted_post_comment_with_id(post_comment.pk))
 
@@ -2408,7 +2408,7 @@ class UnmutePostCommentAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
         self.assertFalse(user.has_muted_post_comment_with_id(post_comment.pk))
 
@@ -2453,7 +2453,7 @@ class UnmutePostCommentAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(user.has_muted_post_comment_with_id(post_comment.pk))
 
     def test_can_unmute_closed_community_post_comment_administrator(self):
@@ -2475,7 +2475,7 @@ class UnmutePostCommentAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(admin.has_muted_post_comment_with_id(post_comment.pk))
 
     def test_can_unmute_closed_community_post_comment_if_moderator(self):
@@ -2502,7 +2502,7 @@ class UnmutePostCommentAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertFalse(moderator.has_muted_post_comment_with_id(post_comment.pk))
 
     def _get_url(self, post, post_comment):
@@ -2539,7 +2539,7 @@ class TranslatePostCommentAPITests(OpenbookAPITestCase):
         url = self._get_url(post=post, post_comment=post_comment)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         response_post = json.loads(response.content, object_hook=uuid_id_parser)
 
         self.assertEqual(response_post["translated_text"], "I am a man 😀. You're a woman.")
@@ -2555,7 +2555,7 @@ class TranslatePostCommentAPITests(OpenbookAPITestCase):
         url = self._get_url(post=post, post_comment=post_comment)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cannot_translate_comment_in_encircled_post(self):
         """should not translate post comment text in an encircled post and return 400"""
@@ -2569,7 +2569,7 @@ class TranslatePostCommentAPITests(OpenbookAPITestCase):
         url = self._get_url(post=post, post_comment=post_comment)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_cannot_translate_post_comment_text_without_post_comment_language(self):
         """should not translate post comment text and return 400 if post comment language is not set"""
@@ -2584,7 +2584,7 @@ class TranslatePostCommentAPITests(OpenbookAPITestCase):
         url = self._get_url(post=post, post_comment=post_comment)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_return_error_between_unsupported_translate_pairs(self):
         """should return error using aws translate when translating comment between unsupported pairs (Norwegian to arabic) and return 400"""
@@ -2601,7 +2601,7 @@ class TranslatePostCommentAPITests(OpenbookAPITestCase):
         url = self._get_url(post=post, post_comment=post_comment)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def test_return_error_when_text_length_exceeds_max_setting(self):
         """should return appropriate error when length of text is more than maximum in settings.py return 400"""
@@ -2618,7 +2618,7 @@ class TranslatePostCommentAPITests(OpenbookAPITestCase):
         url = self._get_url(post=post, post_comment=post_comment)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
 
     def _get_url(self, post, post_comment):
         return reverse(
