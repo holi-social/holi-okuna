@@ -17,7 +17,7 @@ services:
       - .docker-compose.env
   redis:
     image: redis:alpine
-    command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD} --port ${REDIS_PORT}
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD} --port 6379
     container_name: okuna-redis
     privileged: false
     ports:
