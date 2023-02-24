@@ -71,7 +71,7 @@ class GraphQLTest(TestCase):
             **headers,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         authenticated_user = json.loads(response.content)["data"]["authenticatedUser"]
         self.assertEqual(authenticated_user["id"], str(user.uuid))
