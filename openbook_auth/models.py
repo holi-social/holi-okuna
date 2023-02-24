@@ -18,6 +18,7 @@ from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
+from strawberry_django_plus import gql
 
 from openbook_auth.checkers import *
 from openbook_auth.helpers import (
@@ -76,11 +77,13 @@ from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
 from openbook_posts.query_collections import get_posts_for_user_collection
 from openbook_terms.models import Topic, SDG, Skill
 from openbook_translation import translation_strategy
+from enum import Enum
 
 logger = logging.getLogger(__name__)
 
 
-class UserConnectionStatus:
+@gql.enum
+class UserConnectionStatus(Enum):
     NOT_CONNECTED = "NOT_CONNECTED"
     CONNECTED = "CONNECTED"
     REQUESTED = "REQUESTED"  # requested by currently authenticated user

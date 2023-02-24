@@ -40,9 +40,6 @@ filelock==3.8.0
 funcy==1.17
 gitdb==4.0.9; python_version >= '3.4'
 gitpython==3.1.29; python_version >= '3.4'
-graphene-django==3.0.0
-graphene-file-upload==1.3.0
-graphene-gis==0.0.8b0
 halo==0.0.31
 imagekitio==2.2.8
 langdetect==1.0.9
@@ -79,6 +76,8 @@ soupsieve==2.3.2.post1; python_version >= '3.0'
 spinners==0.0.24
 sqlparse==0.4.3; python_version >= '3.5'
 stevedore==4.1.1; python_version >= '3.6'
+strawberry-graphql==0.158.1
+strawberry-django-plus==2.0.4
 termcolor==2.1.0
 text-unidecode==1.3
 tldextract==3.4.0
