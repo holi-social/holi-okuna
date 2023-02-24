@@ -287,7 +287,7 @@ def _ensure_was_bootstrapped(is_local_api):
 
 def _get_docker_compose_services_only_filename():
     if platform.machine() == "arm64":
-        return "docker-compose-services-only_amd.yml"
+        return "docker-compose-services-only_arm.yml"
     return "docker-compose-services-only.yml"
 
 
