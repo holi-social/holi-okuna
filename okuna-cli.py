@@ -9,7 +9,6 @@ from shutil import copyfile
 import json
 import atexit
 import os, errno
-import platform
 
 import requests
 from halo import Halo
@@ -285,12 +284,6 @@ def _ensure_was_bootstrapped(is_local_api):
         logger.info("Okuna was bootstrapped.")
 
 
-def _get_docker_compose_services_only_filename():
-    if platform.machine() == "arm64":
-        return "docker-compose-services-only_arm.yml"
-    return "docker-compose-services-only.yml"
-
-
 @click.group()
 def cli():
     pass
@@ -311,7 +304,7 @@ def _down_full():
 def _down_services_only():
     """Bring Okuna down"""
     logger.error("⬇️  Bringing the Okuna services down...")
-    subprocess.run(["docker-compose", "-f", _get_docker_compose_services_only_filename(), "down"])
+    subprocess.run(["docker-compose", "-f", "docker-compose-services-only.yml", "down"])
 
 
 @click.command()
@@ -370,13 +363,13 @@ def up_services_only():
     logger.info("⬆️  Bringing only the Okuna services up...")
 
     atexit.register(_down_services_only)
-    subprocess.run(["docker-compose", "-f", _get_docker_compose_services_only_filename(), "up", "-d", "-V"])
+    subprocess.run(["docker-compose", "-f", "docker-compose-services-only.yml", "up", "-d", "-V"])
 
     _ensure_was_bootstrapped(is_local_api=True)
 
     logger.info("🥳  Okuna services are up")
 
-    subprocess.run(["docker-compose", "-f", _get_docker_compose_services_only_filename(), "logs", "--follow"])
+    subprocess.run(["docker-compose", "-f", "docker-compose-services-only.yml", "logs", "--follow"])
 
     input()
 
@@ -437,7 +430,7 @@ def build_services_only():
     _ensure_has_required_cli_config_files()
     logger.info("👷‍♀️  Rebuilding only Okuna services...")
     _copy_requirements_txt_to_docker_images_dir()
-    subprocess.run(["docker-compose", "-f", _get_docker_compose_services_only_filename(), "build"])
+    subprocess.run(["docker-compose", "-f", "docker-compose-services-only.yml", "build"])
 
 
 @click.command()
