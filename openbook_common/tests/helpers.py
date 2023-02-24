@@ -220,7 +220,7 @@ def make_community_name():
 
 
 def make_community_title():
-    return fake.user_name()
+    return fake.text(max_nb_chars=settings.COMMUNITY_TITLE_MAX_LENGTH)
 
 
 def make_category():
