@@ -31,7 +31,7 @@ specifics of the HOLI project.
 
 The project uses
 
-- Python 3.11+
+- Python 3.10+
 - Django 4
 - PostgreSQL (with [PostGIS](https://postgis.net/) extension)
 - Redis
