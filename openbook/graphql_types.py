@@ -433,8 +433,8 @@ class Post:
         return [Reaction(type=ReactionType.HEART, count=3)]
 
     @gql.django.field(description="Only present, when the current user reacted to this post")
-    def my_reaction(self) -> Optional[Reaction]:
-        return Reaction(type=ReactionType.HEART, count=1)
+    def my_reaction(self) -> Optional[ReactionType]:
+        return ReactionType.HEART
 
 
 @gql.django.type(PostCommentModel)
