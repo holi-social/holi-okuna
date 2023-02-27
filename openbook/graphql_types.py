@@ -238,8 +238,8 @@ class SpaceMember:
     id: gql.auto
     user: User
     community: "Space"
-    is_administrator: bool
-    created: datetime
+    is_administrator: gql.auto
+    created: gql.auto
 
 
 @gql.django.type(CommunityModel)

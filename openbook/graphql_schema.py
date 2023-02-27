@@ -784,7 +784,7 @@ class Mutation:
 
     @gql.mutation
     def update_post_reaction(
-        self, info, post_id: uuid.UUID, reaction_type: ReactionType, reaction_action: ReactionAction
+        self, info, id: uuid.UUID, reaction_type: ReactionType, reaction_action: ReactionAction
     ) -> Result:
         current_user = verify_authorized_user(info)
 
@@ -792,7 +792,7 @@ class Mutation:
 
     @gql.mutation
     def update_post_comment_reaction(
-        self, info, post_comment_id: uuid.UUID, reaction_type: ReactionType, reaction_action: ReactionAction
+        self, info, id: uuid.UUID, reaction_type: ReactionType, reaction_action: ReactionAction
     ) -> Result:
         current_user = verify_authorized_user(info)
 
