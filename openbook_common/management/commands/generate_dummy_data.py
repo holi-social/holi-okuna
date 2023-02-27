@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from urllib import request
 
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.core.management import BaseCommand
+from django.core.management import BaseCommand, CommandError
 from django.utils.timezone import now
 from faker import Faker
 
@@ -47,8 +47,10 @@ class Command(BaseCommand):
             parser.add_argument(f"--{g}", nargs=1, type=int)
 
     def handle(self, *args, **options):
-        for key, value in options.items():
+        # order is important here, there is dependencies. luckily, reverse order currently fulfills all dependencies
+        for key, value in options.items().__reversed__():
             if hasattr(self, prefix + key) and value:
+                print(f'{key}: {value}')
                 fn = getattr(self, prefix + key)
                 fn(value[0])
 
@@ -62,6 +64,8 @@ class Command(BaseCommand):
     def generate_post(self, nr):
         print(f"generate {nr} posts")
         users = self._get_random_users(int(nr / 1.5))
+        if not users:
+            raise CommandError("no users available, please generate users first")
         for i in range(nr):
             with image_fetcher() as image_file:
                 random.choice(users).create_public_post(
@@ -73,6 +77,8 @@ class Command(BaseCommand):
     def generate_post_with_comment(self, nr):
         print(f"generate {nr} posts with comments")
         users = self._get_random_users(int(nr / 1.5))
+        if not users:
+            raise CommandError("no users available, please generate users first")
         for i in range(nr):
             with image_fetcher() as image_file:
                 post = random.choice(users).create_public_post(
@@ -85,7 +91,11 @@ class Command(BaseCommand):
     def generate_insight(self, nr):
         print(f"generate {nr} insights")
         users = self._get_random_users(int(nr / 1.5))
+        if not users:
+            raise CommandError("no users available, please generate users first")
         posts = Post.objects.filter(circles__id=Circle.get_world_circle_id()).all()[: int(nr * 4)]
+        if not posts:
+            raise CommandError("no posts available, please generate posts first")
         for i in range(nr):
             with image_fetcher() as image_file:
                 insight = Insight.objects.create(
@@ -101,7 +111,11 @@ class Command(BaseCommand):
     def generate_space(self, nr):
         print(f"generate {nr} spaces")
         users = self._get_random_users(int(nr / 1.5))
+        if not users:
+            raise CommandError("no users available, please generate users first")
         topic_ids = [t.id for t in Topic.objects.all()]
+        if not topic_ids:
+            raise CommandError("no topics available, please generate topics first (via loaddata)")
         for i in range(nr):
             with image_fetcher() as image_file:
                 random.choice(users).create_community(
