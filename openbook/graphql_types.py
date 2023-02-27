@@ -253,6 +253,9 @@ class Space:
 
     @gql.django.field
     def geolocation(self) -> Optional[Point]:
+        if not self.geolocation:
+            return None
+
         logitude = self.geolocation.x
         latitude = self.geolocation.y
         return Point(logitude, latitude)
