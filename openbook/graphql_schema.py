@@ -782,6 +782,22 @@ class Mutation:
 
         return Result(success=True)
 
+    @gql.mutation
+    def update_post_reaction(
+        self, info, id: uuid.UUID, reaction_type: ReactionType, reaction_action: ReactionAction
+    ) -> Result:
+        current_user = verify_authorized_user(info)
+
+        return Result(success=True)
+
+    @gql.mutation
+    def update_post_comment_reaction(
+        self, info, id: uuid.UUID, reaction_type: ReactionType, reaction_action: ReactionAction
+    ) -> Result:
+        current_user = verify_authorized_user(info)
+
+        return Result(success=True)
+
 
 schema = strawberry.Schema(
     query=Query,

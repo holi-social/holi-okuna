@@ -63,6 +63,23 @@ class ContentType(Enum):
 
 
 @gql.enum
+class ReactionType(Enum):
+    HEART = "HEART"
+
+
+@gql.enum
+class ReactionAction(Enum):
+    SET = "SET"
+    REMOVE = "REMOVE"
+
+
+@gql.type
+class Reaction:
+    type: ReactionType
+    count: int
+
+
+@gql.enum
 class NotificationType(Enum):
     PR = strawberry.enum_value("PR", description="POST_REACTION")
     PC = strawberry.enum_value("PC", description="POST_COMMENT")
@@ -221,8 +238,8 @@ class SpaceMember:
     id: gql.auto
     user: User
     community: "Space"
-    is_administrator: bool
-    created: datetime
+    is_administrator: gql.auto
+    created: gql.auto
 
 
 @gql.django.type(CommunityModel)
@@ -411,6 +428,14 @@ class Post:
             post=self
         )
 
+    @gql.django.field
+    def reactions(self) -> List[Optional[Reaction]]:
+        return [Reaction(type=ReactionType.HEART, count=3)]
+
+    @gql.django.field(description="Only present, when the current user reacted to this post")
+    def my_reaction(self) -> Optional[ReactionType]:
+        return ReactionType.HEART
+
 
 @gql.django.type(PostCommentModel)
 class PostComment:
@@ -431,6 +456,14 @@ class PostComment:
     @gql.django.field
     def links(self) -> List[Optional[LinkPreview]]:
         return self.links.all()
+
+    @gql.django.field
+    def reactions(self) -> List[Optional[Reaction]]:
+        return [Reaction(type=ReactionType.HEART, count=3)]
+
+    @gql.django.field(description="Only present, when the current user reacted to this post comment")
+    def my_reaction(self) -> Optional[Reaction]:
+        return Reaction(type=ReactionType.HEART, count=1)
 
 
 @gql.type
