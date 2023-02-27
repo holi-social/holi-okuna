@@ -242,6 +242,16 @@ class SpaceMember:
     created: gql.auto
 
 
+@gql.type
+class Point:
+    longitude: float
+    latitude: float
+
+    def __init__(self, longitude, latitude):
+        self.longitude = longitude
+        self.latitude = latitude
+
+
 @gql.django.type(CommunityModel)
 class Space:
     id: gql.auto
@@ -257,6 +267,15 @@ class Space:
     tasks: List[Optional["Task"]]
     topics: List[Optional[Topic]]
     sdgs: List[Optional[SDG]]
+
+    @gql.django.field
+    def geolocation(self) -> Optional[Point]:
+        if not self.geolocation:
+            return None
+
+        logitude = self.geolocation.x
+        latitude = self.geolocation.y
+        return Point(logitude, latitude)
 
     @gql.django.field(description="A list of all active members and their role")
     def members(self, info, offset: int = 0, limit: int = 10) -> Paged[SpaceMember]:

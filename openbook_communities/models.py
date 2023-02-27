@@ -4,7 +4,9 @@ import uuid
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.files.storage import default_storage
-from django.db import models
+from django.contrib.gis.db import models
+from django.contrib.gis.geos import Point
+
 from django.utils import timezone
 
 from django.db.models import Q
@@ -169,6 +171,7 @@ class Community(ModelWithUUID):
     )
     topics = models.ManyToManyField(Topic, related_name="communities", blank=False, db_index=True)
     sdgs = models.ManyToManyField(SDG, related_name="communities", blank=True, db_index=True, null=True)
+    geolocation = models.PointField(blank=True, null=True, spatial_index=True)
 
     class Meta:
         verbose_name_plural = "communities"
@@ -501,6 +504,7 @@ class Community(ModelWithUUID):
         cover=None,
         avatar=None,
         location=None,
+        geolocation=None,
     ):
 
         if title:
@@ -544,6 +548,11 @@ class Community(ModelWithUUID):
 
         if location:
             self.location = location
+
+        if geolocation:
+            longitude = float(geolocation.get("longitude"))
+            latitude = float(geolocation.get("latitude"))
+            self.geolocation = Point(longitude, latitude, srid=4326)
 
         self.save()
 
