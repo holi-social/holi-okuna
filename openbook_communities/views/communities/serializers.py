@@ -10,6 +10,7 @@ from openbook_common.serializers_fields.request import RestrictedImageFileSizeFi
 from openbook_common.validators import hex_color_validator
 from openbook_communities.models import Community
 from openbook_communities.serializers_fields import (
+    CommunityGeolocationField,
     IsInvitedField,
     IsCreatorField,
     CommunityMembershipsField,
@@ -149,6 +150,8 @@ class UpdateCommunitySerializer(serializers.Serializer):
         max_length=settings.COMMUNITY_LOCATION_MAX_LENGTH,
         required=False,
     )
+
+    geolocation = CommunityGeolocationField(required=False)
 
 
 class CommunityNameCheckSerializer(serializers.Serializer):
