@@ -1,5 +1,6 @@
 import uuid
 from enum import Enum
+from uuid import UUID
 
 import strawberry
 from typing import List, TypeVar, Optional
@@ -8,6 +9,7 @@ from django.db.models import Q
 from strawberry_django_plus import gql
 from django.db.models import QuerySet
 
+import logging
 from openbook_common.models import LinkPreview as LinkPreviewModel
 from openbook_common.types import ReactionType
 from openbook_communities.models import (
@@ -32,6 +34,8 @@ from openbook_terms.models import (
 )
 from openbook_auth.models import User as UserModel, UserConnectionStatus
 from openbook_insights.models import Insight as InsightModel
+
+logger = logging.getLogger(__name__)
 
 GenericType = TypeVar("GenericType")
 
@@ -136,16 +140,17 @@ class ExternalLink:
     type: ExternalLinkType
 
 
-@gql.django.type(PostImageModel)
+@gql.type
 class PostImage:
-    id: gql.auto
-    # post: Optional["Post"]
-    width: gql.auto
-    height: gql.auto
+    """
+    Even though there is a Django Model for PostImage, it is resolved with many queries when modelled like that for some reason.
+    That's why we use this as a plain type and resolve it inside of a resolver function in Post
+    """
 
-    @gql.django.field
-    def url(self) -> str:
-        return self.image
+    id: UUID
+    width: int
+    height: int
+    url: str
 
 
 @gql.django.type(LinkPreviewModel)
@@ -362,6 +367,11 @@ class Insight:
         )
 
 
+@gql.type
+class ReactionCounts:
+    HEART: int = 0
+
+
 @gql.django.type(PostModel)
 class Post:
     id: gql.auto
@@ -373,19 +383,22 @@ class Post:
     comments_enabled: gql.auto
     mentions: List[Optional[User]]
 
-    @gql.django.field
+    @gql.django.field(select_related=["image"])
     def image(self) -> Optional[PostImage]:
         if hasattr(self, "image"):
-            return self.image
+            # We resolve this here, since otherwise it would create three additional queries for some reason.
+            return PostImage(
+                id=self.image.id, width=self.image.width, height=self.image.height, url=self.image.image.url
+            )
         return None
 
-    @gql.django.field
+    @gql.django.field(prefetch_related=["links"])
     def links(self) -> List[Optional[LinkPreview]]:
         return self.links.all()
 
     @gql.django.field
     def number_of_comments(self, info) -> int:
-        return (  # self.resolve_comments(info).count()
+        return (
             PostCommentModel.objects.filter(post=self)
             .filter(PostCommentModel.is_visible_query(info.context.request.user))
             .count()
@@ -426,25 +439,26 @@ class Post:
         )
 
     @gql.django.field
-    def reactions(self, info) -> List[Optional[Reaction]]:
+    def reactions(self, info) -> ReactionCounts:
         current_user = info.context.request.user
         if current_user.is_anonymous:
             reactions = PostModel.get_reaction_counts_for_post_with_id(self.pk)
         else:
             reactions = current_user.get_reaction_counts_for_post_with_id(self.pk)
-        return [Reaction(type=r["reaction_type"], count=r["count"]) for r in reactions]
+        heart_count = reactions[0]["count"] if reactions else 0
+        return ReactionCounts(HEART=heart_count)
 
     @gql.django.field(description="Only present, when the current user reacted to this post")
-    def my_reaction(self, info) -> Optional[ReactionType]:
+    def my_reaction(self, info) -> ReactionCounts:
         current_user = info.context.request.user
         if not current_user.is_anonymous:
             try:
                 reaction = PostReactionModel.objects.filter(post=self, reactor=current_user).first()
                 if reaction:
-                    return reaction.reaction_type
+                    return ReactionCounts(**{reaction.reaction_type: 1})
             except PostReactionModel.DoesNotExist:
-                return None
-        return None
+                return ReactionCounts()
+        return ReactionCounts()
 
 
 @gql.django.type(PostCommentModel)
@@ -468,25 +482,26 @@ class PostComment:
         return self.links.all()
 
     @gql.django.field
-    def reactions(self, info) -> List[Optional[Reaction]]:
+    def reactions(self, info) -> ReactionCounts:
         current_user = info.context.request.user
         if current_user.is_anonymous:
             reactions = PostCommentModel.get_reaction_counts_for_post_comment_with_id(self.pk)
         else:
             reactions = current_user.get_reaction_counts_for_post_comment_with_id(self.pk)
-        return [Reaction(type=r["reaction_type"], count=r["count"]) for r in reactions]
+        heart_count = reactions[0]["count"] if reactions else 0
+        return ReactionCounts(HEART=heart_count)
 
     @gql.django.field(description="Only present, when the current user reacted to this post comment")
-    def my_reaction(self, info) -> Optional[ReactionType]:
+    def my_reaction(self, info) -> ReactionCounts:
         current_user = info.context.request.user
         if not current_user.is_anonymous:
             try:
                 reaction = PostCommentReactionModel.objects.filter(post_comment=self, reactor=current_user).first()
                 if reaction:
-                    return reaction.reaction_type
+                    return ReactionCounts({reaction.reaction_type: 1})
             except PostCommentReactionModel.DoesNotExist:
-                return None
-        return None
+                return ReactionCounts()
+        return ReactionCounts()
 
 
 @gql.type
