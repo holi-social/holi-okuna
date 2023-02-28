@@ -110,28 +110,14 @@ class PostCreatorProfileBadgeSerializer(serializers.ModelSerializer):
         fields = ("keyword", "keyword_description")
 
 
-class PostReactionEmojiSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Emoji
-        fields = ("id", "keyword", "image")
-
-
 class PostReactionSerializer(serializers.ModelSerializer):
-    emoji = PostReactionEmojiSerializer(many=False)
-
     class Meta:
         model = PostReaction
-        fields = ("emoji", "id")
-
-
-class PostReactionEmojiSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Emoji
-        fields = ("id", "image", "keyword")
+        fields = ("reaction_type", "id")
 
 
 class PostEmojiCountSerializer(serializers.Serializer):
-    emoji = PostReactionEmojiSerializer(many=False)
+    reaction_type = serializers.CharField()
     count = serializers.IntegerField(
         required=True,
     )

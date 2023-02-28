@@ -12,10 +12,9 @@ from openbook_common.tests.helpers import (
     make_fake_post_comment_text,
     make_user,
     make_circle,
-    make_emoji,
-    make_reactions_emoji_group,
     make_community,
 )
+from openbook_common.types import ReactionType
 from openbook_notifications.models import PostReactionNotification, Notification
 from openbook_posts.models import PostReaction
 
@@ -38,14 +37,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
 
         post = user.create_public_post(text=make_fake_post_text())
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        post_reaction = reactor.react_to_post_with_id(
-            post.pk,
-            emoji_id=post_reaction_emoji_id,
-        )
+        post_reaction = reactor.react_to_post_with_id(post.pk, reaction_type=ReactionType.HEART)
         url = self._get_url(post_reaction=post_reaction, post=post)
 
         headers = make_authentication_headers_for_user(user)
@@ -62,14 +54,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
 
         post = foreign_user.create_public_post(text=make_fake_post_text())
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        post_reaction = user.react_to_post_with_id(
-            post.pk,
-            emoji_id=post_reaction_emoji_id,
-        )
+        post_reaction = user.react_to_post_with_id(post.pk, reaction_type=ReactionType.HEART)
 
         url = self._get_url(post_reaction=post_reaction, post=post)
 
@@ -87,13 +72,9 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
 
         post = foreign_user.create_public_post(text=make_fake_post_text())
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
         post_reaction = foreign_user.react_to_post_with_id(
             post.pk,
-            emoji_id=post_reaction_emoji_id,
+            reaction_type=ReactionType.HEART,
         )
 
         url = self._get_url(post_reaction=post_reaction, post=post)
@@ -118,13 +99,9 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
             community_name=community.name, text=make_fake_post_comment_text()
         )
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
         post_reaction = user.react_to_post_with_id(
             community_post.pk,
-            emoji_id=post_reaction_emoji_id,
+            reaction_type=ReactionType.HEART,
         )
         # now close the post
         community_post.is_closed = True
@@ -152,13 +129,9 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
             community_name=community.name, text=make_fake_post_comment_text()
         )
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
         post_reaction = user.react_to_post_with_id(
             community_post.pk,
-            emoji_id=post_reaction_emoji_id,
+            reaction_type=ReactionType.HEART,
         )
         # now close the post
         community_post.is_closed = True
@@ -183,13 +156,9 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
 
         post = user_to_connect.create_public_post(text=make_fake_post_text())
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
         post_reaction = user.react_to_post_with_id(
             post.pk,
-            emoji_id=post_reaction_emoji_id,
+            reaction_type=ReactionType.HEART,
         )
 
         url = self._get_url(post_reaction=post_reaction, post=post)
@@ -213,13 +182,9 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
 
         post = user_to_connect.create_public_post(text=make_fake_post_text())
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
         post_reaction = foreign_user.react_to_post_with_id(
             post.pk,
-            emoji_id=post_reaction_emoji_id,
+            reaction_type=ReactionType.HEART,
         )
 
         url = self._get_url(post_reaction=post_reaction, post=post)
@@ -242,13 +207,9 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
 
         post = user_to_connect.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
         post_reaction = user.react_to_post_with_id(
             post.pk,
-            emoji_id=post_reaction_emoji_id,
+            reaction_type=ReactionType.HEART,
         )
 
         url = self._get_url(post_reaction=post_reaction, post=post)
@@ -277,13 +238,9 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
 
         post = user_to_connect.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
         post_reaction = foreign_user.react_to_post_with_id(
             post.pk,
-            emoji_id=post_reaction_emoji_id,
+            reaction_type=ReactionType.HEART,
         )
 
         url = self._get_url(post_reaction=post_reaction, post=post)
@@ -309,13 +266,9 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
 
         post = user_to_connect.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
         post_reaction = foreign_user.react_to_post_with_id(
             post.pk,
-            emoji_id=post_reaction_emoji_id,
+            reaction_type=ReactionType.HEART,
         )
 
         url = self._get_url(post_reaction=post_reaction, post=post)
@@ -336,13 +289,9 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
 
         post = user_to_follow.create_public_post(text=make_fake_post_text())
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
         post_reaction = user.react_to_post_with_id(
             post.pk,
-            emoji_id=post_reaction_emoji_id,
+            reaction_type=ReactionType.HEART,
         )
 
         url = self._get_url(post_reaction=post_reaction, post=post)
@@ -365,13 +314,9 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
 
         post = user_to_follow.create_public_post(text=make_fake_post_text())
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
         post_reaction = foreign_user.react_to_post_with_id(
             post.pk,
-            emoji_id=post_reaction_emoji_id,
+            reaction_type=ReactionType.HEART,
         )
 
         url = self._get_url(post_reaction=post_reaction, post=post)
@@ -397,13 +342,9 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
 
         post = user_to_follow.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
         post_reaction = foreign_user.react_to_post_with_id(
             post.pk,
-            emoji_id=post_reaction_emoji_id,
+            reaction_type=ReactionType.HEART,
         )
 
         url = self._get_url(post_reaction=post_reaction, post=post)
@@ -422,13 +363,9 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
 
         post = user.create_public_post(text=make_fake_post_text())
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
         post_reaction = reactor.react_to_post_with_id(
             post.pk,
-            emoji_id=post_reaction_emoji_id,
+            reaction_type=ReactionType.HEART,
         )
 
         post_reaction_notification = PostReactionNotification.objects.get(

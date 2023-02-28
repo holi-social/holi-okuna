@@ -2,7 +2,6 @@ import uuid
 from enum import Enum
 
 import strawberry
-from datetime import datetime
 from typing import List, TypeVar, Optional
 
 from django.db.models import Q
@@ -10,6 +9,7 @@ from strawberry_django_plus import gql
 from django.db.models import QuerySet
 
 from openbook_common.models import LinkPreview as LinkPreviewModel
+from openbook_common.types import ReactionType
 from openbook_communities.models import (
     Community as CommunityModel,
     Task as TaskModel,
@@ -22,6 +22,8 @@ from openbook_posts.models import (
     Post as PostModel,
     PostComment as PostCommentModel,
     PostImage as PostImageModel,
+    PostReaction as PostReactionModel,
+    PostCommentReaction as PostCommentReactionModel,
 )
 from openbook_terms.models import (
     Topic as TopicModel,
@@ -60,11 +62,6 @@ class ContentType(Enum):
     POST_COMMENT = "POST_COMMENT"
     USER = "USER"
     SPACE = "SPACE"
-
-
-@gql.enum
-class ReactionType(Enum):
-    HEART = "HEART"
 
 
 @gql.enum
@@ -429,12 +426,25 @@ class Post:
         )
 
     @gql.django.field
-    def reactions(self) -> List[Optional[Reaction]]:
-        return [Reaction(type=ReactionType.HEART, count=3)]
+    def reactions(self, info) -> List[Optional[Reaction]]:
+        current_user = info.context.request.user
+        if current_user.is_anonymous:
+            reactions = PostModel.get_reaction_counts_for_post_with_id(self.pk)
+        else:
+            reactions = current_user.get_reaction_counts_for_post_with_id(self.pk)
+        return [Reaction(type=r["reaction_type"], count=r["count"]) for r in reactions]
 
     @gql.django.field(description="Only present, when the current user reacted to this post")
-    def my_reaction(self) -> Optional[ReactionType]:
-        return ReactionType.HEART
+    def my_reaction(self, info) -> Optional[ReactionType]:
+        current_user = info.context.request.user
+        if not current_user.is_anonymous:
+            try:
+                reaction = PostReactionModel.objects.filter(post=self, reactor=current_user).first()
+                if reaction:
+                    return reaction.reaction_type
+            except PostReactionModel.DoesNotExist:
+                return None
+        return None
 
 
 @gql.django.type(PostCommentModel)
@@ -458,12 +468,25 @@ class PostComment:
         return self.links.all()
 
     @gql.django.field
-    def reactions(self) -> List[Optional[Reaction]]:
-        return [Reaction(type=ReactionType.HEART, count=3)]
+    def reactions(self, info) -> List[Optional[Reaction]]:
+        current_user = info.context.request.user
+        if current_user.is_anonymous:
+            reactions = PostCommentModel.get_reaction_counts_for_post_comment_with_id(self.pk)
+        else:
+            reactions = current_user.get_reaction_counts_for_post_comment_with_id(self.pk)
+        return [Reaction(type=r["reaction_type"], count=r["count"]) for r in reactions]
 
     @gql.django.field(description="Only present, when the current user reacted to this post comment")
-    def my_reaction(self) -> Optional[ReactionType]:
-        return ReactionType.HEART
+    def my_reaction(self, info) -> Optional[ReactionType]:
+        current_user = info.context.request.user
+        if not current_user.is_anonymous:
+            try:
+                reaction = PostCommentReactionModel.objects.filter(post_comment=self, reactor=current_user).first()
+                if reaction:
+                    return reaction.reaction_type
+            except PostCommentReactionModel.DoesNotExist:
+                return None
+        return None
 
 
 @gql.type

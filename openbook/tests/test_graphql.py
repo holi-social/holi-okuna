@@ -265,6 +265,113 @@ class GraphQLTest(TestCase):
         self.assertEqual(post_data, None)
         self.assertIn("Post not found", response.errors[0].message)
 
+    def test_react_to_post(self):
+        posting_user = make_user()
+        other_user = make_user(name="Other")
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_public_post(
+            text=post_text,
+            title=post_title,
+        )
+
+        self.react_to_post(post, "SET", posting_user)
+        executed = self.react_to_post(post, "SET", posting_user)  # setting twice is same as setting once
+        updated_post = executed.data["updatePostReaction"]
+
+        self.assertEqual(updated_post["myReaction"], "HEART")
+        self.assertEqual(updated_post["reactions"][0]["type"], "HEART")
+        self.assertEqual(updated_post["reactions"][0]["count"], 1)
+
+        post_data = self.get_post_with_id_data(post, other_user)
+        self.assertEqual(post_data["myReaction"], None)
+        self.assertEqual(post_data["reactions"][0]["type"], "HEART")
+        self.assertEqual(post_data["reactions"][0]["count"], 1)
+
+        self.react_to_post(post, "REMOVE", posting_user)
+        executed = self.react_to_post(post, "REMOVE", posting_user)  # setting twice is same as setting once
+        updated_post = executed.data["updatePostReaction"]
+        self.assertEqual(updated_post["myReaction"], None)
+        self.assertEqual(updated_post["reactions"], [])
+
+    def test_react_to_post_comment(self):
+        posting_user = make_user()
+        other_user = make_user(name="Other")
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_public_post(
+            text=post_text,
+            title=post_title,
+        )
+        comment = post.comment(text=f"comment text", commenter=other_user)
+
+        self.react_to_post_comment(comment, "SET", posting_user)
+        executed = self.react_to_post_comment(comment, "SET", posting_user)  # setting twice is same as setting once
+        updated_post_comment = executed.data["updatePostCommentReaction"]
+
+        self.assertEqual(updated_post_comment["myReaction"], "HEART")
+        self.assertEqual(updated_post_comment["reactions"][0]["type"], "HEART")
+        self.assertEqual(updated_post_comment["reactions"][0]["count"], 1)
+
+        post_data = self.get_post_with_id_data(post, other_user)
+        self.assertEqual(post_data["myReaction"], None)
+        self.assertEqual(post_data["reactions"], [])
+        self.assertEqual(post_data["comments"][0]["myReaction"], None)
+        self.assertEqual(post_data["comments"][0]["reactions"][0]["type"], "HEART")
+        self.assertEqual(post_data["comments"][0]["reactions"][0]["count"], 1)
+
+        self.react_to_post_comment(comment, "REMOVE", posting_user)
+        executed = self.react_to_post_comment(comment, "REMOVE", posting_user)  # setting twice is same as setting once
+        updated_post_comment = executed.data["updatePostCommentReaction"]
+        self.assertEqual(updated_post_comment["myReaction"], None)
+        self.assertEqual(updated_post_comment["reactions"], [])
+
+    def react_to_post(self, post, action, posting_user):
+        return schema.execute_sync(
+            """
+            mutation test($id: UUID!, $reactionType: ReactionType!, $reactionAction: ReactionAction!) {
+                updatePostReaction(id: $id, reactionType: $reactionType, reactionAction: $reactionAction) {
+                    myReaction
+                    reactions {
+                        type
+                        count
+                    }
+                }
+            }
+            """,
+            context_value=BeneDict({"request": {"user": posting_user}}),
+            variable_values={
+                "id": str(post.id),
+                "reactionType": "HEART",
+                "reactionAction": action,
+            },
+        )
+
+    def react_to_post_comment(self, post_comment, action, posting_user):
+        return schema.execute_sync(
+            """
+            mutation test($id: UUID!, $reactionType: ReactionType!, $reactionAction: ReactionAction!) {
+                updatePostCommentReaction(id: $id, reactionType: $reactionType, reactionAction: $reactionAction) {
+                    myReaction
+                    reactions {
+                        type
+                        count
+                    }
+                }
+            }
+            """,
+            context_value=BeneDict({"request": {"user": posting_user}}),
+            variable_values={
+                "id": str(post_comment.id),
+                "reactionType": "HEART",
+                "reactionAction": action,
+            },
+        )
+
     def test_select_last_insights(self):
         insight_user = make_user()
         posting_user = make_user()
@@ -1019,6 +1126,11 @@ class GraphQLTest(TestCase):
                         mentions {{
                             fullName
                         }}
+                        myReaction
+                        reactions {{
+                            type
+                            count
+                        }}
                     }}
                     mentions {{
                         fullName
@@ -1035,6 +1147,11 @@ class GraphQLTest(TestCase):
                         data {{
                             firstName
                         }}
+                    }}
+                    myReaction
+                    reactions {{
+                        type
+                        count
                     }}
                 }}
             }}

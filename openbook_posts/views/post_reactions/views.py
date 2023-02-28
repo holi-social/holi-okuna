@@ -48,7 +48,7 @@ class PostReactions(APIView):
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
-        emoji_id = data.get("emoji_id")
+        reaction_type = data.get("reaction_type")
         post_id = data.get("post_id")
 
         user = request.user
@@ -56,7 +56,7 @@ class PostReactions(APIView):
         with transaction.atomic():
             post_reaction = user.react_to_post_with_id(
                 post_id=post_id,
-                emoji_id=emoji_id,
+                reaction_type=reaction_type,
             )
 
         post_reaction_serializer = PostReactionSerializer(post_reaction, context={"request": request})
@@ -84,7 +84,7 @@ class PostReactionsEmojiCount(APIView):
 
         user = request.user
 
-        post_emoji_counts = user.get_emoji_counts_for_post_with_id(post_id)
+        post_emoji_counts = user.get_reaction_counts_for_post_with_id(post_id)
 
         post_reactions_serializer = PostEmojiCountSerializer(
             post_emoji_counts, many=True, context={"request": request}

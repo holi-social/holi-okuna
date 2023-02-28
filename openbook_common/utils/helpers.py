@@ -14,9 +14,6 @@ from imagekit.utils import get_cache
 from imagekit.models import ProcessedImageField
 import hashlib
 
-from openbook_common.utils.model_loaders import get_post_model
-from openbook_common.validators import is_valid_hex_color
-
 r = lambda: secrets.randbelow(255)
 
 

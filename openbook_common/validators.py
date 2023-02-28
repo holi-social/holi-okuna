@@ -3,6 +3,7 @@ import re
 from rest_framework.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
+from openbook_common.types import ReactionType
 from openbook_common.utils.model_loaders import (
     get_emoji_model,
     get_emoji_group_model,
@@ -26,6 +27,15 @@ def emoji_id_exists(list_id):
     if not Emoji.objects.filter(pk=list_id).exists():
         raise ValidationError(
             _("No emoji with the provided id exists."),
+        )
+
+
+def reaction_type_exists(reaction_type):
+    try:
+        ReactionType[reaction_type]
+    except KeyError:
+        raise ValidationError(
+            _("No reaction_type with the provided name exists."),
         )
 
 

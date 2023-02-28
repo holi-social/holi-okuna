@@ -15,7 +15,7 @@ from django.core.files.uploadedfile import (
     TemporaryUploadedFile,
     SimpleUploadedFile,
 )
-from django.db import models
+from django.db import models, IntegrityError
 from django.db.models import Count
 from django.db.models import Q
 from django.utils import timezone
@@ -28,12 +28,12 @@ from rest_framework.exceptions import ValidationError
 
 from openbook_auth.models import User, UserBlock
 from openbook_common.models import (
-    Emoji,
     Language,
     ModelWithUUID,
     OrderedModelWithUUID,
     LinkPreview,
 )
+from openbook_common.types import ReactionType
 from openbook_common.utils.helpers import (
     delete_file_field,
     sha256sum,
@@ -43,7 +43,6 @@ from openbook_common.utils.helpers import (
     extract_hashtags_from_string,
 )
 from openbook_common.utils.model_loaders import (
-    get_emoji_model,
     get_circle_model,
     get_community_model,
     get_post_comment_notification_model,
@@ -196,9 +195,26 @@ class Post(ModelWithUUID):
         return post
 
     @classmethod
-    def get_emoji_counts_for_post_with_id(cls, post_id, emoji_id=None, reactor_id=None):
-        Emoji = get_emoji_model()
-        return Emoji.get_emoji_counts_for_post_with_id(post_id=post_id, emoji_id=emoji_id, reactor_id=reactor_id)
+    def get_reaction_counts_for_post_with_id(cls, post_id, reaction_type=None, reactor_id=None):
+        reactions_query = Q(
+            post_id=post_id,
+        )
+
+        if reaction_type:
+            reactions_query.add(Q(reaction_type=reaction_type), Q.AND)
+
+        if reactor_id:
+            reactions_query.add(Q(reactor__id=reactor_id), Q.AND)
+
+        reactions = (
+            PostReaction.objects.filter(reactions_query)
+            .values("reaction_type")
+            .annotate(count=Count("reaction_type"))
+            .order_by("-count")
+            .cache()
+            .all()
+        )
+        return [{"reaction_type": reaction["reaction_type"], "count": reaction["count"]} for reaction in reactions]
 
     @classmethod
     def get_trending_posts_for_user_with_id(cls, user_id, max_id=None, min_id=None):
@@ -485,8 +501,11 @@ class Post(ModelWithUUID):
     def comment(self, text, commenter):
         return PostComment.create_comment(text=text, commenter=commenter, post=self)
 
-    def react(self, reactor, emoji_id):
-        return PostReaction.create_reaction(reactor=reactor, emoji_id=emoji_id, post=self)
+    def react(self, reactor, reaction_type):
+        return PostReaction.create_reaction(reactor=reactor, reaction_type=reaction_type, post=self)
+
+    def clear_reaction(self, reactor, reaction_type):
+        return PostReaction.remove_reaction(reactor=reactor, reaction_type=reaction_type, post=self)
 
     def is_public_post(self):
         Circle = get_circle_model()
@@ -1184,10 +1203,26 @@ class PostComment(ModelWithUUID):
         return cls.objects.filter(count_query).count()
 
     @classmethod
-    def get_emoji_counts_for_post_comment_with_id(cls, post_comment_id, emoji_id=None, reactor_id=None):
-        return Emoji.get_emoji_counts_for_post_comment_with_id(
-            post_comment_id=post_comment_id, emoji_id=emoji_id, reactor_id=reactor_id
+    def get_reaction_counts_for_post_comment_with_id(cls, post_comment_id, reaction_type=None, reactor_id=None):
+        reactions_query = Q(
+            post_id=post_comment_id,
         )
+
+        if reaction_type:
+            reactions_query.add(Q(reaction_type=reaction_type), Q.AND)
+
+        if reactor_id:
+            reactions_query.add(Q(reactor__id=reactor_id), Q.AND)
+
+        reactions = (
+            PostCommentReaction.objects.filter(reactions_query)
+            .values("reaction_type")
+            .annotate(count=Count("reaction_type"))
+            .order_by("-count")
+            .cache()
+            .all()
+        )
+        return [{"reaction_type": reaction["reaction_type"], "count": reaction["count"]} for reaction in reactions]
 
     def count_replies(self):
         return self.replies.count()
@@ -1234,8 +1269,11 @@ class PostComment(ModelWithUUID):
 
         return post_comment
 
-    def react(self, reactor, emoji_id):
-        return PostCommentReaction.create_reaction(reactor=reactor, emoji_id=emoji_id, post_comment=self)
+    def react(self, reactor, reaction_type):
+        return PostCommentReaction.create_reaction(reactor=reactor, reaction_type=reaction_type, post_comment=self)
+
+    def clear_reaction(self, reactor, reaction_type):
+        return PostCommentReaction.remove_reaction(reactor=reactor, reaction_type=reaction_type, post_comment=self)
 
     def save(self, *args, **kwargs):
         """On save, update timestamps"""
@@ -1415,7 +1453,7 @@ class PostReaction(ModelWithUUID):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="reactions")
     created = models.DateTimeField(editable=False)
     reactor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="post_reactions")
-    emoji = models.ForeignKey(Emoji, on_delete=models.CASCADE, related_name="post_reactions")
+    reaction_type = models.CharField(max_length=20, choices=[(tag, tag.value) for tag in ReactionType])
 
     class Meta:
         unique_together = (
@@ -1424,15 +1462,24 @@ class PostReaction(ModelWithUUID):
         )
 
     @classmethod
-    def create_reaction(cls, reactor, emoji_id, post):
-        return PostReaction.objects.create(reactor=reactor, emoji_id=emoji_id, post=post)
+    def create_reaction(cls, reactor, reaction_type, post):
+        PostReaction.objects.filter(reactor=reactor, post=post).delete()
+        return PostReaction.objects.create(reactor=reactor, reaction_type=reaction_type, post=post)
+
 
     @classmethod
-    def count_reactions_for_post_with_id(cls, post_id, reactor_id=None):
+    def remove_reaction(cls, reactor, reaction_type, post):
+        return PostReaction.objects.filter(reactor=reactor, reaction_type=reaction_type, post=post).delete()
+
+    @classmethod
+    def count_reactions_for_post_with_id(cls, post_id, reactor_id=None, reaction_type=None):
         count_query = Q(post_id=post_id, reactor__is_deleted=False)
 
         if reactor_id:
             count_query.add(Q(reactor_id=reactor_id), Q.AND)
+
+        if reaction_type:
+            count_query.add(Q(reaction_type=reaction_type), Q.AND)
 
         return cls.objects.filter(count_query).count()
 
@@ -1447,7 +1494,7 @@ class PostCommentReaction(ModelWithUUID):
     post_comment = models.ForeignKey(PostComment, on_delete=models.CASCADE, related_name="reactions")
     created = models.DateTimeField(editable=False)
     reactor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="post_comment_reactions")
-    emoji = models.ForeignKey(Emoji, on_delete=models.CASCADE, related_name="post_comment_reactions")
+    reaction_type = models.CharField(max_length=20, choices=[(tag, tag.value) for tag in ReactionType])
 
     class Meta:
         unique_together = (
@@ -1456,15 +1503,25 @@ class PostCommentReaction(ModelWithUUID):
         )
 
     @classmethod
-    def create_reaction(cls, reactor, emoji_id, post_comment):
-        return PostCommentReaction.objects.create(reactor=reactor, emoji_id=emoji_id, post_comment=post_comment)
+    def create_reaction(cls, reactor, reaction_type, post_comment):
+        PostCommentReaction.objects.filter(reactor=reactor, post_comment=post_comment).delete()
+        return PostCommentReaction.objects.create(
+            reactor=reactor, reaction_type=reaction_type, post_comment=post_comment
+        )
 
     @classmethod
-    def count_reactions_for_post_with_id(cls, post_comment_id, reactor_id=None):
+    def remove_reaction(cls, reactor, reaction_type, post_comment):
+        return PostCommentReaction.objects.filter(reactor=reactor, reaction_type=reaction_type, post_comment=post_comment).delete()
+
+    @classmethod
+    def count_reactions_for_post_with_id(cls, post_comment_id, reactor_id=None, reaction_type=None):
         count_query = Q(post_comment_id=post_comment_id, reactor__is_deleted=False)
 
         if reactor_id:
             count_query.add(Q(reactor_id=reactor_id), Q.AND)
+
+        if reaction_type:
+            count_query.add(Q(reaction_type=reaction_type), Q.AND)
 
         return cls.objects.filter(count_query).count()
 

@@ -200,20 +200,14 @@ class PostCommentReplyNotificationSerializer(serializers.ModelSerializer):
         fields = ("id", "post_comment", "parent_comment")
 
 
-class PostCommentReactionEmojiSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Emoji
-        fields = ("id", "keyword", "image")
-
-
 class PostCommentReactionSerializer(serializers.ModelSerializer):
     reactor = CommonPublicUserSerializer()
-    emoji = PostCommentReactionEmojiSerializer()
+    reaction_type = serializers.CharField()
     post_comment = NotificationPostCommentSerializer()
 
     class Meta:
         model = PostCommentReaction
-        fields = ("id", "reactor", "emoji", "post_comment", "created")
+        fields = ("id", "reactor", "reaction_type", "post_comment", "created")
 
 
 class PostCommentReactionNotificationSerializer(serializers.ModelSerializer):
@@ -224,20 +218,14 @@ class PostCommentReactionNotificationSerializer(serializers.ModelSerializer):
         fields = ("id", "post_comment_reaction")
 
 
-class PostReactionEmojiSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Emoji
-        fields = ("id", "keyword", "image")
-
-
 class PostReactionSerializer(serializers.ModelSerializer):
     reactor = CommonPublicUserSerializer()
-    emoji = PostReactionEmojiSerializer()
+    reaction_type = serializers.CharField()
     post = NotificationPostSerializer()
 
     class Meta:
         model = PostReaction
-        fields = ("id", "reactor", "emoji", "post")
+        fields = ("id", "reactor", "reaction_type", "post")
 
 
 class PostReactionNotificationSerializer(serializers.ModelSerializer):

@@ -1,4 +1,6 @@
 from collections import defaultdict
+from datetime import datetime
+
 import requests
 
 import structlog
@@ -380,7 +382,7 @@ class Query:
                 return result
 
     @gql.django.field
-    def my_spaces(self, info) -> Optional[List[Optional[MySpaces]]]:
+    def my_spaces(self, info) -> List[Optional[MySpaces]]:
         verify_authorized_user(info)
 
         created_spaces = MySpaces(section=_("Created"), type=SpaceUserConnectionType.CREATOR)
@@ -785,18 +787,26 @@ class Mutation:
     @gql.mutation
     def update_post_reaction(
         self, info, id: uuid.UUID, reaction_type: ReactionType, reaction_action: ReactionAction
-    ) -> Result:
+    ) -> Post:
         current_user = verify_authorized_user(info)
-
-        return Result(success=True)
+        post = PostModel.objects.get(id=id)
+        if reaction_action == ReactionAction.SET:
+            post.react(current_user, reaction_type)
+        else:
+            post.clear_reaction(current_user, reaction_type)
+        return post
 
     @gql.mutation
     def update_post_comment_reaction(
         self, info, id: uuid.UUID, reaction_type: ReactionType, reaction_action: ReactionAction
-    ) -> Result:
+    ) -> PostComment:
         current_user = verify_authorized_user(info)
-
-        return Result(success=True)
+        post_comment = PostCommentModel.objects.get(id=id)
+        if reaction_action == ReactionAction.SET:
+            post_comment.react(current_user, reaction_type)
+        else:
+            post_comment.clear_reaction(current_user, reaction_type)
+        return post_comment
 
 
 schema = strawberry.Schema(

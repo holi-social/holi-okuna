@@ -14,7 +14,6 @@ from openbook_common.utils.model_loaders import (
     get_post_comment_model,
     get_language_model,
     get_user_model,
-    get_emoji_group_model,
     get_post_reaction_model,
     get_user_invite_model,
 )
@@ -1169,15 +1168,6 @@ def check_can_get_reactions_for_post_comment(user, post_comment):
     return check_can_get_reactions_for_post(user=user, post=post_comment.post)
 
 
-def check_can_react_with_emoji_id(user, emoji_id):
-    EmojiGroup = get_emoji_group_model()
-
-    if not EmojiGroup.objects.filter(emojis__id=emoji_id, is_reaction_group=True).exists():
-        raise ValidationError(
-            _("Not a valid emoji to react with"),
-        )
-
-
 def check_can_react_to_post(user, post):
     check_can_see_post(user=user, post=post)
 
@@ -1196,8 +1186,7 @@ def check_can_see_hashtag(user, hashtag):
         )
 
 
-def check_can_react_to_post_comment(user, post_comment, emoji_id):
-    check_can_react_with_emoji_id(user=user, emoji_id=emoji_id)
+def check_can_react_to_post_comment(user, post_comment):
     check_can_see_post_comment(user=user, post_comment=post_comment)
 
     if post_comment.post.is_closed:
