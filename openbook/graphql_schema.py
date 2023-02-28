@@ -484,7 +484,7 @@ class UpdateAuthenticatedUserInput:
 
 @gql.input
 class UpdateConnectionWithUserInput:
-    user_id: Optional[str]
+    user_id: Optional[str] = strawberry.UNSET
     action: UpdateConnectionAction
 
 
@@ -640,7 +640,7 @@ class Mutation:
         space_id: uuid.UUID,
         connection_type: SpaceUserConnectionType,
         connect_action: UpdateConnectionAction,
-        user_id: Optional[uuid.UUID],
+        user_id: Optional[uuid.UUID] = None,
     ) -> Space:
         current_user = verify_authorized_user(info)
         space = CommunityModel.objects.get(id=space_id)  # @todo Use name as parameter, same as okuna? w
