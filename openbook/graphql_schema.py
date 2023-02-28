@@ -517,6 +517,12 @@ class CreateSpaceInput:
 
 
 @gql.input
+class PointField:
+    latitude: float
+    longitude: float
+
+
+@gql.input
 class UpdateSpaceInput:
     id: uuid.UUID
     title: Optional[str] = strawberry.UNSET
@@ -526,6 +532,7 @@ class UpdateSpaceInput:
     avatar: Optional[Upload] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
+    geolocation: Optional[PointField] = strawberry.UNSET
 
 
 @gql.type
@@ -769,6 +776,7 @@ class Mutation:
             avatar=data.get("avatar"),
             sdg_ids=data.get("sdgs"),
             location=data.get("location"),
+            geolocation=data.get("geolocation"),
         )
 
     @gql.mutation
