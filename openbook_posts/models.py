@@ -1205,7 +1205,7 @@ class PostComment(ModelWithUUID):
     @classmethod
     def get_reaction_counts_for_post_comment_with_id(cls, post_comment_id, reaction_type=None, reactor_id=None):
         reactions_query = Q(
-            post_id=post_comment_id,
+            post_comment_id=post_comment_id,
         )
 
         if reaction_type:
