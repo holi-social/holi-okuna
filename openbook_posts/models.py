@@ -1466,7 +1466,6 @@ class PostReaction(ModelWithUUID):
         PostReaction.objects.filter(reactor=reactor, post=post).delete()
         return PostReaction.objects.create(reactor=reactor, reaction_type=reaction_type, post=post)
 
-
     @classmethod
     def remove_reaction(cls, reactor, reaction_type, post):
         return PostReaction.objects.filter(reactor=reactor, reaction_type=reaction_type, post=post).delete()
@@ -1511,7 +1510,9 @@ class PostCommentReaction(ModelWithUUID):
 
     @classmethod
     def remove_reaction(cls, reactor, reaction_type, post_comment):
-        return PostCommentReaction.objects.filter(reactor=reactor, reaction_type=reaction_type, post_comment=post_comment).delete()
+        return PostCommentReaction.objects.filter(
+            reactor=reactor, reaction_type=reaction_type, post_comment=post_comment
+        ).delete()
 
     @classmethod
     def count_reactions_for_post_with_id(cls, post_comment_id, reactor_id=None, reaction_type=None):
