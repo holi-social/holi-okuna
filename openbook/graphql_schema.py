@@ -1,4 +1,6 @@
 from collections import defaultdict
+import random
+
 import requests
 
 import structlog
@@ -59,6 +61,11 @@ def spaces_for_filter(offset, limit, topic_id=None, location=None, skill_ids=Non
         offset,
         limit,
     )
+
+
+@gql.type
+class Response:
+    result: bool
 
 
 def filter_spaces_by_skill_ids(location, skill_ids, limit):
@@ -457,6 +464,10 @@ class Query:
             offset,
             limit,
         )
+
+    @gql.django.field
+    def has_new_notifications(self) -> Response:
+        return Response(result=random.choice([True, False]))
 
 
 def to_input_dict(input):
