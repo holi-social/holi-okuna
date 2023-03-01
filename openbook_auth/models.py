@@ -43,7 +43,6 @@ from openbook_common.utils.model_loaders import (
     get_post_mute_model,
     get_community_invite_notification_model,
     get_user_block_model,
-    get_emoji_model,
     get_post_comment_reply_notification_model,
     get_moderated_object_model,
     get_moderation_report_model,
@@ -80,6 +79,22 @@ from openbook_translation import translation_strategy
 from enum import Enum
 
 logger = logging.getLogger(__name__)
+
+
+def get_reactions(model, reactions_query):
+    reactions = (
+        model.objects.filter(reactions_query)
+        .values("reaction_type")
+        .annotate(count=Count("reaction_type"))
+        .order_by("-count")
+        .cache()
+        .all()
+    )
+    return {reaction["reaction_type"]: reaction["count"] for reaction in reactions}
+
+
+def to_list_of_dicts(in_dict: dict, key_str: str, value_str: str):
+    return [{key_str: key, value_str: value} for key, value in in_dict.items()]
 
 
 @gql.enum
@@ -1218,16 +1233,7 @@ class User(AbstractUser):
             )
             reactions_query.add(blocked_users_query, Q.AND)
 
-        reactions = (
-            get_post_reaction_model()
-            .objects.filter(reactions_query)
-            .values("reaction_type")
-            .annotate(count=Count("reaction_type"))
-            .order_by("-count")
-            .cache()
-            .all()
-        )
-        return [{"reaction_type": reaction["reaction_type"], "count": reaction["count"]} for reaction in reactions]
+        return get_reactions(get_post_reaction_model(), reactions_query)
 
     def get_reaction_counts_for_post_comment_with_id(self, post_comment_id, reaction_type=None):
         PostComment = get_post_comment_model()
@@ -1270,17 +1276,7 @@ class User(AbstractUser):
             )
             reactions_query.add(blocked_users_query, Q.AND)
 
-        reactions = (
-            get_post_comment_reaction_model()
-            .objects.filter(reactions_query)
-            .values("reaction_type")
-            .annotate(count=Count("reaction_type"))
-            .order_by("-count")
-            .cache()
-            .all()
-        )
-
-        return [{"reaction_type": reaction["reaction_type"], "count": reaction["count"]} for reaction in reactions]
+        return get_reactions(get_post_comment_reaction_model(), reactions_query)
 
     def get_reaction_for_post_comment_with_id(self, post_comment_id):
         return self.post_comment_reactions.filter(post_comment_id=post_comment_id).get()

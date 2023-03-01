@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from openbook_auth.models import to_list_of_dicts
 from openbook_common.utils.model_loaders import get_emoji_group_model, get_post_model
 from openbook_moderation.permissions import IsNotSuspended
 from openbook_posts.views.post_reactions.serializers import (
@@ -84,7 +85,9 @@ class PostReactionsEmojiCount(APIView):
 
         user = request.user
 
-        post_emoji_counts = user.get_reaction_counts_for_post_with_id(post_id)
+        post_emoji_counts = to_list_of_dicts(
+            user.get_reaction_counts_for_post_with_id(post_id), "reaction_type", "count"
+        )
 
         post_reactions_serializer = PostEmojiCountSerializer(
             post_emoji_counts, many=True, context={"request": request}

@@ -204,11 +204,11 @@ class User:
     def location(self) -> Optional[str]:
         return self.profile.location
 
-    @gql.django.field(select_related=["profile"])
+    @gql.django.field
     def avatar_default_color(self) -> str:
         return self.avatar_default_color
 
-    @gql.django.field(select_related=["profile"])
+    @gql.django.field
     def avatar_label(self) -> str:
         return self.avatar_label
 
@@ -228,7 +228,7 @@ class User:
     def skills(self) -> List[Optional[Skill]]:
         return self.profile.skills.all()
 
-    @gql.django.field(select_related=["profile"])
+    @gql.django.field
     def connection_status_to_myself(self, info) -> Optional[UserConnectionStatus]:
         if info.context.request.user.is_anonymous:
             return None
@@ -445,8 +445,7 @@ class Post:
             reactions = PostModel.get_reaction_counts_for_post_with_id(self.pk)
         else:
             reactions = current_user.get_reaction_counts_for_post_with_id(self.pk)
-        heart_count = reactions[0]["count"] if reactions else 0
-        return ReactionCounts(HEART=heart_count)
+        return ReactionCounts(**reactions)
 
     @gql.django.field(description="Only present, when the current user reacted to this post")
     def my_reaction(self, info) -> ReactionCounts:
@@ -488,8 +487,7 @@ class PostComment:
             reactions = PostCommentModel.get_reaction_counts_for_post_comment_with_id(self.pk)
         else:
             reactions = current_user.get_reaction_counts_for_post_comment_with_id(self.pk)
-        heart_count = reactions[0]["count"] if reactions else 0
-        return ReactionCounts(HEART=heart_count)
+        return ReactionCounts(**reactions)
 
     @gql.django.field(description="Only present, when the current user reacted to this post comment")
     def my_reaction(self, info) -> ReactionCounts:

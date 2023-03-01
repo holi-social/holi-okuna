@@ -26,7 +26,7 @@ from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFit
 from rest_framework.exceptions import ValidationError
 
-from openbook_auth.models import User, UserBlock
+from openbook_auth.models import User, UserBlock, get_reactions
 from openbook_common.models import (
     Language,
     ModelWithUUID,
@@ -206,15 +206,7 @@ class Post(ModelWithUUID):
         if reactor_id:
             reactions_query.add(Q(reactor__id=reactor_id), Q.AND)
 
-        reactions = (
-            PostReaction.objects.filter(reactions_query)
-            .values("reaction_type")
-            .annotate(count=Count("reaction_type"))
-            .order_by("-count")
-            .cache()
-            .all()
-        )
-        return [{"reaction_type": reaction["reaction_type"], "count": reaction["count"]} for reaction in reactions]
+        return get_reactions(PostReaction, reactions_query)
 
     @classmethod
     def get_trending_posts_for_user_with_id(cls, user_id, max_id=None, min_id=None):
@@ -1214,15 +1206,7 @@ class PostComment(ModelWithUUID):
         if reactor_id:
             reactions_query.add(Q(reactor__id=reactor_id), Q.AND)
 
-        reactions = (
-            PostCommentReaction.objects.filter(reactions_query)
-            .values("reaction_type")
-            .annotate(count=Count("reaction_type"))
-            .order_by("-count")
-            .cache()
-            .all()
-        )
-        return [{"reaction_type": reaction["reaction_type"], "count": reaction["count"]} for reaction in reactions]
+        return get_reactions(PostCommentReaction, reactions_query)
 
     def count_replies(self):
         return self.replies.count()

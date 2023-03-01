@@ -1,5 +1,6 @@
 from rest_framework.fields import Field
 
+from openbook_auth.models import to_list_of_dicts
 from openbook_common.utils.model_loaders import get_post_model
 from openbook_communities.models import CommunityMembership
 from openbook_posts.models import PostReaction, PostCommentReaction
@@ -64,9 +65,13 @@ class PostReactionsEmojiCountField(Field):
         if request_user.is_anonymous:
             if post.public_reactions:
                 Post = get_post_model()
-                reaction_emoji_count = Post.get_reaction_counts_for_post_with_id(post.pk)
+                reaction_emoji_count = to_list_of_dicts(
+                    Post.get_reaction_counts_for_post_with_id(post.pk), "reaction_type", "count"
+                )
         else:
-            reaction_emoji_count = request_user.get_reaction_counts_for_post_with_id(post.pk)
+            reaction_emoji_count = to_list_of_dicts(
+                request_user.get_reaction_counts_for_post_with_id(post.pk), "reaction_type", "count"
+            )
 
         post_reactions_serializer = self.emoji_count_serializer(
             reaction_emoji_count, many=True, context={"request": request, "post": post}
