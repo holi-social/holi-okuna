@@ -448,7 +448,7 @@ class Query:
     def notifications(self, info, offset: int = 0, limit: int = 10) -> Paged[Notification]:
         user = info.context.request.user
         if user.is_anonymous:
-            return None
+            return Paged()
         return Paged.of(
             NotificationModel.objects.filter(
                 owner=user,

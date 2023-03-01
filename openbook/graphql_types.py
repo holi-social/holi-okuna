@@ -49,9 +49,9 @@ class Paged(List[GenericType]):
     def of(query: QuerySet, offset: int, limit: int):
         return Paged(data=query[offset : offset + limit], total_results=query.count())
 
-    def __init__(self, data, total_results):
+    def __init__(self, data=[], total_results=0):
         self.data = data
-        self.total_results = total_results
+        self.total_results = max(total_results, len(data))
 
 
 @gql.enum
@@ -571,4 +571,4 @@ class MySpaces:
         #     return self.spaces
         if hasattr(self, "query"):
             return Paged.of(self.query, offset, limit)
-        return Paged([], 0)
+        return Paged()
