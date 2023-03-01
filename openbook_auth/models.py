@@ -1807,6 +1807,8 @@ class User(AbstractUser):
         topic_ids=None,
         cover=None,
         sdg_ids=None,
+        location=None,
+        geolocation=None,
     ):
         return self.update_community_with_name(
             community.name,
@@ -1820,6 +1822,8 @@ class User(AbstractUser):
             topic_ids=topic_ids,
             cover=cover,
             sdg_ids=sdg_ids,
+            location=location,
+            geolocation=geolocation,
         )
 
     def update_community_with_id(
@@ -1839,6 +1843,7 @@ class User(AbstractUser):
         avatar=None,
         sdg_ids=None,
         location=None,
+        geolocation=None,
     ):
         Community = get_community_model()
         community = Community.objects.get(id=community_id)
@@ -1859,6 +1864,7 @@ class User(AbstractUser):
             avatar=avatar,
             sdg_ids=sdg_ids,
             location=location,
+            geolocation=geolocation,
         )
 
     def update_community_with_name(
@@ -1878,6 +1884,7 @@ class User(AbstractUser):
         avatar=None,
         sdg_ids=None,
         location=None,
+        geolocation=None,
     ):
         check_can_update_community_with_name(user=self, community_name=community_name)
 
@@ -1901,6 +1908,7 @@ class User(AbstractUser):
             avatar=avatar,
             sdg_ids=sdg_ids,
             location=location,
+            geolocation=geolocation,
         )
 
         return community_to_update

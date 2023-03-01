@@ -1,6 +1,6 @@
 from collections import defaultdict
 from datetime import datetime
-
+import random
 import requests
 
 import structlog
@@ -61,6 +61,11 @@ def spaces_for_filter(offset, limit, topic_id=None, location=None, skill_ids=Non
         offset,
         limit,
     )
+
+
+@gql.type
+class Response:
+    result: bool
 
 
 def filter_spaces_by_skill_ids(location, skill_ids, limit):
@@ -460,6 +465,10 @@ class Query:
             limit,
         )
 
+    @gql.django.field
+    def has_new_notifications(self) -> Response:
+        return Response(result=random.choice([True, False]))
+
 
 def to_input_dict(input):
     """
@@ -519,6 +528,12 @@ class CreateSpaceInput:
 
 
 @gql.input
+class PointField:
+    latitude: float
+    longitude: float
+
+
+@gql.input
 class UpdateSpaceInput:
     id: uuid.UUID
     title: Optional[str] = strawberry.UNSET
@@ -528,6 +543,7 @@ class UpdateSpaceInput:
     avatar: Optional[Upload] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
+    geolocation: Optional[PointField] = strawberry.UNSET
 
 
 @gql.type
@@ -771,6 +787,7 @@ class Mutation:
             avatar=data.get("avatar"),
             sdg_ids=data.get("sdgs"),
             location=data.get("location"),
+            geolocation=data.get("geolocation"),
         )
 
     @gql.mutation
