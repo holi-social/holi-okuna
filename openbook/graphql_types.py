@@ -498,7 +498,7 @@ class PostComment:
             try:
                 reaction = PostCommentReactionModel.objects.filter(post_comment=self, reactor=current_user).first()
                 if reaction:
-                    return ReactionCounts({reaction.reaction_type: 1})
+                    return ReactionCounts(**{reaction.reaction_type: 1})
             except PostCommentReactionModel.DoesNotExist:
                 return ReactionCounts()
         return ReactionCounts()

@@ -281,20 +281,18 @@ class GraphQLTest(TestCase):
         executed = self.react_to_post(post, "SET", posting_user)  # setting twice is same as setting once
         updated_post = executed.data["updatePostReaction"]
 
-        self.assertEqual(updated_post["myReaction"], "HEART")
-        self.assertEqual(updated_post["reactions"][0]["type"], "HEART")
-        self.assertEqual(updated_post["reactions"][0]["count"], 1)
+        self.assertEqual(updated_post["myReaction"]["HEART"], 1)
+        self.assertEqual(updated_post["reactions"]["HEART"], 1)
 
         post_data = self.get_post_with_id_data(post, other_user)
-        self.assertEqual(post_data["myReaction"], None)
-        self.assertEqual(post_data["reactions"][0]["type"], "HEART")
-        self.assertEqual(post_data["reactions"][0]["count"], 1)
+        self.assertEqual(post_data["myReaction"]["HEART"], 0)
+        self.assertEqual(post_data["reactions"]["HEART"], 1)
 
         self.react_to_post(post, "REMOVE", posting_user)
         executed = self.react_to_post(post, "REMOVE", posting_user)  # setting twice is same as setting once
         updated_post = executed.data["updatePostReaction"]
-        self.assertEqual(updated_post["myReaction"], None)
-        self.assertEqual(updated_post["reactions"], [])
+        self.assertEqual(updated_post["myReaction"]["HEART"], 0)
+        self.assertEqual(updated_post["reactions"]["HEART"], 0)
 
     def test_react_to_post_comment(self):
         posting_user = make_user()
@@ -313,32 +311,31 @@ class GraphQLTest(TestCase):
         executed = self.react_to_post_comment(comment, "SET", posting_user)  # setting twice is same as setting once
         updated_post_comment = executed.data["updatePostCommentReaction"]
 
-        self.assertEqual(updated_post_comment["myReaction"], "HEART")
-        self.assertEqual(updated_post_comment["reactions"][0]["type"], "HEART")
-        self.assertEqual(updated_post_comment["reactions"][0]["count"], 1)
+        self.assertEqual(updated_post_comment["myReaction"]["HEART"], 1)
+        self.assertEqual(updated_post_comment["reactions"]["HEART"], 1)
 
         post_data = self.get_post_with_id_data(post, other_user)
-        self.assertEqual(post_data["myReaction"], None)
-        self.assertEqual(post_data["reactions"], [])
-        self.assertEqual(post_data["comments"][0]["myReaction"], None)
-        self.assertEqual(post_data["comments"][0]["reactions"][0]["type"], "HEART")
-        self.assertEqual(post_data["comments"][0]["reactions"][0]["count"], 1)
+        self.assertEqual(post_data["myReaction"]["HEART"], 0)
+        self.assertEqual(post_data["reactions"]["HEART"], 0)
+        self.assertEqual(post_data["comments"][0]["myReaction"]["HEART"], 0)
+        self.assertEqual(post_data["comments"][0]["reactions"]["HEART"], 1)
 
         self.react_to_post_comment(comment, "REMOVE", posting_user)
         executed = self.react_to_post_comment(comment, "REMOVE", posting_user)  # setting twice is same as setting once
         updated_post_comment = executed.data["updatePostCommentReaction"]
-        self.assertEqual(updated_post_comment["myReaction"], None)
-        self.assertEqual(updated_post_comment["reactions"], [])
+        self.assertEqual(updated_post_comment["myReaction"]["HEART"], 0)
+        self.assertEqual(updated_post_comment["reactions"]["HEART"], 0)
 
     def react_to_post(self, post, action, posting_user):
         return schema.execute_sync(
             """
             mutation test($id: UUID!, $reactionType: ReactionType!, $reactionAction: ReactionAction!) {
                 updatePostReaction(id: $id, reactionType: $reactionType, reactionAction: $reactionAction) {
-                    myReaction
+                    myReaction {
+                        HEART
+                    }
                     reactions {
-                        type
-                        count
+                        HEART
                     }
                 }
             }
@@ -356,10 +353,11 @@ class GraphQLTest(TestCase):
             """
             mutation test($id: UUID!, $reactionType: ReactionType!, $reactionAction: ReactionAction!) {
                 updatePostCommentReaction(id: $id, reactionType: $reactionType, reactionAction: $reactionAction) {
-                    myReaction
+                    myReaction {
+                        HEART
+                    }
                     reactions {
-                        type
-                        count
+                        HEART
                     }
                 }
             }
@@ -1126,10 +1124,11 @@ class GraphQLTest(TestCase):
                         mentions {{
                             fullName
                         }}
-                        myReaction
+                        myReaction {{
+                            HEART
+                        }}
                         reactions {{
-                            type
-                            count
+                            HEART
                         }}
                     }}
                     mentions {{
@@ -1148,10 +1147,11 @@ class GraphQLTest(TestCase):
                             firstName
                         }}
                     }}
-                    myReaction
+                    myReaction {{
+                        HEART
+                    }}
                     reactions {{
-                        type
-                        count
+                        HEART
                     }}
                 }}
             }}
