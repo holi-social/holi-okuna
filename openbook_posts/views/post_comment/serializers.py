@@ -1,10 +1,8 @@
 from rest_framework import serializers
 from django.conf import settings
 
-from openbook_auth.models import UserProfile, User
 from openbook_common.models import Language, Emoji
 from openbook_common.serializers import (
-    CommonUserProfileBadgeSerializer,
     CommonHashtagSerializer,
     CommonPublicUserSerializer,
 )

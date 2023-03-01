@@ -24,7 +24,7 @@ class PostCommentInline(admin.TabularInline):
 class PostReactionInline(admin.TabularInline):
     model = PostReaction
 
-    readonly_fields = ["reactor", "emoji"]
+    readonly_fields = ["reactor"]
 
     def has_add_permission(self, request, obj):
         return False

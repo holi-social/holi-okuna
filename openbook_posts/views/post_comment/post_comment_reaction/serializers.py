@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from openbook_common.models import Emoji, Badge
 from openbook_common.serializers import CommonPublicUserSerializer
+from openbook_common.validators import reaction_type_exists
 from openbook_posts.models import PostCommentReaction
 from openbook_posts.validators import (
     post_id_exists,
@@ -53,8 +54,8 @@ class PostCommentReactionEmojiSerializer(serializers.ModelSerializer):
 
 class PostCommentReactionSerializer(serializers.ModelSerializer):
     reactor = CommonPublicUserSerializer(many=False)
-    emoji = PostCommentReactionEmojiSerializer(many=False)
+    reaction_type = serializers.CharField(validators=[reaction_type_exists])
 
     class Meta:
         model = PostCommentReaction
-        fields = ("reactor", "created", "emoji", "id")
+        fields = ("reactor", "created", "reaction_type", "id")

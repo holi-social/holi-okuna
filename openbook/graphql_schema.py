@@ -1,6 +1,6 @@
 from collections import defaultdict
+from datetime import datetime
 import random
-
 import requests
 
 import structlog
@@ -387,7 +387,7 @@ class Query:
                 return result
 
     @gql.django.field
-    def my_spaces(self, info) -> Optional[List[Optional[MySpaces]]]:
+    def my_spaces(self, info) -> List[Optional[MySpaces]]:
         verify_authorized_user(info)
 
         created_spaces = MySpaces(section=_("Created"), type=SpaceUserConnectionType.CREATOR)
@@ -448,7 +448,7 @@ class Query:
     def notifications(self, info, offset: int = 0, limit: int = 10) -> Paged[Notification]:
         user = info.context.request.user
         if user.is_anonymous:
-            return None
+            return Paged()
         return Paged.of(
             NotificationModel.objects.filter(
                 owner=user,
@@ -493,7 +493,7 @@ class UpdateAuthenticatedUserInput:
 
 @gql.input
 class UpdateConnectionWithUserInput:
-    user_id: Optional[str]
+    user_id: Optional[str] = strawberry.UNSET
     action: UpdateConnectionAction
 
 
@@ -656,7 +656,7 @@ class Mutation:
         space_id: uuid.UUID,
         connection_type: SpaceUserConnectionType,
         connect_action: UpdateConnectionAction,
-        user_id: Optional[uuid.UUID],
+        user_id: Optional[uuid.UUID] = None,
     ) -> Space:
         current_user = verify_authorized_user(info)
         space = CommunityModel.objects.get(id=space_id)  # @todo Use name as parameter, same as okuna? w
@@ -804,18 +804,26 @@ class Mutation:
     @gql.mutation
     def update_post_reaction(
         self, info, id: uuid.UUID, reaction_type: ReactionType, reaction_action: ReactionAction
-    ) -> Result:
+    ) -> Post:
         current_user = verify_authorized_user(info)
-
-        return Result(success=True)
+        post = PostModel.objects.get(id=id)
+        if reaction_action == ReactionAction.SET:
+            post.react(current_user, reaction_type)
+        else:
+            post.clear_reaction(current_user, reaction_type)
+        return post
 
     @gql.mutation
     def update_post_comment_reaction(
         self, info, id: uuid.UUID, reaction_type: ReactionType, reaction_action: ReactionAction
-    ) -> Result:
+    ) -> PostComment:
         current_user = verify_authorized_user(info)
-
-        return Result(success=True)
+        post_comment = PostCommentModel.objects.get(id=id)
+        if reaction_action == ReactionAction.SET:
+            post_comment.react(current_user, reaction_type)
+        else:
+            post_comment.clear_reaction(current_user, reaction_type)
+        return post_comment
 
 
 schema = strawberry.Schema(

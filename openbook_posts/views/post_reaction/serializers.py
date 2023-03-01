@@ -36,21 +36,10 @@ class PostReactionReactorSerializer(serializers.ModelSerializer):
         fields = ("username", "profile", "id")
 
 
-class PostReactionEmojiSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Emoji
-        fields = (
-            "id",
-            "keyword",
-            "image",
-            "created",
-        )
-
-
 class PostReactionSerializer(serializers.ModelSerializer):
     reactor = PostReactionReactorSerializer(many=False)
-    emoji = PostReactionEmojiSerializer(many=False)
+    reaction_type = serializers.CharField()
 
     class Meta:
         model = PostReaction
-        fields = ("reactor", "created", "emoji", "id")
+        fields = ("reactor", "created", "reaction_type", "id")

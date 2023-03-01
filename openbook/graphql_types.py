@@ -1,15 +1,17 @@
 import uuid
 from enum import Enum
+from uuid import UUID
 
 import strawberry
-from datetime import datetime
 from typing import List, TypeVar, Optional
 
 from django.db.models import Q
 from strawberry_django_plus import gql
 from django.db.models import QuerySet
 
+import logging
 from openbook_common.models import LinkPreview as LinkPreviewModel
+from openbook_common.types import ReactionType
 from openbook_communities.models import (
     Community as CommunityModel,
     Task as TaskModel,
@@ -22,6 +24,8 @@ from openbook_posts.models import (
     Post as PostModel,
     PostComment as PostCommentModel,
     PostImage as PostImageModel,
+    PostReaction as PostReactionModel,
+    PostCommentReaction as PostCommentReactionModel,
 )
 from openbook_terms.models import (
     Topic as TopicModel,
@@ -30,6 +34,8 @@ from openbook_terms.models import (
 )
 from openbook_auth.models import User as UserModel, UserConnectionStatus
 from openbook_insights.models import Insight as InsightModel
+
+logger = logging.getLogger(__name__)
 
 GenericType = TypeVar("GenericType")
 
@@ -43,9 +49,9 @@ class Paged(List[GenericType]):
     def of(query: QuerySet, offset: int, limit: int):
         return Paged(data=query[offset : offset + limit], total_results=query.count())
 
-    def __init__(self, data, total_results):
+    def __init__(self, data=[], total_results=0):
         self.data = data
-        self.total_results = total_results
+        self.total_results = max(total_results, len(data))
 
 
 @gql.enum
@@ -60,11 +66,6 @@ class ContentType(Enum):
     POST_COMMENT = "POST_COMMENT"
     USER = "USER"
     SPACE = "SPACE"
-
-
-@gql.enum
-class ReactionType(Enum):
-    HEART = "HEART"
 
 
 @gql.enum
@@ -139,16 +140,17 @@ class ExternalLink:
     type: ExternalLinkType
 
 
-@gql.django.type(PostImageModel)
+@gql.type
 class PostImage:
-    id: gql.auto
-    # post: Optional["Post"]
-    width: gql.auto
-    height: gql.auto
+    """
+    Even though there is a Django Model for PostImage, it is resolved with many queries when modelled like that for some reason.
+    That's why we use this as a plain type and resolve it inside of a resolver function in Post
+    """
 
-    @gql.django.field
-    def url(self) -> str:
-        return self.image
+    id: UUID
+    width: int
+    height: int
+    url: str
 
 
 @gql.django.type(LinkPreviewModel)
@@ -202,11 +204,11 @@ class User:
     def location(self) -> Optional[str]:
         return self.profile.location
 
-    @gql.django.field(select_related=["profile"])
+    @gql.django.field
     def avatar_default_color(self) -> str:
         return self.avatar_default_color
 
-    @gql.django.field(select_related=["profile"])
+    @gql.django.field
     def avatar_label(self) -> str:
         return self.avatar_label
 
@@ -226,7 +228,7 @@ class User:
     def skills(self) -> List[Optional[Skill]]:
         return self.profile.skills.all()
 
-    @gql.django.field(select_related=["profile"])
+    @gql.django.field
     def connection_status_to_myself(self, info) -> Optional[UserConnectionStatus]:
         if info.context.request.user.is_anonymous:
             return None
@@ -384,6 +386,11 @@ class Insight:
         )
 
 
+@gql.type
+class ReactionCounts:
+    HEART: int = 0
+
+
 @gql.django.type(PostModel)
 class Post:
     id: gql.auto
@@ -395,19 +402,22 @@ class Post:
     comments_enabled: gql.auto
     mentions: List[Optional[User]]
 
-    @gql.django.field
+    @gql.django.field(select_related=["image"])
     def image(self) -> Optional[PostImage]:
         if hasattr(self, "image"):
-            return self.image
+            # We resolve this here, since otherwise it would create three additional queries for some reason.
+            return PostImage(
+                id=self.image.id, width=self.image.width, height=self.image.height, url=self.image.image.url
+            )
         return None
 
-    @gql.django.field
+    @gql.django.field(prefetch_related=["links"])
     def links(self) -> List[Optional[LinkPreview]]:
         return self.links.all()
 
     @gql.django.field
     def number_of_comments(self, info) -> int:
-        return (  # self.resolve_comments(info).count()
+        return (
             PostCommentModel.objects.filter(post=self)
             .filter(PostCommentModel.is_visible_query(info.context.request.user))
             .count()
@@ -448,12 +458,25 @@ class Post:
         )
 
     @gql.django.field
-    def reactions(self) -> List[Optional[Reaction]]:
-        return [Reaction(type=ReactionType.HEART, count=3)]
+    def reactions(self, info) -> ReactionCounts:
+        current_user = info.context.request.user
+        if current_user.is_anonymous:
+            reactions = PostModel.get_reaction_counts_for_post_with_id(self.pk)
+        else:
+            reactions = current_user.get_reaction_counts_for_post_with_id(self.pk)
+        return ReactionCounts(**reactions)
 
     @gql.django.field(description="Only present, when the current user reacted to this post")
-    def my_reaction(self) -> Optional[ReactionType]:
-        return ReactionType.HEART
+    def my_reaction(self, info) -> ReactionCounts:
+        current_user = info.context.request.user
+        if not current_user.is_anonymous:
+            try:
+                reaction = PostReactionModel.objects.filter(post=self, reactor=current_user).first()
+                if reaction:
+                    return ReactionCounts(**{reaction.reaction_type: 1})
+            except PostReactionModel.DoesNotExist:
+                return ReactionCounts()
+        return ReactionCounts()
 
 
 @gql.django.type(PostCommentModel)
@@ -477,12 +500,25 @@ class PostComment:
         return self.links.all()
 
     @gql.django.field
-    def reactions(self) -> List[Optional[Reaction]]:
-        return [Reaction(type=ReactionType.HEART, count=3)]
+    def reactions(self, info) -> ReactionCounts:
+        current_user = info.context.request.user
+        if current_user.is_anonymous:
+            reactions = PostCommentModel.get_reaction_counts_for_post_comment_with_id(self.pk)
+        else:
+            reactions = current_user.get_reaction_counts_for_post_comment_with_id(self.pk)
+        return ReactionCounts(**reactions)
 
     @gql.django.field(description="Only present, when the current user reacted to this post comment")
-    def my_reaction(self) -> Optional[ReactionType]:
-        return ReactionType.HEART
+    def my_reaction(self, info) -> ReactionCounts:
+        current_user = info.context.request.user
+        if not current_user.is_anonymous:
+            try:
+                reaction = PostCommentReactionModel.objects.filter(post_comment=self, reactor=current_user).first()
+                if reaction:
+                    return ReactionCounts(**{reaction.reaction_type: 1})
+            except PostCommentReactionModel.DoesNotExist:
+                return ReactionCounts()
+        return ReactionCounts()
 
 
 @gql.type
@@ -535,4 +571,4 @@ class MySpaces:
         #     return self.spaces
         if hasattr(self, "query"):
             return Paged.of(self.query, offset, limit)
-        return Paged([], 0)
+        return Paged()

@@ -39,13 +39,12 @@ from openbook_common.tests.helpers import (
     get_test_image,
     make_global_moderator,
     make_fake_post_comment_text,
-    make_reactions_emoji_group,
-    make_emoji,
     make_hashtag_name,
     make_hashtag,
     get_test_valid_hashtags,
     get_test_invalid_hashtags,
 )
+from openbook_common.types import ReactionType
 from openbook_common.utils.helpers import sha256sum, normalize_url
 from openbook_communities.models import Community
 from openbook_hashtags.models import Hashtag
@@ -3590,11 +3589,8 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user)
 
-        emoji_group = make_reactions_emoji_group()
-        emoji = make_emoji(group=emoji_group)
-
         # react once, min required while testing
-        user.react_to_post_with_id(post_id=post.pk, emoji_id=emoji.pk)
+        user.react_to_post_with_id(post_id=post.pk, reaction_type=ReactionType.HEART)
 
         curate_trending_posts()
 
@@ -3649,12 +3645,9 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user)
 
-        emoji_group = make_reactions_emoji_group()
-        emoji = make_emoji(group=emoji_group)
-
         # react once, min required while testing
-        user.react_to_post_with_id(post_id=post.pk, emoji_id=emoji.pk)
-        user.react_to_post_with_id(post_id=post_two.pk, emoji_id=emoji.pk)
+        user.react_to_post_with_id(post_id=post.pk, reaction_type=ReactionType.HEART)
+        user.react_to_post_with_id(post_id=post_two.pk, reaction_type=ReactionType.HEART)
 
         curate_trending_posts()
 
@@ -3684,11 +3677,9 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
         user.join_community_with_name(community_name=community.name)
 
         post = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
-        emoji_group = make_reactions_emoji_group()
-        emoji = make_emoji(group=emoji_group)
 
         # react once, min required while testing
-        user.react_to_post_with_id(post_id=post.pk, emoji_id=emoji.pk)
+        user.react_to_post_with_id(post_id=post.pk, reaction_type=ReactionType.HEART)
 
         community_owner.ban_user_with_username_from_community_with_name(
             username=user.username, community_name=community.name
@@ -3720,10 +3711,7 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
         )
 
         # react once, min required while testing
-        emoji_group = make_reactions_emoji_group()
-        emoji = make_emoji(group=emoji_group)
-
-        user.react_to_post_with_id(post_id=post.pk, emoji_id=emoji.pk)
+        user.react_to_post_with_id(post_id=post.pk, reaction_type=ReactionType.HEART)
 
         user.block_user_with_id(user_id=user_to_retrieve_posts_from.pk)
 
@@ -3751,11 +3739,8 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
             text=make_fake_post_text(), community_name=community.name
         )
 
-        emoji_group = make_reactions_emoji_group()
-        emoji = make_emoji(group=emoji_group)
-
         # react once, min required while testing
-        user.react_to_post_with_id(post_id=post.pk, emoji_id=emoji.pk)
+        user.react_to_post_with_id(post_id=post.pk, reaction_type=ReactionType.HEART)
 
         user_to_retrieve_posts_from.block_user_with_id(user_id=user.pk)
 
@@ -3782,11 +3767,8 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
         user.join_community_with_name(community_name=community.name)
 
         post = community_owner.create_community_post(text=make_fake_post_text(), community_name=community.name)
-        emoji_group = make_reactions_emoji_group()
-        emoji = make_emoji(group=emoji_group)
-
         # react once, min required while testing
-        user.react_to_post_with_id(post_id=post.pk, emoji_id=emoji.pk)
+        user.react_to_post_with_id(post_id=post.pk, reaction_type=ReactionType.HEART)
 
         # block user
         user.block_user_with_id(user_id=community_owner.pk)
@@ -3817,11 +3799,8 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
         post_text = make_fake_post_text()
         post = post_creator.create_encircled_post(text=post_text, circles_ids=[circle.pk])
 
-        emoji_group = make_reactions_emoji_group()
-        emoji = make_emoji(group=emoji_group)
-
         # react once, min required while testing
-        user.react_to_post_with_id(post_id=post.pk, emoji_id=emoji.pk)
+        user.react_to_post_with_id(post_id=post.pk, reaction_type=ReactionType.HEART)
 
         # curate trending posts
         curate_trending_posts()
@@ -3848,11 +3827,8 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
         community = make_community(creator=user, type=Community.COMMUNITY_TYPE_PRIVATE)
         post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
 
-        emoji_group = make_reactions_emoji_group()
-        emoji = make_emoji(group=emoji_group)
-
         # react once, min required while testing
-        user.react_to_post_with_id(post_id=post.pk, emoji_id=emoji.pk)
+        user.react_to_post_with_id(post_id=post.pk, reaction_type=ReactionType.HEART)
 
         # curate trending posts
         curate_trending_posts()
@@ -3879,11 +3855,8 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
         community = make_community(creator=user, type=Community.COMMUNITY_TYPE_PUBLIC)
         post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
 
-        emoji_group = make_reactions_emoji_group()
-        emoji = make_emoji(group=emoji_group)
-
         # react once, min required while testing
-        user.react_to_post_with_id(post_id=post.pk, emoji_id=emoji.pk)
+        user.react_to_post_with_id(post_id=post.pk, reaction_type=ReactionType.HEART)
 
         # curate trending posts
         curate_trending_posts()
@@ -3915,12 +3888,9 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
         post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
         post_two = user.create_community_post(community_name=community.name, text=make_fake_post_text())
 
-        emoji_group = make_reactions_emoji_group()
-        emoji = make_emoji(group=emoji_group)
-
         # react once, min required while testing
-        user.react_to_post_with_id(post_id=post.pk, emoji_id=emoji.pk)
-        user.react_to_post_with_id(post_id=post_two.pk, emoji_id=emoji.pk)
+        user.react_to_post_with_id(post_id=post.pk, reaction_type=ReactionType.HEART)
+        user.react_to_post_with_id(post_id=post_two.pk, reaction_type=ReactionType.HEART)
 
         # curate trending posts
         curate_trending_posts()
@@ -3960,12 +3930,9 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
         )
         user.approve_moderated_object(moderated_object=moderated_object)
 
-        emoji_group = make_reactions_emoji_group()
-        emoji = make_emoji(group=emoji_group)
-
         # react once, min required while testing
-        user.react_to_post_with_id(post_id=post.pk, emoji_id=emoji.pk)
-        user.react_to_post_with_id(post_id=post_two.pk, emoji_id=emoji.pk)
+        user.react_to_post_with_id(post_id=post.pk, reaction_type=ReactionType.HEART)
+        user.react_to_post_with_id(post_id=post_two.pk, reaction_type=ReactionType.HEART)
 
         # curate trending posts
         curate_trending_posts()
@@ -4007,12 +3974,9 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
             post=post, category_id=moderation_category.pk
         )
 
-        emoji_group = make_reactions_emoji_group()
-        emoji = make_emoji(group=emoji_group)
-
         # react once, min required while testing
-        user.react_to_post_with_id(post_id=post.pk, emoji_id=emoji.pk)
-        user.react_to_post_with_id(post_id=post_two.pk, emoji_id=emoji.pk)
+        user.react_to_post_with_id(post_id=post.pk, reaction_type=ReactionType.HEART)
+        user.react_to_post_with_id(post_id=post_two.pk, reaction_type=ReactionType.HEART)
 
         # curate trending posts
         curate_trending_posts()
@@ -4534,13 +4498,10 @@ class TopPostsAPITests(OpenbookAPITestCase):
         post = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
         post_two = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
 
-        emoji_group = make_reactions_emoji_group()
-        emoji = make_emoji(group=emoji_group)
-
         # react once, min required while testing
         community_owner.react_to_post_with_id(
             post_id=post.pk,
-            emoji_id=emoji.pk,
+            reaction_type=ReactionType.HEART,
         )
 
         # curate top posts

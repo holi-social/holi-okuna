@@ -16,11 +16,9 @@ from openbook_common.tests.helpers import (
     make_fake_post_comment_text,
     make_user,
     make_circle,
-    make_emoji,
-    make_emoji_group,
-    make_reactions_emoji_group,
     make_community,
 )
+from openbook_common.types import ReactionType
 from openbook_common.utils.test import uuid_id_parser
 from openbook_notifications.models import PostCommentReactionNotification
 from openbook_posts.models import PostCommentReaction
@@ -47,11 +45,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         post = user.create_public_post(text=make_fake_post_text())
         post_comment = user.comment_post(post=post, text=make_fake_post_comment_text())
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=post, post_comment=post_comment)
         response = self.client.put(url, data, **headers)
@@ -60,7 +54,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         self.assertTrue(
             PostCommentReaction.objects.filter(
                 post_comment_id=post_comment.pk,
-                emoji_id=post_comment_reaction_emoji_id,
+                reaction_type=ReactionType.HEART,
                 reactor_id=user.pk,
             ).count()
             == 1
@@ -77,11 +71,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
             post=post, post_comment=post_comment, text=make_fake_post_comment_text()
         )
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=post, post_comment=post_comment_reply)
         response = self.client.put(url, data, **headers)
@@ -90,7 +80,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         self.assertTrue(
             PostCommentReaction.objects.filter(
                 post_comment_id=post_comment_reply.pk,
-                emoji_id=post_comment_reaction_emoji_id,
+                reaction_type=ReactionType.HEART,
                 reactor_id=user.pk,
             ).count()
             == 1
@@ -106,11 +96,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         post = foreign_user.create_encircled_post(text=make_fake_post_text(), circles_ids=[circle.pk])
         post_comment = foreign_user.comment_post(post=post, text=make_fake_post_comment_text())
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=post, post_comment=post_comment)
         response = self.client.put(url, data, **headers)
@@ -119,33 +105,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         self.assertTrue(
             PostCommentReaction.objects.filter(
                 post_comment_id=post_comment.pk,
-                emoji_id=post_comment_reaction_emoji_id,
-                reactor_id=user.pk,
-            ).count()
-            == 0
-        )
-
-    def test_cannot_react_to_foreign_post_comment_with_non_reaction_emoji(self):
-        """should not be able to react in a post comment with a non reaction emoji group and return 400"""
-        user = make_user()
-        headers = make_authentication_headers_for_user(user)
-        post = user.create_public_post(text=make_fake_post_text())
-        post_comment = user.comment_post(post=post, text=make_fake_post_comment_text())
-
-        emoji_group = make_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
-
-        url = self._get_url(post=post, post_comment=post_comment)
-        response = self.client.put(url, data, **headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
-        self.assertTrue(
-            PostCommentReaction.objects.filter(
-                post_comment_id=post_comment.pk,
-                emoji_id=post_comment_reaction_emoji_id,
+                reaction_type=ReactionType.HEART,
                 reactor_id=user.pk,
             ).count()
             == 0
@@ -165,11 +125,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
             post=connected_user_post, text=make_fake_post_comment_text()
         )
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=connected_user_post, post_comment=connected_user_post_comment)
         response = self.client.put(url, data, **headers)
@@ -178,7 +134,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         self.assertTrue(
             PostCommentReaction.objects.filter(
                 post_comment_id=connected_user_post_comment.pk,
-                emoji_id=post_comment_reaction_emoji_id,
+                reaction_type=ReactionType.HEART,
                 reactor_id=user.pk,
             ).count()
             == 1
@@ -202,11 +158,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
             post=connected_user_post, text=make_fake_post_comment_text()
         )
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=connected_user_post, post_comment=connected_user_post_comment)
         response = self.client.put(url, data, **headers)
@@ -215,7 +167,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         self.assertEqual(
             PostCommentReaction.objects.filter(
                 post_comment_id=connected_user_post_comment.pk,
-                emoji_id=post_comment_reaction_emoji_id,
+                reaction_type=ReactionType.HEART,
                 reactor_id=user.pk,
             ).count(),
             1,
@@ -239,11 +191,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
             post=connected_user_post, text=make_fake_post_comment_text()
         )
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=connected_user_post, post_comment=connected_user_post_comment)
         response = self.client.put(url, data, **headers)
@@ -253,7 +201,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         self.assertTrue(
             PostCommentReaction.objects.filter(
                 post_comment_id=connected_user_post.pk,
-                emoji_id=post_comment_reaction_emoji_id,
+                reaction_type=ReactionType.HEART,
                 reactor_id=user.pk,
             ).count()
             == 0
@@ -271,11 +219,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
             post=foreign_user_post, text=make_fake_post_comment_text()
         )
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=foreign_user_post, post_comment=foreign_user_post_comment)
         response = self.client.put(url, data, **headers)
@@ -284,7 +228,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         self.assertEqual(
             PostCommentReaction.objects.filter(
                 post_comment_id=foreign_user_post_comment.pk,
-                emoji_id=post_comment_reaction_emoji_id,
+                reaction_type=ReactionType.HEART,
                 reactor_id=user.pk,
             ).count(),
             1,
@@ -305,11 +249,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
             post=followed_user_post, text=make_fake_post_comment_text()
         )
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=followed_user_post, post_comment=followed_user_post_comment)
         response = self.client.put(url, data, **headers)
@@ -318,7 +258,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         self.assertTrue(
             PostCommentReaction.objects.filter(
                 post_comment_id=followed_user_post.pk,
-                emoji_id=post_comment_reaction_emoji_id,
+                reaction_type=ReactionType.HEART,
                 reactor_id=user.pk,
             ).count()
             == 0
@@ -341,11 +281,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
             username=user.username, community_name=community.name
         )
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=post, post_comment=post_comment)
         response = self.client.put(url, data, **headers)
@@ -355,7 +291,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         self.assertTrue(
             PostCommentReaction.objects.filter(
                 post_comment_id=post_comment.pk,
-                emoji_id=post_comment_reaction_emoji_id,
+                reaction_type=ReactionType.HEART,
                 reactor_id=user.pk,
             ).count()
             == 0
@@ -379,10 +315,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         community_post.is_closed = True
         community_post.save()
 
-        emoji_group = make_reactions_emoji_group()
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=community_post, post_comment=community_post_comment)
         response = self.client.put(url, data, **headers)
@@ -391,7 +324,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         self.assertTrue(
             PostCommentReaction.objects.filter(
                 post_comment_id=community_post_comment.pk,
-                emoji_id=post_comment_reaction_emoji_id,
+                reaction_type=ReactionType.HEART,
                 reactor_id=user.pk,
             ).count()
             == 0
@@ -414,10 +347,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         community_post.is_closed = True
         community_post.save()
 
-        emoji_group = make_reactions_emoji_group()
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         headers = make_authentication_headers_for_user(post_creator)
         url = self._get_url(post=community_post, post_comment=community_post_comment)
@@ -427,7 +357,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         self.assertTrue(
             PostCommentReaction.objects.filter(
                 post_comment_id=community_post_comment.pk,
-                emoji_id=post_comment_reaction_emoji_id,
+                reaction_type=ReactionType.HEART,
                 reactor_id=post_creator.pk,
             ).count()
             == 0
@@ -447,11 +377,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
 
         user.block_user_with_id(user_id=user_to_block.pk)
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=post, post_comment=post_comment)
         response = self.client.put(url, data, **headers)
@@ -460,7 +386,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         self.assertTrue(
             PostCommentReaction.objects.filter(
                 post_comment_id=post_comment.pk,
-                emoji_id=post_comment_reaction_emoji_id,
+                reaction_type=ReactionType.HEART,
                 reactor_id=user.pk,
             ).count()
             == 0
@@ -481,11 +407,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
 
         blocking_user.block_user_with_id(user_id=user.pk)
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=post, post_comment=post_comment)
         response = self.client.put(url, data, **headers)
@@ -494,7 +416,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         self.assertTrue(
             PostCommentReaction.objects.filter(
                 post_comment_id=post_comment.pk,
-                emoji_id=post_comment_reaction_emoji_id,
+                reaction_type=ReactionType.HEART,
                 reactor_id=user.pk,
             ).count()
             == 0
@@ -517,11 +439,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
 
         user.block_user_with_id(user_id=user_to_block.pk)
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=post, post_comment=post_comment)
         response = self.client.put(url, data, **headers)
@@ -530,7 +448,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         self.assertTrue(
             PostCommentReaction.objects.filter(
                 post_comment_id=post_comment.pk,
-                emoji_id=post_comment_reaction_emoji_id,
+                reaction_type=ReactionType.HEART,
                 reactor_id=user.pk,
             ).count()
             == 0
@@ -554,11 +472,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
 
         blocking_user.block_user_with_id(user_id=user.pk)
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=post, post_comment=post_comment)
         response = self.client.put(url, data, **headers)
@@ -567,7 +481,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         self.assertTrue(
             PostCommentReaction.objects.filter(
                 post_comment_id=post_comment.pk,
-                emoji_id=post_comment_reaction_emoji_id,
+                reaction_type=ReactionType.HEART,
                 reactor_id=user.pk,
             ).count()
             == 0
@@ -587,11 +501,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
 
         user.block_user_with_id(user_id=community_owner.pk)
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=post, post_comment=post_comment)
         response = self.client.put(url, data, **headers)
@@ -600,7 +510,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         self.assertTrue(
             PostCommentReaction.objects.filter(
                 post_comment_id=post_comment.pk,
-                emoji_id=post_comment_reaction_emoji_id,
+                reaction_type=ReactionType.HEART,
                 reactor_id=user.pk,
             ).count()
             == 1
@@ -620,11 +530,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
 
         community_owner.block_user_with_id(user_id=user.pk)
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=post, post_comment=post_comment)
         response = self.client.put(url, data, **headers)
@@ -633,7 +539,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         self.assertTrue(
             PostCommentReaction.objects.filter(
                 post_comment_id=post_comment.pk,
-                emoji_id=post_comment_reaction_emoji_id,
+                reaction_type=ReactionType.HEART,
                 reactor_id=user.pk,
             ).count()
             == 1
@@ -646,18 +552,12 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         post = user.create_public_post(text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=post, post_comment=post_comment)
         self.client.put(url, data, **headers)
 
-        new_post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(new_post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
         response = self.client.put(url, data, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
@@ -674,18 +574,14 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         post = user.create_public_post(text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=post, post_comment=post_comment)
         self.client.put(url, data, **headers)
 
         self.assertTrue(
             PostCommentReactionNotification.objects.filter(
-                post_comment_reaction__emoji__id=post_comment_reaction_emoji_id,
+                post_comment_reaction__reaction_type=ReactionType.HEART,
                 notification__owner=user,
             ).exists()
         )
@@ -702,11 +598,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         post = user.create_public_post(text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=post, post_comment=post_comment)
         self.client.put(url, data, **headers)
@@ -730,11 +622,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
         user.mute_post_comment_with_id(post_comment_id=post_comment.pk)
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=post, post_comment=post_comment)
         self.client.put(url, data, **headers)
@@ -754,11 +642,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
         user.mute_post_with_id(post_id=post.pk)
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=post, post_comment=post_comment)
         self.client.put(url, data, **headers)
@@ -773,25 +657,21 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         post = user.create_public_post(text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
-        emoji_group = make_reactions_emoji_group()
-
-        post_comment_reaction_emoji_id = make_emoji(group=emoji_group).pk
-
-        data = self._get_create_post_comment_reaction_request_data(post_comment_reaction_emoji_id)
+        data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
 
         url = self._get_url(post=post, post_comment=post_comment)
         self.client.put(url, data, **headers)
 
         self.assertFalse(
             PostCommentReactionNotification.objects.filter(
-                post_comment_reaction__emoji__id=post_comment_reaction_emoji_id,
+                post_comment_reaction__reaction_type=ReactionType.HEART,
                 notification__owner=user,
             ).exists()
         )
 
-    def _get_create_post_comment_reaction_request_data(self, emoji_id):
+    def _get_create_post_comment_reaction_request_data(self, reaction_type: ReactionType):
         return {
-            "emoji_id": emoji_id,
+            "reaction_type": reaction_type.value,
         }
 
     def _get_url(self, post, post_comment):
@@ -811,33 +691,29 @@ class PostCommentReactionsEmojiCountAPITests(OpenbookAPITestCase):
 
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
-    def test_can_retrieve_post_comment_reactions_emoji_count(self):
+    def test_can_retrieve_post_comment_reactions_count(self):
         """should be able to retrieve a valid post comment reactions emoji count and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
         post = user.create_public_post(text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
-        emoji_group = make_reactions_emoji_group()
 
-        emojis_to_react_with = [
-            {"emoji": make_emoji(group=emoji_group), "count": 3},
-            {"emoji": make_emoji(group=emoji_group), "count": 7},
-            {"emoji": make_emoji(group=emoji_group), "count": 2},
+        reactions_to_react_with = [
+            {"reaction_type": ReactionType.HEART.value, "count": 3},
         ]
 
         reactions = {}
 
-        for reaction in emojis_to_react_with:
-            id = reaction.get("emoji").pk
+        for reaction in reactions_to_react_with:
+            id = reaction.get("reaction_type")
             reactions[str(id)] = reaction
 
-        for reaction in emojis_to_react_with:
+        for reaction in reactions_to_react_with:
             for count in range(reaction["count"]):
                 reactor = make_user()
-                emoji = reaction.get("emoji")
                 reactor.react_to_post_comment_with_id(
                     post_comment_id=post_comment.pk,
-                    emoji_id=emoji.pk,
+                    reaction_type=ReactionType.HEART,
                 )
 
         url = self._get_url(post=post, post_comment=post_comment)
@@ -846,16 +722,15 @@ class PostCommentReactionsEmojiCountAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
-        response_emojis_counts = json.loads(response.content, object_hook=uuid_id_parser)
+        response_reaction_counts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertTrue(len(response_emojis_counts), len(emojis_to_react_with))
+        self.assertTrue(len(response_reaction_counts), len(reactions_to_react_with))
 
-        for response_emoji_count in response_emojis_counts:
-            response_emoji_id = response_emoji_count.get("emoji").get("id")
-            count = response_emoji_count.get("count")
-            reaction = reactions[str(response_emoji_id)]
-            reaction_emoji = reaction["emoji"]
-            self.assertIsNotNone(reaction_emoji)
+        for response_reaction_count in response_reaction_counts:
+            response_reaction_type = response_reaction_count.get("reaction_type")
+            count = response_reaction_count.get("count")
+            reaction = reactions[str(response_reaction_type)]
+            self.assertIsNotNone(reaction)
             reaction_count = reaction["count"]
             self.assertEqual(count, reaction_count)
 
@@ -869,12 +744,7 @@ class PostCommentReactionsEmojiCountAPITests(OpenbookAPITestCase):
         post = post_creator.create_public_post(text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
-        emoji_group = make_reactions_emoji_group()
-        emoji = make_emoji(group=emoji_group)
-        blocked_user.react_to_post_comment_with_id(
-            post_comment_id=post_comment.pk,
-            emoji_id=emoji.pk,
-        )
+        blocked_user.react_to_post_comment_with_id(post_comment_id=post_comment.pk, reaction_type=ReactionType.HEART)
 
         user.block_user_with_id(user_id=blocked_user.pk)
 
@@ -899,12 +769,7 @@ class PostCommentReactionsEmojiCountAPITests(OpenbookAPITestCase):
         post = post_creator.create_public_post(text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
-        emoji_group = make_reactions_emoji_group()
-        emoji = make_emoji(group=emoji_group)
-        blocking_user.react_to_post_comment_with_id(
-            post_comment_id=post_comment.pk,
-            emoji_id=emoji.pk,
-        )
+        blocking_user.react_to_post_comment_with_id(post_comment_id=post_comment.pk, reaction_type=ReactionType.HEART)
 
         blocking_user.block_user_with_id(user_id=user.pk)
 
@@ -933,12 +798,7 @@ class PostCommentReactionsEmojiCountAPITests(OpenbookAPITestCase):
         post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
-        emoji_group = make_reactions_emoji_group()
-        emoji = make_emoji(group=emoji_group)
-        blocked_user.react_to_post_comment_with_id(
-            post_comment_id=post_comment.pk,
-            emoji_id=emoji.pk,
-        )
+        blocked_user.react_to_post_comment_with_id(post_comment_id=post_comment.pk, reaction_type=ReactionType.HEART)
 
         user.block_user_with_id(user_id=blocked_user.pk)
 
@@ -967,12 +827,7 @@ class PostCommentReactionsEmojiCountAPITests(OpenbookAPITestCase):
         post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
-        emoji_group = make_reactions_emoji_group()
-        emoji = make_emoji(group=emoji_group)
-        blocking_user.react_to_post_comment_with_id(
-            post_comment_id=post_comment.pk,
-            emoji_id=emoji.pk,
-        )
+        blocking_user.react_to_post_comment_with_id(post_comment_id=post_comment.pk, reaction_type=ReactionType.HEART)
 
         blocking_user.block_user_with_id(user_id=user.pk)
 
@@ -1001,12 +856,7 @@ class PostCommentReactionsEmojiCountAPITests(OpenbookAPITestCase):
         post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
-        emoji_group = make_reactions_emoji_group()
-        emoji = make_emoji(group=emoji_group)
-        blocked_user.react_to_post_comment_with_id(
-            post_comment_id=post_comment.pk,
-            emoji_id=emoji.pk,
-        )
+        blocked_user.react_to_post_comment_with_id(post_comment_id=post_comment.pk, reaction_type=ReactionType.HEART)
 
         user.block_user_with_id(user_id=blocked_user.pk)
 
@@ -1017,17 +867,17 @@ class PostCommentReactionsEmojiCountAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
-        response_emoji_counts = json.loads(response.content, object_hook=uuid_id_parser)
+        response_reactions_counts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(1, len(response_emoji_counts))
+        self.assertEqual(1, len(response_reactions_counts))
 
-        response_emoji_count = response_emoji_counts[0]
+        response_reaction_count = response_reactions_counts[0]
 
-        response_emoji_id = response_emoji_count.get("emoji").get("id")
-        response_emoji_count = response_emoji_count.get("count")
+        response_type = response_reaction_count.get("reaction_type")
+        response_reaction_count = response_reaction_count.get("count")
 
-        self.assertEqual(response_emoji_id, emoji.pk)
-        self.assertEqual(1, response_emoji_count)
+        self.assertEqual(response_type, ReactionType.HEART)
+        self.assertEqual(1, response_reaction_count)
 
     def test_can_retrieve_post_comment_reactions_from_blocking_user_in_a_community_if_staff(
         self,
@@ -1043,12 +893,7 @@ class PostCommentReactionsEmojiCountAPITests(OpenbookAPITestCase):
         post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
-        emoji_group = make_reactions_emoji_group()
-        emoji = make_emoji(group=emoji_group)
-        blocking_user.react_to_post_comment_with_id(
-            post_comment_id=post_comment.pk,
-            emoji_id=emoji.pk,
-        )
+        blocking_user.react_to_post_comment_with_id(post_comment_id=post_comment.pk, reaction_type=ReactionType.HEART)
 
         blocking_user.block_user_with_id(user_id=user.pk)
 
@@ -1059,17 +904,17 @@ class PostCommentReactionsEmojiCountAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
-        response_emoji_counts = json.loads(response.content, object_hook=uuid_id_parser)
+        response_reaction_counts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(1, len(response_emoji_counts))
+        self.assertEqual(1, len(response_reaction_counts))
 
-        response_emoji_count = response_emoji_counts[0]
+        response_reaction_count = response_reaction_counts[0]
 
-        response_emoji_id = response_emoji_count.get("emoji").get("id")
-        response_emoji_count = response_emoji_count.get("count")
+        response_reaction_type = response_reaction_count.get("reaction_type")
+        response_reaction_count = response_reaction_count.get("count")
 
-        self.assertEqual(response_emoji_id, emoji.pk)
-        self.assertEqual(1, response_emoji_count)
+        self.assertEqual(response_reaction_type, ReactionType.HEART)
+        self.assertEqual(1, response_reaction_count)
 
     def _get_url(self, post, post_comment):
         return reverse(
