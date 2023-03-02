@@ -326,7 +326,7 @@ class Query:
 
         # Check whether the resolver result has already been cached and return it,
         # otherwise, query the database, create the result, and cache it.
-        if cache.has_key(hash_key):
+        if hash_key in cache:
             return cache.get(hash_key)
         else:
             # get all spaces by location (independent of other filters)
@@ -362,29 +362,29 @@ class Query:
                         )
                     )
 
-                # get all spaces by skill_id (including location filter)
-                if skill_ids is not None:
-                    skill_id_to_num_spaces = get_id_spaces_count_map(
-                        SkillModel.objects.filter(id__in=skill_ids).annotate(num_spaces=Count("tasks__community"))
-                    )
+            # get all spaces by skill_id (including location filter)
+            if skill_ids is not None:
+                skill_id_to_num_spaces = get_id_spaces_count_map(
+                    SkillModel.objects.filter(id__in=skill_ids).annotate(num_spaces=Count("tasks__community"))
+                )
 
-                    spaces_from_db = filter_spaces_by_skill_ids(location, skill_ids, limit)
+                spaces_from_db = filter_spaces_by_skill_ids(location, skill_ids, limit)
 
-                    spaces_map = defaultdict(list)
+                spaces_map = defaultdict(list)
 
-                    for sp in spaces_from_db:
-                        spaces_map[sp.skill_id].append(sp)
-                    for skill_id, spaces in spaces_map.items():
-                        result.append(
-                            DiscoverSpaces(
-                                skill_id=skill_id,
-                                location=location,
-                                spaces=Paged(spaces, skill_id_to_num_spaces[skill_id]),
-                            )
+                for sp in spaces_from_db:
+                    spaces_map[sp.skill_id].append(sp)
+                for skill_id, spaces in spaces_map.items():
+                    result.append(
+                        DiscoverSpaces(
+                            skill_id=skill_id,
+                            location=location,
+                            spaces=Paged(spaces, skill_id_to_num_spaces[skill_id]),
                         )
-                # Set the result to be cached for future calls until the cache key expires after the default TTL.
-                cache.set(hash_key, result)
-                return result
+                    )
+            # Set the result to be cached for future calls until the cache key expires after the default TTL.
+            cache.set(hash_key, result)
+            return result
 
     @gql.django.field
     def my_spaces(self, info) -> List[Optional[MySpaces]]:

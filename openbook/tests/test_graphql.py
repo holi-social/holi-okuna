@@ -571,7 +571,6 @@ class GraphQLTest(TestCase):
             [],
         )
 
-    @unittest.skip("our native SQL does not execute correctly in SQLite")
     def test_filters_for_discover_spaces(self):
         topic1 = make_topic()
         topic2 = make_topic()
@@ -640,12 +639,14 @@ class GraphQLTest(TestCase):
             filter_query, variable_values={"topicIds": [str(topic1.id), str(topic2.id)]}
         )
         self.assertEqual(len(filter_response.data["discoverSpaces"]), 2)
+        t1, t2 = (0, 1) if filter_response.data["discoverSpaces"][0]["topicId"] == str(topic1.id) else (1, 0)
+
         self.assert_paged_results_equal(
-            filter_response.data["discoverSpaces"][0]["spaces"],
+            filter_response.data["discoverSpaces"][t1]["spaces"],
             list(map(transform_space, [space1, space2])),
         )
         self.assert_paged_results_equal(
-            filter_response.data["discoverSpaces"][1]["spaces"],
+            filter_response.data["discoverSpaces"][t2]["spaces"],
             list(map(transform_space, [space1, space3])),
         )
 
