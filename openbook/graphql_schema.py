@@ -6,7 +6,7 @@ import requests
 import structlog
 import hashlib
 
-from django.db.models import Count, F, Value, Prefetch
+from django.db.models import Count, F, Value
 from django.db.models.functions import Concat
 from django.db.models.lookups import IContains
 from django.utils.translation import gettext_lazy as _
@@ -54,7 +54,7 @@ def spaces_for_filter(offset, limit, topic_id=None, location=None, skill_ids=Non
     skill_slugs_filter = Q(tasks__skills__slug__in=skill_slugs) if skill_slugs else Q()
 
     return Paged.of(
-        CommunityModel.objects.prefetch_related("links", "memberships__user__profile", "tasks")
+        CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
         .filter(topic_filter, location_filter, skills_filter, topic_slug_filter, skill_slugs_filter)
         .annotate(member_count=Count("memberships"))
         .order_by("-member_count", "-created"),
@@ -107,40 +107,9 @@ def filter_spaces_by_topic_ids(topic_ids, limit):
 
 def resolve_post(user, id):
     try:
-        return get_posts_with_comments_query(user).get(id=id)
+        return PostModel.objects.filter(PostModel.is_visible_query(user)).get(id=id)
     except PostModel.DoesNotExist:
         raise GraphQLError("Post not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
-
-
-def get_posts_with_comments_query(user):
-    return get_posts_only_query(user).prefetch_related(
-        Prefetch(
-            "comments",
-            queryset=PostCommentModel.objects.order_by("created")
-            .select_related("commenter__profile")
-            .prefetch_related("links")
-            .prefetch_related(
-                Prefetch(
-                    "mentions",
-                    queryset=UserModel.objects.select_related("profile"),
-                )
-            ),
-        )
-    )
-
-
-def get_posts_only_query(user):
-    return (
-        PostModel.objects.filter(PostModel.is_visible_query(user))
-        .select_related("creator", "image")
-        .prefetch_related("links")
-        .prefetch_related(
-            Prefetch(
-                "mentions",
-                queryset=UserModel.objects.select_related("profile"),
-            )
-        )
-    )
 
 
 def verify_authorized_user(info):
@@ -162,11 +131,7 @@ class Query:
     def user_by_id(self, info, id: uuid.UUID) -> Optional[User]:
         try:
             context_user = info.context.request.user
-            return (
-                UserModel.objects.select_related("profile")
-                .filter(UserModel.is_visible_query(context_user))
-                .get(username=id)
-            )
+            return UserModel.objects.filter(UserModel.is_visible_query(context_user)).get(username=id)
         except UserModel.DoesNotExist:
             raise GraphQLError("User not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
 
@@ -243,13 +208,7 @@ class Query:
     @gql.django.field
     def insight_by_id(self, info, id: uuid.UUID) -> Optional[Insight]:
         try:
-            return (
-                InsightModel.objects.select_related("creator__profile")
-                .select_related("topic")
-                .filter(date_published__lte=datetime.now())
-                .prefetch_related(Prefetch("posts", queryset=get_posts_only_query(info.context.request.user)))
-                .get(id=id)
-            )
+            return InsightModel.objects.filter(date_published__lte=datetime.now()).get(id=id)
         except InsightModel.DoesNotExist:
             raise GraphQLError("Insight not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
 
@@ -392,21 +351,21 @@ class Query:
 
         created_spaces = MySpaces(section=_("Created"), type=SpaceUserConnectionType.CREATOR)
         created_spaces.query = (
-            CommunityModel.objects.prefetch_related("links", "memberships__user__profile", "tasks")
+            CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
             .filter(creator=info.context.request.user)
             .annotate(member_count=Count("memberships"))
             .order_by("-member_count", "-created")
         )
         member_spaces = MySpaces(section=_("Joined"), type=SpaceUserConnectionType.MEMBER)
         member_spaces.query = (
-            CommunityModel.objects.prefetch_related("links", "memberships__user__profile", "tasks")
+            CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
             .filter(Q(memberships__user=info.context.request.user), ~Q(creator=info.context.request.user))
             .annotate(member_count=Count("memberships"))
             .order_by("-member_count", "-created")
         )
         followed_spaces = MySpaces(section=_("Following"), type=SpaceUserConnectionType.FOLLOWER)
         followed_spaces.query = (
-            CommunityModel.objects.prefetch_related("links", "memberships__user__profile", "tasks")
+            CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
             .filter(
                 Q(notifications_subscriptions__subscriber=info.context.request.user),
                 Q(notifications_subscriptions__new_post_notifications=True),
@@ -466,7 +425,10 @@ class Query:
         )
 
     @gql.django.field
-    def has_new_notifications(self) -> Response:
+    def has_new_notifications(self, info) -> Response:
+        user = info.context.request.user
+        if user.is_anonymous:
+            return Response(result=False)
         return Response(result=random.choice([True, False]))
 
 
