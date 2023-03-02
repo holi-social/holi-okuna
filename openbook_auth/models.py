@@ -43,7 +43,6 @@ from openbook_common.utils.model_loaders import (
     get_post_mute_model,
     get_community_invite_notification_model,
     get_user_block_model,
-    get_emoji_model,
     get_post_comment_reply_notification_model,
     get_moderated_object_model,
     get_moderation_report_model,
@@ -80,6 +79,22 @@ from openbook_translation import translation_strategy
 from enum import Enum
 
 logger = logging.getLogger(__name__)
+
+
+def get_reactions(model, reactions_query):
+    reactions = (
+        model.objects.filter(reactions_query)
+        .values("reaction_type")
+        .annotate(count=Count("reaction_type"))
+        .order_by("-count")
+        .cache()
+        .all()
+    )
+    return {reaction["reaction_type"]: reaction["count"] for reaction in reactions}
+
+
+def to_list_of_dicts(in_dict: dict, key_str: str, value_str: str):
+    return [{key_str: key, value_str: value} for key, value in in_dict.items()]
 
 
 @gql.enum
@@ -1179,22 +1194,20 @@ class User(AbstractUser):
         )
         return Post.objects.filter(community_posts_query).distinct().cache().count()
 
-    def get_emoji_counts_for_post_with_id(self, post_id, emoji_id=None):
+    def get_reaction_counts_for_post_with_id(self, post_id, reaction_type=None):
         Post = get_post_model()
         post = Post.objects.select_related("community").get(pk=post_id)
-        return self.get_emoji_counts_for_post(post=post, emoji_id=emoji_id)
+        return self.get_reaction_counts_for_post(post=post, reaction_type=reaction_type)
 
-    def get_emoji_counts_for_post(self, post, emoji_id=None):
+    def get_reaction_counts_for_post(self, post, reaction_type=None):
         check_can_get_reactions_for_post(user=self, post=post)
 
-        Emoji = get_emoji_model()
-
-        emoji_query = Q(
-            post_reactions__post_id=post.pk,
+        reactions_query = Q(
+            post_id=post.pk,
         )
 
-        if emoji_id:
-            emoji_query.add(Q(post_reactions__emoji_id=emoji_id), Q.AND)
+        if reaction_type:
+            reactions_query.add(Q(reaction_type=reaction_type), Q.AND)
 
         post_community = post.community
 
@@ -1202,55 +1215,40 @@ class User(AbstractUser):
             if not self.is_staff_of_community_with_name(community_name=post_community.name):
                 # Exclude blocked users reactions
                 blocked_users_query = ~Q(
-                    Q(post_reactions__reactor__blocked_by_users__blocker_id=self.pk)
-                    | Q(post_reactions__reactor__user_blocks__blocked_user_id=self.pk)
+                    Q(reactor__blocked_by_users__blocker_id=self.pk) | Q(reactor__user_blocks__blocked_user_id=self.pk)
                 )
-                blocked_users_query_staff_members = Q(
-                    post_reactions__reactor__communities_memberships__community_id=post_community.pk
-                )
+                blocked_users_query_staff_members = Q(reactor__communities_memberships__community_id=post_community.pk)
                 blocked_users_query_staff_members.add(
-                    Q(post_reactions__reactor__communities_memberships__is_administrator=True)
-                    | Q(post_reactions__reactor__communities_memberships__is_moderator=True),
+                    Q(reactor__communities_memberships__is_administrator=True)
+                    | Q(reactor__communities_memberships__is_moderator=True),
                     Q.AND,
                 )
 
                 blocked_users_query.add(~blocked_users_query_staff_members, Q.AND)
-                emoji_query.add(blocked_users_query, Q.AND)
+                reactions_query.add(blocked_users_query, Q.AND)
         else:
             # Show all, even blocked users reactions
             blocked_users_query = ~Q(
-                Q(post_reactions__reactor__blocked_by_users__blocker_id=self.pk)
-                | Q(post_reactions__reactor__user_blocks__blocked_user_id=self.pk)
+                Q(reactor__blocked_by_users__blocker_id=self.pk) | Q(reactor__user_blocks__blocked_user_id=self.pk)
             )
-            emoji_query.add(blocked_users_query, Q.AND)
+            reactions_query.add(blocked_users_query, Q.AND)
 
-        emojis = (
-            Emoji.objects.filter(emoji_query)
-            .annotate(Count("post_reactions"))
-            .distinct()
-            .order_by("-post_reactions__count")
-            .cache()
-            .all()
-        )
+        return get_reactions(get_post_reaction_model(), reactions_query)
 
-        return [{"emoji": emoji, "count": emoji.post_reactions__count} for emoji in emojis]
-
-    def get_emoji_counts_for_post_comment_with_id(self, post_comment_id, emoji_id=None):
+    def get_reaction_counts_for_post_comment_with_id(self, post_comment_id, reaction_type=None):
         PostComment = get_post_comment_model()
         post_comment = PostComment.objects.get(pk=post_comment_id)
-        return self.get_emoji_counts_for_post_comment(post_comment=post_comment, emoji_id=emoji_id)
+        return self.get_reaction_counts_for_post_comment(post_comment=post_comment, reaction_type=reaction_type)
 
-    def get_emoji_counts_for_post_comment(self, post_comment, emoji_id=None):
+    def get_reaction_counts_for_post_comment(self, post_comment, reaction_type=None):
         check_can_get_reactions_for_post_comment(user=self, post_comment=post_comment)
 
-        Emoji = get_emoji_model()
-
-        emoji_query = Q(
-            post_comment_reactions__post_comment_id=post_comment.pk,
+        reactions_query = Q(
+            post_comment_id=post_comment.pk,
         )
 
-        if emoji_id:
-            emoji_query.add(Q(post_comment_reactions__emoji_id=emoji_id), Q.AND)
+        if reaction_type:
+            reactions_query.add(Q(reaction_type=reaction_type), Q.AND)
 
         post_comment_community = post_comment.post.community
 
@@ -1258,75 +1256,63 @@ class User(AbstractUser):
             if not self.is_staff_of_community_with_name(community_name=post_comment_community.name):
                 # Exclude blocked users reactions
                 blocked_users_query = ~Q(
-                    Q(post_comment_reactions__reactor__blocked_by_users__blocker_id=self.pk)
-                    | Q(post_comment_reactions__reactor__user_blocks__blocked_user_id=self.pk)
+                    Q(reactor__blocked_by_users__blocker_id=self.pk) | Q(reactor__user_blocks__blocked_user_id=self.pk)
                 )
                 blocked_users_query_staff_members = Q(
-                    post_comment_reactions__reactor__communities_memberships__community_id=post_comment_community.pk
+                    reactor__communities_memberships__community_id=post_comment_community.pk
                 )
                 blocked_users_query_staff_members.add(
-                    Q(post_comment_reactions__reactor__communities_memberships__is_administrator=True)
-                    | Q(post_comment_reactions__reactor__communities_memberships__is_moderator=True),
+                    Q(reactor__communities_memberships__is_administrator=True)
+                    | Q(reactor__communities_memberships__is_moderator=True),
                     Q.AND,
                 )
 
                 blocked_users_query.add(~blocked_users_query_staff_members, Q.AND)
-                emoji_query.add(blocked_users_query, Q.AND)
+                reactions_query.add(blocked_users_query, Q.AND)
         else:
             # Show all, even blocked users reactions
             blocked_users_query = ~Q(
-                Q(post_comment_reactions__reactor__blocked_by_users__blocker_id=self.pk)
-                | Q(post_comment_reactions__reactor__user_blocks__blocked_user_id=self.pk)
+                Q(reactor__blocked_by_users__blocker_id=self.pk) | Q(reactor__user_blocks__blocked_user_id=self.pk)
             )
-            emoji_query.add(blocked_users_query, Q.AND)
+            reactions_query.add(blocked_users_query, Q.AND)
 
-        emojis = (
-            Emoji.objects.filter(emoji_query)
-            .annotate(Count("post_comment_reactions"))
-            .distinct()
-            .order_by("-post_comment_reactions__count")
-            .cache()
-            .all()
-        )
-
-        return [{"emoji": emoji, "count": emoji.post_comment_reactions__count} for emoji in emojis]
+        return get_reactions(get_post_comment_reaction_model(), reactions_query)
 
     def get_reaction_for_post_comment_with_id(self, post_comment_id):
         return self.post_comment_reactions.filter(post_comment_id=post_comment_id).get()
 
-    def get_reactions_for_post_comment_with_id(self, post_comment_id, max_id=None, emoji_id=None):
+    def get_reactions_for_post_comment_with_id(self, post_comment_id, reaction_type=None):
         Post_comment = get_post_comment_model()
         post_comment = Post_comment.objects.get(pk=post_comment_id)
 
-        return self.get_reactions_for_post_comment(post_comment=post_comment, max_id=max_id, emoji_id=emoji_id)
+        return self.get_reactions_for_post_comment(post_comment=post_comment, reaction_type=reaction_type)
 
-    def get_reactions_for_post_comment(self, post_comment, max_id=None, emoji_id=None):
+    def get_reactions_for_post_comment(self, post_comment, reaction_type=None):
         check_can_get_reactions_for_post_comment(user=self, post_comment=post_comment)
 
         reactions_query = self._make_get_reactions_for_post_comment_query(
-            post_comment=post_comment, emoji_id=emoji_id, max_id=max_id
+            post_comment=post_comment, reaction_type=reaction_type
         )
 
         PostCommentReaction = get_post_comment_reaction_model()
         return PostCommentReaction.objects.filter(reactions_query)
 
-    def react_to_post_with_id(self, post_id, emoji_id):
+    def react_to_post_with_id(self, post_id, reaction_type):
         Post = get_post_model()
         post = Post.objects.get(pk=post_id)
-        return self.react_to_post(post=post, emoji_id=emoji_id)
+        return self.react_to_post(post=post, reaction_type=reaction_type)
 
-    def react_to_post(self, post, emoji_id):
+    def react_to_post(self, post, reaction_type):
         check_can_react_to_post(user=self, post=post)
-        check_can_react_with_emoji_id(user=self, emoji_id=emoji_id)
 
         post_id = post.pk
 
         if self.has_reacted_to_post_with_id(post_id):
             post_reaction = self.post_reactions.get(post_id=post_id)
-            post_reaction.emoji_id = emoji_id
+            post_reaction.reaction_type = reaction_type
             post_reaction.save()
         else:
-            post_reaction = post.react(reactor=self, emoji_id=emoji_id)
+            post_reaction = post.react(reactor=self, reaction_type=reaction_type)
             if post_reaction.post.creator_id != self.pk:
                 if post.creator.has_reaction_notifications_enabled_for_post_with_id(
                     post_id=post.pk
@@ -1345,22 +1331,22 @@ class User(AbstractUser):
         self._delete_post_reaction_notification(post_reaction=post_reaction)
         post_reaction.delete()
 
-    def react_to_post_comment_with_id(self, post_comment_id, emoji_id):
+    def react_to_post_comment_with_id(self, post_comment_id, reaction_type):
         PostComment = get_post_comment_model()
         post_comment = PostComment.objects.get(pk=post_comment_id)
-        return self.react_to_post_comment(post_comment=post_comment, emoji_id=emoji_id)
+        return self.react_to_post_comment(post_comment=post_comment, reaction_type=reaction_type)
 
-    def react_to_post_comment(self, post_comment, emoji_id):
-        check_can_react_to_post_comment(user=self, post_comment=post_comment, emoji_id=emoji_id)
+    def react_to_post_comment(self, post_comment, reaction_type):
+        check_can_react_to_post_comment(user=self, post_comment=post_comment)
 
         post_comment_id = post_comment.pk
 
         if self.has_reacted_to_post_comment_with_id(post_comment_id):
             post_comment_reaction = self.post_comment_reactions.get(post_comment_id=post_comment_id)
-            post_comment_reaction.emoji_id = emoji_id
+            post_comment_reaction.reaction_type = reaction_type
             post_comment_reaction.save()
         else:
-            post_comment_reaction = post_comment.react(reactor=self, emoji_id=emoji_id)
+            post_comment_reaction = post_comment.react(reactor=self, reaction_type=reaction_type)
             if post_comment_reaction.post_comment.commenter_id != self.pk:
                 commenter_has_reaction_notifications_enabled = (
                     post_comment.commenter.has_reaction_notifications_enabled_for_post_comment(
@@ -4354,7 +4340,7 @@ class User(AbstractUser):
 
         return reactions_query
 
-    def _make_get_reactions_for_post_comment_query(self, post_comment, max_id=None, emoji_id=None):
+    def _make_get_reactions_for_post_comment_query(self, post_comment, reaction_type=None):
         reactions_query = Q(post_comment_id=post_comment.pk)
 
         post_comment_community = post_comment.post.community
@@ -4381,11 +4367,8 @@ class User(AbstractUser):
             )
             reactions_query.add(blocked_users_query, Q.AND)
 
-        if max_id:
-            reactions_query.add(Q(id__lt=max_id), Q.AND)
-
-        if emoji_id:
-            reactions_query.add(Q(emoji_id=emoji_id), Q.AND)
+        if reaction_type:
+            reactions_query.add(Q(reaction_type=reaction_type), Q.AND)
 
         return reactions_query
 

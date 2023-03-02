@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from openbook_auth.models import to_list_of_dicts
 from openbook_common.utils.helpers import normalise_request_data
 from openbook_moderation.permissions import IsNotSuspended
 from openbook_posts.views.post_comment.post_comment_reaction.serializers import (
@@ -30,14 +31,13 @@ class PostCommentReactions(APIView):
 
         data = serializer.validated_data
         post_comment_id = data.get("post_comment_id")
-        emoji_id = data.get("emoji_id")
-        max_id = data.get("max_id")
+        reaction_type = data.get("reaction_type")
         count = data.get("count", 10)
 
         user = request.user
 
         post_comment_reactions = user.get_reactions_for_post_comment_with_id(
-            post_comment_id=post_comment_id, max_id=max_id, emoji_id=emoji_id
+            post_comment_id=post_comment_id, reaction_type=reaction_type
         ).order_by("-id")[:count]
 
         post_reactions_serializer = PostCommentReactionSerializer(
@@ -56,14 +56,14 @@ class PostCommentReactions(APIView):
         serializer.is_valid(raise_exception=True)
 
         data = serializer.validated_data
-        emoji_id = data.get("emoji_id")
+        reaction_type = data.get("reaction_type")
 
         user = request.user
 
         with transaction.atomic():
             post_comment_reaction = user.react_to_post_comment_with_id(
                 post_comment_id=post_comment_id,
-                emoji_id=emoji_id,
+                reaction_type=reaction_type,
             )
 
         post_reaction_serializer = PostCommentReactionSerializer(post_comment_reaction, context={"request": request})
@@ -81,7 +81,11 @@ class PostCommentReactionsEmojiCount(APIView):
 
         user = request.user
 
-        post_comment_emoji_counts = user.get_emoji_counts_for_post_comment_with_id(post_comment_id=post_comment_id)
+        post_comment_emoji_counts = to_list_of_dicts(
+            user.get_reaction_counts_for_post_comment_with_id(post_comment_id=post_comment_id),
+            "reaction_type",
+            "count",
+        )
 
         post_reactions_serializer = PostCommentEmojiCountSerializer(
             post_comment_emoji_counts, many=True, context={"request": request}

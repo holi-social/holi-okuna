@@ -66,14 +66,8 @@ class CommonPostCreatorBadgeSerializer(serializers.ModelSerializer):
         fields = ("keyword", "keyword_description")
 
 
-class CommonPostReactionEmojiSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Emoji
-        fields = ("id", "keyword", "image")
-
-
 class CommonPostEmojiCountSerializer(serializers.Serializer):
-    emoji = CommonPostReactionEmojiSerializer(many=False)
+    reaction_type = serializers.CharField()
     count = serializers.IntegerField(
         required=True,
     )
@@ -86,11 +80,9 @@ class CommonPostCommunitySerializer(serializers.ModelSerializer):
 
 
 class CommonPostReactionSerializer(serializers.ModelSerializer):
-    emoji = CommonPostReactionEmojiSerializer(many=False)
-
     class Meta:
         model = PostReaction
-        fields = ("emoji", "id")
+        fields = ("reaction_type", "id")
 
 
 class CommonPostLanguageSerializer(serializers.ModelSerializer):

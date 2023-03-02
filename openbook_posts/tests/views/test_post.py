@@ -29,12 +29,10 @@ from openbook_common.tests.helpers import (
     make_moderation_category,
     get_test_videos,
     get_test_image,
-    make_proxy_blacklisted_domain,
     make_hashtag,
     make_hashtag_name,
-    make_reactions_emoji_group,
-    make_emoji,
 )
+from openbook_common.types import ReactionType
 from openbook_common.utils.model_loaders import (
     get_language_model,
     get_community_new_post_notification_model,
@@ -49,7 +47,6 @@ from openbook_communities.models import Community
 from openbook_hashtags.models import Hashtag
 from openbook_notifications.models import PostUserMentionNotification, Notification
 from openbook_posts.models import Post, PostUserMention, PostMedia
-from openbook_common.models import ProxyBlacklistedDomain
 
 logger = logging.getLogger(__name__)
 fake = Faker()
@@ -1743,10 +1740,8 @@ class PostCloseAPITests(OpenbookAPITestCase):
         post_comment = community_member.comment_post(post=post, text=make_fake_post_text())
 
         # react
-        emoji_group = make_reactions_emoji_group()
-        emoji = make_emoji(group=emoji_group)
         community_post_comment_reply_reaction = community_member_reactor.react_to_post_comment(
-            post_comment=post_comment, emoji_id=emoji.pk
+            post_comment=post_comment, reaction_type=ReactionType.HEART
         )
 
         url = self._get_url(post)
