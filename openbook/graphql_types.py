@@ -381,7 +381,12 @@ class Post:
     comments_enabled: gql.auto
     mentions: List[Optional[User]]
     links: List[Optional[LinkPreview]]
-    image: Optional[PostImage]
+
+    @gql.field
+    def image(self) -> Optional[PostImage]:
+        if hasattr(self, "image"):
+            return self.image
+        return None
 
     @gql.django.field
     def number_of_comments(self, info) -> int:
