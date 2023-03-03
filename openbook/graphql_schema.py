@@ -427,7 +427,11 @@ class Query:
         current_user = info.context.request.user
         if current_user.is_anonymous:
             return NewNotificationsResponse(id=None, status=False)
-        return NewNotificationsResponse(id=current_user.username, status=random.choice([True, False]))
+        has_new_notification = current_user.last_received_notification_timestamp and (
+            not current_user.last_seen_notification_timestamp
+            or current_user.last_received_notification_timestamp > current_user.last_seen_notification_timestamp
+        )
+        return NewNotificationsResponse(id=current_user.username, status=has_new_notification)
 
 
 def to_input_dict(input):
@@ -782,6 +786,7 @@ class Mutation:
     @gql.mutation
     def last_seen_notification(self, info, notification_id: uuid.UUID) -> NewNotificationsResponse:
         current_user = verify_authorized_user(info)
+        current_user.store_last_seen_notification(notification_id)
         return NewNotificationsResponse(id=current_user.username, status=False)
 
 
