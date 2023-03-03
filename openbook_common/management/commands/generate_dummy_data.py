@@ -47,7 +47,7 @@ class Command(BaseCommand):
     help = """Generate dummy data. Check help options for the type of objects that can be created, like --user, --post, ..."""
 
     def add_arguments(self, parser):
-        for g in [key[len(prefix):] for key in dir(Command) if key.startswith(prefix)]:
+        for g in [key[len(prefix) :] for key in dir(Command) if key.startswith(prefix)]:
             parser.add_argument(f"--{g}", nargs=1, type=int)
 
     def handle(self, *args, **options):
