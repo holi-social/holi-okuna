@@ -64,8 +64,9 @@ def spaces_for_filter(offset, limit, topic_id=None, location=None, skill_ids=Non
 
 
 @gql.type
-class Response:
-    result: bool
+class NewNotificationsResponse:
+    id: Optional[UUID]
+    status: bool
 
 
 def filter_spaces_by_skill_ids(location, skill_ids, limit):
@@ -422,11 +423,11 @@ class Query:
         )
 
     @gql.django.field
-    def has_new_notifications(self, info) -> Response:
+    def has_new_notifications(self, info) -> NewNotificationsResponse:
         current_user = info.context.request.user
         if current_user.is_anonymous:
-            return Response(result=False)
-        return Response(result=random.choice([True, False]))
+            return NewNotificationsResponse(id=None, status=False)
+        return NewNotificationsResponse(id=current_user.username, status=random.choice([True, False]))
 
 
 def to_input_dict(input):
@@ -779,9 +780,9 @@ class Mutation:
         return post_comment
 
     @gql.mutation
-    def notifications_seen(self, info) -> Result:
+    def last_seen_notification(self, info, notification_id: uuid.UUID) -> NewNotificationsResponse:
         current_user = verify_authorized_user(info)
-        return Result(success=True)
+        return NewNotificationsResponse(id=current_user.username, status=False)
 
 
 schema = strawberry.Schema(
