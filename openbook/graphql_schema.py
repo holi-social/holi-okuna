@@ -71,7 +71,7 @@ class Response:
 def filter_spaces_by_skill_ids(location, skill_ids, limit):
     return CommunityModel.objects.raw(
         """
-            select s.*
+            select s.id, s.skill_id, s.rn 
             from openbook_terms_skill skill, (
                 select octskill.skill_id, occ.*, row_number() OVER (partition by octskill.skill_id ORDER BY occ.id) AS rn
                 FROM   openbook_communities_community occ, openbook_communities_task octask, openbook_communities_task_skills octskill
@@ -90,7 +90,7 @@ def filter_spaces_by_skill_ids(location, skill_ids, limit):
 def filter_spaces_by_topic_ids(topic_ids, limit):
     return CommunityModel.objects.raw(
         """
-            select s.* 
+            select s.id, s.topic_id, s.rn
             from openbook_terms_topic t, (
                 select occtopics.topic_id, occ.*, row_number() OVER (partition by occtopics.topic_id ORDER BY occ.id) AS rn
                 FROM   openbook_communities_community occ, openbook_communities_community_topics occtopics
