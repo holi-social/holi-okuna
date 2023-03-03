@@ -140,17 +140,12 @@ class ExternalLink:
     type: ExternalLinkType
 
 
-@gql.type
+@gql.django.type(PostImageModel)
 class PostImage:
-    """
-    Even though there is a Django Model for PostImage, it is resolved with many queries when modelled like that for some reason.
-    That's why we use this as a plain type and resolve it inside of a resolver function in Post
-    """
-
     id: UUID
     width: int
     height: int
-    url: str
+    url: str = gql.django.field(field_name="image")
 
 
 @gql.django.type(LinkPreviewModel)
@@ -386,15 +381,7 @@ class Post:
     comments_enabled: gql.auto
     mentions: List[Optional[User]]
     links: List[Optional[LinkPreview]] = gql.django.field(prefetch_related="links")
-
-    @gql.django.field(select_related=["image"])
-    def image(self) -> Optional[PostImage]:
-        if hasattr(self, "image"):
-            # We resolve this here, since otherwise it would create three additional queries for some reason.
-            return PostImage(
-                id=self.image.id, width=self.image.width, height=self.image.height, url=self.image.image.url
-            )
-        return None
+    image: Optional[PostImage]
 
     @gql.django.field
     def number_of_comments(self, info) -> int:
