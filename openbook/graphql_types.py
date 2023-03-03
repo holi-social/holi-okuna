@@ -142,17 +142,12 @@ class ExternalLink:
     type: ExternalLinkType
 
 
-@gql.type
+@gql.django.type(PostImageModel)
 class PostImage:
-    """
-    Even though there is a Django Model for PostImage, it is resolved with many queries when modelled like that for some reason.
-    That's why we use this as a plain type and resolve it inside of a resolver function in Post
-    """
-
     id: UUID
     width: int
     height: int
-    url: str
+    url: str = gql.django.field(field_name="image")
 
 
 @gql.django.type(LinkPreviewModel)
@@ -174,13 +169,13 @@ class LinkPreview:
 
 @gql.django.type(UserModel)
 class User:
-    @gql.django.field
-    def id(self) -> uuid.UUID:
-        return self.username
+    id: uuid.UUID = gql.django.field(field_name="username")
+    avatar_default_color: str
+    avatar_label: str
 
     @gql.django.field(description="Can be an empty string", select_related=["profile"])
     def full_name(self) -> str:
-        return self.profile.full_name()
+        return self.profile.full_name
 
     @gql.django.field(select_related=["profile"])
     def avatar(self) -> Optional[str]:
@@ -206,29 +201,21 @@ class User:
     def location(self) -> Optional[str]:
         return self.profile.location
 
-    @gql.django.field
-    def avatar_default_color(self) -> str:
-        return self.avatar_default_color
-
-    @gql.django.field
-    def avatar_label(self) -> str:
-        return self.avatar_label
-
     @gql.django.field(select_related=["profile"])
     def engagement_level(self) -> Optional[str]:
         return self.profile.engagement_level
 
-    @gql.django.field(select_related=["profile"])
+    @gql.django.field(select_related=["profile__interests"])
     def interests(self) -> List[Optional[Topic]]:
-        return self.profile.interests.all()
+        return self.profile.interests
 
-    @gql.django.field(select_related=["profile"])
+    @gql.django.field(select_related=["profile__sdgs"])
     def sdgs(self) -> List[Optional[SDG]]:
-        return self.profile.sdgs.all().order_by("number")
+        return self.profile.sdgs.order_by("number")
 
-    @gql.django.field(select_related=["profile"])
+    @gql.django.field(select_related=["profile__skills"])
     def skills(self) -> List[Optional[Skill]]:
-        return self.profile.skills.all()
+        return self.profile.skills
 
     @gql.django.field
     def connection_status_to_myself(self, info) -> Optional[UserConnectionStatus]:
@@ -251,10 +238,6 @@ class Point:
     longitude: float
     latitude: float
 
-    def __init__(self, longitude, latitude):
-        self.longitude = longitude
-        self.latitude = latitude
-
 
 @gql.django.type(CommunityModel)
 class Space:
@@ -265,6 +248,7 @@ class Space:
     creator: User
     created: gql.auto
     avatar: str
+    avatar_default_color: str
     cover: str
     location: gql.auto
     links: List[Optional[ExternalLink]]
@@ -277,11 +261,11 @@ class Space:
         if not self.geolocation:
             return None
 
-        logitude = self.geolocation.x
-        latitude = self.geolocation.y
-        return Point(logitude, latitude)
+        return Point(longitude=self.geolocation.x, latitude=self.geolocation.y)
 
-    @gql.django.field(description="A list of all active members and their role")
+    @gql.django.field(
+        description="A list of all active members and their role", prefetch_related="memberships__user__profile"
+    )
     def members(self, info, offset: int = 0, limit: int = 10) -> Paged[SpaceMember]:
         return Paged(self.memberships.all()[offset : offset + limit], self.memberships.count())
 
@@ -309,14 +293,9 @@ class Space:
                 roles.append(SpaceUserConnectionType.ADMINISTRATOR)
 
             # if membership.is_moderator:
-            # roles.append(xxx)
-            # pass
+            #     roles.append(SpaceUserConnectionType.MODERATOR)
 
         return roles
-
-    @gql.django.field
-    def avatar_default_color(self) -> str:
-        return self.avatar_default_color
 
 
 @gql.enum
@@ -346,12 +325,12 @@ class Insight:
     id: gql.auto
     title: gql.auto
     description: gql.auto
-    creator: Optional[User]
+    creator: Optional[User] = gql.django.field(select_related=["creator__profile"])
     date_published: gql.auto
     header_image: Optional[str]
     topic: Optional[Topic]
 
-    @gql.django.field
+    @gql.django.field(prefetch_related="posts")
     def posts(self, info) -> List["Post"]:
         return (
             PostModel.objects.filter(PostModel.is_visible_query(info.context.request.user))
@@ -400,22 +379,16 @@ class Post:
     text: gql.auto
     created: gql.auto
     modified: gql.auto
-    creator: User
+    creator: User = gql.django.field(select_related="creator__profile")
     comments_enabled: gql.auto
     mentions: List[Optional[User]]
+    links: List[Optional[LinkPreview]]
 
-    @gql.django.field(select_related=["image"])
+    @gql.field
     def image(self) -> Optional[PostImage]:
         if hasattr(self, "image"):
-            # We resolve this here, since otherwise it would create three additional queries for some reason.
-            return PostImage(
-                id=self.image.id, width=self.image.width, height=self.image.height, url=self.image.image.url
-            )
+            return self.image
         return None
-
-    @gql.django.field(prefetch_related=["links"])
-    def links(self) -> List[Optional[LinkPreview]]:
-        return self.links.all()
 
     @gql.django.field
     def number_of_comments(self, info) -> int:
@@ -455,8 +428,10 @@ class Post:
 
     @gql.django.field
     def comments(self, info) -> List[Optional["PostComment"]]:
-        return PostCommentModel.objects.filter(PostCommentModel.is_visible_query(info.context.request.user)).filter(
-            post=self
+        return (
+            PostCommentModel.objects.filter(PostCommentModel.is_visible_query(info.context.request.user))
+            .filter(post=self)
+            .order_by("created")
         )
 
     @gql.django.field
@@ -485,21 +460,11 @@ class Post:
 class PostComment:
     id: gql.auto
     text: gql.auto
-    # commenter: User
+    creator: User = gql.django.field(field_name="commenter", select_related="commenter__profile")
     created: gql.auto
     modified: gql.auto
-    post: Post
     mentions: List[Optional[User]]
-    # replies: List[Optional["PostComment"]]
-    # parent_comment: Optional["PostComment"]
-
-    @gql.django.field(description="Synonym for commenter")
-    def creator(self) -> User:
-        return self.commenter
-
-    @gql.django.field
-    def links(self) -> List[Optional[LinkPreview]]:
-        return self.links.all()
+    links: List[Optional[LinkPreview]]
 
     @gql.django.field
     def reactions(self, info) -> ReactionCounts:
