@@ -249,8 +249,8 @@ class Space:
     avatar_default_color: str
     cover: str
     location: gql.auto
-    links: List[Optional[ExternalLink]] = gql.django.field(prefetch_related="links")
-    tasks: List[Optional["Task"]] = gql.django.field(prefetch_related="tasks")
+    links: List[Optional[ExternalLink]]
+    tasks: List[Optional["Task"]]
     topics: List[Optional[Topic]]
     sdgs: List[Optional[SDG]]
 
@@ -326,7 +326,7 @@ class Insight:
     creator: Optional[User] = gql.django.field(select_related=["creator__profile"])
     date_published: gql.auto
     header_image: Optional[str]
-    topic: Optional[Topic] = gql.django.field(select_related="topic")
+    topic: Optional[Topic]
 
     @gql.django.field(prefetch_related="posts")
     def posts(self, info) -> List["Post"]:
@@ -380,7 +380,7 @@ class Post:
     creator: User = gql.django.field(select_related="creator__profile")
     comments_enabled: gql.auto
     mentions: List[Optional[User]]
-    links: List[Optional[LinkPreview]] = gql.django.field(prefetch_related="links")
+    links: List[Optional[LinkPreview]]
     image: Optional[PostImage]
 
     @gql.django.field
@@ -457,7 +457,7 @@ class PostComment:
     created: gql.auto
     modified: gql.auto
     mentions: List[Optional[User]]
-    links: List[Optional[LinkPreview]] = gql.django.field(prefetch_related="links")
+    links: List[Optional[LinkPreview]]
 
     @gql.django.field
     def reactions(self, info) -> ReactionCounts:
