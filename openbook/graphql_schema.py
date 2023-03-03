@@ -123,15 +123,14 @@ def verify_authorized_user(info):
 class Query:
     @gql.django.field
     def authenticated_user(self, info) -> Optional[User]:
-        if info.context.request.user.is_anonymous:
-            return None
-        return info.context.request.user
+        current_user = info.context.request.user
+        return None if current_user.is_anonymous else current_user
 
     @gql.django.field
     def user_by_id(self, info, id: uuid.UUID) -> Optional[User]:
         try:
-            context_user = info.context.request.user
-            return UserModel.objects.filter(UserModel.is_visible_query(context_user)).get(username=id)
+            current_user = info.context.request.user
+            return UserModel.objects.filter(UserModel.is_visible_query(current_user)).get(username=id)
         except UserModel.DoesNotExist:
             raise GraphQLError("User not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
 
@@ -139,12 +138,9 @@ class Query:
     def user_by_name(self, info, substring: str, offset: int = 0, limit: int = 5) -> Paged[User]:
         string_not_empty(substring)
 
-        users_to_exclude_ids = (
-            [info.context.request.user.id]
-            if info.context and info.context.request.user and not info.context.request.user.is_anonymous
-            else []
-        )
-        excludes_filter = ~Q(id__in=users_to_exclude_ids) & UserModel.is_visible_query(info.context.request.user)
+        current_user = info.context.request.user
+        users_to_exclude_ids = [current_user.id] if not current_user.is_anonymous else []
+        excludes_filter = ~Q(id__in=users_to_exclude_ids) & UserModel.is_visible_query(current_user)
         full_name_query = (
             IContains(
                 Concat(F("profile__name"), Value(" "), F("profile__last_name")),
@@ -180,18 +176,19 @@ class Query:
 
     @gql.django.field
     def user_suggestions(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
-        if info.context.request.user.id:
+        current_user = info.context.request.user
+        if current_user.id:
             return Paged.of(
                 UserModel.objects.select_related("profile")
-                .filter(UserModel.is_visible_query(info.context.request.user))
-                .exclude(id=info.context.request.user.id)
+                .filter(UserModel.is_visible_query(current_user))
+                .exclude(id=current_user.id)
                 .order_by("-date_joined"),
                 offset,
                 limit,
             )
         return Paged.of(
             UserModel.objects.select_related("profile")
-            .filter(UserModel.is_visible_query(info.context.request.user))
+            .filter(UserModel.is_visible_query(current_user))
             .order_by("-date_joined"),
             offset,
             limit,
@@ -347,19 +344,19 @@ class Query:
 
     @gql.django.field
     def my_spaces(self, info) -> List[Optional[MySpaces]]:
-        verify_authorized_user(info)
+        current_user = verify_authorized_user(info)
 
         created_spaces = MySpaces(section=_("Created"), type=SpaceUserConnectionType.CREATOR)
         created_spaces.query = (
             CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
-            .filter(creator=info.context.request.user)
+            .filter(creator=current_user)
             .annotate(member_count=Count("memberships"))
             .order_by("-member_count", "-created")
         )
         member_spaces = MySpaces(section=_("Joined"), type=SpaceUserConnectionType.MEMBER)
         member_spaces.query = (
             CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
-            .filter(Q(memberships__user=info.context.request.user), ~Q(creator=info.context.request.user))
+            .filter(Q(memberships__user=current_user), ~Q(creator=current_user))
             .annotate(member_count=Count("memberships"))
             .order_by("-member_count", "-created")
         )
@@ -367,10 +364,10 @@ class Query:
         followed_spaces.query = (
             CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
             .filter(
-                Q(notifications_subscriptions__subscriber=info.context.request.user),
+                Q(notifications_subscriptions__subscriber=current_user),
                 Q(notifications_subscriptions__new_post_notifications=True),
-                ~Q(creator=info.context.request.user),
-                ~Q(memberships__user=info.context.request.user),
+                ~Q(creator=current_user),
+                ~Q(memberships__user=current_user),
             )
             .annotate(member_count=Count("memberships"))
             .order_by("-member_count", "-created")
@@ -405,12 +402,12 @@ class Query:
 
     @gql.django.field
     def notifications(self, info, offset: int = 0, limit: int = 10) -> Paged[Notification]:
-        user = info.context.request.user
-        if user.is_anonymous:
+        current_user = info.context.request.user
+        if current_user.is_anonymous:
             return Paged()
         return Paged.of(
             NotificationModel.objects.filter(
-                owner=user,
+                owner=current_user,
                 notification_type__in=[
                     NotificationModel.CONNECTION_REQUEST,
                     NotificationModel.CONNECTION_ACCEPTED,
@@ -426,8 +423,8 @@ class Query:
 
     @gql.django.field
     def has_new_notifications(self, info) -> Response:
-        user = info.context.request.user
-        if user.is_anonymous:
+        current_user = info.context.request.user
+        if current_user.is_anonymous:
             return Response(result=False)
         return Response(result=random.choice([True, False]))
 
@@ -517,7 +514,7 @@ class Result:
 class Mutation:
     @gql.mutation
     def update_authenticated_user(self, info, input: UpdateAuthenticatedUserInput) -> User:
-        authenticated_user = info.context.request.user
+        current_user = verify_authorized_user(info)
         update_avatar = False
 
         if input.avatar:
@@ -532,12 +529,12 @@ class Mutation:
         if input.first_name:
             input_dict["name"] = input.first_name
 
-        serializer = UpdateAuthenticatedUserSerializer(data=(input_dict))
+        serializer = UpdateAuthenticatedUserSerializer(data=input_dict)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
         try:
-            authenticated_user.update(
+            current_user.update(
                 name=data.get("name"),
                 last_name=data.get("last_name"),
                 about_me=data.get("about_me"),
@@ -556,44 +553,42 @@ class Mutation:
                 delete_avatar(data["avatar"])
             raise
 
-        return authenticated_user
+        return current_user
 
     @gql.mutation
     def update_connection_with_user(self, info, input: UpdateConnectionWithUserInput) -> User:
-        authenticated_user = verify_authorized_user(info)
+        current_user = verify_authorized_user(info)
 
         serializer = UpdateConnectionWithUserSerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        user_to_connect_to = authenticated_user.get_user_with_username(username=data.get("user_id"))
+        user_to_connect_to = current_user.get_user_with_username(username=data.get("user_id"))
 
-        current_connection_status = authenticated_user.get_connection_status_with_user_id(
-            user_id=user_to_connect_to.id
-        )
+        current_connection_status = current_user.get_connection_status_with_user_id(user_id=user_to_connect_to.id)
 
         # Connect action
         if input.action == UpdateConnectionAction.CONNECT:
             # if current user needs to confirm connection, run confirm_connection_with_user_with_id
             if current_connection_status == UserConnectionStatus.PENDING_CONFIRMATION:
-                authenticated_user.confirm_connection_with_user_with_id(user_id=user_to_connect_to.id)
+                current_user.confirm_connection_with_user_with_id(user_id=user_to_connect_to.id)
 
             # if there is no connection yet (no requests or pending confirmation), run connect_with_user_with_id
             if current_connection_status == UserConnectionStatus.NOT_CONNECTED:
-                authenticated_user.connect_with_user_with_id(user_id=user_to_connect_to.id)
+                current_user.connect_with_user_with_id(user_id=user_to_connect_to.id)
 
         # Disconnect action (only run if current connection status is different than NOT_CONNECTED)
         elif (
             input.action == UpdateConnectionAction.DISCONNECT
             and current_connection_status != UserConnectionStatus.NOT_CONNECTED
         ):
-            authenticated_user.disconnect_from_user_with_id(user_id=user_to_connect_to.id)
+            current_user.disconnect_from_user_with_id(user_id=user_to_connect_to.id)
 
         return user_to_connect_to
 
     @gql.mutation
     def update_post_comment(self, info, input: CreatePostCommentInput) -> CreatePostCommentOutput:
-        verify_authorized_user(info)
+        current_user = verify_authorized_user(info)
 
         serializer = CommentPostSerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
@@ -602,14 +597,10 @@ class Mutation:
         comment_text = data.get("text")
         post_id = data.get("post_id")
 
-        authenticated_user = info.context.request.user
-
         with transaction.atomic():
-            post_comment = authenticated_user.comment_post_with_id(post_id=post_id, text=comment_text)
+            post_comment = current_user.comment_post_with_id(post_id=post_id, text=comment_text)
 
-        return CreatePostCommentOutput(
-            post_comment=post_comment, post_by_id=resolve_post(info.context.request.user, post_id)
-        )
+        return CreatePostCommentOutput(post_comment=post_comment, post_by_id=resolve_post(current_user, post_id))
 
     @gql.mutation(description="When no userId is provided, the logged in user is used instead.")
     def update_space_user_connection(
@@ -654,22 +645,22 @@ class Mutation:
 
     @gql.mutation
     def delete_authenticated_user(self, info) -> Result:
-        authenticated_user = info.context.request.user
+        current_user = verify_authorized_user(info)
         headers = {"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"}
-        logger.info(f"Deleting user {authenticated_user.username}...")
+        logger.info(f"Deleting user {current_user.username}...")
 
         response = requests.delete(
-            f"{settings.ORY_BASE_URL}/admin/identities/{authenticated_user.username}", headers=headers
+            f"{settings.ORY_BASE_URL}/admin/identities/{current_user.username}", headers=headers
         )
         # Ory returns 204 in case of success
         if not response.ok:
             error_message = response.error.error if response.error else "Unknown"
-            raise Exception(f"Deleting user {authenticated_user.username} in ory failed: {error_message}")
+            raise Exception(f"Deleting user {current_user.username} in ory failed: {error_message}")
 
         with transaction.atomic():
-            authenticated_user.delete()
+            current_user.delete()
 
-        logger.info(f"Successfully deleted user {authenticated_user.username}")
+        logger.info(f"Successfully deleted user {current_user.username}")
 
         return Result(success=True)
 
@@ -717,13 +708,13 @@ class Mutation:
 
     @gql.mutation
     def create_space(self, info, input: CreateSpaceInput) -> Space:
-        authenticated_user = verify_authorized_user(info)
+        current_user = verify_authorized_user(info)
 
         serializer = CreateCommunitySerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        return authenticated_user.create_community(
+        return current_user.create_community(
             title=data.get("title"),
             type=CommunityModel.COMMUNITY_TYPE_PUBLIC,
             description=data.get("description"),
@@ -734,13 +725,13 @@ class Mutation:
 
     @gql.mutation
     def update_space(self, info, input: UpdateSpaceInput) -> Space:
-        authenticated_user = verify_authorized_user(info)
+        current_user = verify_authorized_user(info)
 
         serializer = UpdateCommunitySerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        return authenticated_user.update_community_with_id(
+        return current_user.update_community_with_id(
             community_id=data.get("id"),
             title=data.get("title"),
             description=data.get("description"),
@@ -754,10 +745,10 @@ class Mutation:
 
     @gql.mutation
     def delete_space(self, info, id: uuid.UUID) -> Result:
-        authenticated_user = verify_authorized_user(info)
+        current_user = verify_authorized_user(info)
 
         with transaction.atomic():
-            authenticated_user.delete_community_with_id(
+            current_user.delete_community_with_id(
                 community_id=id,
             )
 
@@ -786,6 +777,11 @@ class Mutation:
         else:
             post_comment.clear_reaction(current_user, reaction_type)
         return post_comment
+
+    @gql.mutation
+    def notifications_seen(self, info) -> Result:
+        current_user = verify_authorized_user(info)
+        return Result(success=True)
 
 
 schema = strawberry.Schema(

@@ -465,6 +465,7 @@ class PostComment:
     modified: gql.auto
     mentions: List[Optional[User]]
     links: List[Optional[LinkPreview]]
+    post: Post
 
     @gql.django.field
     def reactions(self, info) -> ReactionCounts:
