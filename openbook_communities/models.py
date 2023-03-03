@@ -9,8 +9,8 @@ from django.contrib.gis.geos import Point
 
 from django.utils import timezone
 
-from django.db.models import Q
-from django.db.models import Count
+from django.contrib.gis.db.models import Q
+from django.contrib.gis.db.models import Count
 from pilkit.processors import ResizeToFill, ResizeToFit
 from strawberry_django_plus import gql
 
