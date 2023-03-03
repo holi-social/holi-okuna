@@ -2,8 +2,8 @@ import uuid
 from urllib.parse import urlparse, urljoin, urlsplit
 
 from django.conf import settings
-from django.db import models
-from django.db.models import Q, Count
+from django.contrib.gis.db import models
+from django.contrib.gis.db.models import Q, Count
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from ordered_model.models import OrderedModel
