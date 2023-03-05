@@ -12,11 +12,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="user",
-            name="last_received_notification_timestamp",
-            field=models.DateTimeField(blank=True, null=True),
-        ),
-        migrations.AddField(
-            model_name="user",
             name="last_seen_notification_timestamp",
             field=models.DateTimeField(blank=True, null=True),
         ),

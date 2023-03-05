@@ -34,6 +34,15 @@ from openbook_posts.views.post_comments.serializers import CommentPostSerializer
 
 from .graphql_types import *
 
+PUBLISHED_NOTIFICATION_TYPES = [
+    NotificationModel.CONNECTION_REQUEST,
+    NotificationModel.CONNECTION_ACCEPTED,
+    NotificationModel.CONNECTION_CONFIRMED,
+    NotificationModel.POST_COMMENT_USER_MENTION,
+    NotificationModel.COMMUNITY_MEMBERSHIP_REQUEST,
+    NotificationModel.COMMUNITY_MEMBERSHIP_APPROVED,
+]
+
 logger = structlog.getLogger(__name__)
 
 
@@ -409,14 +418,7 @@ class Query:
         return Paged.of(
             NotificationModel.objects.filter(
                 owner=current_user,
-                notification_type__in=[
-                    NotificationModel.CONNECTION_REQUEST,
-                    NotificationModel.CONNECTION_ACCEPTED,
-                    NotificationModel.CONNECTION_CONFIRMED,
-                    NotificationModel.POST_COMMENT_USER_MENTION,
-                    NotificationModel.COMMUNITY_MEMBERSHIP_REQUEST,
-                    NotificationModel.COMMUNITY_MEMBERSHIP_APPROVED,
-                ],
+                notification_type__in=PUBLISHED_NOTIFICATION_TYPES,
             ).order_by("-created"),
             offset,
             limit,
@@ -427,9 +429,18 @@ class Query:
         current_user = info.context.request.user
         if current_user.is_anonymous:
             return NewNotificationsResponse(id=None, status=False)
-        has_new_notification = current_user.last_received_notification_timestamp and (
-            not current_user.last_seen_notification_timestamp
-            or current_user.last_received_notification_timestamp > current_user.last_seen_notification_timestamp
+
+        has_new_notification = (
+            NotificationModel.objects.filter(
+                owner=current_user,
+                notification_type__in=PUBLISHED_NOTIFICATION_TYPES,
+                created__gt=current_user.last_seen_notification_timestamp,
+            ).exists()
+            if current_user.last_seen_notification_timestamp
+            else NotificationModel.objects.filter(
+                owner=current_user,
+                notification_type__in=PUBLISHED_NOTIFICATION_TYPES,
+            ).exists()
         )
         return NewNotificationsResponse(id=current_user.username, status=has_new_notification)
 

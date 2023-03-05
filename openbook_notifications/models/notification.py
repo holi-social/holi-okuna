@@ -59,9 +59,7 @@ class Notification(ModelWithUUID):
 
     @classmethod
     def create_notification(cls, owner_id, type, content_object):
-        notification = cls.objects.create(notification_type=type, content_object=content_object, owner_id=owner_id)
-        User.store_last_received_notification(owner_id, notification)
-        return notification
+        return cls.objects.create(notification_type=type, content_object=content_object, owner_id=owner_id)
 
     @classmethod
     def get_notification_types_values(cls):

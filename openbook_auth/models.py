@@ -205,7 +205,6 @@ class User(AbstractUser):
     JWT_TOKEN_TYPE_PASSWORD_RESET = "PR"
 
     last_seen_notification_timestamp = models.DateTimeField(null=True, blank=True)
-    last_received_notification_timestamp = models.DateTimeField(null=True, blank=True)
 
     @property
     def avatar_default_color(self):
@@ -4534,16 +4533,6 @@ class User(AbstractUser):
         ):
             self.last_seen_notification_timestamp = last_seen_notification.created
             self.save()
-
-    @classmethod
-    def store_last_received_notification(cls, user_id, notification):
-        user = cls.objects.filter(id=user_id).first()
-        if user and (
-            not user.last_received_notification_timestamp
-            or user.last_received_notification_timestamp < notification.created
-        ):
-            user.last_received_notification_timestamp = notification.created
-            user.save()
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL, dispatch_uid="bootstrap_auth_token")
