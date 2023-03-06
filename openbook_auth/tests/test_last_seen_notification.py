@@ -1,10 +1,9 @@
 import uuid
-from datetime import datetime, timedelta
+from datetime import timedelta
 from django.utils import timezone
 
 from django.test import testcases
 
-from openbook_auth.models import User
 from openbook_common.tests.helpers import make_user, make_notification
 
 
