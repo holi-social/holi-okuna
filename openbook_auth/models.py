@@ -62,6 +62,7 @@ from openbook_common.utils.model_loaders import (
     get_community_membership_approved_notification_model,
     get_community_notifications_subscription_model,
     get_user_notifications_subscription_model,
+    get_notification_model,
 )
 from openbook_common.validators import name_characters_validator
 from openbook_hashtags.queries import (
@@ -202,6 +203,8 @@ class User(AbstractUser):
 
     JWT_TOKEN_TYPE_CHANGE_EMAIL = "CE"
     JWT_TOKEN_TYPE_PASSWORD_RESET = "PR"
+
+    last_seen_notification_timestamp = models.DateTimeField(null=True, blank=True)
 
     @property
     def avatar_default_color(self):
@@ -4520,6 +4523,16 @@ class User(AbstractUser):
             return ~pQ(is_deleted=True) & ~pQ(profile__isnull=True)
 
         return ~pQ(is_deleted=True) & ~pQ(profile__isnull=True) & UserBlock.not_blocked_query(user, prefix)
+
+    def store_last_seen_notification(self, notification_id):
+        Notification = get_notification_model()
+        last_seen_notification = Notification.objects.filter(id=notification_id).first()
+        if last_seen_notification and (
+            not self.last_seen_notification_timestamp
+            or self.last_seen_notification_timestamp < last_seen_notification.created
+        ):
+            self.last_seen_notification_timestamp = last_seen_notification.created
+            self.save()
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL, dispatch_uid="bootstrap_auth_token")

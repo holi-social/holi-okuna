@@ -34,6 +34,15 @@ from openbook_posts.views.post_comments.serializers import CommentPostSerializer
 
 from .graphql_types import *
 
+PUBLISHED_NOTIFICATION_TYPES = [
+    NotificationModel.CONNECTION_REQUEST,
+    NotificationModel.CONNECTION_ACCEPTED,
+    NotificationModel.CONNECTION_CONFIRMED,
+    NotificationModel.POST_COMMENT_USER_MENTION,
+    NotificationModel.COMMUNITY_MEMBERSHIP_REQUEST,
+    NotificationModel.COMMUNITY_MEMBERSHIP_APPROVED,
+]
+
 logger = structlog.getLogger(__name__)
 
 
@@ -409,14 +418,7 @@ class Query:
         return Paged.of(
             NotificationModel.objects.filter(
                 owner=current_user,
-                notification_type__in=[
-                    NotificationModel.CONNECTION_REQUEST,
-                    NotificationModel.CONNECTION_ACCEPTED,
-                    NotificationModel.CONNECTION_CONFIRMED,
-                    NotificationModel.POST_COMMENT_USER_MENTION,
-                    NotificationModel.COMMUNITY_MEMBERSHIP_REQUEST,
-                    NotificationModel.COMMUNITY_MEMBERSHIP_APPROVED,
-                ],
+                notification_type__in=PUBLISHED_NOTIFICATION_TYPES,
             ).order_by("-created"),
             offset,
             limit,
@@ -427,7 +429,14 @@ class Query:
         current_user = info.context.request.user
         if current_user.is_anonymous:
             return NewNotificationsResponse(id=None, status=False)
-        return NewNotificationsResponse(id=current_user.username, status=random.choice([True, False]))
+
+        notifications = NotificationModel.objects.filter(
+            owner=current_user, notification_type__in=PUBLISHED_NOTIFICATION_TYPES
+        )
+        if current_user.last_seen_notification_timestamp:
+            notifications = notifications.filter(created__gt=current_user.last_seen_notification_timestamp)
+
+        return NewNotificationsResponse(id=current_user.username, status=notifications.exists())
 
 
 def to_input_dict(input):
@@ -782,6 +791,7 @@ class Mutation:
     @gql.mutation
     def last_seen_notification(self, info, notification_id: uuid.UUID) -> NewNotificationsResponse:
         current_user = verify_authorized_user(info)
+        current_user.store_last_seen_notification(notification_id)
         return NewNotificationsResponse(id=current_user.username, status=False)
 
 
