@@ -430,19 +430,13 @@ class Query:
         if current_user.is_anonymous:
             return NewNotificationsResponse(id=None, status=False)
 
-        has_new_notification = (
-            NotificationModel.objects.filter(
-                owner=current_user,
-                notification_type__in=PUBLISHED_NOTIFICATION_TYPES,
-                created__gt=current_user.last_seen_notification_timestamp,
-            ).exists()
-            if current_user.last_seen_notification_timestamp
-            else NotificationModel.objects.filter(
-                owner=current_user,
-                notification_type__in=PUBLISHED_NOTIFICATION_TYPES,
-            ).exists()
+        notifications = NotificationModel.objects.filter(
+            owner=current_user, notification_type__in=PUBLISHED_NOTIFICATION_TYPES
         )
-        return NewNotificationsResponse(id=current_user.username, status=has_new_notification)
+        if current_user.last_seen_notification_timestamp:
+            notifications = notifications.filter(created__gt=current_user.last_seen_notification_timestamp)
+
+        return NewNotificationsResponse(id=current_user.username, status=notifications.exists())
 
 
 def to_input_dict(input):
