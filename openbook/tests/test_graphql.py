@@ -484,7 +484,63 @@ class GraphQLTest(TestCase):
             followed_user.profile.full_name(),
         )
 
+    def test_has_new_notifications(self):
+        followed_user = make_user(name="Peter", last_name="Pep")
+        following_user = make_user(name="Other")
+        following_user2 = make_user(name="Other2")
+
+        self.assertFalse(self.has_new_notifications(followed_user)["status"])
+
+        self.connect_to_user(following_user, followed_user)
+        self.assertTrue(self.has_new_notifications(followed_user)["status"])
+
+        self.disconnect_from_user(following_user, followed_user)
+        self.assertFalse(self.has_new_notifications(followed_user)["status"])
+
+        self.connect_to_user(following_user, followed_user)
+        self.assertTrue(self.has_new_notifications(followed_user)["status"])
+
+        data = self.get_notifications(followed_user)
+        first_notification_id = data["data"][0]["id"]
+        response = schema.execute_sync(
+            """
+            mutation LastSeenNotification($id: UUID!){
+                lastSeenNotification(notificationId: $id) {
+                    status
+                }
+            }
+            """,
+            variable_values={"id": str(first_notification_id)},
+            context_value=BeneDict({"request": {"user": followed_user}}),
+        )
+        self.assertFalse(response.data["lastSeenNotification"]["status"])
+        self.assertFalse(self.has_new_notifications(followed_user)["status"])
+
+        self.connect_to_user(following_user2, followed_user)
+        self.assertTrue(self.has_new_notifications(followed_user)["status"])
+
+    def has_new_notifications(self, followed_user):
+        response = schema.execute_sync(
+            """
+            query {
+                hasNewNotifications {
+                    status
+                }
+            }
+            """,
+            context_value=BeneDict({"request": {"user": followed_user}}),
+        )
+        self.assertIsNone(response.errors)
+        data = response.data["hasNewNotifications"]
+        return data
+
+    def disconnect_from_user(self, following_user, followed_user):
+        return self.connect_user(following_user, followed_user, UpdateConnectionAction.DISCONNECT)
+
     def connect_to_user(self, following_user, followed_user):
+        return self.connect_user(following_user, followed_user, UpdateConnectionAction.CONNECT)
+
+    def connect_user(self, following_user, followed_user, action):
         connection_request_response = schema.execute_sync(
             """
             mutation UpdateConnectionWithUser($input: UpdateConnectionWithUserInput!) {
@@ -496,7 +552,7 @@ class GraphQLTest(TestCase):
             variable_values={
                 "input": {
                     "userId": followed_user.username,
-                    "action": UpdateConnectionAction.CONNECT._value_,
+                    "action": action._value_,
                 }
             },
             context_value=BeneDict({"request": {"user": following_user}}),
@@ -1238,6 +1294,7 @@ class GraphQLTest(TestCase):
                 notifications {
                     totalResults
                     data {
+                        id
                         owner {
                             fullName
                         }
