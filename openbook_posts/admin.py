@@ -77,4 +77,9 @@ class PostAdmin(admin.ModelAdmin):
             obj._publish()
 
 
+class PostCommentAdmin(admin.ModelAdmin):
+    model = PostComment
+
+
 admin.site.register(Post, PostAdmin)
+admin.site.register(PostComment, PostCommentAdmin)
