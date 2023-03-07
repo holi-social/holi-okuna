@@ -4527,12 +4527,15 @@ class User(AbstractUser):
     def store_last_seen_notification(self, notification_id):
         Notification = get_notification_model()
         last_seen_notification = Notification.objects.filter(id=notification_id).first()
-        if last_seen_notification and (
-            not self.last_seen_notification_timestamp
-            or self.last_seen_notification_timestamp < last_seen_notification.created
-        ):
-            self.last_seen_notification_timestamp = last_seen_notification.created
-            self.save()
+        if last_seen_notification:
+            last_seen_timestamp = last_seen_notification.created
+            if (
+                not self.last_seen_notification_timestamp
+                or self.last_seen_notification_timestamp < last_seen_timestamp
+            ):
+                self.last_seen_notification_timestamp = last_seen_timestamp
+                Notification.objects.filter(owner=self, created__lte=last_seen_timestamp).update(read=True)
+                self.save()
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL, dispatch_uid="bootstrap_auth_token")

@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.test import testcases
 
 from openbook_common.tests.helpers import make_user, make_notification
+from openbook_notifications.models import Notification
 
 
 class LastSeenNotificationTests(testcases.TestCase):
@@ -27,6 +28,7 @@ class LastSeenNotificationTests(testcases.TestCase):
     def test_user_without_last_seen_notification_timestamp_always_gets_new_timestamp(self):
         user = make_user()
         notification = make_notification(user)
+        self.assertFalse(notification.read)
 
         new_timestamp = timezone.now()
 
@@ -36,10 +38,12 @@ class LastSeenNotificationTests(testcases.TestCase):
         user.store_last_seen_notification(notification.id)
 
         self.assertEqual(user.last_seen_notification_timestamp, new_timestamp)
+        self.assertTrue(Notification.objects.get(id=notification.id).read)
 
     def test_last_seen_timestamp_is_not_updated_when_older(self):
         user = make_user()
         notification = make_notification(user)
+        self.assertFalse(notification.read)
 
         newer_timestamp = timezone.now()
         older_timestamp = newer_timestamp - timedelta(seconds=10)
@@ -51,6 +55,8 @@ class LastSeenNotificationTests(testcases.TestCase):
         user.store_last_seen_notification(notification.id)
 
         self.assertEqual(user.last_seen_notification_timestamp, newer_timestamp)
+        # when the last_seen_timestamp is not updated, the read status is also not changed.
+        self.assertFalse(Notification.objects.get(id=notification.id).read)
 
     def test_last_seen_timestamp_is_updated_when_newer(self):
         user = make_user()
@@ -66,3 +72,4 @@ class LastSeenNotificationTests(testcases.TestCase):
         user.store_last_seen_notification(notification.id)
 
         self.assertEqual(user.last_seen_notification_timestamp, newer_timestamp)
+        self.assertTrue(Notification.objects.get(id=notification.id).read)
