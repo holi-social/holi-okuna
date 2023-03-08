@@ -56,7 +56,14 @@ def get_id_spaces_count_map(query):
 
 @cached_as(CommunityModel)
 def spaces_for_filter(
-    offset, limit, topic_id=None, location=None, skill_ids=None, topic_slug=None, skill_slugs=None, member_id=None
+    offset: int,
+    limit: int,
+    topic_id: Optional[uuid.UUID] = None,
+    location: Optional[str] = None,
+    skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
+    topic_slug: Optional[str] = None,
+    skill_slugs: Optional[List[Optional[str]]] = None,
+    member_id: Optional[uuid.UUID] = None,
 ):
     query = Q()
     if topic_id is not None:
