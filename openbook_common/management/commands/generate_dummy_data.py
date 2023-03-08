@@ -26,6 +26,7 @@ fake = Faker()
 prefix = "generate_"
 
 NO_USERS_AVAILABLE = "no users available, please generate users first"
+NO_POSTS_AVAILABLE = "no posts available, please generate posts first"
 NO_TOPICS_AVAILABLE = "no topics available, please generate topics first (via loaddata)"
 
 
@@ -81,7 +82,7 @@ class Command(BaseCommand):
                 )
 
     @staticmethod
-    def generate_reactions(obj, users):
+    def _generate_reactions(obj, users):
         for user in users:
             if random.choice([False, True]):
                 obj.react(user, random.choice([_ for _ in ReactionType]))
@@ -96,12 +97,12 @@ class Command(BaseCommand):
                 post = random.choice(users).create_public_post(
                     title=make_fake_post_title(), text=fake.text(max_nb_chars=300), image=image_file
                 )
-                self.generate_reactions(post, users)
+                self._generate_reactions(post, users)
                 comment_count = random.randint(1, 5)
                 for _ in range(comment_count):
                     post_comment = post.comment(fake.text(max_nb_chars=300), random.choice(users))
                     if random.random() < 0.2:
-                        self.generate_reactions(post_comment, users)
+                        self._generate_reactions(post_comment, users)
 
     def generate_insight(self, nr):
         print(f"generate {nr} insights")
@@ -110,7 +111,7 @@ class Command(BaseCommand):
             raise CommandError(NO_USERS_AVAILABLE)
         posts = Post.objects.filter(circles__id=Circle.get_world_circle_id()).all()[: int(nr * 4)]
         if not posts:
-            raise CommandError(NO_USERS_AVAILABLE)
+            raise CommandError(NO_POSTS_AVAILABLE)
         for _ in range(nr):
             with image_fetcher() as image_file:
                 insight = Insight.objects.create(
