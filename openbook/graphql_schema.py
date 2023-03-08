@@ -55,16 +55,34 @@ def get_id_spaces_count_map(query):
 
 
 @cached_as(CommunityModel)
-def spaces_for_filter(offset, limit, topic_id=None, location=None, skill_ids=None, topic_slug=None, skill_slugs=None):
-    topic_filter = Q(topics__id__contains=topic_id) if topic_id is not None else Q()
-    location_filter = Q(location__icontains=location) if location is not None else Q()
-    skills_filter = Q(tasks__skills__id__in=skill_ids) if skill_ids else Q()
-    topic_slug_filter = Q(topics__slug__contains=topic_slug) if topic_slug is not None else Q()
-    skill_slugs_filter = Q(tasks__skills__slug__in=skill_slugs) if skill_slugs else Q()
+def spaces_for_filter(
+    offset: int,
+    limit: int,
+    topic_id: Optional[uuid.UUID] = None,
+    location: Optional[str] = None,
+    skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
+    topic_slug: Optional[str] = None,
+    skill_slugs: Optional[List[Optional[str]]] = None,
+    member_id: Optional[uuid.UUID] = None,
+):
+    query = Q()
+    if topic_id is not None:
+        query.add(Q(topics__id__contains=topic_id), Q.AND)
+    if location is not None:
+        query.add(Q(location__icontains=location), Q.AND)
+    if skill_ids:
+        query.add(Q(tasks__skills__id__in=skill_ids), Q.AND)
+    if topic_slug is not None:
+        query.add(Q(topics__slug__contains=topic_slug), Q.AND)
+    if skill_slugs:
+        query.add(Q(tasks__skills__slug__in=skill_slugs), Q.AND)
+    if member_id:
+        user = UserModel.objects.get(username=member_id)
+        query.add(Q(memberships__user=user), Q.AND)
 
     return Paged.of(
         CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
-        .filter(topic_filter, location_filter, skills_filter, topic_slug_filter, skill_slugs_filter)
+        .filter(query)
         .annotate(member_count=Count("memberships"))
         .order_by("-member_count", "-created"),
         offset,
@@ -243,10 +261,11 @@ class Query:
         skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
         topic_slug: Optional[str] = None,
         skill_slugs: Optional[List[Optional[str]]] = None,
+        member_id: Optional[uuid.UUID] = None,
         offset: int = 0,
         limit: int = 10,
     ) -> Paged[Space]:
-        return spaces_for_filter(offset, limit, topic_id, location, skill_ids, topic_slug, skill_slugs)
+        return spaces_for_filter(offset, limit, topic_id, location, skill_ids, topic_slug, skill_slugs, member_id)
 
     @gql.django.field
     def discover_spaces(

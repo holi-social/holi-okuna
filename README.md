@@ -55,6 +55,18 @@ GEOS_LIBRARY_PATH = "/path/to/libgeos_c.dylib"
 PROJ_LIBRARY_PATH = "/path/to/libproj.dylib"
 ```
 
+On Mac you can use
+```
+brew install gdal proj geos
+```
+and
+```
+GDAL_LIBRARY_PATH = "/opt/homebrew/lib/libgdal.dylib"
+GEOS_LIBRARY_PATH = "/opt/homebrew/lib/libgeos_c.dylib"
+PROJ_LIBRARY_PATH = "/opt/homebrew/lib/libproj.dylib"
+```
+
+
 ## Quickstart
 
 If you have installed pyenv, you can execute `./reset_environment.sh` to install the required python interpreter,
