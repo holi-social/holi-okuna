@@ -561,9 +561,10 @@ class GraphQLTest(TestCase):
         return connection_request_response
 
     def test_filters_for_spaces(self):
+        creator = make_user()
         topic1 = make_topic()
         topic2 = make_topic()
-        space1 = make_community(topics=[topic1, topic2], location="Location1")
+        space1 = make_community(creator=creator, topics=[topic1, topic2], location="Location1")
         space2 = make_community(topics=[topic1], location="Location2")
         skill1 = make_skill()
         skill2 = make_skill()
@@ -572,8 +573,8 @@ class GraphQLTest(TestCase):
         make_community_task(space2, skills=[skill2, skill3])
 
         filter_query = """
-            query($topicId: UUID, $location: String, $skillIds: [UUID]) {
-                spaces(topicId: $topicId, location: $location, skillIds: $skillIds) {
+            query($topicId: UUID, $location: String, $skillIds: [UUID], $memberId: UUID) {
+                spaces(topicId: $topicId, location: $location, skillIds: $skillIds, memberId: $memberId) {
                     totalResults
                     data {
                         id
@@ -616,6 +617,10 @@ class GraphQLTest(TestCase):
 
         # Filter by skills and topics
         assert_filtered_spaces({"skillIds": [str(skill2.id)], "topicId": str(topic2.id)}, [space1])
+
+        assert_filtered_spaces({"memberId": creator.username}, [space1])
+        assert_filtered_spaces({"memberId": creator.username, "location": space1.location}, [space1])
+        assert_filtered_spaces({"memberId": creator.username, "location": space2.location}, [])
 
         # Filter by skills, topics and location
         assert_filtered_spaces(
