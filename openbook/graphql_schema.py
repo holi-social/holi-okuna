@@ -1,32 +1,31 @@
+import hashlib
 from collections import defaultdict
 from datetime import datetime
-import random
+
 import requests
-
 import structlog
-import hashlib
-
+from cacheops import cached_as
+from django.conf import settings
+from django.core.cache import cache
+from django.db import Error, transaction
 from django.db.models import Count, F, Value
 from django.db.models.functions import Concat
 from django.db.models.lookups import IContains
 from django.utils.translation import gettext_lazy as _
-
+from graphql import GraphQLError
 from strawberry.file_uploads import Upload
 from strawberry_django_plus.optimizer import DjangoOptimizerExtension
-from django.core.cache import cache
-from django.db import Error, transaction
-from cacheops import cached_as
-from graphql import GraphQLError
-from django.conf import settings
 
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_auth.images import delete_avatar
 from openbook_auth.validators import string_not_empty
-from openbook_auth.views.authenticated_user.serializers import UpdateAuthenticatedUserSerializer
+from openbook_auth.views.authenticated_user.serializers import (
+    UpdateAuthenticatedUserSerializer,
+)
 from openbook_communities.views.communities.serializers import (
-    ValidateCommunitySerializer,
     CreateCommunitySerializer,
     UpdateCommunitySerializer,
+    ValidateCommunitySerializer,
 )
 from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_moderation.models import ModeratedObject
@@ -218,6 +217,14 @@ class Query:
             UserModel.objects.select_related("profile")
             .filter(UserModel.is_visible_query(current_user))
             .order_by("-date_joined"),
+            offset,
+            limit,
+        )
+
+    @gql.django.field
+    def insights_by_creator_id(self, creator_id: int, offset: int = 0, limit: int = 10) -> Paged[Insight]:
+        return Paged.of(
+            InsightModel.objects.filter(creator_id=creator_id).order_by("-date_published"),
             offset,
             limit,
         )

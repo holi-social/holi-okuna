@@ -12,29 +12,28 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
-from openbook.middleware import graphql_error_context_middleware
 from openbook.graphql_schema import (
-    schema,
-    UpdateConnectionAction,
-    SpaceUserConnectionType,
     ContentType,
+    SpaceUserConnectionType,
+    UpdateConnectionAction,
+    schema,
 )
 from openbook_auth.models import User, UserConnectionStatus
-from openbook_communities.models import Community
 from openbook_common.tests.helpers import (
     get_test_images,
     get_test_videos,
-    make_sdg,
-    make_user,
     make_authentication_headers_for_user,
-    make_fake_post_text,
-    make_fake_post_title,
     make_community,
     make_community_task,
-    make_topic,
+    make_fake_post_text,
+    make_fake_post_title,
+    make_sdg,
     make_skill,
+    make_topic,
+    make_user,
     simple_jpeg_bytes,
 )
+from openbook_communities.models import Community
 from openbook_insights.models import Insight
 from openbook_moderation.models import ModeratedObject
 
@@ -369,6 +368,50 @@ class GraphQLTest(TestCase):
                 "reactionAction": action,
             },
         )
+
+    def test_insights_by_creator_id(self):
+        insight_user = make_user()
+        insight_user_2 = make_user()
+
+        now = timezone.now()
+        insight1 = Insight.objects.create(
+            creator=insight_user,
+            title="Insight  Foo",
+            header_image=SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes),
+            date_published=now,
+        )
+        insight2 = Insight.objects.create(
+            creator=insight_user, title="Insight 2", date_published=now - timezone.timedelta(days=1)
+        )
+        insight3 = Insight.objects.create(creator=insight_user_2, title="Insight 3", date_published=now)
+
+        response = schema.execute_sync(
+            f"""
+            query {{
+                insightsByCreatorId(creatorId: {insight_user.id}) {{
+                    data {{
+                        id
+                        title
+                        headerImage
+                    }}
+                    totalResults
+                }}
+            }}
+            """,
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+        )
+
+        insights = response.data["insightsByCreatorId"]["data"]
+        self.assertEqual(2, len(insights))
+
+        insight1_result = insights[0]
+        self.assertEqual(insight1_result["title"], insight1.title)
+        self.assertEqual(insight1_result["headerImage"], insight1.header_image)
+
+        insight2_result = insights[1]
+        self.assertEqual(insight2_result["title"], insight2.title)
+
+        self.assertNotIn(insight3.title, [insight["title"] for insight in insights])
 
     def test_select_last_insights(self):
         insight_user = make_user()
