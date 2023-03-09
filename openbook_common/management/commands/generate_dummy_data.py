@@ -81,6 +81,20 @@ class Command(BaseCommand):
                     image=image_file,
                 )
 
+    def generate_post_with_comment(self, nr):
+        print(f"generate {nr} posts with comments")
+        users = self._get_random_users(int(nr / 1.5))
+        if not users:
+            raise CommandError(NO_USERS_AVAILABLE)
+        for _ in range(nr):
+            with image_fetcher() as image_file:
+                post = random.choice(users).create_public_post(
+                    title=make_fake_post_title(), text=fake.text(max_nb_chars=300), image=image_file
+                )
+                comment_count = random.randint(1, 5)
+                for _ in range(comment_count):
+                    post.comment(fake.text(max_nb_chars=300), random.choice(users))
+
     @staticmethod
     def _generate_reactions(obj, users):
         for user in users:
