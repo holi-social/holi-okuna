@@ -404,7 +404,7 @@ class Query:
         return list(filter(lambda x: x.query.count() > 0, [created_spaces, member_spaces, followed_spaces]))
 
     @gql.django.field(
-        description="Name is ignored, when id is given. At least one has to be given. If both are given, id is used. If none is given, an error is thrown with a message 'Space not found'"
+        description="Name is ignored, when id is given. At least one has to be given. If none is given, an error is thrown with a message 'Space not found'"
     )
     def space_by_id(self, info, id: Optional[uuid.UUID] = None, name: Optional[str] = None) -> Optional[Space]:
         try:
