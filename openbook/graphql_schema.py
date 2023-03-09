@@ -404,18 +404,19 @@ class Query:
         return list(filter(lambda x: x.query.count() > 0, [created_spaces, member_spaces, followed_spaces]))
 
     @gql.django.field(
-        description="Name is ignored, when id is given. At least one has to be given. If none is given, an error is thrown with a message 'Space not found'"
+        description="id is required and can either be the space.id or space.name (slug). It is first searched by id and then by name. If none of them is found, an error with the message 'Space not found' is thrown."
     )
-    def space_by_id(self, info, id: Optional[uuid.UUID] = None, name: Optional[str] = None) -> Optional[Space]:
+    def space_by_id(self, info, idOrName: str) -> Optional[Space]:
         try:
             filtered_community = CommunityModel.objects.prefetch_related(
                 "links", "memberships__user__profile", "tasks"
             ).filter(ModeratedObject.not_moderated_query(info.context.request.user))
-            if id is None:
-                return filtered_community.get(Q(name=name))
-            return filtered_community.get(Q(id=id))
-        except CommunityModel.DoesNotExist:
-            raise GraphQLError("Space not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
+            return filtered_community.get(Q(id=uuid.UUID(idOrName)))
+        except:
+            try:
+                return filtered_community.get(Q(name=idOrName))
+            except CommunityModel.DoesNotExist:
+                raise GraphQLError("Space not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
 
     @gql.django.field
     def tasks_by_space_id(self, space_id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Task]:
