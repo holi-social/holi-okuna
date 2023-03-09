@@ -404,13 +404,14 @@ class Query:
         return list(filter(lambda x: x.query.count() > 0, [created_spaces, member_spaces, followed_spaces]))
 
     @gql.django.field
-    def space_by_id(self, info, id: uuid.UUID) -> Optional[Space]:
+    def space_by_id(self, info, id: Optional[uuid.UUID] = None, name: Optional[str] = None) -> Optional[Space]:
         try:
-            return (
-                CommunityModel.objects.prefetch_related("links", "memberships__user__profile", "tasks")
-                .filter(ModeratedObject.not_moderated_query(info.context.request.user))
-                .get(id=id)
-            )
+            filtered_community = CommunityModel.objects.prefetch_related(
+                "links", "memberships__user__profile", "tasks"
+            ).filter(ModeratedObject.not_moderated_query(info.context.request.user))
+            if id is None:
+                return filtered_community.get(Q(name=name))
+            return filtered_community.get(Q(id=id))
         except CommunityModel.DoesNotExist:
             raise GraphQLError("Space not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
 
