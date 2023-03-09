@@ -1,11 +1,5 @@
-import re
 import uuid
-
-_uuid_pattern = re.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
-
-def is_uuid(string: str):
-    return _uuid_pattern.match(string)
+from openbook_common.utils.helpers import is_uuid
 
 
 def uuid_id_parser(obj):
