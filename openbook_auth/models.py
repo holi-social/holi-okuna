@@ -2002,6 +2002,8 @@ class User(AbstractUser):
         return community_to_join
 
     def request_membership_to_community_with_name(self, community_name):
+        # "Autojoin" for spaces will be configurable per space in the future
+        # use self.join_community_with_name(space.name) as a template
         check_can_request_membership_to_community_with_name(self, community_name)
 
         Community = get_community_model()
@@ -2038,10 +2040,12 @@ class User(AbstractUser):
         Community = get_community_model()
         community_to_join = Community.objects.get(name=community_name)
 
-        community_to_join.remove_membership_request(self)
+        community_to_join.remove_membership_request(user_to_approve)
         community_to_join.add_member(user_to_approve)
 
         self.notify_membership_approval(community_to_join, user_to_approve)
+
+        return community_to_join
 
     def notify_membership_approval(self, community_to_join, user_to_approve):
         CommunityMembershipApprovedNotification = get_community_membership_approved_notification_model()
@@ -2061,9 +2065,8 @@ class User(AbstractUser):
         user_to_revoke_request_for: User = User.objects.get(username=username)
         if not user_to_revoke_request_for.is_membership_requestor_of_community_with_name(community_name):
             raise ValidationError(_("User did not request membership to community"))
-        community.remove_membership_request(user_to_revoke_request_for)
 
-        # @todo notification to user?
+        community.remove_membership_request(user_to_revoke_request_for)
 
     def leave_community_with_name(self, community_name):
         check_can_leave_community_with_name(user=self, community_name=community_name)
