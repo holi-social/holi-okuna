@@ -37,4 +37,4 @@ class CommunityTaskAdmin(admin.ModelAdmin):
 
 @admin.register(ExternalLink)
 class CommunityLinkAdmin(admin.ModelAdmin):
-    list_display = ("community", "type", "url")
+    list_display = ("community", "type", "url", "title", "description", "visibility")

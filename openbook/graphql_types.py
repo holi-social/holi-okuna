@@ -18,6 +18,7 @@ from openbook_communities.models import (
     CommunityMembership as CommunityMembershipModel,
     ExternalLink as ExternalLinkModel,
     ExternalLinkType,
+    ExternalLinkVisibilityType,
 )
 from openbook_notifications.models import Notification as NotificationModel
 from openbook_posts.models import (
@@ -140,6 +141,9 @@ class ExternalLink:
     id: gql.auto
     url: gql.auto
     type: ExternalLinkType
+    title: gql.auto
+    description: gql.auto
+    visibility: ExternalLinkVisibilityType
 
 
 @gql.django.type(PostImageModel)

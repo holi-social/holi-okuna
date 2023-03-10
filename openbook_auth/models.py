@@ -1781,6 +1781,29 @@ class User(AbstractUser):
 
         return community
 
+    def create_community_external_link(
+        self,
+        url,
+        title,
+        community_id,
+        type,
+        visibility,
+        description=None,
+    ):
+        Community = get_community_model()
+        community = Community.objects.get(id=community_id)
+        Community.create_community_external_link(
+            creator=self,
+            url=url,
+            title=title,
+            community=community,
+            type=type,
+            visibility=visibility,
+            description=description,
+        )
+
+        return community
+
     def delete_community(self, community):
         return self.delete_community_with_name(community.name)
 

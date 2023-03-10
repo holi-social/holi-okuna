@@ -235,6 +235,7 @@ class Community(ModelWithUUID):
 
     @classmethod
     def community_with_id_exists(cls, community_id):
+        print(community_id)
         query = Q(id=community_id, is_deleted=False)
         return cls.objects.filter(query).exists()
 
@@ -351,6 +352,30 @@ class Community(ModelWithUUID):
 
         community.save()
         return community
+
+    @classmethod
+    def create_community_external_link(
+        cls,
+        creator,
+        community,
+        url,
+        title,
+        type,
+        visibility,
+        description=None,
+    ):
+        external_link = ExternalLink.objects.create(
+            creator=creator,
+            url=url,
+            title=title,
+            type=type,
+            visibility=visibility,
+            community=community,
+            description=description,
+        )
+
+        external_link.save()
+        return external_link
 
     @classmethod
     def is_name_taken(cls, name):
@@ -1061,8 +1086,20 @@ class ExternalLinkType(models.TextChoices):
     OTHER = "other", _("other")
 
 
-class ExternalLink(ModelWithUUID):
+@gql.enum
+class ExternalLinkVisibilityType(models.TextChoices):
+    PUBLIC = "public", _("public")  # everyone can find this link (on Space profile)
+    PRIVATE = "private", _("private")  # only space members can find this link (within Space profile)
 
+
+class ExternalLink(ModelWithUUID):
+    creator = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="created_communities_external_links",
+        null=True,
+        blank=True,
+    )
     url = models.TextField(blank=False)
     community = models.ForeignKey(
         Community,
@@ -1071,6 +1108,23 @@ class ExternalLink(ModelWithUUID):
         blank=False,
         null=False,
     )
+
+    title = models.CharField(
+        _("title"),
+        max_length=settings.COMMUNITY_USER_ADJECTIVE_MAX_LENGTH,
+        blank=False,
+        null=False,
+        default="External Link",
+    )
+
+    description = models.CharField(
+        _("description"), max_length=settings.EXTERNAL_LINK_DESCRIPTION_MAX_LENGTH, blank=True, null=True
+    )
+
+    visibility = models.CharField(
+        max_length=9, choices=ExternalLinkVisibilityType.choices, default=ExternalLinkVisibilityType.PRIVATE
+    )
+
     type = models.CharField(
         max_length=9,
         choices=ExternalLinkType.choices,

@@ -27,6 +27,7 @@ from openbook_communities.views.communities.serializers import (
     ValidateCommunitySerializer,
     CreateCommunitySerializer,
     UpdateCommunitySerializer,
+    CreateCommunityExternalLinkSerializer,
 )
 from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_moderation.models import ModeratedObject
@@ -516,6 +517,16 @@ class CreateSpaceInput:
 
 
 @gql.input
+class CreateSpaceExternalLinkInput:
+    url: str
+    title: str
+    community_id: uuid.UUID
+    visibility: str
+    type: str
+    description: Optional[str]
+
+
+@gql.input
 class PointField:
     latitude: float
     longitude: float
@@ -750,6 +761,23 @@ class Mutation:
             cover=data.get("cover"),
             invites_enabled=True,
             topic_ids=data.get("topics"),
+        )
+
+    @gql.mutation
+    def create_space_external_link(self, info, input: CreateSpaceExternalLinkInput) -> Space:
+        current_user = verify_authorized_user(info)
+        serializer = CreateCommunityExternalLinkSerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        return current_user.create_community_external_link(
+            url=data.get("url"),
+            title=data.get("title"),
+            # community_id=data.get("community_id"), TODO: Fix serializer removing it
+            community_id=input.community_id,
+            type=data.get("type"),
+            visibility=data.get("visibility"),
+            description=data.get("description"),
         )
 
     @gql.mutation
