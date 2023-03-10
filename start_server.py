@@ -3,7 +3,7 @@ import argparse
 from logging import getLogger
 
 import uvicorn
-import openbook.asgi
+
 from openbook.logging import initialize_logging
 
 logger = getLogger()
@@ -27,6 +27,28 @@ def main():
         lifespan="off",
         log_config=log_config,
         reload=args.reload,
+        reload_dirs=[
+            "./openbook",
+            "./openbook_auth",
+            "./openbook_categories",
+            "./openbook_circles",
+            "./openbook_common",
+            "./openbook_communities",
+            "./openbook_connections",
+            "./openbook_devices",
+            "./openbook_follows",
+            "./openbook_hashtags",
+            "./openbook_importer",
+            "./openbook_insights",
+            "./openbook_invitations",
+            "./openbook_lists",
+            "./openbook_moderation",
+            "./openbook_notifications",
+            "./openbook_posts",
+            "./openbook_tags",
+            "./openbook_terms",
+            "./openbook_translation",
+        ],
     )
 
 

@@ -1,6 +1,5 @@
 from collections import defaultdict
 from datetime import datetime
-import random
 import requests
 
 import structlog
@@ -32,6 +31,7 @@ from openbook_communities.views.communities.serializers import (
 from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_moderation.models import ModeratedObject
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
+from openbook_common.utils.helpers import is_uuid
 
 from .graphql_types import *
 
@@ -404,13 +404,16 @@ class Query:
         )
         return list(filter(lambda x: x.query.count() > 0, [created_spaces, member_spaces, followed_spaces]))
 
-    @gql.django.field
-    def space_by_id(self, info, id: uuid.UUID) -> Optional[Space]:
+    @gql.django.field(
+        description="idOrName can either be the space id or name (slug). If none of them is found, an error with the message 'Space not found' is thrown."
+    )
+    def space_by_id(self, info, id_or_name: str) -> Optional[Space]:
+        query = Q(id=uuid.UUID(id_or_name)) if is_uuid(id_or_name) else Q(name=id_or_name)
         try:
             return (
                 CommunityModel.objects.prefetch_related("links", "memberships__user__profile", "tasks")
                 .filter(ModeratedObject.not_moderated_query(info.context.request.user))
-                .get(id=id)
+                .get(query)
             )
         except CommunityModel.DoesNotExist:
             raise GraphQLError("Space not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})

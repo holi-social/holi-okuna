@@ -124,7 +124,7 @@ Use `python okuna-cli.py clean` to reset all local state, including database and
    You can generate more test data with a custom command:
 
    ```bash
-   manage.py generate_dummy_data --user 20 --post 10 --post_with_comment 20 --insight 10
+   manage.py generate_dummy_data --user 20 --post 10 --post_with_comment 20 --post_with_comment_and_reaction 20 --insight 10
    ```
 
    All parameters are optional.

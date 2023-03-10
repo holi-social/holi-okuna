@@ -159,3 +159,10 @@ def normalize_url(url, default_scheme="http", scheme=None):
             normalized_url = parsed_url.geturl()
 
     return normalized_url
+
+
+_uuid_pattern = re.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
+
+def is_uuid(string: str):
+    return _uuid_pattern.match(string)
