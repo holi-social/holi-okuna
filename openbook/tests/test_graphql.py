@@ -1066,7 +1066,7 @@ class GraphQLTest(TestCase):
         response = schema.execute_sync(
             f"""
             query {{
-                spaceById(id: "{space.id}") {{
+                spaceById(idOrName: "{space.id}") {{
                     id
                 }}
             }}
@@ -1078,7 +1078,7 @@ class GraphQLTest(TestCase):
         response = schema.execute_sync(
             f"""
             query {{
-                spaceById(id: "{space.id}") {{
+                spaceById(idOrName: "{space.id}") {{
                     id
                 }}
             }}
@@ -1089,12 +1089,26 @@ class GraphQLTest(TestCase):
         self.assertEqual(len(response.data["spaceById"]), 1)
         self.assertEqual(response.data["spaceById"]["id"], str(space.id))
 
+        response = schema.execute_sync(
+            f"""
+            query {{
+                spaceById(idOrName: "{space.name}") {{
+                    name
+                }}
+            }}
+            """,
+            context_value=BeneDict({"request": {"user": other_user}}),
+        )
+        self.assertIsNone(response.errors)
+        self.assertEqual(len(response.data["spaceById"]), 1)
+        self.assertEqual(response.data["spaceById"]["name"], str(space.name))
+
         approve_verify_moderated_object(space.id, space_user)
 
         response = schema.execute_sync(
             f"""
             query {{
-                spaceById(id: "{space.id}") {{
+                spaceById(idOrName: "{space.id}") {{
                     id
                 }}
             }}
@@ -1311,8 +1325,8 @@ class GraphQLTest(TestCase):
     def get_space_for_user(self, user: User, space: Community):
         response = schema.execute_sync(
             """
-            query($id:UUID!) {
-                spaceById(id:$id) {
+            query($id:String!) {
+                spaceById(idOrName:$id) {
                     id
                     name
                     members {
