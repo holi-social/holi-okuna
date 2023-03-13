@@ -1118,7 +1118,7 @@ class ExternalLink(ModelWithUUID):
 
     title = models.CharField(
         _("title"),
-        max_length=settings.COMMUNITY_USER_ADJECTIVE_MAX_LENGTH,
+        max_length=settings.EXTERNAL_LINK_TITLE_MAX_LENGTH,
         blank=False,
         null=False,
         default="External Link",
@@ -1129,10 +1129,10 @@ class ExternalLink(ModelWithUUID):
     )
 
     visibility = models.CharField(
-        max_length=9, choices=ExternalLinkVisibilityType.choices, default=ExternalLinkVisibilityType.PRIVATE
+        max_length=16, choices=ExternalLinkVisibilityType.choices, default=ExternalLinkVisibilityType.PRIVATE
     )
 
     type = models.CharField(
-        max_length=9,
+        max_length=settings.EXTERNAL_LINK_TYPE_MAX_LENGTH,
         choices=ExternalLinkType.choices,
     )
