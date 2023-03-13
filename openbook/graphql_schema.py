@@ -158,8 +158,11 @@ def get_prefetch_space_links_based_on_user_permissions(username, community_id_or
     return (
         "links"
         if is_member
-        else Prefetch("links", queryset=ExternalLinkModel.objects.filter(visibility=ExternalLinkVisibilityType.PUBLIC).all())
+        else Prefetch(
+            "links", queryset=ExternalLinkModel.objects.filter(visibility=ExternalLinkVisibilityType.PUBLIC).all()
+        )
     )
+
 
 @gql.type
 class Query:
@@ -423,7 +426,9 @@ class Query:
     def space_by_id(self, info, id_or_name: str) -> Optional[Space]:
         query = Q(id=uuid.UUID(id_or_name)) if is_uuid(id_or_name) else Q(name=id_or_name)
         try:
-            links_prefetch = get_prefetch_space_links_based_on_user_permissions(info.context.request.user.username, id_or_name)
+            links_prefetch = get_prefetch_space_links_based_on_user_permissions(
+                info.context.request.user.username, id_or_name
+            )
             return (
                 CommunityModel.objects.prefetch_related("memberships__user__profile", "tasks", links_prefetch)
                 .filter(ModeratedObject.not_moderated_query(info.context.request.user))

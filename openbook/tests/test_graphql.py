@@ -1678,19 +1678,19 @@ class GraphQLTest(TestCase):
 
         expectedErrors = [
             {
-                "input": {"title": title, "url": url, "visibility": visibility}, # no community_id
+                "input": {"title": title, "url": url, "visibility": visibility},  # no community_id
                 "expected_error": "was not provided",
             },
             {
-                "input": {"title": title, "url": url, "community_id": community_id}, # no visibility
+                "input": {"title": title, "url": url, "community_id": community_id},  # no visibility
                 "expected_error": "was not provided",
             },
             {
-                "input": {"title": title, "visibility": visibility, "community_id": community_id}, # no url
+                "input": {"title": title, "visibility": visibility, "community_id": community_id},  # no url
                 "expected_error": "was not provided",
             },
             {
-                "input": {"url": url, "visibility": visibility, "community_id": community_id}, # no title
+                "input": {"url": url, "visibility": visibility, "community_id": community_id},  # no title
                 "expected_error": "was not provided",
             },
         ]
