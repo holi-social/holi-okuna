@@ -385,7 +385,7 @@ class GraphQLTest(TestCase):
         insight1 = Insight.objects.create(
             creator=insight_user,
             title="Insight 1",
-            date_published=now - timezone.timedelta(seconds=1),
+            date_published=now,
         )
 
         post1 = posting_user.create_public_post(
@@ -402,7 +402,7 @@ class GraphQLTest(TestCase):
         )
         insight1.posts.add(post1, post2, post3, post_private)
 
-        insight2 = Insight.objects.create(creator=posting_user, title="Insight 2", date_published=now)
+        insight2 = Insight.objects.create(creator=posting_user, title="Insight 2", date_published=now - timezone.timedelta(days=1))
         post4 = posting_user.create_public_post(
             text=post_text_public,
             title=post_title_public,
