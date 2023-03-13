@@ -369,7 +369,7 @@ class GraphQLTest(TestCase):
             },
         )
 
-    def test_insights_by_creator_id(self):
+    def test_insights_by_user_id_success_user_anonymous(self):
         insight_user = make_user()
         insight_user_2 = make_user()
 
@@ -388,7 +388,7 @@ class GraphQLTest(TestCase):
         response = schema.execute_sync(
             f"""
             query {{
-                insightsByCreatorId(creatorId: {insight_user.id}) {{
+                insightsByUserId(id: "{insight_user.username}") {{
                     data {{
                         id
                         title
@@ -401,7 +401,8 @@ class GraphQLTest(TestCase):
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
         )
 
-        insights = response.data["insightsByCreatorId"]["data"]
+        self.assertIsNone(response.errors)
+        insights = response.data["insightsByUserId"]["data"]
         self.assertEqual(2, len(insights))
 
         insight1_result = insights[0]
@@ -412,6 +413,89 @@ class GraphQLTest(TestCase):
         self.assertEqual(insight2_result["title"], insight2.title)
 
         self.assertNotIn(insight3.title, [insight["title"] for insight in insights])
+
+    def test_insights_by_user_id_success_user_authenticated(self):
+        insight_user = make_user()
+        insight_user_2 = make_user()
+
+        now = timezone.now()
+        insight1 = Insight.objects.create(
+            creator=insight_user,
+            title="Insight  Foo",
+            header_image=SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes),
+            date_published=now,
+        )
+        insight2 = Insight.objects.create(
+            creator=insight_user, title="Insight 2", date_published=now - timezone.timedelta(days=1)
+        )
+        insight3 = Insight.objects.create(creator=insight_user_2, title="Insight 3", date_published=now)
+
+        response = schema.execute_sync(
+            f"""
+            query {{
+                insightsByUserId(id: "{insight_user.username}") {{
+                    data {{
+                        id
+                        title
+                        headerImage
+                    }}
+                    totalResults
+                }}
+            }}
+            """,
+            context_value=BeneDict({"request": {"user": insight_user_2}}),
+        )
+
+        self.assertIsNone(response.errors)
+        insights = response.data["insightsByUserId"]["data"]
+        self.assertEqual(2, len(insights))
+
+        insight1_result = insights[0]
+        self.assertEqual(insight1_result["title"], insight1.title)
+        self.assertEqual(insight1_result["headerImage"], insight1.header_image)
+
+        insight2_result = insights[1]
+        self.assertEqual(insight2_result["title"], insight2.title)
+
+        self.assertNotIn(insight3.title, [insight["title"] for insight in insights])
+
+    def test_insights_by_user_id_error_blocked_user(self):
+        insight_user = make_user()
+        insight_user_2 = make_user()
+
+        insight_user_2.block_user_with_id(insight_user.id)
+
+        now = timezone.now()
+        insight1 = Insight.objects.create(
+            creator=insight_user,
+            title="Insight  Foo",
+            header_image=SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes),
+            date_published=now,
+        )
+        insight2 = Insight.objects.create(
+            creator=insight_user, title="Insight 2", date_published=now - timezone.timedelta(days=1)
+        )
+        insight3 = Insight.objects.create(creator=insight_user_2, title="Insight 3", date_published=now)
+
+        response = schema.execute_sync(
+            f"""
+            query {{
+                insightsByUserId(id: "{insight_user.username}") {{
+                    data {{
+                        id
+                        title
+                        headerImage
+                    }}
+                    totalResults
+                }}
+            }}
+            """,
+            context_value=BeneDict({"request": {"user": insight_user_2}}),
+        )
+
+        self.assertIsNone(response.data)
+        self.assertEqual(1, len(response.errors))
+        self.assertEqual("User not found", str(response.errors[0].message))
 
     def test_select_last_insights(self):
         insight_user = make_user()

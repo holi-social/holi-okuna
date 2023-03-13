@@ -223,9 +223,14 @@ class Query:
         )
 
     @gql.django.field
-    def insights_by_creator_id(self, creator_id: int, offset: int = 0, limit: int = 10) -> Paged[Insight]:
+    def insights_by_user_id(self, info, id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Insight]:
+        current_user = info.context.request.user
+        try:
+            user = UserModel.objects.filter(UserModel.is_visible_query(current_user)).get(username=id)
+        except UserModel.DoesNotExist:
+            raise GraphQLError("User not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
         return Paged.of(
-            InsightModel.objects.filter(creator_id=creator_id).order_by("-date_published"),
+            InsightModel.objects.filter(creator=user).order_by("-date_published"),
             offset,
             limit,
         )
