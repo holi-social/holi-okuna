@@ -225,7 +225,7 @@ class Query:
     @gql.django.field
     def last_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         return Paged.of(
-            InsightModel.objects.filter(date_published__lte=datetime.now()).order_by("-date_published"),
+            InsightModel.objects.filter(date_published__lte=datetime.now()).order_by("-date_published", "-id"),
             offset,
             limit,
         )

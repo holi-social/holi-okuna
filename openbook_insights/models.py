@@ -1,8 +1,7 @@
 from django.conf import settings
-from django.db import models
 from django.core.files.storage import default_storage
+from django.db import models
 from django.utils.translation import gettext_lazy as _
-
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFit
 
@@ -53,3 +52,8 @@ class Insight(ModelWithUUID):
         blank=True,
         null=True,
     )
+
+    class Meta:
+        verbose_name = _("Insight")
+        verbose_name_plural = _("Insights")
+        ordering = ("id",)
