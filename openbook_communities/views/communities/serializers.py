@@ -86,17 +86,14 @@ class CreateCommunityExternalLinkSerializer(serializers.Serializer):
         required=True,
         max_length=settings.EXTERNAL_LINK_URL_MAX_LENGTH,
     )
-    type = serializers.ChoiceField(allow_blank=False, required=True, choices=ExternalLinkType.choices)
     title = serializers.CharField(
         min_length=settings.EXTERNAL_LINK_TITLE_MIN_LENGTH,
         max_length=settings.EXTERNAL_LINK_TITLE_MAX_LENGTH,
         required=True,
     )
-    community_id = (
-        serializers.UUIDField(
-            validators=[community_id_exists],
-            required=True,
-        ),
+    community_id = serializers.UUIDField(
+        validators=[community_id_exists],
+        required=True,
     )
     visibility = serializers.ChoiceField(allow_blank=False, required=True, choices=ExternalLinkVisibilityType.choices)
     description = serializers.CharField(

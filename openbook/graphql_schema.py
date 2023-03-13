@@ -787,6 +787,9 @@ class Mutation:
     @gql.mutation
     def create_space_external_link(self, info, input: CreateSpaceExternalLinkInput) -> Space:
         current_user = verify_authorized_user(info)
+        if not current_user.is_administrator_of_community_with_id(input.community_id):
+            raise GraphQLError("Unauthorized", extensions={"code": GraphQLErrorCodes.UNAUTHORIZED})
+
         serializer = CreateCommunityExternalLinkSerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -794,8 +797,7 @@ class Mutation:
         return current_user.create_community_external_link(
             url=data.get("url"),
             title=data.get("title"),
-            # community_id=data.get("community_id"), # TODO: Fix serializer removing it
-            community_id=input.community_id,
+            community_id=data.get("community_id"),
             type="other",  # TODO: automatically get type (based on URL)
             visibility=data.get("visibility"),
             description=data.get("description"),

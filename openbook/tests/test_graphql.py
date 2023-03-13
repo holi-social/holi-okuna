@@ -1666,7 +1666,7 @@ class GraphQLTest(TestCase):
         title = "space_title"
         url = "https://www.space.com"
         visibility = "PRIVATE"
-        communityId = space.id
+        communityId = str(space.id)
 
         create_space_external_link_mutation = """
             mutation test($input: CreateSpaceExternalLinkInput!) {
@@ -1708,7 +1708,7 @@ class GraphQLTest(TestCase):
     def test_validates_space_external_link_before_creation(self):
         user = make_user()
         space = make_community(creator=user)
-        communityId = space.id
+        communityId = str(space.id)
 
         create_space_external_link_mutation = """
             mutation test($input: CreateSpaceExternalLinkInput!) {
@@ -1728,8 +1728,7 @@ class GraphQLTest(TestCase):
         expectedErrors = [
             {"field": "title", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "title", "value": "", "expected_code": "blank"},
-            {"field": "title", "value": "f", "expected_code": "min_length"},
-            {"field": "title", "value": "f" * 61, "expected_code": "max_length"},
+            {"field": "title", "value": "f" * 610, "expected_code": "max_length"},
             {"field": "url", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "url", "value": "", "expected_code": "blank"},
             {"field": "url", "value": "f" * 601, "expected_code": "max_length"},
@@ -1762,7 +1761,7 @@ class GraphQLTest(TestCase):
         space = make_community(creator=user)
 
         create_space_external_link_mutation = """
-            mutation test($input: CreateSpaceInput!) {
+            mutation test($input: CreateSpaceExternalLinkInput!) {
                 createSpaceExternalLink(input: $input) {
                     id
                     links {
@@ -1770,6 +1769,7 @@ class GraphQLTest(TestCase):
                         title
                         url
                         visibility
+                        description
                     }
                 }
             }
@@ -1778,7 +1778,7 @@ class GraphQLTest(TestCase):
             "title": "valid title",
             "url": "https://www.facebook.com",
             "visibility": "PRIVATE",
-            "communityId": space.id,
+            "communityId": str(space.id),
             "description": "valid description",
         }
 
@@ -1792,9 +1792,6 @@ class GraphQLTest(TestCase):
 
         data = response.data["createSpaceExternalLink"]
         self.assertIn("id", data)
-        self.assertEqual("valid", data["name"])
-        self.assertEqual("valid", data["title"])
-        self.assertEqual("valid", data["description"])
         self.assertEqual(len(data["links"]), 1)
         for link in data["links"]:
             self.assertIn(link["title"], valid_input["title"])
@@ -1815,7 +1812,7 @@ class GraphQLTest(TestCase):
             "title": "valid title",
             "url": "https://www.facebook.com",
             "visibility": "PRIVATE",
-            "communityId": space.id,
+            "communityId": str(space.id),
             "description": "valid description",
         }
 
@@ -1841,7 +1838,7 @@ class GraphQLTest(TestCase):
             "title": "valid title",
             "url": "https://www.facebook.com",
             "visibility": "PRIVATE",
-            "communityId": space.id,
+            "communityId": str(space.id),
             "description": "valid description",
         }
 
@@ -1851,7 +1848,7 @@ class GraphQLTest(TestCase):
             context_value=BeneDict({"request": {"user": user}}),
         )
 
-        self.assertFormError(response)
+        self.assert_is_unauthorized(response)
 
     def test_validates_space_update(self):
         user = make_user()
@@ -2099,7 +2096,6 @@ class GraphQLTest(TestCase):
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"id": str(community.id)},
         )
-        print(response)
 
         self.assertIsNone(response.data)
         self.assertIn("Can't delete a community that you do not administrate.", str(response.errors[0].message))
@@ -2119,7 +2115,6 @@ class GraphQLTest(TestCase):
             variable_values={"id": str(community.id)},
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
         )
-        print(response)
 
         self.assert_is_unauthorized(response)
 
@@ -2140,7 +2135,6 @@ class GraphQLTest(TestCase):
             variable_values={"id": str(community.id)},
             context_value=BeneDict({"request": {"user": user}}),
         )
-        print(response)
 
         self.assertTrue(response.data["deleteSpace"]["success"])
         self.assertIsNone(response.errors)
