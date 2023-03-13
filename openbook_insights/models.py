@@ -56,4 +56,3 @@ class Insight(ModelWithUUID):
     class Meta:
         verbose_name = _("Insight")
         verbose_name_plural = _("Insights")
-        ordering = ("id",)

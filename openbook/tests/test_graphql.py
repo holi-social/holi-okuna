@@ -403,7 +403,7 @@ class GraphQLTest(TestCase):
         insight1.posts.add(post1, post2, post3, post_private)
 
         insight2 = Insight.objects.create(
-            creator=posting_user, title="Insight 2", date_published=now - timezone.timedelta(days=1)
+            creator=posting_user, title="Insight 2", date_published=now - timezone.timedelta(days=7)
         )
         post4 = posting_user.create_public_post(
             text=post_text_public,
@@ -411,6 +411,15 @@ class GraphQLTest(TestCase):
         )
         post4.comment(text=post_text_public, commenter=other_user)
         insight2.posts.add(post4)
+
+        insight3 = Insight.objects.create(
+            creator=posting_user, title="Insight 3", date_published=now - timezone.timedelta(days=1)
+        )
+        post5 = posting_user.create_public_post(
+            text=post_text_public,
+            title=post_title_public,
+        )
+        insight3.posts.add(post5)
 
         response = schema.execute_sync(
             f"""
@@ -436,7 +445,7 @@ class GraphQLTest(TestCase):
         )
 
         insights = response.data["lastInsights"]["data"]
-        self.assertEqual(2, len(insights))
+        self.assertEqual(3, len(insights))
         # insight1 = next(i for i in insights if i["title"] == insight1_title)
         # insight2 = next(i for i in insights if i["title"] == insight2_title)
         insight1_result = insights[0]
@@ -447,9 +456,14 @@ class GraphQLTest(TestCase):
         self.assertEqual(insight1_result["involvedUsers"]["totalResults"], 2)
 
         insight2_result = insights[1]
-        self.assertEqual(insight2_result["title"], insight2.title)
+        self.assertEqual(insight2_result["title"], insight3.title)
         self.assertEqual(insight2_result["numberOfPosts"], 1)
-        self.assertEqual(insight2_result["involvedUsers"]["totalResults"], 2)
+        self.assertEqual(insight2_result["involvedUsers"]["totalResults"], 1)
+
+        insight3_result = insights[2]
+        self.assertEqual(insight3_result["title"], insight2.title)
+        self.assertEqual(insight3_result["numberOfPosts"], 1)
+        self.assertEqual(insight3_result["involvedUsers"]["totalResults"], 2)
 
     def test_notifications(self):
         followed_user = make_user(name="Peter", last_name="Pep")
