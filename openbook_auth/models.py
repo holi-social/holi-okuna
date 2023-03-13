@@ -1791,7 +1791,10 @@ class User(AbstractUser):
         description=None,
     ):
         Community = get_community_model()
-        community = Community.objects.get(id=community_id)
+        community = Community.objects.filter(memberships__user=self, memberships__is_administrator=True).get(
+            id=community_id
+        )
+
         Community.create_community_external_link(
             creator=self,
             url=url,
