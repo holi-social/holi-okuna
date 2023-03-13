@@ -1666,7 +1666,7 @@ class GraphQLTest(TestCase):
         title = "space_title"
         url = "https://www.space.com"
         visibility = "PRIVATE"
-        community_id = space.id
+        communityId = space.id
 
         create_space_external_link_mutation = """
             mutation test($input: CreateSpaceExternalLinkInput!) {
@@ -1678,19 +1678,19 @@ class GraphQLTest(TestCase):
 
         expectedErrors = [
             {
-                "input": {"title": title, "url": url, "visibility": visibility},  # no community_id
+                "input": {"title": title, "url": url, "visibility": visibility},  # no communityId
                 "expected_error": "was not provided",
             },
             {
-                "input": {"title": title, "url": url, "community_id": community_id},  # no visibility
+                "input": {"title": title, "url": url, "communityId": communityId},  # no visibility
                 "expected_error": "was not provided",
             },
             {
-                "input": {"title": title, "visibility": visibility, "community_id": community_id},  # no url
+                "input": {"title": title, "visibility": visibility, "communityId": communityId},  # no url
                 "expected_error": "was not provided",
             },
             {
-                "input": {"url": url, "visibility": visibility, "community_id": community_id},  # no title
+                "input": {"url": url, "visibility": visibility, "communityId": communityId},  # no title
                 "expected_error": "was not provided",
             },
         ]
@@ -1708,7 +1708,7 @@ class GraphQLTest(TestCase):
     def test_validates_space_external_link_before_creation(self):
         user = make_user()
         space = make_community(creator=user)
-        community_id = space.id
+        communityId = space.id
 
         create_space_external_link_mutation = """
             mutation test($input: CreateSpaceExternalLinkInput!) {
@@ -1722,7 +1722,7 @@ class GraphQLTest(TestCase):
             "description": "valid description",
             "url": "https://valid.com",
             "visibility": "PRIVATE",
-            community_id: space.id,
+            "communityId": communityId,
         }
 
         expectedErrors = [
@@ -1734,7 +1734,7 @@ class GraphQLTest(TestCase):
             {"field": "url", "value": "", "expected_code": "blank"},
             {"field": "url", "value": "f" * 601, "expected_code": "max_length"},
             {"field": "description", "value": "f" * 1001, "expected_code": "max_length"},
-            {"field": "community_id", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "communityId", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "visibility", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "visibility", "value": {}, "expected_code": "invalid"},
             {"field": "visibility", "value": "", "expected_code": "invalid"},
@@ -1778,7 +1778,7 @@ class GraphQLTest(TestCase):
             "title": "valid title",
             "url": "https://www.facebook.com",
             "visibility": "PRIVATE",
-            "community_id": space.id,
+            "communityId": space.id,
             "description": "valid description",
         }
 
@@ -1815,7 +1815,7 @@ class GraphQLTest(TestCase):
             "title": "valid title",
             "url": "https://www.facebook.com",
             "visibility": "PRIVATE",
-            "community_id": space.id,
+            "communityId": space.id,
             "description": "valid description",
         }
 
@@ -1841,7 +1841,7 @@ class GraphQLTest(TestCase):
             "title": "valid title",
             "url": "https://www.facebook.com",
             "visibility": "PRIVATE",
-            "community_id": space.id,
+            "communityId": space.id,
             "description": "valid description",
         }
 

@@ -544,7 +544,6 @@ class CreateSpaceExternalLinkInput:
     title: str
     community_id: uuid.UUID
     visibility: str
-    type: str
     description: Optional[str]
 
 
@@ -797,7 +796,7 @@ class Mutation:
             title=data.get("title"),
             # community_id=data.get("community_id"), # TODO: Fix serializer removing it
             community_id=input.community_id,
-            type=data.get("type"),
+            type="other",  # TODO: automatically get type (based on URL)
             visibility=data.get("visibility"),
             description=data.get("description"),
         )
