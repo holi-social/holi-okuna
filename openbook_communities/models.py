@@ -19,7 +19,7 @@ from openbook_auth.models import User
 from django.utils.translation import gettext_lazy as _
 
 from openbook_common.models import ModelWithUUID
-from openbook_common.utils.helpers import delete_file_field
+from openbook_common.utils.helpers import delete_file_field, is_uuid
 from openbook_common.utils.model_loaders import (
     get_community_invite_model,
     get_community_log_model,
@@ -199,6 +199,13 @@ class Community(ModelWithUUID):
     @classmethod
     def is_user_with_username_member_of_community_with_name(cls, username, community_name):
         return cls.objects.filter(name=community_name, memberships__user__username=username).exists()
+
+    @classmethod
+    def is_user_with_username_member_of_community_with_id_or_name(cls, username, community_id_or_name):
+        if not is_uuid(community_id_or_name):
+            return cls.objects.filter(name=community_id_or_name, memberships__user__username=username).exists()
+
+        return cls.objects.filter(id=uuid.UUID(community_id_or_name), memberships__user__username=username).exists()
 
     @classmethod
     def is_user_with_username_administrator_of_community_with_name(cls, username, community_name):
@@ -1088,8 +1095,8 @@ class ExternalLinkType(models.TextChoices):
 
 @gql.enum
 class ExternalLinkVisibilityType(models.TextChoices):
-    PUBLIC = "public", _("public")  # everyone can find this link (on Space profile)
-    PRIVATE = "private", _("private")  # only space members can find this link (within Space profile)
+    PUBLIC = "PUBLIC", _("public")  # everyone can find this link (on Space profile)
+    PRIVATE = "PRIVATE", _("private")  # only space members can find this link (within Space profile)
 
 
 class ExternalLink(ModelWithUUID):

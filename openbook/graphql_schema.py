@@ -1,3 +1,5 @@
+from django.db.models import Prefetch
+
 from collections import defaultdict
 from datetime import datetime
 import requests
@@ -30,6 +32,7 @@ from openbook_communities.views.communities.serializers import (
 )
 from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_moderation.models import ModeratedObject
+from openbook_communities.models import Community, ExternalLink as ExternalLinkModel
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
 from openbook_common.utils.helpers import is_uuid
 
@@ -82,7 +85,7 @@ def spaces_for_filter(
         query.add(Q(memberships__user=user), Q.AND)
 
     return Paged.of(
-        CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
+        CommunityModel.objects.prefetch_related("memberships__user__profile")
         .filter(query)
         .annotate(member_count=Count("memberships"))
         .order_by("-member_count", "-created"),
@@ -147,6 +150,16 @@ def verify_authorized_user(info):
         raise GraphQLError("Unauthorized", extensions={"code": GraphQLErrorCodes.UNAUTHORIZED})
     return current_user
 
+
+def get_prefetch_space_links_based_on_user_permissions(username, community_id_or_name):
+    is_member = CommunityModel.is_user_with_username_member_of_community_with_id_or_name(
+        username=username, community_id_or_name=community_id_or_name
+    )
+    return (
+        "links"
+        if is_member
+        else Prefetch("links", queryset=ExternalLinkModel.objects.filter(visibility=ExternalLinkVisibilityType.PUBLIC).all())
+    )
 
 @gql.type
 class Query:
@@ -410,8 +423,9 @@ class Query:
     def space_by_id(self, info, id_or_name: str) -> Optional[Space]:
         query = Q(id=uuid.UUID(id_or_name)) if is_uuid(id_or_name) else Q(name=id_or_name)
         try:
+            links_prefetch = get_prefetch_space_links_based_on_user_permissions(info.context.request.user.username, id_or_name)
             return (
-                CommunityModel.objects.prefetch_related("links", "memberships__user__profile", "tasks")
+                CommunityModel.objects.prefetch_related("memberships__user__profile", "tasks", links_prefetch)
                 .filter(ModeratedObject.not_moderated_query(info.context.request.user))
                 .get(query)
             )
@@ -776,7 +790,7 @@ class Mutation:
         return current_user.create_community_external_link(
             url=data.get("url"),
             title=data.get("title"),
-            # community_id=data.get("community_id"), TODO: Fix serializer removing it
+            # community_id=data.get("community_id"), # TODO: Fix serializer removing it
             community_id=input.community_id,
             type=data.get("type"),
             visibility=data.get("visibility"),
