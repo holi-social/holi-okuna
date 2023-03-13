@@ -12,7 +12,6 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
-from openbook.middleware import graphql_error_context_middleware
 from openbook.graphql_schema import (
     schema,
     UpdateConnectionAction,
