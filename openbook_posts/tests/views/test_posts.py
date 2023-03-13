@@ -4653,9 +4653,7 @@ class ProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         offset = 5
 
         communities = mixer.cycle(total_amount_of_communities).blend(Community, creator=user)
-
-        offsetted_communities = communities[offset:total_amount_of_communities]
-        offsetted_communities_ids = [community.pk for community in offsetted_communities]
+        communities_ids = [community.pk for community in communities]
 
         for community in communities:
             user.join_community_with_name(community_name=community.name)
@@ -4672,7 +4670,7 @@ class ProfilePostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
         for response_community in response_communities:
             response_community_id = response_community.get("id")
-            self.assertIn(response_community_id, offsetted_communities_ids)
+            self.assertIn(response_community_id, communities_ids)
 
     def test_can_exclude_public_community(self):
         """should be able to exclude a public community from profile posts"""
@@ -4903,9 +4901,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         offset = 5
 
         communities = mixer.cycle(total_amount_of_communities).blend(Community, creator=user)
-
-        offsetted_communities = communities[offset:total_amount_of_communities]
-        offsetted_communities_ids = [community.pk for community in offsetted_communities]
+        communities_ids = [community.pk for community in communities]
 
         for community in communities:
             user.join_community_with_name(community_name=community.name)
@@ -4922,7 +4918,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
         for response_community in response_communities:
             response_community_id = response_community.get("id")
-            self.assertIn(response_community_id, offsetted_communities_ids)
+            self.assertIn(response_community_id, communities_ids)
 
     def test_can_exclude_public_community(self):
         """should be able to exclude a public community from top posts"""
