@@ -507,7 +507,7 @@ class GraphQLTest(TestCase):
         insight1 = Insight.objects.create(
             creator=insight_user,
             title="Insight 1",
-            date_published=now - timezone.timedelta(seconds=1),
+            date_published=now,
         )
 
         post1 = posting_user.create_public_post(
@@ -524,13 +524,37 @@ class GraphQLTest(TestCase):
         )
         insight1.posts.add(post1, post2, post3, post_private)
 
-        insight2 = Insight.objects.create(creator=posting_user, title="Insight 2", date_published=now)
+        insight2 = Insight.objects.create(
+            id="ffffffff-ffff-ffff-ffff-ffffffffffff",
+            creator=posting_user,
+            title="Insight 2",
+            date_published=now - timezone.timedelta(days=1),
+        )
         post4 = posting_user.create_public_post(
             text=post_text_public,
             title=post_title_public,
         )
         post4.comment(text=post_text_public, commenter=other_user)
         insight2.posts.add(post4)
+
+        insight3 = Insight.objects.create(
+            id="00000000-0000-0000-0000-000000000001",
+            creator=posting_user,
+            title="Insight 3",
+            date_published=now - timezone.timedelta(days=1),
+        )
+        post5 = posting_user.create_public_post(
+            text=post_text_public,
+            title=post_title_public,
+        )
+        insight3.posts.add(post5)
+
+        insight4 = Insight.objects.create(
+            id="00000000-0000-0000-0000-000000000000",
+            creator=posting_user,
+            title="Insight 4",
+            date_published=now - timezone.timedelta(days=2),
+        )
 
         response = schema.execute_sync(
             f"""
@@ -556,7 +580,7 @@ class GraphQLTest(TestCase):
         )
 
         insights = response.data["lastInsights"]["data"]
-        self.assertEqual(2, len(insights))
+        self.assertEqual(4, len(insights))
         # insight1 = next(i for i in insights if i["title"] == insight1_title)
         # insight2 = next(i for i in insights if i["title"] == insight2_title)
         insight1_result = insights[0]
@@ -567,9 +591,19 @@ class GraphQLTest(TestCase):
         self.assertEqual(insight1_result["involvedUsers"]["totalResults"], 2)
 
         insight2_result = insights[1]
-        self.assertEqual(insight2_result["title"], insight2.title)
+        self.assertEqual(insight2_result["title"], insight3.title)
         self.assertEqual(insight2_result["numberOfPosts"], 1)
-        self.assertEqual(insight2_result["involvedUsers"]["totalResults"], 2)
+        self.assertEqual(insight2_result["involvedUsers"]["totalResults"], 1)
+
+        insight3_result = insights[2]
+        self.assertEqual(insight3_result["title"], insight2.title)
+        self.assertEqual(insight3_result["numberOfPosts"], 1)
+        self.assertEqual(insight3_result["involvedUsers"]["totalResults"], 2)
+
+        insight4_result = insights[3]
+        self.assertEqual(insight4_result["title"], insight4.title)
+        self.assertEqual(insight4_result["numberOfPosts"], 0)
+        self.assertEqual(insight4_result["involvedUsers"]["totalResults"], 1)
 
     def test_notifications(self):
         followed_user = make_user(name="Peter", last_name="Pep")
