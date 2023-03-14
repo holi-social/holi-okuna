@@ -242,7 +242,6 @@ class Community(ModelWithUUID):
 
     @classmethod
     def community_with_id_exists(cls, community_id):
-        print(community_id)
         query = Q(id=community_id, is_deleted=False)
         return cls.objects.filter(query).exists()
 
@@ -1083,17 +1082,6 @@ class Task(ModelWithUUID):
 
 
 @gql.enum
-class ExternalLinkType(models.TextChoices):
-    INSTAGRAM = "instagram", _("instagram")
-    FACEBOOK = "facebook", _("facebook")
-    LINKEDIN = "linkedin", _("linkedin")
-    DISCORD = "discord", _("discord")
-    TWITTER = "twitter", _("twitter")
-    WHATSAPP = "whatsapp", _("whatsapp")
-    OTHER = "other", _("other")
-
-
-@gql.enum
 class ExternalLinkVisibilityType(models.TextChoices):
     PUBLIC = "PUBLIC", _("public")  # everyone can find this link (on Space profile)
     PRIVATE = "PRIVATE", _("private")  # only space members can find this link (within Space profile)
@@ -1102,7 +1090,7 @@ class ExternalLinkVisibilityType(models.TextChoices):
 class ExternalLink(ModelWithUUID):
     creator = models.ForeignKey(
         User,
-        on_delete=models.CASCADE,
+        on_delete=models.DO_NOTHING,
         related_name="created_communities_external_links",
         null=True,
         blank=True,
@@ -1125,11 +1113,16 @@ class ExternalLink(ModelWithUUID):
     )
 
     description = models.CharField(
-        _("description"), max_length=settings.EXTERNAL_LINK_DESCRIPTION_MAX_LENGTH, blank=True, null=True
+        _("description"),
+        max_length=settings.EXTERNAL_LINK_DESCRIPTION_MAX_LENGTH,
+        blank=True,
+        null=True,
     )
 
     visibility = models.CharField(
-        max_length=16, choices=ExternalLinkVisibilityType.choices, default=ExternalLinkVisibilityType.PRIVATE
+        max_length=16,
+        choices=ExternalLinkVisibilityType.choices,
+        default=ExternalLinkVisibilityType.PUBLIC,
     )
 
     type = models.CharField(

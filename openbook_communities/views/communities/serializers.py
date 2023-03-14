@@ -8,7 +8,7 @@ from openbook_common.serializers import CommonCommunityMembershipSerializer
 from openbook_common.serializers_fields.community import CommunityPostsCountField
 from openbook_common.serializers_fields.request import RestrictedImageFileSizeField
 from openbook_common.validators import hex_color_validator
-from openbook_communities.models import Community, ExternalLinkType, ExternalLinkVisibilityType, ExternalLink
+from openbook_communities.models import Community, ExternalLinkVisibilityType
 from openbook_communities.serializers_fields import (
     CommunityGeolocationField,
     IsInvitedField,
@@ -87,7 +87,6 @@ class CreateCommunityExternalLinkSerializer(serializers.Serializer):
         max_length=settings.EXTERNAL_LINK_URL_MAX_LENGTH,
     )
     title = serializers.CharField(
-        min_length=settings.EXTERNAL_LINK_TITLE_MIN_LENGTH,
         max_length=settings.EXTERNAL_LINK_TITLE_MAX_LENGTH,
         required=True,
     )
@@ -95,7 +94,11 @@ class CreateCommunityExternalLinkSerializer(serializers.Serializer):
         validators=[community_id_exists],
         required=True,
     )
-    visibility = serializers.ChoiceField(allow_blank=False, required=True, choices=ExternalLinkVisibilityType.choices)
+    visibility = serializers.ChoiceField(
+        allow_blank=False,
+        required=True,
+        choices=ExternalLinkVisibilityType.choices,
+    )
     description = serializers.CharField(
         max_length=settings.EXTERNAL_LINK_DESCRIPTION_MAX_LENGTH,
         required=False,

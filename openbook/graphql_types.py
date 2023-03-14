@@ -17,7 +17,6 @@ from openbook_communities.models import (
     Task as TaskModel,
     CommunityMembership as CommunityMembershipModel,
     ExternalLink as ExternalLinkModel,
-    ExternalLinkType,
     ExternalLinkVisibilityType,
 )
 from openbook_notifications.models import Notification as NotificationModel
@@ -140,7 +139,7 @@ class Skill:
 class ExternalLink:
     id: gql.auto
     url: gql.auto
-    type: ExternalLinkType
+    type: gql.auto
     title: gql.auto
     description: gql.auto
     visibility: ExternalLinkVisibilityType
