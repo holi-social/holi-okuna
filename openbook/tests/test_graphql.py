@@ -40,11 +40,6 @@ from openbook_moderation.models import ModeratedObject
 logger = logging.getLogger(__name__)
 
 
-class ContextWithUser:
-    def __init__(self, user):
-        self.user = user
-
-
 class GraphQLTest(TestCase):
 
     fixtures = ["openbook_circles/fixtures/circles.json", "openbook_moderation/fixtures/moderation_categories.json"]

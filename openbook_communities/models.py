@@ -6,6 +6,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.core.files.storage import default_storage
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
+from django.db.models import QuerySet
 
 from django.utils import timezone
 
@@ -15,9 +16,9 @@ from pilkit.processors import ResizeToFill, ResizeToFit
 from strawberry_django_plus import gql
 
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
-from openbook_auth.models import User
 from django.utils.translation import gettext_lazy as _
 
+from openbook_auth.models import User
 from openbook_common.models import ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import (
@@ -172,6 +173,9 @@ class Community(ModelWithUUID):
     topics = models.ManyToManyField(Topic, related_name="communities", blank=False, db_index=True)
     sdgs = models.ManyToManyField(SDG, related_name="communities", blank=True, db_index=True, null=True)
     geolocation = models.PointField(blank=True, null=True, spatial_index=True)
+
+    #  Backwards relations
+    memberships: QuerySet["CommunityMembership"]
 
     class Meta:
         verbose_name_plural = "communities"
