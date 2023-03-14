@@ -230,7 +230,7 @@ class Query:
         except UserModel.DoesNotExist:
             raise GraphQLError("User not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
         return Paged.of(
-            InsightModel.objects.filter(creator=user).order_by("-date_published", "-id"),
+            InsightModel.objects.filter(creator=user).order_by("-date_published", "id"),
             offset,
             limit,
         )
