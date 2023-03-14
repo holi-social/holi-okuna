@@ -1134,5 +1134,4 @@ class ExternalLink(ModelWithUUID):
 
     type = models.CharField(
         max_length=settings.EXTERNAL_LINK_TYPE_MAX_LENGTH,
-        choices=ExternalLinkType.choices,
     )

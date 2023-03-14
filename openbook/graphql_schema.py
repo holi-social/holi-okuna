@@ -806,12 +806,13 @@ class Mutation:
         serializer = CreateCommunityExternalLinkSerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+        # link_type =
 
         return current_user.create_community_external_link(
             url=data.get("url"),
             title=data.get("title"),
             community_id=data.get("community_id"),
-            type="other",  # TODO: automatically get type (based on URL)
+            type="other test",  # TODO: automatically get type (based on URL)
             visibility=data.get("visibility"),
             description=data.get("description"),
         )
