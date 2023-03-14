@@ -247,7 +247,7 @@ class Query:
         except UserModel.DoesNotExist:
             raise GraphQLError("User not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
         return Paged.of(
-            InsightModel.objects.filter(creator=user).order_by("-date_published", "-id"),
+            InsightModel.objects.filter(creator=user).order_by("-date_published", "id"),
             offset,
             limit,
         )
@@ -255,7 +255,7 @@ class Query:
     @gql.django.field
     def last_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         return Paged.of(
-            InsightModel.objects.filter(date_published__lte=datetime.now()).order_by("-date_published"),
+            InsightModel.objects.filter(date_published__lte=datetime.now()).order_by("-date_published", "id"),
             offset,
             limit,
         )
@@ -694,9 +694,7 @@ class Mutation:
             # perform for current user
             match (connection_type, connect_action):
                 case (cT.MEMBERSHIP_REQUESTOR, a.CONNECT):
-                    # Auto-Join Spaces directly. Needs to be removed, once requests with approval are needed
-                    return current_user.join_community_with_name(space.name)
-                    # return current_user.request_membership_to_community_with_name(space.name)
+                    return current_user.request_membership_to_community_with_name(space.name)
                 case (cT.MEMBERSHIP_REQUESTOR, a.DISCONNECT):
                     return current_user.revoke_membership_request_to_community_with_name(space.name)
                 case (cT.FOLLOWER, a.CONNECT):
