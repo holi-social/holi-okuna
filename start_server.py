@@ -4,6 +4,8 @@ from logging import getLogger
 
 import uvicorn
 
+# even though this import seams to be unused, it is needed for SQL logging to work for some reason.
+import openbook.asgi
 from openbook.logging import initialize_logging
 
 logger = getLogger()
