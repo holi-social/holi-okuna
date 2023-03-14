@@ -52,7 +52,3 @@ class Insight(ModelWithUUID):
         blank=True,
         null=True,
     )
-
-    class Meta:
-        verbose_name = _("Insight")
-        verbose_name_plural = _("Insights")
