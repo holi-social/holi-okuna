@@ -42,8 +42,6 @@ def sdg_with_id_exists(sdg_uuid):
 
 
 def community_id_exists(community_id):
-    print("Communtiy checking --------- ")
-    print(community_id)
     Community = get_community_model()
     if not Community.community_with_id_exists(community_id=community_id):
         raise NotFound(
