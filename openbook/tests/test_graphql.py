@@ -980,6 +980,77 @@ class GraphQLTest(TestCase):
             membership_requestor.profile.full_name(),
         )
 
+    def test_space_membership_request_rejection_process(self):
+        membership_requestor = make_user()
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+
+        def member_result(user, is_admin):
+            return {
+                "user": {"id": user.username},
+                "isAdministrator": is_admin,
+            }
+
+        # Preconditions
+        pre_join_space = self.get_space_for_user(membership_requestor, space)
+        self.assertEqual(pre_join_space["connectionStatusToMyself"], [])
+        self.assert_paged_results_equal(pre_join_space["members"], [member_result(space_creator, is_admin=True)])
+
+        data = self.get_notifications(membership_requestor)
+        self.assertEqual(data["totalResults"], 0)
+        data = self.get_notifications(space_creator)
+        self.assertEqual(data["totalResults"], 0)
+
+        # Send Join Request
+        after_request_space = self.mutate_update_space_user_connection(
+            auth_user=membership_requestor,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+
+        self.assertCountEqual(
+            after_request_space["connectionStatusToMyself"],
+            [SpaceUserConnectionType.MEMBERSHIP_REQUESTOR.value, SpaceUserConnectionType.FOLLOWER.value],
+        )
+
+        # Staff received MembershipRequest notification
+        staff_request_received_notification = self.get_notifications(space_creator)["data"][0]
+        self.assertEqual(staff_request_received_notification["notificationType"], "CMR")
+        self.assertEqual(staff_request_received_notification["options"]["space"]["title"], space.title)
+        self.assertEqual(
+            staff_request_received_notification["options"]["user"]["fullName"],
+            membership_requestor.profile.full_name(),
+        )
+
+        # Approve user
+        space_after_rejection = self.mutate_update_space_user_connection(
+            auth_user=space_creator,
+            user_id=membership_requestor.username,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
+            connect_action=UpdateConnectionAction.DISCONNECT,
+        )
+
+        self.assert_paged_results_equal(
+            space_after_rejection["members"],
+            [member_result(space_creator, is_admin=True)],
+        )
+
+        # User has correct connection status
+        self.assertCountEqual(
+            self.get_space_for_user(membership_requestor, space)["connectionStatusToMyself"],
+            [SpaceUserConnectionType.FOLLOWER.value],
+        )
+
+        # User has no notification
+        membership_requestor_notifications = self.get_notifications(membership_requestor)
+        self.assertEqual(membership_requestor_notifications["totalResults"], 0)
+
+        # Staff has no notification
+        staff_notifications = self.get_notifications(space_creator)
+        self.assertEqual(staff_notifications["totalResults"], 0)
+
     def test_report_post(self):
         posting_user = make_user()
         posting_user.is_moderator = True
