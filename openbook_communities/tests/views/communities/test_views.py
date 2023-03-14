@@ -768,7 +768,6 @@ class AdministratedCommunities(OpenbookAPITestCase):
             response_community_id = response_community.get("id")
             self.assertIn(response_community_id, communities_ids)
 
-    @unittest.skip("TODO HOLI-3445 migrate unit test from SQLite to Postgres")
     def test_retrieve_administrated_communities_offset(self):
         """should be able to retrieve all own communities with an offset return 200"""
         user = make_user()
@@ -784,8 +783,7 @@ class AdministratedCommunities(OpenbookAPITestCase):
             community = make_community(creator=community_creator)
             communities.append(community)
 
-        offsetted_communities = communities[offset:total_amount_of_communities]
-        offsetted_communities_ids = [community.pk for community in offsetted_communities]
+        communities_ids = [community.pk for community in communities]
 
         for community in communities:
             user.join_community_with_name(community_name=community.name)
@@ -804,7 +802,7 @@ class AdministratedCommunities(OpenbookAPITestCase):
 
         for response_community in response_communities:
             response_community_id = response_community.get("id")
-            self.assertIn(response_community_id, offsetted_communities_ids)
+            self.assertIn(response_community_id, communities_ids)
 
     def _get_url(self):
         return reverse("administrated-communities")
@@ -916,7 +914,6 @@ class ModeratedCommunities(OpenbookAPITestCase):
             response_community_id = response_community.get("id")
             self.assertIn(response_community_id, communities_ids)
 
-    @unittest.skip("TODO HOLI-3445 migrate unit test from SQLite to Postgres")
     def test_retrieve_moderated_communities_offset(self):
         """should be able to retrieve all moderated communities with an offset return 200"""
         user = make_user()
@@ -932,8 +929,7 @@ class ModeratedCommunities(OpenbookAPITestCase):
             community = make_community(creator=community_creator)
             communities.append(community)
 
-        offsetted_communities = communities[offset:total_amount_of_communities]
-        offsetted_communities_ids = [community.pk for community in offsetted_communities]
+        communities_ids = [community.pk for community in communities]
 
         for community in communities:
             user.join_community_with_name(community_name=community.name)
@@ -952,7 +948,7 @@ class ModeratedCommunities(OpenbookAPITestCase):
 
         for response_community in response_communities:
             response_community_id = response_community.get("id")
-            self.assertIn(response_community_id, offsetted_communities_ids)
+            self.assertIn(response_community_id, communities_ids)
 
     def _get_url(self):
         return reverse("moderated-communities")
@@ -1086,7 +1082,6 @@ class FavoriteCommunities(OpenbookAPITestCase):
 
         self.assertEqual(len(response_communities), 0)
 
-    @unittest.skip("TODO HOLI-3445 migrate unit test from SQLite to Postgres")
     def test_retrieve_favorite_communities_offset(self):
         """should be able to retrieve all favorite communities with an offset return 200"""
         user = make_user()
@@ -1096,9 +1091,7 @@ class FavoriteCommunities(OpenbookAPITestCase):
         offset = 5
 
         communities = mixer.cycle(total_amount_of_communities).blend(Community, creator=user)
-
-        offsetted_communities = communities[offset:total_amount_of_communities]
-        offsetted_communities_ids = [community.pk for community in offsetted_communities]
+        communities_ids = [community.pk for community in communities]
 
         for community in communities:
             user.join_community_with_name(community_name=community.name)
@@ -1115,7 +1108,7 @@ class FavoriteCommunities(OpenbookAPITestCase):
 
         for response_community in response_communities:
             response_community_id = response_community.get("id")
-            self.assertIn(response_community_id, offsetted_communities_ids)
+            self.assertIn(response_community_id, communities_ids)
 
     def _get_url(self):
         return reverse("favorite-communities")
@@ -1523,7 +1516,6 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
         self.assertEqual(len(response_communities), 0)
 
-    @unittest.skip("TODO HOLI-3445 migrate unit test from SQLite to Postgres")
     def test_retrieve_excluded_communities_offset(self):
         """should be able to retrieve all excluded communities with an offset return 200"""
         user = make_user()
@@ -1533,9 +1525,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
         offset = 5
 
         communities = mixer.cycle(total_amount_of_communities).blend(Community, creator=user)
-
-        offsetted_communities = communities[offset:total_amount_of_communities]
-        offsetted_communities_ids = [community.pk for community in offsetted_communities]
+        communities_ids = [community.pk for community in communities]
 
         for community in communities:
             user.join_community_with_name(community_name=community.name)
@@ -1552,7 +1542,7 @@ class TopPostsExcludedCommunitiesAPITests(OpenbookAPITestCase):
 
         for response_community in response_communities:
             response_community_id = response_community.get("id")
-            self.assertIn(response_community_id, offsetted_communities_ids)
+            self.assertIn(response_community_id, communities_ids)
 
     def _get_url(self):
         return reverse("legacy-top-posts-excluded-communities")
