@@ -2068,6 +2068,8 @@ class User(AbstractUser):
 
         community.remove_membership_request(user_to_revoke_request_for)
 
+        return community
+
     def leave_community_with_name(self, community_name):
         check_can_leave_community_with_name(user=self, community_name=community_name)
 
