@@ -422,11 +422,11 @@ class Post:
         current_user = info.context.request.user
         return Paged.of(
             UserModel.objects.select_related("profile")
+            .filter(UserModel.is_visible_query(current_user))
             .filter(
                 (Q(posts=self) & PostModel.is_visible_query(current_user, "posts"))
                 | (Q(posts_comments__post=self) & PostCommentModel.is_visible_query(current_user, "posts_comments"))
             )
-            .filter(UserModel.is_visible_query(current_user))
             .distinct(),
             offset,
             limit,
@@ -434,10 +434,11 @@ class Post:
 
     @gql.django.field
     def commenters(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
+        current_user = info.context.request.user
         return Paged.of(
             UserModel.objects.select_related("profile")
-            .filter(UserModel.is_visible_query(info.context.request.user))
-            .filter(posts_comments__post=self)
+            .filter(UserModel.is_visible_query(current_user))
+            .filter(Q(posts_comments__post=self) & PostCommentModel.is_visible_query(current_user, "posts_comments"))
             .distinct(),
             offset,
             limit,
