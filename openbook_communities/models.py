@@ -19,7 +19,7 @@ from openbook_auth.models import User
 from django.utils.translation import gettext_lazy as _
 
 from openbook_common.models import ModelWithUUID
-from openbook_common.utils.helpers import delete_file_field
+from openbook_common.utils.helpers import delete_file_field, is_uuid
 from openbook_common.utils.model_loaders import (
     get_community_invite_model,
     get_community_log_model,
@@ -201,6 +201,13 @@ class Community(ModelWithUUID):
         return cls.objects.filter(name=community_name, memberships__user__username=username).exists()
 
     @classmethod
+    def is_user_with_username_member_of_community_with_id_or_name(cls, username, community_id_or_name):
+        if not is_uuid(community_id_or_name):
+            return cls.objects.filter(name=community_id_or_name, memberships__user__username=username).exists()
+
+        return cls.objects.filter(id=uuid.UUID(community_id_or_name), memberships__user__username=username).exists()
+
+    @classmethod
     def is_user_with_username_administrator_of_community_with_name(cls, username, community_name):
         return cls.objects.filter(
             name=community_name,
@@ -351,6 +358,30 @@ class Community(ModelWithUUID):
 
         community.save()
         return community
+
+    @classmethod
+    def create_community_external_link(
+        cls,
+        creator,
+        community,
+        url,
+        title,
+        type,
+        visibility,
+        description=None,
+    ):
+        external_link = ExternalLink.objects.create(
+            creator=creator,
+            url=url,
+            title=title,
+            type=type,
+            visibility=visibility,
+            community=community,
+            description=description,
+        )
+
+        external_link.save()
+        return external_link
 
     @classmethod
     def is_name_taken(cls, name):
@@ -1051,18 +1082,19 @@ class Task(ModelWithUUID):
 
 
 @gql.enum
-class ExternalLinkType(models.TextChoices):
-    INSTAGRAM = "instagram", _("instagram")
-    FACEBOOK = "facebook", _("facebook")
-    LINKEDIN = "linkedin", _("linkedin")
-    DISCORD = "discord", _("discord")
-    TWITTER = "twitter", _("twitter")
-    WHATSAPP = "whatsapp", _("whatsapp")
-    OTHER = "other", _("other")
+class ExternalLinkVisibilityType(models.TextChoices):
+    PUBLIC = "PUBLIC", _("public")  # everyone can find this link (on Space profile)
+    PRIVATE = "PRIVATE", _("private")  # only space members can find this link (within Space profile)
 
 
 class ExternalLink(ModelWithUUID):
-
+    creator = models.ForeignKey(
+        User,
+        on_delete=models.DO_NOTHING,
+        related_name="created_communities_external_links",
+        null=True,
+        blank=True,
+    )
     url = models.TextField(blank=False)
     community = models.ForeignKey(
         Community,
@@ -1071,7 +1103,28 @@ class ExternalLink(ModelWithUUID):
         blank=False,
         null=False,
     )
+
+    title = models.CharField(
+        _("title"),
+        max_length=settings.EXTERNAL_LINK_TITLE_MAX_LENGTH,
+        blank=False,
+        null=False,
+        default="External Link",
+    )
+
+    description = models.CharField(
+        _("description"),
+        max_length=settings.EXTERNAL_LINK_DESCRIPTION_MAX_LENGTH,
+        blank=True,
+        null=True,
+    )
+
+    visibility = models.CharField(
+        max_length=16,
+        choices=ExternalLinkVisibilityType.choices,
+        default=ExternalLinkVisibilityType.PUBLIC,
+    )
+
     type = models.CharField(
-        max_length=9,
-        choices=ExternalLinkType.choices,
+        max_length=settings.EXTERNAL_LINK_TYPE_MAX_LENGTH,
     )

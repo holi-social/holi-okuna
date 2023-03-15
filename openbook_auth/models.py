@@ -925,6 +925,9 @@ class User(AbstractUser):
     def is_administrator_of_community_with_name(self, community_name):
         return self.communities_memberships.filter(community__name=community_name, is_administrator=True).exists()
 
+    def is_administrator_of_community_with_id(self, community_id):
+        return self.communities_memberships.filter(community__id=community_id, is_administrator=True).exists()
+
     def is_staff_of_community_with_name(self, community_name):
         return self.is_administrator_of_community_with_name(
             community_name=community_name
@@ -1780,6 +1783,30 @@ class User(AbstractUser):
         )
 
         return community
+
+    def create_community_external_link(
+        self,
+        url,
+        title,
+        community_id,
+        type,
+        visibility,
+        description=None,
+    ):
+        Community = get_community_model()
+        community = Community.objects.filter(memberships__user=self, memberships__is_administrator=True).get(
+            id=community_id
+        )
+
+        return Community.create_community_external_link(
+            creator=self,
+            url=url,
+            title=title,
+            community=community,
+            type=type,
+            visibility=visibility,
+            description=description,
+        )
 
     def delete_community(self, community):
         return self.delete_community_with_name(community.name)

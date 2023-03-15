@@ -1902,6 +1902,191 @@ class GraphQLTest(TestCase):
 
         self.assert_is_unauthorized(response)
 
+    def test_can_not_create_space_external_link_missing_required_fields(self):
+        user = make_user()
+        space = make_community(creator=user)
+        title = "space_title"
+        url = "https://www.space.com"
+        visibility = "PRIVATE"
+        communityId = str(space.id)
+
+        create_space_external_link_mutation = """
+            mutation test($input: CreateSpaceExternalLinkInput!) {
+                createSpaceExternalLink(input: $input) {
+                    id
+                }
+            }
+            """
+
+        expectedErrors = [
+            {
+                "input": {"title": title, "url": url, "visibility": visibility},  # no communityId
+                "expected_error": "was not provided",
+            },
+            {
+                "input": {"title": title, "url": url, "communityId": communityId},  # no visibility
+                "expected_error": "was not provided",
+            },
+            {
+                "input": {"title": title, "visibility": visibility, "communityId": communityId},  # no url
+                "expected_error": "was not provided",
+            },
+            {
+                "input": {"url": url, "visibility": visibility, "communityId": communityId},  # no title
+                "expected_error": "was not provided",
+            },
+        ]
+
+        for testCase in expectedErrors:
+            response = schema.execute_sync(
+                create_space_external_link_mutation,
+                context_value=BeneDict({"request": {"user": user}}),
+                variable_values={"input": testCase["input"]},
+            )
+
+            self.assertIn(testCase["expected_error"], str(response.errors[0].message))
+            self.assertIsNone(response.data["createSpace"] if response.data else response.data)
+
+    def test_validates_space_external_link_before_creation(self):
+        user = make_user()
+        space = make_community(creator=user)
+        communityId = str(space.id)
+
+        create_space_external_link_mutation = """
+            mutation test($input: CreateSpaceExternalLinkInput!) {
+                createSpaceExternalLink(input: $input) {
+                    id
+                }
+            }
+            """
+        valid_input = {
+            "title": "valid title",
+            "description": "valid description",
+            "url": "https://valid.com",
+            "visibility": "PRIVATE",
+            "communityId": communityId,
+        }
+
+        expectedErrors = [
+            {"field": "title", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "title", "value": "", "expected_code": "blank"},
+            {"field": "title", "value": "f" * 610, "expected_code": "max_length"},
+            {"field": "url", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "url", "value": "", "expected_code": "blank"},
+            {"field": "url", "value": "f" * 601, "expected_code": "max_length"},
+            {"field": "description", "value": "f" * 1001, "expected_code": "max_length"},
+            {"field": "communityId", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "visibility", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "visibility", "value": {}, "expected_code": "invalid"},
+            {"field": "visibility", "value": "", "expected_code": "invalid"},
+        ]
+
+        for testCase in expectedErrors:
+            response = schema.execute_sync(
+                create_space_external_link_mutation,
+                context_value=BeneDict({"request": {"user": user}}),
+                variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
+            )
+
+            if "expected_code" in testCase:
+                self.assertIn(
+                    testCase["expected_code"],
+                    str(response.errors[0].message),
+                    f"{str(response.errors[0].message)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
+                )
+            else:
+                self.assertIn(testCase["expected_error"], str(response.errors[0].message))
+            self.assertIsNone(response.data["createSpace"] if response.data else response.data)
+
+    def test_can_create_space_external_link(self):
+        user = make_user()
+        space = make_community(creator=user)
+
+        create_space_external_link_mutation = """
+            mutation test($input: CreateSpaceExternalLinkInput!) {
+                createSpaceExternalLink(input: $input) {
+                    id
+                    title
+                    url
+                    visibility
+                    description
+                }
+            }
+            """
+        valid_input = {
+            "title": "valid title",
+            "url": "https://www.facebook.com",
+            "visibility": "PRIVATE",
+            "communityId": str(space.id),
+            "description": "valid description",
+        }
+
+        response = schema.execute_sync(
+            create_space_external_link_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": valid_input},
+        )
+
+        self.assertIsNone(response.errors)
+
+        data = response.data["createSpaceExternalLink"]
+        self.assertIn("id", data)
+        self.assertIn(data["title"], valid_input["title"])
+        self.assertIn(data["url"], valid_input["url"])
+        self.assertIn(data["visibility"], valid_input["visibility"])
+        self.assertIn(data["description"], valid_input["description"])
+
+    def test_can_not_create_space_external_link_if_not_logged_in(self):
+        space = make_community()
+        create_space_external_link_mutation = """
+            mutation test($input: CreateSpaceExternalLinkInput!) {
+                createSpaceExternalLink(input: $input) {
+                    id
+                }
+            }
+            """
+        valid_input = {
+            "title": "valid title",
+            "url": "https://www.facebook.com",
+            "visibility": "PRIVATE",
+            "communityId": str(space.id),
+            "description": "valid description",
+        }
+
+        response = schema.execute_sync(
+            create_space_external_link_mutation,
+            variable_values={"input": valid_input},
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+        )
+
+        self.assert_is_unauthorized(response)
+
+    def test_can_not_create_space_external_link_if_not_space_admin(self):
+        user = make_user()
+        space = make_community()
+        create_space_external_link_mutation = """
+            mutation test($input: CreateSpaceExternalLinkInput!) {
+                createSpaceExternalLink(input: $input) {
+                    id
+                }
+            }
+            """
+        valid_input = {
+            "title": "valid title",
+            "url": "https://www.facebook.com",
+            "visibility": "PRIVATE",
+            "communityId": str(space.id),
+            "description": "valid description",
+        }
+
+        response = schema.execute_sync(
+            create_space_external_link_mutation,
+            variable_values={"input": valid_input},
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        self.assert_is_unauthorized(response)
+
     def test_validates_space_update(self):
         user = make_user()
         community = make_community()
@@ -2148,7 +2333,6 @@ class GraphQLTest(TestCase):
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"id": str(community.id)},
         )
-        print(response)
 
         self.assertIsNone(response.data)
         self.assertIn("Can't delete a community that you do not administrate.", str(response.errors[0].message))
@@ -2168,7 +2352,6 @@ class GraphQLTest(TestCase):
             variable_values={"id": str(community.id)},
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
         )
-        print(response)
 
         self.assert_is_unauthorized(response)
 
@@ -2189,7 +2372,6 @@ class GraphQLTest(TestCase):
             variable_values={"id": str(community.id)},
             context_value=BeneDict({"request": {"user": user}}),
         )
-        print(response)
 
         self.assertTrue(response.data["deleteSpace"]["success"])
         self.assertIsNone(response.errors)
