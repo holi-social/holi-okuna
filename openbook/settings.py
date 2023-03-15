@@ -652,6 +652,7 @@ IMAGEKIT_URL = os.environ.get("IMAGEKIT_URL", "https://ik.imagekit.io/holidev")
 # Ory
 ORY_BASE_URL = os.environ.get("ORY_BASE_URL")
 ORY_ACCESS_TOKEN = os.environ.get("ORY_ACCESS_TOKEN")
+ORY_SCHEMA_ID = os.environ.get("ORY_SCHEMA_ID")
 
 # HOLI model config settings
 
