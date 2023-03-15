@@ -1096,10 +1096,9 @@ class CollaborationTool(ModelWithUUID):
     domain = models.CharField(max_length=settings.COLLABORATION_TOOL_DOMAIN_MAX_LENGTH, blank=False)
     creator = models.ForeignKey(
         User,
-        on_delete=models.DO_NOTHING,
+        on_delete=models.SET_NULL,
         related_name="created_collaboration_tools",
-        null=False,
-        blank=False,
+        null=True,
     )
     community = models.ForeignKey(
         Community,

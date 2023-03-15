@@ -40,7 +40,8 @@ class Migration(migrations.Migration):
                 (
                     "creator",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
                         related_name="created_collaboration_tools",
                         to=settings.AUTH_USER_MODEL,
                     ),
