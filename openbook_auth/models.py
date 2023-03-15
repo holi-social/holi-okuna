@@ -4793,7 +4793,9 @@ class UserBlock(ModelWithUUID):
         if user.is_anonymous:
             return Q()
 
-        return ~PQ(prefix, blocked_by_users__blocker=user) & ~PQ(prefix, user_blocks__blocked_user=user)
+        user_blocked_by = UserBlock.objects.filter(blocked_user=user).values("blocker")
+        users_blocked = UserBlock.objects.filter(blocker=user).values("blocked_user")
+        return ~PQ(prefix, __in=user_blocked_by) & ~PQ(prefix, __in=users_blocked)
 
 
 @receiver(

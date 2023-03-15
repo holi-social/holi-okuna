@@ -32,7 +32,7 @@ from openbook_terms.models import (
     SDG as SDGModel,
     Skill as SkillModel,
 )
-from openbook_auth.models import User as UserModel, UserConnectionStatus
+from openbook_auth.models import User as UserModel, UserConnectionStatus, UserBlock
 from openbook_insights.models import Insight as InsightModel
 
 logger = logging.getLogger(__name__)
@@ -332,17 +332,22 @@ class Insight:
 
     @gql.django.field(prefetch_related="posts")
     def posts(self, info) -> List["Post"]:
+        current_user = info.context.request.user
         return (
-            PostModel.objects.filter(PostModel.is_visible_query(info.context.request.user))
-            .filter(insights=self)
+            PostModel.objects.filter(insights=self)
+            .filter(PostModel.is_visible_query(current_user))
+            .filter(UserBlock.not_blocked_query(current_user, "creator"))
             .order_by("created")
         )
 
+    # this should be removed and be replaced by paged posts
     @gql.django.field
     def number_of_posts(self, info) -> int:
+        current_user = info.context.request.user
         return (
             PostModel.objects.filter(insights=self)
-            .filter(PostModel.is_visible_query(info.context.request.user))
+            .filter(PostModel.is_visible_query(current_user))
+            .filter(UserBlock.not_blocked_query(current_user, "creator"))
             .count()
         )
 
@@ -350,15 +355,16 @@ class Insight:
         description="A list of all users involved. Curator of the insight, Authors of all the posts and all commenters of those posts"
     )
     def involved_users(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
+        current_user = info.context.request.user
         return Paged.of(
             UserModel.objects.select_related("profile")
-            .filter(UserModel.is_visible_query(info.context.request.user))
+            .filter(UserModel.is_visible_query(current_user))
             .filter(
                 Q(curated_insights=self)
-                | (Q(posts__insights=self) & PostModel.is_visible_query(info.context.request.user, "posts__"))
+                | (Q(posts__insights=self) & PostModel.is_visible_query(current_user, "posts"))
                 | (
                     Q(posts_comments__post__insights=self)
-                    & PostModel.is_visible_query(info.context.request.user, "posts_comments__post__")
+                    & PostCommentModel.is_visible_query(current_user, "posts_comments")
                 )
             )
             .distinct(),
@@ -391,25 +397,36 @@ class Post:
         return None
 
     @gql.django.field
-    def number_of_comments(self, info) -> int:
+    def comments(self, info) -> List[Optional["PostComment"]]:
+        current_user = info.context.request.user
         return (
             PostCommentModel.objects.filter(post=self)
-            .filter(PostCommentModel.is_visible_query(info.context.request.user))
+            .filter(PostCommentModel.is_visible_query(current_user))
+            .filter(UserBlock.not_blocked_query(current_user, "commenter"))
+            .order_by("created")
+        )
+
+    # this should be removed, once comments are paged
+    @gql.django.field
+    def number_of_comments(self, info) -> int:
+        current_user = info.context.request.user
+        return (
+            PostCommentModel.objects.filter(post=self)
+            .filter(PostCommentModel.is_visible_query(current_user))
+            .filter(UserBlock.not_blocked_query(current_user, "commenter"))
             .count()
         )
 
     @gql.django.field(description="A list of all users involved. Author of the post plus all commenters")
     def involved_users(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
+        current_user = info.context.request.user
         return Paged.of(
             UserModel.objects.select_related("profile")
             .filter(
-                (Q(posts=self) & PostModel.is_visible_query(info.context.request.user, "posts__"))
-                | (
-                    Q(posts_comments__post=self)
-                    & PostCommentModel.is_visible_query(info.context.request.user, "posts_comments__")
-                )
+                (Q(posts=self) & PostModel.is_visible_query(current_user, "posts"))
+                | (Q(posts_comments__post=self) & PostCommentModel.is_visible_query(current_user, "posts_comments"))
             )
-            .filter(UserModel.is_visible_query(info.context.request.user))
+            .filter(UserModel.is_visible_query(current_user))
             .distinct(),
             offset,
             limit,
@@ -424,14 +441,6 @@ class Post:
             .distinct(),
             offset,
             limit,
-        )
-
-    @gql.django.field
-    def comments(self, info) -> List[Optional["PostComment"]]:
-        return (
-            PostCommentModel.objects.filter(PostCommentModel.is_visible_query(info.context.request.user))
-            .filter(post=self)
-            .order_by("created")
         )
 
     @gql.django.field

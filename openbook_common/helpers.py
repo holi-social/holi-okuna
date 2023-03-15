@@ -101,10 +101,14 @@ def attr_filled(obj, attr):
     return bool(getattr(obj, attr, None))
 
 
-def PQ(prefix=None, **kwargs):
+def prefix_keys(kwargs, prefix):
     if prefix:
-        return Q(**{prefix + key: value for key, value in kwargs.items()})
-    return Q(**kwargs)
+        return {prefix + "__" + key.lstrip("_"): value for key, value in kwargs.items()}
+    return {"id" + key if key.startswith("_") else key: value for key, value in kwargs.items()}
+
+
+def PQ(prefix=None, **kwargs):
+    return Q(**prefix_keys(kwargs, prefix))
 
 
 class PrefixedQ:
@@ -112,9 +116,9 @@ class PrefixedQ:
         self.prefix = prefix
 
     def __call__(self, **kwargs):
-        if self.prefix:
-            return Q(**{self.prefix + key: value for key, value in kwargs.items()})
-        return Q(**kwargs)
+        return Q(**prefix_keys(kwargs, self.prefix))
 
     def prefix_plus(self, prefix=None):
-        return (self.prefix or "") + prefix
+        if self.prefix:
+            return self.prefix + "__" + prefix.lstrip("_")
+        return prefix

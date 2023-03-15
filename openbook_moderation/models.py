@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
 from openbook_auth.models import User
+from django.db.models import Q
 from openbook_common.helpers import PQ
 from openbook_common.models import ModelWithUUID
 from openbook_common.utils.model_loaders import (
@@ -367,12 +368,23 @@ class ModeratedObject(ModelWithUUID):
         return User.objects.filter(moderation_reports__moderated_object_id=self.pk).all()
 
     @staticmethod
-    def not_moderated_query(user, prefix=None):
-        q = ~PQ(prefix, moderated_object__status=ModeratedObject.STATUS_APPROVED)
+    def not_moderated_query(user, object_type, prefix=None):
         if user.is_anonymous:
-            return q
+            return ~PQ(
+                prefix,
+                __in=(
+                    ModeratedObject.objects.filter(
+                        object_type=object_type, status=ModeratedObject.STATUS_APPROVED
+                    ).values("object_id")
+                ),
+            )
 
-        return q & ~PQ(prefix, moderated_object__reports__reporter=user)
+        return ~PQ(
+            prefix,
+            __in=ModeratedObject.objects.filter(
+                Q(object_type=object_type) & (Q(status=ModeratedObject.STATUS_APPROVED) | Q(reports__reporter=user))
+            ).values("object_id"),
+        )
 
 
 class ModerationReport(ModelWithUUID):
