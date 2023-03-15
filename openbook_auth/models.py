@@ -1798,7 +1798,7 @@ class User(AbstractUser):
             id=community_id
         )
 
-        Community.create_community_external_link(
+        return Community.create_community_external_link(
             creator=self,
             url=url,
             title=title,
@@ -1807,8 +1807,6 @@ class User(AbstractUser):
             visibility=visibility,
             description=description,
         )
-
-        return community
 
     def delete_community(self, community):
         return self.delete_community_with_name(community.name)

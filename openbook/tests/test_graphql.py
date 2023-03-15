@@ -2006,13 +2006,10 @@ class GraphQLTest(TestCase):
             mutation test($input: CreateSpaceExternalLinkInput!) {
                 createSpaceExternalLink(input: $input) {
                     id
-                    links {
-                        id
-                        title
-                        url
-                        visibility
-                        description
-                    }
+                    title
+                    url
+                    visibility
+                    description
                 }
             }
             """
@@ -2034,12 +2031,10 @@ class GraphQLTest(TestCase):
 
         data = response.data["createSpaceExternalLink"]
         self.assertIn("id", data)
-        self.assertEqual(len(data["links"]), 1)
-        for link in data["links"]:
-            self.assertIn(link["title"], valid_input["title"])
-            self.assertIn(link["url"], valid_input["url"])
-            self.assertIn(link["visibility"], valid_input["visibility"])
-            self.assertIn(link["description"], valid_input["description"])
+        self.assertIn(data["title"], valid_input["title"])
+        self.assertIn(data["url"], valid_input["url"])
+        self.assertIn(data["visibility"], valid_input["visibility"])
+        self.assertIn(data["description"], valid_input["description"])
 
     def test_can_not_create_space_external_link_if_not_logged_in(self):
         space = make_community()

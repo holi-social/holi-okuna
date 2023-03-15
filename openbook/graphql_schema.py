@@ -796,7 +796,7 @@ class Mutation:
         )
 
     @gql.mutation
-    def create_space_external_link(self, info, input: CreateSpaceExternalLinkInput) -> Space:
+    def create_space_external_link(self, info, input: CreateSpaceExternalLinkInput) -> ExternalLink:
         current_user = verify_authorized_user(info)
         if not current_user.is_administrator_of_community_with_id(input.community_id):
             raise GraphQLError("Unauthorized", extensions={"code": GraphQLErrorCodes.UNAUTHORIZED})
@@ -810,7 +810,7 @@ class Mutation:
             url=data.get("url"),
             title=data.get("title"),
             community_id=data.get("community_id"),
-            type="other test",  # TODO: automatically get type (based on URL)
+            type="other",  # TODO: automatically get type (based on URL)
             visibility=data.get("visibility"),
             description=data.get("description"),
         )
