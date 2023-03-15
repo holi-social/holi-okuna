@@ -729,12 +729,22 @@ class Mutation:
             error_message = response.error.error if response.error else "Unknown"
             raise Exception(f"Deleting user {current_user.username} in ory failed: {error_message}")
 
-        with transaction.atomic():
-            current_user.delete()
-
-        logger.info(f"Successfully deleted user {current_user.username}")
-
-        return Result(success=True)
+        # crude hack to prevent concurrent user references (e.g. mentions in comments) to let the user deletion fail
+        # we just retry a couple of times
+        for count in range(3, -1, -1):
+            try:
+                with transaction.atomic():
+                    current_user.delete()
+                logger.info(f"Successfully deleted user {current_user.username}")
+                return Result(success=True)
+            except Error:
+                logger.warn(
+                    f"Could not delete user with id {current_user.username}, retrying #{count} more times"
+                )
+                if count == 0:
+                    raise GraphQLError(
+                        "Unable to delete user in okuna", extensions={"code": GraphQLErrorCodes.INTERNAL_SERVER_ERROR}
+                    )
 
     @gql.mutation
     def report_content(
