@@ -235,3 +235,7 @@ def get_topic_model():
 
 def get_sdg_model():
     return apps.get_model("openbook_terms.SDG")
+
+
+def get_collaboration_tool_model():
+    return apps.get_model("openbook_communities.CollaborationTool")
