@@ -1426,3 +1426,10 @@ def check_can_disable_new_post_notifications_for_user(user, target_user):
         raise ValidationError(
             _("You are not subscribed to new post notifications"),
         )
+
+
+def check_can_add_collaboration_tool_to_community(user, community=None):
+    if not user.is_member_of_community_with_name(community_name=community.name):
+        raise ValidationError(
+            _("You cannot add a collaboration tool to a community you are not a member of"),
+        )
