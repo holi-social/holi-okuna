@@ -1,39 +1,32 @@
+import logging
 import uuid
 from enum import Enum
+from typing import List, Optional, TypeVar
 from uuid import UUID
 
 import strawberry
-from typing import List, TypeVar, Optional
-
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from strawberry_django_plus import gql
-from django.db.models import QuerySet
 
-import logging
+from openbook_auth.models import User as UserModel
+from openbook_auth.models import UserConnectionStatus
 from openbook_common.models import LinkPreview as LinkPreviewModel
 from openbook_common.types import ReactionType
-from openbook_communities.models import (
-    Community as CommunityModel,
-    Task as TaskModel,
-    CommunityMembership as CommunityMembershipModel,
-    ExternalLink as ExternalLinkModel,
-    ExternalLinkType,
-)
-from openbook_notifications.models import Notification as NotificationModel
-from openbook_posts.models import (
-    Post as PostModel,
-    PostComment as PostCommentModel,
-    PostImage as PostImageModel,
-    PostReaction as PostReactionModel,
-    PostCommentReaction as PostCommentReactionModel,
-)
-from openbook_terms.models import (
-    Topic as TopicModel,
-    SDG as SDGModel,
-    Skill as SkillModel,
-)
-from openbook_auth.models import User as UserModel, UserConnectionStatus
+from openbook_communities.models import Community as CommunityModel
+from openbook_communities.models import CommunityMembership as CommunityMembershipModel
+from openbook_communities.models import ExternalLink as ExternalLinkModel
+from openbook_communities.models import ExternalLinkType
+from openbook_communities.models import Task as TaskModel
 from openbook_insights.models import Insight as InsightModel
+from openbook_notifications.models import Notification as NotificationModel
+from openbook_posts.models import Post as PostModel
+from openbook_posts.models import PostComment as PostCommentModel
+from openbook_posts.models import PostCommentReaction as PostCommentReactionModel
+from openbook_posts.models import PostImage as PostImageModel
+from openbook_posts.models import PostReaction as PostReactionModel
+from openbook_terms.models import SDG as SDGModel
+from openbook_terms.models import Skill as SkillModel
+from openbook_terms.models import Topic as TopicModel
 
 logger = logging.getLogger(__name__)
 
@@ -332,36 +325,30 @@ class Insight:
 
     @gql.django.field(prefetch_related="posts")
     def posts(self, info) -> List["Post"]:
-        return (
-            PostModel.objects.filter(PostModel.is_visible_query(info.context.request.user))
-            .filter(insights=self)
-            .order_by("created")
-        )
+        return self.posts.visibles(info.context.request.user).order_by("created")
 
-    @gql.django.field
+    @gql.django.field(prefetch_related="posts")
     def number_of_posts(self, info) -> int:
-        return (
-            PostModel.objects.filter(insights=self)
-            .filter(PostModel.is_visible_query(info.context.request.user))
-            .count()
-        )
+        return self.posts.visibles(info.context.request.user).count()
 
     @gql.django.field(
         description="A list of all users involved. Curator of the insight, Authors of all the posts and all commenters of those posts"
     )
     def involved_users(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
-        return Paged.of(
+        posts = self.posts.visibles(info.context.request.user)
+        post_comments = PostCommentModel.objects.filter(post__in=posts).visibles(info.context.request.user)
+        users = (
             UserModel.objects.select_related("profile")
-            .filter(UserModel.is_visible_query(info.context.request.user))
+            .filter(is_deleted=False, profile__isnull=False)
             .filter(
-                Q(curated_insights=self)
-                | (Q(posts__insights=self) & PostModel.is_visible_query(info.context.request.user, "posts__"))
-                | (
-                    Q(posts_comments__post__insights=self)
-                    & PostModel.is_visible_query(info.context.request.user, "posts_comments__post__")
-                )
+                Q(id=self.creator.id)
+                | Q(id__in=posts.values("creator").distinct())
+                | Q(id__in=post_comments.values("commenter").distinct())
             )
-            .distinct(),
+        )
+
+        return Paged.of(
+            users.distinct(),
             offset,
             limit,
         )

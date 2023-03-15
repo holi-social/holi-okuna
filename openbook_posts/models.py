@@ -6,18 +6,17 @@ from datetime import timedelta
 
 import ffmpy
 from django.conf import settings
-from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.files import File
 from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import (
     InMemoryUploadedFile,
-    TemporaryUploadedFile,
     SimpleUploadedFile,
+    TemporaryUploadedFile,
 )
-from django.db import models, IntegrityError
-from django.db.models import Count
-from django.db.models import Q
+from django.db import IntegrityError, models
+from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
@@ -27,52 +26,53 @@ from pilkit.processors import ResizeToFit
 from rest_framework.exceptions import ValidationError
 
 from openbook_auth.models import User, UserBlock, get_reactions
+from openbook_common.helpers import PQ, PrefixedQ, attr_filled, get_language_for_text
 from openbook_common.models import (
     Language,
+    LinkPreview,
     ModelWithUUID,
     OrderedModelWithUUID,
-    LinkPreview,
 )
 from openbook_common.types import ReactionType
 from openbook_common.utils.helpers import (
     delete_file_field,
-    sha256sum,
+    extract_hashtags_from_string,
     extract_usernames_from_string,
     get_magic,
+    sha256sum,
     write_in_memory_file_to_disk,
-    extract_hashtags_from_string,
 )
 from openbook_common.utils.model_loaders import (
     get_circle_model,
     get_community_model,
-    get_post_comment_notification_model,
-    get_post_comment_reply_notification_model,
-    get_post_reaction_notification_model,
-    get_moderated_object_model,
-    get_post_user_mention_notification_model,
-    get_post_comment_user_mention_notification_model,
-    get_user_model,
-    get_post_user_mention_model,
-    get_post_comment_user_mention_model,
-    get_community_notifications_subscription_model,
     get_community_new_post_notification_model,
-    get_user_new_post_notification_model,
+    get_community_notifications_subscription_model,
     get_hashtag_model,
-    get_user_notifications_subscription_model,
-    get_trending_post_model,
+    get_moderated_object_model,
+    get_post_comment_notification_model,
     get_post_comment_reaction_notification_model,
+    get_post_comment_reply_notification_model,
+    get_post_comment_user_mention_model,
+    get_post_comment_user_mention_notification_model,
+    get_post_reaction_notification_model,
+    get_post_user_mention_model,
+    get_post_user_mention_notification_model,
+    get_trending_post_model,
+    get_user_model,
+    get_user_new_post_notification_model,
+    get_user_notifications_subscription_model,
 )
 from openbook_moderation.models import ModeratedObject
 from openbook_notifications.helpers import (
+    send_community_new_post_push_notification,
     send_post_comment_user_mention_push_notification,
     send_post_user_mention_push_notification,
-    send_community_new_post_push_notification,
     send_user_new_post_push_notification,
 )
 from openbook_posts.checkers import (
-    check_can_be_updated,
     check_can_add_media,
     check_can_be_published,
+    check_can_be_updated,
     check_mimetype_is_supported_media_mimetypes,
 )
 from openbook_posts.helpers import (
@@ -80,15 +80,49 @@ from openbook_posts.helpers import (
     upload_to_post_video_directory,
 )
 from openbook_posts.jobs import process_post_media
-from openbook_posts.validators import post_text_validators, post_comment_text_validators
+from openbook_posts.validators import post_comment_text_validators, post_text_validators
 from video_encoding.backends import get_backend
 from video_encoding.fields import VideoField
 from video_encoding.models import Format
 
-from openbook_common.helpers import get_language_for_text, attr_filled, PQ, PrefixedQ
-
 magic = get_magic()
 post_image_storage = default_storage
+
+
+class PostQuerySet(models.QuerySet):
+    def visibles(self, user):
+        if user.is_anonymous:
+            return self.filter(
+                Q(circles__id=get_circle_model().get_world_circle_id())
+                | Q(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC),
+                is_deleted=False,
+                status=Post.STATUS_PUBLISHED,
+            ).exclude(
+                id__in=ModeratedObject.objects.filter(
+                    object_type=ModeratedObject.OBJECT_TYPE_POST, status=ModeratedObject.STATUS_APPROVED
+                ).values("object_id")
+            )
+
+        user_blocked_by = UserBlock.objects.filter(blocked_user=user).values("blocker").distinct()
+        users_blocked = UserBlock.objects.filter(blocker=user).values("blocked_user").distinct()
+        return self.filter(
+            Q(creator=user)
+            | (
+                Q(status=Post.STATUS_PUBLISHED)
+                & (
+                    Q(circles__id=get_circle_model().get_world_circle_id())
+                    | Q(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC)
+                )
+            ),
+            is_deleted=False,
+        ).exclude(
+            Q(creator__in=user_blocked_by) | Q(creator__in=users_blocked),
+            id__in=ModeratedObject.objects.filter(
+                object_type=ModeratedObject.OBJECT_TYPE_POST,
+                status=ModeratedObject.STATUS_APPROVED,
+                reports__reporter=user,
+            ).values("object_id"),
+        )
 
 
 class Post(ModelWithUUID):
@@ -128,6 +162,8 @@ class Post(ModelWithUUID):
     status = models.CharField(blank=False, null=False, choices=STATUSES, default=STATUS_DRAFT, max_length=2)
     links = models.ManyToManyField(LinkPreview, related_name="+", blank=True)
     mentions = models.ManyToManyField(User, related_name="mentioned_in_posts", blank=True, through="PostUserMention")
+
+    objects = PostQuerySet.as_manager()
 
     class Meta:
         index_together = [
@@ -1150,6 +1186,27 @@ class PostVideo(ModelWithUUID):
         return post_video
 
 
+class PostCommentQuerySet(models.QuerySet):
+    def visibles(self, user):
+        if user.is_anonymous:
+            return self.filter(is_deleted=False,).exclude(
+                id__in=ModeratedObject.objects.filter(
+                    object_type=ModeratedObject.OBJECT_TYPE_POST_COMMENT, status=ModeratedObject.STATUS_APPROVED
+                ).values("object_id")
+            )
+
+        user_blocked_by = UserBlock.objects.filter(blocked_user=user).values("blocker").distinct()
+        users_blocked = UserBlock.objects.filter(blocker=user).values("blocked_user").distinct()
+        return self.filter(is_deleted=False,).exclude(
+            Q(commenter__in=user_blocked_by) | Q(commenter__in=users_blocked),
+            id__in=ModeratedObject.objects.filter(
+                object_type=ModeratedObject.OBJECT_TYPE_POST_COMMENT,
+                status=ModeratedObject.STATUS_APPROVED,
+                reports__reporter=user,
+            ).values("object_id"),
+        )
+
+
 class PostComment(ModelWithUUID):
     moderated_object = GenericRelation(ModeratedObject, related_query_name="post_comments")
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
@@ -1175,6 +1232,8 @@ class PostComment(ModelWithUUID):
         blank=True,
         through="PostCommentUserMention",
     )
+
+    objects = PostCommentQuerySet.as_manager()
 
     @classmethod
     def create_comment(cls, text, commenter, post, parent_comment=None):
