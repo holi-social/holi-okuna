@@ -1075,3 +1075,59 @@ class ExternalLink(ModelWithUUID):
         max_length=9,
         choices=ExternalLinkType.choices,
     )
+
+
+class CollaborationTool(ModelWithUUID):
+    @gql.enum
+    class CollectionType(models.TextChoices):
+        COLLABORATION = "collaboration", _("collaboration")
+        COMMUNICATION = "communication", _("communication")
+
+    url = models.URLField(blank=False)
+    title = models.TextField(blank=False)
+    collection_type = models.CharField(
+        max_length=15,
+        choices=CollectionType.choices,
+    )
+    description = models.TextField(
+        null=True,
+        blank=True,
+    )
+    domain = models.CharField(max_length=settings.COLLABORATION_TOOL_DOMAIN_MAX_LENGTH, blank=False)
+    creator = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name="created_collaboration_tools",
+        null=True,
+    )
+    community = models.ForeignKey(
+        Community,
+        on_delete=models.CASCADE,
+        related_name="collaboration_tools",
+        blank=False,
+        null=False,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @classmethod
+    def add_collaboration_tool(
+        cls,
+        creator,
+        community,
+        url,
+        title,
+        collection_type,
+        description=None,
+    ):
+        collaboration_tool = cls.objects.create(
+            creator=creator,
+            community=community,
+            url=url,
+            domain=url,  # TODO: Extract domain name from provided URL
+            title=title,
+            collection_type=collection_type,
+            description=description,
+        )
+
+        collaboration_tool.save()
+        return collaboration_tool

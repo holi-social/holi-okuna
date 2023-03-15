@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from openbook_communities.models import (
+    CollaborationTool,
     Community,
     CommunityMembership,
     Task,
@@ -38,3 +39,8 @@ class CommunityTaskAdmin(admin.ModelAdmin):
 @admin.register(ExternalLink)
 class CommunityLinkAdmin(admin.ModelAdmin):
     list_display = ("community", "type", "url")
+
+
+@admin.register(CollaborationTool)
+class CommunityCollaborationToolAdmin(admin.ModelAdmin):
+    list_display = ("url", "domain", "title", "collection_type", "description")

@@ -29,6 +29,7 @@ from openbook_common.helpers import get_supported_translation_language, PQ, Pref
 from openbook_common.models import Badge, ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import (
+    get_collaboration_tool_model,
     get_connection_model,
     get_circle_model,
     get_follow_model,
@@ -4541,6 +4542,31 @@ class User(AbstractUser):
                 self.last_seen_notification_timestamp = last_seen_timestamp
                 Notification.objects.filter(owner=self, created__lte=last_seen_timestamp).update(read=True)
                 self.save()
+
+    def add_collaboration_tool(
+        self,
+        space_id,
+        url,
+        title,
+        collection_type,
+        description=None,
+    ):
+        Community = get_community_model()
+        community = Community.objects.get(id=space_id)
+
+        check_can_add_collaboration_tool_to_community(user=self, community=community)
+
+        CollaborationTool = get_collaboration_tool_model()
+        collaboration_tool = CollaborationTool.add_collaboration_tool(
+            creator=self,
+            community=community,
+            url=url,
+            title=title,
+            collection_type=collection_type,
+            description=description,
+        )
+
+        return collaboration_tool
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL, dispatch_uid="bootstrap_auth_token")

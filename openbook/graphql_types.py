@@ -18,6 +18,7 @@ from openbook_communities.models import (
     CommunityMembership as CommunityMembershipModel,
     ExternalLink as ExternalLinkModel,
     ExternalLinkType,
+    CollaborationTool as CollaborationToolModel,
 )
 from openbook_notifications.models import Notification as NotificationModel
 from openbook_posts.models import (
@@ -239,6 +240,19 @@ class Point:
     latitude: float
 
 
+CollectionType = CollaborationToolModel.CollectionType
+
+
+@gql.django.type(CollaborationToolModel)
+class CollaborationTool:
+    id: gql.auto
+    url: gql.auto
+    title: gql.auto
+    description: gql.auto
+    collection_type: CollectionType
+    domain: gql.auto
+
+
 @gql.django.type(CommunityModel)
 class Space:
     id: gql.auto
@@ -255,6 +269,7 @@ class Space:
     tasks: List[Optional["Task"]]
     topics: List[Optional[Topic]]
     sdgs: List[Optional[SDG]]
+    collaboration_tools: List[Optional[CollaborationTool]]
 
     @gql.django.field
     def geolocation(self) -> Optional[Point]:
