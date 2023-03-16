@@ -152,10 +152,6 @@ resource "google_cloud_run_service" "okuna" {
             }
           }
         }
-        env {
-          name = "ORY_SCHEMA_ID"
-          value = local.environment == "production" ? "unknown" : "b4c06b2ea2d1e214d5d61488e47361a58618c75bff5bd3e13ce33c9f52115c6eed0f948838884ddd225ebd484631d6ca2e7579cc9e51000697054b6658b6f176"
-        }
         resources {
           limits = {
             # cpu can only be scaled down to 1000m as long as container_concurrency is set to != 1

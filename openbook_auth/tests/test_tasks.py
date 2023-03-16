@@ -29,7 +29,6 @@ class TestUpdateOryUser(TestCase):
     @mock.patch("requests.patch")
     def test_update_ory_user_success(self, mock_patch):
         json_body = [
-            {"op": "replace", "path": "/schema_id", "value": settings.ORY_SCHEMA_ID},
             {"op": "replace", "path": "/traits/given_name", "value": self.user.profile.name},
             {"op": "replace", "path": "/traits/family_name", "value": self.user.profile.last_name},
             {
@@ -71,7 +70,6 @@ class TestUpdateOryUser(TestCase):
     @mock.patch("requests.patch")
     def test_update_ory_user_failure_user_not_exist(self, mock_patch):
         json_body = [
-            {"op": "replace", "path": "/schema_id", "value": settings.ORY_SCHEMA_ID},
             {"op": "replace", "path": "/traits/given_name", "value": self.user.profile.name},
             {"op": "replace", "path": "/traits/family_name", "value": self.user.profile.last_name},
             {
@@ -103,7 +101,6 @@ class TestUpdateOryUser(TestCase):
     @mock.patch("requests.patch")
     def test_update_ory_user_failure_bad_request(self, mock_patch):
         json_body = [
-            {"op": "replace", "path": "/schema_id", "value": settings.ORY_SCHEMA_ID},
             {"op": "replace", "path": "/traits/given_name", "value": self.user.profile.name},
             {"op": "replace", "path": "/traits/family_name", "value": self.user.profile.last_name},
             {
