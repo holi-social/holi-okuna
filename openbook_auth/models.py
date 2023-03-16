@@ -3,13 +3,14 @@ import re
 import secrets
 import uuid
 from datetime import datetime, timedelta
+from typing import Iterable
 
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.mail import EmailMultiAlternatives
 from django.db import models
-from django.db.models import Q, F, Count
+from django.db.models import Q, F, Count, QuerySet
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.template.loader import render_to_string
@@ -2031,7 +2032,7 @@ class User(AbstractUser):
 
         return community_to_join
 
-    def approve_membership_request_to_community_for_username(self, username, community_name):
+    def approve_membership_request_to_community_for_username(self, username, community_name) -> "Community":
         check_is_staff_of_community_with_name(self, community_name)
 
         user_to_approve: User = User.objects.get(username=username)
@@ -3561,7 +3562,7 @@ class User(AbstractUser):
     def get_follow_for_user_with_id(self, user_id):
         return self.follows.get(followed_user_id=user_id)
 
-    def get_notifications(self, max_id=None, types=None):
+    def get_notifications(self, max_id=None, types: Iterable[str] = None) -> QuerySet["Notification"]:
         notifications_query = Q()
 
         if max_id:

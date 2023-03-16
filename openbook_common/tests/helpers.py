@@ -266,7 +266,7 @@ def make_community(
     title=None,
     topics=None,
     location=None,
-):
+) -> Community:
     if not creator:
         creator = make_user()
 
