@@ -1083,13 +1083,14 @@ class CollaborationTool(ModelWithUUID):
         COLLABORATION = "collaboration", _("collaboration")
         COMMUNICATION = "communication", _("communication")
 
-    url = models.URLField(blank=False)
-    title = models.TextField(blank=False)
+    url = models.URLField(blank=False, max_length=settings.COLLABORATION_TOOL_URL_MAX_LENGTH)
+    title = models.CharField(blank=False, max_length=settings.COLLABORATION_TOOL_TITLE_MAX_LENGTH)
     collection_type = models.CharField(
         max_length=15,
         choices=CollectionType.choices,
     )
-    description = models.TextField(
+    description = models.CharField(
+        max_length=settings.COLLABORATION_TOOL_DESCRIPTION_MAX_LENGTH,
         null=True,
         blank=True,
     )
