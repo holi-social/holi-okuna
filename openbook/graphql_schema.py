@@ -599,7 +599,8 @@ class Mutation:
                 delete_avatar(data["avatar"])
             raise
 
-        update_ory_user.delay(current_user.id)
+        if input.first_name or input.last_name:
+            update_ory_user.delay(current_user.id)
 
         return current_user
 
