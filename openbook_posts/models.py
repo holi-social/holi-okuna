@@ -1409,17 +1409,8 @@ class PostComment(ModelWithUUID):
 
     @staticmethod
     def is_visible_query(user, prefix=None):
-        pQ = PrefixedQ(prefix)
-        if user.is_anonymous:
-            return pQ(is_deleted=False) & ModeratedObject.not_moderated_query(
-                user, ModeratedObject.OBJECT_TYPE_POST_COMMENT, prefix
-            )
-
-        return (
-            pQ(is_deleted=False)
-            & ModeratedObject.not_moderated_query(user, ModeratedObject.OBJECT_TYPE_POST_COMMENT, prefix)
-            # I (Malte) think, comments are visible to all users in the same way
-            # & (pQ(commenter=user) | Post.is_visible_query(user, pQ.prefix_plus("post")))
+        return PQ(prefix, is_deleted=False) & ModeratedObject.not_moderated_query(
+            user, ModeratedObject.OBJECT_TYPE_POST_COMMENT, prefix
         )
 
 

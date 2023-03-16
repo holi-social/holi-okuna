@@ -369,21 +369,13 @@ class ModeratedObject(ModelWithUUID):
 
     @staticmethod
     def not_moderated_query(user, object_type, prefix=None):
-        if user.is_anonymous:
-            return ~PQ(
-                prefix,
-                __in=(
-                    ModeratedObject.objects.filter(
-                        object_type=object_type, status=ModeratedObject.STATUS_APPROVED
-                    ).values("object_id")
-                ),
-            )
-
         return ~PQ(
             prefix,
-            __in=ModeratedObject.objects.filter(
-                Q(object_type=object_type) & (Q(status=ModeratedObject.STATUS_APPROVED) | Q(reports__reporter=user))
-            ).values("object_id"),
+            __in=(
+                ModeratedObject.objects.filter(object_type=object_type, status=ModeratedObject.STATUS_APPROVED).values(
+                    "object_id"
+                )
+            ),
         )
 
 
