@@ -6,6 +6,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.core.files.storage import default_storage
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import Point
+from django.db.models import QuerySet
 
 from django.utils import timezone
 
@@ -13,11 +14,12 @@ from django.contrib.gis.db.models import Q
 from django.contrib.gis.db.models import Count
 from pilkit.processors import ResizeToFill, ResizeToFit
 from strawberry_django_plus import gql
+import tldextract
 
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
-from openbook_auth.models import User
 from django.utils.translation import gettext_lazy as _
 
+from openbook_auth.models import User
 from openbook_common.models import ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import (
@@ -172,6 +174,9 @@ class Community(ModelWithUUID):
     topics = models.ManyToManyField(Topic, related_name="communities", blank=False, db_index=True)
     sdgs = models.ManyToManyField(SDG, related_name="communities", blank=True, db_index=True, null=True)
     geolocation = models.PointField(blank=True, null=True, spatial_index=True)
+
+    #  Backwards relations
+    memberships: QuerySet["CommunityMembership"]
 
     class Meta:
         verbose_name_plural = "communities"
@@ -1075,3 +1080,63 @@ class ExternalLink(ModelWithUUID):
         max_length=9,
         choices=ExternalLinkType.choices,
     )
+
+
+class CollaborationTool(ModelWithUUID):
+    @gql.enum
+    class CollectionType(models.TextChoices):
+        COLLABORATION = "collaboration", _("collaboration")
+        COMMUNICATION = "communication", _("communication")
+
+    url = models.URLField(blank=False, max_length=settings.COLLABORATION_TOOL_URL_MAX_LENGTH)
+    title = models.CharField(blank=False, max_length=settings.COLLABORATION_TOOL_TITLE_MAX_LENGTH)
+    collection_type = models.CharField(
+        max_length=15,
+        choices=CollectionType.choices,
+    )
+    description = models.CharField(
+        max_length=settings.COLLABORATION_TOOL_DESCRIPTION_MAX_LENGTH,
+        null=True,
+        blank=True,
+    )
+    domain = models.CharField(max_length=settings.COLLABORATION_TOOL_DOMAIN_MAX_LENGTH, blank=False)
+    creator = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name="created_collaboration_tools",
+        null=True,
+    )
+    community = models.ForeignKey(
+        Community,
+        on_delete=models.CASCADE,
+        related_name="collaboration_tools",
+        blank=False,
+        null=False,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @classmethod
+    def add_collaboration_tool(
+        cls,
+        creator,
+        community,
+        url,
+        title,
+        collection_type,
+        description=None,
+    ):
+        def extract_and_capitalize_domain_name(url: str) -> str:
+            return tldextract.extract(url).domain.title()
+
+        collaboration_tool = cls.objects.create(
+            creator=creator,
+            community=community,
+            url=url,
+            domain=extract_and_capitalize_domain_name(url),
+            title=title,
+            collection_type=collection_type,
+            description=description,
+        )
+
+        collaboration_tool.save()
+        return collaboration_tool

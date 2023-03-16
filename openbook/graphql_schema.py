@@ -24,6 +24,7 @@ from openbook_auth.views.authenticated_user.serializers import (
     UpdateAuthenticatedUserSerializer,
 )
 from openbook_communities.views.communities.serializers import (
+    AddCollaborationToolSerializer,
     CreateCommunitySerializer,
     UpdateCommunitySerializer,
     ValidateCommunitySerializer,
@@ -474,6 +475,12 @@ class Query:
 
         return NewNotificationsResponse(id=current_user.username, status=notifications.exists())
 
+    @gql.django.field
+    def collaboration_tools(self, space_id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[CollaborationTool]:
+        return Paged.of(
+            CollaborationToolModel.objects.filter(community__id=space_id).order_by("-created_at"), offset, limit
+        )
+
 
 def to_input_dict(input):
     """
@@ -549,6 +556,15 @@ class UpdateSpaceInput:
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[PointField] = strawberry.UNSET
+
+
+@gql.input
+class AddCollaborationToolInput:
+    space_id: uuid.UUID
+    url: str
+    title: str
+    description: Optional[str] = strawberry.UNSET
+    collection_type: CollectionType
 
 
 @gql.type
@@ -704,12 +720,20 @@ class Mutation:
             error_message = response.error.error if response.error else "Unknown"
             raise Exception(f"Deleting user {current_user.username} in ory failed: {error_message}")
 
-        with transaction.atomic():
-            current_user.delete()
-
-        logger.info(f"Successfully deleted user {current_user.username}")
-
-        return Result(success=True)
+        # crude hack to prevent concurrent user references (e.g. mentions in comments) to let the user deletion fail
+        # we just retry a couple of times
+        for count in range(3, -1, -1):
+            try:
+                with transaction.atomic():
+                    current_user.delete()
+                logger.info(f"Successfully deleted user {current_user.username}")
+                return Result(success=True)
+            except Error:
+                logger.warn(f"Could not delete user with id {current_user.username}, retrying #{count} more times")
+                if count == 0:
+                    raise GraphQLError(
+                        "Unable to delete user in okuna", extensions={"code": GraphQLErrorCodes.INTERNAL_SERVER_ERROR}
+                    )
 
     @gql.mutation
     def report_content(
@@ -830,6 +854,33 @@ class Mutation:
         current_user = verify_authorized_user(info)
         current_user.store_last_seen_notification(notification_id)
         return NewNotificationsResponse(id=current_user.username, status=False)
+
+    @gql.mutation
+    def add_collaboration_tool(self, info, input: AddCollaborationToolInput) -> CollaborationTool:
+        current_user = verify_authorized_user(info)
+
+        serializer = AddCollaborationToolSerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        return current_user.add_collaboration_tool(
+            space_id=data.get("space_id"),
+            url=data.get("url"),
+            title=data.get("title"),
+            description=data.get("description"),
+            collection_type=data.get("collection_type"),
+        )
+
+    @gql.mutation
+    def delete_collaboration_tool(self, info, id: uuid.UUID) -> Result:
+        current_user = verify_authorized_user(info)
+
+        with transaction.atomic():
+            current_user.delete_collaboration_tool(
+                collaboration_tool_id=id,
+            )
+
+        return Result(success=True)
 
 
 schema = strawberry.Schema(

@@ -3,13 +3,14 @@ import re
 import secrets
 import uuid
 from datetime import datetime, timedelta
+from typing import Iterable
 
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.mail import EmailMultiAlternatives
 from django.db import models
-from django.db.models import Q, F, Count
+from django.db.models import Q, F, Count, QuerySet
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.template.loader import render_to_string
@@ -29,6 +30,7 @@ from openbook_common.helpers import get_supported_translation_language, PQ, Pref
 from openbook_common.models import Badge, ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import (
+    get_collaboration_tool_model,
     get_connection_model,
     get_circle_model,
     get_follow_model,
@@ -2030,7 +2032,7 @@ class User(AbstractUser):
 
         return community_to_join
 
-    def approve_membership_request_to_community_for_username(self, username, community_name):
+    def approve_membership_request_to_community_for_username(self, username, community_name) -> "Community":
         check_is_staff_of_community_with_name(self, community_name)
 
         user_to_approve: User = User.objects.get(username=username)
@@ -3560,7 +3562,7 @@ class User(AbstractUser):
     def get_follow_for_user_with_id(self, user_id):
         return self.follows.get(followed_user_id=user_id)
 
-    def get_notifications(self, max_id=None, types=None):
+    def get_notifications(self, max_id=None, types: Iterable[str] = None) -> QuerySet["Notification"]:
         notifications_query = Q()
 
         if max_id:
@@ -4541,6 +4543,42 @@ class User(AbstractUser):
                 self.last_seen_notification_timestamp = last_seen_timestamp
                 Notification.objects.filter(owner=self, created__lte=last_seen_timestamp).update(read=True)
                 self.save()
+
+    def add_collaboration_tool(
+        self,
+        space_id,
+        url,
+        title,
+        collection_type,
+        description=None,
+    ):
+        Community = get_community_model()
+        community = Community.objects.get(id=space_id)
+
+        check_can_add_collaboration_tool_to_community(user=self, community=community)
+
+        CollaborationTool = get_collaboration_tool_model()
+        collaboration_tool = CollaborationTool.add_collaboration_tool(
+            creator=self,
+            community=community,
+            url=url,
+            title=title,
+            collection_type=collection_type,
+            description=description,
+        )
+
+        return collaboration_tool
+
+    def delete_collaboration_tool(self, collaboration_tool_id):
+        CollaborationTool = get_collaboration_tool_model()
+        collaboration_tool = CollaborationTool.objects.get(id=collaboration_tool_id)
+
+        Community = get_community_model()
+        community = Community.objects.get(id=collaboration_tool.community.id)
+
+        check_can_delete_collaboration_tool_from_community(user=self, community=community)
+
+        return collaboration_tool.delete()
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL, dispatch_uid="bootstrap_auth_token")

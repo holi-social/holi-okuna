@@ -8,7 +8,7 @@ from openbook_common.serializers import CommonCommunityMembershipSerializer
 from openbook_common.serializers_fields.community import CommunityPostsCountField
 from openbook_common.serializers_fields.request import RestrictedImageFileSizeField
 from openbook_common.validators import hex_color_validator
-from openbook_communities.models import Community
+from openbook_communities.models import CollaborationTool, Community
 from openbook_communities.serializers_fields import (
     CommunityGeolocationField,
     IsInvitedField,
@@ -261,3 +261,27 @@ class SuggestedCommunitiesCommunitySerializer(serializers.ModelSerializer):
             "is_creator",
             "memberships",
         )
+
+
+class AddCollaborationToolSerializer(serializers.Serializer):
+    space_id = serializers.UUIDField(
+        validators=[community_id_exists],
+        required=True,
+    )
+    url = serializers.URLField(
+        max_length=settings.COLLABORATION_TOOL_URL_MAX_LENGTH,
+        required=True,
+    )
+    title = serializers.CharField(
+        min_length=settings.COLLABORATION_TOOL_TITLE_MIN_LENGTH,
+        max_length=settings.COLLABORATION_TOOL_TITLE_MAX_LENGTH,
+        required=True,
+    )
+    description = serializers.CharField(
+        min_length=settings.COLLABORATION_TOOL_DESCRIPTION_MIN_LENGTH,
+        max_length=settings.COLLABORATION_TOOL_DESCRIPTION_MAX_LENGTH,
+        required=False,
+    )
+    collection_type = serializers.ChoiceField(
+        allow_blank=False, required=False, choices=CollaborationTool.CollectionType.choices
+    )

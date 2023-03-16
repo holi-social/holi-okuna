@@ -26,6 +26,7 @@ from openbook_common.tests.helpers import (
     get_test_images,
     get_test_videos,
     make_authentication_headers_for_user,
+    make_collaboration_tool,
     make_community,
     make_community_task,
     make_fake_post_text,
@@ -41,11 +42,6 @@ from openbook_insights.models import Insight
 from openbook_moderation.models import ModeratedObject
 
 logger = logging.getLogger(__name__)
-
-
-class ContextWithUser:
-    def __init__(self, user):
-        self.user = user
 
 
 class GraphQLTest(TestCase):
@@ -2167,7 +2163,6 @@ class GraphQLTest(TestCase):
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"id": str(community.id)},
         )
-        print(response)
 
         self.assertIsNone(response.data)
         self.assertIn("Can't delete a community that you do not administrate.", str(response.errors[0].message))
@@ -2187,7 +2182,6 @@ class GraphQLTest(TestCase):
             variable_values={"id": str(community.id)},
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
         )
-        print(response)
 
         self.assert_is_unauthorized(response)
 
@@ -2208,9 +2202,318 @@ class GraphQLTest(TestCase):
             variable_values={"id": str(community.id)},
             context_value=BeneDict({"request": {"user": user}}),
         )
-        print(response)
 
         self.assertTrue(response.data["deleteSpace"]["success"])
+        self.assertIsNone(response.errors)
+
+    def test_can_not_add_collaboration_tool_missing_required_fields(self):
+        user = make_user()
+
+        community = make_community()
+        community.add_member(user)
+
+        add_collaboration_tool_mutation = """
+            mutation test($input: AddCollaborationToolInput!) {
+                addCollaborationTool(input: $input) {
+                    id
+                }
+            }
+            """
+
+        valid_space_id = str(community.id)
+        valid_url = "https://project-holi.org/"
+        valid_title = "Project Holi"
+        valid_collection_type = "COLLABORATION"
+
+        expectedErrors = [
+            {
+                "input": {"url": valid_url, "title": valid_title, "spaceId": valid_space_id},
+                "expected_error": "was not provided",
+            },
+            {
+                "input": {"url": valid_url, "spaceId": valid_space_id, "collectionType": valid_collection_type},
+                "expected_error": "was not provided",
+            },
+            {
+                "input": {"title": valid_title, "spaceId": valid_space_id, "collectionType": valid_collection_type},
+                "expected_error": "was not provided",
+            },
+        ]
+
+        for testCase in expectedErrors:
+            response = schema.execute_sync(
+                add_collaboration_tool_mutation,
+                context_value=BeneDict({"request": {"user": user}}),
+                variable_values={"input": testCase["input"]},
+            )
+
+            self.assertIn(testCase["expected_error"], str(response.errors[0].message))
+            self.assertIsNone(response.data["addCollaborationTool"] if response.data else response.data)
+
+    def test_validates_collaboration_tool_before_creation(self):
+        user = make_user()
+
+        community = make_community()
+        community.add_member(user)
+
+        add_collaboration_tool_mutation = """
+            mutation test($input: AddCollaborationToolInput!) {
+                addCollaborationTool(input: $input) {
+                    id
+                }
+            }
+            """
+
+        valid_space_id = str(community.id)
+        valid_url = "https://project-holi.org/"
+        valid_title = "Project Holi"
+        valid_description = "holi is the network where people and organizations come together for the common good"
+        valid_collection_type = "COLLABORATION"
+
+        valid_input = {
+            "spaceId": valid_space_id,
+            "url": valid_url,
+            "title": valid_title,
+            "description": valid_description,
+            "collectionType": valid_collection_type,
+        }
+
+        expectedErrors = [
+            {"field": "url", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "url", "value": "", "expected_code": "blank"},
+            {"field": "url", "value": "project-holi.org", "expected_code": "invalid"},
+            {"field": "title", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "title", "value": "", "expected_code": "blank"},
+            {"field": "title", "value": "c", "expected_code": "min_length"},
+            {"field": "title", "value": "c" * 61, "expected_code": "max_length"},
+            {"field": "description", "value": "c", "expected_code": "min_length"},
+            {"field": "description", "value": "c" * 101, "expected_code": "max_length"},
+            {"field": "collectionType", "value": None, "expected_code": "Expected non-nullable type"},
+        ]
+
+        for testCase in expectedErrors:
+            response = schema.execute_sync(
+                add_collaboration_tool_mutation,
+                context_value=BeneDict({"request": {"user": user}}),
+                variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
+            )
+
+            if "expected_code" in testCase:
+                self.assertIn(
+                    testCase["expected_code"],
+                    str(response.errors[0].message),
+                    f"{str(response.errors[0].message)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
+                )
+            else:
+                self.assertIn(testCase["expected_error"], str(response.errors[0].message))
+            self.assertIsNone(response.data["addCollaborationTool"] if response.data else response.data)
+
+    def test_can_add_collaboration_tool(self):
+        user = make_user()
+
+        community = make_community()
+        community.add_member(user)
+
+        add_collaboration_tool_mutation = """
+            mutation test($input: AddCollaborationToolInput!) {
+                addCollaborationTool(input: $input) {
+                    id
+                    url
+                    title
+                    description
+                    collectionType
+                    domain
+                }
+            }
+            """
+
+        valid_space_id = str(community.id)
+        valid_url = "https://project-holi.org/"
+        valid_title = "Project Holi"
+        valid_description = "holi is the network where people and organizations come together for the common good"
+        valid_collection_type = "COLLABORATION"
+        valid_domain = "Project-Holi"
+
+        valid_input = {
+            "spaceId": valid_space_id,
+            "url": valid_url,
+            "title": valid_title,
+            "description": valid_description,
+            "collectionType": valid_collection_type,
+        }
+
+        response = schema.execute_sync(
+            add_collaboration_tool_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": valid_input},
+        )
+
+        self.assertIsNone(response.errors)
+
+        added_collaboration_tool = response.data["addCollaborationTool"]
+        self.assertIn("id", added_collaboration_tool)
+        self.assertEqual(valid_url, added_collaboration_tool["url"])
+        self.assertEqual(valid_title, added_collaboration_tool["title"])
+        self.assertEqual(valid_description, added_collaboration_tool["description"])
+        self.assertIn(valid_collection_type, added_collaboration_tool["collectionType"])
+        self.assertIn(valid_domain, added_collaboration_tool["domain"])
+
+    def test_can_not_add_collaboration_tool_if_not_logged_in(self):
+        community = make_community()
+        add_collaboration_tool_mutation = """
+            mutation test($input: AddCollaborationToolInput!) {
+                addCollaborationTool(input: $input) {
+                    id
+                }
+            }
+            """
+        valid_space_id = str(community.id)
+        valid_url = "https://project-holi.org/"
+        valid_title = "Project Holi"
+        valid_description = "holi is the network where people and organizations come together for the common good"
+        valid_collection_type = "COLLABORATION"
+
+        valid_input = {
+            "spaceId": valid_space_id,
+            "url": valid_url,
+            "title": valid_title,
+            "description": valid_description,
+            "collectionType": valid_collection_type,
+        }
+
+        response = schema.execute_sync(
+            add_collaboration_tool_mutation,
+            variable_values={"input": valid_input},
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+        )
+
+        self.assert_is_unauthorized(response)
+
+    def test_can_not_add_collaboration_tool_if_not_space_member(self):
+        user = make_user()
+        community = make_community()
+
+        add_collaboration_tool_mutation = """
+            mutation test($input: AddCollaborationToolInput!) {
+                addCollaborationTool(input: $input) {
+                    id
+                }
+            }
+            """
+
+        valid_space_id = str(community.id)
+        valid_url = "https://project-holi.org/"
+        valid_title = "Project Holi"
+        valid_description = "holi is the network where people and organizations come together for the common good"
+        valid_collection_type = "COLLABORATION"
+
+        valid_input = {
+            "spaceId": valid_space_id,
+            "url": valid_url,
+            "title": valid_title,
+            "description": valid_description,
+            "collectionType": valid_collection_type,
+        }
+
+        response = schema.execute_sync(
+            add_collaboration_tool_mutation,
+            variable_values={"input": valid_input},
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        self.assertIsNone(response.data)
+        self.assertIn(
+            "You cannot add a collaboration tool to a community you are not a member of", response.errors[0].message
+        )
+
+    def test_can_not_collaboration_tool_if_not_logged_in(self):
+        collaboration_tool = make_collaboration_tool()
+
+        delete_collaboration_tool_mutation = """
+            mutation test($id: UUID!) {
+                deleteCollaborationTool(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            delete_collaboration_tool_mutation,
+            variable_values={"id": str(collaboration_tool.id)},
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+        )
+
+        self.assert_is_unauthorized(response)
+
+    def test_can_not_collaboration_tool_if_not_space_member(self):
+        collaboration_tool = make_collaboration_tool()
+        user = make_user()
+
+        delete_collaboration_tool_mutation = """
+            mutation test($id: UUID!) {
+                deleteCollaborationTool(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            delete_collaboration_tool_mutation,
+            variable_values={"id": str(collaboration_tool.id)},
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        self.assertIsNone(response.data)
+        self.assertIn(
+            "You cannot delete a collaboration tool in a community you are not a member of", response.errors[0].message
+        )
+
+    def test_can_delete_collaboration_tool_if_admin(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        collaboration_tool = make_collaboration_tool(community=community)
+
+        delete_collaboration_tool_mutation = """
+            mutation test($id: UUID!) {
+                deleteCollaborationTool(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            delete_collaboration_tool_mutation,
+            variable_values={"id": str(collaboration_tool.id)},
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        self.assertTrue(response.data["deleteCollaborationTool"]["success"])
+        self.assertIsNone(response.errors)
+
+    def test_can_delete_collaboration_tool_if_space_member(self):
+        user = make_user()
+        community = make_community()
+
+        community.add_member(user)
+
+        collaboration_tool = make_collaboration_tool(community=community)
+
+        delete_collaboration_tool_mutation = """
+            mutation test($id: UUID!) {
+                deleteCollaborationTool(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            delete_collaboration_tool_mutation,
+            variable_values={"id": str(collaboration_tool.id)},
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        self.assertTrue(response.data["deleteCollaborationTool"]["success"])
         self.assertIsNone(response.errors)
 
 
