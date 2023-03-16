@@ -269,6 +269,7 @@ class AddCollaborationToolSerializer(serializers.Serializer):
         required=True,
     )
     url = serializers.URLField(
+        max_length=settings.COLLABORATION_TOOL_URL_MAX_LENGTH,
         required=True,
     )
     title = serializers.CharField(
