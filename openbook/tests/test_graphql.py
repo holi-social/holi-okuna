@@ -2305,6 +2305,7 @@ class GraphQLTest(TestCase):
                     title
                     description
                     collectionType
+                    domain
                 }
             }
             """
@@ -2314,6 +2315,7 @@ class GraphQLTest(TestCase):
         valid_title = "Project Holi"
         valid_description = "holi is the network where people and organizations come together for the common good"
         valid_collection_type = "COLLABORATION"
+        valid_domain = "Project-Holi"
 
         valid_input = {
             "spaceId": valid_space_id,
@@ -2337,6 +2339,7 @@ class GraphQLTest(TestCase):
         self.assertEqual(valid_title, added_collaboration_tool["title"])
         self.assertEqual(valid_description, added_collaboration_tool["description"])
         self.assertIn(valid_collection_type, added_collaboration_tool["collectionType"])
+        self.assertIn(valid_domain, added_collaboration_tool["domain"])
 
     def test_can_not_add_collaboration_tool_if_not_logged_in(self):
         community = make_community()

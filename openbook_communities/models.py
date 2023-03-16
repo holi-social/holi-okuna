@@ -14,6 +14,7 @@ from django.contrib.gis.db.models import Q
 from django.contrib.gis.db.models import Count
 from pilkit.processors import ResizeToFill, ResizeToFit
 from strawberry_django_plus import gql
+import tldextract
 
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
 from django.utils.translation import gettext_lazy as _
@@ -1124,11 +1125,14 @@ class CollaborationTool(ModelWithUUID):
         collection_type,
         description=None,
     ):
+        def extract_and_capitalize_domain_name(url: str) -> str:
+            return tldextract.extract(url).domain.title()
+
         collaboration_tool = cls.objects.create(
             creator=creator,
             community=community,
             url=url,
-            domain=url,  # TODO: Extract domain name from provided URL
+            domain=extract_and_capitalize_domain_name(url),
             title=title,
             collection_type=collection_type,
             description=description,
