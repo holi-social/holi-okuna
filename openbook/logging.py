@@ -1,8 +1,8 @@
 import json
 import logging
-from logging import config as logging_config
 import os
 import sys
+from logging import config as logging_config
 
 import structlog
 
@@ -93,10 +93,7 @@ LOGGING_CONFIG = {
         "uvicorn.access": {
             "level": "WARNING",
         },
-        "rq.worker": {
-            "handlers": ["console"],
-            "level": "INFO"
-        },
+        "rq.worker": {"handlers": ["console"], "level": "INFO"},
         # "django.db.backends": {
         #     "level": "DEBUG",
         # },

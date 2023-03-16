@@ -26,25 +26,16 @@ class TestUpdateOryUser(TestCase):
         cls.user.delete()
         super().tearDownClass()
 
-    @mock.patch('requests.patch')
+    @mock.patch("requests.patch")
     def test_update_ory_user_success(self, mock_patch):
         json_body = [
+            {"op": "replace", "path": "/schema_id", "value": settings.ORY_SCHEMA_ID},
+            {"op": "replace", "path": "/traits/given_name", "value": self.user.profile.name},
+            {"op": "replace", "path": "/traits/family_name", "value": self.user.profile.last_name},
             {
                 "op": "replace",
-                "path": "/schema_id",
-                "value": settings.ORY_SCHEMA_ID
-            }, {
-                "op": "replace",
-                "path": "/traits/given_name",
-                "value": self.user.profile.name
-            }, {
-                "op": "replace",
-                "path": "/traits/family_name",
-                "value": self.user.profile.last_name
-            }, {
-                "op": "replace",
                 "path": "/traits/name",
-                "value": f"{self.user.profile.name} {self.user.profile.last_name}"
+                "value": f"{self.user.profile.name} {self.user.profile.last_name}",
             },
         ]
         response_content = json.dumps(
@@ -55,10 +46,7 @@ class TestUpdateOryUser(TestCase):
                 "state": "active",
                 "traits": {
                     "email": self.user.email,
-                    "name": {
-                        "first": self.user.profile.name,
-                        "last": self.user.profile.last_name
-                    },
+                    "name": {"first": self.user.profile.name, "last": self.user.profile.last_name},
                 },
                 "updated_at": str(datetime.now()),
             }
@@ -74,41 +62,26 @@ class TestUpdateOryUser(TestCase):
         mock_patch.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{self.user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
-            json=json_body
+            json=json_body,
         )
         self.assertFalse(job.is_failed)
         self.assertTrue(job.is_finished)
         self.assertIsNone(job.result)
 
-    @mock.patch('requests.patch')
+    @mock.patch("requests.patch")
     def test_update_ory_user_failure_user_not_exist(self, mock_patch):
         json_body = [
+            {"op": "replace", "path": "/schema_id", "value": settings.ORY_SCHEMA_ID},
+            {"op": "replace", "path": "/traits/given_name", "value": self.user.profile.name},
+            {"op": "replace", "path": "/traits/family_name", "value": self.user.profile.last_name},
             {
                 "op": "replace",
-                "path": "/schema_id",
-                "value": settings.ORY_SCHEMA_ID
-            }, {
-                "op": "replace",
-                "path": "/traits/given_name",
-                "value": self.user.profile.name
-            }, {
-                "op": "replace",
-                "path": "/traits/family_name",
-                "value": self.user.profile.last_name
-            }, {
-                "op": "replace",
                 "path": "/traits/name",
-                "value": f"{self.user.profile.name} {self.user.profile.last_name}"
+                "value": f"{self.user.profile.name} {self.user.profile.last_name}",
             },
         ]
         response_content = json.dumps(
-            {
-                "error": {
-                    "code": 404,
-                    "status": "Not Found",
-                    "message": "Unable to locate the resource"
-                }
-            }
+            {"error": {"code": 404, "status": "Not Found", "message": "Unable to locate the resource"}}
         )
         response = Response()
         response.status_code = 404
@@ -121,42 +94,25 @@ class TestUpdateOryUser(TestCase):
         mock_patch.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{self.user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
-            json=json_body
+            json=json_body,
         )
         self.assertTrue(job.is_failed)
         self.assertFalse(job.is_finished)
         self.assertIsNone(job.result)
 
-    @mock.patch('requests.patch')
+    @mock.patch("requests.patch")
     def test_update_ory_user_failure_bad_request(self, mock_patch):
         json_body = [
+            {"op": "replace", "path": "/schema_id", "value": settings.ORY_SCHEMA_ID},
+            {"op": "replace", "path": "/traits/given_name", "value": self.user.profile.name},
+            {"op": "replace", "path": "/traits/family_name", "value": self.user.profile.last_name},
             {
-                "op": "replace",
-                "path": "/schema_id",
-                "value": settings.ORY_SCHEMA_ID
-            }, {
-                "op": "replace",
-                "path": "/traits/given_name",
-                "value": self.user.profile.name
-            }, {
-                "op": "replace",
-                "path": "/traits/family_name",
-                "value": self.user.profile.last_name
-            }, {
                 "op": "replace",
                 "path": "/traits/name",
-                "value": f"{self.user.profile.name} {self.user.profile.last_name}"
+                "value": f"{self.user.profile.name} {self.user.profile.last_name}",
             },
         ]
-        response_content = json.dumps(
-            {
-                "error": {
-                    "code": 400,
-                    "status": "Bad request",
-                    "message": "Unsupported"
-                }
-            }
-        )
+        response_content = json.dumps({"error": {"code": 400, "status": "Bad request", "message": "Unsupported"}})
         response = Response()
         response.status_code = 400
         response._content = str.encode(response_content)
@@ -168,7 +124,7 @@ class TestUpdateOryUser(TestCase):
         mock_patch.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{self.user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
-            json=json_body
+            json=json_body,
         )
         self.assertTrue(job.is_failed)
         self.assertFalse(job.is_finished)
