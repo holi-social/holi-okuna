@@ -23,6 +23,7 @@ from openbook_common.tests.helpers import (
     get_test_images,
     get_test_videos,
     make_authentication_headers_for_user,
+    make_collaboration_tool,
     make_community,
     make_community_task,
     make_fake_post_text,
@@ -2143,7 +2144,6 @@ class GraphQLTest(TestCase):
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"id": str(community.id)},
         )
-        print(response)
 
         self.assertIsNone(response.data)
         self.assertIn("Can't delete a community that you do not administrate.", str(response.errors[0].message))
@@ -2163,7 +2163,6 @@ class GraphQLTest(TestCase):
             variable_values={"id": str(community.id)},
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
         )
-        print(response)
 
         self.assert_is_unauthorized(response)
 
@@ -2184,7 +2183,6 @@ class GraphQLTest(TestCase):
             variable_values={"id": str(community.id)},
             context_value=BeneDict({"request": {"user": user}}),
         )
-        print(response)
 
         self.assertTrue(response.data["deleteSpace"]["success"])
         self.assertIsNone(response.errors)
@@ -2408,6 +2406,96 @@ class GraphQLTest(TestCase):
         self.assertIn(
             "You cannot add a collaboration tool to a community you are not a member of", response.errors[0].message
         )
+
+    def test_can_not_collaboration_tool_if_not_logged_in(self):
+        collaboration_tool = make_collaboration_tool()
+
+        delete_collaboration_tool_mutation = """
+            mutation test($id: UUID!) {
+                deleteCollaborationTool(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            delete_collaboration_tool_mutation,
+            variable_values={"id": str(collaboration_tool.id)},
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+        )
+
+        self.assert_is_unauthorized(response)
+
+    def test_can_not_collaboration_tool_if_not_space_member(self):
+        collaboration_tool = make_collaboration_tool()
+        user = make_user()
+
+        delete_collaboration_tool_mutation = """
+            mutation test($id: UUID!) {
+                deleteCollaborationTool(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            delete_collaboration_tool_mutation,
+            variable_values={"id": str(collaboration_tool.id)},
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        self.assertIsNone(response.data)
+        self.assertIn(
+            "You cannot delete a collaboration tool in a community you are not a member of", response.errors[0].message
+        )
+
+    def test_can_delete_collaboration_tool_if_admin(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        collaboration_tool = make_collaboration_tool(community=community)
+
+        delete_collaboration_tool_mutation = """
+            mutation test($id: UUID!) {
+                deleteCollaborationTool(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            delete_collaboration_tool_mutation,
+            variable_values={"id": str(collaboration_tool.id)},
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        self.assertTrue(response.data["deleteCollaborationTool"]["success"])
+        self.assertIsNone(response.errors)
+
+    def test_can_delete_collaboration_tool_if_space_member(self):
+        user = make_user()
+        community = make_community()
+
+        community.add_member(user)
+
+        collaboration_tool = make_collaboration_tool(community=community)
+
+        delete_collaboration_tool_mutation = """
+            mutation test($id: UUID!) {
+                deleteCollaborationTool(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            delete_collaboration_tool_mutation,
+            variable_values={"id": str(collaboration_tool.id)},
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        self.assertTrue(response.data["deleteCollaborationTool"]["success"])
+        self.assertIsNone(response.errors)
 
 
 def approve_verify_moderated_object(object_id, user):
