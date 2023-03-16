@@ -867,6 +867,17 @@ class Mutation:
             collection_type=data.get("collection_type"),
         )
 
+    @gql.mutation
+    def delete_collaboration_tool(self, info, id: uuid.UUID) -> Result:
+        current_user = verify_authorized_user(info)
+
+        with transaction.atomic():
+            current_user.delete_collaboration_tool(
+                collaboration_tool_id=id,
+            )
+
+        return Result(success=True)
+
 
 schema = strawberry.Schema(
     query=Query,

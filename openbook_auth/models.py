@@ -4569,6 +4569,17 @@ class User(AbstractUser):
 
         return collaboration_tool
 
+    def delete_collaboration_tool(self, collaboration_tool_id):
+        CollaborationTool = get_collaboration_tool_model()
+        collaboration_tool = CollaborationTool.objects.get(id=collaboration_tool_id)
+
+        Community = get_community_model()
+        community = Community.objects.get(id=collaboration_tool.community.id)
+
+        check_can_delete_collaboration_tool_from_community(user=self, community=community)
+
+        return collaboration_tool.delete()
+
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL, dispatch_uid="bootstrap_auth_token")
 def create_auth_token(sender, instance=None, created=False, **kwargs):
