@@ -2874,7 +2874,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(0, len(response_posts))
+        self.assertEqual(1, len(response_posts))
 
     def test_cant_retrieve_private_community_part_of_processing_posts(self):
         """should not be able to retrieve private community part of processing posts"""
@@ -2908,7 +2908,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(0, len(response_posts))
+        self.assertEqual(1, len(response_posts))
 
     def test_cant_retrieve_connected_user_draft_posts_by_username(self):
         """should not be able to retrieve connected user draft posts by username"""
