@@ -24,18 +24,17 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.schema_id = str(options["schema_id"]).strip()
-        print(self.schema_id)
         if not self.schema_id:
             print("schema_id not valid, exit")
             return
         self.body_data = [
             {"op": "replace", "path": "/schema_id", "value": self.schema_id},
         ]
-        self.get_ory_users_list()
-        self.print_ory_users_list()
+        self._get_ory_users_list()
+        self._patch_ory_users_list()
 
-    def get_ory_users_list(self):
-        print("Get list of users with different schema...")
+    def _get_ory_users_list(self):
+        print("Getting list of users with different schema")
         page = 1
         per_page = 500
 
@@ -61,12 +60,12 @@ class Command(BaseCommand):
 
             page += 1
 
-    def print_ory_users_list(self):
+    def _patch_ory_users_list(self):
         choice = input(
-            f"{self.users_to_update_count} Ory users to patch found, enter (p) for print them, enter any other input to cancel: "
+            f"{self.users_to_update_count} Ory users to patch found, enter (p) to print them, enter any other input to cancel: "
         )
         if choice.lower() != "p":
-            print(f"Job canceled, {self.total_users_updated} users updated")
+            print("Job canceled")
             return
 
         for schema_id, users in self.list_users_by_schema.items():
@@ -75,17 +74,17 @@ class Command(BaseCommand):
             for user in users:
                 print(user["email"])
 
-            self.patch_ory_matched_users(schema_id, users)
+            self._patch_ory_matched_users(schema_id, users)
 
         print(f"Job completed, {self.total_users_updated} users updated")
 
-    def patch_ory_matched_users(self, schema_id, users):
+    def _patch_ory_matched_users(self, schema_id, users):
         users_updated_count = 0
         choice = input(
             f"\nSchema \x1B[3m'{schema_id}'\x1B[0m has {len(users)} Ory users to update, enter (u) for update them, enter any other input to skip: "
         )
         if choice.lower() != "u":
-            print(f"Skipped, {0} users updated")
+            print("Skipped, 0 users updated")
             return
 
         for user in users:

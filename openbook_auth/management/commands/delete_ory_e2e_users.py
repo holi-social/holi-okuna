@@ -14,12 +14,12 @@ class Command(BaseCommand):
     list_users = []
 
     def handle(self, *args, **options):
-        self.get_ory_users_list()
-        self.print_ory_users_list()
-        self.delete_ory_matched_users()
+        self._get_e2e_users_list()
+        self._print_ory_users_list()
+        self._delete_ory_matched_users()
 
-    def get_ory_users_list(self):
-        print("Get list of users that ends with \x1B[3m'@e2etest.com'\x1B[0m...")
+    def _get_e2e_users_list(self):
+        print("Getting list of users that ends with \x1B[3m'@e2etest.com'\x1B[0m")
         page = 1
         per_page = 500
 
@@ -42,16 +42,16 @@ class Command(BaseCommand):
 
             page += 1
 
-    def print_ory_users_list(self):
-        choice = input(f"{len(self.list_users)} Ory users to delete found, enter (p) for print them: ")
+    def _print_ory_users_list(self):
+        choice = input(f"{len(self.list_users)} Ory users to delete found, enter (p) to print them: ")
         if choice.lower() == "p":
             for user in self.list_users:
                 print(user["email"])
 
-    def delete_ory_matched_users(self):
+    def _delete_ory_matched_users(self):
         users_deleted_count = 0
         choice = input(
-            f"{len(self.list_users)} Ory users to delete, enter (d) for delete them, enter any other input to cancel: "
+            f"{len(self.list_users)} Ory users to delete, enter (d) to delete them, enter any other input to cancel: "
         )
         if choice.lower() != "d":
             print(f"Job canceled, {users_deleted_count} users deleted")
