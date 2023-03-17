@@ -13,6 +13,7 @@ from openbook_communities.models import (
 class CommunityAdmin(admin.ModelAdmin):
     readonly_fields = ["name"]
     list_display = ("title", "creator", "created")
+    search_fields = ("title", "creator__email")
 
     def has_add_permission(self, request, obj=None):
         return True  # needs to be true for adding communities via /admin (needed for creating posts)
@@ -28,6 +29,7 @@ class CommunityAdmin(admin.ModelAdmin):
 @admin.register(CommunityMembership)
 class CommunityMembershipAdmin(admin.ModelAdmin):
     list_display = ("community", "user")
+    search_fields = ("community__title", "creator__email")
 
 
 @admin.register(Task)
