@@ -25,7 +25,7 @@ class Command(BaseCommand):
 
         response_data = []
         while page == 1 or len(response_data) > 0:
-            print(f"Downloading users info, page {page}")
+            print(f"Downloading users info..{page * '.'}")
 
             params = {"page": page, "per_page": per_page}
             response = requests.get(self.base_url, params=params, headers=self.headers)
