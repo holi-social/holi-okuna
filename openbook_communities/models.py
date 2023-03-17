@@ -1115,6 +1115,27 @@ class CollaborationTool(ModelWithUUID):
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def update(
+        self,
+        url=None,
+        title=None,
+        description=None,
+        collection_type=None,
+    ):
+        if url is not None:
+            self.url = url
+
+        if title is not None:
+            self.title = title
+
+        if description is not None:
+            self.description = description
+
+        if collection_type is not None:
+            self.collection_type = collection_type
+
+        self.save()
+
     @classmethod
     def add_collaboration_tool(
         cls,

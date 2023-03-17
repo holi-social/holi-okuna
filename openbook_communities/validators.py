@@ -5,7 +5,7 @@ from rest_framework.exceptions import ValidationError, NotFound
 
 from openbook_terms.models import SDG, Topic
 
-from openbook_common.utils.model_loaders import get_community_model
+from openbook_common.utils.model_loaders import get_collaboration_tool_model, get_community_model
 
 
 def community_name_characters_validator(community_name):
@@ -46,4 +46,12 @@ def community_id_exists(community_id):
     if not Community.community_with_id_exists(community_id=community_id):
         raise NotFound(
             _("No community with the provided id exists."),
+        )
+
+
+def collaboration_tool_id_exists(collaboration_tool_id):
+    collaboration_tool = get_collaboration_tool_model()
+    if not collaboration_tool.objects.filter(id=collaboration_tool_id).exists():
+        raise NotFound(
+            _("No collaboration tool with the provided id exists."),
         )

@@ -18,6 +18,7 @@ from openbook_communities.serializers_fields import (
     AreNewPostNotificationsEnabledForCommunityField,
 )
 from openbook_communities.validators import (
+    collaboration_tool_id_exists,
     community_name_characters_validator,
     community_name_not_taken_validator,
     community_id_exists,
@@ -285,3 +286,25 @@ class AddCollaborationToolSerializer(serializers.Serializer):
     collection_type = serializers.ChoiceField(
         allow_blank=False, required=False, choices=CollaborationTool.CollectionType.choices
     )
+
+
+class UpdateCollaborationToolSerializer(serializers.Serializer):
+    id = serializers.UUIDField(
+        validators=[collaboration_tool_id_exists],
+        required=True,
+    )
+    url = serializers.URLField(
+        max_length=settings.COLLABORATION_TOOL_URL_MAX_LENGTH,
+        required=False,
+    )
+    title = serializers.CharField(
+        min_length=settings.COLLABORATION_TOOL_TITLE_MIN_LENGTH,
+        max_length=settings.COLLABORATION_TOOL_TITLE_MAX_LENGTH,
+        required=False,
+    )
+    description = serializers.CharField(
+        min_length=settings.COLLABORATION_TOOL_DESCRIPTION_MIN_LENGTH,
+        max_length=settings.COLLABORATION_TOOL_DESCRIPTION_MAX_LENGTH,
+        required=False,
+    )
+    collection_type = serializers.ChoiceField(required=False, choices=CollaborationTool.CollectionType.choices)
