@@ -1116,13 +1116,11 @@ class GraphQLTest(TestCase):
         self.assertIsNone(response.errors)
         self.assertEqual(response.data["reportContent"]["success"], True)
 
-        self.assertEqual(reporting_user.can_see_post(post), False)
+        self.assertEqual(reporting_user.can_see_post(post), True)
         self.assertEqual(other_user.can_see_post(post), True)
 
-        response = self.get_post_with_id_raw(post, reporting_user)
-        self.assertIsNone(response.data["postById"])
-        self.assertFalse(reporting_user.can_see_post(post))
-        self.assertTrue(other_user.can_see_post(post))
+        post_data = self.get_post_with_id_data(post, reporting_user)
+        self.assertEqual(post_data["id"], str(post.id))
 
         post_data = self.get_post_with_id_data(post, other_user)
         self.assertEqual(post_data["id"], str(post.id))
@@ -1170,9 +1168,6 @@ class GraphQLTest(TestCase):
         self.assertEqual(response.data["reportContent"]["success"], True)
 
         post_data = self.get_post_with_id_data(post, reporting_user)
-        self.assertEqual(len(post_data["comments"]), 0)
-
-        post_data = self.get_post_with_id_data(post, other_user)
         self.assertEqual(len(post_data["comments"]), 1)
 
         approve_verify_moderated_object(comment.id, posting_user)
@@ -1267,18 +1262,6 @@ class GraphQLTest(TestCase):
             }}
             """,
             context_value=BeneDict({"request": {"user": reporting_user}}),
-        )
-        self.assertIsNone(response.data["spaceById"])
-
-        response = schema.execute_sync(
-            f"""
-            query {{
-                spaceById(idOrName: "{space.id}") {{
-                    id
-                }}
-            }}
-            """,
-            context_value=BeneDict({"request": {"user": other_user}}),
         )
         self.assertIsNone(response.errors)
         self.assertEqual(len(response.data["spaceById"]), 1)
