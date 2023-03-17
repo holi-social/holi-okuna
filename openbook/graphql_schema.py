@@ -13,6 +13,8 @@ from django.db.models.functions import Concat
 from django.db.models.lookups import IContains
 from django.utils.translation import gettext_lazy as _
 from graphql import GraphQLError
+from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from strawberry.file_uploads import Upload
 from strawberry_django_plus.optimizer import DjangoOptimizerExtension
 
@@ -706,7 +708,6 @@ class Mutation:
     ) -> Space:
         current_user = verify_authorized_user(info)
         space = CommunityModel.objects.get(id=space_id)  # @todo Use name as parameter, same as okuna? w
-
         cT = SpaceUserConnectionType
         a = UpdateConnectionAction
         if not user_id or current_user.username == user_id:
