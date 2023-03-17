@@ -452,8 +452,6 @@ class User(AbstractUser):
 
         exclude_reported_and_approved_posts_query = ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED)
 
-        exclude_reported_posts_query = ~Q(moderated_object__reports__reporter_id=self.pk)
-
         exclude_blocked_posts_query = ~Q(
             Q(creator__blocked_by_users__blocker_id=self.pk) | Q(creator__user_blocks__blocked_user_id=self.pk)
         )
@@ -474,7 +472,6 @@ class User(AbstractUser):
                 & world_circle_posts_query
                 & exclude_deleted_posts_query
                 & exclude_blocked_posts_query
-                & exclude_reported_posts_query
                 & exclude_reported_and_approved_posts_query
             )
         )
@@ -493,7 +490,6 @@ class User(AbstractUser):
                 & exclude_private_community_posts_query
                 & exclude_deleted_posts_query
                 & exclude_blocked_posts_query
-                & exclude_reported_posts_query
                 & exclude_reported_and_approved_posts_query
             )
         )
@@ -3111,8 +3107,6 @@ class User(AbstractUser):
 
         timeline_posts_query.add(Q(is_deleted=False, status=Post.STATUS_PUBLISHED), Q.AND)
 
-        timeline_posts_query.add(~Q(moderated_object__reports__reporter_id=self.pk), Q.AND)
-
         return Post.objects.filter(timeline_posts_query).distinct()
 
     def _get_timeline_posts_with_no_filters(self, max_id=None):
@@ -4214,8 +4208,6 @@ class User(AbstractUser):
             Q.AND,
         )
 
-        posts_query.add(~Q(moderated_object__reports__reporter_id=self.pk), Q.AND)
-
         posts_query.add(Q(id=post_id), Q.AND)
         return posts_query
 
@@ -4442,9 +4434,6 @@ class User(AbstractUser):
         elif min_id:
             comments_query.add(Q(id__gte=min_id), Q.AND)
 
-        # Don't retrieve items we have reported
-        comments_query.add(~Q(moderated_object__reports__reporter_id=self.pk), Q.AND)
-
         # Don't retrieve soft deleted post comments
         comments_query.add(Q(is_deleted=False), Q.AND)
 
@@ -4463,9 +4452,6 @@ class User(AbstractUser):
         # Don't retrieve items that have been reported and approved
         ModeratedObject = get_moderated_object_model()
         community_posts_query.add(~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
-
-        # Don't retrieve items we have reported
-        community_posts_query.add(~Q(moderated_object__reports__reporter_id=self.pk), Q.AND)
 
         # Only retrieve posts if we're not banned
         community_posts_query.add(~Q(community__banned_users__id=self.pk), Q.AND)
@@ -4831,7 +4817,9 @@ class UserBlock(ModelWithUUID):
         if user.is_anonymous:
             return Q()
 
-        return ~PQ(prefix, blocked_by_users__blocker=user) & ~PQ(prefix, user_blocks__blocked_user=user)
+        user_blocked_by = UserBlock.objects.filter(blocked_user=user).values("blocker")
+        users_blocked = UserBlock.objects.filter(blocker=user).values("blocked_user")
+        return ~PQ(prefix, __in=user_blocked_by) & ~PQ(prefix, __in=users_blocked)
 
 
 @receiver(

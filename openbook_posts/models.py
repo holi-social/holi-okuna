@@ -251,8 +251,6 @@ class Post(ModelWithUUID):
             "post__community__title",
         )
 
-        reported_posts_exclusion_query = ~Q(post__moderated_object__reports__reporter_id=user_id)
-
         trending_community_posts_query = Q(
             post__is_closed=False,
             post__is_deleted=False,
@@ -276,8 +274,6 @@ class Post(ModelWithUUID):
 
         ModeratedObject = get_moderated_object_model()
         trending_community_posts_query.add(~Q(post__moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
-
-        trending_community_posts_query.add(reported_posts_exclusion_query, Q.AND)
 
         trending_community_posts_queryset = (
             TrendingPost.objects.select_related(*posts_select_related)
@@ -466,9 +462,6 @@ class Post(ModelWithUUID):
 
         # Don't count soft deleted items
         count_query.add(Q(is_deleted=False), Q.AND)
-
-        # Don't count items we have reported
-        count_query.add(~Q(moderated_object__reports__reporter_id=user.pk), Q.AND)
 
         return self.comments.filter(count_query).count()
 
@@ -904,35 +897,27 @@ class Post(ModelWithUUID):
 
         if user.is_anonymous:
             return (
-                ~pQ(is_deleted=True)
-                & ModeratedObject.not_moderated_query(user, prefix)
+                pQ(is_deleted=False, status=Post.STATUS_PUBLISHED)
                 & (
-                    pQ(status=Post.STATUS_PUBLISHED)
-                    & (
-                        pQ(circles__id=get_circle_model().get_world_circle_id())
-                        | pQ(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC)
-                    )
+                    pQ(circles__id=get_circle_model().get_world_circle_id())
+                    | pQ(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC)
                 )
+                & ModeratedObject.not_moderated_query(user, ModeratedObject.OBJECT_TYPE_POST, prefix)
             )
 
         return (
-            ~pQ(is_deleted=True)
-            & ModeratedObject.not_moderated_query(user, pQ.prefix)
-            & UserBlock.not_blocked_query(user, pQ.prefix_plus("creator__"))
+            pQ(is_deleted=False)
             & (
                 pQ(creator=user)
                 | (
                     pQ(status=Post.STATUS_PUBLISHED)
                     & (
                         pQ(circles__id=get_circle_model().get_world_circle_id())
-                        # | pQ(  # is in a circle, that I'm connected to
-                        #     circles__connections__target_user=user,
-                        #     circles__connections__target_connection__circles__isnull=False,
-                        # )
                         | pQ(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC)
                     )
                 )
             )
+            & ModeratedObject.not_moderated_query(user, ModeratedObject.OBJECT_TYPE_POST, prefix)
         )
 
 
@@ -1417,19 +1402,8 @@ class PostComment(ModelWithUUID):
 
     @staticmethod
     def is_visible_query(user, prefix=None):
-        pQ = PrefixedQ(prefix)
-        if user.is_anonymous:
-            return (
-                ~pQ(is_deleted=True)
-                & ModeratedObject.not_moderated_query(user, pQ.prefix)
-                & Post.is_visible_query(user, pQ.prefix_plus("post__"))
-            )
-
-        return (
-            ~pQ(is_deleted=True)
-            & ModeratedObject.not_moderated_query(user, pQ.prefix)
-            & UserBlock.not_blocked_query(user, pQ.prefix_plus("commenter__"))
-            & (pQ(commenter=user) | Post.is_visible_query(user, pQ.prefix_plus("post__")))
+        return PQ(prefix, is_deleted=False) & ModeratedObject.not_moderated_query(
+            user, ModeratedObject.OBJECT_TYPE_POST_COMMENT, prefix
         )
 
 

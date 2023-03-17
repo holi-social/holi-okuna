@@ -134,9 +134,13 @@ def filter_spaces_by_topic_ids(topic_ids, limit):
     ).prefetch_related("memberships__user__profile")
 
 
-def resolve_post(user, id):
+def resolve_post(current_user, post_id):
     try:
-        return PostModel.objects.filter(PostModel.is_visible_query(user)).get(id=id)
+        return (
+            PostModel.objects.filter(PostModel.is_visible_query(current_user))
+            .filter(UserBlock.not_blocked_query(current_user, "creator"))
+            .get(id=post_id)
+        )
     except PostModel.DoesNotExist:
         raise GraphQLError("Post not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
 
@@ -246,8 +250,13 @@ class Query:
 
     @gql.django.field
     def insight_by_id(self, info, id: uuid.UUID) -> Optional[Insight]:
+        current_user = info.context.request.user
         try:
-            return InsightModel.objects.filter(date_published__lte=datetime.now()).get(id=id)
+            return (
+                InsightModel.objects.filter(UserModel.is_visible_query(current_user, "creator"))
+                .filter(date_published__lte=datetime.now())
+                .get(id=id)
+            )
         except InsightModel.DoesNotExist:
             raise GraphQLError("Insight not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
 
@@ -425,7 +434,11 @@ class Query:
         try:
             return (
                 CommunityModel.objects.prefetch_related("links", "memberships__user__profile", "tasks")
-                .filter(ModeratedObject.not_moderated_query(info.context.request.user))
+                .filter(
+                    ModeratedObject.not_moderated_query(
+                        info.context.request.user, ModeratedObject.OBJECT_TYPE_COMMUNITY
+                    )
+                )
                 .get(query)
             )
         except CommunityModel.DoesNotExist:
