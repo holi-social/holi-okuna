@@ -3000,7 +3000,6 @@ class User(AbstractUser):
             "post__community__title",
         )
 
-        reported_posts_exclusion_query = ~Q(post__moderated_object__reports__reporter_id=self.pk)
         excluded_top_posts_communities_query = ~Q(post__community__top_posts_community_exclusions__user=self.pk)
 
         top_community_posts_query = Q(
@@ -3032,7 +3031,6 @@ class User(AbstractUser):
             exclude_joined_communities_query = ~Q(post__community__memberships__user__id=self.pk)
             top_community_posts_query.add(exclude_joined_communities_query, Q.AND)
 
-        top_community_posts_query.add(reported_posts_exclusion_query, Q.AND)
         top_community_posts_query.add(excluded_top_posts_communities_query, Q.AND)
 
         top_community_posts_queryset = (
@@ -4235,8 +4233,6 @@ class User(AbstractUser):
 
         if max_id:
             posts_query.add(Q(id__lt=max_id), Q.AND)
-
-        posts_query.add(~Q(moderated_object__reports__reporter_id=self.pk), Q.AND)
 
         return posts_query
 

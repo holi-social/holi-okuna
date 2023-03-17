@@ -297,8 +297,6 @@ class Post(ModelWithUUID):
             Q.AND,
         )
 
-        trending_posts_query.add(~Q(moderated_object__reports__reporter_id=user_id), Q.AND)
-
         trending_posts_query.add(~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
 
         return cls._get_trending_posts_old_with_query(query=trending_posts_query)
@@ -1222,9 +1220,6 @@ class PostComment(ModelWithUUID):
 
         # Don't count soft deleted items
         count_query.add(Q(is_deleted=False), Q.AND)
-
-        # Don't count items we have reported
-        count_query.add(~Q(moderated_object__reports__reporter_id=user.pk), Q.AND)
 
         return self.replies.filter(count_query).count()
 
