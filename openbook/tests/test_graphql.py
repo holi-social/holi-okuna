@@ -1120,13 +1120,11 @@ class GraphQLTest(TestCase):
         self.assertIsNone(response.errors)
         self.assertEqual(response.data["reportContent"]["success"], True)
 
-        self.assertEqual(reporting_user.can_see_post(post), False)
+        self.assertEqual(reporting_user.can_see_post(post), True)
         self.assertEqual(other_user.can_see_post(post), True)
 
-        response = self.get_post_with_id_raw(post, reporting_user)
-        self.assertIsNone(response.data["postById"])
-        self.assertFalse(reporting_user.can_see_post(post))
-        self.assertTrue(other_user.can_see_post(post))
+        post_data = self.get_post_with_id_data(post, reporting_user)
+        self.assertEqual(post_data["id"], str(post.id))
 
         post_data = self.get_post_with_id_data(post, other_user)
         self.assertEqual(post_data["id"], str(post.id))

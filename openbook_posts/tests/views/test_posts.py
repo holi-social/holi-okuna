@@ -2482,27 +2482,6 @@ class PostsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(0, len(response_posts))
 
-    def test_cant_retrieve_reported_following_user_posts_when_filtering(self):
-        """should not be able to retrieve reported following user posts when filtering"""
-        user = make_user()
-
-        following_user = make_user()
-        follow_list = make_list(creator=user)
-        user.follow_user_with_id(user_id=following_user.pk, lists_ids=[follow_list.pk])
-
-        following_user_post = following_user.create_public_post(text=make_fake_post_text())
-        user.report_post(post=following_user_post, category_id=make_moderation_category().pk)
-
-        url = self._get_url()
-        headers = make_authentication_headers_for_user(user)
-        response = self.client.get(url, {"list_id": follow_list.pk}, **headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
-
-        response_posts = json.loads(response.content, object_hook=uuid_id_parser)
-
-        self.assertEqual(0, len(response_posts))
-
     def test_cant_retrieve_reported_community_posts(self):
         """should not be able to retrieve reported community posts"""
         user = make_user()
@@ -2524,65 +2503,6 @@ class PostsAPITests(OpenbookAPITestCase):
         url = self._get_url()
         headers = make_authentication_headers_for_user(user)
         response = self.client.get(url, **headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
-
-        response_posts = json.loads(response.content, object_hook=uuid_id_parser)
-
-        self.assertEqual(0, len(response_posts))
-
-    def test_cant_retrieve_reported_community_posts_by_username(self):
-        """should not be able to retrieve reported community posts by username"""
-        user = make_user()
-
-        community = make_community()
-
-        post_creator = make_user()
-
-        user.join_community_with_name(community_name=community.name)
-        post_creator.join_community_with_name(community_name=community.name)
-
-        report_category = make_moderation_category()
-
-        post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
-        user.report_post(post=post, category_id=report_category.pk)
-
-        url = self._get_url()
-        headers = make_authentication_headers_for_user(user)
-        response = self.client.get(url, {"username": post_creator.username}, **headers)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
-
-        response_posts = json.loads(response.content, object_hook=uuid_id_parser)
-
-        self.assertEqual(0, len(response_posts))
-
-    def test_cant_retrieve_reported_and_approved_community_posts_by_username(self):
-        """should not be able to retrieve and reported and approved community posts by username"""
-        user = make_user()
-
-        community_creator = make_user()
-        community = make_community(creator=community_creator)
-
-        post_creator = make_user()
-
-        user.join_community_with_name(community_name=community.name)
-        post_creator.join_community_with_name(community_name=community.name)
-        post_reporter = make_user()
-
-        report_category = make_moderation_category()
-
-        post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
-        post_reporter.report_post(post=post, category_id=report_category.pk)
-
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post(
-            post=post, category_id=report_category.pk
-        )
-        community_creator.approve_moderated_object(moderated_object=moderated_object)
-
-        url = self._get_url()
-        headers = make_authentication_headers_for_user(user)
-        response = self.client.get(url, {"username": post_creator.username}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 

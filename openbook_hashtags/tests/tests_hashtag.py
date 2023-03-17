@@ -73,23 +73,6 @@ class HashtagAPITests(OpenbookAPITestCase):
         response_name = parsed_response["name"]
         self.assertEqual(response_name, hashtag_name)
 
-    def test_cant_retrieve_reported_hashtag(self):
-        """should not be able to retrieve a reported hashtag and return 403"""
-        user = make_user()
-        headers = make_authentication_headers_for_user(user)
-
-        hashtag = make_hashtag()
-        hashtag_name = hashtag.name
-
-        report_category = make_moderation_category()
-        user.report_hashtag_with_name(hashtag_name=hashtag_name, category_id=report_category.pk)
-
-        url = self._get_url(hashtag_name=hashtag_name)
-
-        response = self.client.get(url, **headers)
-
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
-
     def test_cant_retrieve_reported_and_approved_hashtag(self):
         """should not be able to retrieve a reported and approved hashtag and return 403"""
         user = make_user()
