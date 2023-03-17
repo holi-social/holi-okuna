@@ -1,8 +1,8 @@
 import json
 import logging
-from logging import config as logging_config
 import os
 import sys
+from logging import config as logging_config
 
 import structlog
 

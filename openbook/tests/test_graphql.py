@@ -2,6 +2,7 @@ import json
 import logging
 import unittest
 from typing import List, Optional
+from unittest import mock
 from uuid import UUID, uuid4
 
 from benedict import BeneDict
@@ -10,8 +11,10 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+from requests.models import Response
 from rest_framework import status
 
+from openbook import settings
 from openbook.graphql_schema import (
     ContentType,
     SpaceUserConnectionType,
@@ -125,14 +128,25 @@ class GraphQLTest(TestCase):
         self.assertEqual(executed.data["userByName"]["data"][1]["firstName"], "Petra")
         self.assertEqual(executed.data["userByName"]["data"][2]["firstName"], "Thomas")
 
-    def test_can_update_authenticated_user(self):
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    def test_can_update_authenticated_user(self, mock_patch):
+        response = Response()
+        response.status_code = 200
+        response._content = str.encode(json.dumps({}))
+        mock_patch.return_value = response
         user = make_user(name="Fritz", last_name="Meier")
         pronouns = "She/her"
 
         self.assertNotEqual(User.objects.get(username=user.username).profile.pronouns, pronouns)
-
         first_name = "Peter"
         last_name = "Shaw"
+
+        json_body = [
+            {"op": "replace", "path": "/traits/given_name", "value": f"{first_name}"},
+            {"op": "replace", "path": "/traits/family_name", "value": f"{last_name}"},
+            {"op": "replace", "path": "/traits/name", "value": f"{first_name} {last_name}"},
+        ]
+
         executed = schema.execute_sync(
             """
             mutation test($input: UpdateAuthenticatedUserInput!) {
@@ -150,6 +164,11 @@ class GraphQLTest(TestCase):
                     "lastName": last_name,
                 }
             },
+        )
+        mock_patch.assert_called_once_with(
+            f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
+            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+            json=json_body,
         )
         updated_user = executed.data["updateAuthenticatedUser"]
         graphql_pronouns = updated_user["pronouns"]
