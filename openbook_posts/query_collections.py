@@ -65,9 +65,6 @@ def get_posts_for_user_collection(
         # Excluded communities posts
         Q(community__profile_posts_community_exclusions__user=target_user.pk)
         |
-        # Reported posts
-        Q(moderated_object__reports__reporter_id=source_user.pk)
-        |
         # Approved reported posts
         Q(moderated_object__status=ModeratedObject.STATUS_APPROVED)
         |

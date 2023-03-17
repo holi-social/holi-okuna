@@ -249,8 +249,13 @@ class Query:
 
     @gql.django.field
     def insight_by_id(self, info, id: uuid.UUID) -> Optional[Insight]:
+        current_user = info.context.request.user
         try:
-            return InsightModel.objects.filter(date_published__lte=datetime.now()).get(id=id)
+            return (
+                InsightModel.objects.filter(UserModel.is_visible_query(current_user, "creator"))
+                .filter(date_published__lte=datetime.now())
+                .get(id=id)
+            )
         except InsightModel.DoesNotExist:
             raise GraphQLError("Insight not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
 

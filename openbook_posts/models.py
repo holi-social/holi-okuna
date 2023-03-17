@@ -251,8 +251,6 @@ class Post(ModelWithUUID):
             "post__community__title",
         )
 
-        reported_posts_exclusion_query = ~Q(post__moderated_object__reports__reporter_id=user_id)
-
         trending_community_posts_query = Q(
             post__is_closed=False,
             post__is_deleted=False,
@@ -276,8 +274,6 @@ class Post(ModelWithUUID):
 
         ModeratedObject = get_moderated_object_model()
         trending_community_posts_query.add(~Q(post__moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
-
-        trending_community_posts_query.add(reported_posts_exclusion_query, Q.AND)
 
         trending_community_posts_queryset = (
             TrendingPost.objects.select_related(*posts_select_related)
@@ -466,9 +462,6 @@ class Post(ModelWithUUID):
 
         # Don't count soft deleted items
         count_query.add(Q(is_deleted=False), Q.AND)
-
-        # Don't count items we have reported
-        count_query.add(~Q(moderated_object__reports__reporter_id=user.pk), Q.AND)
 
         return self.comments.filter(count_query).count()
 

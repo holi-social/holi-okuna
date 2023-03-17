@@ -46,10 +46,6 @@ def make_exclude_reported_and_approved_posts_query():
     return ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED)
 
 
-def make_exclude_reported_posts_by_user_with_id_query(user_id):
-    return ~Q(moderated_object__reports__reporter_id=user_id)
-
-
 def make_exclude_community_posts_banned_from_for_user_with_id_query(user_id):
     return ~Q(community__banned_users__id=user_id)
 
@@ -131,9 +127,6 @@ def make_get_hashtag_posts_for_user_with_id_query(hashtag, user_id):
 
     # Don't retrieve items that have been reported and approved
     hashtag_posts_query.add(make_exclude_reported_and_approved_posts_query(), Q.AND)
-
-    # Don't retrieve items we have reported
-    hashtag_posts_query.add(make_exclude_reported_posts_by_user_with_id_query(user_id=user_id), Q.AND)
 
     # Don't retrieve posts from communities we're  banned from
     hashtag_posts_query.add(
