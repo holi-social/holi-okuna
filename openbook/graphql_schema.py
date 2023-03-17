@@ -242,8 +242,11 @@ class Query:
 
     @gql.django.field
     def last_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
+        current_user = info.context.request.user
         return Paged.of(
-            InsightModel.objects.filter(date_published__lte=datetime.now()).order_by("-date_published", "id"),
+            InsightModel.objects.filter(Q(creator__isnull=True) | UserModel.is_visible_query(current_user, "creator"))
+            .filter(date_published__lte=datetime.now())
+            .order_by("-date_published", "id"),
             offset,
             limit,
         )
@@ -253,7 +256,9 @@ class Query:
         current_user = info.context.request.user
         try:
             return (
-                InsightModel.objects.filter(UserModel.is_visible_query(current_user, "creator"))
+                InsightModel.objects.filter(
+                    Q(creator__isnull=True) | UserModel.is_visible_query(current_user, "creator")
+                )
                 .filter(date_published__lte=datetime.now())
                 .get(id=id)
             )
