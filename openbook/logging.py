@@ -8,6 +8,7 @@ import structlog
 
 ENVIRONMENT_ID = os.environ.get("ENVIRONMENT_ID", "local")  # staging, production, set by gitlab ci
 SERVICE_NAME = "holi-okuna"
+SQL_LOGGING = os.environ.get("SQL_LOGGING", "DO_NOT_LOG")
 
 LABELS = {"environment": ENVIRONMENT_ID, "service": SERVICE_NAME}
 
@@ -105,6 +106,10 @@ LOGGING_CONFIG = {
 
 
 def initialize_logging():
+    if SQL_LOGGING != "DO_NOT_LOG":
+        LOGGING_CONFIG["loggers"]["django.db.backends"] = {
+            "level": "DEBUG",
+        }
     logging_config.dictConfig(LOGGING_CONFIG)
 
     structlog.configure(
