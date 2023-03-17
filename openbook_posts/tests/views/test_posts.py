@@ -2850,7 +2850,8 @@ class PostsAPITests(OpenbookAPITestCase):
 
         self.assertEqual(0, len(response_posts))
 
-    def test_cant_retrieve_public_community_processing_posts(self):
+    @mock.patch("openbook_posts.jobs.process_post_media")
+    def test_cant_retrieve_public_community_processing_posts(self, process_post_media_mock):
         """should not be able to retrieve public community processing posts"""
         user = make_user()
         community = make_community()
@@ -2874,9 +2875,10 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(1, len(response_posts))
+        self.assertEqual(0, len(response_posts))
 
-    def test_cant_retrieve_private_community_part_of_processing_posts(self):
+    @mock.patch("openbook_posts.jobs.process_post_media")
+    def test_cant_retrieve_private_community_part_of_processing_posts(self, process_post_media_mock):
         """should not be able to retrieve private community part of processing posts"""
         user = make_user()
         community_creator = make_user()
@@ -2908,7 +2910,7 @@ class PostsAPITests(OpenbookAPITestCase):
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(1, len(response_posts))
+        self.assertEqual(0, len(response_posts))
 
     def test_cant_retrieve_connected_user_draft_posts_by_username(self):
         """should not be able to retrieve connected user draft posts by username"""
