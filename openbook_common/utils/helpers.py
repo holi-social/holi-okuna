@@ -13,6 +13,7 @@ from django.http import QueryDict
 from imagekit.utils import get_cache
 from imagekit.models import ProcessedImageField
 import hashlib
+import tldextract
 
 r = lambda: secrets.randbelow(255)
 
@@ -166,3 +167,7 @@ _uuid_pattern = re.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-
 
 def is_uuid(string: str):
     return _uuid_pattern.match(string)
+
+
+def extract_and_capitalize_domain_name(url: str) -> str:
+    return tldextract.extract(url).domain.title()
