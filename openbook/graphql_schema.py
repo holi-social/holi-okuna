@@ -23,10 +23,10 @@ from openbook_auth.validators import string_not_empty
 from openbook_auth.views.authenticated_user.serializers import (
     UpdateAuthenticatedUserSerializer,
 )
-from openbook_common.pubsub.events import SpaceCreatedEvent
-from openbook_common.pubsub.payloads import Space as SpacePayload, User as UserPayload
 from openbook_common.pubsub.publisher import publish_event
-from openbook_common.pubsub.topic import Topic as PubSubTopic
+from openbook_communities.events.events import SpaceCreatedEvent
+from openbook_communities.events.topic import Topic as PubSubTopic
+from openbook_communities.events.payloads import Space as SpacePayload, User as UserPayload
 
 from openbook_communities.views.communities.serializers import (
     AddCollaborationToolSerializer,
