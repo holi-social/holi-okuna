@@ -14,14 +14,13 @@ from django.contrib.gis.db.models import Q
 from django.contrib.gis.db.models import Count
 from pilkit.processors import ResizeToFill, ResizeToFit
 from strawberry_django_plus import gql
-import tldextract
 
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
 from django.utils.translation import gettext_lazy as _
 
 from openbook_auth.models import User
 from openbook_common.models import ModelWithUUID
-from openbook_common.utils.helpers import delete_file_field
+from openbook_common.utils.helpers import delete_file_field, extract_and_capitalize_domain_name
 from openbook_common.utils.model_loaders import (
     get_community_invite_model,
     get_community_log_model,
@@ -1115,6 +1114,28 @@ class CollaborationTool(ModelWithUUID):
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def update(
+        self,
+        url=None,
+        title=None,
+        description=None,
+        collection_type=None,
+    ):
+        if url is not None:
+            self.url = url
+            self.domain = extract_and_capitalize_domain_name(url)
+
+        if title is not None:
+            self.title = title
+
+        if description is not None:
+            self.description = description
+
+        if collection_type is not None:
+            self.collection_type = collection_type
+
+        self.save()
+
     @classmethod
     def add_collaboration_tool(
         cls,
@@ -1125,9 +1146,6 @@ class CollaborationTool(ModelWithUUID):
         collection_type,
         description=None,
     ):
-        def extract_and_capitalize_domain_name(url: str) -> str:
-            return tldextract.extract(url).domain.title()
-
         collaboration_tool = cls.objects.create(
             creator=creator,
             community=community,
