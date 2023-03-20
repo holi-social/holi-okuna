@@ -11,23 +11,23 @@ from openbook_auth.models import User
 
 
 class Command(BaseCommand):
-    help = "Delete old e2e users on Ory"
+    help = "Delete old e2e users on Ory and Okuna"
 
     headers = {"Authorization": f"Bearer {ORY_ACCESS_TOKEN}"}
     base_url = f"{ORY_BASE_URL}/admin/identities/"
-    list_ory_users = []
     now = timezone.now()
 
     def handle(self, *args, **options):
-        self._get_ory_e2e_users_list()
-        if len(self.list_ory_users) > 0:
-            self._delete_ory_matched_users()
+        list_ory_users = self._get_ory_e2e_users_list()
+        if len(list_ory_users) > 0:
+            self._delete_ory_matched_users(list_ory_users)
         else:
             print("No e2e users to delete found in Ory")
         self._delete_okuna_e2e_users()
 
     def _get_ory_e2e_users_list(self):
         print("Getting list of users that ends with \x1B[3m'@e2etest.com'\x1B[0m")
+        list_ory_users = []
         page = 1
         per_page = 500
 
@@ -46,17 +46,20 @@ class Command(BaseCommand):
             else:
                 for data in response_data:
                     creation_date = parser.isoparse(data["created_at"])
-                    if data["traits"]["email"].endswith("@e2etest.com") and creation_date <= self.now - timedelta(
+                    email = data["traits"]["email"]
+                    if email.endswith("@e2etest.com") and creation_date <= self.now - timedelta(
                         days=1
                     ):
-                        self.list_ory_users.append({"id": data["id"], "email": data["traits"]["email"]})
+                        list_ory_users.append({"id": data["id"], "email": email})
 
                 page += 1
 
-    def _delete_ory_matched_users(self):
+        return list_ory_users
+
+    def _delete_ory_matched_users(self, list_ory_users):
         users_deleted_count = 0
 
-        for user in self.list_ory_users:
+        for user in list_ory_users:
             print(f"Deleting user {user['email']}...")
 
             response = requests.delete(f"{self.base_url}{user['id']}", headers=self.headers)
@@ -70,7 +73,7 @@ class Command(BaseCommand):
                 users_deleted_count += 1
 
         print(
-            f"Job completed, {users_deleted_count} users deleted ({len(self.list_ory_users) - users_deleted_count} failed)"
+            f"Job completed, {users_deleted_count} users deleted ({len(list_ory_users) - users_deleted_count} failed)"
         )
 
     def _delete_okuna_e2e_users(self):
