@@ -29,7 +29,7 @@ class CommunityAdmin(admin.ModelAdmin):
 @admin.register(CommunityMembership)
 class CommunityMembershipAdmin(admin.ModelAdmin):
     list_display = ("community", "user")
-    search_fields = ("community__title", "creator__email")
+    search_fields = ("community__title", "community__creator__email")
 
 
 @admin.register(Task)
