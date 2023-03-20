@@ -23,6 +23,11 @@ from openbook_auth.validators import string_not_empty
 from openbook_auth.views.authenticated_user.serializers import (
     UpdateAuthenticatedUserSerializer,
 )
+from openbook_common.pubsub.events import SpaceCreatedEvent
+from openbook_common.pubsub.payloads import Space as SpacePayload, User as UserPayload
+from openbook_common.pubsub.publisher import publish_event
+from openbook_common.pubsub.topic import Topic as PubSubTopic
+
 from openbook_communities.views.communities.serializers import (
     AddCollaborationToolSerializer,
     CreateCommunitySerializer,
@@ -812,8 +817,7 @@ class Mutation:
         serializer = CreateCommunitySerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-
-        return current_user.create_community(
+        community = current_user.create_community(
             title=data.get("title"),
             type=CommunityModel.COMMUNITY_TYPE_PUBLIC,
             description=data.get("description"),
@@ -821,6 +825,17 @@ class Mutation:
             invites_enabled=True,
             topic_ids=data.get("topics"),
         )
+        try:
+            user = UserPayload(
+                id=str(community.creator.id), name=community.creator.profile.name, email=community.creator.email
+            )
+            space = SpacePayload(id=str(community.id), name=community.title, slug=community.name)
+            event = SpaceCreatedEvent(user, space)
+            publish_event(event=event.to_dict(), topic=PubSubTopic.OKUNA.value)
+        except Exception as e:
+            logger.error("Failed to publish event", str(e))
+        finally:
+            return community
 
     @gql.mutation
     def update_space(self, info, input: UpdateSpaceInput) -> Space:
