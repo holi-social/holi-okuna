@@ -17,19 +17,22 @@ class ReleaseNotification(OrderedModelWithUUID):
         verbose_name="was sent",
     )
 
-    def send_to_all_users(self):
+    def send_to_all_users(self) -> int:
         if self.is_sent:
             raise ValidationError("Notification was already processed")
 
         self.is_sent = True
         self.save(force_update=True)
 
-        for user_id in User.objects.values_list("id", flat=True)[:]:
+        users = User.objects.values_list("id", flat=True)[:]
+        for user_id in users:
             Notification.create_notification(
                 type=Notification.RELEASE,
                 content_object=self,
                 owner_id=user_id,
             )
+
+        return len(users)
 
     def get_options(self):
         return {"post": self.post}

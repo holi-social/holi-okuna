@@ -1,14 +1,12 @@
 import jwt
-import rest_framework.exceptions
 from django.conf import settings
-from rest_framework import status
+from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import (
     ValidationError,
     PermissionDenied,
     NotFound,
     AuthenticationFailed,
 )
-from django.utils.translation import gettext_lazy as _
 
 from openbook_common.utils.model_loaders import (
     get_post_model,
@@ -1330,11 +1328,11 @@ def check_is_membership_requestor_of_community_with_name(user, community_name):
 def check_can_request_membership_to_community_with_name(user, community_name):
     check_is_not_banned_from_community_with_name(user, community_name)
     if user.is_membership_requestor_of_community_with_name(community_name):
-        raise ValidationError(_("Already requested to join community,"), code=status.HTTP_400_BAD_REQUEST)
+        raise ValidationError(_("Already requested to join community,"))
 
     if user.is_member_of_community_with_name(community_name):
         raise ValidationError(
-            _("You are already a member of the community.", code=status.HTTP_400_BAD_REQUEST),
+            _("You are already a member of the community."),
         )
 
 
