@@ -26,6 +26,7 @@ from openbook_auth.views.authenticated_user.serializers import (
 from openbook_communities.views.communities.serializers import (
     AddCollaborationToolSerializer,
     CreateCommunitySerializer,
+    UpdateCollaborationToolSerializer,
     UpdateCommunitySerializer,
     ValidateCommunitySerializer,
 )
@@ -585,6 +586,15 @@ class AddCollaborationToolInput:
     collection_type: CollectionType
 
 
+@gql.input
+class UpdateCollaborationToolInput:
+    id: uuid.UUID
+    url: Optional[str] = strawberry.UNSET
+    title: Optional[str] = strawberry.UNSET
+    description: Optional[str] = strawberry.UNSET
+    collection_type: Optional[CollectionType] = strawberry.UNSET
+
+
 @gql.type
 class Result:
     success: bool
@@ -883,6 +893,22 @@ class Mutation:
 
         return current_user.add_collaboration_tool(
             space_id=data.get("space_id"),
+            url=data.get("url"),
+            title=data.get("title"),
+            description=data.get("description"),
+            collection_type=data.get("collection_type"),
+        )
+
+    @gql.mutation
+    def update_collaboration_tool(self, info, input: UpdateCollaborationToolInput) -> CollaborationTool:
+        current_user = verify_authorized_user(info)
+
+        serializer = UpdateCollaborationToolSerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        return current_user.update_collaboration_tool(
+            collaboration_tool_id=data.get("id"),
             url=data.get("url"),
             title=data.get("title"),
             description=data.get("description"),

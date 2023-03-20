@@ -4551,6 +4551,28 @@ class User(AbstractUser):
 
         return collaboration_tool
 
+    def update_collaboration_tool(
+        self,
+        collaboration_tool_id,
+        url=None,
+        title=None,
+        collection_type=None,
+        description=None,
+    ):
+        CollaborationTool = get_collaboration_tool_model()
+        collaboration_tool = CollaborationTool.objects.get(id=collaboration_tool_id)
+
+        check_can_update_collaboration_tool_in_community(user=self, community=collaboration_tool.community)
+
+        collaboration_tool.update(
+            url=url,
+            title=title,
+            collection_type=collection_type,
+            description=description,
+        )
+
+        return collaboration_tool
+
     def delete_collaboration_tool(self, collaboration_tool_id):
         CollaborationTool = get_collaboration_tool_model()
         collaboration_tool = CollaborationTool.objects.get(id=collaboration_tool_id)
