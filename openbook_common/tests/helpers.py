@@ -175,6 +175,13 @@ def make_post_image():
     return tmp_file
 
 
+def make_post(user: Optional[User] = None, title: Optional[str] = None, text: Optional[str] = None):
+    return (user or make_user()).create_public_post(
+        text=text or make_fake_post_text(),
+        title=title or make_fake_post_title(),
+    )
+
+
 def make_fake_list_name():
     return fake.text(max_nb_chars=settings.LIST_MAX_LENGTH)
 
