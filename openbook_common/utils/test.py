@@ -14,3 +14,9 @@ def uuid_id_parser(obj):
             uuid_obj = uuid.UUID(id_str)
             obj["id"] = uuid_obj
     return obj
+
+
+class MockResponse:
+    def __init__(self, text, ok=True):
+        self.text = text
+        self.ok = ok

@@ -1,6 +1,6 @@
 import hashlib
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import requests
 import structlog
@@ -212,19 +212,16 @@ class Query:
     @gql.django.field
     def user_suggestions(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
         current_user = info.context.request.user
-        if current_user.id:
-            return Paged.of(
-                UserModel.objects.select_related("profile")
-                .filter(UserModel.is_visible_query(current_user))
-                .exclude(id=current_user.id)
-                .order_by("-date_joined"),
-                offset,
-                limit,
-            )
-        return Paged.of(
+        query = (
             UserModel.objects.select_related("profile")
             .filter(UserModel.is_visible_query(current_user))
-            .order_by("-date_joined"),
+            .filter(date_joined__lte=datetime.now() - timedelta(hours=1))
+            .order_by("-date_joined")
+        )
+        if current_user.id:
+            query = query.exclude(id=current_user.id)
+        return Paged.of(
+            query,
             offset,
             limit,
         )
