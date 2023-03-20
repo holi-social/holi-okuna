@@ -47,9 +47,7 @@ class Command(BaseCommand):
                 for data in response_data:
                     creation_date = parser.isoparse(data["created_at"])
                     email = data["traits"]["email"]
-                    if email.endswith("@e2etest.com") and creation_date <= self.now - timedelta(
-                        days=1
-                    ):
+                    if email.endswith("@e2etest.com") and creation_date <= self.now - timedelta(days=1):
                         list_ory_users.append({"id": data["id"], "email": email})
 
                 page += 1
