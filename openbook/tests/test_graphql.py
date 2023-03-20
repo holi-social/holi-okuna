@@ -2497,6 +2497,216 @@ class GraphQLTest(TestCase):
         self.assertTrue(response.data["deleteCollaborationTool"]["success"])
         self.assertIsNone(response.errors)
 
+    def test_validate_collaboration_tool_before_update(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        collaboration_tool = make_collaboration_tool(community=community)
+
+        update_collaboration_tool_mutation = """
+            mutation test($input: UpdateCollaborationToolInput!) {
+                updateCollaborationTool(input: $input) {
+                    id
+                }
+            }
+            """
+        base_input = {"id": str(collaboration_tool.id)}
+        invalid_uuid = str(uuid4())
+
+        expectedErrors = [
+            {"field": "id", "value": None, "expected_code": "null"},
+            {
+                "field": "id",
+                "value": invalid_uuid,
+                "expected_error": "No collaboration tool with the provided id exists",
+            },
+            {"field": "url", "value": None, "expected_code": "null"},
+            {"field": "url", "value": "", "expected_code": "blank"},
+            {"field": "url", "value": "project-holi.org", "expected_code": "invalid"},
+            {"field": "title", "value": None, "expected_code": "null"},
+            {"field": "title", "value": "", "expected_code": "blank"},
+            {"field": "title", "value": "c", "expected_code": "min_length"},
+            {"field": "title", "value": "c" * 61, "expected_code": "max_length"},
+            {"field": "description", "value": "c", "expected_code": "min_length"},
+            {"field": "description", "value": "c" * 101, "expected_code": "max_length"},
+            {"field": "collectionType", "value": None, "expected_code": "null"},
+        ]
+
+        for testCase in expectedErrors:
+            response = schema.execute_sync(
+                update_collaboration_tool_mutation,
+                context_value=BeneDict({"request": {"user": user}}),
+                variable_values={
+                    "input": base_input | {testCase["field"]: testCase["value"]},
+                },
+            )
+
+            if "expected_code" in testCase:
+                self.assertIn(
+                    testCase["expected_code"],
+                    str(response.errors[0].message),
+                    f"{str(response.errors[0].message)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
+                )
+            else:
+                self.assertIn(testCase["expected_error"], str(response.errors[0].message))
+            self.assertIsNone(response.data["updateSpace"] if response.data else response.data)
+
+    def test_can_not_update_collaboration_tool_without_passing_id(self):
+        user = make_user()
+        update_collaboration_tool_mutation = """
+            mutation test($input: UpdateCollaborationToolInput!) {
+                updateCollaborationTool(input: $input) {
+                    id
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            update_collaboration_tool_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": {"url": "https://project-holi.org/"}},
+        )
+
+        self.assertIsNone(response.data)
+        self.assertIn("Field 'id' of required type 'UUID!' was not provided", response.errors[0].message)
+
+    def test_can_not_update_collaboration_tool_if_not_space_member(self):
+        user = make_user()
+        collaboration_tool = make_collaboration_tool()
+
+        update_collaboration_tool_mutation = """
+            mutation test($input: UpdateCollaborationToolInput!) {
+                updateCollaborationTool(input: $input) {
+                    id
+                }
+            }
+            """
+
+        input = {"id": str(collaboration_tool.id), "url": "https://project-holi.org/"}
+
+        response = schema.execute_sync(
+            update_collaboration_tool_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": input},
+        )
+
+        self.assertIsNone(response.data)
+        self.assertIn(
+            "You cannot update a collaboration tool in a community you are not a member of",
+            str(response.errors[0].message),
+        )
+
+    def test_can_not_update_collaboration_tool_if_not_logged_in(self):
+        collaboration_tool = make_collaboration_tool()
+
+        update_collaboration_tool_mutation = """
+            mutation test($input: UpdateCollaborationToolInput!) {
+                updateCollaborationTool(input: $input) {
+                    id
+                }
+            }
+            """
+
+        input = {"id": str(collaboration_tool.id), "url": "https://project-holi.org/"}
+
+        response = schema.execute_sync(
+            update_collaboration_tool_mutation,
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            variable_values={"input": input},
+        )
+
+        self.assert_is_unauthorized(response)
+
+    def test_can_update_collaboration_tool(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        collaboration_tool = make_collaboration_tool(community=community)
+
+        update_collaboration_tool_mutation = """
+            mutation test($input: UpdateCollaborationToolInput!) {
+                updateCollaborationTool(input: $input) {
+                    id
+                }
+            }
+            """
+        base_input = {"id": str(collaboration_tool.id)}
+
+        valid_url = "https://project-holi.org/"
+        valid_title = "Project Holi"
+        valid_description = "holi is the network where people and organizations come together for the common good"
+        valid_collection_type = "COLLABORATION"
+
+        valid_inputs = [
+            {"url": valid_url},
+            {"title": valid_title},
+            {"description": valid_description},
+            {"collectionType": valid_collection_type},
+            {
+                "url": valid_url,
+                "title": valid_title,
+                "description": valid_description,
+                "collectionType": valid_collection_type,
+            },
+        ]
+
+        for input in valid_inputs:
+            response = schema.execute_sync(
+                update_collaboration_tool_mutation,
+                context_value=BeneDict({"request": {"user": user}}),
+                variable_values={"input": base_input | input},
+            )
+
+            self.assertEqual(str(collaboration_tool.id), response.data["updateCollaborationTool"]["id"])
+            self.assertIsNone(response.errors)
+
+    def test_updated_collaboration_tool_has_new_values(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        collaboration_tool = make_collaboration_tool(community=community)
+
+        update_collaboration_tool_mutation = """
+            mutation test($input: UpdateCollaborationToolInput!) {
+                updateCollaborationTool(input: $input) {
+                    id
+                    url
+                    title
+                    description
+                    collectionType
+                }
+            }
+            """
+        id = str(collaboration_tool.id)
+        new_url = "https://project-holi.org/"
+        new_title = "Project Holi"
+        new_description = "holi is the network where people and organizations come together for the common good"
+        new_collection_type = "COLLABORATION"
+
+        input = {
+            "id": id,
+            "url": new_url,
+            "title": new_title,
+            "description": new_description,
+            "collectionType": new_collection_type,
+        }
+
+        response = schema.execute_sync(
+            update_collaboration_tool_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": input},
+        )
+
+        self.assertIsNone(response.errors)
+
+        updated_collaboration_tool = response.data["updateCollaborationTool"]
+
+        self.assertEqual(id, updated_collaboration_tool["id"])
+        self.assertEqual(new_url, updated_collaboration_tool["url"])
+        self.assertEqual(new_title, updated_collaboration_tool["title"])
+        self.assertEqual(new_description, updated_collaboration_tool["description"])
+        self.assertEqual(new_collection_type, updated_collaboration_tool["collectionType"])
+
 
 def approve_verify_moderated_object(object_id, user):
     moderated_object = ModeratedObject.objects.filter(object_id=object_id).first()
