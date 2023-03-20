@@ -1,13 +1,13 @@
-import os
 import json
 
 from google.cloud import pubsub_v1
+from openbook import settings
 from openbook_common.pubsub.helpers import mask_sensitive_values
 import structlog
 
 logger = structlog.getLogger(__name__)
 
-GOOGLE_CLOUD_PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT_ID", "holi-dev")
+GOOGLE_CLOUD_PROJECT_ID = settings.GOOGLE_CLOUD_PROJECT_ID
 
 
 def publish_event(topic: str, event: dict) -> None:

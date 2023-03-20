@@ -1,8 +1,7 @@
-import os
 from enum import Enum
 
-ENVIRONMENT_ID = os.environ.get("ENVIRONMENT_ID", "development")
+from openbook import settings
 
 
 class Topic(Enum):
-    OKUNA = f"okuna_{ENVIRONMENT_ID}"
+    OKUNA = f"okuna_{settings.ENVIRONMENT_ID}"

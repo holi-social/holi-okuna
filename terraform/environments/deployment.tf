@@ -51,7 +51,7 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "GOOGLE_CLOUD_PROJECT_ID"
-          value = "GOOGLE_CLOUD_PROJECT_ID"
+          value = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
         }
         env {
           name  = "ENVIRONMENT"
