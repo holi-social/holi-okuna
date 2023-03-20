@@ -50,6 +50,10 @@ resource "google_cloud_run_service" "okuna" {
           container_port = 80
         }
         env {
+          name  = "GOOGLE_CLOUD_PROJECT_ID"
+          value = "GOOGLE_CLOUD_PROJECT_ID"
+        }
+        env {
           name  = "ENVIRONMENT"
           value = "production"
         }
