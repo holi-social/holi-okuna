@@ -18,6 +18,7 @@ from strawberry_django_plus.optimizer import DjangoOptimizerExtension
 
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_auth.images import delete_avatar
+from openbook_auth.tasks import update_ory_user
 from openbook_auth.validators import string_not_empty
 from openbook_auth.views.authenticated_user.serializers import (
     UpdateAuthenticatedUserSerializer,
@@ -613,6 +614,9 @@ class Mutation:
             if update_avatar:
                 delete_avatar(data["avatar"])
             raise
+
+        if input.first_name or input.last_name:
+            update_ory_user.delay(current_user.id)
 
         return current_user
 

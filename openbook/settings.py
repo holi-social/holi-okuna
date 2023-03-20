@@ -234,6 +234,10 @@ RQ_QUEUES = {
     },
 }
 
+if DEBUG or TESTING:
+    for queueConfig in RQ_QUEUES.values():
+        queueConfig["ASYNC"] = False
+
 # FYI: NOSE is a (deprecated) unit testing library
 NOSE_DEFAULT_ARGS = [
     "--logging-level=ERROR",
