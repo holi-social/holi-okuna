@@ -831,7 +831,7 @@ class Mutation:
             )
             space = SpacePayload(id=str(community.id), name=community.title, slug=community.name)
             event = SpaceCreatedEvent(user, space)
-            publish_event(event=event.to_dict(), topic=PubSubTopic.OKUNA.value)
+            publish_event(event=event, topic=PubSubTopic.OKUNA.value)
         except Exception as e:
             logger.error("Failed to publish event", str(e))
         finally:
