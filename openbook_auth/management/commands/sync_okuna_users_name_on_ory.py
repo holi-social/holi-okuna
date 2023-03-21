@@ -42,7 +42,7 @@ class Command(BaseCommand):
                 print(f"User {name} {last_name} ({user.email}) doesn't exist")
 
     def _check_user_exists_in_ory(self, user: User) -> bool:
-        full_name = user.profile.full_name
+        full_name = user.profile.full_name()
         print(f"Searching user: {full_name} ({user.email}) in Ory")
 
         response = requests.get(f"{self.base_url}{user.username}", headers=self.headers)
@@ -50,7 +50,7 @@ class Command(BaseCommand):
 
         if response.status_code != http.HTTPStatus.OK:
             message = response_data["error"]["message"] if "error" in response_data else ""
-            print(f"Error {response.status_code} while checking user {full_name} ({user.email}): {message}")
+            print(f"Error {response.status_code} while checking user {full_name} (UUID: {user.uuid}): {message}")
             if response.status_code != http.HTTPStatus.NOT_FOUND:
                 self.error_users_patched += 1
             return False
@@ -60,7 +60,7 @@ class Command(BaseCommand):
     def _patch_ory_user(self, user: User) -> None:
         name = user.profile.name
         last_name = user.profile.last_name
-        full_name = user.profile.full_name
+        full_name = user.profile.full_name()
         print(f"Patching user: {full_name} ({user.email})")
 
         body_data = [
@@ -75,7 +75,7 @@ class Command(BaseCommand):
         response_data = response.json()
         if response.status_code != http.HTTPStatus.OK:
             message = response_data["error"]["message"] if "error" in response_data else ""
-            print(f"Error {response.status_code} while patching user {full_name} ({user.email}): {message}")
+            print(f"Error {response.status_code} while patching user {full_name} (UUID: {user.uuid}): {message}")
             self.error_users_patched += 1
             return
 
