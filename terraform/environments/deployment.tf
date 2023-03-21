@@ -50,6 +50,10 @@ resource "google_cloud_run_service" "okuna" {
           container_port = 80
         }
         env {
+          name  = "GOOGLE_CLOUD_PROJECT_ID"
+          value = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
+        }
+        env {
           name  = "ENVIRONMENT"
           value = "production"
         }
