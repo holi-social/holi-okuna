@@ -3,7 +3,7 @@ import json
 from django.test import testcases
 from openbook_communities.events.events import SpaceCreatedEvent
 
-from openbook_communities.events.payloads import Space, User
+from openbook_communities.events.payloads import SpacePayload, UserPayload
 from openbook_common.tests.helpers import make_community, make_user
 
 
@@ -12,8 +12,8 @@ class SpaceCreatedEventTestCase(testcases.TestCase):
         creator = make_user()
         community = make_community(creator=creator)
 
-        user = User(id=str(creator.uuid), name=creator.profile.name, email=creator.email)
-        space = Space(id=str(community.id), name=community.title, slug=community.name)
+        user = UserPayload(id=str(creator.uuid), name=creator.profile.name, email=creator.email)
+        space = SpacePayload(id=str(community.id), name=community.title, slug=community.name)
 
         data = {"user": user.to_dict(), "space": space.to_dict()}
 

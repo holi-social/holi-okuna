@@ -1,4 +1,4 @@
-class User:
+class UserPayload:
     def __init__(self, id: str, name: str, email: str):
         self.id = id
         self.name = name
@@ -8,7 +8,7 @@ class User:
         return {"id": self.id, "name": self.name, "email": self.email}
 
 
-class Space:
+class SpacePayload:
     def __init__(self, id: str, name: str, slug: str):
         self.id = id
         self.name = name
