@@ -227,6 +227,9 @@ class User(AbstractUser):
     class Meta:
         verbose_name = _("user")
         verbose_name_plural = _("users")
+        indexes = [
+            models.Index(fields=["-date_joined"]),
+        ]
 
     @classmethod
     def create_user(
