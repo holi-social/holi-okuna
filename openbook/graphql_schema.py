@@ -732,8 +732,6 @@ class Mutation:
                 case _:
                     raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
 
-        return space
-
     @gql.mutation
     def delete_authenticated_user(self, info) -> Result:
         current_user = verify_authorized_user(info)

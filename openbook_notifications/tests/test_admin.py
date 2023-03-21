@@ -23,26 +23,39 @@ class MyAdminTestCase(TestAssertionsMixin, TestCase):
         )
         self.client.login(username=self.username, password=self.password)
 
-    def test_admin_action(self):
+    def test_release_notification_send(self):
         users = make_users(3)
 
-        post = make_post()
-        release_notification = ReleaseNotification.objects.create(post=post)
-        already_sent_notification = ReleaseNotification.objects.create(post=post, is_sent=True)
+        unsent_notification = ReleaseNotification.objects.create(post=make_post(user=users[0]))
+        already_sent_notification = ReleaseNotification.objects.create(post=make_post(user=users[0]), is_sent=True)
 
         response = self.client.post(
             reverse("admin:openbook_notifications_releasenotification_changelist"),
             data={
                 "action": "send",
                 "_selected_action": [
-                    str(release_notification.id),
-                    str(already_sent_notification.id),
+                    unsent_notification.id,
+                    already_sent_notification.id,
                 ],
             },
             follow=True,
         )
 
-        # response.context["messages"] could be used to test messages
+        admin_messages = list(response.context["messages"])
+        unsent_notification_admin_message = next(
+            x for x in admin_messages if unsent_notification.post.title in x.message
+        )
+        sent_notification_admin_message = next(
+            x for x in admin_messages if already_sent_notification.post.title in x.message
+        )
+
+        users_including_superuser = len(users) + 1
+        self.assertEqual(unsent_notification_admin_message.level_tag, "info")
+        self.assertIn(f"sent to {users_including_superuser} Users", unsent_notification_admin_message.message)
+
+        self.assertEqual(sent_notification_admin_message.level_tag, "warning")
+        self.assertIn("already been sent", sent_notification_admin_message.message)
 
         for user in users:
-            self.assertNotification(user.notifications.get(), type=Notification.RELEASE, post=post)
+            self.assertEqual(len(user.notifications.all()), 1)
+            self.assertNotification(user.notifications.get(), type=Notification.RELEASE, post=unsent_notification.post)

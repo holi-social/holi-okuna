@@ -1,12 +1,8 @@
-import logging
-
 from django.contrib import admin, messages
 from django.contrib.admin import ModelAdmin
 from django.db.models import QuerySet
 
 from openbook_notifications.models.release_notification import ReleaseNotification
-
-logger = logging.getLogger(__name__)
 
 
 # Register your models here.
