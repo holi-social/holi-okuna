@@ -33,7 +33,7 @@ class TestUpdateOryUser(TestCase):
             {
                 "op": "replace",
                 "path": "/traits/name",
-                "value": f"{self.user.profile.name} {self.user.profile.last_name}",
+                "value": self.user.profile.full_name(),
             },
         ]
         response_content = json.dumps(
@@ -73,7 +73,7 @@ class TestUpdateOryUser(TestCase):
             {
                 "op": "replace",
                 "path": "/traits/name",
-                "value": f"{self.user.profile.name} {self.user.profile.last_name}",
+                "value": self.user.profile.full_name(),
             },
         ]
         response_content = json.dumps(
@@ -103,7 +103,7 @@ class TestUpdateOryUser(TestCase):
             {
                 "op": "replace",
                 "path": "/traits/name",
-                "value": f"{self.user.profile.name} {self.user.profile.last_name}",
+                "value": self.user.profile.full_name(),
             },
         ]
         response_content = json.dumps({"error": {"code": 400, "status": "Bad request", "message": "Unsupported"}})
