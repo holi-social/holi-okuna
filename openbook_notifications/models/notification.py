@@ -29,7 +29,7 @@ class Notification(ModelWithUUID):
     POST_COMMENT_USER_MENTION = "PCUM"
     COMMUNITY_NEW_POST = "CNP"
     USER_NEW_POST = "UNP"
-    RELEASE = "REL"
+    RELEASE_INFO = "REL"
 
     NOTIFICATION_TYPES = (
         (POST_REACTION, "Post Reaction"),
@@ -49,7 +49,7 @@ class Notification(ModelWithUUID):
         (POST_COMMENT_USER_MENTION, "Post comment user mention"),
         (COMMUNITY_NEW_POST, "New post in community"),
         (USER_NEW_POST, "New post by user"),
-        (RELEASE, "New Release"),
+        (RELEASE_INFO, "New Release information"),
     )
 
     notification_type = models.CharField(max_length=5, choices=NOTIFICATION_TYPES)

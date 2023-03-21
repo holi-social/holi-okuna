@@ -27,7 +27,7 @@ class ReleaseNotification(OrderedModelWithUUID):
         users = User.objects.values_list("id", flat=True)[:]
         for user_id in users:
             Notification.create_notification(
-                type=Notification.RELEASE,
+                type=Notification.RELEASE_INFO,
                 content_object=self,
                 owner_id=user_id,
             )

@@ -58,4 +58,6 @@ class MyAdminTestCase(TestAssertionsMixin, TestCase):
 
         for user in users:
             self.assertEqual(len(user.notifications.all()), 1)
-            self.assertNotification(user.notifications.get(), type=Notification.RELEASE, post=unsent_notification.post)
+            self.assertNotification(
+                user.notifications.get(), type=Notification.RELEASE_INFO, post=unsent_notification.post
+            )
