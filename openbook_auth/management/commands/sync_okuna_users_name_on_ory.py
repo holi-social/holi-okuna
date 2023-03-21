@@ -26,7 +26,7 @@ class Command(BaseCommand):
         print("Getting list of Okuna users with first name and last name filled")
 
         for user in (
-            User.objects.filter(profile__isnull=False)
+            User.objects.exclude(profile__isnull=True)
             .exclude(
                 Q(profile__name__isnull=True) | Q(profile__name__exact=""),
                 Q(profile__last_name__isnull=True) | Q(profile__last_name__exact=""),
@@ -35,38 +35,38 @@ class Command(BaseCommand):
             .iterator()
         ):
             if self._check_user_exists_in_ory(user):
-                self._patching_ory_user(user)
+                self._patch_ory_user(user)
             else:
                 name = user.profile.name
                 last_name = user.profile.last_name
                 print(f"User {name} {last_name} ({user.email}) doesn't exist")
 
     def _check_user_exists_in_ory(self, user: User) -> bool:
-        name = user.profile.name
-        last_name = user.profile.last_name
-        print(f"Searching user: {name} {last_name} ({user.email}) in Ory")
+        full_name = user.profile.full_name
+        print(f"Searching user: {full_name} ({user.email}) in Ory")
 
         response = requests.get(f"{self.base_url}{user.username}", headers=self.headers)
         response_data = response.json()
 
         if response.status_code != http.HTTPStatus.OK:
             message = response_data["error"]["message"] if "error" in response_data else ""
-            print(f"Error {response.status_code}: {message}")
+            print(f"Error {response.status_code} while checking user {full_name} ({user.email}): {message}")
             if response.status_code != http.HTTPStatus.NOT_FOUND:
                 self.error_users_patched += 1
             return False
 
         return True
 
-    def _patching_ory_user(self, user: User) -> None:
+    def _patch_ory_user(self, user: User) -> None:
         name = user.profile.name
         last_name = user.profile.last_name
-        print(f"Patching user: {name} {last_name} ({user.email})")
+        full_name = user.profile.full_name
+        print(f"Patching user: {full_name} ({user.email})")
 
         body_data = [
             {"op": "replace", "path": "/traits/given_name", "value": name},
             {"op": "replace", "path": "/traits/family_name", "value": last_name},
-            {"op": "replace", "path": "/traits/name", "value": f"{name} {last_name}"},
+            {"op": "replace", "path": "/traits/name", "value": f"{full_name}"},
         ]
 
         response = requests.patch(
@@ -75,9 +75,9 @@ class Command(BaseCommand):
         response_data = response.json()
         if response.status_code != http.HTTPStatus.OK:
             message = response_data["error"]["message"] if "error" in response_data else ""
-            print(f"Error {response.status_code}: {message}")
+            print(f"Error {response.status_code} while patching user {full_name} ({user.email}): {message}")
             self.error_users_patched += 1
             return
 
         self.users_patched += 1
-        print(f"User: {name} {last_name} ({user.email}) patched")
+        print(f"User: {full_name} ({user.email}) patched")
