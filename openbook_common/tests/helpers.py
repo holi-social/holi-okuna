@@ -62,7 +62,7 @@ def make_user(
 ) -> User:
     defined_arguments = {k: v for k, v in locals().items() if v is not None}
     defined_arguments.setdefault("username", str(uuid.uuid4()))
-    defined_arguments["uuid"] = defined_arguments["username"]
+    defined_arguments["id"] = defined_arguments["username"]
 
     user = mixer.blend(User, **defined_arguments)
     profile = make_profile(user, **defined_arguments)

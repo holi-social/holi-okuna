@@ -1,7 +1,7 @@
 import logging
 import re
 import secrets
-import uuid
+from uuid import uuid4
 from datetime import datetime, timedelta
 from typing import Iterable
 
@@ -198,7 +198,8 @@ class User(AbstractUser):
         },
     )
 
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    # uuid = models.UUIDField(default=uuid4, editable=False, unique=True)
+    id = models.UUIDField(default=uuid4, primary_key=True)
     invite_count = models.SmallIntegerField(default=0)
 
     is_moderator = models.BooleanField(default=False)
@@ -207,6 +208,10 @@ class User(AbstractUser):
     JWT_TOKEN_TYPE_PASSWORD_RESET = "PR"
 
     last_seen_notification_timestamp = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def uuid(self):
+        return self.id
 
     @property
     def avatar_default_color(self):
@@ -2353,15 +2358,15 @@ class User(AbstractUser):
         )
         return users_query
 
-    def get_linked_users(self, max_id=None):
+    def get_linked_users(self, max_created_date=None):
         # All users which are connected with us and we have accepted by adding
         # them to a circle
         connected_users_query = self._make_connections_query()
         followers_query = self._make_followers_query()
 
-        if max_id:
-            connected_users_query.add(Q(id__lt=max_id), Q.AND)
-            followers_query.add(Q(id__lt=max_id), Q.AND)
+        if max_created_date:
+            connected_users_query.add(Q(created_date__lt=max_created_date), Q.AND)
+            followers_query.add(Q(created_date__lt=max_created_date), Q.AND)
 
         connected_users = User.objects.filter(connected_users_query)
         followers = User.objects.filter(followers_query)
@@ -4264,7 +4269,7 @@ class User(AbstractUser):
                 "type": self.JWT_TOKEN_TYPE_CHANGE_EMAIL,
                 "new_email": new_email,
                 "email": self.email,
-                "user_id": self.pk,
+                "user_id": str(self.pk),
                 "exp": datetime.utcnow() + timedelta(days=1),
             },
             settings.SECRET_KEY,
@@ -4275,7 +4280,7 @@ class User(AbstractUser):
         return jwt.encode(
             {
                 "type": self.JWT_TOKEN_TYPE_PASSWORD_RESET,
-                "user_id": self.pk,
+                "user_id": str(self.pk),
                 "exp": datetime.utcnow() + timedelta(days=1),
             },
             settings.SECRET_KEY,

@@ -1,21 +1,23 @@
+import uuid
+
 import jwt
 from django.conf import settings
-from rest_framework.exceptions import (
-    ValidationError,
-    PermissionDenied,
-    NotFound,
-    AuthenticationFailed,
-)
 from django.utils.translation import gettext_lazy as _
+from rest_framework.exceptions import (
+    AuthenticationFailed,
+    NotFound,
+    PermissionDenied,
+    ValidationError,
+)
 
 from openbook_common.utils.model_loaders import (
-    get_post_model,
     get_community_model,
-    get_post_comment_model,
     get_language_model,
-    get_user_model,
+    get_post_comment_model,
+    get_post_model,
     get_post_reaction_model,
     get_user_invite_model,
+    get_user_model,
 )
 
 
@@ -1008,7 +1010,7 @@ def check_email_verification_token_is_valid_for_email(user, email_verification_t
         )
         token_email = token_contents["email"]
         new_email = token_contents["new_email"]
-        token_user_id = token_contents["user_id"]
+        token_user_id = uuid.UUID(token_contents["user_id"])
         token_type = token_contents["type"]
 
         if token_type != user.JWT_TOKEN_TYPE_CHANGE_EMAIL:
