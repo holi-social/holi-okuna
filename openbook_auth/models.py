@@ -2358,15 +2358,15 @@ class User(AbstractUser):
         )
         return users_query
 
-    def get_linked_users(self, max_created_date=None):
+    def get_linked_users(self, max_date_joined=None):
         # All users which are connected with us and we have accepted by adding
         # them to a circle
         connected_users_query = self._make_connections_query()
         followers_query = self._make_followers_query()
 
-        if max_created_date:
-            connected_users_query.add(Q(created_date__lt=max_created_date), Q.AND)
-            followers_query.add(Q(created_date__lt=max_created_date), Q.AND)
+        if max_date_joined:
+            connected_users_query.add(Q(date_joined__lt=max_date_joined), Q.AND)
+            followers_query.add(Q(date_joined__lt=max_date_joined), Q.AND)
 
         connected_users = User.objects.filter(connected_users_query)
         followers = User.objects.filter(followers_query)

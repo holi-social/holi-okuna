@@ -32,12 +32,12 @@ class LinkedUsersAPITests(OpenbookAPITestCase):
 
         amount_of_linked_users = amount_of_connected_linked_users + amount_of_followers_linked_users
 
-        for i in range(0, amount_of_followers_linked_users):
+        for _ in range(0, amount_of_followers_linked_users):
             linked_follower_user = make_user()
             linked_follower_user.follow_user_with_id(user.pk)
             linked_users_ids.append(linked_follower_user.pk)
 
-        for i in range(0, amount_of_connected_linked_users):
+        for _ in range(0, amount_of_connected_linked_users):
             linked_connected_user = make_user()
             linked_connected_user.connect_with_user_with_id(user.pk)
             user.confirm_connection_with_user_with_id(linked_connected_user.pk)
