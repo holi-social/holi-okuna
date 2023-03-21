@@ -44,6 +44,7 @@ PUBLISHED_NOTIFICATION_TYPES = [
     NotificationModel.POST_COMMENT_USER_MENTION,
     NotificationModel.COMMUNITY_MEMBERSHIP_REQUEST,
     NotificationModel.COMMUNITY_MEMBERSHIP_APPROVED,
+    NotificationModel.RELEASE,
 ]
 
 logger = structlog.getLogger(__name__)
