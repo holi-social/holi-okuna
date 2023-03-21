@@ -1,15 +1,10 @@
 from unittest import mock
 
-import requests
 from django.test import TestCase
 from django.utils import timezone
 
 from openbook_common.models import LinkPreview
-
-
-class MockResponse:
-    def __init__(self, text):
-        self.text = text
+from openbook_common.utils.test import MockResponse
 
 
 class LinkPreviewTestCase(TestCase):

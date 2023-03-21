@@ -4,6 +4,7 @@ import unittest
 from typing import List, Optional
 from unittest import mock
 from uuid import UUID, uuid4
+from datetime import datetime, timedelta
 
 from benedict import BeneDict
 from django.contrib.auth.models import AnonymousUser
@@ -1316,8 +1317,10 @@ class GraphQLTest(TestCase):
 
     def test_block_user(self):
         blocking_user = make_user(name="BlockingUser")
-        blocked_user = make_user(name="BlockedUser")
-        other_user = make_user(name="OtherUser")
+        two_hours_ago = datetime.now() - timedelta(hours=2)
+        blocked_user = make_user(name="BlockedUser", date_joined=two_hours_ago)
+        other_user = make_user(name="OtherUser", date_joined=two_hours_ago)
+        other_user.save()
 
         other_post = other_user.create_public_post(
             text=(make_fake_post_text()),
