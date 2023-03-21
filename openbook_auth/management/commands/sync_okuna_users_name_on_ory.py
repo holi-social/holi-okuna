@@ -50,7 +50,7 @@ class Command(BaseCommand):
 
         if response.status_code != http.HTTPStatus.OK:
             message = response_data["error"]["message"] if "error" in response_data else ""
-            print(f"Error {response.status_code} while checking user {full_name} (UUID: {user.uuid}): {message}")
+            print(f"Error {response.status_code} while checking user {full_name} (UUID: {user.username}): {message}")
             if response.status_code != http.HTTPStatus.NOT_FOUND:
                 self.error_users_patched += 1
             return False
@@ -75,7 +75,7 @@ class Command(BaseCommand):
         response_data = response.json()
         if response.status_code != http.HTTPStatus.OK:
             message = response_data["error"]["message"] if "error" in response_data else ""
-            print(f"Error {response.status_code} while patching user {full_name} (UUID: {user.uuid}): {message}")
+            print(f"Error {response.status_code} while patching user {full_name} (UUID: {user.username}): {message}")
             self.error_users_patched += 1
             return
 
