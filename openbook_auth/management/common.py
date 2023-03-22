@@ -10,15 +10,21 @@ ORY_HEADER = {"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"}
 
 
 def for_every_ory_user(function: Callable[[dict], None]):
+    """
+    Expects a callback function that is called once for every user in Ory
+    passing a dict with the data from the rest response from Ory.
+    See: https://www.ory.sh/docs/reference/api#tag/identity/operation/listIdentities
+    """
     page = 1
-    per_page = 2
+    per_page = 1000
     retry_count = 0
-    while page == 1:  # or len(response_data) >= per_page:
+    response_data = []
+    while page == 1 or len(response_data) >= per_page:
         params = {"page": page, "per_page": per_page}
         response = requests.get(f"{settings.ORY_BASE_URL}/admin/identities/", params=params, headers=ORY_HEADER)
 
         if response.status_code != http.HTTPStatus.OK:
-            message = get_ory_error_str(response_data)
+            message = get_ory_error_str(response)
             if retry_count < 3:
                 print(f"Error getting users from Ory: {message} - Retry #{retry_count}")
                 retry_count += 1
