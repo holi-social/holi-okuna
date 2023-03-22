@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand
 from django.db.models import Q
 
 from openbook.settings import ORY_ACCESS_TOKEN, ORY_BASE_URL
+from openbook_auth.management.common import user_to_str, get_ory_error_str
 from openbook_auth.models import User
 
 
@@ -69,14 +70,3 @@ class Command(BaseCommand):
                     f"Error {response.status_code} while patching user {user_to_str(user)}: {get_ory_error_str(response_data)}"
                 )
                 self.error_users_patched += 1
-
-
-def get_ory_error_str(response_data):
-    error = response_data["error"] if "error" in response_data else []
-    message = error["message"] if "message" in error else ""
-    reason = f" ; reason: {error['reason']}" if "reason" in error else ""
-    return f"{message}{reason}"
-
-
-def user_to_str(user):
-    return f"'{user.profile.full_name()}' (UUID: {user.username}, email: {user.email})"
