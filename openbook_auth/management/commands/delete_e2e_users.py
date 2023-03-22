@@ -20,10 +20,19 @@ class Command(BaseCommand):
     users_deleted_count = 0
     users_failed_count = 0
 
+    def add_arguments(self, parser):
+        parser.add_argument("--ory", action="store_true", required=False)
+        parser.add_argument("--okuna", action="store_true", required=False)
+
     def handle(self, *args, **options):
-        for_every_ory_user(self._delete_ory_user)
-        print(f"Job completed, {self.users_deleted_count} users deleted in Ory ({self.users_failed_count} failed)")
-        self._delete_okuna_e2e_users()
+        if not options["ory"] and not options["okuna"]:
+            print("No option was specified. At least one of --ory and --okuna needs to be specified.")
+            return
+        if options["ory"]:
+            for_every_ory_user(self._delete_ory_user)
+            print(f"Job completed, {self.users_deleted_count} users deleted in Ory ({self.users_failed_count} failed)")
+        if options["okuna"]:
+            self._delete_okuna_e2e_users()
 
     def _delete_ory_user(self, user: dict):
         creation_date = parser.isoparse(user["created_at"])
@@ -42,22 +51,10 @@ class Command(BaseCommand):
                 self.users_deleted_count += 1
 
     def _delete_okuna_e2e_users(self):
-        print("\nDeleting Okuna users that ends with '@e2etest.com'")
+        print("\nDeleting Okuna users with emails ending with '@e2etest.com'")
 
-        users_deleted_count = 0
-        list_okuna_users = User.objects.filter(
-            email__endswith="@e2etest.com", date_joined__lte=self.now - timedelta(days=1)
-        )
-        print(f"Found {len(list_okuna_users)} e2e users to delete in Okuna")
-
-        for user in list_okuna_users:
-            try:
-                user.delete()
-                users_deleted_count += 1
-                print(f"User {user_to_str(user)} deleted in Okuna")
-            except User.DoesNotExist:
-                print(f"User {user_to_str(user)} doesn't exist in Okuna")
-            except Exception as exc:
-                print(f"Error deleting user {user_to_str(user)} in Okuna: {str(exc)}")
-
-        print(f"Deleted {users_deleted_count}/{len(list_okuna_users)} users in Okuna")
+        query = User.objects.filter(email__endswith="@e2etest.com", date_joined__lte=self.now - timedelta(days=1))
+        print(f"{query.count()} e2e users to delete")
+        (deleted_count, details) = query.delete()
+        print(f"{deleted_count} e2e users delete in Okuna")
+        print(f"Objects deleted: {details}")
