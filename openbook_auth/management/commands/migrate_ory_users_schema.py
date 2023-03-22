@@ -38,7 +38,7 @@ class Command(BaseCommand):
         while page == 1 or len(response_data) >= per_page:
             print(f"Downloading users info {page * '.'}")
 
-            params = {"page": page, "per_page": per_page, "credentials_identifier": "malte@holistic.foundation"}
+            params = {"page": page, "per_page": per_page}
             response = requests.get(self.base_url, params=params, headers=self.headers)
             response_data = response.json()
 
