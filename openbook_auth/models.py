@@ -113,7 +113,7 @@ class UserWithProfileManager(UserManager):
         return super().get_queryset().select_related("profile")
 
 
-class User(AbstractUser):
+class User(ModelWithUUID, AbstractUser):
     """
     Custom user model to change behaviour of the default user model
     such as validation and required fields.
@@ -198,8 +198,6 @@ class User(AbstractUser):
         },
     )
 
-    # uuid = models.UUIDField(default=uuid4, editable=False, unique=True)
-    id = models.UUIDField(default=uuid4, primary_key=True)
     invite_count = models.SmallIntegerField(default=0)
 
     is_moderator = models.BooleanField(default=False)
