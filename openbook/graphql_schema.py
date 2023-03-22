@@ -754,13 +754,18 @@ class Mutation:
         # we just retry a couple of times
         for count in range(3, -1, -1):
             try:
-                with transaction.atomic():
-                    current_user.delete()
+                current_user.delete()
                 logger.info(f"Successfully deleted user {current_user.username}")
                 return Result(success=True)
-            except Error:
-                logger.warn(f"Could not delete user with id {current_user.username}, retrying #{count} more times")
+            except (Exception,):
+                logger.warning(
+                    f"Could not delete user with id {current_user.username}, retrying #{count} more times",
+                    exc_info=True,
+                )
                 if count == 0:
+                    logger.exception(
+                        f"Could not delete user with id {current_user.username}, no more retries, failing"
+                    )
                     raise GraphQLError(
                         "Unable to delete user in okuna", extensions={"code": GraphQLErrorCodes.INTERNAL_SERVER_ERROR}
                     )
