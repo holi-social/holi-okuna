@@ -1,4 +1,5 @@
 from time import sleep
+from typing import Callable, Any
 
 import requests
 import http
@@ -8,7 +9,7 @@ from openbook import settings
 ORY_HEADER = {"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"}
 
 
-def for_every_ory_user(function):
+def for_every_ory_user(function: Callable[[dict], None]):
     page = 1
     per_page = 2
     retry_count = 0

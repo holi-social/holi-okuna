@@ -25,7 +25,7 @@ class Command(BaseCommand):
         print(f"Job completed, {self.users_deleted_count} users deleted in Ory ({self.users_failed_count} failed)")
         self._delete_okuna_e2e_users()
 
-    def _delete_ory_user(self, user):
+    def _delete_ory_user(self, user: dict):
         creation_date = parser.isoparse(user["created_at"])
         email = user["traits"]["email"]
         if email.endswith("@e2etest.com") and creation_date <= self.now - timedelta(days=1):

@@ -23,7 +23,7 @@ class Command(BaseCommand):
         print(f"{self.total_users_updated} users updated")
         print(f"{self.total_users_failed} user updates failed")
 
-    def _patch_ory_user(self, user):
+    def _patch_ory_user(self, user: dict):
         if user["schema_id"] != self.schema_id:
             body_data = [
                 {"op": "replace", "path": "/schema_id", "value": self.schema_id},
