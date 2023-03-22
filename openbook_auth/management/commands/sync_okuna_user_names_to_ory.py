@@ -4,16 +4,14 @@ import requests
 from django.core.management.base import BaseCommand
 from django.db.models import Q
 
-from openbook.settings import ORY_ACCESS_TOKEN, ORY_BASE_URL
-from openbook_auth.management.common import user_to_str, get_ory_error_str
+from openbook.settings import ORY_BASE_URL
+from openbook_auth.management.common import user_to_str, get_ory_error_str, ORY_HEADER
 from openbook_auth.models import User
 
 
 class Command(BaseCommand):
     help = "Sync Okuna users name on Ory"
 
-    headers = {"Authorization": f"Bearer {ORY_ACCESS_TOKEN}"}
-    base_url = f"{ORY_BASE_URL}/admin/identities/"
     schema_id = None
     okuna_users = []
     users_patched = 0
@@ -56,7 +54,7 @@ class Command(BaseCommand):
             )
 
         response = requests.patch(
-            f"{ORY_BASE_URL}/admin/identities/{user.username}", headers=self.headers, json=body_data
+            f"{ORY_BASE_URL}/admin/identities/{user.username}", headers=ORY_HEADER, json=body_data
         )
         match response.status_code:
             case http.HTTPStatus.OK:

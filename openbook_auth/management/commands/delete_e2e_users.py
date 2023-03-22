@@ -14,8 +14,8 @@ from openbook_auth.models import User
 class Command(BaseCommand):
     help = "Delete old e2e users on Ory and Okuna"
 
-    headers = {"Authorization": f"Bearer {ORY_ACCESS_TOKEN}"}
     base_url = f"{ORY_BASE_URL}/admin/identities/"
+    headers = {"Authorization": f"Bearer {ORY_ACCESS_TOKEN}"}
     now = timezone.now()
     users_deleted_count = 0
     users_failed_count = 0
@@ -47,7 +47,7 @@ class Command(BaseCommand):
         users_deleted_count = 0
         list_okuna_users = User.objects.filter(
             email__endswith="@e2etest.com", date_joined__lte=self.now - timedelta(days=1)
-        )[:2]
+        )
         print(f"Found {len(list_okuna_users)} e2e users to delete in Okuna")
 
         for user in list_okuna_users:

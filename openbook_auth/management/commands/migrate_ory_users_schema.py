@@ -4,14 +4,11 @@ from django.core.management.base import BaseCommand
 
 from openbook.settings import ORY_ACCESS_TOKEN, ORY_BASE_URL
 from openbook_auth.management.commands.sync_okuna_user_names_to_ory import get_ory_error_str
-from openbook_auth.management.common import for_every_ory_user, ory_user_to_str
+from openbook_auth.management.common import for_every_ory_user, ory_user_to_str, ORY_HEADER
 
 
 class Command(BaseCommand):
     help = "Update ory users schema"
-
-    headers = {"Authorization": f"Bearer {ORY_ACCESS_TOKEN}"}
-    base_url = f"{ORY_BASE_URL}/admin/identities/"
 
     schema_id = ""
     total_users_updated = 0
@@ -33,7 +30,9 @@ class Command(BaseCommand):
             ]
             print(f"Updating {ory_user_to_str(user)}")
 
-            response = requests.patch(f"{self.base_url}{user['id']}", headers=self.headers, json=body_data)
+            response = requests.patch(
+                f"{ORY_BASE_URL}/admin/identities/{user['id']}", headers=ORY_HEADER, json=body_data
+            )
 
             if response.status_code != http.HTTPStatus.OK:
                 print(f"{get_ory_error_str(response.json())}, {ory_user_to_str(user)} update failed")

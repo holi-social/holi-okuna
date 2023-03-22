@@ -5,8 +5,7 @@ import http
 
 from openbook import settings
 
-base_url = f"{settings.ORY_BASE_URL}/admin/identities/"
-headers = {"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"}
+ORY_HEADER = {"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"}
 
 
 def for_every_ory_user(function):
@@ -15,7 +14,7 @@ def for_every_ory_user(function):
     retry_count = 0
     while page == 1:  # or len(response_data) >= per_page:
         params = {"page": page, "per_page": per_page}
-        response = requests.get(base_url, params=params, headers=headers)
+        response = requests.get(f"{settings.ORY_BASE_URL}/admin/identities/", params=params, headers=ORY_HEADER)
 
         if response.status_code != http.HTTPStatus.OK:
             message = get_ory_error_str(response_data)
