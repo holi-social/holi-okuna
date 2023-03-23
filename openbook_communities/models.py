@@ -173,6 +173,21 @@ class Community(ModelWithUUID):
     topics = models.ManyToManyField(Topic, related_name="communities", blank=False, db_index=True)
     sdgs = models.ManyToManyField(SDG, related_name="communities", blank=True, db_index=True, null=True)
     geolocation = models.PointField(blank=True, null=True, spatial_index=True)
+    contact_description = models.CharField(
+      max_length=settings.COMMUNITY_CONTACT_DESCRIPTION_MAX_LENGTH,
+      blank=True,
+      null=True,
+    )
+    contact_email = models.EmailField(
+      _("contact email"),
+      blank=True,
+      null=True,
+    )
+    contact_phone = models.CharField(
+      max_length=settings.COMMUNITY_CONTACT_PHONE_MAX_LENGTH,
+      blank=True,
+      null=True,
+    )
 
     #  Backwards relations
     memberships: QuerySet["CommunityMembership"]
@@ -509,6 +524,9 @@ class Community(ModelWithUUID):
         avatar=None,
         location=None,
         geolocation=None,
+        contact_description=None,
+        contact_email=None,
+        contact_phone=None,
     ):
 
         if title:
@@ -557,6 +575,15 @@ class Community(ModelWithUUID):
             longitude = float(geolocation.get("longitude"))
             latitude = float(geolocation.get("latitude"))
             self.geolocation = Point(longitude, latitude, srid=4326)
+
+        if contact_description is not None:
+            self.contact_description = contact_description
+
+        if contact_email is not None:
+            self.contact_email = contact_email
+
+        if contact_phone is not None:
+            self.contact_phone = contact_phone
 
         self.save()
 
