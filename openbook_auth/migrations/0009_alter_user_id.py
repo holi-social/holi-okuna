@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("openbook_auth", "0007_user_last_received_notification_timestamp_and_more"),
+        ("openbook_auth", "0008_user_openbook_au_date_jo_6ccd8d_idx"),
     ]
 
     operations = [

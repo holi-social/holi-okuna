@@ -99,7 +99,7 @@ def update_auth_user_id(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("openbook_auth", "0008_alter_user_id"),
+        ("openbook_auth", "0009_alter_user_id"),
     ]
 
     operations = [
