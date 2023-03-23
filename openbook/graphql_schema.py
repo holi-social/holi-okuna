@@ -49,6 +49,7 @@ PUBLISHED_NOTIFICATION_TYPES = [
     NotificationModel.POST_COMMENT_USER_MENTION,
     NotificationModel.COMMUNITY_MEMBERSHIP_REQUEST,
     NotificationModel.COMMUNITY_MEMBERSHIP_APPROVED,
+    NotificationModel.RELEASE_INFO,
 ]
 
 logger = structlog.getLogger(__name__)
@@ -707,7 +708,7 @@ class Mutation:
         user_id: Optional[uuid.UUID] = None,
     ) -> Space:
         current_user = verify_authorized_user(info)
-        space = CommunityModel.objects.get(id=space_id)  # @todo Use name as parameter, same as okuna? w
+        space = CommunityModel.objects.get(id=space_id)
 
         cT = SpaceUserConnectionType
         a = UpdateConnectionAction
@@ -733,8 +734,6 @@ class Mutation:
                     return current_user.approve_membership_request_to_community_for_username(user_id, space.name)
                 case _:
                     raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
-
-        return space
 
     @gql.mutation
     def delete_authenticated_user(self, info) -> Result:

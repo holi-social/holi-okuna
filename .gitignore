@@ -25,4 +25,5 @@ core
 .venv
 
 # don't accidentally commit the .envrc.local file
+/.run/_*
 .envrc.local

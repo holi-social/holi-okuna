@@ -102,6 +102,7 @@ class NotificationType(Enum):
     PCUM = strawberry.enum_value("PCUM", description="POST_COMMENT_USER_MENTION")
     CNP = strawberry.enum_value("CNP", description="COMMUNITY_NEW_POST")
     UNP = strawberry.enum_value("UNP", description="USER_NEW_POST")
+    REL = strawberry.enum_value("REL", description="RELEASE_INFO")
 
 
 @gql.enum
