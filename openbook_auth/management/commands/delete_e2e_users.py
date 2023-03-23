@@ -56,5 +56,7 @@ class Command(BaseCommand):
         query = User.objects.filter(email__endswith="@e2etest.com", date_joined__lte=self.now - timedelta(days=1))
         print(f"{query.count()} e2e users to delete")
         (deleted_count, details) = query.delete()
-        print(f"{deleted_count} e2e users delete in Okuna")
+        if "openbook_auth.User" in details:
+            print(f"{details['openbook_auth.User']} e2e users deleted")
+        print(f"{deleted_count} object delete in Okuna")
         print(f"Objects deleted: {details}")
