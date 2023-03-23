@@ -27,6 +27,7 @@ from openbook_moderation.models import (
 )
 from openbook_notifications.models import Notification
 from openbook_common.models import ProxyBlacklistedDomain
+from openbook_posts.models import Post
 from openbook_terms.models import SDG, Topic, Skill
 
 fake = Faker()
@@ -175,7 +176,7 @@ def make_post_image():
     return tmp_file
 
 
-def make_post(user: Optional[User] = None, title: Optional[str] = None, text: Optional[str] = None):
+def make_post(user: Optional[User] = None, title: Optional[str] = None, text: Optional[str] = None) -> Post:
     return (user or make_user()).create_public_post(
         text=text or make_fake_post_text(),
         title=title or make_fake_post_title(),
