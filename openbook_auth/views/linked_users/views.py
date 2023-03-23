@@ -21,11 +21,11 @@ class LinkedUsers(APIView):
         data = serializer.validated_data
 
         count = data.get("count", 10)
-        max_id = data.get("max_id")
+        max_date_joined = data.get("max_date_joined")
         with_community = data.get("with_community")
 
         user = request.user
-        users = user.get_linked_users(max_id=max_id).order_by("-id")[:count]
+        users = user.get_linked_users(max_date_joined=max_date_joined).order_by("-date_joined")[:count]
 
         users_serializer = LinkedUsersUserSerializer(
             users,
