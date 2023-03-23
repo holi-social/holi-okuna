@@ -78,6 +78,12 @@ class ReactionAction(Enum):
 
 
 @gql.type
+class Point:
+    longitude: float
+    latitude: float
+
+
+@gql.type
 class Reaction:
     type: ReactionType
     count: int
@@ -204,6 +210,14 @@ class User:
         return self.profile.location
 
     @gql.django.field(select_related=["profile"])
+    def geolocation(self) -> Optional[Point]:
+        geolocation = self.profile.geolocation
+        if not geolocation:
+            return None
+
+        return Point(longitude=geolocation.x, latitude=geolocation.y)
+
+    @gql.django.field(select_related=["profile"])
     def engagement_level(self) -> Optional[str]:
         return self.profile.engagement_level
 
@@ -233,12 +247,6 @@ class SpaceMember:
     community: "Space"
     is_administrator: gql.auto
     created: gql.auto
-
-
-@gql.type
-class Point:
-    longitude: float
-    latitude: float
 
 
 CollectionType = CollaborationToolModel.CollectionType

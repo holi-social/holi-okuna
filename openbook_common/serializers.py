@@ -252,3 +252,8 @@ class ProxyDomainCheckSerializer(serializers.Serializer):
     url = serializers.CharField(
         required=True,
     )
+
+
+class PointSerializer(serializers.Serializer):
+    longitude = serializers.FloatField()
+    latitude = serializers.FloatField()
