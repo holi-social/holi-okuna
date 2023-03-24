@@ -840,9 +840,11 @@ class Mutation:
         )
         try:
             user = UserPayload(
-                id=str(community.creator.id), name=community.creator.profile.name, email=community.creator.email
+                id=str(community.creator.username), name=community.creator.profile.name, email=community.creator.email
             )
-            space = SpacePayload(id=str(community.id), name=community.title, slug=community.name)
+            space = SpacePayload(
+                id=str(community.id), name=community.title, slug=community.name, description=community.description
+            )
             event = SpaceCreatedEvent(user, space)
             publish_event(event=event, topic=PubSubTopic.OKUNA.value)
         except Exception as e:
