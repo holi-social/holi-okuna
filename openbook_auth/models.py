@@ -1616,6 +1616,13 @@ class User(ModelWithUUID, AbstractUser):
 
         return post_comment_reply
 
+    def delete_comment_with_id(self, post_comment_id):
+        PostComment = get_post_comment_model()
+        post_comment = PostComment.objects.get(pk=post_comment_id)
+        check_can_delete_comment_with_id_for_post(user=self, post_comment_id=post_comment_id, post=post_comment.post)
+        self._delete_post_comment_notification(post_comment=post_comment)
+        post_comment.delete()
+
     def delete_comment_with_id_for_post_with_id(self, post_comment_id, post_id):
         Post = get_post_model()
         post = Post.objects.get(pk=post_id)

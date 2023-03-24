@@ -710,6 +710,17 @@ class Mutation:
 
         return CreatePostCommentOutput(post_comment=post_comment, post_by_id=resolve_post(current_user, post_id))
 
+    @gql.mutation
+    def delete_post_comment(self, info, id: uuid.UUID) -> Result:
+        current_user = verify_authorized_user(info)
+
+        with transaction.atomic():
+            current_user.delete_comment_with_id(
+                post_comment_id=id,
+            )
+
+        return Result(success=True)
+
     @gql.mutation(description="When no userId is provided, the logged in user is used instead.")
     def update_space_user_connection(
         self,
