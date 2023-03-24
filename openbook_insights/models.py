@@ -32,8 +32,6 @@ class Insight(ModelWithUUID):
         upload_to=upload_to_insight_directory,
         blank=False,
         null=True,
-        format="JPEG",
-        options={"quality": 80},
         # constrain to maximum width
         processors=[
             ResizeToFit(
