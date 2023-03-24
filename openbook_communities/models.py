@@ -553,10 +553,8 @@ class Community(ModelWithUUID):
         if location:
             self.location = location
 
-        if geolocation:
-            longitude = float(geolocation.get("longitude"))
-            latitude = float(geolocation.get("latitude"))
-            self.geolocation = Point(longitude, latitude, srid=4326)
+        if geolocation is not None:
+            self.geolocation = geolocation
 
         self.save()
 

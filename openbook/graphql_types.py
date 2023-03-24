@@ -82,6 +82,13 @@ class Point:
     longitude: float
     latitude: float
 
+    @staticmethod
+    def to_point(geolocation):
+        if not geolocation:
+            return None
+
+        return Point(longitude=geolocation.x, latitude=geolocation.y)
+
 
 @gql.type
 class Reaction:
@@ -211,11 +218,7 @@ class User:
 
     @gql.django.field(select_related=["profile"])
     def geolocation(self) -> Optional[Point]:
-        geolocation = self.profile.geolocation
-        if not geolocation:
-            return None
-
-        return Point(longitude=geolocation.x, latitude=geolocation.y)
+        return Point.to_point(self.profile.geolocation)
 
     @gql.django.field(select_related=["profile"])
     def engagement_level(self) -> Optional[str]:
@@ -282,10 +285,7 @@ class Space:
 
     @gql.django.field
     def geolocation(self) -> Optional[Point]:
-        if not self.geolocation:
-            return None
-
-        return Point(longitude=self.geolocation.x, latitude=self.geolocation.y)
+        return Point.to_point(self.geolocation)
 
     @gql.django.field(
         description="A list of all active members and their role", prefetch_related="memberships__user__profile"

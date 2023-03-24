@@ -7,6 +7,7 @@ import structlog
 from cacheops import cached_as
 from django.conf import settings
 from django.core.cache import cache
+from django.contrib.gis import geos
 from django.db import Error, transaction
 from django.db.models import Count, F, Value
 from django.db.models.functions import Concat
@@ -517,6 +518,15 @@ class PointField:
     longitude: float
 
 
+def to_point(geolocation):
+    if geolocation is None:
+        return None
+
+    longitude = float(geolocation.get("longitude"))
+    latitude = float(geolocation.get("latitude"))
+    return geos.Point(longitude, latitude, srid=4326)
+
+
 @gql.input
 class UpdateAuthenticatedUserInput:
     avatar: Optional[Upload] = strawberry.UNSET
@@ -627,6 +637,8 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
+        geolocation = to_point(data.get("geolocation"))
+
         try:
             current_user.update(
                 name=data.get("name"),
@@ -634,7 +646,7 @@ class Mutation:
                 about_me=data.get("about_me"),
                 pronouns=data.get("pronouns"),
                 location=data.get("location"),
-                geolocation=data.get("geolocation"),
+                geolocation=geolocation,
                 engagement_level=data.get("engagement_level"),
                 interests=data.get("interests"),
                 sdgs=data.get("sdgs"),
@@ -848,6 +860,8 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
+        geolocation = to_point(data.get("geolocation"))
+
         return current_user.update_community_with_id(
             community_id=data.get("id"),
             title=data.get("title"),
@@ -857,7 +871,7 @@ class Mutation:
             avatar=data.get("avatar"),
             sdg_ids=data.get("sdgs"),
             location=data.get("location"),
-            geolocation=data.get("geolocation"),
+            geolocation=geolocation,
         )
 
     @gql.mutation

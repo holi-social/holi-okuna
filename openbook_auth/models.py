@@ -700,10 +700,8 @@ class User(ModelWithUUID, AbstractUser):
             else:
                 profile.location = location
 
-        if geolocation:
-            longitude = float(geolocation.get("longitude"))
-            latitude = float(geolocation.get("latitude"))
-            profile.geolocation = Point(longitude, latitude, srid=4326)
+        if geolocation is not None:
+            profile.geolocation = geolocation
 
         if avatar is not None:
             profile.avatar = avatar
