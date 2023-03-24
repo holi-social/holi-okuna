@@ -858,8 +858,6 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        geolocation = to_point(data.get("geolocation"))
-
         return current_user.update_community_with_id(
             community_id=data.get("id"),
             title=data.get("title"),
@@ -869,7 +867,7 @@ class Mutation:
             avatar=data.get("avatar"),
             sdg_ids=data.get("sdgs"),
             location=data.get("location"),
-            geolocation=geolocation,
+            geolocation=(GeolocationInput.to_point(data.get("geolocation"))),
         )
 
     @gql.mutation
