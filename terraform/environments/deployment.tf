@@ -127,7 +127,7 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name = "IMAGEKIT_PREFIX"
-          value = local.environment_name == "production" ? "" : "_DEV_"
+          value = local.environment_name == "production" ? "" : "_DEV_/"
         }
         env {
           name = "IMAGEKIT_PUBLIC_KEY"
