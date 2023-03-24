@@ -4667,9 +4667,13 @@ class UserProfile(ModelWithUUID):
         verbose_name=_("avatar"),
         blank=False,
         null=True,
-        format="JPEG",
-        options={"quality": 90},
-        processors=[ResizeToFill(500, 500)],
+        processors=[
+            ResizeToFill(
+                settings.PROFILE_IMAGE_MAX_DIMENSION,
+                settings.PROFILE_IMAGE_MAX_DIMENSION,
+                upscale=False,
+            )
+        ],
         upload_to=upload_to_user_avatar_directory,
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
@@ -4677,8 +4681,6 @@ class UserProfile(ModelWithUUID):
         verbose_name=_("cover"),
         blank=False,
         null=True,
-        format="JPEG",
-        options={"quality": 90},
         upload_to=upload_to_user_cover_directory,
         processors=[
             ResizeToFit(

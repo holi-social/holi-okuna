@@ -1031,8 +1031,6 @@ class PostImage(ModelWithUUID):
         height_field="height",
         blank=False,
         null=True,
-        format="JPEG",
-        options={"quality": 80},
         processors=[
             ResizeToFit(
                 width=settings.CONTENT_IMAGE_MAX_DIMENSION,
@@ -1090,8 +1088,6 @@ class PostVideo(ModelWithUUID):
         height_field="thumbnail_height",
         blank=False,
         null=True,
-        format="JPEG",
-        options={"quality": 30},
         processors=[
             ResizeToFit(
                 width=settings.CONTENT_IMAGE_MAX_DIMENSION,
