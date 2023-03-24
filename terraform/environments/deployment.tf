@@ -134,7 +134,7 @@ resource "google_cloud_run_service" "okuna" {
           value_from {
             secret_key_ref {
               key  = "latest"
-              name = local.environment_name == "OKUNA_IMAGEKIT_PUBLIC_KEY_PRODUCTION"
+              name = "OKUNA_IMAGEKIT_PUBLIC_KEY_PRODUCTION"
             }
           }
         }
@@ -143,7 +143,7 @@ resource "google_cloud_run_service" "okuna" {
           value_from {
             secret_key_ref {
               key  = "latest"
-              name = local.environment_name == "OKUNA_IMAGEKIT_PRIVATE_KEY_PRODUCTION"
+              name = "OKUNA_IMAGEKIT_PRIVATE_KEY_PRODUCTION"
             }
           }
         }
