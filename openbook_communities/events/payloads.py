@@ -9,10 +9,11 @@ class UserPayload:
 
 
 class SpacePayload:
-    def __init__(self, id: str, name: str, slug: str):
+    def __init__(self, id: str, name: str, slug: str, description: str):
         self.id = id
         self.name = name
         self.slug = slug
+        self.description = description
 
     def to_dict(self):
-        return {"id": self.id, "name": self.name, "slug": self.slug}
+        return {"id": self.id, "name": self.name, "slug": self.slug, "description": self.description}
