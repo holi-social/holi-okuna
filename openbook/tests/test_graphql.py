@@ -1953,6 +1953,9 @@ class GraphQLTest(TestCase):
                 "expected_error": f"No sdg with the id '{invalid_uuid}' found.",
             },
             {"field": "location", "value": None, "expected_code": "null"},
+            {"field": "contactDescription", "value": "f" * 101, "expected_code": "max_length"},
+            {"field": "contactPhone", "value": "9" * 101, "expected_code": "max_length"},
+            {"field": "contactMail", "value": "invalid", "expected_code": "invalid"},
         ]
 
         for testCase in expectedErrors:
@@ -2028,6 +2031,9 @@ class GraphQLTest(TestCase):
                 "sdgs": sdg_ids,
             },
             {"location": location},
+            {"contactDescription": "Lorem ipsum"},
+            {"contactPhone": "+49 123 12345"},
+            {"contactEmail": "contact@space.com"},
         ]
 
         for input in valid_inputs:
@@ -2059,6 +2065,9 @@ class GraphQLTest(TestCase):
                     avatar
                     sdgs { id }
                     location
+                    contactDescription
+                    contactPhone
+                    contactEmail
                 }
             }
             """
@@ -2071,6 +2080,9 @@ class GraphQLTest(TestCase):
             "avatar": avatar,
             "sdgs": sdg_ids,
             "location": location,
+            "contactDescription": "Lorem ipsum",
+            "contactPhone": "+49 123 12345",
+            "contactEmail": "contact@space.com",
         }
 
         response = schema.execute_sync(
@@ -2094,6 +2106,9 @@ class GraphQLTest(TestCase):
         for sdg in updated_space["sdgs"]:
             self.assertIn(sdg["id"], sdg_ids)
         self.assertEqual("Hamburg, Germany", updated_space["location"])
+        self.assertEqual("Lorem ipsum", updated_space["contactDescription"])
+        self.assertEqual("+49 123 12345", updated_space["contactPhone"])
+        self.assertEqual("contact@space.com", updated_space["contactEmail"])
 
     def test_can_not_update_space_if_not_admin(self):
         user = make_user()
