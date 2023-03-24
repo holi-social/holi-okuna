@@ -652,6 +652,7 @@ ONE_SIGNAL_API_KEY = os.environ.get("ONE_SIGNAL_API_KEY")
 IMAGEKIT_PUBLIC_KEY = os.environ.get("IMAGEKIT_PUBLIC_KEY", "none")
 IMAGEKIT_PRIVATE_KEY = os.environ.get("IMAGEKIT_PRIVATE_KEY", "none")
 IMAGEKIT_URL = os.environ.get("IMAGEKIT_URL", "https://ik.imagekit.io/holidev")
+IMAGEKIT_PREFIX = os.environ.get("IMAGEKIT_PREFIX", "")
 
 # Ory
 ORY_BASE_URL = os.environ.get("ORY_BASE_URL")

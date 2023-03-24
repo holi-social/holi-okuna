@@ -52,9 +52,9 @@ class ImagekitIoStorage(Storage):
         tags = [type_tag]
         if len(split) > 3:
             tags.append(f"user_{split[3]}")
-        old_files = self.imagekit.list_files({"tags": type_tag, "path": object_type})
+        old_files = self.imagekit.list_files({"tags": type_tag, "path": settings.IMAGEKIT_PREFIX + object_type})
 
-        options = {"folder": object_type, "tags": tags}
+        options = {"folder": settings.IMAGEKIT_PREFIX + object_type, "tags": tags}
         content.name = object_id + _get_file_extension(filename)
         upload = self.imagekit.upload(file=content, file_name=content.name, options=options)
 
