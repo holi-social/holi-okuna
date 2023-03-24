@@ -513,18 +513,18 @@ def to_input_dict(input):
 
 
 @gql.input
-class PointField:
+class GeolocationInput:
     latitude: float
     longitude: float
 
+    @staticmethod
+    def to_point(geolocation_input):
+        if geolocation_input is None:
+            return None
 
-def to_point(geolocation):
-    if geolocation is None:
-        return None
-
-    longitude = float(geolocation.get("longitude"))
-    latitude = float(geolocation.get("latitude"))
-    return geos.Point(longitude, latitude, srid=4326)
+        longitude = float(geolocation_input.get("longitude"))
+        latitude = float(geolocation_input.get("latitude"))
+        return geos.Point(longitude, latitude, srid=4326)
 
 
 @gql.input
@@ -535,7 +535,7 @@ class UpdateAuthenticatedUserInput:
     about_me: Optional[str] = strawberry.UNSET
     pronouns: Optional[str] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
-    geolocation: Optional[PointField] = strawberry.UNSET
+    geolocation: Optional[GeolocationInput] = strawberry.UNSET
     engagement_level: Optional[str] = strawberry.UNSET
     interests: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
@@ -588,7 +588,7 @@ class UpdateSpaceInput:
     avatar: Optional[Upload] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
-    geolocation: Optional[PointField] = strawberry.UNSET
+    geolocation: Optional[GeolocationInput] = strawberry.UNSET
 
 
 @gql.input
@@ -637,8 +637,6 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        geolocation = to_point(data.get("geolocation"))
-
         try:
             current_user.update(
                 name=data.get("name"),
@@ -646,7 +644,7 @@ class Mutation:
                 about_me=data.get("about_me"),
                 pronouns=data.get("pronouns"),
                 location=data.get("location"),
-                geolocation=geolocation,
+                geolocation=(GeolocationInput.to_point(data.get("geolocation"))),
                 engagement_level=data.get("engagement_level"),
                 interests=data.get("interests"),
                 sdgs=data.get("sdgs"),
