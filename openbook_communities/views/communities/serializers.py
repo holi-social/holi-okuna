@@ -4,13 +4,12 @@ from rest_framework import serializers
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
 from openbook_categories.models import Category
 from openbook_categories.validators import category_name_exists
-from openbook_common.serializers import CommonCommunityMembershipSerializer
+from openbook_common.serializers import CommonCommunityMembershipSerializer, PointSerializer
 from openbook_common.serializers_fields.community import CommunityPostsCountField
 from openbook_common.serializers_fields.request import RestrictedImageFileSizeField
 from openbook_common.validators import hex_color_validator
 from openbook_communities.models import CollaborationTool, Community
 from openbook_communities.serializers_fields import (
-    CommunityGeolocationField,
     IsInvitedField,
     IsCreatorField,
     CommunityMembershipsField,
@@ -151,8 +150,7 @@ class UpdateCommunitySerializer(serializers.Serializer):
         max_length=settings.COMMUNITY_LOCATION_MAX_LENGTH,
         required=False,
     )
-
-    geolocation = CommunityGeolocationField(required=False)
+    geolocation = PointSerializer(required=False)
 
 
 class CommunityNameCheckSerializer(serializers.Serializer):

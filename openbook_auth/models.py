@@ -1,15 +1,15 @@
 import logging
 import re
 import secrets
-from uuid import uuid4
 from datetime import datetime, timedelta
 from typing import Iterable
 
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.gis.db import models
+from django.contrib.gis.geos import Point
 from django.core.mail import EmailMultiAlternatives
-from django.db import models
 from django.db.models import Q, F, Count, QuerySet
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -661,6 +661,7 @@ class User(ModelWithUUID, AbstractUser):
         username=None,
         name=None,
         location=None,
+        geolocation=None,
         about_me=None,
         url=None,
         followers_count_visible=None,
@@ -698,6 +699,9 @@ class User(ModelWithUUID, AbstractUser):
                 profile.location = None
             else:
                 profile.location = location
+
+        if geolocation is not None:
+            profile.geolocation = geolocation
 
         if avatar is not None:
             profile.avatar = avatar
@@ -4647,6 +4651,7 @@ class UserProfile(ModelWithUUID):
         blank=True,
         null=True,
     )
+    geolocation = models.PointField(blank=True, null=True)
     engagement_level = models.CharField(
         _("engagement level"),
         max_length=10,
