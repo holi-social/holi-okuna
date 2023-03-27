@@ -6,8 +6,8 @@ import requests
 import structlog
 from cacheops import cached_as
 from django.conf import settings
-from django.core.cache import cache
 from django.contrib.gis import geos
+from django.core.cache import cache
 from django.db import Error, transaction
 from django.db.models import Count, F, Value
 from django.db.models.functions import Concat
@@ -15,20 +15,25 @@ from django.db.models.lookups import IContains
 from django.utils.translation import gettext_lazy as _
 from graphql import GraphQLError
 from strawberry.file_uploads import Upload
+from strawberry.tools import create_type
 from strawberry_django_plus.optimizer import DjangoOptimizerExtension
 
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_auth.images import delete_avatar
+from openbook_auth.schema import mutations as auth_mutations
+from openbook_auth.schema import queries as auth_queries
 from openbook_auth.tasks import update_ory_user
 from openbook_auth.validators import string_not_empty
 from openbook_auth.views.authenticated_user.serializers import (
     UpdateAuthenticatedUserSerializer,
 )
 from openbook_common.pubsub.publisher import publish_event
+from openbook_common.schema import inputs as common_inputs
+from openbook_common.schema import types as common_types
+from openbook_common.utils.helpers import is_uuid
 from openbook_communities.events.events import SpaceCreatedEvent
-from openbook_communities.events.topic import Topic as PubSubTopic
 from openbook_communities.events.payloads import SpacePayload, UserPayload
-
+from openbook_communities.events.topic import Topic as PubSubTopic
 from openbook_communities.views.communities.serializers import (
     AddCollaborationToolSerializer,
     CreateCommunitySerializer,
@@ -39,7 +44,6 @@ from openbook_communities.views.communities.serializers import (
 from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_moderation.models import ModeratedObject
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
-from openbook_common.utils.helpers import is_uuid
 
 from .graphql_types import *
 
@@ -109,13 +113,13 @@ class NewNotificationsResponse:
 def filter_spaces_by_skill_ids(location, skill_ids, limit):
     return CommunityModel.objects.raw(
         """
-            select s.id, s.skill_id, s.rn 
+            select s.id, s.skill_id, s.rn
             from openbook_terms_skill skill, (
                 select octskill.skill_id, occ.*, row_number() OVER (partition by octskill.skill_id ORDER BY occ.id) AS rn
                 FROM   openbook_communities_community occ, openbook_communities_task octask, openbook_communities_task_skills octskill
-                where occ.id = octask.community_id and octask.id = octskill.task_id  
+                where occ.id = octask.community_id and octask.id = octskill.task_id
             ) s
-            where s.skill_id = skill.id 
+            where s.skill_id = skill.id
             and UPPER(s.location) like UPPER(%s)
             and s.rn <= %s
             and skill.id = ANY(%s)
@@ -132,9 +136,9 @@ def filter_spaces_by_topic_ids(topic_ids, limit):
             from openbook_terms_topic t, (
                 select occtopics.topic_id, occ.*, row_number() OVER (partition by occtopics.topic_id ORDER BY occ.id) AS rn
                 FROM   openbook_communities_community occ, openbook_communities_community_topics occtopics
-                where occtopics.community_id = occ.id 
+                where occtopics.community_id = occ.id
             ) s
-            where s.topic_id = t.id 
+            where s.topic_id = t.id
             and s.rn <= %s
             and t.id = ANY(%s)
             order by t.id
@@ -163,76 +167,6 @@ def verify_authorized_user(info):
 
 @gql.type
 class Query:
-    @gql.django.field
-    def authenticated_user(self, info) -> Optional[User]:
-        current_user = info.context.request.user
-        return None if current_user.is_anonymous else current_user
-
-    @gql.django.field
-    def user_by_id(self, info, id: uuid.UUID) -> Optional[User]:
-        try:
-            current_user = info.context.request.user
-            return UserModel.objects.filter(UserModel.is_visible_query(current_user)).get(username=id)
-        except UserModel.DoesNotExist:
-            raise GraphQLError("User not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
-
-    @gql.django.field
-    def user_by_name(self, info, substring: str, offset: int = 0, limit: int = 5) -> Paged[User]:
-        string_not_empty(substring)
-
-        current_user = info.context.request.user
-        users_to_exclude_ids = [current_user.id] if not current_user.is_anonymous else []
-        excludes_filter = ~Q(id__in=users_to_exclude_ids) & UserModel.is_visible_query(current_user)
-        full_name_query = (
-            IContains(
-                Concat(F("profile__name"), Value(" "), F("profile__last_name")),
-                substring,
-            )
-            & excludes_filter
-        )
-
-        total_results = UserModel.objects.filter(full_name_query).count()
-
-        by_first_name_query = UserModel.objects.select_related("profile").filter(
-            Q(profile__name__icontains=substring) & excludes_filter
-        )
-        by_first_name = list(by_first_name_query[offset : offset + limit])
-        by_first_name_len = len(by_first_name)
-
-        if by_first_name_len >= limit:
-            return Paged(by_first_name, total_results)
-
-        if by_first_name_len > 0:
-            new_offset = 0
-            new_limit = limit - by_first_name_len
-        else:
-            new_offset = offset - by_first_name_query.count()
-            new_limit = limit
-
-        by_full_name = list(
-            UserModel.objects.select_related("profile").filter(
-                full_name_query & ~Q(profile__name__icontains=substring)
-            )[new_offset : new_offset + new_limit]
-        )
-        return Paged(by_first_name + by_full_name, total_results)
-
-    @gql.django.field
-    def user_suggestions(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
-        current_user = info.context.request.user
-        query = (
-            UserModel.objects.select_related("profile")
-            .filter(UserModel.is_visible_query(current_user))
-            .filter(date_joined__lte=datetime.now() - timedelta(hours=1))
-            .order_by("-date_joined")
-        )
-        if current_user.id:
-            query = query.exclude(id=current_user.id)
-        return Paged.of(
-            query,
-            offset,
-            limit,
-        )
-
     @gql.django.field
     def insights_by_user_id(self, info, id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         current_user = info.context.request.user
@@ -276,15 +210,15 @@ class Query:
         return resolve_post(info.context.request.user, id)
 
     @gql.django.field
-    def topics(self, offset: int = 0, limit: int = 50) -> Paged[Topic]:
+    def topics(self, offset: int = 0, limit: int = 50) -> Paged[auth_types.Topic]:
         return Paged.of(TopicModel.objects.all().order_by("title"), offset, limit)
 
     @gql.django.field
-    def sdgs(self, offset: int = 0, limit: int = 50) -> Paged[SDG]:
+    def sdgs(self, offset: int = 0, limit: int = 50) -> Paged[auth_types.SDG]:
         return Paged.of(SDGModel.objects.all().order_by("number"), offset, limit)
 
     @gql.django.field
-    def skills(self, offset: int = 0, limit: int = 50) -> Paged[Skill]:
+    def skills(self, offset: int = 0, limit: int = 50) -> Paged[auth_types.Skill]:
         return Paged.of(SkillModel.objects.all().order_by("title"), offset, limit)
 
     @gql.django.field
@@ -513,36 +447,6 @@ def to_input_dict(input):
 
 
 @gql.input
-class GeolocationInput:
-    latitude: float
-    longitude: float
-
-    @staticmethod
-    def to_point(geolocation_input):
-        if geolocation_input is None:
-            return None
-
-        longitude = float(geolocation_input.get("longitude"))
-        latitude = float(geolocation_input.get("latitude"))
-        return geos.Point(longitude, latitude, srid=4326)
-
-
-@gql.input
-class UpdateAuthenticatedUserInput:
-    avatar: Optional[Upload] = strawberry.UNSET
-    first_name: Optional[str] = strawberry.UNSET
-    last_name: Optional[str] = strawberry.UNSET
-    about_me: Optional[str] = strawberry.UNSET
-    pronouns: Optional[str] = strawberry.UNSET
-    location: Optional[str] = strawberry.UNSET
-    geolocation: Optional[GeolocationInput] = strawberry.UNSET
-    engagement_level: Optional[str] = strawberry.UNSET
-    interests: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
-    sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
-    skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
-
-
-@gql.input
 class UpdateConnectionWithUserInput:
     user_id: Optional[str] = strawberry.UNSET
     action: UpdateConnectionAction
@@ -588,7 +492,7 @@ class UpdateSpaceInput:
     avatar: Optional[Upload] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
-    geolocation: Optional[GeolocationInput] = strawberry.UNSET
+    geolocation: Optional[common_inputs.GeolocationInput] = strawberry.UNSET
 
 
 @gql.input
@@ -616,84 +520,6 @@ class Result:
 
 @gql.type
 class Mutation:
-    @gql.mutation
-    def update_authenticated_user(self, info, input: UpdateAuthenticatedUserInput) -> User:
-        current_user = verify_authorized_user(info)
-        update_avatar = False
-
-        if input.avatar:
-            if input.avatar in ("", {}):
-                raise GraphQLError(
-                    f"Attribute 'avatar' should be missing or contain a file, but was: '{input.avatar}'"
-                )
-            else:
-                update_avatar = True
-
-        input_dict = to_input_dict(input)
-        if input.first_name:
-            input_dict["name"] = input.first_name
-
-        serializer = UpdateAuthenticatedUserSerializer(data=input_dict)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-
-        try:
-            current_user.update(
-                name=data.get("name"),
-                last_name=data.get("last_name"),
-                about_me=data.get("about_me"),
-                pronouns=data.get("pronouns"),
-                location=data.get("location"),
-                geolocation=(GeolocationInput.to_point(data.get("geolocation"))),
-                engagement_level=data.get("engagement_level"),
-                interests=data.get("interests"),
-                sdgs=data.get("sdgs"),
-                skills=data.get("skills"),
-                avatar=data.get("avatar"),
-                update_avatar=update_avatar,
-                save=True,
-            )
-        except Error:
-            if update_avatar:
-                delete_avatar(data["avatar"])
-            raise
-
-        if input.first_name or input.last_name:
-            update_ory_user.delay(current_user.id)
-
-        return current_user
-
-    @gql.mutation
-    def update_connection_with_user(self, info, input: UpdateConnectionWithUserInput) -> User:
-        current_user = verify_authorized_user(info)
-
-        serializer = UpdateConnectionWithUserSerializer(data=to_input_dict(input))
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-
-        user_to_connect_to = current_user.get_user_with_username(username=data.get("user_id"))
-
-        current_connection_status = current_user.get_connection_status_with_user_id(user_id=user_to_connect_to.id)
-
-        # Connect action
-        if input.action == UpdateConnectionAction.CONNECT:
-            # if current user needs to confirm connection, run confirm_connection_with_user_with_id
-            if current_connection_status == UserConnectionStatus.PENDING_CONFIRMATION:
-                current_user.confirm_connection_with_user_with_id(user_id=user_to_connect_to.id)
-
-            # if there is no connection yet (no requests or pending confirmation), run connect_with_user_with_id
-            if current_connection_status == UserConnectionStatus.NOT_CONNECTED:
-                current_user.connect_with_user_with_id(user_id=user_to_connect_to.id)
-
-        # Disconnect action (only run if current connection status is different than NOT_CONNECTED)
-        elif (
-            input.action == UpdateConnectionAction.DISCONNECT
-            and current_connection_status != UserConnectionStatus.NOT_CONNECTED
-        ):
-            current_user.disconnect_from_user_with_id(user_id=user_to_connect_to.id)
-
-        return user_to_connect_to
-
     @gql.mutation
     def update_post_comment(self, info, input: CreatePostCommentInput) -> CreatePostCommentOutput:
         current_user = verify_authorized_user(info)
@@ -869,7 +695,7 @@ class Mutation:
             avatar=data.get("avatar"),
             sdg_ids=data.get("sdgs"),
             location=data.get("location"),
-            geolocation=(GeolocationInput.to_point(data.get("geolocation"))),
+            geolocation=(common_inputs.GeolocationInput.to_point(data.get("geolocation"))),
         )
 
     @gql.mutation
@@ -955,6 +781,16 @@ class Mutation:
             )
 
         return Result(success=True)
+
+
+@gql.type
+class MainQuery(Query, auth_queries.Query):
+    ...
+
+
+@gql.type
+class MainMutation(Mutation, auth_mutations.Mutation):
+    ...
 
 
 schema = strawberry.Schema(

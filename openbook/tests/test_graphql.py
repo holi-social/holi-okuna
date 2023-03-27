@@ -1,10 +1,10 @@
 import json
 import logging
 import unittest
+from datetime import datetime, timedelta
 from typing import List, Optional
 from unittest import mock
 from uuid import UUID, uuid4
-from datetime import datetime, timedelta
 
 from benedict import BeneDict
 from django.contrib.auth.models import AnonymousUser

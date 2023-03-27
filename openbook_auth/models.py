@@ -2,15 +2,15 @@ import logging
 import re
 import secrets
 from datetime import datetime, timedelta
+from enum import Enum
 from typing import Iterable
 
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.gis.db import models
-from django.contrib.gis.geos import Point
 from django.core.mail import EmailMultiAlternatives
-from django.db.models import Q, F, Count, QuerySet
+from django.db.models import Count, F, Q, QuerySet
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.template.loader import render_to_string
@@ -26,50 +26,50 @@ from openbook_auth.helpers import (
     upload_to_user_avatar_directory,
     upload_to_user_cover_directory,
 )
-from openbook_common.helpers import get_supported_translation_language, PQ, PrefixedQ
+from openbook_common.helpers import PQ, PrefixedQ, get_supported_translation_language
 from openbook_common.models import Badge, ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import (
-    get_collaboration_tool_model,
-    get_connection_model,
     get_circle_model,
-    get_follow_model,
-    get_list_model,
+    get_collaboration_tool_model,
     get_community_invite_model,
-    get_post_comment_notification_model,
-    get_follow_notification_model,
-    get_connection_confirmed_notification_model,
-    get_connection_request_notification_model,
-    get_post_reaction_notification_model,
-    get_device_model,
-    get_post_mute_model,
     get_community_invite_notification_model,
-    get_user_block_model,
-    get_post_comment_reply_notification_model,
-    get_moderated_object_model,
-    get_moderation_report_model,
-    get_moderation_penalty_model,
-    get_post_comment_mute_model,
-    get_post_comment_reaction_model,
-    get_post_comment_reaction_notification_model,
-    get_top_post_model,
-    get_top_post_community_exclusion_model,
-    get_hashtag_model,
-    get_profile_posts_community_exclusion_model,
-    get_user_new_post_notification_model,
+    get_community_membership_approved_notification_model,
+    get_community_membership_request_notification_model,
+    get_community_notifications_subscription_model,
+    get_connection_confirmed_notification_model,
+    get_connection_model,
+    get_connection_request_notification_model,
+    get_device_model,
+    get_follow_model,
+    get_follow_notification_model,
+    get_follow_request_approved_notification_model,
     get_follow_request_model,
     get_follow_request_notification_model,
-    get_follow_request_approved_notification_model,
-    get_community_membership_request_notification_model,
-    get_community_membership_approved_notification_model,
-    get_community_notifications_subscription_model,
-    get_user_notifications_subscription_model,
+    get_hashtag_model,
+    get_list_model,
+    get_moderated_object_model,
+    get_moderation_penalty_model,
+    get_moderation_report_model,
     get_notification_model,
+    get_post_comment_mute_model,
+    get_post_comment_notification_model,
+    get_post_comment_reaction_model,
+    get_post_comment_reaction_notification_model,
+    get_post_comment_reply_notification_model,
+    get_post_mute_model,
+    get_post_reaction_notification_model,
+    get_profile_posts_community_exclusion_model,
+    get_top_post_community_exclusion_model,
+    get_top_post_model,
+    get_user_block_model,
+    get_user_new_post_notification_model,
+    get_user_notifications_subscription_model,
 )
 from openbook_common.validators import name_characters_validator
 from openbook_hashtags.queries import (
-    make_search_hashtag_query_for_user_with_id,
     make_get_hashtag_with_name_for_user_with_id_query,
+    make_search_hashtag_query_for_user_with_id,
 )
 from openbook_notifications import helpers
 from openbook_notifications.helpers import (
@@ -77,9 +77,8 @@ from openbook_notifications.helpers import (
 )
 from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
 from openbook_posts.query_collections import get_posts_for_user_collection
-from openbook_terms.models import Topic, SDG, Skill
+from openbook_terms.models import SDG, Skill, Topic
 from openbook_translation import translation_strategy
-from enum import Enum
 
 logger = logging.getLogger(__name__)
 

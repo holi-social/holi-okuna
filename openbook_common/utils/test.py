@@ -1,4 +1,5 @@
 import uuid
+
 from openbook_common.utils.helpers import is_uuid
 
 
