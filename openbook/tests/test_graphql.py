@@ -137,6 +137,7 @@ class GraphQLTest(TestCase):
         mock_patch.return_value = response
         user = make_user(name="Fritz", last_name="Meier")
         pronouns = "She/her"
+        geolocation = {"latitude": 2.0, "longitude": -4.2}
 
         self.assertNotEqual(User.objects.get(username=user.username).profile.pronouns, pronouns)
         first_name = "Peter"
@@ -154,6 +155,10 @@ class GraphQLTest(TestCase):
                 updateAuthenticatedUser(input: $input) {
                     id
                     pronouns
+                    geolocation {
+                        latitude
+                        longitude
+                    }
                 }
             }
             """,
@@ -163,6 +168,7 @@ class GraphQLTest(TestCase):
                     "pronouns": pronouns,
                     "firstName": first_name,
                     "lastName": last_name,
+                    "geolocation": geolocation,
                 }
             },
         )
@@ -178,6 +184,9 @@ class GraphQLTest(TestCase):
         self.assertEqual(graphql_pronouns, pronouns)
         self.assertEqual(last_name, persisted_profile.last_name)
         self.assertEqual(first_name, persisted_profile.name)
+        self.assertIsNotNone(persisted_profile.geolocation)
+        self.assertEqual(geolocation["longitude"], persisted_profile.geolocation.x)
+        self.assertEqual(geolocation["latitude"], persisted_profile.geolocation.y)
 
     def test_can_perform_connection_workflow(self):
         first_user = make_user(name="Fritz", last_name="Meier")

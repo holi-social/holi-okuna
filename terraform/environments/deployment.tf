@@ -123,14 +123,18 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name = "IMAGEKIT_URL"
-          value = local.environment_name == "production" ? "https://ik.imagekit.io/holi" : "https://ik.imagekit.io/holidev"
+          value = local.environment_name == "https://ik.imagekit.io/holi"
+        }
+        env {
+          name = "IMAGEKIT_PREFIX"
+          value = local.environment_name == "production" ? "" : "_DEV_/"
         }
         env {
           name = "IMAGEKIT_PUBLIC_KEY"
           value_from {
             secret_key_ref {
               key  = "latest"
-              name = local.environment_name == "production" ? "OKUNA_IMAGEKIT_PUBLIC_KEY_PRODUCTION" : "OKUNA_IMAGEKIT_PUBLIC_KEY_DEVELOPMENT"
+              name = "OKUNA_IMAGEKIT_PUBLIC_KEY_PRODUCTION"
             }
           }
         }
@@ -139,7 +143,7 @@ resource "google_cloud_run_service" "okuna" {
           value_from {
             secret_key_ref {
               key  = "latest"
-              name = local.environment_name == "production" ? "OKUNA_IMAGEKIT_PRIVATE_KEY_PRODUCTION" : "OKUNA_IMAGEKIT_PRIVATE_KEY_DEVELOPMENT"
+              name = "OKUNA_IMAGEKIT_PRIVATE_KEY_PRODUCTION"
             }
           }
         }

@@ -91,12 +91,11 @@ class Community(ModelWithUUID):
         verbose_name=_("avatar"),
         blank=False,
         null=True,
-        format="JPEG",
-        options={"quality": 90},
         processors=[
             ResizeToFill(
                 settings.PROFILE_IMAGE_MAX_DIMENSION,
                 settings.PROFILE_IMAGE_MAX_DIMENSION,
+                upscale=False,
             )
         ],
         upload_to=upload_to_community_avatar_directory,
@@ -108,8 +107,6 @@ class Community(ModelWithUUID):
         verbose_name=_("cover"),
         blank=False,
         null=True,
-        format="JPEG",
-        options={"quality": 90},
         upload_to=upload_to_community_cover_directory,
         processors=[
             ResizeToFit(
@@ -571,10 +568,8 @@ class Community(ModelWithUUID):
         if location:
             self.location = location
 
-        if geolocation:
-            longitude = float(geolocation.get("longitude"))
-            latitude = float(geolocation.get("latitude"))
-            self.geolocation = Point(longitude, latitude, srid=4326)
+        if geolocation is not None:
+            self.geolocation = geolocation
 
         if contact_description is not None:
             self.contact_description = contact_description

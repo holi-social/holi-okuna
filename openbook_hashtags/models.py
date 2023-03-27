@@ -65,8 +65,6 @@ class Hashtag(ModelWithUUID):
         height_field="height",
         blank=True,
         null=True,
-        format="JPEG",
-        options={"quality": 60},
         processors=[
             ResizeToFit(
                 width=settings.CONTENT_IMAGE_MAX_DIMENSION,

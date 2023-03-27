@@ -41,6 +41,19 @@ def for_every_ory_user(function: Callable[[dict], None]):
             page += 1
 
 
+def get_ory_user(email):
+    params = {"page": 1, "per_page": 1, "credentials_identifier": email}
+    response = requests.get(f"{settings.ORY_BASE_URL}/admin/identities/", params=params, headers=ORY_HEADER)
+
+    if response.status_code == http.HTTPStatus.OK:
+        response_json = response.json()
+        if response_json:
+            return response_json[0]
+        return None
+    message = get_ory_error_str(response)
+    print(f"Error getting users from Ory: {message}")
+
+
 def get_ory_error_str(response):
     response_data = response.json()
     error = response_data["error"] if "error" in response_data else []

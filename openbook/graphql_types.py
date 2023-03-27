@@ -78,6 +78,19 @@ class ReactionAction(Enum):
 
 
 @gql.type
+class Geolocation:
+    longitude: float
+    latitude: float
+
+    @staticmethod
+    def from_point(point):
+        if not point:
+            return None
+
+        return Geolocation(longitude=point.x, latitude=point.y)
+
+
+@gql.type
 class Reaction:
     type: ReactionType
     count: int
@@ -204,6 +217,10 @@ class User:
         return self.profile.location
 
     @gql.django.field(select_related=["profile"])
+    def geolocation(self) -> Optional[Geolocation]:
+        return Geolocation.from_point(self.profile.geolocation)
+
+    @gql.django.field(select_related=["profile"])
     def engagement_level(self) -> Optional[str]:
         return self.profile.engagement_level
 
@@ -233,12 +250,6 @@ class SpaceMember:
     community: "Space"
     is_administrator: gql.auto
     created: gql.auto
-
-
-@gql.type
-class Point:
-    longitude: float
-    latitude: float
 
 
 CollectionType = CollaborationToolModel.CollectionType
@@ -276,11 +287,8 @@ class Space:
     contact_phone: Optional[str]
 
     @gql.django.field
-    def geolocation(self) -> Optional[Point]:
-        if not self.geolocation:
-            return None
-
-        return Point(longitude=self.geolocation.x, latitude=self.geolocation.y)
+    def geolocation(self) -> Optional[Geolocation]:
+        return Geolocation.from_point(self.geolocation)
 
     @gql.django.field(
         description="A list of all active members and their role", prefetch_related="memberships__user__profile"

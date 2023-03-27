@@ -162,8 +162,3 @@ class UserCommunitiesMembershipsField(Field):
         membership = community.memberships.get(user=request_user)
 
         return self.community_membership_serializer([membership], context={"request": request}, many=True).data
-
-
-class CommunityGeolocationField(serializers.Serializer):
-    longitude = serializers.FloatField()
-    latitude = serializers.FloatField()

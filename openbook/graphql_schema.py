@@ -7,6 +7,7 @@ import structlog
 from cacheops import cached_as
 from django.conf import settings
 from django.core.cache import cache
+from django.contrib.gis import geos
 from django.db import Error, transaction
 from django.db.models import Count, F, Value
 from django.db.models.functions import Concat
@@ -512,6 +513,21 @@ def to_input_dict(input):
 
 
 @gql.input
+class GeolocationInput:
+    latitude: float
+    longitude: float
+
+    @staticmethod
+    def to_point(geolocation_input):
+        if geolocation_input is None:
+            return None
+
+        longitude = float(geolocation_input.get("longitude"))
+        latitude = float(geolocation_input.get("latitude"))
+        return geos.Point(longitude, latitude, srid=4326)
+
+
+@gql.input
 class UpdateAuthenticatedUserInput:
     avatar: Optional[Upload] = strawberry.UNSET
     first_name: Optional[str] = strawberry.UNSET
@@ -519,6 +535,7 @@ class UpdateAuthenticatedUserInput:
     about_me: Optional[str] = strawberry.UNSET
     pronouns: Optional[str] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
+    geolocation: Optional[GeolocationInput] = strawberry.UNSET
     engagement_level: Optional[str] = strawberry.UNSET
     interests: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
@@ -562,12 +579,6 @@ class CreateSpaceInput:
 
 
 @gql.input
-class PointField:
-    latitude: float
-    longitude: float
-
-
-@gql.input
 class UpdateSpaceInput:
     id: uuid.UUID
     title: Optional[str] = strawberry.UNSET
@@ -577,7 +588,7 @@ class UpdateSpaceInput:
     avatar: Optional[Upload] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
-    geolocation: Optional[PointField] = strawberry.UNSET
+    geolocation: Optional[GeolocationInput] = strawberry.UNSET
     contact_description: Optional[str] = strawberry.UNSET
     contact_email: Optional[str] = strawberry.UNSET
     contact_phone: Optional[str] = strawberry.UNSET
@@ -635,6 +646,7 @@ class Mutation:
                 about_me=data.get("about_me"),
                 pronouns=data.get("pronouns"),
                 location=data.get("location"),
+                geolocation=(GeolocationInput.to_point(data.get("geolocation"))),
                 engagement_level=data.get("engagement_level"),
                 interests=data.get("interests"),
                 sdgs=data.get("sdgs"),
@@ -830,9 +842,11 @@ class Mutation:
         )
         try:
             user = UserPayload(
-                id=str(community.creator.id), name=community.creator.profile.name, email=community.creator.email
+                id=str(community.creator.username), name=community.creator.profile.name, email=community.creator.email
             )
-            space = SpacePayload(id=str(community.id), name=community.title, slug=community.name)
+            space = SpacePayload(
+                id=str(community.id), name=community.title, slug=community.name, description=community.description
+            )
             event = SpaceCreatedEvent(user, space)
             publish_event(event=event, topic=PubSubTopic.OKUNA.value)
         except Exception as e:
@@ -857,7 +871,7 @@ class Mutation:
             avatar=data.get("avatar"),
             sdg_ids=data.get("sdgs"),
             location=data.get("location"),
-            geolocation=data.get("geolocation"),
+            geolocation=(GeolocationInput.to_point(data.get("geolocation"))),
             contact_description=data.get("contact_description"),
             contact_email=data.get("contact_email"),
             contact_phone=data.get("contact_phone"),
