@@ -11,9 +11,9 @@ class EventType(Enum):
 class SpaceCreatedEvent(Event):
     EVENT_VERSION = "1.0.0"
 
-    def __init__(self, user: UserPayload, space: SpacePayload):
+    def __init__(self, creator: UserPayload, space: SpacePayload):
         super().__init__(
-            data={"user": user.to_dict(), "space": space.to_dict()},
+            data={"creator": creator.to_dict(), "space": space.to_dict()},
             event_type=EventType.SPACE_CREATED.value,
             event_version=SpaceCreatedEvent.EVENT_VERSION,
         )
