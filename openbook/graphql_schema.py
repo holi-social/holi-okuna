@@ -718,6 +718,18 @@ class Mutation:
 
         return Result(success=True)
 
+    def send_space_user_added_event(username: str, community: Community):
+        try:
+            user_to_add: User = User.objects.get(username=username)
+            user = UserPayload.from_user(user)
+            space = SpacePayload.from_community(community)
+            event = SpaceUserAddedEvent(user, space)
+            publish_event(event=event, topic=PubSubTopic.OKUNA.value)
+        except Exception as e:
+            logger.error("Failed to publish SpaceUserAdded event", str(e))
+        finally:
+            return community
+
     @gql.mutation(description="When no userId is provided, the logged in user is used instead.")
     def update_space_user_connection(
         self,
@@ -732,6 +744,7 @@ class Mutation:
 
         cT = SpaceUserConnectionType
         a = UpdateConnectionAction
+
         if not user_id or current_user.username == user_id:
             # perform for current user
             match (connection_type, connect_action):
@@ -751,7 +764,8 @@ class Mutation:
                 case (cT.MEMBERSHIP_REQUESTOR, a.DISCONNECT):
                     return current_user.revoke_membership_request_to_community_for_username(user_id, space.name)
                 case (cT.MEMBER, a.CONNECT):
-                    return current_user.approve_membership_request_to_community_for_username(user_id, space.name)
+                    space = current_user.approve_membership_request_to_community_for_username(user_id, space.name)
+                    return send_space_user_added_event(user_id, space)
                 case _:
                     raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
 
@@ -847,14 +861,12 @@ class Mutation:
             topic_ids=data.get("topics"),
         )
         try:
-            creator = UserPayload(
-                id=str(community.creator.username), name=community.creator.profile.name, email=community.creator.email
-            )
-            space = SpacePayload(id=str(community.id), name=community.title, slug=community.name)
+            creator = UserPayload.from_user(community.creator)
+            space = SpacePayload.from_community(community)
             event = SpaceCreatedEvent(creator, space)
             publish_event(event=event, topic=PubSubTopic.OKUNA.value)
         except Exception as e:
-            logger.error("Failed to publish event", str(e))
+            logger.error("Failed to publish SpaceCreated event", str(e))
         finally:
             return community
 
