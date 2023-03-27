@@ -171,19 +171,19 @@ class Community(ModelWithUUID):
     sdgs = models.ManyToManyField(SDG, related_name="communities", blank=True, db_index=True, null=True)
     geolocation = models.PointField(blank=True, null=True, spatial_index=True)
     contact_description = models.CharField(
-      max_length=settings.COMMUNITY_CONTACT_DESCRIPTION_MAX_LENGTH,
-      blank=True,
-      null=True,
+        max_length=settings.COMMUNITY_CONTACT_DESCRIPTION_MAX_LENGTH,
+        blank=True,
+        null=True,
     )
     contact_email = models.EmailField(
-      _("contact email"),
-      blank=True,
-      null=True,
+        _("contact email"),
+        blank=True,
+        null=True,
     )
     contact_phone = models.CharField(
-      max_length=settings.COMMUNITY_CONTACT_PHONE_MAX_LENGTH,
-      blank=True,
-      null=True,
+        max_length=settings.COMMUNITY_CONTACT_PHONE_MAX_LENGTH,
+        blank=True,
+        null=True,
     )
 
     #  Backwards relations

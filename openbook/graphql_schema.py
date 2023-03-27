@@ -593,6 +593,7 @@ class UpdateSpaceInput:
     contact_email: Optional[str] = strawberry.UNSET
     contact_phone: Optional[str] = strawberry.UNSET
 
+
 @gql.input
 class AddCollaborationToolInput:
     space_id: uuid.UUID
