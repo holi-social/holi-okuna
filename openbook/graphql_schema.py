@@ -847,13 +847,11 @@ class Mutation:
             topic_ids=data.get("topics"),
         )
         try:
-            user = UserPayload(
+            creator = UserPayload(
                 id=str(community.creator.username), name=community.creator.profile.name, email=community.creator.email
             )
-            space = SpacePayload(
-                id=str(community.id), name=community.title, slug=community.name, description=community.description
-            )
-            event = SpaceCreatedEvent(user, space)
+            space = SpacePayload(id=str(community.id), name=community.title, slug=community.name)
+            event = SpaceCreatedEvent(creator, space)
             publish_event(event=event, topic=PubSubTopic.OKUNA.value)
         except Exception as e:
             logger.error("Failed to publish event", str(e))
