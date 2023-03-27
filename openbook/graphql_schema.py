@@ -714,10 +714,7 @@ class Mutation:
     def delete_post_comment(self, info, id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
 
-        with transaction.atomic():
-            current_user.delete_comment_with_id(
-                post_comment_id=id,
-            )
+        current_user.delete_comment_with_id(post_comment_id=id)
 
         return Result(success=True)
 
