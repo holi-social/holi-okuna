@@ -41,6 +41,7 @@ from openbook_common.tests.helpers import (
 from openbook_communities.models import Community
 from openbook_insights.models import Insight
 from openbook_moderation.models import ModeratedObject
+from openbook_posts.models import PostCommentReaction, PostComment
 
 logger = logging.getLogger(__name__)
 
@@ -289,6 +290,83 @@ class GraphQLTest(TestCase):
         self.assertEqual(post_data, None)
         self.assertIn("Post not found", response.errors[0].message)
 
+    def test_can_delete_post_comment(self):
+        posting_user = make_user()
+        comment_user = make_user()
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_public_post(
+            text=post_text,
+            title=post_title,
+        )
+        comment = post.comment(text=f"comment text", commenter=comment_user)
+        reaction = comment.react(posting_user, "HEART")
+        post.comment(text=f"comment text 2", commenter=comment_user)
+
+        self.assertEqual(post.comments.count(), 2)
+        response = self.delete_post_comment(comment.id, comment_user)
+        self.assertIsNone(response.errors)
+        self.assertEqual(response.data["deletePostComment"]["success"], True)
+        self.assertEqual(post.comments.count(), 1)
+        self.assertNotIn(comment.id, post.comments.values_list("id", flat=True))
+        self.assertNotIn(
+            reaction.id, PostCommentReaction.objects.filter(post_comment=comment).values_list("id", flat=True)
+        )
+
+    def test_cant_delete_post_comment_of_other_user(self):
+        posting_user = make_user()
+        comment_user = make_user()
+        other_user = make_user()
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_public_post(
+            text=post_text,
+            title=post_title,
+        )
+        comment = post.comment(text=f"comment text", commenter=comment_user)
+        reaction = comment.react(posting_user, "HEART")
+        post.comment(text=f"comment text 2", commenter=comment_user)
+
+        self.assertEqual(post.comments.count(), 2)
+        response = self.delete_post_comment(comment.id, other_user)
+        self.assertIsNone(response.data, None)
+
+        self.assertEqual(post.comments.count(), 2)
+        self.assertIn(comment.id, post.comments.values_list("id", flat=True))
+        self.assertIn(
+            reaction.id, PostCommentReaction.objects.filter(post_comment=comment).values_list("id", flat=True)
+        )
+
+    def test_cant_delete_post_comment_not_exist(self):
+        posting_user = make_user()
+        comment_user = make_user()
+        other_user = make_user()
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_public_post(
+            text=post_text,
+            title=post_title,
+        )
+        comment = post.comment(text=f"comment text", commenter=comment_user)
+        reaction = comment.react(posting_user, "HEART")
+        post.comment(text=f"comment text 2", commenter=comment_user)
+
+        self.assertEqual(post.comments.count(), 2)
+        response = self.delete_post_comment("00000000-0000-0000-0000-000000000000", comment_user)
+        self.assertIsNone(response.data, None)
+
+        self.assertEqual(post.comments.count(), 2)
+        self.assertIn(comment.id, post.comments.values_list("id", flat=True))
+        self.assertIn(
+            reaction.id, PostCommentReaction.objects.filter(post_comment=comment).values_list("id", flat=True)
+        )
+
     def test_react_to_post(self):
         posting_user = make_user()
         other_user = make_user(name="Other")
@@ -391,6 +469,21 @@ class GraphQLTest(TestCase):
                 "id": str(post_comment.id),
                 "reactionType": "HEART",
                 "reactionAction": action,
+            },
+        )
+
+    def delete_post_comment(self, post_comment_id, user):
+        return schema.execute_sync(
+            """
+            mutation test($id: UUID!) {
+                deletePostComment(id: $id) {
+                    success
+                }
+            }
+            """,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={
+                "id": str(post_comment_id),
             },
         )
 

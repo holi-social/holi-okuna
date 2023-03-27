@@ -1092,7 +1092,6 @@ def check_can_delete_comment_with_id_for_post(user, post_comment_id, post):
 
     # Check that the comment belongs to the post
     PostComment = get_post_comment_model()
-    Post = get_post_model()
 
     if not PostComment.objects.filter(id=post_comment_id, post_id=post.pk).exists():
         raise ValidationError(_("The comment does not belong to the specified post."))
