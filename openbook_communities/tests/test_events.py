@@ -12,16 +12,14 @@ class SpaceCreatedEventTestCase(testcases.TestCase):
         creator = make_user()
         community = make_community(creator=creator)
 
-        user = UserPayload(id=str(creator.username), name=creator.profile.name, email=creator.email)
-        space = SpacePayload(
-            id=str(community.id), name=community.title, slug=community.name, description=community.description
-        )
+        creator = UserPayload(id=str(creator.username), name=creator.profile.name, email=creator.email)
+        space = SpacePayload(id=str(community.id), name=community.title, slug=community.name)
 
-        data = {"user": user.to_dict(), "space": space.to_dict()}
+        data = {"creator": creator.to_dict(), "space": space.to_dict()}
 
         encoded_data = json.dumps(data).encode("utf-8")
 
-        event = SpaceCreatedEvent(user, space)
+        event = SpaceCreatedEvent(creator, space)
 
         event_dict = event.to_dict()
 
