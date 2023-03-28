@@ -1,40 +1,35 @@
+import logging
 import uuid
 from enum import Enum
+from typing import List, Optional, TypeVar
 from uuid import UUID
 
 import strawberry
-from typing import List, TypeVar, Optional
-
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from strawberry_django_plus import gql
-from django.db.models import QuerySet
 
-import logging
+from openbook_auth.models import User as UserModel
+from openbook_auth.models import UserBlock
+from openbook_auth.schema import types as auth_types
 from openbook_common.models import LinkPreview as LinkPreviewModel
+from openbook_common.schema import types as common_types
 from openbook_common.types import ReactionType
-from openbook_communities.models import (
-    Community as CommunityModel,
-    Task as TaskModel,
-    CommunityMembership as CommunityMembershipModel,
-    ExternalLink as ExternalLinkModel,
-    ExternalLinkType,
-    CollaborationTool as CollaborationToolModel,
-)
-from openbook_notifications.models import Notification as NotificationModel
-from openbook_posts.models import (
-    Post as PostModel,
-    PostComment as PostCommentModel,
-    PostImage as PostImageModel,
-    PostReaction as PostReactionModel,
-    PostCommentReaction as PostCommentReactionModel,
-)
-from openbook_terms.models import (
-    Topic as TopicModel,
-    SDG as SDGModel,
-    Skill as SkillModel,
-)
-from openbook_auth.models import User as UserModel, UserConnectionStatus, UserBlock
+from openbook_communities.models import CollaborationTool as CollaborationToolModel
+from openbook_communities.models import Community as CommunityModel
+from openbook_communities.models import CommunityMembership as CommunityMembershipModel
+from openbook_communities.models import ExternalLink as ExternalLinkModel
+from openbook_communities.models import ExternalLinkType
+from openbook_communities.models import Task as TaskModel
 from openbook_insights.models import Insight as InsightModel
+from openbook_notifications.models import Notification as NotificationModel
+from openbook_posts.models import Post as PostModel
+from openbook_posts.models import PostComment as PostCommentModel
+from openbook_posts.models import PostCommentReaction as PostCommentReactionModel
+from openbook_posts.models import PostImage as PostImageModel
+from openbook_posts.models import PostReaction as PostReactionModel
+from openbook_terms.models import SDG as SDGModel
+from openbook_terms.models import Skill as SkillModel
+from openbook_terms.models import Topic as TopicModel
 
 logger = logging.getLogger(__name__)
 
@@ -78,19 +73,6 @@ class ReactionAction(Enum):
 
 
 @gql.type
-class Geolocation:
-    longitude: float
-    latitude: float
-
-    @staticmethod
-    def from_point(point):
-        if not point:
-            return None
-
-        return Geolocation(longitude=point.x, latitude=point.y)
-
-
-@gql.type
 class Reaction:
     type: ReactionType
     count: int
@@ -127,29 +109,6 @@ class SpaceUserConnectionType(Enum):
     ADMINISTRATOR = "ADMINISTRATOR"
 
 
-@gql.django.type(TopicModel)
-class Topic:
-    id: gql.auto
-    title: gql.auto
-    slug: gql.auto
-    is_discover_spaces_default: gql.auto
-
-
-@gql.django.type(SDGModel)
-class SDG:
-    id: gql.auto
-    title: gql.auto
-    slug: gql.auto
-    number: gql.auto
-
-
-@gql.django.type(SkillModel)
-class Skill:
-    id: gql.auto
-    title: gql.auto
-    slug: gql.auto
-
-
 @gql.django.type(ExternalLinkModel)
 class ExternalLink:
     id: gql.auto
@@ -182,71 +141,10 @@ class LinkPreview:
         return self.get_origin()
 
 
-@gql.django.type(UserModel)
-class User:
-    id: uuid.UUID = gql.django.field(field_name="username")
-    avatar_default_color: str
-    avatar_label: str
-
-    @gql.django.field(description="Can be an empty string", select_related=["profile"])
-    def full_name(self) -> str:
-        return self.profile.full_name
-
-    @gql.django.field(select_related=["profile"])
-    def avatar(self) -> Optional[str]:
-        return self.profile.avatar
-
-    @gql.django.field(select_related=["profile"])
-    def first_name(self) -> Optional[str]:
-        return self.profile.name
-
-    @gql.django.field(select_related=["profile"])
-    def last_name(self) -> Optional[str]:
-        return self.profile.last_name
-
-    @gql.django.field(select_related=["profile"])
-    def about_me(self) -> Optional[str]:
-        return self.profile.about_me
-
-    @gql.django.field(select_related=["profile"])
-    def pronouns(self) -> Optional[str]:
-        return self.profile.pronouns
-
-    @gql.django.field(select_related=["profile"])
-    def location(self) -> Optional[str]:
-        return self.profile.location
-
-    @gql.django.field(select_related=["profile"])
-    def geolocation(self) -> Optional[Geolocation]:
-        return Geolocation.from_point(self.profile.geolocation)
-
-    @gql.django.field(select_related=["profile"])
-    def engagement_level(self) -> Optional[str]:
-        return self.profile.engagement_level
-
-    @gql.django.field(select_related=["profile__interests"])
-    def interests(self) -> List[Optional[Topic]]:
-        return self.profile.interests
-
-    @gql.django.field(select_related=["profile__sdgs"])
-    def sdgs(self) -> List[Optional[SDG]]:
-        return self.profile.sdgs.order_by("number")
-
-    @gql.django.field(select_related=["profile__skills"])
-    def skills(self) -> List[Optional[Skill]]:
-        return self.profile.skills
-
-    @gql.django.field
-    def connection_status_to_myself(self, info) -> Optional[UserConnectionStatus]:
-        if info.context.request.user.is_anonymous:
-            return None
-        return info.context.request.user.get_connection_status_with_user_id(user_id=self.id)
-
-
 @gql.django.type(CommunityMembershipModel)
 class SpaceMember:
     id: gql.auto
-    user: User
+    user: auth_types.User
     community: "Space"
     is_administrator: gql.auto
     created: gql.auto
@@ -271,7 +169,7 @@ class Space:
     name: gql.auto
     title: gql.auto
     description: gql.auto
-    creator: User
+    creator: auth_types.User
     created: gql.auto
     avatar: str
     avatar_default_color: str
@@ -279,13 +177,13 @@ class Space:
     location: gql.auto
     links: List[Optional[ExternalLink]]
     tasks: List[Optional["Task"]]
-    topics: List[Optional[Topic]]
-    sdgs: List[Optional[SDG]]
+    topics: List[Optional[auth_types.Topic]]
+    sdgs: List[Optional[auth_types.SDG]]
     collaboration_tools: List[Optional[CollaborationTool]]
 
     @gql.django.field
-    def geolocation(self) -> Optional[Geolocation]:
-        return Geolocation.from_point(self.geolocation)
+    def geolocation(self) -> Optional[common_types.Geolocation]:
+        return common_types.Geolocation.from_point(self.geolocation)
 
     @gql.django.field(
         description="A list of all active members and their role", prefetch_related="memberships__user__profile"
@@ -335,13 +233,13 @@ class Task:
     name: gql.auto
     description: gql.auto
     community: Space
-    creator: User
+    creator: auth_types.User
     created: gql.auto
     slots_available: gql.auto
     slots_taken: gql.auto
     location: gql.auto
     regularity: Regularity
-    skills: List[Skill]
+    skills: List[auth_types.Skill]
 
 
 @gql.django.type(InsightModel)
@@ -349,10 +247,10 @@ class Insight:
     id: gql.auto
     title: gql.auto
     description: gql.auto
-    creator: Optional[User] = gql.django.field(select_related=["creator__profile"])
+    creator: Optional[auth_types.User] = gql.django.field(select_related=["creator__profile"])
     date_published: gql.auto
     header_image: Optional[str]
-    topic: Optional[Topic]
+    topic: Optional[auth_types.Topic]
 
     @gql.django.field(prefetch_related="posts")
     def posts(self, info) -> List["Post"]:
@@ -378,7 +276,7 @@ class Insight:
     @gql.django.field(
         description="A list of all users involved. Curator of the insight, Authors of all the posts and all commenters of those posts"
     )
-    def involved_users(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
+    def involved_users(self, info, offset: int = 0, limit: int = 10) -> Paged[auth_types.User]:
         current_user = info.context.request.user
         return Paged.of(
             UserModel.objects.select_related("profile")
@@ -409,9 +307,9 @@ class Post:
     text: gql.auto
     created: gql.auto
     modified: gql.auto
-    creator: User = gql.django.field(select_related="creator__profile")
+    creator: auth_types.User = gql.django.field(select_related="creator__profile")
     comments_enabled: gql.auto
-    mentions: List[Optional[User]]
+    mentions: List[Optional[auth_types.User]]
     links: List[Optional[LinkPreview]]
 
     @gql.field
@@ -442,7 +340,7 @@ class Post:
         )
 
     @gql.django.field(description="A list of all users involved. Author of the post plus all commenters")
-    def involved_users(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
+    def involved_users(self, info, offset: int = 0, limit: int = 10) -> Paged[auth_types.User]:
         current_user = info.context.request.user
         return Paged.of(
             UserModel.objects.select_related("profile")
@@ -457,7 +355,7 @@ class Post:
         )
 
     @gql.django.field
-    def commenters(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
+    def commenters(self, info, offset: int = 0, limit: int = 10) -> Paged[auth_types.User]:
         current_user = info.context.request.user
         return Paged.of(
             UserModel.objects.select_related("profile")
@@ -494,10 +392,10 @@ class Post:
 class PostComment:
     id: gql.auto
     text: gql.auto
-    creator: User = gql.django.field(field_name="commenter", select_related="commenter__profile")
+    creator: auth_types.User = gql.django.field(field_name="commenter", select_related="commenter__profile")
     created: gql.auto
     modified: gql.auto
-    mentions: List[Optional[User]]
+    mentions: List[Optional[auth_types.User]]
     links: List[Optional[LinkPreview]]
     post: Post
 
@@ -525,7 +423,7 @@ class PostComment:
 
 @gql.type
 class NotificationOptions:
-    user: Optional[User]
+    user: Optional[auth_types.User]
     post: Optional[Post]
     post_comment: Optional[PostComment]
     space: Optional[Space]
@@ -534,7 +432,7 @@ class NotificationOptions:
 @gql.django.type(NotificationModel)
 class Notification:
     id: gql.auto
-    owner: User
+    owner: auth_types.User
     created: gql.auto
     read: gql.auto
     notification_type: NotificationType

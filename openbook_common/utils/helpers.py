@@ -1,4 +1,5 @@
 import colorsys
+import hashlib
 import os
 import random
 import re
@@ -6,14 +7,13 @@ import secrets
 import tempfile
 from urllib.parse import urlparse
 
-from url_normalize import url_normalize
-
 import magic
-from django.http import QueryDict
-from imagekit.utils import get_cache
-from imagekit.models import ProcessedImageField
-import hashlib
+import strawberry
 import tldextract
+from django.http import QueryDict
+from imagekit.models import ProcessedImageField
+from imagekit.utils import get_cache
+from url_normalize import url_normalize
 
 r = lambda: secrets.randbelow(255)
 
@@ -171,3 +171,10 @@ def is_uuid(string: str):
 
 def extract_and_capitalize_domain_name(url: str) -> str:
     return tldextract.extract(url).domain.title()
+
+
+def to_input_dict(input):
+    """
+    converts a strawberry input object to a dict without null values, so it can be validated
+    """
+    return {k: v for k, v in strawberry.asdict(input).items() if v != strawberry.UNSET}
