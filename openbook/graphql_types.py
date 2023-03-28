@@ -1,3 +1,4 @@
+import random
 import uuid
 from enum import Enum
 from uuid import UUID
@@ -491,6 +492,13 @@ class Post:
             except PostReactionModel.DoesNotExist:
                 return ReactionCounts()
         return ReactionCounts()
+
+
+@gql.django.type(PostModel)
+class DummyPost(Post):
+    @gql.django.field(description="Only present, when the current user reacted to this post")
+    def is_private(self) -> bool:
+        return random.choice([False, True])
 
 
 @gql.django.type(PostCommentModel)

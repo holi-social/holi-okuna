@@ -464,6 +464,14 @@ class Query:
         )
 
     @gql.django.field
+    def posts_by_space_id(self, space_id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[DummyPost]:
+        return Paged.of(
+            PostModel.objects.filter(community__id=space_id).order_by("-created"),
+            offset,
+            limit,
+        )
+
+    @gql.django.field
     def task_by_id(self, id: uuid.UUID) -> Optional[Task]:
         try:
             return TaskModel.objects.get(id=id)
