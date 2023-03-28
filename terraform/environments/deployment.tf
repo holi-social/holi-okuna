@@ -71,7 +71,7 @@ resource "google_cloud_run_service" "okuna" {
           }
         }
         env {
-          name  = "ALLOWED_HOSTS"
+          name = "ALLOWED_HOSTS"
           # TODO This could break the admin interface, we need to check it after deployment
           value = local.dns_name
         }
@@ -80,7 +80,7 @@ resource "google_cloud_run_service" "okuna" {
           value = random_id.main.hex
         }
         env {
-          name  = "RDS_USERNAME"
+          name = "RDS_USERNAME"
           value_from {
             secret_key_ref {
               key  = "latest"
@@ -89,7 +89,7 @@ resource "google_cloud_run_service" "okuna" {
           }
         }
         env {
-          name  = "RDS_PASSWORD"
+          name = "RDS_PASSWORD"
           value_from {
             secret_key_ref {
               key  = "latest"
@@ -122,11 +122,11 @@ resource "google_cloud_run_service" "okuna" {
           value = "https://41084c0584d04b38a27d49fab9591b42@o949544.ingest.sentry.io/6421964"
         }
         env {
-          name = "IMAGEKIT_URL"
+          name  = "IMAGEKIT_URL"
           value = local.environment_name == "https://ik.imagekit.io/holi"
         }
         env {
-          name = "IMAGEKIT_PREFIX"
+          name  = "IMAGEKIT_PREFIX"
           value = local.environment_name == "production" ? "" : "_DEV_/"
         }
         env {
@@ -148,7 +148,7 @@ resource "google_cloud_run_service" "okuna" {
           }
         }
         env {
-          name = "ORY_BASE_URL"
+          name  = "ORY_BASE_URL"
           value = local.environment == "production" ? "https://auth.project-holi.org" : "https://dev-auth.project-holi.org"
         }
         env {
