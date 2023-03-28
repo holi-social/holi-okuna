@@ -152,6 +152,18 @@ class UpdateCommunitySerializer(serializers.Serializer):
     )
     geolocation = PointSerializer(required=False)
 
+    contact_description = serializers.CharField(
+        required=False,
+        max_length=settings.COMMUNITY_CONTACT_DESCRIPTION_MAX_LENGTH,
+    )
+    contact_email = serializers.EmailField(
+        required=False,
+    )
+    contact_phone = serializers.CharField(
+        required=False,
+        max_length=settings.COMMUNITY_CONTACT_PHONE_MAX_LENGTH,
+    )
+
 
 class CommunityNameCheckSerializer(serializers.Serializer):
     name = serializers.CharField(
