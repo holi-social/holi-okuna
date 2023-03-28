@@ -1861,6 +1861,9 @@ class User(ModelWithUUID, AbstractUser):
         sdg_ids=None,
         location=None,
         geolocation=None,
+        contact_description=None,
+        contact_email=None,
+        contact_phone=None,
     ):
         Community = get_community_model()
         community = Community.objects.get(id=community_id)
@@ -1882,6 +1885,9 @@ class User(ModelWithUUID, AbstractUser):
             sdg_ids=sdg_ids,
             location=location,
             geolocation=geolocation,
+            contact_description=contact_description,
+            contact_email=contact_email,
+            contact_phone=contact_phone,
         )
 
     def update_community_with_name(
@@ -1902,6 +1908,9 @@ class User(ModelWithUUID, AbstractUser):
         sdg_ids=None,
         location=None,
         geolocation=None,
+        contact_description=None,
+        contact_email=None,
+        contact_phone=None,
     ):
         check_can_update_community_with_name(user=self, community_name=community_name)
 
@@ -1926,6 +1935,9 @@ class User(ModelWithUUID, AbstractUser):
             sdg_ids=sdg_ids,
             location=location,
             geolocation=geolocation,
+            contact_description=contact_description,
+            contact_email=contact_email,
+            contact_phone=contact_phone,
         )
 
         return community_to_update
