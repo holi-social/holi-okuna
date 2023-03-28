@@ -496,7 +496,7 @@ class Post:
 
 @gql.django.type(PostModel)
 class DummyPost(Post):
-    @gql.django.field(description="Only present, when the current user reacted to this post")
+    @gql.django.field
     def is_private(self) -> bool:
         return random.choice([False, True])
 
