@@ -13,7 +13,7 @@ def generate_publish_failure_message(cls):
     return f"Failed to publish {cls.__name__} event"
 
 
-def publish_user_created_event(community: Community):
+def publish_space_created_event(community: Community):
     try:
         creator = UserPayload.from_user(community.creator)
         space = SpacePayload.from_community(community)

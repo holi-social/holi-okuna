@@ -18,7 +18,7 @@ from strawberry.file_uploads import Upload
 from strawberry_django_plus.optimizer import DjangoOptimizerExtension
 
 from openbook.graphql_errors import GraphQLErrorCodes
-from openbook.helpers import publish_space_user_added_event, publish_user_created_event
+from openbook.helpers import publish_space_user_added_event, publish_space_created_event
 from openbook_auth.images import delete_avatar
 from openbook_auth.tasks import update_ory_user
 from openbook_auth.validators import string_not_empty
@@ -852,7 +852,7 @@ class Mutation:
             topic_ids=data.get("topics"),
         )
         try:
-            publish_user_created_event(community)
+            publish_space_created_event(community)
         finally:
             return community
 
