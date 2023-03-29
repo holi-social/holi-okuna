@@ -1,4 +1,3 @@
-import random
 import uuid
 from enum import Enum
 from uuid import UUID
