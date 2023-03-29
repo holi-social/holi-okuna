@@ -508,19 +508,19 @@ class Space:
     @gql.django.field
     def posts(self, info, offset: int = 0, limit: int = 10, visibility: Visibility = Visibility.ALL) -> Paged[Post]:
         current_user: UserModel = info.context.request.user
+        query = PostModel.objects.filter(community=self)
         if (
             current_user.is_anonymous
             or not CommunityMembershipModel.objects.filter(community=self, user=current_user).exists()
         ):
-            query = PostModel.objects.filter(community=self, circles__id=get_circle_model().get_world_circle_id())
-            return Paged.of(query, offset, limit)
+            query = query.filter(circles__id=get_circle_model().get_world_circle_id())
         else:
-            query = PostModel.objects.filter(community=self)
             if visibility == Visibility.PUBLIC:
                 query = query.filter(circles__id=get_circle_model().get_world_circle_id())
             elif visibility == Visibility.PRIVATE:
                 query = query.exclude(circles__id=get_circle_model().get_world_circle_id())
-            return Paged.of(query, offset, limit)
+
+        return Paged.of(query.order_by("-created"), offset, limit)
 
 
 @gql.django.type(PostCommentModel)
