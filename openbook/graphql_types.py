@@ -13,6 +13,7 @@ from django.db.models import QuerySet
 import logging
 from openbook_common.models import LinkPreview as LinkPreviewModel
 from openbook_common.types import ReactionType
+from openbook_common.utils.model_loaders import get_circle_model
 from openbook_communities.models import (
     Community as CommunityModel,
     Task as TaskModel,
@@ -76,6 +77,13 @@ class ContentType(Enum):
 class ReactionAction(Enum):
     SET = "SET"
     REMOVE = "REMOVE"
+
+
+@gql.enum
+class Visibility(Enum):
+    PUBLIC = "public"
+    PRIVATE = "private"
+    ALL = "all"
 
 
 @gql.type
@@ -266,66 +274,6 @@ class CollaborationTool:
     domain: gql.auto
 
 
-@gql.django.type(CommunityModel)
-class Space:
-    id: gql.auto
-    name: gql.auto
-    title: gql.auto
-    description: gql.auto
-    creator: User
-    created: gql.auto
-    avatar: str
-    avatar_default_color: str
-    cover: str
-    location: gql.auto
-    links: List[Optional[ExternalLink]]
-    tasks: List[Optional["Task"]]
-    topics: List[Optional[Topic]]
-    sdgs: List[Optional[SDG]]
-    collaboration_tools: List[Optional[CollaborationTool]]
-    contact_description: Optional[str]
-    contact_email: Optional[str]
-    contact_phone: Optional[str]
-
-    @gql.django.field
-    def geolocation(self) -> Optional[Geolocation]:
-        return Geolocation.from_point(self.geolocation)
-
-    @gql.django.field(
-        description="A list of all active members and their role", prefetch_related="memberships__user__profile"
-    )
-    def members(self, info, offset: int = 0, limit: int = 10) -> Paged[SpaceMember]:
-        return Paged(self.memberships.all()[offset : offset + limit], self.memberships.count())
-
-    @gql.django.field
-    def connection_status_to_myself(self, info) -> List[Optional[SpaceUserConnectionType]]:
-        current_user: UserModel = info.context.request.user
-        if current_user.is_anonymous:
-            return []
-
-        roles = []
-
-        if current_user.are_new_post_notifications_enabled_for_community(self):
-            roles.append(SpaceUserConnectionType.FOLLOWER)
-
-        if current_user.is_membership_requestor_of_community_with_name(self.name):
-            roles.append(SpaceUserConnectionType.MEMBERSHIP_REQUESTOR)
-
-        if self.creator == current_user:
-            roles.append(SpaceUserConnectionType.CREATOR)
-
-        if membership := CommunityMembershipModel.objects.filter(community=self, user=current_user).first():
-            roles.append(SpaceUserConnectionType.MEMBER)
-
-            if membership.is_administrator:
-                roles.append(SpaceUserConnectionType.ADMINISTRATOR)
-
-            # if membership.is_moderator:
-            #     roles.append(SpaceUserConnectionType.MODERATOR)
-
-        return roles
-
-
 @gql.enum
 class Regularity(Enum):
     REGULARLY = "regularly"
@@ -338,7 +286,7 @@ class Task:
     id: gql.auto
     name: gql.auto
     description: gql.auto
-    community: Space
+    community: "Space"
     creator: User
     created: gql.auto
     slots_available: gql.auto
@@ -493,12 +441,86 @@ class Post:
                 return ReactionCounts()
         return ReactionCounts()
 
+    @gql.django.field(prefetch_related="circles")
+    def public(self) -> bool:
+        return self.is_public_post()
 
-@gql.django.type(PostModel)
-class DummyPost(Post):
+
+@gql.django.type(CommunityModel)
+class Space:
+    id: gql.auto
+    name: gql.auto
+    title: gql.auto
+    description: gql.auto
+    creator: User
+    created: gql.auto
+    avatar: str
+    avatar_default_color: str
+    cover: str
+    location: gql.auto
+    links: List[Optional[ExternalLink]]
+    tasks: List[Optional["Task"]]
+    topics: List[Optional[Topic]]
+    sdgs: List[Optional[SDG]]
+    collaboration_tools: List[Optional[CollaborationTool]]
+    contact_description: Optional[str]
+    contact_email: Optional[str]
+    contact_phone: Optional[str]
+
     @gql.django.field
-    def is_private(self) -> bool:
-        return random.choice([False, True])
+    def geolocation(self) -> Optional[Geolocation]:
+        return Geolocation.from_point(self.geolocation)
+
+    @gql.django.field(
+        description="A list of all active members and their role", prefetch_related="memberships__user__profile"
+    )
+    def members(self, info, offset: int = 0, limit: int = 10) -> Paged[SpaceMember]:
+        return Paged(self.memberships.all()[offset : offset + limit], self.memberships.count())
+
+    @gql.django.field
+    def connection_status_to_myself(self, info) -> List[Optional[SpaceUserConnectionType]]:
+        current_user: UserModel = info.context.request.user
+        if current_user.is_anonymous:
+            return []
+
+        roles = []
+
+        if current_user.are_new_post_notifications_enabled_for_community(self):
+            roles.append(SpaceUserConnectionType.FOLLOWER)
+
+        if current_user.is_membership_requestor_of_community_with_name(self.name):
+            roles.append(SpaceUserConnectionType.MEMBERSHIP_REQUESTOR)
+
+        if self.creator == current_user:
+            roles.append(SpaceUserConnectionType.CREATOR)
+
+        if membership := CommunityMembershipModel.objects.filter(community=self, user=current_user).first():
+            roles.append(SpaceUserConnectionType.MEMBER)
+
+            if membership.is_administrator:
+                roles.append(SpaceUserConnectionType.ADMINISTRATOR)
+
+            # if membership.is_moderator:
+            #     roles.append(SpaceUserConnectionType.MODERATOR)
+
+        return roles
+
+    @gql.django.field
+    def posts(self, info, offset: int = 0, limit: int = 10, visibility: Visibility = Visibility.ALL) -> Paged[Post]:
+        current_user: UserModel = info.context.request.user
+        if (
+            current_user.is_anonymous
+            or not CommunityMembershipModel.objects.filter(community=self, user=current_user).exists()
+        ):
+            query = PostModel.objects.filter(community=self, circles__id=get_circle_model().get_world_circle_id())
+            return Paged.of(query, offset, limit)
+        else:
+            query = PostModel.objects.filter(community=self)
+            if visibility == Visibility.PUBLIC:
+                query = query.filter(circles__id=get_circle_model().get_world_circle_id())
+            elif visibility == Visibility.PRIVATE:
+                query = query.exclude(circles__id=get_circle_model().get_world_circle_id())
+            return Paged.of(query, offset, limit)
 
 
 @gql.django.type(PostCommentModel)
