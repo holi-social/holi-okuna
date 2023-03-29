@@ -77,5 +77,5 @@ class Command(BaseCommand):
         (deleted_count, details) = query.delete()
         if "openbook_auth.User" in details:
             print(f"{details['openbook_auth.User']} e2e users deleted")
-        print(f"{deleted_count} object delete in Okuna")
+        print(f"{deleted_count} objects deleted in Okuna")
         print(f"Objects deleted: {details}")
