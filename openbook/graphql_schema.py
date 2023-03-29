@@ -18,16 +18,13 @@ from strawberry.file_uploads import Upload
 from strawberry_django_plus.optimizer import DjangoOptimizerExtension
 
 from openbook.graphql_errors import GraphQLErrorCodes
+from openbook.helpers import publish_space_user_added_event, publish_space_created_event
 from openbook_auth.images import delete_avatar
 from openbook_auth.tasks import update_ory_user
 from openbook_auth.validators import string_not_empty
 from openbook_auth.views.authenticated_user.serializers import (
     UpdateAuthenticatedUserSerializer,
 )
-from openbook_common.pubsub.publisher import publish_event
-from openbook_communities.events.events import SpaceCreatedEvent
-from openbook_communities.events.topic import Topic as PubSubTopic
-from openbook_communities.events.payloads import SpacePayload, UserPayload
 
 from openbook_communities.views.communities.serializers import (
     AddCollaborationToolSerializer,
@@ -735,6 +732,7 @@ class Mutation:
 
         cT = SpaceUserConnectionType
         a = UpdateConnectionAction
+
         if not user_id or current_user.username == user_id:
             # perform for current user
             match (connection_type, connect_action):
@@ -754,7 +752,11 @@ class Mutation:
                 case (cT.MEMBERSHIP_REQUESTOR, a.DISCONNECT):
                     return current_user.revoke_membership_request_to_community_for_username(user_id, space.name)
                 case (cT.MEMBER, a.CONNECT):
-                    return current_user.approve_membership_request_to_community_for_username(user_id, space.name)
+                    space = current_user.approve_membership_request_to_community_for_username(user_id, space.name)
+                    try:
+                        publish_space_user_added_event(user_id, space)
+                    finally:
+                        return space
                 case _:
                     raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
 
@@ -850,14 +852,7 @@ class Mutation:
             topic_ids=data.get("topics"),
         )
         try:
-            creator = UserPayload(
-                id=str(community.creator.username), name=community.creator.profile.name, email=community.creator.email
-            )
-            space = SpacePayload(id=str(community.id), name=community.title, slug=community.name)
-            event = SpaceCreatedEvent(creator, space)
-            publish_event(event=event, topic=PubSubTopic.OKUNA.value)
-        except Exception as e:
-            logger.error("Failed to publish event", str(e))
+            publish_space_created_event(community)
         finally:
             return community
 
