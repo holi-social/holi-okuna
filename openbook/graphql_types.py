@@ -440,7 +440,7 @@ class Post:
                 return ReactionCounts()
         return ReactionCounts()
 
-    @gql.django.field(prefetch_related="circles")
+    @gql.django.field
     def public(self) -> bool:
         return self.is_public_post()
 
