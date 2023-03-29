@@ -18,16 +18,13 @@ from strawberry.file_uploads import Upload
 from strawberry_django_plus.optimizer import DjangoOptimizerExtension
 
 from openbook.graphql_errors import GraphQLErrorCodes
+from openbook.helpers import publish_space_user_added_event, publish_user_created_event
 from openbook_auth.images import delete_avatar
 from openbook_auth.tasks import update_ory_user
 from openbook_auth.validators import string_not_empty
 from openbook_auth.views.authenticated_user.serializers import (
     UpdateAuthenticatedUserSerializer,
 )
-from openbook_common.pubsub.publisher import publish_event
-from openbook_communities.events.events import SpaceCreatedEvent
-from openbook_communities.events.topic import Topic as PubSubTopic
-from openbook_communities.events.payloads import SpacePayload, UserPayload
 
 from openbook_communities.views.communities.serializers import (
     AddCollaborationToolSerializer,
@@ -721,18 +718,6 @@ class Mutation:
 
         return Result(success=True)
 
-    def send_space_user_added_event(username: str, community: Community):
-        try:
-            user_to_add: User = User.objects.get(username=username)
-            user = UserPayload.from_user(user)
-            space = SpacePayload.from_community(community)
-            event = SpaceUserAddedEvent(user, space)
-            publish_event(event=event, topic=PubSubTopic.OKUNA.value)
-        except Exception as e:
-            logger.error("Failed to publish SpaceUserAdded event", str(e))
-        finally:
-            return community
-
     @gql.mutation(description="When no userId is provided, the logged in user is used instead.")
     def update_space_user_connection(
         self,
@@ -768,7 +753,10 @@ class Mutation:
                     return current_user.revoke_membership_request_to_community_for_username(user_id, space.name)
                 case (cT.MEMBER, a.CONNECT):
                     space = current_user.approve_membership_request_to_community_for_username(user_id, space.name)
-                    return send_space_user_added_event(user_id, space)
+                    try:
+                        publish_space_user_added_event(user_id, space)
+                    finally:
+                        return space
                 case _:
                     raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
 
@@ -864,12 +852,7 @@ class Mutation:
             topic_ids=data.get("topics"),
         )
         try:
-            creator = UserPayload.from_user(community.creator)
-            space = SpacePayload.from_community(community)
-            event = SpaceCreatedEvent(creator, space)
-            publish_event(event=event, topic=PubSubTopic.OKUNA.value)
-        except Exception as e:
-            logger.error("Failed to publish SpaceCreated event", str(e))
+            publish_user_created_event(community)
         finally:
             return community
 

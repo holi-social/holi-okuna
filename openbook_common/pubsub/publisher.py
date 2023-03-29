@@ -10,7 +10,13 @@ GOOGLE_CLOUD_PROJECT_ID = settings.GOOGLE_CLOUD_PROJECT_ID
 
 
 def publish_event(topic: str, event: Event) -> None:
-    publisher = pubsub_v1.PublisherClient()
-    topic_path = publisher.topic_path(GOOGLE_CLOUD_PROJECT_ID, topic)
-    publisher.publish(topic_path, **event.to_dict())
-    logger.info(f"Event published {event.to_dict()}")
+    try:
+        publisher = pubsub_v1.PublisherClient()
+        topic_path = publisher.topic_path(GOOGLE_CLOUD_PROJECT_ID, topic)
+        publisher.publish(topic_path, **event.to_dict())
+        logger.info(f"Event published {event.to_dict()}")
+    except Exception as e:
+        logger.error(
+            f"Failed to publish event to topic {topic}. Make sure that the Google Cloud Pub/Sub API is enabled for your project and that the GOOGLE_APPLICATION_CREDENTIALS environment variable is set correctly.",
+            str(e),
+        )

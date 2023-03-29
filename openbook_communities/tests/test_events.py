@@ -9,10 +9,10 @@ from openbook_common.tests.helpers import make_community, make_user
 
 class SpaceCreatedEventTestCase(testcases.TestCase):
     def test_should_create_space_created_event(self):
-        creator = make_user()
-        community = make_community(creator=creator)
+        user = make_user()
+        community = make_community(creator=user)
 
-        user = UserPayload.from_user(creator)
+        creator = UserPayload.from_user(user)
         space = SpacePayload.from_community(community)
 
         data = {"creator": creator.to_dict(), "space": space.to_dict()}
