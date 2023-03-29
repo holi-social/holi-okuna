@@ -589,6 +589,9 @@ class UpdateSpaceInput:
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationInput] = strawberry.UNSET
+    contact_description: Optional[str] = strawberry.UNSET
+    contact_email: Optional[str] = strawberry.UNSET
+    contact_phone: Optional[str] = strawberry.UNSET
 
 
 @gql.input
@@ -888,6 +891,9 @@ class Mutation:
             sdg_ids=data.get("sdgs"),
             location=data.get("location"),
             geolocation=(GeolocationInput.to_point(data.get("geolocation"))),
+            contact_description=data.get("contact_description"),
+            contact_email=data.get("contact_email"),
+            contact_phone=data.get("contact_phone"),
         )
 
     @gql.mutation

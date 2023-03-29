@@ -282,6 +282,9 @@ class Space:
     topics: List[Optional[Topic]]
     sdgs: List[Optional[SDG]]
     collaboration_tools: List[Optional[CollaborationTool]]
+    contact_description: Optional[str]
+    contact_email: Optional[str]
+    contact_phone: Optional[str]
 
     @gql.django.field
     def geolocation(self) -> Optional[Geolocation]:
