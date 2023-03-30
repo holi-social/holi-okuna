@@ -27,6 +27,7 @@ from openbook_common.utils.model_loaders import (
     get_category_model,
     get_sdg_model,
     get_topic_model,
+    get_skill_model,
     get_user_model,
     get_moderated_object_model,
     get_community_notifications_subscription_model,
@@ -1089,11 +1090,7 @@ class Task(ModelWithUUID):
     slots_available = models.PositiveIntegerField(blank=False, default=1)
     slots_taken = models.PositiveIntegerField(blank=False, default=0)
     visibility = models.CharField(max_length=12, choices=VisibilityType.choices, default=VisibilityType.PUBLIC)
-    location_type = models.CharField(
-        max_length=6,
-        choices=LocationType.choices,
-        default=LocationType.REMOTE
-    )
+    location_type = models.CharField(max_length=6, choices=LocationType.choices, default=LocationType.REMOTE)
     location = models.CharField(
         max_length=settings.TASK_LOCATION_MAX_LENGTH,
         blank=True,
@@ -1132,6 +1129,15 @@ class Task(ModelWithUUID):
         null=True,
     )
 
+    def clear_skills(self):
+        self.skills.clear()
+
+    def set_skills_with_ids(self, skill_ids):
+        self.clear_skills()
+        Skill = get_skill_model()
+        skills = Skill.objects.filter(id__in=skill_ids)
+        self.skills.set(skills)
+
     @classmethod
     def create_task(
         cls,
@@ -1163,9 +1169,11 @@ class Task(ModelWithUUID):
             geolocation=geolocation,
             regularity=regularity,
             contact_phone=contact_phone,
-            skills=skills,
             thumbnail=thumbnail,
         )
+
+        if skills:
+            task.set_skills_with_ids(skill_ids=skills)
 
         task.save()
         return task

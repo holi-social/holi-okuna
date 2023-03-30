@@ -336,16 +336,16 @@ class CreateTaskSerializer(serializers.Serializer):
         required=True,
     )
     slots_available = serializers.IntegerField(required=False, max_value=600)
-    visibility = serializers.ChoiceField(required=False, choices=Task.VisibilityType.choices)
-    location_type = serializers.ChoiceField(required=False, choices=Task.LocationType.choices)
     location = serializers.CharField(
         max_length=settings.TASK_LOCATION_MAX_LENGTH,
         required=False,
     )
     geolocation = PointSerializer(required=False)
+    visibility = serializers.ChoiceField(required=True, choices=Task.VisibilityType.choices)
+    location_type = serializers.ChoiceField(required=True, choices=Task.LocationType.choices)
     regularity = serializers.ChoiceField(required=False, choices=Task.Regularity.choices)
     contact_email = serializers.EmailField(
-        required=False,
+        required=True,
     )
     contact_phone = serializers.CharField(
         required=False,
