@@ -15,9 +15,9 @@ resource "google_pubsub_topic" "okuna_production" {
 }
 
 output "google_pubsub_topic_okuna_staging" {
-  value = google_pubsub_topic.okuna_staging.name
+  value = google_pubsub_topic.okuna_staging.id
 }
 
 output "google_pubsub_topic_okuna_production" {
-  value = google_pubsub_topic.okuna_production.name
+  value = google_pubsub_topic.okuna_production.id
 }
