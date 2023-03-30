@@ -597,16 +597,16 @@ class CreateTaskInput:
     space_id: uuid.UUID
     name: str
     description: str
-    slots_available: Optional[int]
     visibility: TaskVisibilityType
     location_type: TaskLocationType
-    location: gql.auto
-    geolocation: Optional[GeolocationInput] = strawberry.UNSET
     regularity: TaskRegularity
     contact_email: str
-    contact_phone: Optional[str]
-    skills: List[Optional[Skill]]
-    thumbnail: Upload
+    slots_available: Optional[int] = strawberry.UNSET
+    thumbnail: Optional[Upload] = strawberry.UNSET
+    skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    location: Optional[str] = strawberry.UNSET
+    geolocation: Optional[GeolocationInput] = strawberry.UNSET
+    contact_phone: Optional[str] = strawberry.UNSET
 
 
 @gql.input

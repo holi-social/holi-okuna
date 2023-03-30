@@ -1046,15 +1046,18 @@ class CommunityNotificationsSubscription(ModelWithUUID):
 
 
 class Task(ModelWithUUID):
+    @gql.enum
     class VisibilityType(models.TextChoices):
         MEMBERS = "members", _("members")
         PUBLIC = "public", _("public")
 
+    @gql.enum
     class LocationType(models.TextChoices):
         HYBRID = "hybrid", _("hybrid")
         REMOTE = "remote", _("remote")
         ONSITE = "onsite", _("onsite")
 
+    @gql.enum
     class Regularity(models.TextChoices):
         REGULARLY = "regularly", _("regularly")
         PROJECT_BASED = "project-based", _("project-based")
@@ -1062,7 +1065,6 @@ class Task(ModelWithUUID):
 
     name = models.CharField(
         max_length=settings.TASK_NAME_MAX_LENGTH,
-        min_length=settings.TASK_NAME_MIN_LENGTH,
         blank=False,
     )
     description = models.TextField(
@@ -1090,6 +1092,7 @@ class Task(ModelWithUUID):
     location_type = models.CharField(
         max_length=6,
         choices=LocationType.choices,
+        default=LocationType.REMOTE
     )
     location = models.CharField(
         max_length=settings.TASK_LOCATION_MAX_LENGTH,

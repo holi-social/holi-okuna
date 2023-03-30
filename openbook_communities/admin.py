@@ -48,7 +48,6 @@ class CommunityTaskAdmin(admin.ModelAdmin):
         "contact_email",
         "contact_phone",
         "thumbnail",
-        "skills",
         "regularity",
         "slots_taken",
         "slots_available",

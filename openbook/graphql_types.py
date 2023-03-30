@@ -286,8 +286,8 @@ class Task:
     community: "Space"
     creator: User
     created: gql.auto
-    slots_available: int
-    slots_taken: int
+    slots_available: gql.auto
+    slots_taken: gql.auto
     visibility: TaskVisibilityType
     location_type: TaskLocationType
     location: gql.auto
