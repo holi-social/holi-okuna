@@ -325,11 +325,9 @@ class Space:
         return roles
 
 
-@gql.enum
-class Regularity(Enum):
-    REGULARLY = "regularly"
-    PROJECT_BASED = "project-based"
-    ONE_TIME = "one-time"
+TaskVisibilityType = TaskModel.VisibilityType
+TaskLocationType = TaskModel.LocationType
+TaskRegularity = TaskModel.Regularity
 
 
 @gql.django.type(TaskModel)
@@ -340,11 +338,20 @@ class Task:
     community: Space
     creator: User
     created: gql.auto
-    slots_available: gql.auto
-    slots_taken: gql.auto
+    slots_available: int
+    slots_taken: int
+    visibility: TaskVisibilityType
+    location_type: TaskLocationType
     location: gql.auto
-    regularity: Regularity
+    regularity: TaskRegularity
     skills: List[Skill]
+    thumbnail: Optional[str]
+    contact_email: str
+    contact_phone: Optional[str]
+
+    @gql.django.field
+    def geolocation(self) -> Optional[Geolocation]:
+        return Geolocation.from_point(self.geolocation)
 
 
 @gql.django.type(InsightModel)

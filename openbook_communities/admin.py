@@ -35,7 +35,24 @@ class CommunityMembershipAdmin(admin.ModelAdmin):
 @admin.register(Task)
 class CommunityTaskAdmin(admin.ModelAdmin):
     model = Task
-    list_display = ("community", "name", "location", "creator", "created")
+    list_display = (
+        "community",
+        "name",
+        "description",
+        "visibility",
+        "location_type",
+        "location",
+        "geolocation",
+        "creator",
+        "created",
+        "contact_email",
+        "contact_phone",
+        "thumbnail",
+        "skills",
+        "regularity",
+        "slots_taken",
+        "slots_available",
+    )
 
 
 @admin.register(ExternalLink)

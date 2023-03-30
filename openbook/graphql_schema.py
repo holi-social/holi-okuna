@@ -29,6 +29,7 @@ from openbook_auth.views.authenticated_user.serializers import (
 from openbook_communities.views.communities.serializers import (
     AddCollaborationToolSerializer,
     CreateCommunitySerializer,
+    CreateTaskSerializer,
     UpdateCollaborationToolSerializer,
     UpdateCommunitySerializer,
     ValidateCommunitySerializer,
@@ -592,6 +593,23 @@ class UpdateSpaceInput:
 
 
 @gql.input
+class CreateTaskInput:
+    space_id: uuid.UUID
+    name: str
+    description: str
+    slots_available: Optional[int]
+    visibility: TaskVisibilityType
+    location_type: TaskLocationType
+    location: gql.auto
+    geolocation: Optional[GeolocationInput] = strawberry.UNSET
+    regularity: TaskRegularity
+    contact_email: str
+    contact_phone: Optional[str]
+    skills: List[Optional[Skill]]
+    thumbnail: Upload
+
+
+@gql.input
 class AddCollaborationToolInput:
     space_id: uuid.UUID
     url: str
@@ -889,6 +907,29 @@ class Mutation:
             )
 
         return Result(success=True)
+
+    @gql.mutation
+    def create_task(self, info, input: CreateTaskInput) -> Task:
+        current_user = verify_authorized_user(info)
+
+        serializer = CreateTaskSerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        return current_user.create_task(
+            space_id=data.get("space_id"),
+            name=data.get("name"),
+            description=data.get("description"),
+            slots_available=data.get("slots_available"),
+            visibility=data.get("visibility"),
+            location_type=data.get("location_type"),
+            location=data.get("location"),
+            geolocation=(GeolocationInput.to_point(data.get("geolocation"))),
+            regularity=data.get("regularity"),
+            contact_email=data.get("contact_email"),
+            contact_phone=data.get("contact_phone"),
+            skills=data.get("skills"),
+            thumbnail=data.get("thumbnail"),
+        )
 
     @gql.mutation
     def update_post_reaction(
