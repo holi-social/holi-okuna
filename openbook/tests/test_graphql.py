@@ -1,6 +1,7 @@
 import json
 import logging
 import unittest
+import uuid
 from typing import List, Optional
 from unittest import mock
 from uuid import UUID, uuid4
@@ -22,6 +23,7 @@ from openbook.graphql_schema import (
     UpdateConnectionAction,
     schema,
 )
+from openbook.graphql_types import Visibility
 from openbook_auth.models import User, UserConnectionStatus
 from openbook_common.tests.helpers import (
     get_test_images,
@@ -37,6 +39,7 @@ from openbook_common.tests.helpers import (
     make_topic,
     make_user,
     simple_jpeg_bytes,
+    make_post,
 )
 from openbook_communities.models import Community
 from openbook_insights.models import Insight
@@ -1203,6 +1206,74 @@ class GraphQLTest(TestCase):
         staff_notifications = self.get_notifications(space_creator)
         self.assertEqual(staff_notifications["totalResults"], 0)
 
+    def test_space_with_posts(self):
+        user_member = make_user()
+        user_external = make_user()
+        space = make_community(creator=user_member)
+
+        public_posts = [
+            user_member.create_public_post(text=make_fake_post_text(), title=make_fake_post_title()) for _ in range(5)
+        ]
+        for post in public_posts:
+            post.community = space
+            post.save()
+        private_posts = [
+            user_member.create_encircled_post(
+                circles_ids=[user_member.connections_circle_id],
+                text=make_fake_post_text(),
+                title=make_fake_post_title(),
+            )
+            for _ in range(3)
+        ]
+        for post in private_posts:
+            post.community = space
+            post.save()
+
+        # member user with visibility all
+        data = self.get_space_by_id_with_posts(user_member, space.id, Visibility.ALL)
+        posts_data = data["posts"]["data"]
+        self.assertEqual(data["id"], str(space.id))
+        self.assertEqual(data["posts"]["totalResults"], len(public_posts) + len(private_posts))
+        self.assertIn(str(private_posts[0].id), [post_data["id"] for post_data in posts_data])
+        self.assertIn(str(public_posts[0].id), [post_data["id"] for post_data in posts_data])
+        self.assertGreaterEqual(posts_data[0]["created"], posts_data[1]["created"])
+
+        # member user with visibility public posts
+        data = self.get_space_by_id_with_posts(user_member, space.id, Visibility.PUBLIC)
+        posts_data = data["posts"]["data"]
+        self.assertEqual(data["id"], str(space.id))
+        self.assertEqual(data["posts"]["totalResults"], len(public_posts))
+        self.assertNotIn(str(private_posts[0].id), [post_data["id"] for post_data in posts_data])
+        self.assertIn(str(public_posts[0].id), [post_data["id"] for post_data in posts_data])
+        self.assertGreaterEqual(posts_data[0]["created"], posts_data[1]["created"])
+
+        # member user with visibility private posts
+        data = self.get_space_by_id_with_posts(user_member, space.id, Visibility.PRIVATE)
+        posts_data = data["posts"]["data"]
+        self.assertEqual(data["id"], str(space.id))
+        self.assertEqual(data["posts"]["totalResults"], len(private_posts))
+        self.assertIn(str(private_posts[0].id), [post_data["id"] for post_data in posts_data])
+        self.assertNotIn(str(public_posts[0].id), [post_data["id"] for post_data in posts_data])
+        self.assertGreaterEqual(posts_data[0]["created"], posts_data[1]["created"])
+
+        # external user without visibility filter
+        data = self.get_space_by_id_with_posts(user_external, space.id)
+        posts_data = data["posts"]["data"]
+        self.assertEqual(data["id"], str(space.id))
+        self.assertEqual(data["posts"]["totalResults"], len(public_posts))
+        self.assertNotIn(str(private_posts[0].id), [post_data["id"] for post_data in posts_data])
+        self.assertIn(str(public_posts[0].id), [post_data["id"] for post_data in posts_data])
+        self.assertGreaterEqual(posts_data[0]["created"], posts_data[1]["created"])
+
+        # external user with visibility filter
+        data = self.get_space_by_id_with_posts(user_external, space.id)
+        posts_data = data["posts"]["data"]
+        self.assertEqual(data["id"], str(space.id))
+        self.assertEqual(data["posts"]["totalResults"], len(public_posts))
+        self.assertNotIn(str(private_posts[0].id), [post_data["id"] for post_data in posts_data])
+        self.assertIn(str(public_posts[0].id), [post_data["id"] for post_data in posts_data])
+        self.assertGreaterEqual(posts_data[0]["created"], posts_data[1]["created"])
+
     def test_report_post(self):
         posting_user = make_user()
         posting_user.is_moderator = True
@@ -1645,6 +1716,32 @@ class GraphQLTest(TestCase):
             }
             """,
             variable_values={"id": str(space.id)},
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        self.assertIsNone(response.errors)
+        return response.data["spaceById"]
+
+    def get_space_by_id_with_posts(self, user: User, id: uuid, visibility: Visibility = Visibility.ALL):
+        response = schema.execute_sync(
+            """
+            query($id:String!, $visibility:Visibility!) {
+                spaceById(idOrName:$id) {
+                    id
+                    name
+                    posts(visibility:$visibility) {
+                        totalResults
+                        data {
+                            id
+                            title
+                            public
+                            created
+                        }
+                    }
+                }
+            }
+            """,
+            variable_values={"id": str(id), "visibility": visibility.value},
             context_value=BeneDict({"request": {"user": user}}),
         )
 
