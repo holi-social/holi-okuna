@@ -79,6 +79,12 @@ class ReactionAction(Enum):
 
 
 @gql.enum
+class InputVisibility(Enum):
+    PUBLIC = "PUBLIC"
+    PRIVATE = "PRIVATE"
+
+
+@gql.enum
 class Visibility(Enum):
     PUBLIC = "PUBLIC"
     PRIVATE = "PRIVATE"

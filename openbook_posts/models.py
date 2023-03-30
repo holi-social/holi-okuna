@@ -159,9 +159,6 @@ class Post(ModelWithUUID):
         if not community_name and not circles_ids:
             raise ValidationError(_("A post requires circles or a community to be posted to."))
 
-        if community_name and circles_ids:
-            raise ValidationError(_("A post cannot be posted both to a community and to circles."))
-
         # if not is_draft and not title:
         #     raise ValidationError("Non-draft posts must have a title")
 
@@ -187,6 +184,47 @@ class Post(ModelWithUUID):
 
         # If on create we have a video or image, we automatically publish it
         # Backwards compatibility reasons.
+        if not is_draft:
+            post.publish()
+        else:
+            post.save()
+
+        return post
+
+    @classmethod
+    def create_community_post(
+        cls,
+        creator,
+        circles_ids=None,
+        community_id=None,
+        image=None,
+        text=None,
+        video=None,
+        created=None,
+        is_draft=False,
+        title=None,
+    ):
+
+        if not community_id:
+            raise ValidationError(_("A post requires circles or a community to be posted to."))
+
+        if image and video:
+            raise ValidationError(_("A post must have an image or a video, not both."))
+
+        post = Post.objects.create(creator=creator, created=created, title=title, community_id=community_id)
+
+        if text:
+            post.text = text
+            post.language = get_language_for_text(text)
+
+        if image:
+            post.add_media(file=image)
+        elif video:
+            post.add_media(file=video)
+
+        if circles_ids:
+            post.circles.add(*circles_ids)
+
         if not is_draft:
             post.publish()
         else:

@@ -8,7 +8,6 @@ from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.gis.db import models
-from django.contrib.gis.geos import Point
 from django.core.mail import EmailMultiAlternatives
 from django.db.models import Q, F, Count, QuerySet
 from django.db.models.signals import post_save
@@ -940,6 +939,9 @@ class User(ModelWithUUID, AbstractUser):
 
     def is_member_of_communities(self):
         return self.communities_memberships.all().exists()
+
+    def is_member_of_community_with_id(self, community_id):
+        return self.communities_memberships.filter(community_id=community_id).exists()
 
     def is_member_of_community_with_name(self, community_name):
         return self.communities_memberships.filter(community__name=community_name).exists()
@@ -2676,16 +2678,30 @@ class User(ModelWithUUID, AbstractUser):
         post.update(text=text)
         return post
 
+    def create_community_encircled_post(
+        self, space_id, title=None, text=None, image=None, video=None, created=None, is_draft=False, visibility=None
+    ):
+        check_can_post_to_community_with_id(user=self, community_id=space_id)
+        circles_ids = self._get_circles_ids_by_visibility_and_community_id(visibility, space_id)
+        Post = get_post_model()
+        post = Post.create_community_post(
+            text=text,
+            title=title,
+            creator=self,
+            community_id=space_id,
+            image=image,
+            created=created,
+            is_draft=is_draft,
+            circles_ids=circles_ids,
+        )
+
+        return post
+
     def create_community_post(
-        self,
-        community_name,
-        text=None,
-        image=None,
-        video=None,
-        created=None,
-        is_draft=False,
+        self, community_name, text=None, image=None, video=None, created=None, is_draft=False, visibility=None
     ):
         check_can_post_to_community_with_name(user=self, community_name=community_name)
+        world_circle_id = self._get_world_circle_id()
         Post = get_post_model()
         post = Post.create_post(
             text=text,
@@ -4269,6 +4285,15 @@ class User(ModelWithUUID, AbstractUser):
     def _get_world_circle_id(self):
         Circle = get_circle_model()
         return Circle.get_world_circle_id()
+
+    def _get_circles_ids_by_visibility_and_community_id(self, visibility, community_id):
+        from openbook.graphql_types import InputVisibility
+
+        membership = self.communities_memberships.get(community_id=community_id)
+        if membership.is_administrator and visibility == InputVisibility.PRIVATE:
+            return []
+
+        return [self._get_world_circle_id()]
 
     def _get_default_connection_circles(self):
         """

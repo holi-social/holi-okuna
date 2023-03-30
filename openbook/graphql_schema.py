@@ -15,6 +15,7 @@ from django.db.models.lookups import IContains
 from django.utils.translation import gettext_lazy as _
 from graphql import GraphQLError
 from strawberry.file_uploads import Upload
+from strawberry.types import Info
 from strawberry_django_plus.optimizer import DjangoOptimizerExtension
 
 from openbook.graphql_errors import GraphQLErrorCodes
@@ -37,6 +38,7 @@ from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_moderation.models import ModeratedObject
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
 from openbook_common.utils.helpers import is_uuid
+from openbook_posts.views.posts.serializers import CreatePostSerializer
 
 from .graphql_types import *
 
@@ -592,6 +594,15 @@ class UpdateSpaceInput:
 
 
 @gql.input
+class CreatePostInput:
+    space_id: uuid.UUID
+    title: Optional[str] = strawberry.UNSET
+    text: str
+    image: Optional[Upload] = strawberry.UNSET
+    visibility: InputVisibility
+
+
+@gql.input
 class AddCollaborationToolInput:
     space_id: uuid.UUID
     url: str
@@ -759,6 +770,21 @@ class Mutation:
                         return space
                 case _:
                     raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
+
+    @gql.mutation
+    def update_space_post(self, info: Info, input: CreatePostInput) -> Space:
+        current_user = verify_authorized_user(info)
+
+        post_data = to_input_dict(input)
+        serializer = CreatePostSerializer(data=post_data)
+        serializer.is_valid(raise_exception=True)
+
+        space_id = post_data.get("space_id")
+        space = CommunityModel.objects.get(id=space_id)
+
+        current_user.create_community_encircled_post(**post_data)
+
+        return space
 
     @gql.mutation
     def delete_authenticated_user(self, info) -> Result:
