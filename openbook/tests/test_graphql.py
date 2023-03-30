@@ -1217,6 +1217,8 @@ class GraphQLTest(TestCase):
         for post in public_posts:
             post.community = space
             post.save()
+        public_ids = [str(post.id) for post in public_posts]
+
         private_posts = [
             user_member.create_encircled_post(
                 circles_ids=[user_member.connections_circle_id],
@@ -1228,51 +1230,60 @@ class GraphQLTest(TestCase):
         for post in private_posts:
             post.community = space
             post.save()
+        private_ids = [str(post.id) for post in private_posts]
 
-        # member user with visibility all
+        # member user with visibility all shows all posts
         data = self.get_space_by_id_with_posts(user_member, space.id, Visibility.ALL)
         posts_data = data["posts"]["data"]
         self.assertEqual(data["id"], str(space.id))
         self.assertEqual(data["posts"]["totalResults"], len(public_posts) + len(private_posts))
-        self.assertIn(str(private_posts[0].id), [post_data["id"] for post_data in posts_data])
-        self.assertIn(str(public_posts[0].id), [post_data["id"] for post_data in posts_data])
+        self.assertCountEqual(self.private_post_ids(posts_data), private_ids)
+        self.assertCountEqual(self.public_post_ids(posts_data), public_ids)
         self.assertGreaterEqual(posts_data[0]["created"], posts_data[1]["created"])
 
-        # member user with visibility public posts
+        # member user with visibility public posts shows only public posts
         data = self.get_space_by_id_with_posts(user_member, space.id, Visibility.PUBLIC)
         posts_data = data["posts"]["data"]
         self.assertEqual(data["id"], str(space.id))
         self.assertEqual(data["posts"]["totalResults"], len(public_posts))
-        self.assertNotIn(str(private_posts[0].id), [post_data["id"] for post_data in posts_data])
-        self.assertIn(str(public_posts[0].id), [post_data["id"] for post_data in posts_data])
+        self.assertCountEqual(self.public_post_ids(posts_data), public_ids)
+        self.assertCountEqual(self.private_post_ids(posts_data), [])
         self.assertGreaterEqual(posts_data[0]["created"], posts_data[1]["created"])
 
-        # member user with visibility private posts
+        # member user with visibility private posts shows only private posts
         data = self.get_space_by_id_with_posts(user_member, space.id, Visibility.PRIVATE)
         posts_data = data["posts"]["data"]
         self.assertEqual(data["id"], str(space.id))
         self.assertEqual(data["posts"]["totalResults"], len(private_posts))
-        self.assertIn(str(private_posts[0].id), [post_data["id"] for post_data in posts_data])
-        self.assertNotIn(str(public_posts[0].id), [post_data["id"] for post_data in posts_data])
+        self.assertCountEqual(self.public_post_ids(posts_data), [])
+        self.assertCountEqual(self.private_post_ids(posts_data), private_ids)
         self.assertGreaterEqual(posts_data[0]["created"], posts_data[1]["created"])
 
-        # external user without visibility filter
+        # external user without visibility filter shows public posts
         data = self.get_space_by_id_with_posts(user_external, space.id)
         posts_data = data["posts"]["data"]
         self.assertEqual(data["id"], str(space.id))
         self.assertEqual(data["posts"]["totalResults"], len(public_posts))
-        self.assertNotIn(str(private_posts[0].id), [post_data["id"] for post_data in posts_data])
-        self.assertIn(str(public_posts[0].id), [post_data["id"] for post_data in posts_data])
+        self.assertCountEqual(self.public_post_ids(posts_data), public_ids)
+        self.assertCountEqual(self.private_post_ids(posts_data), [])
         self.assertGreaterEqual(posts_data[0]["created"], posts_data[1]["created"])
 
-        # external user with visibility filter
-        data = self.get_space_by_id_with_posts(user_external, space.id)
+        # external user visibility filter is ignored and shows public posts
+        data = self.get_space_by_id_with_posts(user_external, space.id, Visibility.PRIVATE)
         posts_data = data["posts"]["data"]
         self.assertEqual(data["id"], str(space.id))
         self.assertEqual(data["posts"]["totalResults"], len(public_posts))
-        self.assertNotIn(str(private_posts[0].id), [post_data["id"] for post_data in posts_data])
-        self.assertIn(str(public_posts[0].id), [post_data["id"] for post_data in posts_data])
+        self.assertCountEqual(self.public_post_ids(posts_data), public_ids)
+        self.assertCountEqual(self.private_post_ids(posts_data), [])
         self.assertGreaterEqual(posts_data[0]["created"], posts_data[1]["created"])
+
+    @staticmethod
+    def public_post_ids(posts_data):
+        return [post_data["id"] for post_data in posts_data if post_data["public"]]
+
+    @staticmethod
+    def private_post_ids(posts_data):
+        return [post_data["id"] for post_data in posts_data if not post_data["public"]]
 
     def test_report_post(self):
         posting_user = make_user()
