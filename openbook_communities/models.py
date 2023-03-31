@@ -27,6 +27,7 @@ from openbook_common.utils.model_loaders import (
     get_category_model,
     get_sdg_model,
     get_topic_model,
+    get_skill_model,
     get_user_model,
     get_moderated_object_model,
     get_community_notifications_subscription_model,
@@ -38,6 +39,7 @@ from openbook_communities.helpers import (
     create_community_name_from_title_and_hash,
     upload_to_community_avatar_directory,
     upload_to_community_cover_directory,
+    upload_to_community_task_thumbnail_directory,
 )
 from openbook_communities.queries import (
     make_search_communities_query_for_user,
@@ -51,6 +53,13 @@ from imagekit.models import ProcessedImageField
 from openbook_terms.models import SDG, Topic, Skill
 
 community_image_storage = default_storage
+community_task_image_storage = default_storage
+
+
+@gql.enum
+class VisibilityType(models.TextChoices):
+    MEMBERS = "members", _("members")
+    PUBLIC = "public", _("public")
 
 
 class Community(ModelWithUUID):
@@ -1044,13 +1053,26 @@ class CommunityNotificationsSubscription(ModelWithUUID):
 
 
 class Task(ModelWithUUID):
+    @gql.enum
+    class LocationType(models.TextChoices):
+        HYBRID = "hybrid", _("hybrid")
+        REMOTE = "remote", _("remote")
+        ONSITE = "onsite", _("onsite")
+
+    @gql.enum
     class Regularity(models.TextChoices):
         REGULARLY = "regularly", _("regularly")
         PROJECT_BASED = "project-based", _("project-based")
         ONE_TIME = "one-time", _("one-time")
 
-    name = models.CharField(max_length=settings.TASK_NAME_MAX_LENGTH, blank=False)
-    description = models.TextField(blank=False)
+    name = models.CharField(
+        max_length=settings.TASK_NAME_MAX_LENGTH,
+        blank=False,
+    )
+    description = models.TextField(
+        blank=False,
+        max_length=settings.TASK_DESCRIPTION_MAX_LENGTH,
+    )
     community = models.ForeignKey(
         Community,
         on_delete=models.CASCADE,
@@ -1066,14 +1088,96 @@ class Task(ModelWithUUID):
         null=True,
     )
     created = models.DateTimeField(default=timezone.now, editable=False)
-    slots_available = models.PositiveIntegerField(blank=False)
-    slots_taken = models.PositiveIntegerField(blank=False)
-    location = models.CharField(max_length=settings.TASK_LOCATION_MAX_LENGTH, blank=False)
+    slots_available = models.PositiveIntegerField(blank=False, default=1)
+    slots_taken = models.PositiveIntegerField(blank=False, default=0)
+    visibility = models.CharField(max_length=12, choices=VisibilityType.choices, default=VisibilityType.PUBLIC)
+    location_type = models.CharField(max_length=6, choices=LocationType.choices, default=LocationType.REMOTE)
+    location = models.CharField(
+        max_length=settings.TASK_LOCATION_MAX_LENGTH,
+        blank=True,
+        null=True,
+        db_index=True,
+    )
+    geolocation = models.PointField(blank=True, null=True, spatial_index=True)
     regularity = models.CharField(
         max_length=13,
         choices=Regularity.choices,
     )
     skills = models.ManyToManyField(Skill, related_name="tasks", blank=True, db_index=True)
+    thumbnail = ProcessedImageField(
+        storage=community_task_image_storage,
+        verbose_name=_("thumbnail"),
+        blank=True,
+        null=True,
+        upload_to=upload_to_community_task_thumbnail_directory,
+        processors=[
+            ResizeToFit(
+                width=settings.CONTENT_IMAGE_MAX_DIMENSION,
+                height=settings.CONTENT_IMAGE_MAX_DIMENSION,
+                upscale=False,
+            )
+        ],
+        max_length=settings.IMAGE_URL_MAX_LENGTH,
+    )
+    contact_email = models.EmailField(
+        _("contact email"),
+        blank=False,
+        null=True,
+    )
+    contact_phone = models.CharField(
+        max_length=settings.COMMUNITY_CONTACT_PHONE_MAX_LENGTH,
+        blank=True,
+        null=True,
+    )
+
+    def clear_skills(self):
+        self.skills.clear()
+
+    def set_skills_with_ids(self, skill_ids):
+        self.clear_skills()
+        Skill = get_skill_model()
+        skills = Skill.objects.filter(id__in=skill_ids)
+        self.skills.set(skills)
+
+    @classmethod
+    def create_task(
+        cls,
+        creator,
+        community,
+        name,
+        description,
+        visibility,
+        location_type,
+        contact_email,
+        slots_available=1,
+        location=None,
+        geolocation=None,
+        regularity=None,
+        contact_phone=None,
+        skills=None,
+        thumbnail=None,
+    ):
+        task = cls.objects.create(
+            creator=creator,
+            community=community,
+            name=name,
+            description=description,
+            visibility=visibility,
+            location_type=location_type,
+            contact_email=contact_email,
+            slots_available=slots_available,
+            location=location,
+            geolocation=geolocation,
+            regularity=regularity,
+            contact_phone=contact_phone,
+            thumbnail=thumbnail,
+        )
+
+        if skills:
+            task.set_skills_with_ids(skill_ids=skills)
+
+        task.save()
+        return task
 
 
 @gql.enum

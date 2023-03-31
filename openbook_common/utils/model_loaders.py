@@ -239,3 +239,7 @@ def get_sdg_model():
 
 def get_collaboration_tool_model():
     return apps.get_model("openbook_communities.CollaborationTool")
+
+
+def get_task_model():
+    return apps.get_model("openbook_communities.Task")
