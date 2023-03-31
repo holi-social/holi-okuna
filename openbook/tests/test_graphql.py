@@ -1,3 +1,4 @@
+import copy
 import json
 import logging
 import unittest
@@ -2950,102 +2951,36 @@ class GraphQLTest(TestCase):
             }
             """
 
-        valid_space_id = str(community.id)
-        valid_name = "Valid name"
-        valid_description = "Valid description"
-        valid_visibility = "MEMBERS"
-        valid_location_type = "HYBRID"
-        valid_regularity = "REGULARLY"
-        valid_contact_email = "email@email.com"
+        valid_input = {
+            "name": "Valid name",
+            "description": "Valid description",
+            "spaceId": str(community.id),
+            "visibility": "MEMBERS",
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+        }
+        expected_errors = {
+            "name": "Field 'name' of required type 'String!' was not provided.",
+            "description": "Field 'description' of required type 'String!' was not provided.",
+            "spaceId": "Field 'spaceId' of required type 'UUID!' was not provided.",
+            "visibility": "Field 'visibility' of required type 'VisibilityType!' was not provided.",
+            "locationType": "Field 'locationType' of required type 'LocationType!' was not provided.",
+            "regularity": "Field 'regularity' of required type 'Regularity!' was not provided.",
+            "contactEmail": "Field 'contactEmail' of required type 'String!' was not provided.",
+        }
+        valid_input_keys = valid_input.keys()
 
-        expectedErrors = [
-            {
-                "input": {
-                    "name": valid_name,
-                    "description": valid_description,
-                    "spaceId": valid_space_id,
-                    "visibility": valid_visibility,
-                    "locationType": valid_location_type,
-                    "regularity": valid_regularity,
-                },
-                "expected_error": "was not provided",  # contact_email missing
-            },
-            {
-                "input": {
-                    "name": valid_name,
-                    "description": valid_description,
-                    "spaceId": valid_space_id,
-                    "visibility": valid_visibility,
-                    "locationType": valid_location_type,
-                    "contactEmail": valid_contact_email,
-                },
-                "expected_error": "was not provided",  # regularity missing
-            },
-            {
-                "input": {
-                    "name": valid_name,
-                    "description": valid_description,
-                    "spaceId": valid_space_id,
-                    "visibility": valid_visibility,
-                    "regularity": valid_regularity,
-                    "contactEmail": valid_contact_email,
-                },
-                "expected_error": "was not provided",  # locationType missing
-            },
-            {
-                "input": {
-                    "name": valid_name,
-                    "description": valid_description,
-                    "spaceId": valid_space_id,
-                    "locationType": valid_location_type,
-                    "regularity": valid_regularity,
-                    "contactEmail": valid_contact_email,
-                },
-                "expected_error": "was not provided",  # visibility missing
-            },
-            {
-                "input": {
-                    "name": valid_name,
-                    "description": valid_description,
-                    "visibility": valid_visibility,
-                    "locationType": valid_location_type,
-                    "regularity": valid_regularity,
-                    "contactEmail": valid_contact_email,
-                },
-                "expected_error": "was not provided",  # spaceId missing
-            },
-            {
-                "input": {
-                    "name": valid_name,
-                    "spaceId": valid_space_id,
-                    "visibility": valid_visibility,
-                    "locationType": valid_location_type,
-                    "regularity": valid_regularity,
-                    "contactEmail": valid_contact_email,
-                },
-                "expected_error": "was not provided",  # description missing
-            },
-            {
-                "input": {
-                    "description": valid_description,
-                    "spaceId": valid_space_id,
-                    "visibility": valid_visibility,
-                    "locationType": valid_location_type,
-                    "regularity": valid_regularity,
-                    "contactEmail": valid_contact_email,
-                },
-                "expected_error": "was not provided",  # name missing
-            },
-        ]
-
-        for testCase in expectedErrors:
+        for input_key in valid_input_keys:
+            test_input = copy.copy(valid_input)
+            test_input.pop(input_key)
             response = schema.execute_sync(
                 create_task_mutation,
                 context_value=BeneDict({"request": {"user": user}}),
-                variable_values={"input": testCase["input"]},
+                variable_values={"input": test_input},
             )
 
-            self.assertIn(testCase["expected_error"], str(response.errors[0].message))
+            self.assertIn(expected_errors[input_key], str(response.errors[0].message))
             self.assertIsNone(response.data["createTask"] if response.data else response.data)
 
     def test_validates_task_before_creation(self):
@@ -3062,32 +2997,20 @@ class GraphQLTest(TestCase):
             }
             """
 
-        valid_space_id = str(community.id)
-        valid_name = "Valid name"
-        valid_description = "Valid description"
-        valid_visibility = "MEMBERS"
-        valid_location_type = "HYBRID"
-        valid_regularity = "REGULARLY"
-        valid_contact_email = "email@email.com"
-        valid_skills = [str(skill.id)]
-        valid_slots_available = 1
-        valid_location = "Hamburg, Germany"
-        valid_contact_phone = "+49176176176176"
-
         non_existent_skill_id = str(uuid4())
 
         valid_input = {
-            "spaceId": valid_space_id,
-            "name": valid_name,
-            "description": valid_description,
-            "visibility": valid_visibility,
-            "locationType": valid_location_type,
-            "regularity": valid_regularity,
-            "contactEmail": valid_contact_email,
-            "skills": valid_skills,
-            "slotsAvailable": valid_slots_available,
-            "location": valid_location,
-            "contactPhone": valid_contact_phone,
+            "spaceId": str(community.id),
+            "name": "Valid name",
+            "description": "Valid description",
+            "visibility": "MEMBERS",
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
         }
 
         expectedErrors = [
@@ -3140,30 +3063,22 @@ class GraphQLTest(TestCase):
             }
             """
 
-        valid_space_id = str(community.id)
         valid_name = "Valid name"
         valid_description = "Valid description"
         valid_visibility = "MEMBERS"
-        valid_location_type = "HYBRID"
-        valid_regularity = "REGULARLY"
-        valid_contact_email = "email@email.com"
-        valid_skills = [str(skill.id)]
-        valid_slots_available = 1
-        valid_location = "Hamburg, Germany"
-        valid_contact_phone = "+49176176176176"
 
         valid_input = {
-            "spaceId": valid_space_id,
+            "spaceId": str(community.id),
             "name": valid_name,
             "description": valid_description,
             "visibility": valid_visibility,
-            "locationType": valid_location_type,
-            "regularity": valid_regularity,
-            "contactEmail": valid_contact_email,
-            "skills": valid_skills,
-            "slotsAvailable": valid_slots_available,
-            "location": valid_location,
-            "contactPhone": valid_contact_phone,
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
         }
 
         response = schema.execute_sync(

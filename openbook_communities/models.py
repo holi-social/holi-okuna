@@ -1149,7 +1149,7 @@ class Task(ModelWithUUID):
         visibility,
         location_type,
         contact_email,
-        slots_available=None,
+        slots_available=1,
         location=None,
         geolocation=None,
         regularity=None,
