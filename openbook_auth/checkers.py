@@ -1448,3 +1448,10 @@ def check_can_delete_collaboration_tool_from_community(user, community=None):
         raise ValidationError(
             _("You cannot delete a collaboration tool in a community you are not a member of"),
         )
+
+
+def check_can_create_task_to_community(user, community=None):
+    if not user.is_administrator_of_community_with_name(community_name=community.name):
+        raise ValidationError(
+            _("You cannot add a task to a community you are not an administrator of"),
+        )
