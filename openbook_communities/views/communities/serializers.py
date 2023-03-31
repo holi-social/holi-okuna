@@ -8,7 +8,7 @@ from openbook_common.serializers import CommonCommunityMembershipSerializer, Poi
 from openbook_common.serializers_fields.community import CommunityPostsCountField
 from openbook_common.serializers_fields.request import RestrictedImageFileSizeField
 from openbook_common.validators import hex_color_validator
-from openbook_communities.models import CollaborationTool, Community, Task
+from openbook_communities.models import CollaborationTool, Community, Task, VisibilityType
 from openbook_communities.serializers_fields import (
     IsInvitedField,
     IsCreatorField,
@@ -341,7 +341,7 @@ class CreateTaskSerializer(serializers.Serializer):
         required=False,
     )
     geolocation = PointSerializer(required=False)
-    visibility = serializers.ChoiceField(required=True, choices=Task.VisibilityType.choices)
+    visibility = serializers.ChoiceField(required=True, choices=VisibilityType.choices)
     location_type = serializers.ChoiceField(required=True, choices=Task.LocationType.choices)
     regularity = serializers.ChoiceField(required=False, choices=Task.Regularity.choices)
     contact_email = serializers.EmailField(

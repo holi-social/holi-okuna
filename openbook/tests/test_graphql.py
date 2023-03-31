@@ -23,7 +23,7 @@ from openbook.graphql_schema import (
     UpdateConnectionAction,
     schema,
 )
-from openbook.graphql_types import Visibility
+from openbook.graphql_types import VisibilityFilter
 from openbook_auth.models import User, UserConnectionStatus
 from openbook_common.tests.helpers import (
     get_test_images,
@@ -1233,7 +1233,7 @@ class GraphQLTest(TestCase):
         private_ids = [str(post.id) for post in private_posts]
 
         # member user with visibility all shows all posts
-        data = self.get_space_by_id_with_posts(user_member, space.id, Visibility.ALL)
+        data = self.get_space_by_id_with_posts(user_member, space.id, VisibilityFilter.ALL)
         posts_data = data["posts"]["data"]
         self.assertEqual(data["id"], str(space.id))
         self.assertEqual(data["posts"]["totalResults"], len(public_posts) + len(private_posts))
@@ -1242,7 +1242,7 @@ class GraphQLTest(TestCase):
         self.assertGreaterEqual(posts_data[0]["created"], posts_data[1]["created"])
 
         # member user with visibility public posts shows only public posts
-        data = self.get_space_by_id_with_posts(user_member, space.id, Visibility.PUBLIC)
+        data = self.get_space_by_id_with_posts(user_member, space.id, VisibilityFilter.PUBLIC)
         posts_data = data["posts"]["data"]
         self.assertEqual(data["id"], str(space.id))
         self.assertEqual(data["posts"]["totalResults"], len(public_posts))
@@ -1251,7 +1251,7 @@ class GraphQLTest(TestCase):
         self.assertGreaterEqual(posts_data[0]["created"], posts_data[1]["created"])
 
         # member user with visibility private posts shows only private posts
-        data = self.get_space_by_id_with_posts(user_member, space.id, Visibility.PRIVATE)
+        data = self.get_space_by_id_with_posts(user_member, space.id, VisibilityFilter.MEMBERS)
         posts_data = data["posts"]["data"]
         self.assertEqual(data["id"], str(space.id))
         self.assertEqual(data["posts"]["totalResults"], len(private_posts))
@@ -1269,7 +1269,7 @@ class GraphQLTest(TestCase):
         self.assertGreaterEqual(posts_data[0]["created"], posts_data[1]["created"])
 
         # external user visibility filter is ignored and shows public posts
-        data = self.get_space_by_id_with_posts(user_external, space.id, Visibility.PRIVATE)
+        data = self.get_space_by_id_with_posts(user_external, space.id, VisibilityFilter.MEMBERS)
         posts_data = data["posts"]["data"]
         self.assertEqual(data["id"], str(space.id))
         self.assertEqual(data["posts"]["totalResults"], len(public_posts))
@@ -1733,10 +1733,10 @@ class GraphQLTest(TestCase):
         self.assertIsNone(response.errors)
         return response.data["spaceById"]
 
-    def get_space_by_id_with_posts(self, user: User, id: uuid, visibility: Visibility = Visibility.ALL):
+    def get_space_by_id_with_posts(self, user: User, id: uuid, visibility: VisibilityFilter = VisibilityFilter.ALL):
         response = schema.execute_sync(
             """
-            query($id:String!, $visibility:Visibility!) {
+            query($id:String!, $visibility:VisibilityFilter!) {
                 spaceById(idOrName:$id) {
                     id
                     name

@@ -597,9 +597,9 @@ class CreateTaskInput:
     space_id: uuid.UUID
     name: str
     description: str
-    visibility: TaskVisibilityType
-    location_type: TaskLocationType
-    regularity: TaskRegularity
+    visibility: VisibilityType
+    location_type: TaskModel.LocationType
+    regularity: TaskModel.Regularity
     contact_email: str
     slots_available: Optional[int] = strawberry.UNSET
     thumbnail: Optional[Upload] = strawberry.UNSET

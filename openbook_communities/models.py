@@ -56,6 +56,12 @@ community_image_storage = default_storage
 community_task_image_storage = default_storage
 
 
+@gql.enum
+class VisibilityType(models.TextChoices):
+    MEMBERS = "members", _("members")
+    PUBLIC = "public", _("public")
+
+
 class Community(ModelWithUUID):
     moderated_object = GenericRelation(ModeratedObject, related_query_name="communities")
     creator = models.ForeignKey(
@@ -1047,11 +1053,6 @@ class CommunityNotificationsSubscription(ModelWithUUID):
 
 
 class Task(ModelWithUUID):
-    @gql.enum
-    class VisibilityType(models.TextChoices):
-        MEMBERS = "members", _("members")
-        PUBLIC = "public", _("public")
-
     @gql.enum
     class LocationType(models.TextChoices):
         HYBRID = "hybrid", _("hybrid")

@@ -19,6 +19,7 @@ from openbook_communities.models import (
     CommunityMembership as CommunityMembershipModel,
     ExternalLink as ExternalLinkModel,
     ExternalLinkType,
+    VisibilityType,
     CollaborationTool as CollaborationToolModel,
 )
 from openbook_notifications.models import Notification as NotificationModel
@@ -79,9 +80,9 @@ class ReactionAction(Enum):
 
 
 @gql.enum
-class Visibility(Enum):
+class VisibilityFilter(Enum):
+    MEMBERS = "MEMBERS"
     PUBLIC = "PUBLIC"
-    PRIVATE = "PRIVATE"
     ALL = "ALL"
 
 
@@ -273,11 +274,6 @@ class CollaborationTool:
     domain: gql.auto
 
 
-TaskVisibilityType = TaskModel.VisibilityType
-TaskLocationType = TaskModel.LocationType
-TaskRegularity = TaskModel.Regularity
-
-
 @gql.django.type(TaskModel)
 class Task:
     id: gql.auto
@@ -288,10 +284,10 @@ class Task:
     created: gql.auto
     slots_available: gql.auto
     slots_taken: gql.auto
-    visibility: TaskVisibilityType
-    location_type: TaskLocationType
+    visibility: VisibilityType
+    location_type: TaskModel.LocationType
     location: gql.auto
-    regularity: TaskRegularity
+    regularity: TaskModel.Regularity
     skills: List[Skill]
     thumbnail: Optional[str]
     contact_email: str
@@ -512,7 +508,9 @@ class Space:
         return roles
 
     @gql.django.field
-    def posts(self, info, offset: int = 0, limit: int = 10, visibility: Visibility = Visibility.ALL) -> Paged[Post]:
+    def posts(
+        self, info, offset: int = 0, limit: int = 10, visibility: VisibilityFilter = VisibilityFilter.ALL
+    ) -> Paged[Post]:
         current_user: UserModel = info.context.request.user
         query = PostModel.objects.filter(community=self)
         if (
@@ -521,9 +519,9 @@ class Space:
         ):
             query = query.filter(circles__id=get_circle_model().get_world_circle_id())
         else:
-            if visibility == Visibility.PUBLIC:
+            if visibility == VisibilityFilter.PUBLIC:
                 query = query.filter(circles__id=get_circle_model().get_world_circle_id())
-            elif visibility == Visibility.PRIVATE:
+            elif visibility == VisibilityFilter.MEMBERS:
                 query = query.exclude(circles__id=get_circle_model().get_world_circle_id())
 
         return Paged.of(query.order_by("-created"), offset, limit)
