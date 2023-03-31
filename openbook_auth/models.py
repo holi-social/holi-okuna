@@ -65,6 +65,7 @@ from openbook_common.utils.model_loaders import (
     get_community_notifications_subscription_model,
     get_user_notifications_subscription_model,
     get_notification_model,
+    get_task_model,
 )
 from openbook_common.validators import name_characters_validator
 from openbook_hashtags.queries import (
@@ -4553,6 +4554,46 @@ class User(ModelWithUUID, AbstractUser):
                 self.last_seen_notification_timestamp = last_seen_timestamp
                 Notification.objects.filter(owner=self, created__lte=last_seen_timestamp).update(read=True)
                 self.save()
+
+    def create_task(
+        self,
+        space_id,
+        name,
+        description,
+        visibility,
+        location_type,
+        contact_email,
+        slots_available=None,
+        location=None,
+        geolocation=None,
+        regularity=None,
+        contact_phone=None,
+        skills=None,
+        thumbnail=None,
+    ):
+        Community = get_community_model()
+        community = Community.objects.get(id=space_id)
+
+        check_can_create_task_to_community(user=self, community=community)
+
+        Task = get_task_model()
+
+        return Task.create_task(
+            creator=self,
+            community=community,
+            name=name,
+            description=description,
+            visibility=visibility,
+            location_type=location_type,
+            contact_email=contact_email,
+            slots_available=slots_available,
+            location=location,
+            geolocation=geolocation,
+            regularity=regularity,
+            contact_phone=contact_phone,
+            skills=skills,
+            thumbnail=thumbnail,
+        )
 
     def add_collaboration_tool(
         self,

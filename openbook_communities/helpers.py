@@ -24,6 +24,15 @@ def upload_to_community_cover_directory(community, filename):
     )
 
 
+def upload_to_community_task_thumbnail_directory(community, filename):
+    return create_upload_filename(
+        username=community.creator.username,
+        object_type="community_task_thumbnail",
+        object_id=community.id,
+        filename=filename,
+    )
+
+
 def create_community_name_from_title_and_hash(title, hash):
     name = slugify(title)
     try:
