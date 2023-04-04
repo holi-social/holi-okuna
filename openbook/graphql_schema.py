@@ -600,7 +600,7 @@ class CreatePostInput:
     title: Optional[str] = strawberry.UNSET
     text: str
     image: Optional[Upload] = strawberry.UNSET
-    visibility: InputVisibility
+    visibility: Visibility
 
 
 @gql.input

@@ -24,7 +24,7 @@ from openbook.graphql_schema import (
     UpdateConnectionAction,
     schema,
 )
-from openbook.graphql_types import Visibility, InputVisibility
+from openbook.graphql_types import VisibilityFilter, Visibility
 from openbook_auth.models import User, UserConnectionStatus
 from openbook_common.tests.helpers import (
     get_test_images,
@@ -522,7 +522,7 @@ class GraphQLTest(TestCase):
         # space admin can create public post
         input_data = {
             "spaceId": str(space.id),
-            "visibility": InputVisibility.PUBLIC.value,
+            "visibility": Visibility.PUBLIC.value,
             "text": make_fake_post_text(),
         }
 
@@ -539,7 +539,7 @@ class GraphQLTest(TestCase):
         # space admin can create private post
         input_data = {
             "spaceId": str(space.id),
-            "visibility": InputVisibility.PRIVATE.value,
+            "visibility": Visibility.PRIVATE.value,
             "text": make_fake_post_text(),
         }
 
@@ -556,7 +556,7 @@ class GraphQLTest(TestCase):
         # member user can create public post
         input_data = {
             "spaceId": str(space.id),
-            "visibility": InputVisibility.PUBLIC.value,
+            "visibility": Visibility.PUBLIC.value,
             "text": make_fake_post_text(),
         }
 
@@ -573,7 +573,7 @@ class GraphQLTest(TestCase):
         # member user can create only public post
         input_data = {
             "spaceId": str(space.id),
-            "visibility": InputVisibility.PRIVATE.value,
+            "visibility": Visibility.PRIVATE.value,
             "text": make_fake_post_text(),
         }
 
@@ -595,7 +595,7 @@ class GraphQLTest(TestCase):
         # not member user can't create post for the space
         input_data = {
             "spaceId": str(space.id),
-            "visibility": InputVisibility.PRIVATE.value,
+            "visibility": Visibility.PRIVATE.value,
             "text": make_fake_post_text(),
         }
 
@@ -612,7 +612,7 @@ class GraphQLTest(TestCase):
 
         # test space id field is missing
         input_data = {
-            "visibility": InputVisibility.PRIVATE.value,
+            "visibility": Visibility.PRIVATE.value,
             "text": make_fake_post_text(),
         }
 
@@ -624,7 +624,7 @@ class GraphQLTest(TestCase):
         # test post text field is missing
         input_data = {
             "spaceId": str(space.id),
-            "visibility": InputVisibility.PUBLIC.value,
+            "visibility": Visibility.PUBLIC.value,
         }
 
         response = self.create_space_post(space_admin, input_data)
@@ -638,9 +638,7 @@ class GraphQLTest(TestCase):
         response = self.create_space_post(space_admin, input_data)
         self.assertIsNotNone(response.errors)
         self.assertIsNone(response.data)
-        self.assertIn(
-            "Field 'visibility' of required type 'InputVisibility!' was not provided", response.errors[0].message
-        )
+        self.assertIn("Field 'visibility' of required type 'Visibility!' was not provided", response.errors[0].message)
 
     def test_insights_by_user_id_success_user_anonymous(self):
         insight_user = make_user()
@@ -1385,7 +1383,7 @@ class GraphQLTest(TestCase):
         private_ids = [str(post.id) for post in private_posts]
 
         # member user with visibility all shows all posts
-        data = self.get_space_by_id_with_posts(user_member, space.id, Visibility.ALL)
+        data = self.get_space_by_id_with_posts(user_member, space.id, VisibilityFilter.ALL)
         posts_data = data["posts"]["data"]
         self.assertEqual(data["id"], str(space.id))
         self.assertEqual(data["posts"]["totalResults"], len(public_posts) + len(private_posts))
@@ -1394,7 +1392,7 @@ class GraphQLTest(TestCase):
         self.assertGreaterEqual(posts_data[0]["created"], posts_data[1]["created"])
 
         # member user with visibility public posts shows only public posts
-        data = self.get_space_by_id_with_posts(user_member, space.id, Visibility.PUBLIC)
+        data = self.get_space_by_id_with_posts(user_member, space.id, VisibilityFilter.PUBLIC)
         posts_data = data["posts"]["data"]
         self.assertEqual(data["id"], str(space.id))
         self.assertEqual(data["posts"]["totalResults"], len(public_posts))
@@ -1403,7 +1401,7 @@ class GraphQLTest(TestCase):
         self.assertGreaterEqual(posts_data[0]["created"], posts_data[1]["created"])
 
         # member user with visibility private posts shows only private posts
-        data = self.get_space_by_id_with_posts(user_member, space.id, Visibility.MEMBERS)
+        data = self.get_space_by_id_with_posts(user_member, space.id, VisibilityFilter.MEMBERS)
         posts_data = data["posts"]["data"]
         self.assertEqual(data["id"], str(space.id))
         self.assertEqual(data["posts"]["totalResults"], len(private_posts))
@@ -1421,7 +1419,7 @@ class GraphQLTest(TestCase):
         self.assertGreaterEqual(posts_data[0]["created"], posts_data[1]["created"])
 
         # external user visibility filter is ignored and shows public posts
-        data = self.get_space_by_id_with_posts(user_external, space.id, Visibility.MEMBERS)
+        data = self.get_space_by_id_with_posts(user_external, space.id, VisibilityFilter.MEMBERS)
         posts_data = data["posts"]["data"]
         self.assertEqual(data["id"], str(space.id))
         self.assertEqual(data["posts"]["totalResults"], len(public_posts))
@@ -1885,10 +1883,10 @@ class GraphQLTest(TestCase):
         self.assertIsNone(response.errors)
         return response.data["spaceById"]
 
-    def get_space_by_id_with_posts(self, user: User, id: uuid, visibility: Visibility = Visibility.ALL):
+    def get_space_by_id_with_posts(self, user: User, id: uuid, visibility: VisibilityFilter = VisibilityFilter.ALL):
         response = schema.execute_sync(
             """
-            query($id:String!, $visibility:Visibility!) {
+            query($id:String!, $visibility:VisibilityFilter!) {
                 spaceById(idOrName:$id) {
                     id
                     name

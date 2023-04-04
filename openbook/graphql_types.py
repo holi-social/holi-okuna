@@ -80,13 +80,13 @@ class ReactionAction(Enum):
 
 
 @gql.enum
-class InputVisibility(Enum):
+class Visibility(Enum):
     PUBLIC = "PUBLIC"
     PRIVATE = "PRIVATE"
 
 
 @gql.enum
-class Visibility(Enum):
+class VisibilityFilter(Enum):
     MEMBERS = "MEMBERS"
     PUBLIC = "PUBLIC"
     ALL = "ALL"
@@ -514,7 +514,9 @@ class Space:
         return roles
 
     @gql.django.field
-    def posts(self, info, offset: int = 0, limit: int = 10, visibility: Visibility = Visibility.ALL) -> Paged[Post]:
+    def posts(
+        self, info, offset: int = 0, limit: int = 10, visibility: VisibilityFilter = VisibilityFilter.ALL
+    ) -> Paged[Post]:
         current_user: UserModel = info.context.request.user
         query = PostModel.objects.filter(community=self)
         if (
@@ -523,9 +525,10 @@ class Space:
         ):
             query = query.filter(circles__id=get_circle_model().get_world_circle_id())
         else:
-            if visibility == Visibility.PUBLIC:
+            if visibility == VisibilityFilter.PUBLIC:
                 query = query.filter(circles__id=get_circle_model().get_world_circle_id())
-            elif visibility == Visibility.MEMBERS:
+
+            elif visibility == VisibilityFilter.MEMBERS:
                 query = query.exclude(circles__id=get_circle_model().get_world_circle_id())
 
         return Paged.of(query.order_by("-created"), offset, limit)

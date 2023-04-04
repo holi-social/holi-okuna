@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from django.conf import settings
 
-from openbook.graphql_types import InputVisibility
+from openbook.graphql_types import Visibility
 from openbook_auth.validators import user_username_exists, username_characters_validator
 from openbook_circles.models import Circle
 from openbook_circles.validators import circle_id_exists
@@ -118,7 +118,7 @@ class CreateCommunityPostSerializer(CreatePostSerializer):
         allow_blank=False,
         validators=post_text_validators,
     )
-    visibility = serializers.ChoiceField(InputVisibility)
+    visibility = serializers.ChoiceField(Visibility)
 
 
 class PostCreatorProfileBadgeSerializer(serializers.ModelSerializer):

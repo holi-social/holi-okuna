@@ -4288,10 +4288,10 @@ class User(ModelWithUUID, AbstractUser):
         return Circle.get_world_circle_id()
 
     def _get_circles_ids_by_visibility_and_community_id(self, visibility, community_id):
-        from openbook.graphql_types import InputVisibility
+        from openbook.graphql_types import Visibility
 
         membership = self.communities_memberships.get(community_id=community_id)
-        if membership.is_administrator and visibility == InputVisibility.PRIVATE:
+        if membership.is_administrator and visibility == Visibility.PRIVATE:
             return []
 
         return [self._get_world_circle_id()]
