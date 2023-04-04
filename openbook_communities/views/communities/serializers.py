@@ -339,6 +339,7 @@ class CreateTaskSerializer(serializers.Serializer):
     location = serializers.CharField(
         max_length=settings.TASK_LOCATION_MAX_LENGTH,
         required=False,
+        allow_blank=True,
     )
     geolocation = PointSerializer(required=False)
     visibility = serializers.ChoiceField(required=True, choices=VisibilityType.choices)
@@ -349,6 +350,7 @@ class CreateTaskSerializer(serializers.Serializer):
     )
     contact_phone = serializers.CharField(
         required=False,
+        allow_blank=True,
         max_length=settings.TASK_CONTACT_PHONE_MAX_LENGTH,
     )
     skills = serializers.ListField(
