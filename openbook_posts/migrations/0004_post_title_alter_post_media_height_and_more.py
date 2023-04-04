@@ -6,31 +6,36 @@ import openbook_posts.helpers
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('openbook_posts', '0003_remove_post_uuid_remove_postlink_uuid_and_more'),
+        ("openbook_posts", "0003_remove_post_uuid_remove_postlink_uuid_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='post',
-            name='title',
-            field=models.CharField(default='Post Default Title', max_length=128, null=True),
+            model_name="post",
+            name="title",
+            field=models.CharField(default="Post Default Title", max_length=128, null=True),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='post',
-            name='media_height',
-            field=models.PositiveSmallIntegerField(blank=True, null=True, verbose_name='media height'),
+            model_name="post",
+            name="media_height",
+            field=models.PositiveSmallIntegerField(blank=True, null=True, verbose_name="media height"),
         ),
         migrations.AlterField(
-            model_name='post',
-            name='media_thumbnail',
-            field=imagekit.models.fields.ProcessedImageField(blank=True, max_length=500, null=True, upload_to=openbook_posts.helpers.upload_to_post_directory, verbose_name='thumbnail'),
+            model_name="post",
+            name="media_thumbnail",
+            field=imagekit.models.fields.ProcessedImageField(
+                blank=True,
+                max_length=500,
+                null=True,
+                upload_to=openbook_posts.helpers.upload_to_post_directory,
+                verbose_name="thumbnail",
+            ),
         ),
         migrations.AlterField(
-            model_name='post',
-            name='media_width',
-            field=models.PositiveSmallIntegerField(blank=True, null=True, verbose_name='media width'),
+            model_name="post",
+            name="media_width",
+            field=models.PositiveSmallIntegerField(blank=True, null=True, verbose_name="media width"),
         ),
     ]

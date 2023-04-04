@@ -7,7 +7,6 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -16,35 +15,63 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='FollowRequest',
+            name="FollowRequest",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('creator', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sent_follow_requests', to=settings.AUTH_USER_MODEL)),
-                ('target_user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='received_follow_requests', to=settings.AUTH_USER_MODEL)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (
+                    "creator",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="sent_follow_requests",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "target_user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="received_follow_requests",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Follow',
+            name="Follow",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('followed_user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='followers', to=settings.AUTH_USER_MODEL)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='follows', to=settings.AUTH_USER_MODEL)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (
+                    "followed_user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="followers",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="follows",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.AddIndex(
-            model_name='followrequest',
-            index=models.Index(fields=['creator', 'target_user'], name='openbook_fo_creator_6d37cf_idx'),
+            model_name="followrequest",
+            index=models.Index(fields=["creator", "target_user"], name="openbook_fo_creator_6d37cf_idx"),
         ),
         migrations.AlterUniqueTogether(
-            name='followrequest',
-            unique_together={('creator', 'target_user')},
+            name="followrequest",
+            unique_together={("creator", "target_user")},
         ),
         migrations.AddIndex(
-            model_name='follow',
-            index=models.Index(fields=['followed_user', 'user'], name='openbook_fo_followe_a71981_idx'),
+            model_name="follow",
+            index=models.Index(fields=["followed_user", "user"], name="openbook_fo_followe_a71981_idx"),
         ),
         migrations.AlterUniqueTogether(
-            name='follow',
-            unique_together={('user', 'followed_user')},
+            name="follow",
+            unique_together={("user", "followed_user")},
         ),
     ]

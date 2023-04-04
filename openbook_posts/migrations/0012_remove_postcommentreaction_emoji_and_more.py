@@ -5,7 +5,6 @@ import openbook_posts.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_posts", "0011_alter_post_text"),
     ]

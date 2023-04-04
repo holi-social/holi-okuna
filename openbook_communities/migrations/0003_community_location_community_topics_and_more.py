@@ -5,7 +5,6 @@ import django.utils.timezone
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_terms", "0001_initial"),
         ("openbook_communities", "0002_initial"),
@@ -20,16 +19,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="community",
             name="topics",
-            field=models.ManyToManyField(
-                related_name="communities", to="openbook_terms.topic"
-            ),
+            field=models.ManyToManyField(related_name="communities", to="openbook_terms.topic"),
         ),
         migrations.AlterField(
             model_name="community",
             name="created",
-            field=models.DateTimeField(
-                default=django.utils.timezone.now, editable=False
-            ),
+            field=models.DateTimeField(default=django.utils.timezone.now, editable=False),
         ),
         migrations.AlterField(
             model_name="community",

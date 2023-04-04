@@ -10,29 +10,69 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('openbook_common', '0001_initial'),
+        ("openbook_common", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Hashtag',
+            name="Hashtag",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=32, unique=True, validators=[openbook_hashtags.validators.hashtag_name_validator], verbose_name='name')),
-                ('color', models.CharField(max_length=7, validators=[openbook_common.validators.hex_color_validator], verbose_name='color')),
-                ('text_color', models.CharField(default='#ffffff', max_length=7, validators=[openbook_common.validators.hex_color_validator], verbose_name='text color')),
-                ('created', models.DateTimeField(editable=False)),
-                ('width', models.PositiveIntegerField(editable=False, null=True)),
-                ('height', models.PositiveIntegerField(editable=False, null=True)),
-                ('image', imagekit.models.fields.ProcessedImageField(blank=True, height_field='height', max_length=500, null=True, upload_to=openbook_hashtags.helpers.upload_to_hashtags_directory, verbose_name='image', width_field='width')),
-                ('emoji', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='hashtags', to='openbook_common.emoji')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=32,
+                        unique=True,
+                        validators=[openbook_hashtags.validators.hashtag_name_validator],
+                        verbose_name="name",
+                    ),
+                ),
+                (
+                    "color",
+                    models.CharField(
+                        max_length=7, validators=[openbook_common.validators.hex_color_validator], verbose_name="color"
+                    ),
+                ),
+                (
+                    "text_color",
+                    models.CharField(
+                        default="#ffffff",
+                        max_length=7,
+                        validators=[openbook_common.validators.hex_color_validator],
+                        verbose_name="text color",
+                    ),
+                ),
+                ("created", models.DateTimeField(editable=False)),
+                ("width", models.PositiveIntegerField(editable=False, null=True)),
+                ("height", models.PositiveIntegerField(editable=False, null=True)),
+                (
+                    "image",
+                    imagekit.models.fields.ProcessedImageField(
+                        blank=True,
+                        height_field="height",
+                        max_length=500,
+                        null=True,
+                        upload_to=openbook_hashtags.helpers.upload_to_hashtags_directory,
+                        verbose_name="image",
+                        width_field="width",
+                    ),
+                ),
+                (
+                    "emoji",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="hashtags",
+                        to="openbook_common.emoji",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]

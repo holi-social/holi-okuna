@@ -18,7 +18,7 @@ https://0kuna-adm1n.project-holi.org/admin currently provides the admin interfac
 The reverse proxy is set up manually on the hop host. The hop host also is created manually. It has a public IPv4 and costs around 10€/month when running 24/7, 4€/month when stopped
 in between usages. We need to decide how to provide this service.
 
-For now I have created a schedule on which the VM starts 
+For now I have created a schedule on which the VM starts
 
 ### Creating Superuser in DB
 

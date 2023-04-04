@@ -9,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 from openbook_common.models import ModelWithUUID
 from openbook_communities.models import Community
 
+
 # Create your models here.
 class Device(ModelWithUUID):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="devices", null=False)

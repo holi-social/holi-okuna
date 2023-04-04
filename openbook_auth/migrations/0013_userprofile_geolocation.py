@@ -5,7 +5,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_auth", "0012_remove_user_uuid"),
     ]

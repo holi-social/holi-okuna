@@ -24,7 +24,6 @@ class FFmpegBackend(BaseEncodingBackend):
     name = "FFmpeg"
 
     def __init__(self):
-
         # This will fix errors in tests
         self.params = [
             "-threads",

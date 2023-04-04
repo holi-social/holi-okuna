@@ -6,49 +6,52 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Category',
+            name="Category",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=32, unique=True, verbose_name='name')),
-                ('title', models.CharField(max_length=64, verbose_name='title')),
-                ('title_es', models.CharField(max_length=64, null=True, verbose_name='title')),
-                ('title_en', models.CharField(max_length=64, null=True, verbose_name='title')),
-                ('title_de', models.CharField(max_length=64, null=True, verbose_name='title')),
-                ('title_nl', models.CharField(max_length=64, null=True, verbose_name='title')),
-                ('title_da', models.CharField(max_length=64, null=True, verbose_name='title')),
-                ('title_hu', models.CharField(max_length=64, null=True, verbose_name='title')),
-                ('title_sv', models.CharField(max_length=64, null=True, verbose_name='title')),
-                ('title_fr', models.CharField(max_length=64, null=True, verbose_name='title')),
-                ('title_it', models.CharField(max_length=64, null=True, verbose_name='title')),
-                ('title_tr', models.CharField(max_length=64, null=True, verbose_name='title')),
-                ('title_pt_br', models.CharField(max_length=64, null=True, verbose_name='title')),
-                ('description', models.CharField(max_length=64, null=True, verbose_name='description')),
-                ('description_es', models.CharField(max_length=64, null=True, verbose_name='description')),
-                ('description_en', models.CharField(max_length=64, null=True, verbose_name='description')),
-                ('description_de', models.CharField(max_length=64, null=True, verbose_name='description')),
-                ('description_nl', models.CharField(max_length=64, null=True, verbose_name='description')),
-                ('description_da', models.CharField(max_length=64, null=True, verbose_name='description')),
-                ('description_hu', models.CharField(max_length=64, null=True, verbose_name='description')),
-                ('description_sv', models.CharField(max_length=64, null=True, verbose_name='description')),
-                ('description_fr', models.CharField(max_length=64, null=True, verbose_name='description')),
-                ('description_it', models.CharField(max_length=64, null=True, verbose_name='description')),
-                ('description_tr', models.CharField(max_length=64, null=True, verbose_name='description')),
-                ('description_pt_br', models.CharField(max_length=64, null=True, verbose_name='description')),
-                ('created', models.DateTimeField(editable=False)),
-                ('avatar', models.ImageField(null=True, upload_to='', verbose_name='avatar')),
-                ('color', models.CharField(max_length=7, validators=[openbook_common.validators.hex_color_validator], verbose_name='color')),
-                ('order', models.IntegerField(default=100)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.CharField(max_length=32, unique=True, verbose_name="name")),
+                ("title", models.CharField(max_length=64, verbose_name="title")),
+                ("title_es", models.CharField(max_length=64, null=True, verbose_name="title")),
+                ("title_en", models.CharField(max_length=64, null=True, verbose_name="title")),
+                ("title_de", models.CharField(max_length=64, null=True, verbose_name="title")),
+                ("title_nl", models.CharField(max_length=64, null=True, verbose_name="title")),
+                ("title_da", models.CharField(max_length=64, null=True, verbose_name="title")),
+                ("title_hu", models.CharField(max_length=64, null=True, verbose_name="title")),
+                ("title_sv", models.CharField(max_length=64, null=True, verbose_name="title")),
+                ("title_fr", models.CharField(max_length=64, null=True, verbose_name="title")),
+                ("title_it", models.CharField(max_length=64, null=True, verbose_name="title")),
+                ("title_tr", models.CharField(max_length=64, null=True, verbose_name="title")),
+                ("title_pt_br", models.CharField(max_length=64, null=True, verbose_name="title")),
+                ("description", models.CharField(max_length=64, null=True, verbose_name="description")),
+                ("description_es", models.CharField(max_length=64, null=True, verbose_name="description")),
+                ("description_en", models.CharField(max_length=64, null=True, verbose_name="description")),
+                ("description_de", models.CharField(max_length=64, null=True, verbose_name="description")),
+                ("description_nl", models.CharField(max_length=64, null=True, verbose_name="description")),
+                ("description_da", models.CharField(max_length=64, null=True, verbose_name="description")),
+                ("description_hu", models.CharField(max_length=64, null=True, verbose_name="description")),
+                ("description_sv", models.CharField(max_length=64, null=True, verbose_name="description")),
+                ("description_fr", models.CharField(max_length=64, null=True, verbose_name="description")),
+                ("description_it", models.CharField(max_length=64, null=True, verbose_name="description")),
+                ("description_tr", models.CharField(max_length=64, null=True, verbose_name="description")),
+                ("description_pt_br", models.CharField(max_length=64, null=True, verbose_name="description")),
+                ("created", models.DateTimeField(editable=False)),
+                ("avatar", models.ImageField(null=True, upload_to="", verbose_name="avatar")),
+                (
+                    "color",
+                    models.CharField(
+                        max_length=7, validators=[openbook_common.validators.hex_color_validator], verbose_name="color"
+                    ),
+                ),
+                ("order", models.IntegerField(default=100)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]

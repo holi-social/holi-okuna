@@ -7,7 +7,6 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -16,16 +15,23 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Device',
+            name="Device",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('uuid', models.CharField(editable=False, max_length=64, verbose_name='uuid')),
-                ('name', models.CharField(max_length=32, null=True, verbose_name='name')),
-                ('created', models.DateTimeField(editable=False)),
-                ('owner', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='devices', to=settings.AUTH_USER_MODEL)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("uuid", models.CharField(editable=False, max_length=64, verbose_name="uuid")),
+                ("name", models.CharField(max_length=32, null=True, verbose_name="name")),
+                ("created", models.DateTimeField(editable=False)),
+                (
+                    "owner",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="devices",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('owner', 'uuid')},
+                "unique_together": {("owner", "uuid")},
             },
         ),
     ]

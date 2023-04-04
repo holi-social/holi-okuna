@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_common", "0002_linkpreview"),
         ("openbook_posts", "0004_post_title_alter_post_media_height_and_more"),
@@ -15,16 +14,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="post",
             name="links",
-            field=models.ManyToManyField(
-                blank=True, related_name="+", to="openbook_common.linkpreview"
-            ),
+            field=models.ManyToManyField(blank=True, related_name="+", to="openbook_common.linkpreview"),
         ),
         migrations.AddField(
             model_name="postcomment",
             name="links",
-            field=models.ManyToManyField(
-                blank=True, related_name="+", to="openbook_common.linkpreview"
-            ),
+            field=models.ManyToManyField(blank=True, related_name="+", to="openbook_common.linkpreview"),
         ),
         migrations.AlterField(
             model_name="postlink",

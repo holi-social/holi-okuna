@@ -6,24 +6,28 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('openbook_communities', '0001_initial'),
-        ('openbook_categories', '0001_initial'),
+        ("openbook_communities", "0001_initial"),
+        ("openbook_categories", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='category',
-            name='communities',
-            field=models.ManyToManyField(blank=True, related_name='categories', to='openbook_communities.community'),
+            model_name="category",
+            name="communities",
+            field=models.ManyToManyField(blank=True, related_name="categories", to="openbook_communities.community"),
         ),
         migrations.AddField(
-            model_name='category',
-            name='creator',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='created_categories', to=settings.AUTH_USER_MODEL),
+            model_name="category",
+            name="creator",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="created_categories",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

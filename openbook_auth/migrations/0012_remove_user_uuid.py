@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_auth", "0011_alter_user_email_alter_user_id_alter_user_username_and_more"),
     ]

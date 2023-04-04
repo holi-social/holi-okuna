@@ -2,8 +2,8 @@ branch-defaults:
   master:
     environment: $CIRCLE_BRANCH-{{ APPLICATION_NAME }}
 global:
-  application_name: {{ APPLICATION_NAME }}
-  default_region: {{ DEFAULT_REGION }}
+  application_name: "{{ APPLICATION_NAME }}"
+  default_region: "{{ DEFAULT_REGION }}"
   default_ec2_keyname: null
   default_platform: python-3.6
   include_git_submodules: true

@@ -3,6 +3,7 @@
 from django.db import migrations, models
 from django.template.defaultfilters import slugify
 
+
 def slugifyNullObjects(model, db_alias):
     for obj in model.objects.using(db_alias).filter(slug__isnull=True):
         slug = slugify(obj.title)
@@ -15,12 +16,11 @@ def slugifyNullObjects(model, db_alias):
             suffix = suffix + 1
         obj.save()
 
-class Migration(migrations.Migration):
 
+class Migration(migrations.Migration):
     dependencies = [
         ("openbook_terms", "0002_topic_is_discover_spaces_default"),
     ]
-
 
     def forwards_func(apps, schema_editor):
         SkillModel = apps.get_model("openbook_terms.Skill")
@@ -47,5 +47,7 @@ class Migration(migrations.Migration):
             name="slug",
             field=models.SlugField(max_length=128, null=True, unique=True, verbose_name="slug"),
         ),
-        migrations.RunPython(forwards_func,),
+        migrations.RunPython(
+            forwards_func,
+        ),
     ]

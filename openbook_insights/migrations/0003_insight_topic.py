@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_terms", "0001_initial"),
         ("openbook_insights", "0002_initial"),

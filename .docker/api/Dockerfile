@@ -5,7 +5,7 @@ RUN apt-get -y update && apt-get -y upgrade && apt-get install -y \
     binutils \
     libproj-dev \
     libgdal-dev \
-    libgeos-dev 
+    libgeos-dev
 
 # Copy any files over
 COPY wait-for-it.sh /wait-for-it.sh

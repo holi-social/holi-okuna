@@ -6,7 +6,6 @@ import openbook_insights.helpers
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_insights", "0005_alter_insight_creator"),
     ]

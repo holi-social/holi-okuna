@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_communities", "0020_alter_collaborationtool_description_and_more"),
     ]

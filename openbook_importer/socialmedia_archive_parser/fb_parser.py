@@ -11,14 +11,12 @@ from magic import from_buffer
 
 
 class profile_import(object):
-
     friends = False
     albums = False
     messages = False
     posts = False
 
     def __init__(self, friends, albums, messages, posts):
-
         self.friends = friends
         self.albums = albums
         self.messages = messages
@@ -26,11 +24,9 @@ class profile_import(object):
 
 
 class zip_parser:
-
     profile = False
 
     def __init__(self, filename):
-
         zipf = PyZipFile(filename)
         # test this with corrupt zipfile
         zipf.testzip()
@@ -48,14 +44,12 @@ class zip_parser:
         self.profile = profile_import(friends, albums, messages, posts)
 
     def _file_access(self, filename):
-
         if not access(filename, R_OK):
             raise FileNotFoundError(f"{filename} not found")
 
         return True
 
     def _return_mime_magic(self, extension):
-
         mpath = "openbook_importer/socialmedia_archive_parser"
 
         if not self._file_access(f"{mpath}/mimetypes.yml"):
@@ -74,7 +68,6 @@ class zip_parser:
         return types[extension]
 
     def _check_file_magic(self, zipf, name):
-
         if name.find(".") != -1:
             extension = name.split(".")[-1]
             mime = self._return_mime_magic(extension)
@@ -86,7 +79,6 @@ class zip_parser:
             raise TypeError(f"{name}'s extension does not " f"match mime-type {mime}")
 
     def _read_file_from_zip(self, zipf, name):
-
         if name in zipf.namelist():
             self._check_file_magic(zipf, name)
             return zipf.read(name)
@@ -95,7 +87,6 @@ class zip_parser:
             raise FileNotFoundError(f"{name} not found in zip file")
 
     def _get_extracted_zipsize(self, zipf):
-
         size = 0
 
         for entry in zipf.filelist:
@@ -104,10 +95,8 @@ class zip_parser:
         return size
 
     def _get_files_from_directory(self, dir_name, zipf, directory=False, filename=False):
-
         files = set()
         for entry in zipf.filelist:
-
             if not filename:
                 if not directory and not entry.is_dir():
                     name = entry.filename
@@ -130,14 +119,12 @@ class zip_parser:
         return files
 
     def _write_file_to_dir(self, dir_name, item, zipf):
-
         i_path = path.join(dir_name, item.split("/")[-1])
 
         with open(i_path, "wb+") as fd:
             fd.write(zipf.read(item))
 
     def _get_fd_from_file(self, dir_name, itype, item, zipf, mode="r"):
-
         self._write_file_to_dir(dir_name, item, zipf)
 
         name = item.split("/")[-1]
@@ -146,7 +133,6 @@ class zip_parser:
         return (name, fd)
 
     def _parse_album_json(self, album_json, zipf):
-
         photo_attrs = ["uri", "creation_timestamp", "comments", "description"]
 
         json = loads(self._read_file_from_zip(zipf, album_json))
@@ -167,7 +153,6 @@ class zip_parser:
         return album
 
     def _extract_albums(self, zipf):
-
         album_defs = self._get_files_from_directory("photos_and_videos/album", zipf)
         albums = []
 
@@ -184,7 +169,6 @@ class zip_parser:
         return albums
 
     def _extract_friends(self, zipf):
-
         json = loads(self._read_file_from_zip(zipf, "friends/friends.json"))
         friends = json["friends"]
 
@@ -208,14 +192,12 @@ class zip_parser:
         return friends_hash
 
     def _parse_message(self, zipf, message):
-
         json = loads(self._read_file_from_zip(zipf, message))
 
         temp = TemporaryDirectory(dir="media")
 
         if "messages" in json.keys():
             for m in json["messages"]:
-
                 if "photos" in m.keys():
                     for p in m["photos"]:
                         p["uri"] = self._get_fd_from_file(temp.name, "messages", p["uri"], zipf)
@@ -225,7 +207,6 @@ class zip_parser:
         return json
 
     def _extract_messages(self, zipf):
-
         message_json = self._get_files_from_directory("messages", zipf, filename="message.json")
         messages = []
         for message in message_json:
@@ -234,7 +215,6 @@ class zip_parser:
         return messages
 
     def _has_attachment(self, zipf, post):
-
         temp = TemporaryDirectory(dir="media")
 
         if "attachments" in post.keys():
@@ -261,7 +241,6 @@ class zip_parser:
                             return False
 
     def _extract_posts(self, zipf):
-
         json = loads(self._read_file_from_zip(zipf, "posts/your_posts.json"))
 
         posts = []

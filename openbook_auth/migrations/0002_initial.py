@@ -5,60 +5,94 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('auth', '0012_alter_user_first_name_max_length'),
-        ('openbook_circles', '0001_initial'),
-        ('openbook_auth', '0001_initial'),
-        ('openbook_common', '0001_initial'),
+        ("auth", "0012_alter_user_first_name_max_length"),
+        ("openbook_circles", "0001_initial"),
+        ("openbook_auth", "0001_initial"),
+        ("openbook_common", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='connections_circle',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='openbook_circles.circle'),
+            model_name="user",
+            name="connections_circle",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="+",
+                to="openbook_circles.circle",
+            ),
         ),
         migrations.AddField(
-            model_name='user',
-            name='groups',
-            field=models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.group', verbose_name='groups'),
+            model_name="user",
+            name="groups",
+            field=models.ManyToManyField(
+                blank=True,
+                help_text="The groups this user belongs to. A user will get all permissions granted to each of their groups.",
+                related_name="user_set",
+                related_query_name="user",
+                to="auth.group",
+                verbose_name="groups",
+            ),
         ),
         migrations.AddField(
-            model_name='user',
-            name='language',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='users', to='openbook_common.language'),
+            model_name="user",
+            name="language",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="users",
+                to="openbook_common.language",
+            ),
         ),
         migrations.AddField(
-            model_name='user',
-            name='translation_language',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='translation_users', to='openbook_common.language'),
+            model_name="user",
+            name="translation_language",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="translation_users",
+                to="openbook_common.language",
+            ),
         ),
         migrations.AddField(
-            model_name='user',
-            name='user_permissions',
-            field=models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.permission', verbose_name='user permissions'),
+            model_name="user",
+            name="user_permissions",
+            field=models.ManyToManyField(
+                blank=True,
+                help_text="Specific permissions for this user.",
+                related_name="user_set",
+                related_query_name="user",
+                to="auth.permission",
+                verbose_name="user permissions",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='userprofile',
-            constraint=models.CheckConstraint(check=models.Q(('engagement_level__in', ['ENGAGED', 'INTERESTED', 'INITIATOR'])), name='openbook_auth_userprofile_engagement_level_valid'),
+            model_name="userprofile",
+            constraint=models.CheckConstraint(
+                check=models.Q(("engagement_level__in", ["ENGAGED", "INTERESTED", "INITIATOR"])),
+                name="openbook_auth_userprofile_engagement_level_valid",
+            ),
         ),
         migrations.AlterIndexTogether(
-            name='userprofile',
-            index_together={('id', 'user')},
+            name="userprofile",
+            index_together={("id", "user")},
         ),
         migrations.AlterUniqueTogether(
-            name='usernotificationssubscription',
-            unique_together={('user', 'subscriber')},
+            name="usernotificationssubscription",
+            unique_together={("user", "subscriber")},
         ),
         migrations.AddIndex(
-            model_name='userblock',
-            index=models.Index(fields=['blocked_user', 'blocker'], name='openbook_au_blocked_3369e6_idx'),
+            model_name="userblock",
+            index=models.Index(fields=["blocked_user", "blocker"], name="openbook_au_blocked_3369e6_idx"),
         ),
         migrations.AlterUniqueTogether(
-            name='userblock',
-            unique_together={('blocked_user', 'blocker')},
+            name="userblock",
+            unique_together={("blocked_user", "blocker")},
         ),
     ]

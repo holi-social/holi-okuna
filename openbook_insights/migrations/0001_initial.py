@@ -9,7 +9,6 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -18,17 +17,34 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Insight',
+            name="Insight",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('title', models.CharField(max_length=128)),
-                ('description', models.TextField()),
-                ('date_published', models.DateField()),
-                ('header_image', imagekit.models.fields.ProcessedImageField(max_length=500, null=True, upload_to=openbook_insights.helpers.upload_to_insight_directory, verbose_name='header_image')),
-                ('curator', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='curated_insights', to=settings.AUTH_USER_MODEL)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("title", models.CharField(max_length=128)),
+                ("description", models.TextField()),
+                ("date_published", models.DateField()),
+                (
+                    "header_image",
+                    imagekit.models.fields.ProcessedImageField(
+                        max_length=500,
+                        null=True,
+                        upload_to=openbook_insights.helpers.upload_to_insight_directory,
+                        verbose_name="header_image",
+                    ),
+                ),
+                (
+                    "curator",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="curated_insights",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]

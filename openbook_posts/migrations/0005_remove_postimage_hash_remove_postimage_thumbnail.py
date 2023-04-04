@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_posts", "0004_post_title_alter_post_media_height_and_more"),
     ]

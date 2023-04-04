@@ -28,7 +28,9 @@ class UserModerationPenalties(APIView):
 
         user = request.user
 
-        moderated_objects = user.get_moderation_penalties(max_id=max_id,).order_by(
+        moderated_objects = user.get_moderation_penalties(
+            max_id=max_id,
+        ).order_by(
             "-id"
         )[:count]
 
@@ -53,7 +55,9 @@ class UserPendingModeratedObjectsCommunities(APIView):
 
         user = request.user
 
-        communities = user.get_pending_moderated_objects_communities(max_id=max_id,).order_by(
+        communities = user.get_pending_moderated_objects_communities(
+            max_id=max_id,
+        ).order_by(
             "-id"
         )[:count]
 

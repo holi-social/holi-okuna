@@ -25,7 +25,6 @@ hashtag_image_storage = default_storage
 
 
 class Hashtag(ModelWithUUID):
-
     moderated_object = GenericRelation("openbook_moderation.ModeratedObject", related_query_name="hashtags")
 
     name = models.CharField(
@@ -136,7 +135,6 @@ class Hashtag(ModelWithUUID):
 
     def has_image(self):
         if hasattr(self, "image"):
-
             if self.image:
                 return True
 

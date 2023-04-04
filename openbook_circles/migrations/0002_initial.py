@@ -4,30 +4,29 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('openbook_posts', '0001_initial'),
-        ('openbook_circles', '0001_initial'),
+        ("openbook_posts", "0001_initial"),
+        ("openbook_circles", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='circle',
-            name='posts',
-            field=models.ManyToManyField(db_index=True, related_name='circles', to='openbook_posts.post'),
+            model_name="circle",
+            name="posts",
+            field=models.ManyToManyField(db_index=True, related_name="circles", to="openbook_posts.post"),
         ),
         migrations.AddIndex(
-            model_name='connectioncircle',
-            index=models.Index(fields=['connection', 'circle'], name='openbook_ci_connect_da1cd9_idx'),
+            model_name="connectioncircle",
+            index=models.Index(fields=["connection", "circle"], name="openbook_ci_connect_da1cd9_idx"),
         ),
         migrations.AlterUniqueTogether(
-            name='connectioncircle',
-            unique_together={('connection', 'circle')},
+            name="connectioncircle",
+            unique_together={("connection", "circle")},
         ),
         migrations.AlterUniqueTogether(
-            name='circle',
-            unique_together={('creator', 'name')},
+            name="circle",
+            unique_together={("creator", "name")},
         ),
     ]

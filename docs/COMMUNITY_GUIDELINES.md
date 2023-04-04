@@ -20,14 +20,14 @@ In short:
 Below, these points are explained in more detail. Please read them.
 
 Those acting outside these guidelines risk having their accounts/content suspended or deleted.
- 
+
 We also aim to make the process of enforcing these guidelines transparent and open to debate.
 
 ## 🌎 Embrace diversity
 
 In a boring world, we would all look, think and act the same way.
 Luckily, we all look, think and act differently and the world isn’t boring.
- 
+
 Such diversity is one of the greatest strengths of our society; it allows us to collectively think critically about stuff, make better decisions by having a wider range of experiences, and even unlocks previously unattainable innovation.
 Because we embrace diversity we have a list of _**13 protected differences**_ we hope members of Okuna at best embrace and at least, tolerate.
 
@@ -51,7 +51,7 @@ Ideologies that by nature are not embracing, or tolerant of, these differences s
 
 > Labelling and stereotyping consists of assigning a certain set of behaviours and characteristics to a person based on an attribute—such as nationality or political inclination.
 
-The first step to a successful co-existence is the willingness to engage with each other. Labels get in the way of this by loading us up with prejudices and assumptions not necessarily true about the person we’re interacting with. 
+The first step to a successful co-existence is the willingness to engage with each other. Labels get in the way of this by loading us up with prejudices and assumptions not necessarily true about the person we’re interacting with.
 
 ## ✌️ Be courteous, polite and respectful
 
@@ -86,7 +86,7 @@ When the discussion is going nowhere…
 
 If the discussion becomes aggressive…
 
-* **Stop immediately and report.** Aggression only leads to more aggression. 
+* **Stop immediately and report.** Aggression only leads to more aggression.
 
 ## 🕴 Respect people’s privacy
 
@@ -156,7 +156,7 @@ Making Okuna a healthy and welcoming community for everyone is a shared responsi
 * **Share the fewest possible pictures.**
 * **Double-check who can see the pictures.** Preferably share only to your private circles.
 * **Always ask the children.** Ask them understandable things like "Do you think it's okay to share this picture with my family or friends?" and respect their answer.
- 
+
 Points borrowed from the [Norwegian Data Protection Authority](https://www.datatilsynet.no/personvern-pa-ulike-omrader/internett-og-apper/bilder-pa-nett/bilder-av-barn/).
 
 #### On harmful beliefs
@@ -168,7 +168,7 @@ We will also determine a belief to be harmful—and therefore not protected—if
 * its harm has been widely and independently scientifically proven (such as in the anti-vaccination case cited)
 * it results in the direct physical harm of people (such as in the claim a soap pod was edible resulting in the deaths of seven people and over seven thousand cases of poisoning)
 * it's both proselytised widely on the platform and also exclusionary of other protected statuses
- 
+
 As with all other guidelines, we aim to make the process transparent and always open to debate.
 
 #### On non-sexual nudity
@@ -198,7 +198,7 @@ Thanks to the volunteers who with their comments, suggestions and proof-reading 
 ---
 
 ### 🧾 License
- 
+
  [![CC 4.0 License](https://licensebuttons.net/l/by/3.0/88x31.png)](https://creativecommons.org/licenses/by/4.0/)
 
 

@@ -23,7 +23,6 @@ class Command(BaseCommand):
         parser.add_argument("--file", type=str, help="The file to import the blacklisted domains from")
 
     def handle(self, *args, **options):
-
         imported_domains = 0
         already_existing_domains = 0
 

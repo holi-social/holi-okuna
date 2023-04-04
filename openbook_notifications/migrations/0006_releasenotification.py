@@ -6,7 +6,6 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_posts", "0012_remove_postcommentreaction_emoji_and_more"),
         ("openbook_notifications", "0005_communitymembershipapprovednotification_approved_user"),

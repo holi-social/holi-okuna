@@ -4,38 +4,37 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('openbook_terms', '0001_initial'),
-        ('openbook_auth', '0003_alter_userprofile_avatar_alter_userprofile_cover'),
+        ("openbook_terms", "0001_initial"),
+        ("openbook_auth", "0003_alter_userprofile_avatar_alter_userprofile_cover"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='userprofile',
-            name='interests',
+            model_name="userprofile",
+            name="interests",
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='interests',
-            field=models.ManyToManyField(blank=True, to='openbook_terms.topic'),
+            model_name="userprofile",
+            name="interests",
+            field=models.ManyToManyField(blank=True, to="openbook_terms.topic"),
         ),
         migrations.RemoveField(
-            model_name='userprofile',
-            name='sdgs',
+            model_name="userprofile",
+            name="sdgs",
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='sdgs',
-            field=models.ManyToManyField(blank=True, to='openbook_terms.sdg'),
+            model_name="userprofile",
+            name="sdgs",
+            field=models.ManyToManyField(blank=True, to="openbook_terms.sdg"),
         ),
         migrations.RemoveField(
-            model_name='userprofile',
-            name='skills',
+            model_name="userprofile",
+            name="skills",
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='skills',
-            field=models.ManyToManyField(blank=True, to='openbook_terms.skill'),
+            model_name="userprofile",
+            name="skills",
+            field=models.ManyToManyField(blank=True, to="openbook_terms.skill"),
         ),
     ]

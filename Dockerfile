@@ -5,7 +5,7 @@ RUN apt-get -y update && apt-get -y upgrade && apt-get install -y \
     binutils \
     libproj-dev \
     libgdal-dev \
-    libgeos-dev 
+    libgeos-dev
 
 COPY requirements.txt /requirements.txt
 

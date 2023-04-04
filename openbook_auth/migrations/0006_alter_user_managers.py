@@ -5,7 +5,6 @@ import openbook_auth.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_auth", "0005_user_is_moderator"),
     ]

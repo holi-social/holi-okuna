@@ -6,83 +6,110 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('openbook_posts', '0001_initial'),
-        ('openbook_communities', '0001_initial'),
+        ("openbook_posts", "0001_initial"),
+        ("openbook_communities", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='communitylog',
-            name='post',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='openbook_posts.post'),
+            model_name="communitylog",
+            name="post",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="+",
+                to="openbook_posts.post",
+            ),
         ),
         migrations.AddField(
-            model_name='communitylog',
-            name='source_user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='+', to=settings.AUTH_USER_MODEL),
+            model_name="communitylog",
+            name="source_user",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, related_name="+", to=settings.AUTH_USER_MODEL
+            ),
         ),
         migrations.AddField(
-            model_name='communitylog',
-            name='target_user',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL),
+            model_name="communitylog",
+            name="target_user",
+            field=models.ForeignKey(
+                null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="+", to=settings.AUTH_USER_MODEL
+            ),
         ),
         migrations.AddField(
-            model_name='communityinvite',
-            name='community',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='invites', to='openbook_communities.community'),
+            model_name="communityinvite",
+            name="community",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="invites",
+                to="openbook_communities.community",
+            ),
         ),
         migrations.AddField(
-            model_name='communityinvite',
-            name='creator',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='created_communities_invites', to=settings.AUTH_USER_MODEL),
+            model_name="communityinvite",
+            name="creator",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="created_communities_invites",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='communityinvite',
-            name='invited_user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='communities_invites', to=settings.AUTH_USER_MODEL),
+            model_name="communityinvite",
+            name="invited_user",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="communities_invites",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='community',
-            name='banned_users',
-            field=models.ManyToManyField(related_name='banned_of_communities', to=settings.AUTH_USER_MODEL),
+            model_name="community",
+            name="banned_users",
+            field=models.ManyToManyField(related_name="banned_of_communities", to=settings.AUTH_USER_MODEL),
         ),
         migrations.AddField(
-            model_name='community',
-            name='creator',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='created_communities', to=settings.AUTH_USER_MODEL),
+            model_name="community",
+            name="creator",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="created_communities",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='community',
-            name='starrers',
-            field=models.ManyToManyField(related_name='favorite_communities', to=settings.AUTH_USER_MODEL),
+            model_name="community",
+            name="starrers",
+            field=models.ManyToManyField(related_name="favorite_communities", to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterUniqueTogether(
-            name='communitynotificationssubscription',
-            unique_together={('community', 'subscriber')},
+            name="communitynotificationssubscription",
+            unique_together={("community", "subscriber")},
         ),
         migrations.AddIndex(
-            model_name='communitymembership',
-            index=models.Index(fields=['community', 'user'], name='openbook_co_communi_59b23c_idx'),
+            model_name="communitymembership",
+            index=models.Index(fields=["community", "user"], name="openbook_co_communi_59b23c_idx"),
         ),
         migrations.AddIndex(
-            model_name='communitymembership',
-            index=models.Index(fields=['community', 'user', 'is_administrator'], name='openbook_co_communi_bdd180_idx'),
+            model_name="communitymembership",
+            index=models.Index(
+                fields=["community", "user", "is_administrator"], name="openbook_co_communi_bdd180_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='communitymembership',
-            index=models.Index(fields=['community', 'user', 'is_moderator'], name='openbook_co_communi_ca0147_idx'),
+            model_name="communitymembership",
+            index=models.Index(fields=["community", "user", "is_moderator"], name="openbook_co_communi_ca0147_idx"),
         ),
         migrations.AlterUniqueTogether(
-            name='communitymembership',
-            unique_together={('user', 'community')},
+            name="communitymembership",
+            unique_together={("user", "community")},
         ),
         migrations.AlterUniqueTogether(
-            name='communityinvite',
-            unique_together={('invited_user', 'community', 'creator')},
+            name="communityinvite",
+            unique_together={("invited_user", "community", "creator")},
         ),
     ]

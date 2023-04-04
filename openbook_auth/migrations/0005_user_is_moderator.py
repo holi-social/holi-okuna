@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_auth", "0004_remove_userprofile_interests_userprofile_interests_and_more"),
     ]

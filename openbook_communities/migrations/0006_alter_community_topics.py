@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_terms", "0001_initial"),
         (
@@ -17,8 +16,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="community",
             name="topics",
-            field=models.ManyToManyField(
-                blank=True, related_name="communities", to="openbook_terms.topic"
-            ),
+            field=models.ManyToManyField(blank=True, related_name="communities", to="openbook_terms.topic"),
         ),
     ]

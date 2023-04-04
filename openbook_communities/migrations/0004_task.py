@@ -8,7 +8,6 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_terms", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
@@ -32,9 +31,7 @@ class Migration(migrations.Migration):
                 ("description", models.TextField()),
                 (
                     "created",
-                    models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False
-                    ),
+                    models.DateTimeField(default=django.utils.timezone.now, editable=False),
                 ),
                 ("slots_available", models.PositiveIntegerField()),
                 ("slots_taken", models.PositiveIntegerField()),
@@ -70,9 +67,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "skills",
-                    models.ManyToManyField(
-                        blank=True, related_name="tasks", to="openbook_terms.skill"
-                    ),
+                    models.ManyToManyField(blank=True, related_name="tasks", to="openbook_terms.skill"),
                 ),
             ],
             options={

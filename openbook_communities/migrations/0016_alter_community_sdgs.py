@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_terms", "0005_sdg_number"),
         ("openbook_communities", "0015_community_sdgs"),

@@ -51,7 +51,6 @@ logger = logging.getLogger(__name__)
 
 
 class GraphQLTest(TestCase):
-
     fixtures = ["openbook_circles/fixtures/circles.json", "openbook_moderation/fixtures/moderation_categories.json"]
 
     def test_get_authenticated_user_returns_self_reference(self):
@@ -1674,8 +1673,8 @@ class GraphQLTest(TestCase):
         response = schema.execute_sync(
             """
             mutation ($spaceId: UUID!, $userId: UUID, $type: SpaceUserConnectionType!, $action: UpdateConnectionAction!){
-                updateSpaceUserConnection(spaceId: $spaceId, 
-                                            userId: $userId, 
+                updateSpaceUserConnection(spaceId: $spaceId,
+                                            userId: $userId,
                                             connectionType: $type,
                                             connectAction: $action) {
                     id
