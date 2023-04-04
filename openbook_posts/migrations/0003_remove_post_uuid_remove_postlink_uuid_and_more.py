@@ -4,23 +4,22 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('openbook_posts', '0002_alter_postmedia_object_id'),
+        ("openbook_posts", "0002_alter_postmedia_object_id"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='post',
-            name='uuid',
+            model_name="post",
+            name="uuid",
         ),
         migrations.RemoveField(
-            model_name='postlink',
-            name='uuid',
+            model_name="postlink",
+            name="uuid",
         ),
         migrations.AlterField(
-            model_name='postmedia',
-            name='object_id',
+            model_name="postmedia",
+            name="object_id",
             field=models.UUIDField(),
         ),
     ]

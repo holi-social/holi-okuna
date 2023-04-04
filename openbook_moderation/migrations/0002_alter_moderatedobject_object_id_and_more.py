@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('openbook_moderation', '0001_initial'),
+        ("openbook_moderation", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='moderatedobject',
-            name='object_id',
+            model_name="moderatedobject",
+            name="object_id",
             field=models.UUIDField(),
         ),
         migrations.AlterField(
-            model_name='moderatedobjectlog',
-            name='object_id',
+            model_name="moderatedobjectlog",
+            name="object_id",
             field=models.UUIDField(),
         ),
     ]

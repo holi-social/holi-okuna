@@ -2,7 +2,6 @@ from rest_framework.fields import Field
 
 
 class RepliesField(Field):
-
     DEFAULT_REPLY_COUNT = 2
 
     def __init__(self, post_comment_reply_serializer=None, **kwargs):

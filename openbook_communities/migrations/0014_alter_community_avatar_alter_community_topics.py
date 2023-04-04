@@ -6,7 +6,6 @@ import openbook_communities.helpers
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_terms", "0004_alter_sdg_slug_alter_skill_slug_alter_topic_slug"),
         ("openbook_communities", "0013_alter_community_name"),

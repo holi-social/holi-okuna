@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_terms", "0003_sdg_slug_skill_slug_topic_slug"),
     ]

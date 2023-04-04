@@ -14,7 +14,6 @@ DetectorFactory.seed = 0
 
 
 class AmazonTranslate(BaseTranslationStrategy):
-
     client = boto3.client(
         service_name="translate",
         region_name=settings.AWS_TRANSLATE_REGION,
@@ -77,7 +76,6 @@ class AmazonTranslate(BaseTranslationStrategy):
             return self.default_translation_language_code
 
     def translate_text(self, text, source_language_code, target_language_code):
-
         if len(text) > self.text_max_length:
             raise MaxTextLengthExceededError("MaxTextLengthExceededError")
 

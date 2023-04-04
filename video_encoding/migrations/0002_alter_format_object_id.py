@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('video_encoding', '0001_initial'),
+        ("video_encoding", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='format',
-            name='object_id',
+            model_name="format",
+            name="object_id",
             field=models.UUIDField(editable=False),
         ),
     ]

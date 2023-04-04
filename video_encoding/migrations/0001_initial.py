@@ -8,31 +8,45 @@ import video_encoding.models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('contenttypes', '0002_remove_content_type_name'),
+        ("contenttypes", "0002_remove_content_type_name"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Format',
+            name="Format",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('object_id', models.CharField(editable=False, max_length=36)),
-                ('field_name', models.CharField(max_length=255)),
-                ('progress', models.PositiveSmallIntegerField(default=0, editable=False, verbose_name='Progress')),
-                ('format', models.CharField(editable=False, max_length=255, verbose_name='Format')),
-                ('file', video_encoding.fields.VideoField(editable=False, height_field='height', max_length=2048, upload_to=video_encoding.models.upload_format_to, verbose_name='File', width_field='width')),
-                ('width', models.PositiveIntegerField(editable=False, null=True, verbose_name='Width')),
-                ('height', models.PositiveIntegerField(editable=False, null=True, verbose_name='Height')),
-                ('duration', models.PositiveIntegerField(editable=False, null=True, verbose_name='Duration (s)')),
-                ('content_type', models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, to='contenttypes.contenttype')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("object_id", models.CharField(editable=False, max_length=36)),
+                ("field_name", models.CharField(max_length=255)),
+                ("progress", models.PositiveSmallIntegerField(default=0, editable=False, verbose_name="Progress")),
+                ("format", models.CharField(editable=False, max_length=255, verbose_name="Format")),
+                (
+                    "file",
+                    video_encoding.fields.VideoField(
+                        editable=False,
+                        height_field="height",
+                        max_length=2048,
+                        upload_to=video_encoding.models.upload_format_to,
+                        verbose_name="File",
+                        width_field="width",
+                    ),
+                ),
+                ("width", models.PositiveIntegerField(editable=False, null=True, verbose_name="Width")),
+                ("height", models.PositiveIntegerField(editable=False, null=True, verbose_name="Height")),
+                ("duration", models.PositiveIntegerField(editable=False, null=True, verbose_name="Duration (s)")),
+                (
+                    "content_type",
+                    models.ForeignKey(
+                        editable=False, on_delete=django.db.models.deletion.CASCADE, to="contenttypes.contenttype"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Format',
-                'verbose_name_plural': 'Formats',
+                "verbose_name": "Format",
+                "verbose_name_plural": "Formats",
             },
         ),
     ]

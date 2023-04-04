@@ -155,7 +155,6 @@ class Post(ModelWithUUID):
         is_draft=False,
         title=None,
     ):
-
         if not community_name and not circles_ids:
             raise ValidationError(_("A post requires circles or a community to be posted to."))
 

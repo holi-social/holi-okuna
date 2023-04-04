@@ -4,18 +4,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('openbook_hashtags', '0001_initial'),
-        ('openbook_insights', '0001_initial'),
+        ("openbook_hashtags", "0001_initial"),
+        ("openbook_insights", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='hashtag',
-            name='insights',
-            field=models.ManyToManyField(blank=True, related_name='hashtags', to='openbook_insights.insight'),
+            model_name="hashtag",
+            name="insights",
+            field=models.ManyToManyField(blank=True, related_name="hashtags", to="openbook_insights.insight"),
         ),
     ]

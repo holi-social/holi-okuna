@@ -525,7 +525,6 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
 
 
 class GetUserPostsCountAPITests(OpenbookAPITestCase):
-
     fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_can_retrieve_posts_count(self):

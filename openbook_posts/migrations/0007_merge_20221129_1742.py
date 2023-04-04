@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_posts", "0006_merge_20221129_1254"),
         (

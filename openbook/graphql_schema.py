@@ -107,13 +107,13 @@ class NewNotificationsResponse:
 def filter_spaces_by_skill_ids(location, skill_ids, limit):
     return CommunityModel.objects.raw(
         """
-            select s.id, s.skill_id, s.rn 
+            select s.id, s.skill_id, s.rn
             from openbook_terms_skill skill, (
                 select octskill.skill_id, occ.*, row_number() OVER (partition by octskill.skill_id ORDER BY occ.id) AS rn
                 FROM   openbook_communities_community occ, openbook_communities_task octask, openbook_communities_task_skills octskill
-                where occ.id = octask.community_id and octask.id = octskill.task_id  
+                where occ.id = octask.community_id and octask.id = octskill.task_id
             ) s
-            where s.skill_id = skill.id 
+            where s.skill_id = skill.id
             and UPPER(s.location) like UPPER(%s)
             and s.rn <= %s
             and skill.id = ANY(%s)
@@ -130,9 +130,9 @@ def filter_spaces_by_topic_ids(topic_ids, limit):
             from openbook_terms_topic t, (
                 select occtopics.topic_id, occ.*, row_number() OVER (partition by occtopics.topic_id ORDER BY occ.id) AS rn
                 FROM   openbook_communities_community occ, openbook_communities_community_topics occtopics
-                where occtopics.community_id = occ.id 
+                where occtopics.community_id = occ.id
             ) s
-            where s.topic_id = t.id 
+            where s.topic_id = t.id
             and s.rn <= %s
             and t.id = ANY(%s)
             order by t.id
@@ -308,7 +308,6 @@ class Query:
         offset: int = 0,
         limit: int = 10,
     ) -> List[Optional[DiscoverSpaces]]:
-
         # Inner utility function for generating a unique cache key consisting of
         # prefix and SHA-256 hash of the discover spaces filters
         # e.g discover_spaces:2cbce4f20876d36947b2db0d6b229c8b2b80741434ceca8e7e3f2258114c2511

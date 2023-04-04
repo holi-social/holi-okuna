@@ -11,7 +11,6 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -20,63 +19,152 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Community',
+            name="Community",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=32, unique=True, validators=[openbook_communities.validators.community_name_characters_validator], verbose_name='name')),
-                ('title', models.CharField(max_length=32, verbose_name='title')),
-                ('description', models.CharField(max_length=500, null=True, verbose_name='description')),
-                ('rules', models.TextField(max_length=5000, null=True, verbose_name='rules')),
-                ('avatar', imagekit.models.fields.ProcessedImageField(max_length=500, null=True, upload_to=openbook_communities.helpers.upload_to_community_avatar_directory, verbose_name='avatar')),
-                ('cover', imagekit.models.fields.ProcessedImageField(max_length=500, null=True, upload_to=openbook_communities.helpers.upload_to_community_cover_directory, verbose_name='cover')),
-                ('created', models.DateTimeField(editable=False)),
-                ('type', models.CharField(choices=[('P', 'Public'), ('T', 'Private')], default='P', editable=False, max_length=2)),
-                ('color', models.CharField(max_length=7, validators=[openbook_common.validators.hex_color_validator], verbose_name='color')),
-                ('user_adjective', models.CharField(max_length=16, null=True, verbose_name='user adjective')),
-                ('users_adjective', models.CharField(max_length=16, null=True, verbose_name='users adjective')),
-                ('invites_enabled', models.BooleanField(default=True, verbose_name='invites enabled')),
-                ('is_deleted', models.BooleanField(default=False, verbose_name='is deleted')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=32,
+                        unique=True,
+                        validators=[openbook_communities.validators.community_name_characters_validator],
+                        verbose_name="name",
+                    ),
+                ),
+                ("title", models.CharField(max_length=32, verbose_name="title")),
+                ("description", models.CharField(max_length=500, null=True, verbose_name="description")),
+                ("rules", models.TextField(max_length=5000, null=True, verbose_name="rules")),
+                (
+                    "avatar",
+                    imagekit.models.fields.ProcessedImageField(
+                        max_length=500,
+                        null=True,
+                        upload_to=openbook_communities.helpers.upload_to_community_avatar_directory,
+                        verbose_name="avatar",
+                    ),
+                ),
+                (
+                    "cover",
+                    imagekit.models.fields.ProcessedImageField(
+                        max_length=500,
+                        null=True,
+                        upload_to=openbook_communities.helpers.upload_to_community_cover_directory,
+                        verbose_name="cover",
+                    ),
+                ),
+                ("created", models.DateTimeField(editable=False)),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[("P", "Public"), ("T", "Private")], default="P", editable=False, max_length=2
+                    ),
+                ),
+                (
+                    "color",
+                    models.CharField(
+                        max_length=7, validators=[openbook_common.validators.hex_color_validator], verbose_name="color"
+                    ),
+                ),
+                ("user_adjective", models.CharField(max_length=16, null=True, verbose_name="user adjective")),
+                ("users_adjective", models.CharField(max_length=16, null=True, verbose_name="users adjective")),
+                ("invites_enabled", models.BooleanField(default=True, verbose_name="invites enabled")),
+                ("is_deleted", models.BooleanField(default=False, verbose_name="is deleted")),
             ],
             options={
-                'verbose_name_plural': 'communities',
+                "verbose_name_plural": "communities",
             },
         ),
         migrations.CreateModel(
-            name='CommunityInvite',
+            name="CommunityInvite",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
             ],
         ),
         migrations.CreateModel(
-            name='CommunityNotificationsSubscription',
+            name="CommunityNotificationsSubscription",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('new_post_notifications', models.BooleanField(default=False)),
-                ('community', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='notifications_subscriptions', to='openbook_communities.community')),
-                ('subscriber', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='community_notifications_subscriptions', to=settings.AUTH_USER_MODEL)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("new_post_notifications", models.BooleanField(default=False)),
+                (
+                    "community",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="notifications_subscriptions",
+                        to="openbook_communities.community",
+                    ),
+                ),
+                (
+                    "subscriber",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="community_notifications_subscriptions",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='CommunityMembership',
+            name="CommunityMembership",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('is_administrator', models.BooleanField(default=False, verbose_name='is administrator')),
-                ('is_moderator', models.BooleanField(default=False, verbose_name='is moderator')),
-                ('created', models.DateTimeField(editable=False)),
-                ('community', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='memberships', to='openbook_communities.community')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='communities_memberships', to=settings.AUTH_USER_MODEL)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("is_administrator", models.BooleanField(default=False, verbose_name="is administrator")),
+                ("is_moderator", models.BooleanField(default=False, verbose_name="is moderator")),
+                ("created", models.DateTimeField(editable=False)),
+                (
+                    "community",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="memberships",
+                        to="openbook_communities.community",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="communities_memberships",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='CommunityLog',
+            name="CommunityLog",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created', models.DateTimeField(editable=False)),
-                ('action_type', models.CharField(choices=[('B', 'Ban'), ('U', 'Unban'), ('AM', 'Add Moderator'), ('RM', 'Remove Moderator'), ('AA', 'Add Administrator'), ('RA', 'Remove Administrator'), ('OP', 'Open Post'), ('CP', 'Close Post'), ('RP', 'Remove Post'), ('RPC', 'Remove Post Comment'), ('DPC', 'Disable Post Comments'), ('EPC', 'Enable Post Comments')], editable=False, max_length=5)),
-                ('community', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='logs', to='openbook_communities.community')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("created", models.DateTimeField(editable=False)),
+                (
+                    "action_type",
+                    models.CharField(
+                        choices=[
+                            ("B", "Ban"),
+                            ("U", "Unban"),
+                            ("AM", "Add Moderator"),
+                            ("RM", "Remove Moderator"),
+                            ("AA", "Add Administrator"),
+                            ("RA", "Remove Administrator"),
+                            ("OP", "Open Post"),
+                            ("CP", "Close Post"),
+                            ("RP", "Remove Post"),
+                            ("RPC", "Remove Post Comment"),
+                            ("DPC", "Disable Post Comments"),
+                            ("EPC", "Enable Post Comments"),
+                        ],
+                        editable=False,
+                        max_length=5,
+                    ),
+                ),
+                (
+                    "community",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="logs",
+                        to="openbook_communities.community",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]

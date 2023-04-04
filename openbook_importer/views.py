@@ -17,7 +17,6 @@ from openbook_importer.socialmedia_archive_parser.fb_parser import zip_parser
 
 
 class ImportItem(APIView):
-
     permission_classes = (IsAuthenticated, IsNotSuspended)
 
     def post(self, request):
@@ -44,7 +43,6 @@ class ImportItem(APIView):
         return Response({"message": _("done")}, status=status.HTTP_200_OK)
 
     def save_posts(self, posts, user):
-
         for post in posts:
             image = None
             images = None
@@ -71,7 +69,6 @@ class ImportItem(APIView):
                 user.create_public_post(text=text, image=image, created=created)
 
     def _get_media_content(self, post):
-
         images = []
         image = {}
 
@@ -88,7 +85,6 @@ class ImportItem(APIView):
         return images
 
     def _return_invalid(self):
-
         return Response({"message": _("invalid archive")}, status=status.HTTP_400_BAD_REQUEST)
 
     def _return_malicious(self):

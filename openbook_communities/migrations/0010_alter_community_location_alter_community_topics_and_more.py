@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_terms", "0001_initial"),
         ("openbook_communities", "0009_alter_externallink_url"),
@@ -14,9 +13,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="community",
             name="location",
-            field=models.CharField(
-                blank=True, db_index=True, max_length=192, null=True
-            ),
+            field=models.CharField(blank=True, db_index=True, max_length=192, null=True),
         ),
         migrations.AlterField(
             model_name="community",

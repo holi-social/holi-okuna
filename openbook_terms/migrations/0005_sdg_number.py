@@ -2,10 +2,11 @@
 
 from django.db import migrations, models
 
+
 def forwards_func(apps, schema_editor):
     SDGModel = apps.get_model("openbook_terms", "SDG")
     db_alias = schema_editor.connection.alias
-    
+
     SDGModel.objects.using(db_alias).filter(slug="no-poverty").update(number=1)
     SDGModel.objects.using(db_alias).filter(slug="zero-hunger").update(number=2)
     SDGModel.objects.using(db_alias).filter(slug="good-health-and-well-being").update(number=3)
@@ -26,8 +27,6 @@ def forwards_func(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
-
     dependencies = [
         ("openbook_terms", "0004_alter_sdg_slug_alter_skill_slug_alter_topic_slug"),
     ]
@@ -36,7 +35,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="sdg",
             name="number",
-            field=models.IntegerField(default=False, null=False,  verbose_name="number"),
+            field=models.IntegerField(default=False, null=False, verbose_name="number"),
         ),
-        migrations.RunPython(forwards_func,),
+        migrations.RunPython(
+            forwards_func,
+        ),
     ]

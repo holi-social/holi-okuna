@@ -151,7 +151,7 @@ class User(ModelWithUUID, AbstractUser):
     )
 
     """
-    Relationship typings of connected properties defined in other models (only for code completion) 
+    Relationship typings of connected properties defined in other models (only for code completion)
     """
     name: str
     profile: "UserProfile"
@@ -247,7 +247,6 @@ class User(ModelWithUUID, AbstractUser):
         are_guidelines_accepted=None,
         badge=None,
     ):
-
         if not is_of_legal_age:
             raise ValidationError(
                 _("You must confirm you are over 16 years old to make an account"),
@@ -680,7 +679,6 @@ class User(ModelWithUUID, AbstractUser):
         skills=None,
         save=True,
     ):
-
         profile = self.profile
 
         if username:
@@ -773,7 +771,6 @@ class User(ModelWithUUID, AbstractUser):
         post_comment_user_mention_notifications=None,
         post_user_mention_notifications=None,
     ):
-
         notifications_settings = self.notifications_settings
 
         notifications_settings.update(
@@ -2432,7 +2429,6 @@ class User(ModelWithUUID, AbstractUser):
         return User.objects.filter(blocked_users_query)
 
     def search_top_posts_excluded_communities_with_query(self, query):
-
         excluded_communities_search_query = Q(user=self)
         excluded_communities_search_query.add(
             (Q(community__title__icontains=query) | Q(community__name__icontains=query)),
@@ -2452,7 +2448,6 @@ class User(ModelWithUUID, AbstractUser):
         return top_posts_community_exclusions
 
     def search_profile_posts_excluded_communities_with_query(self, query):
-
         excluded_communities_search_query = Q(user=self)
         excluded_communities_search_query.add(
             (Q(community__title__icontains=query) | Q(community__name__icontains=query)),
@@ -2472,7 +2467,6 @@ class User(ModelWithUUID, AbstractUser):
         return profile_posts_community_exclusions
 
     def get_received_follow_requests(self, max_id=None):
-
         if max_id:
             return self.received_follow_requests.filter(id__lt=max_id)
 
@@ -3101,7 +3095,6 @@ class User(ModelWithUUID, AbstractUser):
         followed_users = followed_users_query.values("followed_user__id").cache()
 
         for followed_user in followed_users:
-
             followed_user_id = followed_user["followed_user__id"]
 
             followed_user_query = Q(creator_id=followed_user_id)
@@ -4212,7 +4205,6 @@ class User(ModelWithUUID, AbstractUser):
         return blocked_users_query
 
     def _make_get_post_with_id_query(self, post_id):
-
         Post = get_post_model()
 
         posts_query = Q(is_deleted=False, status=Post.STATUS_PUBLISHED)
@@ -4239,7 +4231,6 @@ class User(ModelWithUUID, AbstractUser):
         return posts_query
 
     def _make_get_posts_query_for_user(self, user, max_id=None):
-
         Post = get_post_model()
 
         posts_query = Q(creator_id=user.pk, is_deleted=False, status=Post.STATUS_PUBLISHED)
@@ -4400,7 +4391,6 @@ class User(ModelWithUUID, AbstractUser):
         return reactions_query
 
     def _make_get_post_comment_with_id_query(self, post_comment_id, post, post_comment_parent_id=None):
-
         post_comments_query = self._make_get_comments_for_post_query(
             post=post, post_comment_parent_id=post_comment_parent_id
         )
@@ -4412,7 +4402,6 @@ class User(ModelWithUUID, AbstractUser):
         return post_comments_query
 
     def _make_get_comments_for_post_query(self, post, post_comment_parent_id=None, max_id=None, min_id=None):
-
         # Comments from the post
         comments_query = Q(post_id=post.pk)
 
@@ -4833,7 +4822,6 @@ class UserNotificationsSettings(ModelWithUUID):
         post_user_mention_notifications=None,
         post_comment_reaction_notifications=None,
     ):
-
         if post_comment_notifications is not None:
             self.post_comment_notifications = post_comment_notifications
 

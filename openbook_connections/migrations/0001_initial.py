@@ -7,7 +7,6 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -16,16 +15,35 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Connection',
+            name="Connection",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('target_connection', models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, to='openbook_connections.connection')),
-                ('target_user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='targeted_connections', to=settings.AUTH_USER_MODEL)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='connections', to=settings.AUTH_USER_MODEL)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (
+                    "target_connection",
+                    models.OneToOneField(
+                        null=True, on_delete=django.db.models.deletion.CASCADE, to="openbook_connections.connection"
+                    ),
+                ),
+                (
+                    "target_user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="targeted_connections",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="connections",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('user', 'target_user')},
-                'index_together': {('target_user', 'id'), ('target_user', 'target_connection')},
+                "unique_together": {("user", "target_user")},
+                "index_together": {("target_user", "id"), ("target_user", "target_connection")},
             },
         ),
     ]

@@ -6,7 +6,6 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_communities", "0011_communitymembershiprequest_and_more"),
         ("openbook_notifications", "0003_alter_notification_notification_type_and_more"),

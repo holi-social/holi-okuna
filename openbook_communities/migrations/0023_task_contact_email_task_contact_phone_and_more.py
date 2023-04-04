@@ -7,7 +7,6 @@ import openbook_communities.helpers
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_communities", "0022_alter_community_sdgs"),
     ]

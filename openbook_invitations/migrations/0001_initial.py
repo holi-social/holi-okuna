@@ -8,32 +8,62 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('openbook_common', '0001_initial'),
+        ("openbook_common", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='UserInvite',
+            name="UserInvite",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created', models.DateTimeField(verbose_name='invited datetime')),
-                ('name', models.CharField(blank=True, max_length=192, null=True)),
-                ('nickname', models.CharField(blank=True, max_length=192, null=True)),
-                ('email', models.EmailField(blank=True, max_length=254, null=True, verbose_name='email address')),
-                ('username', models.CharField(blank=True, error_messages={'unique': 'A user with that username already exists.'}, help_text='Required. 36 characters or fewer. Letters, digits and _ only.', max_length=36, null=True, unique=True, validators=[django.contrib.auth.validators.UnicodeUsernameValidator()], verbose_name='username')),
-                ('token', models.CharField(max_length=255, unique=True)),
-                ('is_invite_email_sent', models.BooleanField(default=False)),
-                ('badge', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='openbook_common.badge')),
-                ('created_user', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('invited_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='invited_users', to=settings.AUTH_USER_MODEL)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("created", models.DateTimeField(verbose_name="invited datetime")),
+                ("name", models.CharField(blank=True, max_length=192, null=True)),
+                ("nickname", models.CharField(blank=True, max_length=192, null=True)),
+                ("email", models.EmailField(blank=True, max_length=254, null=True, verbose_name="email address")),
+                (
+                    "username",
+                    models.CharField(
+                        blank=True,
+                        error_messages={"unique": "A user with that username already exists."},
+                        help_text="Required. 36 characters or fewer. Letters, digits and _ only.",
+                        max_length=36,
+                        null=True,
+                        unique=True,
+                        validators=[django.contrib.auth.validators.UnicodeUsernameValidator()],
+                        verbose_name="username",
+                    ),
+                ),
+                ("token", models.CharField(max_length=255, unique=True)),
+                ("is_invite_email_sent", models.BooleanField(default=False)),
+                (
+                    "badge",
+                    models.ForeignKey(
+                        blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to="openbook_common.badge"
+                    ),
+                ),
+                (
+                    "created_user",
+                    models.OneToOneField(
+                        blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+                    ),
+                ),
+                (
+                    "invited_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="invited_users",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('invited_by', 'email'), ('invited_by', 'nickname')},
+                "unique_together": {("invited_by", "email"), ("invited_by", "nickname")},
             },
         ),
     ]

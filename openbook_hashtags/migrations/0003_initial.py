@@ -4,23 +4,22 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('openbook_posts', '0001_initial'),
-        ('openbook_hashtags', '0002_initial'),
+        ("openbook_posts", "0001_initial"),
+        ("openbook_hashtags", "0002_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='hashtag',
-            name='post_comments',
-            field=models.ManyToManyField(related_name='hashtags', to='openbook_posts.postcomment'),
+            model_name="hashtag",
+            name="post_comments",
+            field=models.ManyToManyField(related_name="hashtags", to="openbook_posts.postcomment"),
         ),
         migrations.AddField(
-            model_name='hashtag',
-            name='posts',
-            field=models.ManyToManyField(related_name='hashtags', to='openbook_posts.post'),
+            model_name="hashtag",
+            name="posts",
+            field=models.ManyToManyField(related_name="hashtags", to="openbook_posts.post"),
         ),
     ]

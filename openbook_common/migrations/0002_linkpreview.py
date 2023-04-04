@@ -6,7 +6,6 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_common", "0001_initial"),
     ]
@@ -32,9 +31,7 @@ class Migration(migrations.Migration):
                 ("image", models.TextField()),
                 (
                     "fetched_at",
-                    models.DateTimeField(
-                        default=django.utils.timezone.now, editable=False
-                    ),
+                    models.DateTimeField(default=django.utils.timezone.now, editable=False),
                 ),
             ],
             options={

@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_posts", "0005_post_links_postcomment_links_alter_postlink_post"),
         ("openbook_posts", "0005_remove_postimage_hash_remove_postimage_thumbnail"),

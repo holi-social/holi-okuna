@@ -6,7 +6,6 @@ import openbook_common.validators
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ("openbook_communities", "0004_task"),
@@ -36,9 +35,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="community",
             name="rules",
-            field=models.TextField(
-                blank=True, max_length=5000, null=True, verbose_name="rules"
-            ),
+            field=models.TextField(blank=True, max_length=5000, null=True, verbose_name="rules"),
         ),
         migrations.AlterField(
             model_name="community",
@@ -52,15 +49,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="community",
             name="user_adjective",
-            field=models.CharField(
-                blank=True, max_length=16, null=True, verbose_name="user adjective"
-            ),
+            field=models.CharField(blank=True, max_length=16, null=True, verbose_name="user adjective"),
         ),
         migrations.AlterField(
             model_name="community",
             name="users_adjective",
-            field=models.CharField(
-                blank=True, max_length=16, null=True, verbose_name="users adjective"
-            ),
+            field=models.CharField(blank=True, max_length=16, null=True, verbose_name="users adjective"),
         ),
     ]

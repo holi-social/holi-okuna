@@ -36,7 +36,6 @@ class Posts(APIView):
     permission_classes = (IsGetOrIsAuthenticated, IsNotSuspended)
 
     def put(self, request):
-
         request_data = request.data.dict()
 
         normalize_list_value_in_request_data("circle_id", request_data)

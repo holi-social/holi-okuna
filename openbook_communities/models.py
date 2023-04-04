@@ -534,7 +534,6 @@ class Community(ModelWithUUID):
         contact_email=None,
         contact_phone=None,
     ):
-
         if title:
             self.title = title
 
@@ -1192,7 +1191,6 @@ class ExternalLinkType(models.TextChoices):
 
 
 class ExternalLink(ModelWithUUID):
-
     url = models.TextField(blank=False)
     community = models.ForeignKey(
         Community,

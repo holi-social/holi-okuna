@@ -23,7 +23,6 @@ class Command(BaseCommand):
         env = settings.ENVIRONMENT
 
         for queue in RQ_QUEUES.keys():
-
             rq_stats = RQStats(queue)
 
             active_job_count = rq_stats.get_active_job_count()
@@ -46,7 +45,6 @@ class Command(BaseCommand):
                 self.retval += 1
 
     def handle(self, *args, **options):
-
         self.retval = 1
 
         try:

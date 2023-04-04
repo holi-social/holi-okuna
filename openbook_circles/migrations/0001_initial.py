@@ -8,43 +8,65 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('openbook_connections', '0001_initial'),
+        ("openbook_connections", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Circle',
+            name="Circle",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=100, verbose_name='name')),
-                ('color', models.CharField(max_length=7, validators=[openbook_common.validators.hex_color_validator], verbose_name='color')),
-                ('created', models.DateTimeField(editable=False)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.CharField(max_length=100, verbose_name="name")),
+                (
+                    "color",
+                    models.CharField(
+                        max_length=7, validators=[openbook_common.validators.hex_color_validator], verbose_name="color"
+                    ),
+                ),
+                ("created", models.DateTimeField(editable=False)),
             ],
         ),
         migrations.CreateModel(
-            name='ConnectionCircle',
+            name="ConnectionCircle",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('circle', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='openbook_circles.circle')),
-                ('connection', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='openbook_connections.connection')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (
+                    "circle",
+                    models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="openbook_circles.circle"),
+                ),
+                (
+                    "connection",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="openbook_connections.connection"
+                    ),
+                ),
             ],
             options={
-                'db_table': 'openbook_circles_circle_connections',
+                "db_table": "openbook_circles_circle_connections",
             },
         ),
         migrations.AddField(
-            model_name='circle',
-            name='connections',
-            field=models.ManyToManyField(db_index=True, related_name='circles', through='openbook_circles.ConnectionCircle', to='openbook_connections.connection'),
+            model_name="circle",
+            name="connections",
+            field=models.ManyToManyField(
+                db_index=True,
+                related_name="circles",
+                through="openbook_circles.ConnectionCircle",
+                to="openbook_connections.connection",
+            ),
         ),
         migrations.AddField(
-            model_name='circle',
-            name='creator',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='circles', to=settings.AUTH_USER_MODEL),
+            model_name="circle",
+            name="creator",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="circles",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

@@ -55,7 +55,6 @@ class Command(BaseCommand):
         # order is important here, there is dependencies. luckily, reverse order currently fulfills all dependencies
         for key, value in options.items().__reversed__():
             if hasattr(self, prefix + key) and value:
-
                 fn = getattr(self, prefix + key)
                 fn(value[0])
 

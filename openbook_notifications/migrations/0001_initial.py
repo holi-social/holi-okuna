@@ -5,150 +5,169 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='CommunityInviteNotification',
+            name="CommunityInviteNotification",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='CommunityNewPostNotification',
+            name="CommunityNewPostNotification",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='ConnectionConfirmedNotification',
+            name="ConnectionConfirmedNotification",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='ConnectionRequestNotification',
+            name="ConnectionRequestNotification",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='FollowNotification',
+            name="FollowNotification",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='FollowRequestApprovedNotification',
+            name="FollowRequestApprovedNotification",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='FollowRequestNotification',
+            name="FollowRequestNotification",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Notification',
+            name="Notification",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created', models.DateTimeField(db_index=True, editable=False)),
-                ('read', models.BooleanField(default=False)),
-                ('notification_type', models.CharField(choices=[('PR', 'Post Reaction'), ('PC', 'Post Comment'), ('PCR', 'Post Comment Reply'), ('PCRA', 'Post Comment Reaction'), ('CR', 'Connection Request'), ('CC', 'Connection Confirmed'), ('F', 'Follow'), ('FR', 'Follow request'), ('FRA', 'Follow request approved'), ('CI', 'Community Invite'), ('PUM', 'Post user mention'), ('PCUM', 'Post comment user mention'), ('CNP', 'New post in community'), ('UNP', 'New post by user')], max_length=5)),
-                ('object_id', models.UUIDField()),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("created", models.DateTimeField(db_index=True, editable=False)),
+                ("read", models.BooleanField(default=False)),
+                (
+                    "notification_type",
+                    models.CharField(
+                        choices=[
+                            ("PR", "Post Reaction"),
+                            ("PC", "Post Comment"),
+                            ("PCR", "Post Comment Reply"),
+                            ("PCRA", "Post Comment Reaction"),
+                            ("CR", "Connection Request"),
+                            ("CC", "Connection Confirmed"),
+                            ("F", "Follow"),
+                            ("FR", "Follow request"),
+                            ("FRA", "Follow request approved"),
+                            ("CI", "Community Invite"),
+                            ("PUM", "Post user mention"),
+                            ("PCUM", "Post comment user mention"),
+                            ("CNP", "New post in community"),
+                            ("UNP", "New post by user"),
+                        ],
+                        max_length=5,
+                    ),
+                ),
+                ("object_id", models.UUIDField()),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='PostCommentNotification',
+            name="PostCommentNotification",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='PostCommentReactionNotification',
+            name="PostCommentReactionNotification",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='PostCommentReplyNotification',
+            name="PostCommentReplyNotification",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='PostCommentUserMentionNotification',
+            name="PostCommentUserMentionNotification",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='PostReactionNotification',
+            name="PostReactionNotification",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='PostUserMentionNotification',
+            name="PostUserMentionNotification",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='UserNewPostNotification',
+            name="UserNewPostNotification",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]

@@ -5,7 +5,6 @@ import openbook_posts.validators
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_posts", "0010_postcomment_mentions"),
     ]

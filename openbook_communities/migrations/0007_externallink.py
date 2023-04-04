@@ -6,7 +6,6 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_communities", "0006_alter_community_topics"),
     ]

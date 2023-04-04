@@ -200,6 +200,11 @@ ffpmeg is missing?
 brew install ffmpeg
 ```
 
+## Development
+We use [pre-commit](https://pre-commit.com/) to force the styles and automatize formatting.
+
+Run `pip install -r requirements.txt` and `pre-commit install` to activate the hooks.
+
 ## CI/CD
 
 The CI/CD pipeline follows our normal flow, deploying branch environments and deploying main to staging automatically

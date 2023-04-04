@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_insights", "0003_insight_topic"),
         ("openbook_insights", "0003_rename_curator_insight_creator"),

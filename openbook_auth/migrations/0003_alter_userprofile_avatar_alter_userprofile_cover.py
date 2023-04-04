@@ -6,20 +6,29 @@ import openbook_auth.helpers
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('openbook_auth', '0002_initial'),
+        ("openbook_auth", "0002_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='userprofile',
-            name='avatar',
-            field=imagekit.models.fields.ProcessedImageField(max_length=500, null=True, upload_to=openbook_auth.helpers.upload_to_user_avatar_directory, verbose_name='avatar'),
+            model_name="userprofile",
+            name="avatar",
+            field=imagekit.models.fields.ProcessedImageField(
+                max_length=500,
+                null=True,
+                upload_to=openbook_auth.helpers.upload_to_user_avatar_directory,
+                verbose_name="avatar",
+            ),
         ),
         migrations.AlterField(
-            model_name='userprofile',
-            name='cover',
-            field=imagekit.models.fields.ProcessedImageField(max_length=500, null=True, upload_to=openbook_auth.helpers.upload_to_user_cover_directory, verbose_name='cover'),
+            model_name="userprofile",
+            name="cover",
+            field=imagekit.models.fields.ProcessedImageField(
+                max_length=500,
+                null=True,
+                upload_to=openbook_auth.helpers.upload_to_user_cover_directory,
+                verbose_name="cover",
+            ),
         ),
     ]
