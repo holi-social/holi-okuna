@@ -679,12 +679,11 @@ class Mutation:
             if update_avatar:
                 delete_avatar(data["avatar"])
             raise
-
-        if input.first_name or input.last_name:
-            update_ory_user.delay(current_user.id)
         try:
-            if current_user.is_member_of_communities():
-                publish_user_name_updated_event(current_user)
+            if input.first_name or input.last_name:
+                update_ory_user.delay(current_user.id)
+                if current_user.is_member_of_communities():
+                    publish_user_name_updated_event(current_user)
         finally:
             return current_user
 
