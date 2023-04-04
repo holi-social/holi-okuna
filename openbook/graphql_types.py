@@ -514,9 +514,7 @@ class Space:
         return roles
 
     @gql.django.field
-    def posts(
-        self, info, offset: int = 0, limit: int = 10, visibility: Visibility = Visibility.ALL
-    ) -> Paged[Post]:
+    def posts(self, info, offset: int = 0, limit: int = 10, visibility: Visibility = Visibility.ALL) -> Paged[Post]:
         current_user: UserModel = info.context.request.user
         query = PostModel.objects.filter(community=self)
         if (
