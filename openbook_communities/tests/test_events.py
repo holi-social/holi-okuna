@@ -1,7 +1,7 @@
 import json
 
 from django.test import testcases
-from openbook_communities.events.events import SpaceCreatedEvent, SpaceUserAddedEvent
+from openbook_communities.events.events import SpaceCreatedEvent, SpaceUserAddedEvent, UserNameUpdatedEvent
 
 from openbook_communities.events.payloads import SpacePayload, UserPayload
 from openbook_common.tests.helpers import make_community, make_user
@@ -45,5 +45,24 @@ class SpaceUserAddedEventTestCase(testcases.TestCase):
         event_dict = event.to_dict()
 
         eventPayload = {"eventType": "SpaceUserAdded", "eventVersion": "1.0.0", "data": encoded_data}
+
+        self.assertEqual(eventPayload, event_dict)
+
+
+class UserNameUpdatedEventTestCase(testcases.TestCase):
+    def test_should_create_user_name_updated_event(self):
+        user = make_user()
+
+        user_payload = UserPayload.from_user(user)
+
+        data = {"user": user_payload.to_dict()}
+
+        encoded_data = json.dumps(data).encode("utf-8")
+
+        event = UserNameUpdatedEvent(user_payload)
+
+        event_dict = event.to_dict()
+
+        eventPayload = {"eventType": "UserNameUpdated", "eventVersion": "1.0.0", "data": encoded_data}
 
         self.assertEqual(eventPayload, event_dict)
