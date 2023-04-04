@@ -23,7 +23,7 @@ from openbook.graphql_schema import (
     UpdateConnectionAction,
     schema,
 )
-from openbook.graphql_types import Visibility
+from openbook.graphql_types import Visibility, InputVisibility
 from openbook_auth.models import User, UserConnectionStatus
 from openbook_common.tests.helpers import (
     get_test_images,
@@ -39,12 +39,11 @@ from openbook_common.tests.helpers import (
     make_topic,
     make_user,
     simple_jpeg_bytes,
-    make_post,
 )
 from openbook_communities.models import Community
 from openbook_insights.models import Insight
 from openbook_moderation.models import ModeratedObject
-from openbook_posts.models import PostCommentReaction, PostComment
+from openbook_posts.models import PostCommentReaction
 
 logger = logging.getLogger(__name__)
 
@@ -488,6 +487,158 @@ class GraphQLTest(TestCase):
             variable_values={
                 "id": str(post_comment_id),
             },
+        )
+
+    def create_space_post(self, user, info):
+        return schema.execute_sync(
+            """
+            mutation test($input: CreatePostInput!){
+                createSpacePost(input: $input) {
+                    id
+                    title
+                    posts {
+                        totalResults
+                        data {
+                            title
+                            text
+                            public
+                            created
+                        }
+                    }
+                }
+            }
+            """,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": info},
+        )
+
+    def test_can_create_space_post(self):
+        space_admin = make_user()
+        member_user = make_user()
+        space = make_community(creator=space_admin)
+        space.add_member(member_user)
+
+        # space admin can create public post
+        input_data = {
+            "spaceId": str(space.id),
+            "visibility": InputVisibility.PUBLIC.value,
+            "text": make_fake_post_text(),
+        }
+
+        response = self.create_space_post(space_admin, input_data)
+
+        data = response.data["createSpacePost"]
+        posts_data = data["posts"]["data"]
+
+        self.assertEqual(data["id"], str(space.id))
+        self.assertEqual(data["posts"]["totalResults"], 1)
+        self.assertEqual(posts_data[0]["text"], input_data["text"])
+        self.assertEqual(posts_data[0]["public"], True)
+
+        # space admin can create private post
+        input_data = {
+            "spaceId": str(space.id),
+            "visibility": InputVisibility.PRIVATE.value,
+            "text": make_fake_post_text(),
+        }
+
+        response = self.create_space_post(space_admin, input_data)
+
+        data = response.data["createSpacePost"]
+        posts_data = data["posts"]["data"]
+
+        self.assertEqual(data["id"], str(space.id))
+        self.assertEqual(data["posts"]["totalResults"], 2)
+        self.assertEqual(posts_data[0]["text"], input_data["text"])
+        self.assertEqual(posts_data[0]["public"], False)
+
+        # member user can create public post
+        input_data = {
+            "spaceId": str(space.id),
+            "visibility": InputVisibility.PUBLIC.value,
+            "text": make_fake_post_text(),
+        }
+
+        response = self.create_space_post(member_user, input_data)
+
+        data = response.data["createSpacePost"]
+        posts_data = data["posts"]["data"]
+
+        self.assertEqual(data["id"], str(space.id))
+        self.assertEqual(data["posts"]["totalResults"], 3)
+        self.assertEqual(posts_data[0]["text"], input_data["text"])
+        self.assertEqual(posts_data[0]["public"], True)
+
+        # member user can create only public post
+        input_data = {
+            "spaceId": str(space.id),
+            "visibility": InputVisibility.PRIVATE.value,
+            "text": make_fake_post_text(),
+        }
+
+        response = self.create_space_post(member_user, input_data)
+
+        data = response.data["createSpacePost"]
+        posts_data = data["posts"]["data"]
+
+        self.assertEqual(data["id"], str(space.id))
+        self.assertEqual(data["posts"]["totalResults"], 4)
+        self.assertEqual(posts_data[0]["text"], input_data["text"])
+        self.assertEqual(posts_data[0]["public"], True)
+
+    def test_cant_create_space_post_external_user(self):
+        space_admin = make_user()
+        external_user = make_user()
+        space = make_community(creator=space_admin)
+
+        # not member user can't create post for the space
+        input_data = {
+            "spaceId": str(space.id),
+            "visibility": InputVisibility.PRIVATE.value,
+            "text": make_fake_post_text(),
+        }
+
+        response = self.create_space_post(external_user, input_data)
+        print(response.errors)
+        print(response.data)
+        self.assertIsNotNone(response.errors)
+        self.assertIsNone(response.data)
+        self.assertIn("You cannot post to a community you're not member of", response.errors[0].message)
+
+    def test_cant_create_space_post_invalid_input(self):
+        space_admin = make_user()
+        space = make_community(creator=space_admin)
+
+        # test space id field is missing
+        input_data = {
+            "visibility": InputVisibility.PRIVATE.value,
+            "text": make_fake_post_text(),
+        }
+
+        response = self.create_space_post(space_admin, input_data)
+        self.assertIsNotNone(response.errors)
+        self.assertIsNone(response.data)
+        self.assertIn("Field 'spaceId' of required type 'UUID!' was not provided", response.errors[0].message)
+
+        # test post text field is missing
+        input_data = {
+            "spaceId": str(space.id),
+            "visibility": InputVisibility.PUBLIC.value,
+        }
+
+        response = self.create_space_post(space_admin, input_data)
+        self.assertIsNotNone(response.errors)
+        self.assertIsNone(response.data)
+        self.assertIn("Field 'text' of required type 'String!' was not provided", response.errors[0].message)
+
+        # test visibility field is missing
+        input_data = {"spaceId": str(space.id), "text": make_fake_post_text()}
+
+        response = self.create_space_post(space_admin, input_data)
+        self.assertIsNotNone(response.errors)
+        self.assertIsNone(response.data)
+        self.assertIn(
+            "Field 'visibility' of required type 'InputVisibility!' was not provided", response.errors[0].message
         )
 
     def test_insights_by_user_id_success_user_anonymous(self):

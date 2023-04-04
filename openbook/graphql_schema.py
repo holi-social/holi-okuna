@@ -38,7 +38,7 @@ from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_moderation.models import ModeratedObject
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
 from openbook_common.utils.helpers import is_uuid
-from openbook_posts.views.posts.serializers import CreatePostSerializer
+from openbook_posts.views.posts.serializers import CreatePostSerializer, CreateCommunityPostSerializer
 
 from .graphql_types import *
 
@@ -772,11 +772,11 @@ class Mutation:
                     raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
 
     @gql.mutation
-    def update_space_post(self, info: Info, input: CreatePostInput) -> Space:
+    def create_space_post(self, info: Info, input: CreatePostInput) -> Space:
         current_user = verify_authorized_user(info)
 
         post_data = to_input_dict(input)
-        serializer = CreatePostSerializer(data=post_data)
+        serializer = CreateCommunityPostSerializer(data=post_data)
         serializer.is_valid(raise_exception=True)
 
         space_id = post_data.get("space_id")
