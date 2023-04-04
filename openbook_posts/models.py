@@ -134,6 +134,10 @@ class Post(ModelWithUUID):
             ("creator", "community"),
         ]
 
+    @property
+    def is_public(self):
+        return self.circles.filter(id=settings.WORLD_CIRCLE_ID).count() > 0
+
     @classmethod
     def post_with_id_has_public_reactions(cls, post_id):
         return Post.objects.filter(pk=post_id, public_reactions=True).exists()
