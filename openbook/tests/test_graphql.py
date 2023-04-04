@@ -1,3 +1,4 @@
+import copy
 import json
 import logging
 import unittest
@@ -1402,7 +1403,7 @@ class GraphQLTest(TestCase):
         self.assertGreaterEqual(posts_data[0]["created"], posts_data[1]["created"])
 
         # member user with visibility private posts shows only private posts
-        data = self.get_space_by_id_with_posts(user_member, space.id, Visibility.PRIVATE)
+        data = self.get_space_by_id_with_posts(user_member, space.id, Visibility.MEMBERS)
         posts_data = data["posts"]["data"]
         self.assertEqual(data["id"], str(space.id))
         self.assertEqual(data["posts"]["totalResults"], len(private_posts))
@@ -1420,7 +1421,7 @@ class GraphQLTest(TestCase):
         self.assertGreaterEqual(posts_data[0]["created"], posts_data[1]["created"])
 
         # external user visibility filter is ignored and shows public posts
-        data = self.get_space_by_id_with_posts(user_external, space.id, Visibility.PRIVATE)
+        data = self.get_space_by_id_with_posts(user_external, space.id, Visibility.MEMBERS)
         posts_data = data["posts"]["data"]
         self.assertEqual(data["id"], str(space.id))
         self.assertEqual(data["posts"]["totalResults"], len(public_posts))
@@ -2788,7 +2789,7 @@ class GraphQLTest(TestCase):
             "You cannot add a collaboration tool to a community you are not a member of", response.errors[0].message
         )
 
-    def test_can_not_collaboration_tool_if_not_logged_in(self):
+    def test_can_not_delete_collaboration_tool_if_not_logged_in(self):
         collaboration_tool = make_collaboration_tool()
 
         delete_collaboration_tool_mutation = """
@@ -2807,7 +2808,7 @@ class GraphQLTest(TestCase):
 
         self.assert_is_unauthorized(response)
 
-    def test_can_not_collaboration_tool_if_not_space_member(self):
+    def test_can_not_delete_collaboration_tool_if_not_space_member(self):
         collaboration_tool = make_collaboration_tool()
         user = make_user()
 
@@ -3087,6 +3088,259 @@ class GraphQLTest(TestCase):
         self.assertEqual(new_title, updated_collaboration_tool["title"])
         self.assertEqual(new_description, updated_collaboration_tool["description"])
         self.assertEqual(new_collection_type, updated_collaboration_tool["collectionType"])
+
+    def test_can_not_create_task_missing_required_fields(self):
+        user = make_user()
+
+        community = make_community(creator=user)
+
+        create_task_mutation = """
+            mutation test($input: CreateTaskInput!) {
+                createTask(input: $input) {
+                    id
+                }
+            }
+            """
+
+        valid_input = {
+            "name": "Valid name",
+            "description": "Valid description",
+            "spaceId": str(community.id),
+            "visibility": "MEMBERS",
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+        }
+        expected_errors = {
+            "name": "Field 'name' of required type 'String!' was not provided.",
+            "description": "Field 'description' of required type 'String!' was not provided.",
+            "spaceId": "Field 'spaceId' of required type 'UUID!' was not provided.",
+            "visibility": "Field 'visibility' of required type 'VisibilityType!' was not provided.",
+            "locationType": "Field 'locationType' of required type 'LocationType!' was not provided.",
+            "regularity": "Field 'regularity' of required type 'Regularity!' was not provided.",
+            "contactEmail": "Field 'contactEmail' of required type 'String!' was not provided.",
+        }
+        valid_input_keys = valid_input.keys()
+
+        for input_key in valid_input_keys:
+            test_input = copy.copy(valid_input)
+            test_input.pop(input_key)
+            response = schema.execute_sync(
+                create_task_mutation,
+                context_value=BeneDict({"request": {"user": user}}),
+                variable_values={"input": test_input},
+            )
+
+            self.assertIn(expected_errors[input_key], str(response.errors[0].message))
+            self.assertIsNone(response.data["createTask"] if response.data else response.data)
+
+    def test_validates_task_before_creation(self):
+        user = make_user()
+
+        community = make_community(creator=user)
+        skill = make_skill()
+
+        create_task_mutation = """
+            mutation test($input: CreateTaskInput!) {
+                createTask(input: $input) {
+                    id
+                }
+            }
+            """
+
+        non_existent_skill_id = str(uuid4())
+
+        valid_input = {
+            "spaceId": str(community.id),
+            "name": "Valid name",
+            "description": "Valid description",
+            "visibility": "MEMBERS",
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
+        }
+
+        expectedErrors = [
+            {"field": "spaceId", "value": str(uuid4()), "expected_error": "No community with the provided id exists."},
+            {"field": "name", "value": "c", "expected_code": "min_length"},
+            {"field": "name", "value": "c" * 400, "expected_code": "max_length"},
+            {"field": "description", "value": "c" * 2000, "expected_code": "max_length"},
+            {"field": "locationType", "value": None, "expected_code": "Expected non-nullable type"},
+            {"field": "regularity", "value": None, "expected_code": "Expected non-nullable type"},
+            {"field": "contactEmail", "value": None, "expected_code": "Expected non-nullable type"},
+            {"field": "contactPhone", "value": "c" * 500, "expected_code": "max_length"},
+            {
+                "field": "skills",
+                "value": [non_existent_skill_id],
+                "expected_code": f"No skill with the id '{non_existent_skill_id}' found.",
+            },
+        ]
+
+        for testCase in expectedErrors:
+            response = schema.execute_sync(
+                create_task_mutation,
+                context_value=BeneDict({"request": {"user": user}}),
+                variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
+            )
+
+            if "expected_code" in testCase:
+                self.assertIn(
+                    testCase["expected_code"],
+                    str(response.errors[0].message),
+                    f"{str(response.errors[0].message)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
+                )
+            else:
+                self.assertIn(testCase["expected_error"], str(response.errors[0].message))
+            self.assertIsNone(response.data["createTask"] if response.data else response.data)
+
+    def test_can_create_task(self):
+        user = make_user()
+
+        community = make_community(creator=user)
+        skill = make_skill()
+
+        create_task_mutation = """
+            mutation test($input: CreateTaskInput!) {
+                createTask(input: $input) {
+                    id
+                    name
+                    description
+                    visibility
+                }
+            }
+            """
+
+        valid_name = "Valid name"
+        valid_description = "Valid description"
+        valid_visibility = "MEMBERS"
+
+        valid_input = {
+            "spaceId": str(community.id),
+            "name": valid_name,
+            "description": valid_description,
+            "visibility": valid_visibility,
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
+        }
+
+        response = schema.execute_sync(
+            create_task_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": valid_input},
+        )
+
+        self.assertIsNone(response.errors)
+
+        added_collaboration_tool = response.data["createTask"]
+        self.assertIn("id", added_collaboration_tool)
+        self.assertEqual(valid_name, added_collaboration_tool["name"])
+        self.assertEqual(valid_description, added_collaboration_tool["description"])
+        self.assertEqual(valid_visibility, added_collaboration_tool["visibility"])
+
+    def test_can_not_create_task_if_not_logged_in(self):
+        community = make_community()
+        skill = make_skill()
+
+        create_task_mutation = """
+            mutation test($input: CreateTaskInput!) {
+                createTask(input: $input) {
+                    id
+                    name
+                }
+            }
+            """
+
+        valid_space_id = str(community.id)
+        valid_name = "Valid name"
+        valid_description = "Valid description"
+        valid_visibility = "MEMBERS"
+        valid_location_type = "HYBRID"
+        valid_regularity = "REGULARLY"
+        valid_contact_email = "email@email.com"
+        valid_skills = [str(skill.id)]
+        valid_slots_available = 1
+        valid_location = "Hamburg, Germany"
+        valid_contact_phone = "+49176176176176"
+
+        valid_input = {
+            "spaceId": valid_space_id,
+            "name": valid_name,
+            "description": valid_description,
+            "visibility": valid_visibility,
+            "locationType": valid_location_type,
+            "regularity": valid_regularity,
+            "contactEmail": valid_contact_email,
+            "skills": valid_skills,
+            "slotsAvailable": valid_slots_available,
+            "location": valid_location,
+            "contactPhone": valid_contact_phone,
+        }
+
+        response = schema.execute_sync(
+            create_task_mutation,
+            variable_values={"input": valid_input},
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+        )
+
+        self.assert_is_unauthorized(response)
+
+    def test_can_not_create_task_if_not_admin(self):
+        user = make_user()
+        community = make_community()
+        community.add_member(user)
+        skill = make_skill()
+
+        create_task_mutation = """
+            mutation test($input: CreateTaskInput!) {
+                createTask(input: $input) {
+                    id
+                    name
+                }
+            }
+            """
+
+        valid_space_id = str(community.id)
+        valid_name = "Valid name"
+        valid_description = "Valid description"
+        valid_visibility = "MEMBERS"
+        valid_location_type = "HYBRID"
+        valid_regularity = "REGULARLY"
+        valid_contact_email = "email@email.com"
+        valid_skills = [str(skill.id)]
+        valid_slots_available = 1
+        valid_location = "Hamburg, Germany"
+        valid_contact_phone = "+49176176176176"
+
+        valid_input = {
+            "spaceId": valid_space_id,
+            "name": valid_name,
+            "description": valid_description,
+            "visibility": valid_visibility,
+            "locationType": valid_location_type,
+            "regularity": valid_regularity,
+            "contactEmail": valid_contact_email,
+            "skills": valid_skills,
+            "slotsAvailable": valid_slots_available,
+            "location": valid_location,
+            "contactPhone": valid_contact_phone,
+        }
+
+        response = schema.execute_sync(
+            create_task_mutation,
+            variable_values={"input": valid_input},
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+        )
+
+        self.assert_is_unauthorized(response)
 
 
 def approve_verify_moderated_object(object_id, user):
