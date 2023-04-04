@@ -18,7 +18,11 @@ from strawberry.file_uploads import Upload
 from strawberry_django_plus.optimizer import DjangoOptimizerExtension
 
 from openbook.graphql_errors import GraphQLErrorCodes
-from openbook.helpers import publish_space_user_added_event, publish_space_created_event
+from openbook.helpers import (
+    publish_space_user_added_event,
+    publish_space_created_event,
+    publish_user_name_updated_event,
+)
 from openbook_auth.images import delete_avatar
 from openbook_auth.tasks import update_ory_user
 from openbook_auth.validators import string_not_empty
@@ -678,8 +682,11 @@ class Mutation:
 
         if input.first_name or input.last_name:
             update_ory_user.delay(current_user.id)
-
-        return current_user
+        try:
+            if current_user.is_member_of_communities():
+                publish_user_name_updated_event(current_user)
+        finally:
+            return current_user
 
     @gql.mutation
     def update_connection_with_user(self, info, input: UpdateConnectionWithUserInput) -> User:
