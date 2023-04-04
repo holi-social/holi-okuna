@@ -13,7 +13,7 @@ class UserPayload:
 
     @classmethod
     def from_user(cls, user: User):
-        return cls(id=str(user.username), name=user.profile.name, email=user.email)
+        return cls(id=str(user.username), name=user.profile.full_name(), email=user.email)
 
 
 class SpacePayload:
