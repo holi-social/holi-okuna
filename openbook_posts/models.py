@@ -152,6 +152,7 @@ class Post(ModelWithUUID):
         creator,
         circles_ids=None,
         community_name=None,
+        community_id=None,
         image=None,
         text=None,
         video=None,
@@ -160,7 +161,7 @@ class Post(ModelWithUUID):
         title=None,
     ):
 
-        if not community_name and not circles_ids:
+        if not community_name and not community_id and not circles_ids:
             raise ValidationError(_("A post requires circles or a community to be posted to."))
 
         # if not is_draft and not title:
@@ -171,6 +172,12 @@ class Post(ModelWithUUID):
 
         post = Post.objects.create(creator=creator, created=created, title=title)
 
+        Community = get_community_model()
+        if community_id:
+            post.community = Community.objects.get(id=community_id)
+        elif community_name:
+            post.community = Community.objects.get(name=community_name)
+
         if text:
             post.text = text
             post.language = get_language_for_text(text)
@@ -182,53 +189,9 @@ class Post(ModelWithUUID):
 
         if circles_ids:
             post.circles.add(*circles_ids)
-        else:
-            Community = get_community_model()
-            post.community = Community.objects.get(name=community_name)
 
         # If on create we have a video or image, we automatically publish it
         # Backwards compatibility reasons.
-        if not is_draft:
-            post.publish()
-        else:
-            post.save()
-
-        return post
-
-    @classmethod
-    def create_community_post(
-        cls,
-        creator,
-        circles_ids=None,
-        community_id=None,
-        image=None,
-        text=None,
-        video=None,
-        created=None,
-        is_draft=False,
-        title=None,
-    ):
-
-        if not community_id:
-            raise ValidationError(_("A post requires circles or a community to be posted to."))
-
-        if image and video:
-            raise ValidationError(_("A post must have an image or a video, not both."))
-
-        post = Post.objects.create(creator=creator, created=created, title=title, community_id=community_id)
-
-        if text:
-            post.text = text
-            post.language = get_language_for_text(text)
-
-        if image:
-            post.add_media(file=image)
-        elif video:
-            post.add_media(file=video)
-
-        if circles_ids:
-            post.circles.add(*circles_ids)
-
         if not is_draft:
             post.publish()
         else:

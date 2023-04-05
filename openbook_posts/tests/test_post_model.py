@@ -10,7 +10,7 @@ from openbook_common.utils.model_loaders import get_post_model
 class PostModelTest(TestAssertionsMixin, TestCase):
     fixtures = ["openbook_circles/fixtures/circles.json", "openbook_moderation/fixtures/moderation_categories.json"]
 
-    def test_create_community_post_success(self):
+    def test_create_post_success(self):
         space_creator = make_user()
         space = make_community(creator=space_creator)
 
@@ -19,7 +19,7 @@ class PostModelTest(TestAssertionsMixin, TestCase):
         world_circle_id = Circle.get_world_circle_id()
 
         Post = get_post_model()
-        post = Post.create_community_post(
+        post = Post.create_post(
             creator=space_creator,
             text=post_text,
             title=post_title,
@@ -32,19 +32,16 @@ class PostModelTest(TestAssertionsMixin, TestCase):
         self.assertEqual(post.title, post_title)
         self.assertIn(world_circle_id, post.circles.values_list("id", flat=True))
 
-    def test_create_community_post_error_space_id_missing(self):
+    def test_create_post_error_community_and_circle_missing(self):
         space_creator = make_user()
         space = make_community(creator=space_creator)
 
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
-        world_circle_id = Circle.get_world_circle_id()
 
         Post = get_post_model()
 
         with self.assertRaises(ValidationError):
-            Post.create_community_post(
-                creator=space_creator, text=post_text, title=post_title, circles_ids=[world_circle_id]
-            )
+            Post.create_post(creator=space_creator, text=post_text, title=post_title)
 
         self.assertEqual(space.posts.count(), 0)

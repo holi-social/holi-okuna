@@ -2686,7 +2686,7 @@ class User(ModelWithUUID, AbstractUser):
         check_can_post_to_community_with_id(user=self, community_id=space_id)
         circles_ids = self._get_circles_ids_by_visibility_and_community_id(visibility, space_id)
         Post = get_post_model()
-        post = Post.create_community_post(
+        post = Post.create_post(
             text=text,
             title=title,
             creator=self,
