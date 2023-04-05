@@ -5,7 +5,6 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.files.storage import default_storage
 from django.contrib.gis.db import models
-from django.contrib.gis.geos import Point
 from django.db.models import QuerySet
 
 from django.utils import timezone
@@ -18,7 +17,6 @@ from strawberry_django_plus import gql
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
 from django.utils.translation import gettext_lazy as _
 
-from openbook_auth.models import User
 from openbook_common.models import ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field, extract_and_capitalize_domain_name
 from openbook_common.utils.model_loaders import (
@@ -46,8 +44,6 @@ from openbook_communities.queries import (
     make_search_joined_communities_query_for_user,
     make_get_joined_communities_query_for_user,
 )
-from openbook_moderation.models import ModeratedObject
-from openbook_posts.models import Post
 from imagekit.models import ProcessedImageField
 
 from openbook_terms.models import SDG, Topic, Skill
@@ -58,14 +54,14 @@ community_task_image_storage = default_storage
 
 @gql.enum
 class VisibilityType(models.TextChoices):
-    MEMBERS = "members", _("members")
-    PUBLIC = "public", _("public")
+    MEMBERS = "MEMBERS", _("members")
+    PUBLIC = "PUBLIC", _("public")
 
 
 class Community(ModelWithUUID):
-    moderated_object = GenericRelation(ModeratedObject, related_query_name="communities")
+    moderated_object = GenericRelation("openbook_moderation.ModeratedObject", related_query_name="communities")
     creator = models.ForeignKey(
-        User,
+        "openbook_auth.User",
         on_delete=models.CASCADE,
         related_name="created_communities",
         null=False,
@@ -127,8 +123,8 @@ class Community(ModelWithUUID):
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     created = models.DateTimeField(default=timezone.now, editable=False)
-    starrers = models.ManyToManyField(User, related_name="favorite_communities", blank=True)
-    banned_users = models.ManyToManyField(User, related_name="banned_of_communities", blank=True)
+    starrers = models.ManyToManyField("openbook_auth.User", related_name="favorite_communities", blank=True)
+    banned_users = models.ManyToManyField("openbook_auth.User", related_name="banned_of_communities", blank=True)
     COMMUNITY_TYPE_PRIVATE = "T"
     COMMUNITY_TYPE_PUBLIC = "P"
     COMMUNITY_TYPES = (
@@ -386,6 +382,7 @@ class Community(ModelWithUUID):
 
     @classmethod
     def get_community_with_name_members(cls, community_name, members_max_id=None, exclude_keywords=None):
+        User = get_user_model()
         community_members_query = Q(communities_memberships__community__name=community_name)
 
         if members_max_id:
@@ -401,6 +398,7 @@ class Community(ModelWithUUID):
 
     @classmethod
     def search_community_with_name_members(cls, community_name, query, exclude_keywords=None):
+        User = get_user_model()
         db_query = Q(communities_memberships__community__name=community_name)
 
         community_members_query = Q(communities_memberships__user__username__icontains=query)
@@ -430,6 +428,8 @@ class Community(ModelWithUUID):
 
     @classmethod
     def get_community_with_name_administrators(cls, community_name, administrators_max_id=None):
+        User = get_user_model()
+
         community_administrators_query = Q(
             communities_memberships__community__name=community_name,
             communities_memberships__is_administrator=True,
@@ -442,6 +442,8 @@ class Community(ModelWithUUID):
 
     @classmethod
     def search_community_with_name_administrators(cls, community_name, query):
+        User = get_user_model()
+
         db_query = Q(
             communities_memberships__community__name=community_name,
             communities_memberships__is_administrator=True,
@@ -456,6 +458,8 @@ class Community(ModelWithUUID):
 
     @classmethod
     def get_community_with_name_moderators(cls, community_name, moderators_max_id=None):
+        User = get_user_model()
+
         community_moderators_query = Q(
             communities_memberships__community__name=community_name,
             communities_memberships__is_moderator=True,
@@ -468,6 +472,8 @@ class Community(ModelWithUUID):
 
     @classmethod
     def search_community_with_name_moderators(cls, community_name, query):
+        User = get_user_model()
+
         db_query = Q(
             communities_memberships__community__name=community_name,
             communities_memberships__is_moderator=True,
@@ -811,7 +817,7 @@ class CommunityMembership(ModelWithUUID):
     """
 
     user = models.ForeignKey(
-        User,
+        "openbook_auth.User",
         on_delete=models.CASCADE,
         related_name="communities_memberships",
         null=False,
@@ -859,9 +865,13 @@ class CommunityLog(ModelWithUUID):
     A log for community moderators user actions such as banning/unbanning
     """
 
-    source_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+", null=False, blank=False)
-    target_user = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="+", null=True, blank=False)
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="+", null=True, blank=True)
+    source_user = models.ForeignKey(
+        "openbook_auth.User", on_delete=models.CASCADE, related_name="+", null=False, blank=False
+    )
+    target_user = models.ForeignKey(
+        "openbook_auth.User", on_delete=models.SET_NULL, related_name="+", null=True, blank=False
+    )
+    post = models.ForeignKey("openbook_posts.Post", on_delete=models.CASCADE, related_name="+", null=True, blank=True)
     community = models.ForeignKey(
         Community,
         on_delete=models.CASCADE,
@@ -914,7 +924,7 @@ class CommunityMembershipRequest(ModelWithUUID):
     )
 
     user = models.ForeignKey(
-        User,
+        "openbook_auth.User",
         on_delete=models.CASCADE,
         related_name="community_membership_requests",
         null=False,
@@ -938,14 +948,14 @@ class CommunityMembershipRequest(ModelWithUUID):
 
 class CommunityInvite(ModelWithUUID):
     creator = models.ForeignKey(
-        User,
+        "openbook_auth.User",
         on_delete=models.CASCADE,
         related_name="created_communities_invites",
         null=False,
         blank=False,
     )
     invited_user = models.ForeignKey(
-        User,
+        "openbook_auth.User",
         on_delete=models.CASCADE,
         related_name="communities_invites",
         null=False,
@@ -973,7 +983,7 @@ class CommunityInvite(ModelWithUUID):
 
 class CommunityNotificationsSubscription(ModelWithUUID):
     subscriber = models.ForeignKey(
-        User,
+        "openbook_auth.User",
         on_delete=models.CASCADE,
         related_name="community_notifications_subscriptions",
         null=False,
@@ -1081,7 +1091,7 @@ class Task(ModelWithUUID):
         null=False,
     )
     creator = models.ForeignKey(
-        User,
+        "openbook_auth.User",
         on_delete=models.SET_NULL,
         related_name="created_tasks",
         blank=True,
@@ -1226,7 +1236,7 @@ class CollaborationTool(ModelWithUUID):
     )
     domain = models.CharField(max_length=settings.COLLABORATION_TOOL_DOMAIN_MAX_LENGTH, blank=False)
     creator = models.ForeignKey(
-        User,
+        "openbook_auth.User",
         on_delete=models.SET_NULL,
         related_name="created_collaboration_tools",
         null=True,

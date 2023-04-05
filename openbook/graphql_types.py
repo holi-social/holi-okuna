@@ -80,12 +80,6 @@ class ReactionAction(Enum):
 
 
 @gql.enum
-class Visibility(Enum):
-    PUBLIC = "PUBLIC"
-    PRIVATE = "PRIVATE"
-
-
-@gql.enum
 class VisibilityFilter(Enum):
     MEMBERS = "MEMBERS"
     PUBLIC = "PUBLIC"

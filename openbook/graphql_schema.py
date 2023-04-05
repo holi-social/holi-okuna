@@ -39,7 +39,10 @@ from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_moderation.models import ModeratedObject
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
 from openbook_common.utils.helpers import is_uuid
-from openbook_posts.views.posts.serializers import CreatePostSerializer, CreateCommunityPostSerializer
+from openbook_posts.views.posts.serializers import (
+    CreatePostSerializer,
+    CreateCommunityPostSerializer,
+)
 
 from .graphql_types import *
 
@@ -299,7 +302,16 @@ class Query:
         offset: int = 0,
         limit: int = 10,
     ) -> Paged[Space]:
-        return spaces_for_filter(offset, limit, topic_id, location, skill_ids, topic_slug, skill_slugs, member_id)
+        return spaces_for_filter(
+            offset,
+            limit,
+            topic_id,
+            location,
+            skill_ids,
+            topic_slug,
+            skill_slugs,
+            member_id,
+        )
 
     @gql.django.field
     def discover_spaces(
@@ -435,7 +447,12 @@ class Query:
             .annotate(member_count=Count("memberships"))
             .order_by("-member_count", "-created")
         )
-        return list(filter(lambda x: x.query.count() > 0, [created_spaces, member_spaces, followed_spaces]))
+        return list(
+            filter(
+                lambda x: x.query.count() > 0,
+                [created_spaces, member_spaces, followed_spaces],
+            )
+        )
 
     @gql.django.field(
         description="idOrName can either be the space id or name (slug). If none of them is found, an error with the message 'Space not found' is thrown."
@@ -501,7 +518,9 @@ class Query:
     @gql.django.field
     def collaboration_tools(self, space_id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[CollaborationTool]:
         return Paged.of(
-            CollaborationToolModel.objects.filter(community__id=space_id).order_by("-created_at"), offset, limit
+            CollaborationToolModel.objects.filter(community__id=space_id).order_by("-created_at"),
+            offset,
+            limit,
         )
 
 
@@ -600,7 +619,7 @@ class CreatePostInput:
     title: Optional[str] = strawberry.UNSET
     text: str
     image: Optional[Upload] = strawberry.UNSET
-    visibility: Visibility
+    visibility: VisibilityType
 
 
 @gql.input
@@ -774,7 +793,10 @@ class Mutation:
                 case (cT.FOLLOWER, a.DISCONNECT):
                     return current_user.disable_new_post_notifications_for_community_with_name(space.name)
                 case _:
-                    raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
+                    raise GraphQLError(
+                        "Operation not allowed",
+                        extensions={"code": GraphQLErrorCodes.FORBIDDEN},
+                    )
         else:
             # perform for other user
             match (connection_type, connect_action):
@@ -787,20 +809,22 @@ class Mutation:
                     finally:
                         return space
                 case _:
-                    raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
+                    raise GraphQLError(
+                        "Operation not allowed",
+                        extensions={"code": GraphQLErrorCodes.FORBIDDEN},
+                    )
 
     @gql.mutation
     def create_space_post(self, info: Info, input: CreatePostInput) -> Space:
         current_user = verify_authorized_user(info)
 
-        post_data = to_input_dict(input)
-        serializer = CreateCommunityPostSerializer(data=post_data)
+        serializer = CreateCommunityPostSerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
 
-        space_id = post_data.get("space_id")
-        space = CommunityModel.objects.get(id=space_id)
+        space = CommunityModel.objects.get(id=data.get("space_id"))
 
-        current_user.create_community_encircled_post(**post_data)
+        current_user.create_community_encircled_post(**data)
 
         return space
 
@@ -811,7 +835,8 @@ class Mutation:
         logger.info(f"Deleting user {current_user.username}...")
 
         response = requests.delete(
-            f"{settings.ORY_BASE_URL}/admin/identities/{current_user.username}", headers=headers
+            f"{settings.ORY_BASE_URL}/admin/identities/{current_user.username}",
+            headers=headers,
         )
         # Ory returns 204 in case of success
         if not response.ok:
@@ -835,12 +860,17 @@ class Mutation:
                         f"Could not delete user with id {current_user.username}, no more retries, failing"
                     )
                     raise GraphQLError(
-                        "Unable to delete user in okuna", extensions={"code": GraphQLErrorCodes.INTERNAL_SERVER_ERROR}
+                        "Unable to delete user in okuna",
+                        extensions={"code": GraphQLErrorCodes.INTERNAL_SERVER_ERROR},
                     )
 
     @gql.mutation
     def report_content(
-        self, info, object_id: uuid.UUID, content_type: ContentType, description: Optional[str] = None
+        self,
+        info,
+        object_id: uuid.UUID,
+        content_type: ContentType,
+        description: Optional[str] = None,
     ) -> Result:
         current_user = verify_authorized_user(info)
 
@@ -857,7 +887,8 @@ class Mutation:
                 current_user.report_community_with_id(object_id, category_id, description)
             case _:
                 raise GraphQLError(
-                    f"Unknown ContentType {content_type.value}", extensions={"code": GraphQLErrorCodes.FORBIDDEN}
+                    f"Unknown ContentType {content_type.value}",
+                    extensions={"code": GraphQLErrorCodes.FORBIDDEN},
                 )
 
         return Result(success=True)
@@ -959,7 +990,11 @@ class Mutation:
 
     @gql.mutation
     def update_post_reaction(
-        self, info, id: uuid.UUID, reaction_type: ReactionType, reaction_action: ReactionAction
+        self,
+        info,
+        id: uuid.UUID,
+        reaction_type: ReactionType,
+        reaction_action: ReactionAction,
     ) -> Post:
         current_user = verify_authorized_user(info)
         post = PostModel.objects.get(id=id)
@@ -971,7 +1006,11 @@ class Mutation:
 
     @gql.mutation
     def update_post_comment_reaction(
-        self, info, id: uuid.UUID, reaction_type: ReactionType, reaction_action: ReactionAction
+        self,
+        info,
+        id: uuid.UUID,
+        reaction_type: ReactionType,
+        reaction_action: ReactionAction,
     ) -> PostComment:
         current_user = verify_authorized_user(info)
         post_comment = PostCommentModel.objects.get(id=id)

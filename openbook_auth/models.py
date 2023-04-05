@@ -67,6 +67,7 @@ from openbook_common.utils.model_loaders import (
     get_task_model,
 )
 from openbook_common.validators import name_characters_validator
+from openbook_communities.models import VisibilityType
 from openbook_hashtags.queries import (
     make_search_hashtag_query_for_user_with_id,
     make_get_hashtag_with_name_for_user_with_id_query,
@@ -4288,10 +4289,13 @@ class User(ModelWithUUID, AbstractUser):
         return Circle.get_world_circle_id()
 
     def _get_circles_ids_by_visibility_and_community_id(self, visibility, community_id):
-        from openbook.graphql_types import Visibility
-
         membership = self.communities_memberships.get(community_id=community_id)
-        if membership.is_administrator and visibility == Visibility.PRIVATE:
+        if not membership.is_administrator and visibility == VisibilityType.MEMBERS:
+            raise ValidationError(
+                _("You cannot add a private post to a community you're not administrator of "),
+            )
+
+        if membership.is_administrator and visibility == VisibilityType.MEMBERS:
             return []
 
         return [self._get_world_circle_id()]

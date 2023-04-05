@@ -24,7 +24,7 @@ from openbook.graphql_schema import (
     UpdateConnectionAction,
     schema,
 )
-from openbook.graphql_types import VisibilityFilter, Visibility
+from openbook.graphql_types import VisibilityFilter
 from openbook_auth.models import User, UserConnectionStatus
 from openbook_common.tests.helpers import (
     get_test_images,
@@ -41,7 +41,7 @@ from openbook_common.tests.helpers import (
     make_user,
     simple_jpeg_bytes,
 )
-from openbook_communities.models import Community
+from openbook_communities.models import Community, VisibilityType
 from openbook_insights.models import Insight
 from openbook_moderation.models import ModeratedObject
 from openbook_posts.models import PostCommentReaction
@@ -513,7 +513,7 @@ class GraphQLTest(TestCase):
             variable_values={"input": info},
         )
 
-    def test_can_create_space_post(self):
+    def test_space_user_can_create_space_post(self):
         space_admin = make_user()
         member_user = make_user()
         space = make_community(creator=space_admin)
@@ -522,11 +522,12 @@ class GraphQLTest(TestCase):
         # space admin can create public post
         input_data = {
             "spaceId": str(space.id),
-            "visibility": Visibility.PUBLIC.value,
+            "visibility": VisibilityType.PUBLIC.value,
             "text": make_fake_post_text(),
         }
 
         response = self.create_space_post(space_admin, input_data)
+        print(response.data)
 
         data = response.data["createSpacePost"]
         posts_data = data["posts"]["data"]
@@ -539,7 +540,7 @@ class GraphQLTest(TestCase):
         # space admin can create private post
         input_data = {
             "spaceId": str(space.id),
-            "visibility": Visibility.PRIVATE.value,
+            "visibility": VisibilityType.MEMBERS.value,
             "text": make_fake_post_text(),
         }
 
@@ -553,10 +554,16 @@ class GraphQLTest(TestCase):
         self.assertEqual(posts_data[0]["text"], input_data["text"])
         self.assertEqual(posts_data[0]["public"], False)
 
+    def test_member_user_can_create_only_public_space_post(self):
+        space_admin = make_user()
+        member_user = make_user()
+        space = make_community(creator=space_admin)
+        space.add_member(member_user)
+
         # member user can create public post
         input_data = {
             "spaceId": str(space.id),
-            "visibility": Visibility.PUBLIC.value,
+            "visibility": VisibilityType.PUBLIC.value,
             "text": make_fake_post_text(),
         }
 
@@ -566,26 +573,24 @@ class GraphQLTest(TestCase):
         posts_data = data["posts"]["data"]
 
         self.assertEqual(data["id"], str(space.id))
-        self.assertEqual(data["posts"]["totalResults"], 3)
+        self.assertEqual(data["posts"]["totalResults"], 1)
         self.assertEqual(posts_data[0]["text"], input_data["text"])
         self.assertEqual(posts_data[0]["public"], True)
 
-        # member user can create only public post
+        # member user cannot create private post
         input_data = {
             "spaceId": str(space.id),
-            "visibility": Visibility.PRIVATE.value,
+            "visibility": VisibilityType.MEMBERS.value,
             "text": make_fake_post_text(),
         }
 
         response = self.create_space_post(member_user, input_data)
 
-        data = response.data["createSpacePost"]
-        posts_data = data["posts"]["data"]
-
-        self.assertEqual(data["id"], str(space.id))
-        self.assertEqual(data["posts"]["totalResults"], 4)
-        self.assertEqual(posts_data[0]["text"], input_data["text"])
-        self.assertEqual(posts_data[0]["public"], True)
+        self.assertIsNotNone(response.errors)
+        self.assertIsNone(response.data)
+        self.assertIn(
+            "You cannot add a private post to a community you're not administrator of", response.errors[0].message
+        )
 
     def test_cant_create_space_post_external_user(self):
         space_admin = make_user()
@@ -595,13 +600,12 @@ class GraphQLTest(TestCase):
         # not member user can't create post for the space
         input_data = {
             "spaceId": str(space.id),
-            "visibility": Visibility.PRIVATE.value,
+            "visibility": VisibilityType.MEMBERS.value,
             "text": make_fake_post_text(),
         }
 
         response = self.create_space_post(external_user, input_data)
-        print(response.errors)
-        print(response.data)
+
         self.assertIsNotNone(response.errors)
         self.assertIsNone(response.data)
         self.assertIn("You cannot post to a community you're not member of", response.errors[0].message)
@@ -612,7 +616,7 @@ class GraphQLTest(TestCase):
 
         # test space id field is missing
         input_data = {
-            "visibility": Visibility.PRIVATE.value,
+            "visibility": VisibilityType.MEMBERS.value,
             "text": make_fake_post_text(),
         }
 
@@ -624,7 +628,7 @@ class GraphQLTest(TestCase):
         # test post text field is missing
         input_data = {
             "spaceId": str(space.id),
-            "visibility": Visibility.PUBLIC.value,
+            "visibility": VisibilityType.PUBLIC.value,
         }
 
         response = self.create_space_post(space_admin, input_data)
@@ -638,7 +642,9 @@ class GraphQLTest(TestCase):
         response = self.create_space_post(space_admin, input_data)
         self.assertIsNotNone(response.errors)
         self.assertIsNone(response.data)
-        self.assertIn("Field 'visibility' of required type 'Visibility!' was not provided", response.errors[0].message)
+        self.assertIn(
+            "Field 'visibility' of required type 'VisibilityType!' was not provided", response.errors[0].message
+        )
 
     def test_insights_by_user_id_success_user_anonymous(self):
         insight_user = make_user()

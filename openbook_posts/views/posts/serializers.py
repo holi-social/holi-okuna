@@ -2,11 +2,10 @@ from rest_framework import serializers
 
 from django.conf import settings
 
-from openbook.graphql_types import Visibility
 from openbook_auth.validators import user_username_exists, username_characters_validator
 from openbook_circles.models import Circle
 from openbook_circles.validators import circle_id_exists
-from openbook_common.models import Emoji, Badge
+from openbook_common.models import Badge
 from openbook_common.serializers import (
     CommonHashtagSerializer,
     CommonPublicUserSerializer,
@@ -26,7 +25,7 @@ from openbook_common.serializers_fields.request import (
     RestrictedFileSizeField,
 )
 from openbook_common.models import Language
-from openbook_communities.models import Community, CommunityMembership
+from openbook_communities.models import Community, CommunityMembership, VisibilityType
 from openbook_communities.serializers_fields import CommunityMembershipsField
 from openbook_communities.validators import community_id_exists
 from openbook_lists.validators import list_id_exists
@@ -118,7 +117,7 @@ class CreateCommunityPostSerializer(CreatePostSerializer):
         allow_blank=False,
         validators=post_text_validators,
     )
-    visibility = serializers.ChoiceField(Visibility)
+    visibility = serializers.ChoiceField(VisibilityType.choices)
 
 
 class PostCreatorProfileBadgeSerializer(serializers.ModelSerializer):
