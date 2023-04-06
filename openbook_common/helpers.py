@@ -1,6 +1,8 @@
 import tempfile
 from json import dumps
 
+from PIL import ExifTags
+from PIL.Image import Transpose
 import requests
 from django.db.models import Q
 from langdetect import DetectorFactory
@@ -122,3 +124,29 @@ class PrefixedQ:
         if self.prefix:
             return self.prefix + "__" + prefix.lstrip("_")
         return prefix
+
+
+class ExifRotate:
+    def process(self, img):
+        exif = img.getexif()
+        if not exif or not ExifTags.Base.Orientation in exif:
+            return img
+
+        orientation = exif[ExifTags.Base.Orientation]
+        match orientation:
+            case 2:
+                return img.transpose(Transpose.FLIP_LEFT_RIGHT)
+            case 3:
+                return img.transpose(Transpose.ROTATE_180)
+            case 4:
+                return img.transpose(Transpose.FLIP_TOP_BOTTOM)
+            case 5:
+                return img.transpose(Transpose.ROTATE_270).transpose(Transpose.FLIP_LEFT_RIGHT)
+            case 6:
+                return img.transpose(Transpose.ROTATE_270)
+            case 7:
+                return img.transpose(Transpose.ROTATE_90).transpose(Transpose.FLIP_LEFT_RIGHT)
+            case 8:
+                return img.transpose(Transpose.ROTATE_90)
+            case _:
+                return img
