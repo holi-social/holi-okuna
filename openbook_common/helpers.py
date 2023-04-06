@@ -126,7 +126,7 @@ class PrefixedQ:
         return prefix
 
 
-class ExifRotate(object):
+class ExifRotate:
     def process(self, img):
         exif = img.getexif()
         if not exif or not ExifTags.Base.Orientation in exif:
