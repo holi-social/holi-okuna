@@ -8,7 +8,6 @@ from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.gis.db import models
-from django.contrib.gis.geos import Point
 from django.core.mail import EmailMultiAlternatives
 from django.db.models import Q, F, Count, QuerySet
 from django.db.models.signals import post_save
@@ -21,6 +20,7 @@ from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
 from strawberry_django_plus import gql
 
+from openbook_common.helpers import ExifRotate
 from openbook_auth.checkers import *
 from openbook_auth.helpers import (
     upload_to_user_avatar_directory,
@@ -4727,11 +4727,12 @@ class UserProfile(ModelWithUUID):
         blank=False,
         null=True,
         processors=[
+            ExifRotate(),
             ResizeToFill(
                 settings.PROFILE_IMAGE_MAX_DIMENSION,
                 settings.PROFILE_IMAGE_MAX_DIMENSION,
                 upscale=False,
-            )
+            ),
         ],
         upload_to=upload_to_user_avatar_directory,
         max_length=settings.IMAGE_URL_MAX_LENGTH,
@@ -4742,11 +4743,12 @@ class UserProfile(ModelWithUUID):
         null=True,
         upload_to=upload_to_user_cover_directory,
         processors=[
+            ExifRotate(),
             ResizeToFit(
                 width=settings.CONTENT_IMAGE_MAX_DIMENSION,
                 height=settings.CONTENT_IMAGE_MAX_DIMENSION,
                 upscale=False,
-            )
+            ),
         ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )

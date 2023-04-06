@@ -85,7 +85,7 @@ from video_encoding.backends import get_backend
 from video_encoding.fields import VideoField
 from video_encoding.models import Format
 
-from openbook_common.helpers import get_language_for_text, attr_filled, PQ, PrefixedQ
+from openbook_common.helpers import get_language_for_text, attr_filled, PQ, PrefixedQ, ExifRotate
 
 magic = get_magic()
 post_image_storage = default_storage
@@ -1032,11 +1032,12 @@ class PostImage(ModelWithUUID):
         blank=False,
         null=True,
         processors=[
+            ExifRotate(),
             ResizeToFit(
                 width=settings.CONTENT_IMAGE_MAX_DIMENSION,
                 height=settings.CONTENT_IMAGE_MAX_DIMENSION,
                 upscale=False,
-            )
+            ),
         ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
@@ -1089,11 +1090,12 @@ class PostVideo(ModelWithUUID):
         blank=False,
         null=True,
         processors=[
+            ExifRotate(),
             ResizeToFit(
                 width=settings.CONTENT_IMAGE_MAX_DIMENSION,
                 height=settings.CONTENT_IMAGE_MAX_DIMENSION,
                 upscale=False,
-            )
+            ),
         ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )

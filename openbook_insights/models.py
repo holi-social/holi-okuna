@@ -7,6 +7,7 @@ from pilkit.processors import ResizeToFit
 
 # Create your models here.
 from openbook_auth.models import User
+from openbook_common.helpers import ExifRotate
 from openbook_common.models import ModelWithUUID
 from openbook_insights.helpers import upload_to_insight_directory
 from openbook_posts.models import Post
@@ -34,11 +35,12 @@ class Insight(ModelWithUUID):
         null=True,
         # constrain to maximum width
         processors=[
+            ExifRotate(),
             ResizeToFit(
                 width=settings.CONTENT_IMAGE_MAX_DIMENSION,
                 height=settings.CONTENT_IMAGE_MAX_DIMENSION,
                 upscale=False,
-            )
+            ),
         ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
