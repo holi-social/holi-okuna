@@ -554,16 +554,16 @@ class GraphQLTest(TestCase):
         self.assertEqual(posts_data[0]["text"], input_data["text"])
         self.assertEqual(posts_data[0]["public"], False)
 
-    def test_member_user_can_create_only_public_space_post(self):
+    def test_member_user_can_create_only_member_visibility_space_post(self):
         space_admin = make_user()
         member_user = make_user()
         space = make_community(creator=space_admin)
         space.add_member(member_user)
 
-        # member user can create public post
+        # member user can create private post
         input_data = {
             "spaceId": str(space.id),
-            "visibility": VisibilityType.PUBLIC.value,
+            "visibility": VisibilityType.MEMBERS.value,
             "text": make_fake_post_text(),
         }
 
@@ -577,10 +577,10 @@ class GraphQLTest(TestCase):
         self.assertEqual(posts_data[0]["text"], input_data["text"])
         self.assertEqual(posts_data[0]["public"], True)
 
-        # member user cannot create private post
+        # member user cannot create public post
         input_data = {
             "spaceId": str(space.id),
-            "visibility": VisibilityType.MEMBERS.value,
+            "visibility": VisibilityType.PUBLIC.value,
             "text": make_fake_post_text(),
         }
 
@@ -589,7 +589,7 @@ class GraphQLTest(TestCase):
         self.assertIsNotNone(response.errors)
         self.assertIsNone(response.data)
         self.assertIn(
-            "You cannot add a private post to a community you're not administrator of", response.errors[0].message
+            "You cannot add a public post to a community you're not administrator of", response.errors[0].message
         )
 
     def test_cant_create_space_post_external_user(self):

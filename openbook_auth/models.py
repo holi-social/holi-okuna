@@ -4291,9 +4291,9 @@ class User(ModelWithUUID, AbstractUser):
 
     def _get_circles_ids_by_visibility_and_community_id(self, visibility, community_id):
         membership = self.communities_memberships.get(community_id=community_id)
-        if not membership.is_administrator and visibility == VisibilityType.MEMBERS:
+        if not membership.is_administrator and visibility == VisibilityType.PUBLIC:
             raise ValidationError(
-                _("You cannot add a private post to a community you're not administrator of "),
+                _("You cannot add a public post to a community you're not administrator of "),
             )
 
         if membership.is_administrator and visibility == VisibilityType.MEMBERS:

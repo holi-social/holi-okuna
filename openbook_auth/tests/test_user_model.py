@@ -196,34 +196,35 @@ class UserModelTest(TestAssertionsMixin, TestCase):
         self.assertEqual(post_public.title, post_public_title)
         self.assertIn(world_circle_id, post_public.circles.values_list("id", flat=True))
 
-    def test_create_community_encircled_post_member_user_can_create_only_public_post(self):
+    def test_create_community_encircled_post_member_user_can_create_only_private_post(self):
         space_creator = make_user()
         member_user = make_user()
         space = make_community(creator=space_creator)
         space.add_member(member_user)
 
-        post_public_text = make_fake_post_text()
-        post_public_title = make_fake_post_title()
-        world_circle_id = Circle.get_world_circle_id()
-
-        public_post = member_user.create_community_encircled_post(
-            text=post_public_text, title=post_public_title, space_id=space.id, visibility=VisibilityType.PUBLIC.value
-        )
-        self.assertEqual(space.posts.count(), 1)
-        self.assertEqual(public_post.community.id, space.id)
-        self.assertEqual(public_post.text, post_public_text)
-        self.assertEqual(public_post.title, post_public_title)
-        self.assertIn(world_circle_id, public_post.circles.values_list("id", flat=True))
-
         post_private_text = make_fake_post_text()
         post_private_title = make_fake_post_title()
 
+        private_post = member_user.create_community_encircled_post(
+            text=post_private_text,
+            title=post_private_title,
+            space_id=space.id,
+            visibility=VisibilityType.MEMBERS.value,
+        )
+        self.assertEqual(space.posts.count(), 1)
+        self.assertEqual(private_post.community.id, space.id)
+        self.assertEqual(private_post.text, post_private_text)
+        self.assertEqual(private_post.title, post_private_title)
+
+        post_public_text = make_fake_post_text()
+        post_public_title = make_fake_post_title()
+
         with self.assertRaises(ValidationError):
             member_user.create_community_encircled_post(
-                text=post_private_text,
-                title=post_private_title,
+                text=post_public_text,
+                title=post_public_title,
                 space_id=space.id,
-                visibility=VisibilityType.MEMBERS.value,
+                visibility=VisibilityType.PUBLIC.value,
             )
         self.assertEqual(space.posts.count(), 1)
 
