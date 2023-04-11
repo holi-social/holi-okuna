@@ -799,10 +799,7 @@ class Mutation:
                 case (cT.FOLLOWER, a.DISCONNECT):
                     return current_user.disable_new_post_notifications_for_community_with_name(space.name)
                 case _:
-                    raise GraphQLError(
-                        "Operation not allowed",
-                        extensions={"code": GraphQLErrorCodes.FORBIDDEN},
-                    )
+                    raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
         else:
             # perform for other user
             match (connection_type, connect_action):
