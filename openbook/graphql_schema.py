@@ -49,9 +49,10 @@ PUBLISHED_NOTIFICATION_TYPES = [
     NotificationModel.CONNECTION_REQUEST,
     NotificationModel.CONNECTION_ACCEPTED,
     NotificationModel.CONNECTION_CONFIRMED,
-    NotificationModel.POST_COMMENT_USER_MENTION,
     NotificationModel.COMMUNITY_MEMBERSHIP_REQUEST,
     NotificationModel.COMMUNITY_MEMBERSHIP_APPROVED,
+    NotificationModel.COMMUNITY_NEW_POST,
+    NotificationModel.POST_COMMENT_USER_MENTION,
     NotificationModel.RELEASE_INFO,
 ]
 
