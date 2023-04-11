@@ -156,13 +156,16 @@ class UpdateCommunitySerializer(serializers.Serializer):
     contact_description = serializers.CharField(
         required=False,
         max_length=settings.COMMUNITY_CONTACT_DESCRIPTION_MAX_LENGTH,
+        allow_blank=True,
     )
     contact_email = serializers.EmailField(
         required=False,
+        allow_blank=True,
     )
     contact_phone = serializers.CharField(
         required=False,
         max_length=settings.COMMUNITY_CONTACT_PHONE_MAX_LENGTH,
+        allow_blank=True,
     )
 
 

@@ -17,6 +17,7 @@ from strawberry_django_plus import gql
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
 from django.utils.translation import gettext_lazy as _
 
+from openbook_common.helpers import ExifRotate
 from openbook_common.models import ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field, extract_and_capitalize_domain_name
 from openbook_common.utils.model_loaders import (
@@ -97,11 +98,12 @@ class Community(ModelWithUUID):
         blank=False,
         null=True,
         processors=[
+            ExifRotate(),
             ResizeToFill(
                 settings.PROFILE_IMAGE_MAX_DIMENSION,
                 settings.PROFILE_IMAGE_MAX_DIMENSION,
                 upscale=False,
-            )
+            ),
         ],
         upload_to=upload_to_community_avatar_directory,
         max_length=settings.IMAGE_URL_MAX_LENGTH,
@@ -114,11 +116,12 @@ class Community(ModelWithUUID):
         null=True,
         upload_to=upload_to_community_cover_directory,
         processors=[
+            ExifRotate(),
             ResizeToFit(
                 width=settings.CONTENT_IMAGE_MAX_DIMENSION,
                 height=settings.CONTENT_IMAGE_MAX_DIMENSION,
                 upscale=False,
-            )
+            ),
         ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
@@ -1121,11 +1124,12 @@ class Task(ModelWithUUID):
         null=True,
         upload_to=upload_to_community_task_thumbnail_directory,
         processors=[
+            ExifRotate(),
             ResizeToFit(
                 width=settings.CONTENT_IMAGE_MAX_DIMENSION,
                 height=settings.CONTENT_IMAGE_MAX_DIMENSION,
                 upscale=False,
-            )
+            ),
         ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
