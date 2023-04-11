@@ -528,7 +528,6 @@ class GraphQLTest(TestCase):
         }
 
         response = self.create_space_post(space_admin, input_data)
-        print(response.data)
 
         data = response.data["createSpacePost"]
         posts_data = data["posts"]["data"]
