@@ -4296,10 +4296,10 @@ class User(ModelWithUUID, AbstractUser):
                 _("You cannot add a public post to a community you're not administrator of "),
             )
 
-        if membership.is_administrator and visibility == VisibilityType.MEMBERS:
-            return []
+        if membership.is_administrator and visibility == VisibilityType.PUBLIC:
+            return [self._get_world_circle_id()]
 
-        return [self._get_world_circle_id()]
+        return []
 
     def _get_default_connection_circles(self):
         """
