@@ -828,11 +828,9 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        space = CommunityModel.objects.get(id=data.get("space_id"))
-
         current_user.create_community_encircled_post(**data)
 
-        return space
+        return CommunityModel.objects.get(id=data.get("space_id"))
 
     @gql.mutation
     def delete_authenticated_user(self, info) -> Result:
