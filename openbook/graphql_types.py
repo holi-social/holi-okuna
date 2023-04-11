@@ -359,6 +359,7 @@ class ReactionCounts:
 @gql.django.type(PostModel)
 class Post:
     id: gql.auto
+    title: gql.auto
     text: gql.auto
     created: gql.auto
     modified: gql.auto
@@ -366,14 +367,6 @@ class Post:
     comments_enabled: gql.auto
     mentions: List[Optional[User]]
     links: List[Optional[LinkPreview]]
-
-    @gql.django.field
-    def title(self) -> str:
-        if self.title:
-            return self.title
-
-        truncated_text = self.text.split()[:3]
-        return " ".join(truncated_text) + "..."
 
     @gql.field
     def image(self) -> Optional[PostImage]:
@@ -573,6 +566,7 @@ class NotificationOptions:
     post: Optional[Post]
     post_comment: Optional[PostComment]
     space: Optional[Space]
+    notification_title: Optional[str]
 
 
 @gql.django.type(NotificationModel)
@@ -591,6 +585,7 @@ class Notification:
             post=options.get("post"),
             post_comment=options.get("post_comment"),
             space=options.get("space"),
+            notification_title=options.get("notification_title"),
         )
 
 

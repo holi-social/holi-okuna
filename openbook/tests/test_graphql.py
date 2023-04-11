@@ -40,12 +40,11 @@ from openbook_common.tests.helpers import (
     make_topic,
     make_user,
     simple_jpeg_bytes,
-    make_post,
 )
-from openbook_communities.models import Community
+from openbook_communities.models import Community, CommunityNotificationsSubscription
 from openbook_insights.models import Insight
 from openbook_moderation.models import ModeratedObject
-from openbook_posts.models import PostCommentReaction, PostComment
+from openbook_posts.models import PostCommentReaction
 
 logger = logging.getLogger(__name__)
 
@@ -766,6 +765,40 @@ class GraphQLTest(TestCase):
             connection_confirmed_notification["options"]["user"]["fullName"],
             followed_user.profile.full_name(),
         )
+
+    def test_community_new_post_notifications(self):
+        post_user = make_user()
+        subscriber_user = make_user()
+
+        space = make_community(creator=post_user)
+        space.add_member(subscriber_user)
+        CommunityNotificationsSubscription.enable_new_post_notification_for_community(
+            community=space, subscriber=subscriber_user
+        )
+
+        post1 = post_user.create_community_encircled_post(
+            text=make_fake_post_text(),
+            title=make_fake_post_title(),
+            space_id=space.id,
+            visibility=VisibilityType.MEMBERS.value,
+        )
+
+        response = self.get_notifications(subscriber_user)["data"]
+        self.assertEqual(response["totalResults"], 1)
+        self.assertEqual(response["options"]["post"]["text"], post1.text)
+        self.assertEqual(response["options"]["notification_title"], post1.title)
+
+        post2 = post_user.create_community_encircled_post(
+            text=make_fake_post_text(),
+            space_id=space.id,
+            visibility=VisibilityType.MEMBERS.value,
+        )
+
+        response = self.get_notifications(subscriber_user)["data"]
+        self.assertEqual(response["totalResults"], 1)
+        self.assertEqual(response["options"]["post"]["text"], post1.text)
+        expected_notification_title = " ".join(post2.text.split()[:3]) + "..."
+        self.assertEqual(response["options"]["notification_title"], expected_notification_title)
 
     def test_has_new_notifications(self):
         followed_user = make_user(name="Peter", last_name="Pep")
@@ -1787,6 +1820,7 @@ class GraphQLTest(TestCase):
                             space {
                                 title
                             }
+                            notificationTitle
                         }
                     }
                 }
