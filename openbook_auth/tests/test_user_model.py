@@ -4,10 +4,10 @@ from django.core.exceptions import PermissionDenied
 from django.test import TestCase
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
-from openbook.graphql_types import VisibilityType
 from openbook_circles.models import Circle
 from openbook_common.tests.assertions import TestAssertionsMixin
 from openbook_common.tests.helpers import make_user, make_community, make_fake_post_text, make_fake_post_title
+from openbook_common.types import VisibilityType
 from openbook_notifications.models import Notification
 from openbook_posts.models import PostComment
 

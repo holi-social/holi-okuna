@@ -28,6 +28,7 @@ from openbook_auth.helpers import (
 )
 from openbook_common.helpers import get_supported_translation_language, PQ, PrefixedQ
 from openbook_common.models import Badge, ModelWithUUID
+from openbook_common.types import VisibilityType
 from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import (
     get_collaboration_tool_model,
@@ -68,7 +69,6 @@ from openbook_common.utils.model_loaders import (
     get_task_model,
 )
 from openbook_common.validators import name_characters_validator
-from openbook_communities.models import VisibilityType
 from openbook_hashtags.queries import (
     make_search_hashtag_query_for_user_with_id,
     make_get_hashtag_with_name_for_user_with_id_query,

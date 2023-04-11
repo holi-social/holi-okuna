@@ -41,7 +41,8 @@ from openbook_common.tests.helpers import (
     make_user,
     simple_jpeg_bytes,
 )
-from openbook_communities.models import Community, VisibilityType
+from openbook_common.types import VisibilityType
+from openbook_communities.models import Community
 from openbook_insights.models import Insight
 from openbook_moderation.models import ModeratedObject
 from openbook_posts.models import PostCommentReaction
@@ -575,7 +576,7 @@ class GraphQLTest(TestCase):
         self.assertEqual(data["id"], str(space.id))
         self.assertEqual(data["posts"]["totalResults"], 1)
         self.assertEqual(posts_data[0]["text"], input_data["text"])
-        self.assertEqual(posts_data[0]["public"], True)
+        self.assertEqual(posts_data[0]["public"], False)
 
         # member user cannot create public post
         input_data = {
