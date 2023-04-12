@@ -777,8 +777,8 @@ class Mutation:
                     return current_user.revoke_membership_request_to_community_for_username(user_id, space.name)
                 case (cT.MEMBER, a.CONNECT):
                     space = current_user.approve_membership_request_to_community_for_username(user_id, space.name)
-
-                    publish_space_user_added_event(user_id, space)
+                    membership_requester = UserModel.objects.get(id=user_id)
+                    publish_space_user_added_event(username=membership_requester.username, community=space)
 
                     return space
                 case _:

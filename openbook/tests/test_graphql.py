@@ -1058,10 +1058,12 @@ class GraphQLTest(TestCase):
         self.assertEqual(following_section["spaces"]["totalResults"], 1)
         self.assertEqual(following_section["spaces"]["data"][0]["id"], str(space4.id))
 
-    def test_space_membership_request_approval_process(self):
+    @mock.patch("openbook.graphql_schema.publish_space_user_added_event")
+    def test_space_membership_request_approval_process(self, mock_publish_space_user_added_event):
         membership_requestor = make_user()
         space_creator = make_user()
         space = make_community(creator=space_creator)
+        mock_publish_space_user_added_event.retrun_value = None
 
         def member_result(user, is_admin):
             return {
@@ -1110,6 +1112,11 @@ class GraphQLTest(TestCase):
             connect_action=UpdateConnectionAction.CONNECT,
         )
 
+        community = Community.objects.get(id=space.id)
+        mock_publish_space_user_added_event.assert_called_once_with(
+            username=membership_requestor.username, community=community
+        )
+
         self.assert_paged_results_equal(
             space_after_approval["members"],
             [member_result(space_creator, is_admin=True), member_result(membership_requestor, is_admin=False)],
@@ -1136,7 +1143,8 @@ class GraphQLTest(TestCase):
             membership_requestor.profile.full_name(),
         )
 
-    def test_space_membership_request_rejection_process(self):
+    @mock.patch("openbook.graphql_schema.publish_space_user_added_event")
+    def test_space_membership_request_rejection_process(self, mock_publish_space_user_added_event):
         membership_requestor = make_user()
         space_creator = make_user()
         space = make_community(creator=space_creator)
@@ -1206,6 +1214,8 @@ class GraphQLTest(TestCase):
         # Staff has no notification
         staff_notifications = self.get_notifications(space_creator)
         self.assertEqual(staff_notifications["totalResults"], 0)
+
+        mock_publish_space_user_added_event.assert_not_called()
 
     def test_space_with_posts(self):
         user_member = make_user()
@@ -1940,7 +1950,7 @@ class GraphQLTest(TestCase):
         self.assertIsNone(response.data)
         self.assertIn("Unauthorized", str(response.errors[0].message))
         self.assertEqual("UNAUTHORIZED", str(response.errors[0].extensions["code"]))
-    
+
     @mock.patch("openbook.graphql_schema.publish_space_created_event")
     def test_can_not_create_spaces_missing_required_fields(self, mock_publish_space_created_event):
         user = make_user()
@@ -1984,7 +1994,7 @@ class GraphQLTest(TestCase):
 
             self.assertIn(testCase["expected_error"], str(response.errors[0].message))
             self.assertIsNone(response.data["createSpace"] if response.data else response.data)
-        
+
         mock_publish_space_created_event.assert_not_called()
 
     def test_validates_space_before_creation(self):
@@ -2045,7 +2055,7 @@ class GraphQLTest(TestCase):
             else:
                 self.assertIn(testCase["expected_error"], str(response.errors[0].message))
             self.assertIsNone(response.data["createSpace"] if response.data else response.data)
-    
+
     @mock.patch("openbook.graphql_schema.publish_space_created_event")
     def test_can_create_space(self, mock_publish_space_created_event):
         user = make_user()
@@ -2099,7 +2109,7 @@ class GraphQLTest(TestCase):
 
         community = Community.objects.get(id=created_space["id"])
         mock_publish_space_created_event.assert_called_once_with(community=community)
-    
+
     @mock.patch("openbook.graphql_schema.publish_space_created_event")
     def test_can_not_create_space_if_not_logged_in(self, mock_publish_space_created_event):
         topic_ids = [str(make_topic().id) for _ in range(7)]
@@ -2123,7 +2133,7 @@ class GraphQLTest(TestCase):
 
         self.assert_is_unauthorized(response)
         mock_publish_space_created_event.assert_not_called()
-        
+
     def test_validates_space_update(self):
         user = make_user()
         community = make_community()
