@@ -135,15 +135,17 @@ class GraphQLTest(TestCase):
         self.assertEqual(executed.data["userByName"]["data"][2]["firstName"], "Thomas")
 
     @mock.patch("openbook_auth.tasks.requests.patch")
-    def test_can_update_authenticated_user(self, mock_patch):
+    @mock.patch("openbook.graphql_schema.publish_user_name_updated_event")
+    def test_can_update_authenticated_user(self, mock_publish_user_name_updated_event, mock_patch):
         response = Response()
         response.status_code = 200
         response._content = str.encode(json.dumps({}))
         mock_patch.return_value = response
         user = make_user(name="Fritz", last_name="Meier")
+        community = make_community()
+        community.add_member(user)
         pronouns = "She/her"
         geolocation = {"latitude": 2.0, "longitude": -4.2}
-
         self.assertNotEqual(User.objects.get(username=user.username).profile.pronouns, pronouns)
         first_name = "Peter"
         last_name = "Shaw"
@@ -192,6 +194,50 @@ class GraphQLTest(TestCase):
         self.assertIsNotNone(persisted_profile.geolocation)
         self.assertEqual(geolocation["longitude"], persisted_profile.geolocation.x)
         self.assertEqual(geolocation["latitude"], persisted_profile.geolocation.y)
+
+        mock_publish_user_name_updated_event.assert_called_once_with(user=user)
+
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    @mock.patch("openbook.graphql_schema.publish_user_name_updated_event")
+    def test_can_not_publish_user_name_updated_event_if_user_not_space_member(
+        self, mock_publish_user_name_updated_event, mock_patch
+    ):
+        response = Response()
+        response.status_code = 200
+        response._content = str.encode(json.dumps({}))
+        mock_patch.return_value = response
+        user = make_user(name="Fritz", last_name="Meier")
+        pronouns = "She/her"
+        geolocation = {"latitude": 2.0, "longitude": -4.2}
+        self.assertNotEqual(User.objects.get(username=user.username).profile.pronouns, pronouns)
+        first_name = "Peter"
+        last_name = "Shaw"
+
+        schema.execute_sync(
+            """
+            mutation test($input: UpdateAuthenticatedUserInput!) {
+                updateAuthenticatedUser(input: $input) {
+                    id
+                    pronouns
+                    geolocation {
+                        latitude
+                        longitude
+                    }
+                }
+            }
+            """,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={
+                "input": {
+                    "pronouns": pronouns,
+                    "firstName": first_name,
+                    "lastName": last_name,
+                    "geolocation": geolocation,
+                }
+            },
+        )
+
+        mock_publish_user_name_updated_event.assert_not_called()
 
     def test_can_perform_connection_workflow(self):
         first_user = make_user(name="Fritz", last_name="Meier")
@@ -1058,10 +1104,12 @@ class GraphQLTest(TestCase):
         self.assertEqual(following_section["spaces"]["totalResults"], 1)
         self.assertEqual(following_section["spaces"]["data"][0]["id"], str(space4.id))
 
-    def test_space_membership_request_approval_process(self):
+    @mock.patch("openbook.graphql_schema.publish_space_user_added_event")
+    def test_space_membership_request_approval_process(self, mock_publish_space_user_added_event):
         membership_requestor = make_user()
         space_creator = make_user()
         space = make_community(creator=space_creator)
+        mock_publish_space_user_added_event.retrun_value = None
 
         def member_result(user, is_admin):
             return {
@@ -1110,6 +1158,11 @@ class GraphQLTest(TestCase):
             connect_action=UpdateConnectionAction.CONNECT,
         )
 
+        community = Community.objects.get(id=space.id)
+        mock_publish_space_user_added_event.assert_called_once_with(
+            username=membership_requestor.username, community=community
+        )
+
         self.assert_paged_results_equal(
             space_after_approval["members"],
             [member_result(space_creator, is_admin=True), member_result(membership_requestor, is_admin=False)],
@@ -1136,7 +1189,8 @@ class GraphQLTest(TestCase):
             membership_requestor.profile.full_name(),
         )
 
-    def test_space_membership_request_rejection_process(self):
+    @mock.patch("openbook.graphql_schema.publish_space_user_added_event")
+    def test_space_membership_request_rejection_process(self, mock_publish_space_user_added_event):
         membership_requestor = make_user()
         space_creator = make_user()
         space = make_community(creator=space_creator)
@@ -1206,6 +1260,8 @@ class GraphQLTest(TestCase):
         # Staff has no notification
         staff_notifications = self.get_notifications(space_creator)
         self.assertEqual(staff_notifications["totalResults"], 0)
+
+        mock_publish_space_user_added_event.assert_not_called()
 
     def test_space_with_posts(self):
         user_member = make_user()
@@ -1941,7 +1997,8 @@ class GraphQLTest(TestCase):
         self.assertIn("Unauthorized", str(response.errors[0].message))
         self.assertEqual("UNAUTHORIZED", str(response.errors[0].extensions["code"]))
 
-    def test_can_not_create_spaces_missing_required_fields(self):
+    @mock.patch("openbook.graphql_schema.publish_space_created_event")
+    def test_can_not_create_spaces_missing_required_fields(self, mock_publish_space_created_event):
         user = make_user()
         topic_ids = [str(make_topic().id) for _ in range(7)]
         valid_topics = topic_ids[:2]
@@ -1983,6 +2040,8 @@ class GraphQLTest(TestCase):
 
             self.assertIn(testCase["expected_error"], str(response.errors[0].message))
             self.assertIsNone(response.data["createSpace"] if response.data else response.data)
+
+        mock_publish_space_created_event.assert_not_called()
 
     def test_validates_space_before_creation(self):
         user = make_user()
@@ -2043,7 +2102,8 @@ class GraphQLTest(TestCase):
                 self.assertIn(testCase["expected_error"], str(response.errors[0].message))
             self.assertIsNone(response.data["createSpace"] if response.data else response.data)
 
-    def test_can_create_space(self):
+    @mock.patch("openbook.graphql_schema.publish_space_created_event")
+    def test_can_create_space(self, mock_publish_space_created_event):
         user = make_user()
         topic_ids = [str(make_topic().id) for _ in range(2)]
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
@@ -2092,7 +2152,11 @@ class GraphQLTest(TestCase):
         self.assertEqual(str(user.username), member["user"]["id"])
         self.assertTrue(member["isAdministrator"])
 
-    def test_can_not_create_space_if_not_logged_in(self):
+        community = Community.objects.get(id=created_space["id"])
+        mock_publish_space_created_event.assert_called_once_with(community=community)
+
+    @mock.patch("openbook.graphql_schema.publish_space_created_event")
+    def test_can_not_create_space_if_not_logged_in(self, mock_publish_space_created_event):
         topic_ids = [str(make_topic().id) for _ in range(7)]
         valid_topics = topic_ids[:2]
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
@@ -2113,6 +2177,7 @@ class GraphQLTest(TestCase):
         )
 
         self.assert_is_unauthorized(response)
+        mock_publish_space_created_event.assert_not_called()
 
     def test_validates_space_update(self):
         user = make_user()
