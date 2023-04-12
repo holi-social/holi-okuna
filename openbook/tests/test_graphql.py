@@ -1940,8 +1940,9 @@ class GraphQLTest(TestCase):
         self.assertIsNone(response.data)
         self.assertIn("Unauthorized", str(response.errors[0].message))
         self.assertEqual("UNAUTHORIZED", str(response.errors[0].extensions["code"]))
-
-    def test_can_not_create_spaces_missing_required_fields(self):
+    
+    @mock.patch("openbook.graphql_schema.publish_space_created_event")
+    def test_can_not_create_spaces_missing_required_fields(self, mock_publish_space_created_event):
         user = make_user()
         topic_ids = [str(make_topic().id) for _ in range(7)]
         valid_topics = topic_ids[:2]
@@ -1983,6 +1984,8 @@ class GraphQLTest(TestCase):
 
             self.assertIn(testCase["expected_error"], str(response.errors[0].message))
             self.assertIsNone(response.data["createSpace"] if response.data else response.data)
+        
+        mock_publish_space_created_event.assert_not_called()
 
     def test_validates_space_before_creation(self):
         user = make_user()
@@ -2043,7 +2046,7 @@ class GraphQLTest(TestCase):
                 self.assertIn(testCase["expected_error"], str(response.errors[0].message))
             self.assertIsNone(response.data["createSpace"] if response.data else response.data)
     
-    @mock.patch("openbook.helpers.publish_space_created_event")
+    @mock.patch("openbook.graphql_schema.publish_space_created_event")
     def test_can_create_space(self, mock_publish_space_created_event):
         user = make_user()
         topic_ids = [str(make_topic().id) for _ in range(2)]
@@ -2093,10 +2096,12 @@ class GraphQLTest(TestCase):
         member = created_space["members"]["data"][0]
         self.assertEqual(str(user.username), member["user"]["id"])
         self.assertTrue(member["isAdministrator"])
-        
-        mock_publish_space_created_event.assert_called_once()
+
+        community = Community.objects.get(id=created_space["id"])
+        mock_publish_space_created_event.assert_called_once_with(community=community)
     
-    def test_can_not_create_space_if_not_logged_in(self):
+    @mock.patch("openbook.graphql_schema.publish_space_created_event")
+    def test_can_not_create_space_if_not_logged_in(self, mock_publish_space_created_event):
         topic_ids = [str(make_topic().id) for _ in range(7)]
         valid_topics = topic_ids[:2]
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
@@ -2117,7 +2122,8 @@ class GraphQLTest(TestCase):
         )
 
         self.assert_is_unauthorized(response)
-
+        mock_publish_space_created_event.assert_not_called()
+        
     def test_validates_space_update(self):
         user = make_user()
         community = make_community()
