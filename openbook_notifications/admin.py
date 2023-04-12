@@ -35,7 +35,7 @@ class ReleaseNotificationAdmin(ModelAdmin):
 
 @admin.register(CommunityNewPostNotification)
 class CommunityNewPostNotificationAdmin(ModelAdmin):
-    list_display = ("id", "post", "post_created")
+    list_display = ("id", "post", "teaser", "post_created")
 
     @admin.display(description="Post created")
     def post_created(self, obj):

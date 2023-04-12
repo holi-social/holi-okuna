@@ -985,10 +985,12 @@ class GraphQLTest(TestCase):
             visibility=VisibilityType.MEMBERS.value,
         )
 
-        response = self.get_notifications(subscriber_user)["data"]
+        response = self.get_notifications(subscriber_user)
         self.assertEqual(response["totalResults"], 1)
-        self.assertEqual(response["options"]["post"]["text"], post1.text)
-        self.assertEqual(response["options"]["notification_title"], post1.title)
+
+        notification = response["data"][0]
+        self.assertEqual(notification["options"]["post"]["title"], post1.title)
+        self.assertEqual(notification["options"]["teaser"], post1.title)
 
         post2 = post_user.create_community_encircled_post(
             text=make_fake_post_text(),
@@ -996,11 +998,13 @@ class GraphQLTest(TestCase):
             visibility=VisibilityType.MEMBERS.value,
         )
 
-        response = self.get_notifications(subscriber_user)["data"]
-        self.assertEqual(response["totalResults"], 1)
-        self.assertEqual(response["options"]["post"]["text"], post1.text)
-        expected_notification_title = " ".join(post2.text.split()[:3]) + "..."
-        self.assertEqual(response["options"]["notification_title"], expected_notification_title)
+        response = self.get_notifications(subscriber_user)
+        self.assertEqual(response["totalResults"], 2)
+
+        notification = response["data"][0]
+        self.assertEqual(notification["options"]["post"]["title"], post2.title)
+        expected_teaser = " ".join(post2.text.split()[:3]) + "..."
+        self.assertEqual(notification["options"]["teaser"], expected_teaser)
 
     def test_has_new_notifications(self):
         followed_user = make_user(name="Peter", last_name="Pep")
@@ -2032,7 +2036,7 @@ class GraphQLTest(TestCase):
                             space {
                                 title
                             }
-                            notificationTitle
+                            teaser
                         }
                     }
                 }

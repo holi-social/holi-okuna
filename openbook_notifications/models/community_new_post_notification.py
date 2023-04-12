@@ -15,7 +15,7 @@ class CommunityNewPostNotification(ModelWithUUID):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
 
     @property
-    def title(self):
+    def teaser(self):
         post = self.post
         if post.title:
             return post.title
@@ -48,5 +48,5 @@ class CommunityNewPostNotification(ModelWithUUID):
         return {
             "post": self.post,
             "space": self.community_notifications_subscription.community,
-            "notification_title": self.title,
+            "teaser": self.teaser,
         }
