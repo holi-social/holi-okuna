@@ -134,6 +134,10 @@ class Post(ModelWithUUID):
             ("creator", "community"),
         ]
 
+    @property
+    def is_public(self):
+        return self.circles.filter(id=settings.WORLD_CIRCLE_ID).exists()
+
     @classmethod
     def post_with_id_has_public_reactions(cls, post_id):
         return Post.objects.filter(pk=post_id, public_reactions=True).exists()
@@ -148,6 +152,7 @@ class Post(ModelWithUUID):
         creator,
         circles_ids=None,
         community_name=None,
+        community_id=None,
         image=None,
         text=None,
         video=None,
@@ -156,11 +161,8 @@ class Post(ModelWithUUID):
         title=None,
     ):
 
-        if not community_name and not circles_ids:
+        if not community_name and not community_id and not circles_ids:
             raise ValidationError(_("A post requires circles or a community to be posted to."))
-
-        if community_name and circles_ids:
-            raise ValidationError(_("A post cannot be posted both to a community and to circles."))
 
         # if not is_draft and not title:
         #     raise ValidationError("Non-draft posts must have a title")
@@ -169,6 +171,12 @@ class Post(ModelWithUUID):
             raise ValidationError(_("A post must have an image or a video, not both."))
 
         post = Post.objects.create(creator=creator, created=created, title=title)
+
+        Community = get_community_model()
+        if community_id:
+            post.community = Community.objects.get(id=community_id)
+        elif community_name:
+            post.community = Community.objects.get(name=community_name)
 
         if text:
             post.text = text
@@ -181,9 +189,6 @@ class Post(ModelWithUUID):
 
         if circles_ids:
             post.circles.add(*circles_ids)
-        else:
-            Community = get_community_model()
-            post.community = Community.objects.get(name=community_name)
 
         # If on create we have a video or image, we automatically publish it
         # Backwards compatibility reasons.

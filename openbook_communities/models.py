@@ -5,7 +5,6 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.files.storage import default_storage
 from django.contrib.gis.db import models
-from django.contrib.gis.geos import Point
 from django.db.models import QuerySet
 
 from django.utils import timezone
@@ -18,9 +17,9 @@ from strawberry_django_plus import gql
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
 from django.utils.translation import gettext_lazy as _
 
-from openbook_auth.models import User
 from openbook_common.helpers import ExifRotate
 from openbook_common.models import ModelWithUUID
+from openbook_common.types import VisibilityType
 from openbook_common.utils.helpers import delete_file_field, extract_and_capitalize_domain_name
 from openbook_common.utils.model_loaders import (
     get_community_invite_model,
@@ -29,8 +28,6 @@ from openbook_common.utils.model_loaders import (
     get_sdg_model,
     get_topic_model,
     get_skill_model,
-    get_user_model,
-    get_moderated_object_model,
     get_community_notifications_subscription_model,
     get_community_new_post_notification_model,
     get_community_invite_notification_model,
@@ -47,20 +44,15 @@ from openbook_communities.queries import (
     make_search_joined_communities_query_for_user,
     make_get_joined_communities_query_for_user,
 )
-from openbook_moderation.models import ModeratedObject
-from openbook_posts.models import Post
 from imagekit.models import ProcessedImageField
 
+from openbook_auth.models import User
+from openbook_moderation.models import ModeratedObject
+from openbook_posts.models import Post
 from openbook_terms.models import SDG, Topic, Skill
 
 community_image_storage = default_storage
 community_task_image_storage = default_storage
-
-
-@gql.enum
-class VisibilityType(models.TextChoices):
-    MEMBERS = "members", _("members")
-    PUBLIC = "public", _("public")
 
 
 class Community(ModelWithUUID):
@@ -505,7 +497,6 @@ class Community(ModelWithUUID):
         return self.memberships.all().count()
 
     def get_staff_members(self):
-        User = get_user_model()
         staff_members_query = Q(communities_memberships__community_id=self.pk)
         staff_members_query.add(
             Q(communities_memberships__is_administrator=True) | Q(communities_memberships__is_moderator=True),
@@ -773,7 +764,6 @@ class Community(ModelWithUUID):
         self.save()
 
     def count_pending_moderated_objects(self):
-        ModeratedObject = get_moderated_object_model()
         return self.moderated_objects.filter(status=ModeratedObject.STATUS_PENDING).count()
 
     def update_cover(self, cover, save=True):
