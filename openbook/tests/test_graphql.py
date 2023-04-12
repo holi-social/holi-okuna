@@ -2042,11 +2042,13 @@ class GraphQLTest(TestCase):
             else:
                 self.assertIn(testCase["expected_error"], str(response.errors[0].message))
             self.assertIsNone(response.data["createSpace"] if response.data else response.data)
-
-    def test_can_create_space(self):
+    
+    @mock.patch("openbook.helpers.publish_space_created_event")
+    def test_can_create_space(self, mock_publish_space_created_event):
         user = make_user()
         topic_ids = [str(make_topic().id) for _ in range(2)]
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+        mock_publish_space_created_event.return_value = None
 
         create_space_mutation = """
             mutation test($input: CreateSpaceInput!) {
@@ -2091,7 +2093,9 @@ class GraphQLTest(TestCase):
         member = created_space["members"]["data"][0]
         self.assertEqual(str(user.username), member["user"]["id"])
         self.assertTrue(member["isAdministrator"])
-
+        
+        mock_publish_space_created_event.assert_called_once()
+    
     def test_can_not_create_space_if_not_logged_in(self):
         topic_ids = [str(make_topic().id) for _ in range(7)]
         valid_topics = topic_ids[:2]
