@@ -521,6 +521,7 @@ class Space:
         else:
             if visibility == VisibilityFilter.PUBLIC:
                 query = query.filter(circles__id=get_circle_model().get_world_circle_id())
+
             elif visibility == VisibilityFilter.MEMBERS:
                 query = query.exclude(circles__id=get_circle_model().get_world_circle_id())
 
