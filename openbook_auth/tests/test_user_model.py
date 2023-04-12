@@ -4,8 +4,10 @@ from django.core.exceptions import PermissionDenied
 from django.test import TestCase
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
+from openbook_circles.models import Circle
 from openbook_common.tests.assertions import TestAssertionsMixin
 from openbook_common.tests.helpers import make_user, make_community, make_fake_post_text, make_fake_post_title
+from openbook_common.types import VisibilityType
 from openbook_notifications.models import Notification
 from openbook_posts.models import PostComment
 
@@ -32,7 +34,6 @@ class UserModelTest(TestAssertionsMixin, TestCase):
     def test_approve_membership_request_to_community_for_username(self):
         membership_requestor = make_user()
         space_creator = make_user()
-        other_user = make_user()
 
         space = make_community(creator=space_creator)
         membership_requestor.request_membership_to_community_with_name(space.name)
@@ -162,3 +163,82 @@ class UserModelTest(TestAssertionsMixin, TestCase):
 
         self.assertEqual(post.comments.count(), 2)
         self.assertIn(comment.id, post.comments.values_list("id", flat=True))
+
+    def test_create_community_encircled_post_success(self):
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+
+        post_private_text = make_fake_post_text()
+        post_private_title = make_fake_post_title()
+        world_circle_id = Circle.get_world_circle_id()
+
+        post_private = space_creator.create_community_encircled_post(
+            text=post_private_text,
+            title=post_private_title,
+            space_id=space.id,
+            visibility=VisibilityType.MEMBERS.value,
+        )
+        self.assertEqual(space.posts.count(), 1)
+        self.assertEqual(post_private.community.id, space.id)
+        self.assertEqual(post_private.text, post_private_text)
+        self.assertEqual(post_private.title, post_private_title)
+        self.assertNotIn(world_circle_id, post_private.circles.values_list("id", flat=True))
+
+        post_public_text = make_fake_post_text()
+        post_public_title = make_fake_post_title()
+        post_public = space_creator.create_community_encircled_post(
+            text=post_public_text, title=post_public_title, space_id=space.id, visibility=VisibilityType.PUBLIC.value
+        )
+
+        self.assertEqual(space.posts.count(), 2)
+        self.assertEqual(post_public.community.id, space.id)
+        self.assertEqual(post_public.text, post_public_text)
+        self.assertEqual(post_public.title, post_public_title)
+        self.assertIn(world_circle_id, post_public.circles.values_list("id", flat=True))
+
+    def test_create_community_encircled_post_member_user_can_create_only_private_post(self):
+        space_creator = make_user()
+        member_user = make_user()
+        space = make_community(creator=space_creator)
+        space.add_member(member_user)
+
+        post_private_text = make_fake_post_text()
+        post_private_title = make_fake_post_title()
+
+        private_post = member_user.create_community_encircled_post(
+            text=post_private_text,
+            title=post_private_title,
+            space_id=space.id,
+            visibility=VisibilityType.MEMBERS.value,
+        )
+        self.assertEqual(space.posts.count(), 1)
+        self.assertEqual(private_post.community.id, space.id)
+        self.assertEqual(private_post.text, post_private_text)
+        self.assertEqual(private_post.title, post_private_title)
+
+        post_public_text = make_fake_post_text()
+        post_public_title = make_fake_post_title()
+
+        with self.assertRaises(ValidationError):
+            member_user.create_community_encircled_post(
+                text=post_public_text,
+                title=post_public_title,
+                space_id=space.id,
+                visibility=VisibilityType.PUBLIC.value,
+            )
+        self.assertEqual(space.posts.count(), 1)
+
+    def test_create_community_encircled_post_error_user_not_member(self):
+        space_creator = make_user()
+        not_member_user = make_user()
+        space = make_community(creator=space_creator)
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        with self.assertRaises(ValidationError):
+            _ = not_member_user.create_community_encircled_post(
+                text=post_text, title=post_title, space_id=space.id, visibility=VisibilityType.PUBLIC.value
+            )
+
+        self.assertEqual(space.posts.count(), 0)
