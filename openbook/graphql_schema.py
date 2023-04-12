@@ -683,7 +683,7 @@ class Mutation:
         if input.first_name or input.last_name:
             update_ory_user.delay(current_user.id)
             if current_user.is_member_of_communities():
-                publish_user_name_updated_event(current_user)
+                publish_user_name_updated_event(user=current_user)
 
         return current_user
 
@@ -777,8 +777,7 @@ class Mutation:
                     return current_user.revoke_membership_request_to_community_for_username(user_id, space.name)
                 case (cT.MEMBER, a.CONNECT):
                     space = current_user.approve_membership_request_to_community_for_username(user_id, space.name)
-                    membership_requester = UserModel.objects.get(id=user_id)
-                    publish_space_user_added_event(username=membership_requester.username, community=space)
+                    publish_space_user_added_event(username=str(user_id), community=space)
 
                     return space
                 case _:
