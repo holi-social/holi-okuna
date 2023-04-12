@@ -52,6 +52,7 @@ class PostAdmin(admin.ModelAdmin):
         "title",
         "created",
         "creator",
+        "is_public",
         "status",
         "count_comments",
         "count_reactions",
