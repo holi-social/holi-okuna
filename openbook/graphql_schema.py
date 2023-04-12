@@ -679,13 +679,13 @@ class Mutation:
             if update_avatar:
                 delete_avatar(data["avatar"])
             raise
-        try:
-            if input.first_name or input.last_name:
-                update_ory_user.delay(current_user.id)
-                if current_user.is_member_of_communities():
-                    publish_user_name_updated_event(current_user)
-        finally:
-            return current_user
+
+        if input.first_name or input.last_name:
+            update_ory_user.delay(current_user.id)
+            if current_user.is_member_of_communities():
+                publish_user_name_updated_event(user=current_user)
+
+        return current_user
 
     @gql.mutation
     def update_connection_with_user(self, info, input: UpdateConnectionWithUserInput) -> User:
@@ -777,10 +777,9 @@ class Mutation:
                     return current_user.revoke_membership_request_to_community_for_username(user_id, space.name)
                 case (cT.MEMBER, a.CONNECT):
                     space = current_user.approve_membership_request_to_community_for_username(user_id, space.name)
-                    try:
-                        publish_space_user_added_event(user_id, space)
-                    finally:
-                        return space
+                    publish_space_user_added_event(username=str(user_id), community=space)
+
+                    return space
                 case _:
                     raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
 
@@ -875,10 +874,10 @@ class Mutation:
             invites_enabled=True,
             topic_ids=data.get("topics"),
         )
-        try:
-            publish_space_created_event(community)
-        finally:
-            return community
+
+        publish_space_created_event(community=community)
+
+        return community
 
     @gql.mutation
     def update_space(self, info, input: UpdateSpaceInput) -> Space:
