@@ -141,7 +141,6 @@ class GraphQLTest(TestCase):
         response.status_code = 200
         response._content = str.encode(json.dumps({}))
         mock_patch.return_value = response
-        mock_publish_user_name_updated_event.return_value = None
         user = make_user(name="Fritz", last_name="Meier")
         community = make_community()
         community.add_member(user)
@@ -207,7 +206,6 @@ class GraphQLTest(TestCase):
         response.status_code = 200
         response._content = str.encode(json.dumps({}))
         mock_patch.return_value = response
-        mock_publish_user_name_updated_event.return_value = None
         user = make_user(name="Fritz", last_name="Meier")
         pronouns = "She/her"
         geolocation = {"latitude": 2.0, "longitude": -4.2}
@@ -2109,7 +2107,6 @@ class GraphQLTest(TestCase):
         user = make_user()
         topic_ids = [str(make_topic().id) for _ in range(2)]
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
-        mock_publish_space_created_event.return_value = None
 
         create_space_mutation = """
             mutation test($input: CreateSpaceInput!) {
