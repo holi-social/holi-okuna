@@ -1491,11 +1491,11 @@ class GraphQLTest(TestCase):
 
     @staticmethod
     def public_post_ids(posts_data):
-        return [post_data["id"] for post_data in posts_data if post_data["public"]]
+        return [post_data["id"] for post_data in posts_data if post_data["isPublic"]]
 
     @staticmethod
     def private_post_ids(posts_data):
-        return [post_data["id"] for post_data in posts_data if not post_data["public"]]
+        return [post_data["id"] for post_data in posts_data if not post_data["isPublic"]]
 
     def test_report_post(self):
         posting_user = make_user()
@@ -1957,7 +1957,7 @@ class GraphQLTest(TestCase):
                         data {
                             id
                             title
-                            public
+                            isPublic
                             created
                         }
                     }
