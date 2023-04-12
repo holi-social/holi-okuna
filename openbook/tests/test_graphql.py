@@ -549,7 +549,7 @@ class GraphQLTest(TestCase):
                         data {
                             title
                             text
-                            public
+                            isPublic
                             created
                         }
                     }
@@ -581,7 +581,7 @@ class GraphQLTest(TestCase):
         self.assertEqual(data["id"], str(space.id))
         self.assertEqual(data["posts"]["totalResults"], 1)
         self.assertEqual(posts_data[0]["text"], input_data["text"])
-        self.assertEqual(posts_data[0]["public"], True)
+        self.assertEqual(posts_data[0]["isPublic"], True)
 
         # space admin can create private post
         input_data = {
@@ -598,7 +598,7 @@ class GraphQLTest(TestCase):
         self.assertEqual(data["id"], str(space.id))
         self.assertEqual(data["posts"]["totalResults"], 2)
         self.assertEqual(posts_data[0]["text"], input_data["text"])
-        self.assertEqual(posts_data[0]["public"], False)
+        self.assertEqual(posts_data[0]["isPublic"], False)
 
     def test_member_user_can_create_only_member_visibility_space_post(self):
         space_admin = make_user()
@@ -621,7 +621,7 @@ class GraphQLTest(TestCase):
         self.assertEqual(data["id"], str(space.id))
         self.assertEqual(data["posts"]["totalResults"], 1)
         self.assertEqual(posts_data[0]["text"], input_data["text"])
-        self.assertEqual(posts_data[0]["public"], False)
+        self.assertEqual(posts_data[0]["isPublic"], False)
 
         # member user cannot create public post
         input_data = {
