@@ -3450,6 +3450,72 @@ class GraphQLTest(TestCase):
 
         self.assert_is_unauthorized(response)
 
+    def test_can_not_delete_task_if_not_space_admin(self):
+        user = make_user()
+        community = make_community()
+        task = make_community_task(community)
+
+        delete_task_mutation = """
+            mutation test($id: UUID!) {
+                deleteTask(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            delete_task_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"id": str(task.id)},
+        )
+
+        self.assertIsNone(response.data)
+        self.assertIn(
+            "Can't delete a task within a community that you do not administrate.", str(response.errors[0].message)
+        )
+
+    def test_can_not_delete_task_if_not_logged_in(self):
+        community = make_community()
+        task = make_community_task(community)
+
+        delete_task_mutation = """
+            mutation test($id: UUID!) {
+                deleteTask(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            delete_task_mutation,
+            variable_values={"id": str(task.id)},
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+        )
+
+        self.assert_is_unauthorized(response)
+
+    def test_can_delete_task(self):
+        user = make_user()
+        community = make_community(creator=user)
+        task = make_community_task(community)
+
+        delete_task_mutation = """
+            mutation test($id: UUID!) {
+                deleteTask(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            delete_task_mutation,
+            variable_values={"id": str(task.id)},
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        self.assertTrue(response.data["deleteTask"]["success"])
+        self.assertIsNone(response.errors)
+
 
 def approve_verify_moderated_object(object_id, user):
     moderated_object = ModeratedObject.objects.filter(object_id=object_id).first()
