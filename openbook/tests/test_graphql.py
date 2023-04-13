@@ -1002,7 +1002,7 @@ class GraphQLTest(TestCase):
         self.assertEqual(response["totalResults"], 2)
 
         notification = response["data"][0]
-        self.assertEqual(notification["options"]["post"]["title"], post2.title)
+        self.assertIsNone(notification["options"]["post"]["title"])
         expected_teaser = " ".join(post2.text.split()[:3]) + "..."
         self.assertEqual(notification["options"]["teaser"], expected_teaser)
 
