@@ -41,8 +41,8 @@ from openbook_common.tests.helpers import (
     make_user,
     simple_jpeg_bytes,
 )
+from openbook_communities.models import Community, CommunityNotificationsSubscription
 from openbook_common.types import VisibilityType
-from openbook_communities.models import Community
 from openbook_insights.models import Insight
 from openbook_moderation.models import ModeratedObject
 from openbook_posts.models import PostCommentReaction
@@ -967,6 +967,44 @@ class GraphQLTest(TestCase):
             connection_confirmed_notification["options"]["user"]["fullName"],
             followed_user.profile.full_name(),
         )
+
+    def test_community_new_post_notifications(self):
+        post_user = make_user()
+        subscriber_user = make_user()
+
+        space = make_community(creator=post_user)
+        space.add_member(subscriber_user)
+        CommunityNotificationsSubscription.enable_new_post_notification_for_community(
+            community=space, subscriber=subscriber_user
+        )
+
+        post1 = post_user.create_community_encircled_post(
+            text=make_fake_post_text(),
+            title=make_fake_post_title(),
+            space_id=space.id,
+            visibility=VisibilityType.MEMBERS.value,
+        )
+
+        response = self.get_notifications(subscriber_user)
+        self.assertEqual(response["totalResults"], 1)
+
+        notification = response["data"][0]
+        self.assertEqual(notification["options"]["post"]["title"], post1.title)
+        self.assertEqual(notification["options"]["teaser"], post1.title)
+
+        post2 = post_user.create_community_encircled_post(
+            text=make_fake_post_text(),
+            space_id=space.id,
+            visibility=VisibilityType.MEMBERS.value,
+        )
+
+        response = self.get_notifications(subscriber_user)
+        self.assertEqual(response["totalResults"], 2)
+
+        notification = response["data"][0]
+        self.assertIsNone(notification["options"]["post"]["title"])
+        expected_teaser = " ".join(post2.text.split()[:3]) + "..."
+        self.assertEqual(notification["options"]["teaser"], expected_teaser)
 
     def test_has_new_notifications(self):
         followed_user = make_user(name="Peter", last_name="Pep")
@@ -1998,6 +2036,7 @@ class GraphQLTest(TestCase):
                             space {
                                 title
                             }
+                            teaser
                         }
                     }
                 }
