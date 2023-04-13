@@ -1048,15 +1048,15 @@ class CommunityNotificationsSubscription(ModelWithUUID):
 class Task(ModelWithUUID):
     @gql.enum
     class LocationType(models.TextChoices):
-        HYBRID = "hybrid", _("hybrid")
-        REMOTE = "remote", _("remote")
-        ONSITE = "onsite", _("onsite")
+        HYBRID = ("HYBRID",)
+        REMOTE = ("REMOTE",)
+        ONSITE = "ONSITE"
 
     @gql.enum
     class Regularity(models.TextChoices):
-        REGULARLY = "regularly", _("regularly")
-        PROJECT_BASED = "project-based", _("project-based")
-        ONE_TIME = "one-time", _("one-time")
+        REGULARLY = ("REGULARLY",)
+        PROJECT_BASED = ("PROJECT_BASED",)
+        ONE_TIME = "ONE_TIME"
 
     name = models.CharField(
         max_length=settings.TASK_NAME_MAX_LENGTH,

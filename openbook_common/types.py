@@ -12,5 +12,5 @@ class ReactionType(str, Enum):
 
 @gql.enum
 class VisibilityType(TextChoices):
-    MEMBERS = "MEMBERS", _("members")
-    PUBLIC = "PUBLIC", _("public")
+    MEMBERS = ("MEMBERS",)
+    PUBLIC = ("PUBLIC",)

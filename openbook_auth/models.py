@@ -935,6 +935,9 @@ class User(ModelWithUUID, AbstractUser):
     def is_administrator_of_community_with_name(self, community_name):
         return self.communities_memberships.filter(community__name=community_name, is_administrator=True).exists()
 
+    def is_administrator_of_community_with_id(self, community_id):
+        return self.communities_memberships.filter(community__id=community_id, is_administrator=True).exists()
+
     def is_staff_of_community_with_name(self, community_name):
         return self.is_administrator_of_community_with_name(
             community_name=community_name
@@ -4624,6 +4627,14 @@ class User(ModelWithUUID, AbstractUser):
             skills=skills,
             thumbnail=thumbnail,
         )
+
+    def delete_task_with_id(self, task_id):
+        Task = get_task_model()
+        task = Task.objects.get(id=task_id)
+
+        check_can_delete_task_within_community_with_id(user=self, community_id=task.community_id)
+
+        task.delete()
 
     def add_collaboration_tool(
         self,
