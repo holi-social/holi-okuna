@@ -1462,3 +1462,10 @@ def check_can_create_task_to_community(user, community=None):
         raise ValidationError(
             _("You cannot add a task to a community you are not an administrator of"),
         )
+
+
+def check_can_delete_task_within_community_with_id(user, community_id):
+    if not user.is_administrator_of_community_with_id(community_id):
+        raise ValidationError(
+            _("Can't delete a task within a community that you do not administrate."),
+        )

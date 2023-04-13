@@ -990,6 +990,15 @@ class Mutation:
         )
 
     @gql.mutation
+    def delete_task(self, info, id: uuid.UUID) -> Result:
+        current_user = verify_authorized_user(info)
+
+        with transaction.atomic():
+            current_user.delete_task_with_id(task_id=id)
+
+        return Result(success=True)
+
+    @gql.mutation
     def update_post_reaction(
         self,
         info,
