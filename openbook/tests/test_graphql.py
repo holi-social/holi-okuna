@@ -40,12 +40,12 @@ from openbook_common.tests.helpers import (
     make_topic,
     make_user,
     simple_jpeg_bytes,
-    make_post,
 )
-from openbook_communities.models import Community
+from openbook_communities.models import Community, CommunityNotificationsSubscription
+from openbook_common.types import VisibilityType
 from openbook_insights.models import Insight
 from openbook_moderation.models import ModeratedObject
-from openbook_posts.models import PostCommentReaction, PostComment
+from openbook_posts.models import PostCommentReaction
 
 logger = logging.getLogger(__name__)
 
@@ -135,15 +135,17 @@ class GraphQLTest(TestCase):
         self.assertEqual(executed.data["userByName"]["data"][2]["firstName"], "Thomas")
 
     @mock.patch("openbook_auth.tasks.requests.patch")
-    def test_can_update_authenticated_user(self, mock_patch):
+    @mock.patch("openbook.graphql_schema.publish_user_name_updated_event")
+    def test_can_update_authenticated_user(self, mock_publish_user_name_updated_event, mock_patch):
         response = Response()
         response.status_code = 200
         response._content = str.encode(json.dumps({}))
         mock_patch.return_value = response
         user = make_user(name="Fritz", last_name="Meier")
+        community = make_community()
+        community.add_member(user)
         pronouns = "She/her"
         geolocation = {"latitude": 2.0, "longitude": -4.2}
-
         self.assertNotEqual(User.objects.get(username=user.username).profile.pronouns, pronouns)
         first_name = "Peter"
         last_name = "Shaw"
@@ -192,6 +194,50 @@ class GraphQLTest(TestCase):
         self.assertIsNotNone(persisted_profile.geolocation)
         self.assertEqual(geolocation["longitude"], persisted_profile.geolocation.x)
         self.assertEqual(geolocation["latitude"], persisted_profile.geolocation.y)
+
+        mock_publish_user_name_updated_event.assert_called_once_with(user=user)
+
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    @mock.patch("openbook.graphql_schema.publish_user_name_updated_event")
+    def test_can_not_publish_user_name_updated_event_if_user_not_space_member(
+        self, mock_publish_user_name_updated_event, mock_patch
+    ):
+        response = Response()
+        response.status_code = 200
+        response._content = str.encode(json.dumps({}))
+        mock_patch.return_value = response
+        user = make_user(name="Fritz", last_name="Meier")
+        pronouns = "She/her"
+        geolocation = {"latitude": 2.0, "longitude": -4.2}
+        self.assertNotEqual(User.objects.get(username=user.username).profile.pronouns, pronouns)
+        first_name = "Peter"
+        last_name = "Shaw"
+
+        schema.execute_sync(
+            """
+            mutation test($input: UpdateAuthenticatedUserInput!) {
+                updateAuthenticatedUser(input: $input) {
+                    id
+                    pronouns
+                    geolocation {
+                        latitude
+                        longitude
+                    }
+                }
+            }
+            """,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={
+                "input": {
+                    "pronouns": pronouns,
+                    "firstName": first_name,
+                    "lastName": last_name,
+                    "geolocation": geolocation,
+                }
+            },
+        )
+
+        mock_publish_user_name_updated_event.assert_not_called()
 
     def test_can_perform_connection_workflow(self):
         first_user = make_user(name="Fritz", last_name="Meier")
@@ -491,6 +537,161 @@ class GraphQLTest(TestCase):
             },
         )
 
+    def create_space_post(self, user, info):
+        return schema.execute_sync(
+            """
+            mutation test($input: CreatePostInput!){
+                createSpacePost(input: $input) {
+                    id
+                    title
+                    posts {
+                        totalResults
+                        data {
+                            title
+                            text
+                            isPublic
+                            created
+                        }
+                    }
+                }
+            }
+            """,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": info},
+        )
+
+    def test_space_user_can_create_space_post(self):
+        space_admin = make_user()
+        member_user = make_user()
+        space = make_community(creator=space_admin)
+        space.add_member(member_user)
+
+        # space admin can create public post
+        input_data = {
+            "spaceId": str(space.id),
+            "visibility": VisibilityType.PUBLIC.value,
+            "text": make_fake_post_text(),
+        }
+
+        response = self.create_space_post(space_admin, input_data)
+
+        data = response.data["createSpacePost"]
+        posts_data = data["posts"]["data"]
+
+        self.assertEqual(data["id"], str(space.id))
+        self.assertEqual(data["posts"]["totalResults"], 1)
+        self.assertEqual(posts_data[0]["text"], input_data["text"])
+        self.assertEqual(posts_data[0]["isPublic"], True)
+
+        # space admin can create private post
+        input_data = {
+            "spaceId": str(space.id),
+            "visibility": VisibilityType.MEMBERS.value,
+            "text": make_fake_post_text(),
+        }
+
+        response = self.create_space_post(space_admin, input_data)
+
+        data = response.data["createSpacePost"]
+        posts_data = data["posts"]["data"]
+
+        self.assertEqual(data["id"], str(space.id))
+        self.assertEqual(data["posts"]["totalResults"], 2)
+        self.assertEqual(posts_data[0]["text"], input_data["text"])
+        self.assertEqual(posts_data[0]["isPublic"], False)
+
+    def test_member_user_can_create_only_member_visibility_space_post(self):
+        space_admin = make_user()
+        member_user = make_user()
+        space = make_community(creator=space_admin)
+        space.add_member(member_user)
+
+        # member user can create private post
+        input_data = {
+            "spaceId": str(space.id),
+            "visibility": VisibilityType.MEMBERS.value,
+            "text": make_fake_post_text(),
+        }
+
+        response = self.create_space_post(member_user, input_data)
+
+        data = response.data["createSpacePost"]
+        posts_data = data["posts"]["data"]
+
+        self.assertEqual(data["id"], str(space.id))
+        self.assertEqual(data["posts"]["totalResults"], 1)
+        self.assertEqual(posts_data[0]["text"], input_data["text"])
+        self.assertEqual(posts_data[0]["isPublic"], False)
+
+        # member user cannot create public post
+        input_data = {
+            "spaceId": str(space.id),
+            "visibility": VisibilityType.PUBLIC.value,
+            "text": make_fake_post_text(),
+        }
+
+        response = self.create_space_post(member_user, input_data)
+
+        self.assertIsNotNone(response.errors)
+        self.assertIsNone(response.data)
+        self.assertIn(
+            "You cannot add a public post to a community you're not administrator of", response.errors[0].message
+        )
+
+    def test_cant_create_space_post_external_user(self):
+        space_admin = make_user()
+        external_user = make_user()
+        space = make_community(creator=space_admin)
+
+        # not member user can't create post for the space
+        input_data = {
+            "spaceId": str(space.id),
+            "visibility": VisibilityType.MEMBERS.value,
+            "text": make_fake_post_text(),
+        }
+
+        response = self.create_space_post(external_user, input_data)
+
+        self.assertIsNotNone(response.errors)
+        self.assertIsNone(response.data)
+        self.assertIn("You cannot post to a community you're not member of", response.errors[0].message)
+
+    def test_cant_create_space_post_invalid_input(self):
+        space_admin = make_user()
+        space = make_community(creator=space_admin)
+
+        # test space id field is missing
+        input_data = {
+            "visibility": VisibilityType.MEMBERS.value,
+            "text": make_fake_post_text(),
+        }
+
+        response = self.create_space_post(space_admin, input_data)
+        self.assertIsNotNone(response.errors)
+        self.assertIsNone(response.data)
+        self.assertIn("Field 'spaceId' of required type 'UUID!' was not provided", response.errors[0].message)
+
+        # test post text field is missing
+        input_data = {
+            "spaceId": str(space.id),
+            "visibility": VisibilityType.PUBLIC.value,
+        }
+
+        response = self.create_space_post(space_admin, input_data)
+        self.assertIsNotNone(response.errors)
+        self.assertIsNone(response.data)
+        self.assertIn("Field 'text' of required type 'String!' was not provided", response.errors[0].message)
+
+        # test visibility field is missing
+        input_data = {"spaceId": str(space.id), "text": make_fake_post_text()}
+
+        response = self.create_space_post(space_admin, input_data)
+        self.assertIsNotNone(response.errors)
+        self.assertIsNone(response.data)
+        self.assertIn(
+            "Field 'visibility' of required type 'VisibilityType!' was not provided", response.errors[0].message
+        )
+
     def test_insights_by_user_id_success_user_anonymous(self):
         insight_user = make_user()
         insight_user_2 = make_user()
@@ -766,6 +967,44 @@ class GraphQLTest(TestCase):
             connection_confirmed_notification["options"]["user"]["fullName"],
             followed_user.profile.full_name(),
         )
+
+    def test_community_new_post_notifications(self):
+        post_user = make_user()
+        subscriber_user = make_user()
+
+        space = make_community(creator=post_user)
+        space.add_member(subscriber_user)
+        CommunityNotificationsSubscription.enable_new_post_notification_for_community(
+            community=space, subscriber=subscriber_user
+        )
+
+        post1 = post_user.create_community_encircled_post(
+            text=make_fake_post_text(),
+            title=make_fake_post_title(),
+            space_id=space.id,
+            visibility=VisibilityType.MEMBERS.value,
+        )
+
+        response = self.get_notifications(subscriber_user)
+        self.assertEqual(response["totalResults"], 1)
+
+        notification = response["data"][0]
+        self.assertEqual(notification["options"]["post"]["title"], post1.title)
+        self.assertEqual(notification["options"]["teaser"], post1.title)
+
+        post2 = post_user.create_community_encircled_post(
+            text=make_fake_post_text(),
+            space_id=space.id,
+            visibility=VisibilityType.MEMBERS.value,
+        )
+
+        response = self.get_notifications(subscriber_user)
+        self.assertEqual(response["totalResults"], 2)
+
+        notification = response["data"][0]
+        self.assertIsNone(notification["options"]["post"]["title"])
+        expected_teaser = " ".join(post2.text.split()[:3]) + "..."
+        self.assertEqual(notification["options"]["teaser"], expected_teaser)
 
     def test_has_new_notifications(self):
         followed_user = make_user(name="Peter", last_name="Pep")
@@ -1058,10 +1297,12 @@ class GraphQLTest(TestCase):
         self.assertEqual(following_section["spaces"]["totalResults"], 1)
         self.assertEqual(following_section["spaces"]["data"][0]["id"], str(space4.id))
 
-    def test_space_membership_request_approval_process(self):
+    @mock.patch("openbook.graphql_schema.publish_space_user_added_event")
+    def test_space_membership_request_approval_process(self, mock_publish_space_user_added_event):
         membership_requestor = make_user()
         space_creator = make_user()
         space = make_community(creator=space_creator)
+        mock_publish_space_user_added_event.retrun_value = None
 
         def member_result(user, is_admin):
             return {
@@ -1110,6 +1351,11 @@ class GraphQLTest(TestCase):
             connect_action=UpdateConnectionAction.CONNECT,
         )
 
+        community = Community.objects.get(id=space.id)
+        mock_publish_space_user_added_event.assert_called_once_with(
+            username=membership_requestor.username, community=community
+        )
+
         self.assert_paged_results_equal(
             space_after_approval["members"],
             [member_result(space_creator, is_admin=True), member_result(membership_requestor, is_admin=False)],
@@ -1136,7 +1382,8 @@ class GraphQLTest(TestCase):
             membership_requestor.profile.full_name(),
         )
 
-    def test_space_membership_request_rejection_process(self):
+    @mock.patch("openbook.graphql_schema.publish_space_user_added_event")
+    def test_space_membership_request_rejection_process(self, mock_publish_space_user_added_event):
         membership_requestor = make_user()
         space_creator = make_user()
         space = make_community(creator=space_creator)
@@ -1206,6 +1453,8 @@ class GraphQLTest(TestCase):
         # Staff has no notification
         staff_notifications = self.get_notifications(space_creator)
         self.assertEqual(staff_notifications["totalResults"], 0)
+
+        mock_publish_space_user_added_event.assert_not_called()
 
     def test_space_with_posts(self):
         user_member = make_user()
@@ -1280,11 +1529,11 @@ class GraphQLTest(TestCase):
 
     @staticmethod
     def public_post_ids(posts_data):
-        return [post_data["id"] for post_data in posts_data if post_data["public"]]
+        return [post_data["id"] for post_data in posts_data if post_data["isPublic"]]
 
     @staticmethod
     def private_post_ids(posts_data):
-        return [post_data["id"] for post_data in posts_data if not post_data["public"]]
+        return [post_data["id"] for post_data in posts_data if not post_data["isPublic"]]
 
     def test_report_post(self):
         posting_user = make_user()
@@ -1746,7 +1995,7 @@ class GraphQLTest(TestCase):
                         data {
                             id
                             title
-                            public
+                            isPublic
                             created
                         }
                     }
@@ -1787,6 +2036,7 @@ class GraphQLTest(TestCase):
                             space {
                                 title
                             }
+                            teaser
                         }
                     }
                 }
@@ -1941,7 +2191,8 @@ class GraphQLTest(TestCase):
         self.assertIn("Unauthorized", str(response.errors[0].message))
         self.assertEqual("UNAUTHORIZED", str(response.errors[0].extensions["code"]))
 
-    def test_can_not_create_spaces_missing_required_fields(self):
+    @mock.patch("openbook.graphql_schema.publish_space_created_event")
+    def test_can_not_create_spaces_missing_required_fields(self, mock_publish_space_created_event):
         user = make_user()
         topic_ids = [str(make_topic().id) for _ in range(7)]
         valid_topics = topic_ids[:2]
@@ -1983,6 +2234,8 @@ class GraphQLTest(TestCase):
 
             self.assertIn(testCase["expected_error"], str(response.errors[0].message))
             self.assertIsNone(response.data["createSpace"] if response.data else response.data)
+
+        mock_publish_space_created_event.assert_not_called()
 
     def test_validates_space_before_creation(self):
         user = make_user()
@@ -2043,7 +2296,8 @@ class GraphQLTest(TestCase):
                 self.assertIn(testCase["expected_error"], str(response.errors[0].message))
             self.assertIsNone(response.data["createSpace"] if response.data else response.data)
 
-    def test_can_create_space(self):
+    @mock.patch("openbook.graphql_schema.publish_space_created_event")
+    def test_can_create_space(self, mock_publish_space_created_event):
         user = make_user()
         topic_ids = [str(make_topic().id) for _ in range(2)]
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
@@ -2092,7 +2346,11 @@ class GraphQLTest(TestCase):
         self.assertEqual(str(user.username), member["user"]["id"])
         self.assertTrue(member["isAdministrator"])
 
-    def test_can_not_create_space_if_not_logged_in(self):
+        community = Community.objects.get(id=created_space["id"])
+        mock_publish_space_created_event.assert_called_once_with(community=community)
+
+    @mock.patch("openbook.graphql_schema.publish_space_created_event")
+    def test_can_not_create_space_if_not_logged_in(self, mock_publish_space_created_event):
         topic_ids = [str(make_topic().id) for _ in range(7)]
         valid_topics = topic_ids[:2]
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
@@ -2113,6 +2371,7 @@ class GraphQLTest(TestCase):
         )
 
         self.assert_is_unauthorized(response)
+        mock_publish_space_created_event.assert_not_called()
 
     def test_validates_space_update(self):
         user = make_user()
@@ -3190,6 +3449,72 @@ class GraphQLTest(TestCase):
         )
 
         self.assert_is_unauthorized(response)
+
+    def test_can_not_delete_task_if_not_space_admin(self):
+        user = make_user()
+        community = make_community()
+        task = make_community_task(community)
+
+        delete_task_mutation = """
+            mutation test($id: UUID!) {
+                deleteTask(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            delete_task_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"id": str(task.id)},
+        )
+
+        self.assertIsNone(response.data)
+        self.assertIn(
+            "Can't delete a task within a community that you do not administrate.", str(response.errors[0].message)
+        )
+
+    def test_can_not_delete_task_if_not_logged_in(self):
+        community = make_community()
+        task = make_community_task(community)
+
+        delete_task_mutation = """
+            mutation test($id: UUID!) {
+                deleteTask(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            delete_task_mutation,
+            variable_values={"id": str(task.id)},
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+        )
+
+        self.assert_is_unauthorized(response)
+
+    def test_can_delete_task(self):
+        user = make_user()
+        community = make_community(creator=user)
+        task = make_community_task(community)
+
+        delete_task_mutation = """
+            mutation test($id: UUID!) {
+                deleteTask(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            delete_task_mutation,
+            variable_values={"id": str(task.id)},
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        self.assertTrue(response.data["deleteTask"]["success"])
+        self.assertIsNone(response.errors)
 
 
 def approve_verify_moderated_object(object_id, user):

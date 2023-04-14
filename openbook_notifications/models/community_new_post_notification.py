@@ -14,6 +14,15 @@ class CommunityNewPostNotification(ModelWithUUID):
     )
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
 
+    @property
+    def teaser(self):
+        post = self.post
+        if post.title:
+            return post.title
+
+        truncated_text = post.text.split()[:3]
+        return " ".join(truncated_text) + "..."
+
     @classmethod
     def create_community_new_post_notification(cls, community_notifications_subscription_id, post_id, owner_id):
         community_new_post_notification = cls.objects.create(
@@ -39,4 +48,5 @@ class CommunityNewPostNotification(ModelWithUUID):
         return {
             "post": self.post,
             "space": self.community_notifications_subscription.community,
+            "teaser": self.teaser,
         }

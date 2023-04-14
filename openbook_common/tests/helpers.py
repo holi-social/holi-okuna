@@ -29,6 +29,7 @@ from openbook_notifications.models import Notification
 from openbook_common.models import ProxyBlacklistedDomain
 from openbook_posts.models import Post
 from openbook_terms.models import SDG, Topic, Skill
+from openbook_common.types import VisibilityType
 
 fake = Faker()
 

@@ -2,6 +2,7 @@ from django.contrib import admin, messages
 from django.contrib.admin import ModelAdmin
 from django.db.models import QuerySet
 
+from openbook_notifications.models import CommunityNewPostNotification
 from openbook_notifications.models.release_notification import ReleaseNotification
 
 
@@ -30,3 +31,12 @@ class ReleaseNotificationAdmin(ModelAdmin):
                 messages.warning(
                     request, f"Notification for Post {notification.post.title} has already been sent, ignoring"
                 )
+
+
+@admin.register(CommunityNewPostNotification)
+class CommunityNewPostNotificationAdmin(ModelAdmin):
+    list_display = ("id", "post", "teaser", "post_created")
+
+    @admin.display(description="Post created")
+    def post_created(self, obj):
+        return obj.post.created

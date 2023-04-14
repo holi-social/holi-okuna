@@ -444,7 +444,7 @@ class Post:
         return ReactionCounts()
 
     @gql.django.field
-    def public(self) -> bool:
+    def is_public(self) -> bool:
         return self.is_public_post()
 
 
@@ -521,6 +521,7 @@ class Space:
         else:
             if visibility == VisibilityFilter.PUBLIC:
                 query = query.filter(circles__id=get_circle_model().get_world_circle_id())
+
             elif visibility == VisibilityFilter.MEMBERS:
                 query = query.exclude(circles__id=get_circle_model().get_world_circle_id())
 
@@ -566,6 +567,7 @@ class NotificationOptions:
     post: Optional[Post]
     post_comment: Optional[PostComment]
     space: Optional[Space]
+    teaser: Optional[str]
 
 
 @gql.django.type(NotificationModel)
@@ -584,6 +586,7 @@ class Notification:
             post=options.get("post"),
             post_comment=options.get("post_comment"),
             space=options.get("space"),
+            teaser=options.get("teaser"),
         )
 
 
