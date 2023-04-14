@@ -154,6 +154,23 @@ class CommunityAdministratorsAPITest(OpenbookAPITestCase):
             user_to_make_admnistrator.is_administrator_of_community_with_name(community_name=community.name)
         )
 
+    def test_logs_community_administrator_added(self):
+        """should create a log when community administrator was added"""
+        user = make_user()
+        headers = make_authentication_headers_for_user(user)
+
+        community = make_community(creator=user, type="P")
+
+        administrator_to_add = make_user()
+        administrator_to_add.join_community_with_name(community_name=community.name)
+
+        url = self._get_url(community_name=community.name)
+        self.client.put(url, {"username": administrator_to_add.username}, **headers)
+
+        self.assertTrue(
+            community.logs.filter(action_type="AA", source_user=user, target_user=administrator_to_add).exists()
+        )
+
     def test_cant_add_community_administrator_if_mod(self):
         """should not be able to add a community administrator if user is moderator of community"""
         user = make_user()
@@ -268,25 +285,9 @@ class CommunityAdministratorAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name, username=administrator_to_remove.username)
         self.client.delete(url, **headers)
 
-    def test_cant_remove_creator_from_community_administrators(self):
-        """should not be able to remove the creator of the community from the administrators"""
-        user = make_user()
-        other_user = make_user()
-        headers = make_authentication_headers_for_user(user)
-
-        community = make_community(creator=other_user, type="P")
-
-        user.join_community_with_name(community.name)
-        other_user.add_administrator_with_username_to_community_with_name(
-            username=user.username, community_name=community.name
+        self.assertTrue(
+            community.logs.filter(action_type="RA", source_user=user, target_user=administrator_to_remove).exists()
         )
-
-        url = self._get_url(community_name=community.name, username=other_user.username)
-        response = self.client.delete(url, **headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
-
-        self.assertTrue(other_user.is_administrator_of_community_with_name(community_name=community.name))
 
     def test_cant_remove_community_administrator_if_mod(self):
         """should not be able to remove a community administrator if user is moderator"""

@@ -586,13 +586,6 @@ def check_can_remove_administrator_with_username_to_community_with_name(user, us
             _("User to remove is not an administrator."),
         )
 
-    if Community.is_user_with_username_creator_of_community_with_name(
-        username=username, community_name=community_name
-    ):
-        raise ValidationError(
-            _("You cannot revoke the administrator privileges to the creator of the space."),
-        )
-
 
 def check_can_get_community_with_name_administrators(user, community_name):
     check_is_not_banned_from_community_with_name(user=user, community_name=community_name)
