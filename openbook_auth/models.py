@@ -696,14 +696,8 @@ class User(ModelWithUUID, AbstractUser):
         if name:
             profile.name = name
 
-        if location is not None:
-            if len(location) == 0:
-                profile.location = None
-            else:
-                profile.location = location
-
-        if geolocation is not None:
-            profile.geolocation = geolocation
+        profile.location = location
+        profile.geolocation = geolocation
 
         if avatar is not None:
             profile.avatar = avatar
