@@ -811,6 +811,12 @@ class Mutation:
                     publish_space_user_added_event(username=str(user_id), community=space)
 
                     return space
+                case (cT.ADMINISTRATOR, a.GRANT_ADMIN_ACCESS):
+                    return current_user.add_administrator_with_username_to_community_with_name(user_id, space.name)
+                case (cT.ADMINISTRATOR, a.REVOKE_ADMIN_ACCESS):
+                    return current_user.remove_administrator_with_username_from_community_with_name(
+                        user_id, space.name
+                    )
                 case _:
                     raise GraphQLError(
                         "Operation not allowed",

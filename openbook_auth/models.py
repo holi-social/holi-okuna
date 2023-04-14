@@ -2163,42 +2163,29 @@ class User(ModelWithUUID, AbstractUser):
         Community = get_community_model()
         return Community.search_community_with_name_administrators(community_name=community_name, query=query)
 
-    def add_administrator_with_username_to_community_with_name(self, username, community_name):
+    def add_administrator_with_username_to_community_with_name(self, username, community_name) -> "Community":
         check_can_add_administrator_with_username_to_community_with_name(
             user=self, username=username, community_name=community_name
         )
 
         Community = get_community_model()
-
         community_to_add_administrator_to = Community.objects.get(name=community_name)
+
         user_to_add_as_administrator = User.objects.get(username=username)
-
         community_to_add_administrator_to.add_administrator(user_to_add_as_administrator)
-        community_to_add_administrator_to.create_add_administrator_log(
-            source_user=self, target_user=user_to_add_as_administrator
-        )
-
-        if user_to_add_as_administrator.is_moderator_of_community_with_name(community_name=community_name):
-            self.remove_moderator_with_username_from_community_with_name(
-                username=username, community_name=community_name
-            )
 
         return community_to_add_administrator_to
 
-    def remove_administrator_with_username_from_community_with_name(self, username, community_name):
+    def remove_administrator_with_username_from_community_with_name(self, username, community_name) -> "Community":
         check_can_remove_administrator_with_username_to_community_with_name(
             user=self, username=username, community_name=community_name
         )
 
         Community = get_community_model()
-
         community_to_remove_administrator_from = Community.objects.get(name=community_name)
-        user_to_remove_as_administrator = User.objects.get(username=username)
 
+        user_to_remove_as_administrator = User.objects.get(username=username)
         community_to_remove_administrator_from.remove_administrator(user_to_remove_as_administrator)
-        community_to_remove_administrator_from.create_remove_administrator_log(
-            source_user=self, target_user=user_to_remove_as_administrator
-        )
 
         return community_to_remove_administrator_from
 

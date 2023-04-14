@@ -549,9 +549,9 @@ def check_can_unban_user_with_username_from_community_with_name(user, username, 
 
 
 def check_can_add_administrator_with_username_to_community_with_name(user, username, community_name):
-    if not user.is_creator_of_community_with_name(community_name=community_name):
+    if not user.is_administrator_of_community_with_name(community_name=community_name):
         raise ValidationError(
-            _("Only the creator of the community can add other administrators."),
+            _("Only the administrators of the space can grant administrator privileges."),
         )
 
     Community = get_community_model()
@@ -567,14 +567,14 @@ def check_can_add_administrator_with_username_to_community_with_name(user, usern
         username=username, community_name=community_name
     ):
         raise ValidationError(
-            _("Can't make administrator a user that is not part of the community."),
+            _("Cannot make administrator a user that is not part of the space."),
         )
 
 
 def check_can_remove_administrator_with_username_to_community_with_name(user, username, community_name):
-    if not user.is_creator_of_community_with_name(community_name=community_name):
+    if not user.is_administrator_of_community_with_name(community_name=community_name):
         raise ValidationError(
-            _("Only the creator of the community can remove other administrators."),
+            _("Only the administrators of the space can revoke administrator privileges."),
         )
 
     Community = get_community_model()
@@ -584,6 +584,13 @@ def check_can_remove_administrator_with_username_to_community_with_name(user, us
     ):
         raise ValidationError(
             _("User to remove is not an administrator."),
+        )
+
+    if Community.is_user_with_username_creator_of_community_with_name(
+        username=username, community_name=community_name
+    ):
+        raise ValidationError(
+            _("You cannot revoke the administrator privileges to the creator of the space."),
         )
 
 

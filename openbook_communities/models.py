@@ -221,6 +221,13 @@ class Community(ModelWithUUID):
         return cls.objects.filter(name=community_name, memberships__user__username=username).exists()
 
     @classmethod
+    def is_user_with_username_creator_of_community_with_name(cls, username, community_name):
+        return cls.objects.filter(
+            name=community_name,
+            creator__username=username,
+        ).exists()
+
+    @classmethod
     def is_user_with_username_administrator_of_community_with_name(cls, username, community_name):
         return cls.objects.filter(
             name=community_name,
