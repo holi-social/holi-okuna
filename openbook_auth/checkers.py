@@ -47,6 +47,13 @@ def check_can_post_to_circles_with_ids(user, circles_ids=None):
             )
 
 
+def check_can_post_to_community_with_id(user, community_id=None):
+    if not user.is_member_of_community_with_id(community_id=community_id):
+        raise ValidationError(
+            _("You cannot post to a community you're not member of "),
+        )
+
+
 def check_can_post_to_community_with_name(user, community_name=None):
     if not user.is_member_of_community_with_name(community_name=community_name):
         raise ValidationError(
@@ -1454,4 +1461,11 @@ def check_can_create_task_to_community(user, community=None):
     if not user.is_administrator_of_community_with_name(community_name=community.name):
         raise ValidationError(
             _("You cannot add a task to a community you are not an administrator of"),
+        )
+
+
+def check_can_delete_task_within_community_with_id(user, community_id):
+    if not user.is_administrator_of_community_with_id(community_id):
+        raise ValidationError(
+            _("Can't delete a task within a community that you do not administrate."),
         )

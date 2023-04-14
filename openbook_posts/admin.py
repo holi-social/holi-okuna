@@ -43,6 +43,7 @@ class PostCircleInline(admin.TabularInline):
         return True
 
 
+@admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
     inlines = [PostReactionInline, PostImageInline, PostCommentInline, PostCircleInline]
     exclude = ["links"]
@@ -52,6 +53,7 @@ class PostAdmin(admin.ModelAdmin):
         "title",
         "created",
         "creator",
+        "is_public",
         "status",
         "count_comments",
         "count_reactions",
@@ -77,9 +79,6 @@ class PostAdmin(admin.ModelAdmin):
             obj._publish()
 
 
+@admin.register(PostComment)
 class PostCommentAdmin(admin.ModelAdmin):
     model = PostComment
-
-
-admin.site.register(Post, PostAdmin)
-admin.site.register(PostComment, PostCommentAdmin)
