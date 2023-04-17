@@ -19,6 +19,7 @@ from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
 from strawberry_django_plus import gql
+from openbook_common.checkers import check_url_safety
 
 from openbook_common.helpers import ExifRotate
 from openbook_auth.checkers import *
@@ -4643,6 +4644,8 @@ class User(ModelWithUUID, AbstractUser):
 
         check_can_add_collaboration_tool_to_community(user=self, community=community)
 
+        check_url_safety(url=url)
+
         CollaborationTool = get_collaboration_tool_model()
         collaboration_tool = CollaborationTool.add_collaboration_tool(
             creator=self,
@@ -4667,6 +4670,9 @@ class User(ModelWithUUID, AbstractUser):
         collaboration_tool = CollaborationTool.objects.get(id=collaboration_tool_id)
 
         check_can_update_collaboration_tool_in_community(user=self, community=collaboration_tool.community)
+
+        if url:
+            check_url_safety(url=url)
 
         collaboration_tool.update(
             url=url,
