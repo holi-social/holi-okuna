@@ -1204,8 +1204,14 @@ class ExternalLink(ModelWithUUID):
 class CollaborationTool(ModelWithUUID):
     @gql.enum
     class CollectionType(models.TextChoices):
-        COLLABORATION = "collaboration", _("collaboration")
-        COMMUNICATION = "communication", _("communication")
+        COLLABORATION = "COLLABORATION"
+        COMMUNICATION = "COMMUNICATION"
+        CALENDARS = "CALENDARS"
+        SURVEYS = "SURVEYS"
+        GOOD_TO_KNOW = "GOOD_TO_KNOW"
+        INFO_MATERIAL = "INFO_MATERIAL"
+        USED_SERVICES = "USED_SERVICES"
+        OTHERS = "OTHERS"
 
     url = models.URLField(blank=False, max_length=settings.COLLABORATION_TOOL_URL_MAX_LENGTH)
     title = models.CharField(blank=False, max_length=settings.COLLABORATION_TOOL_TITLE_MAX_LENGTH)
