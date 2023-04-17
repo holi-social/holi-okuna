@@ -1321,7 +1321,7 @@ class GraphQLTest(TestCase):
         self.assertEqual(data["totalResults"], 0)
 
         # Send Join Request
-        after_request_space = self.mutate_update_space_user_connection(
+        after_request_space = self.mutate_update_space_user_connection_data(
             auth_user=membership_requestor,
             space_id=space.id,
             connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
@@ -1343,7 +1343,7 @@ class GraphQLTest(TestCase):
         )
 
         # Approve user
-        space_after_approval = self.mutate_update_space_user_connection(
+        space_after_approval = self.mutate_update_space_user_connection_data(
             auth_user=space_creator,
             user_id=membership_requestor.username,
             space_id=space.id,
@@ -1405,7 +1405,7 @@ class GraphQLTest(TestCase):
         self.assertEqual(data["totalResults"], 0)
 
         # Send Join Request
-        after_request_space = self.mutate_update_space_user_connection(
+        after_request_space = self.mutate_update_space_user_connection_data(
             auth_user=membership_requestor,
             space_id=space.id,
             connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
@@ -1427,7 +1427,7 @@ class GraphQLTest(TestCase):
         )
 
         # Approve user
-        space_after_rejection = self.mutate_update_space_user_connection(
+        space_after_rejection = self.mutate_update_space_user_connection_data(
             auth_user=space_creator,
             user_id=membership_requestor.username,
             space_id=space.id,
@@ -1455,6 +1455,144 @@ class GraphQLTest(TestCase):
         self.assertEqual(staff_notifications["totalResults"], 0)
 
         mock_publish_space_user_added_event.assert_not_called()
+
+    def test_space_admin_grant_and_revoke_admin_access_success(self):
+        space_member = make_user()
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+        space.add_member(space_member)
+
+        def member_result(user, is_admin):
+            return {
+                "user": {"id": user.username},
+                "isAdministrator": is_admin,
+            }
+
+        # Admin user grants admin privileges to a member user
+        response = self.mutate_update_space_user_connection_data(
+            auth_user=space_creator,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.ADMINISTRATOR,
+            connect_action=UpdateConnectionAction.GRANT_ADMIN_ACCESS,
+            user_id=space_member.username,
+        )
+
+        self.assert_paged_results_equal(
+            response["members"],
+            [member_result(space_creator, is_admin=True), member_result(space_member, is_admin=True)],
+        )
+
+        # Admin user revokes admin privileges to an admin user
+        response = self.mutate_update_space_user_connection_data(
+            auth_user=space_creator,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.ADMINISTRATOR,
+            connect_action=UpdateConnectionAction.REVOKE_ADMIN_ACCESS,
+            user_id=space_member.username,
+        )
+
+        self.assert_paged_results_equal(
+            response["members"],
+            [member_result(space_creator, is_admin=True), member_result(space_member, is_admin=False)],
+        )
+
+    def test_space_admin_grant_and_revoke_admin_access_errors(self):
+        space_member = make_user()
+        space_creator = make_user()
+        space_admin = make_user()
+        external_user = make_user()
+        space = make_community(creator=space_creator)
+        space.add_member(space_member)
+        space.add_member(space_admin)
+        space.add_administrator(space_admin)
+
+        # Admin user cannot grant admin privileges to an admin user
+        response = self.mutate_update_space_user_connection_raw(
+            auth_user=space_creator,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.ADMINISTRATOR,
+            connect_action=UpdateConnectionAction.GRANT_ADMIN_ACCESS,
+            user_id=space_admin.username,
+        )
+
+        self.assertIsNone(response.data)
+        self.assertIsNotNone(response.errors)
+        self.assertIn("User is already an administrator.", response.errors[0].message)
+        self.assertTrue(
+            space.is_user_with_username_administrator_of_community_with_name(space_admin.username, space.name)
+        )
+
+        # Admin user cannot grant admin privileges to an external user
+        response = self.mutate_update_space_user_connection_raw(
+            auth_user=space_admin,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.ADMINISTRATOR,
+            connect_action=UpdateConnectionAction.GRANT_ADMIN_ACCESS,
+            user_id=external_user.username,
+        )
+
+        self.assertIsNone(response.data)
+        self.assertIsNotNone(response.errors)
+        self.assertIn("Cannot make administrator a user that is not part of the space.", response.errors[0].message)
+        self.assertFalse(space.is_user_with_username_member_of_community_with_name(external_user.username, space.name))
+
+        # Admin user cannot revoke admin privileges to a member user
+        response = self.mutate_update_space_user_connection_raw(
+            auth_user=space_admin,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.ADMINISTRATOR,
+            connect_action=UpdateConnectionAction.REVOKE_ADMIN_ACCESS,
+            user_id=space_member.username,
+        )
+
+        self.assertIsNone(response.data)
+        self.assertIsNotNone(response.errors)
+        self.assertIn("User to remove is not an administrator.", response.errors[0].message)
+        self.assertFalse(
+            space.is_user_with_username_administrator_of_community_with_name(space_member.username, space.name)
+        )
+
+    def test_space_member_grant_and_revoke_admin_access_errors(self):
+        member_user = make_user()
+        member_user_2 = make_user()
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+        space.add_member(member_user)
+        space.add_member(member_user_2)
+
+        # Member user cannot grant admin privileges to a member user
+        response = self.mutate_update_space_user_connection_raw(
+            auth_user=member_user,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.ADMINISTRATOR,
+            connect_action=UpdateConnectionAction.GRANT_ADMIN_ACCESS,
+            user_id=member_user_2.username,
+        )
+
+        self.assertIsNone(response.data)
+        self.assertIn(
+            "Only the administrators of the space can grant administrator privileges.", response.errors[0].message
+        )
+        self.assertFalse(
+            space.is_user_with_username_administrator_of_community_with_name(member_user_2.username, space.name)
+        )
+
+        # Member user cannot revoke admin privileges to an admin user
+        response = self.mutate_update_space_user_connection_raw(
+            auth_user=member_user,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.ADMINISTRATOR,
+            connect_action=UpdateConnectionAction.REVOKE_ADMIN_ACCESS,
+            user_id=space_creator.username,
+        )
+
+        self.assertIsNone(response.data)
+        self.assertIn(
+            "Only the administrators of the space can revoke administrator privileges.", response.errors[0].message
+        )
+        self.assertFalse(
+            space.is_user_with_username_administrator_of_community_with_name(member_user_2.username, space.name)
+        )
 
     def test_space_with_posts(self):
         user_member = make_user()
@@ -1912,7 +2050,7 @@ class GraphQLTest(TestCase):
             context_value=BeneDict({"request": {"user": user or AnonymousUser}}),
         )
 
-    def mutate_update_space_user_connection(
+    def mutate_update_space_user_connection_raw(
         self,
         auth_user: User,
         space_id: UUID,
@@ -1920,7 +2058,7 @@ class GraphQLTest(TestCase):
         connect_action: UpdateConnectionAction,
         user_id: Optional[UUID] = None,
     ):
-        response = schema.execute_sync(
+        return schema.execute_sync(
             """
             mutation ($spaceId: UUID!, $userId: UUID, $type: SpaceUserConnectionType!, $action: UpdateConnectionAction!){
                 updateSpaceUserConnection(spaceId: $spaceId, 
@@ -1953,6 +2091,17 @@ class GraphQLTest(TestCase):
             ),
         )
 
+    def mutate_update_space_user_connection_data(
+        self,
+        auth_user: User,
+        space_id: UUID,
+        connection_type: SpaceUserConnectionType,
+        connect_action: UpdateConnectionAction,
+        user_id: Optional[UUID] = None,
+    ):
+        response = self.mutate_update_space_user_connection_raw(
+            auth_user, space_id, connection_type, connect_action, user_id
+        )
         self.assertIsNone(response.errors)
         return response.data["updateSpaceUserConnection"]
 
