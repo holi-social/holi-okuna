@@ -24,7 +24,7 @@ from openbook.graphql_schema import (
     UpdateConnectionAction,
     schema,
 )
-from openbook.graphql_types import VisibilityFilter, NotificationType
+from openbook.graphql_types import VisibilityFilter
 from openbook_auth.models import User, UserConnectionStatus
 from openbook_common.tests.helpers import (
     get_test_images,
@@ -1010,7 +1010,7 @@ class GraphQLTest(TestCase):
         expected_teaser = " ".join(post2.text.split()[:3]) + "..."
         self.assertEqual(notification["options"]["teaser"], expected_teaser)
 
-    def test_community_admin_permission_notifications(self):
+    def test_community_admin_privileges_notifications(self):
         space_user = make_user()
         creator_user = make_user()
 
