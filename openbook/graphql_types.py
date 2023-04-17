@@ -121,6 +121,8 @@ class NotificationType(Enum):
     FRA = strawberry.enum_value("FRA", description="FOLLOW_REQUEST_APPROVED")
     CMR = strawberry.enum_value("CMR", description="COMMUNITY_MEMBERSHIP_REQUEST")
     CMRA = strawberry.enum_value("CMRA", description="COMMUNITY_MEMBERSHIP_APPROVED")
+    CAPG = strawberry.enum_value("CAPG", description="COMMUNITY_ADMIN_PRIVILEGES_GRANTED")
+    CAPR = strawberry.enum_value("CAPR", description="COMMUNITY_ADMIN_PRIVILEGES_REVOKED")
     CI = strawberry.enum_value("CI", description="COMMUNITY_INVITE")
     PUM = strawberry.enum_value("PUM", description="POST_USER_MENTION")
     PCUM = strawberry.enum_value("PCUM", description="POST_COMMENT_USER_MENTION")

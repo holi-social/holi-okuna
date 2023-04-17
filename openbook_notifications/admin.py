@@ -2,7 +2,11 @@ from django.contrib import admin, messages
 from django.contrib.admin import ModelAdmin
 from django.db.models import QuerySet
 
-from openbook_notifications.models import CommunityNewPostNotification
+from openbook_notifications.models import (
+    CommunityNewPostNotification,
+    CommunityAdminPrivilegesGrantedNotification,
+    CommunityAdminPrivilegesRevokedNotification,
+)
 from openbook_notifications.models.release_notification import ReleaseNotification
 
 
@@ -40,3 +44,21 @@ class CommunityNewPostNotificationAdmin(ModelAdmin):
     @admin.display(description="Post created")
     def post_created(self, obj):
         return obj.post.created
+
+
+@admin.register(CommunityAdminPrivilegesGrantedNotification)
+class CommunityAdminPrivilegesGrantedNotificationAdmin(ModelAdmin):
+    list_display = ("id", "granted_user", "community", "created")
+
+    @admin.display(description="Notification created")
+    def created(self, obj):
+        return obj.notification.first().created if obj.notification.first() else None
+
+
+@admin.register(CommunityAdminPrivilegesRevokedNotification)
+class CommunityAdminPrivilegesRevokedNotification(ModelAdmin):
+    list_display = ("id", "revoked_user", "community", "created")
+
+    @admin.display(description="Notification created")
+    def created(self, obj):
+        return obj.notification.first().created if obj.notification.first() else None
