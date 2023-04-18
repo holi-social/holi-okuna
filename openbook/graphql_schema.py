@@ -17,7 +17,6 @@ from graphql import GraphQLError
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 from strawberry_django_plus.optimizer import DjangoOptimizerExtension
-from openbook.graphql_checkers import check_url_safety
 
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook.helpers import (
@@ -1045,9 +1044,6 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        url = data.get("url")
-        check_url_safety(url=url)
-
         return current_user.add_collaboration_tool(
             space_id=data.get("space_id"),
             url=data.get("url"),
@@ -1063,10 +1059,6 @@ class Mutation:
         serializer = UpdateCollaborationToolSerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-
-        url = data.get("url")
-        if url:
-            check_url_safety(url=url)
 
         return current_user.update_collaboration_tool(
             collaboration_tool_id=data.get("id"),
