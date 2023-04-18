@@ -41,6 +41,10 @@ from openbook_common.tests.helpers import (
     make_user,
     simple_jpeg_bytes,
 )
+from openbook_common.utils.model_loaders import (
+    get_community_admin_privileges_granted_notification_model,
+    get_community_admin_privileges_revoked_notification_model,
+)
 from openbook_communities.models import Community, CommunityNotificationsSubscription
 from openbook_common.types import VisibilityType
 from openbook_insights.models import Insight
@@ -1006,6 +1010,38 @@ class GraphQLTest(TestCase):
         expected_teaser = " ".join(post2.text.split()[:3]) + "..."
         self.assertEqual(notification["options"]["teaser"], expected_teaser)
 
+    def test_community_admin_privileges_notifications(self):
+        space_user = make_user()
+        creator_user = make_user()
+
+        space = make_community(creator=creator_user)
+        space.add_member(space_user)
+
+        CommunityNotificationsSubscription.enable_new_post_notification_for_community(
+            community=space, subscriber=space_user
+        )
+
+        creator_user.add_administrator_with_username_to_community_with_name(space_user.username, space.name)
+
+        response = self.get_notifications(space_user)
+        self.assertEqual(response["totalResults"], 1)
+
+        notification = response["data"][0]
+
+        self.assertEqual(notification["notificationType"], "CAPG")
+        self.assertEqual(notification["options"]["space"]["title"], space.name)
+        self.assertEqual(notification["options"]["user"]["fullName"], space_user.profile.full_name())
+
+        creator_user.remove_administrator_with_username_from_community_with_name(space_user.username, space.name)
+
+        response = self.get_notifications(space_user)
+        self.assertEqual(response["totalResults"], 2)
+
+        notification = response["data"][0]
+        self.assertEqual(notification["notificationType"], "CAPR")
+        self.assertEqual(notification["options"]["space"]["title"], space.name)
+        self.assertEqual(notification["options"]["user"]["fullName"], space_user.profile.full_name())
+
     def test_has_new_notifications(self):
         followed_user = make_user(name="Peter", last_name="Pep")
         following_user = make_user(name="Other")
@@ -1482,6 +1518,15 @@ class GraphQLTest(TestCase):
             [member_result(space_creator, is_admin=True), member_result(space_member, is_admin=True)],
         )
 
+        CommunityAdminPrivilegesGrantedNotification = get_community_admin_privileges_granted_notification_model()
+        community_admin_privileges_granted_notifications = CommunityAdminPrivilegesGrantedNotification.objects.filter(
+            granted_user=space_member
+        )
+        self.assertEqual(len(community_admin_privileges_granted_notifications), 1)
+        notification = community_admin_privileges_granted_notifications.first()
+        self.assertEqual(notification.community, space)
+        self.assertEqual(notification.notification.first().notification_type, "CAPG")
+
         # Admin user revokes admin privileges to an admin user
         response = self.mutate_update_space_user_connection_data(
             auth_user=space_creator,
@@ -1495,6 +1540,15 @@ class GraphQLTest(TestCase):
             response["members"],
             [member_result(space_creator, is_admin=True), member_result(space_member, is_admin=False)],
         )
+
+        CommunityAdminPrivilegesRevokedNotification = get_community_admin_privileges_revoked_notification_model()
+        community_admin_privileges_revoked_notifications = CommunityAdminPrivilegesRevokedNotification.objects.filter(
+            revoked_user=space_member
+        )
+        self.assertEqual(len(community_admin_privileges_revoked_notifications), 1)
+        notification = community_admin_privileges_revoked_notifications.first()
+        self.assertEqual(notification.community, space)
+        self.assertEqual(notification.notification.first().notification_type, "CAPR")
 
     def test_space_admin_grant_and_revoke_admin_access_errors(self):
         space_member = make_user()

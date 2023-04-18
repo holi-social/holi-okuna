@@ -24,6 +24,8 @@ class Notification(ModelWithUUID):
     FOLLOW_REQUEST_APPROVED = "FRA"
     COMMUNITY_MEMBERSHIP_REQUEST = "CMR"
     COMMUNITY_MEMBERSHIP_APPROVED = "CMRA"
+    COMMUNITY_ADMIN_PRIVILEGES_GRANTED = "CAPG"
+    COMMUNITY_ADMIN_PRIVILEGES_REVOKED = "CAPR"
     COMMUNITY_INVITE = "CI"
     POST_USER_MENTION = "PUM"
     POST_COMMENT_USER_MENTION = "PCUM"
@@ -44,6 +46,8 @@ class Notification(ModelWithUUID):
         (FOLLOW_REQUEST_APPROVED, "Follow request approved"),
         (COMMUNITY_MEMBERSHIP_REQUEST, "Community membership request"),
         (COMMUNITY_MEMBERSHIP_APPROVED, "Community membership approved"),
+        (COMMUNITY_ADMIN_PRIVILEGES_GRANTED, "Community admin privileges granted"),
+        (COMMUNITY_ADMIN_PRIVILEGES_REVOKED, "Community admin privileges revoked"),
         (COMMUNITY_INVITE, "Community Invite"),
         (POST_USER_MENTION, "Post user mention"),
         (POST_COMMENT_USER_MENTION, "Post comment user mention"),
