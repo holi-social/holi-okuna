@@ -3719,6 +3719,69 @@ class GraphQLTest(TestCase):
         self.assertTrue(response.data["deleteTask"]["success"])
         self.assertIsNone(response.errors)
 
+    def test_space_with_tasks(self):
+        user_member = make_user()
+        user_external = make_user()
+        space = make_community(creator=user_member)
+
+        # create public task
+        public_task = user_member.create_task(
+            space_id=space.id,
+            name="test_name_public",
+            description="test_description",
+            visibility=VisibilityType.PUBLIC,
+            regularity="ONE_TIME",
+            location_type="REMOTE",
+            contact_email="test@test.com",
+            slots_available=1,
+        )
+
+        # create members-only task
+        user_member.create_task(
+            space_id=space.id,
+            name="test_name_private",
+            description="test_description",
+            visibility=VisibilityType.MEMBERS,
+            regularity="ONE_TIME",
+            location_type="REMOTE",
+            contact_email="test@test.com",
+            slots_available=1,
+        )
+
+        space_by_id_query = f"""
+            query {{
+                spaceById(idOrName: "{space.name}") {{
+                    id
+                    name
+                    tasks {{
+                        id
+                        visibility
+                    }}
+                }}
+            }}
+            """
+
+        # member should get all tasks
+        response_member = schema.execute_sync(
+            space_by_id_query,
+            context_value=BeneDict({"request": {"user": user_member}}),
+        )
+        print(response_member.errors)
+        self.assertIsNone(response_member.errors)
+        tasks_member = response_member.data["spaceById"]["tasks"]
+        self.assertEqual(len(tasks_member), 2)
+
+        # non member should only get the public task
+        response_external = schema.execute_sync(
+            space_by_id_query,
+            context_value=BeneDict({"request": {"user": user_external}}),
+        )
+
+        self.assertIsNone(response_external.errors)
+        tasks_external = response_external.data["spaceById"]["tasks"]
+        self.assertEqual(len(tasks_external), 1)
+        self.assertEqual(tasks_external[0].get("id"), str(public_task.id))
+
 
 def approve_verify_moderated_object(object_id, user):
     moderated_object = ModeratedObject.objects.filter(object_id=object_id).first()
