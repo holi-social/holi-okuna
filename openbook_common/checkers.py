@@ -1,4 +1,4 @@
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import PermissionDenied
 from django.utils.translation import gettext_lazy as _
 
 from openbook_common.helpers import extract_urls_from_string
