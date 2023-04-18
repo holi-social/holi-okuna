@@ -735,7 +735,7 @@ class Mutation:
             raise
 
         if input.first_name or input.last_name:
-            update_ory_user.delay(current_user.id)
+            update_ory_user(current_user.id)
             if current_user.is_member_of_communities():
                 publish_user_name_updated_event(user=current_user)
 
