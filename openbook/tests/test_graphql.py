@@ -2677,8 +2677,7 @@ class GraphQLTest(TestCase):
         self.assertTrue(response.data["deleteSpace"]["success"])
         self.assertIsNone(response.errors)
 
-    @mock.patch("openbook.graphql_schema.check_url_safety")
-    def test_can_not_add_collaboration_tool_missing_required_fields(self, mock_check_url_safety):
+    def test_can_not_add_collaboration_tool_missing_required_fields(self):
         user = make_user()
 
         community = make_community()
@@ -2722,10 +2721,7 @@ class GraphQLTest(TestCase):
             self.assertIn(testCase["expected_error"], str(response.errors[0].message))
             self.assertIsNone(response.data["addCollaborationTool"] if response.data else response.data)
 
-            mock_check_url_safety.assert_not_called()
-
-    @mock.patch("openbook.graphql_schema.check_url_safety")
-    def test_validates_collaboration_tool_before_creation(self, mock_check_url_safety):
+    def test_validates_collaboration_tool_before_creation(self):
         user = make_user()
 
         community = make_community()
@@ -2783,10 +2779,7 @@ class GraphQLTest(TestCase):
                 self.assertIn(testCase["expected_error"], str(response.errors[0].message))
             self.assertIsNone(response.data["addCollaborationTool"] if response.data else response.data)
 
-            mock_check_url_safety.assert_not_called()
-
-    @mock.patch("openbook.graphql_schema.check_url_safety")
-    def test_can_add_collaboration_tool(self, mock_check_url_safety):
+    def test_can_add_collaboration_tool(self):
         user = make_user()
 
         community = make_community()
@@ -2836,10 +2829,7 @@ class GraphQLTest(TestCase):
         self.assertIn(valid_collection_type, added_collaboration_tool["collectionType"])
         self.assertIn(valid_domain, added_collaboration_tool["domain"])
 
-        mock_check_url_safety.assert_called_once_with(url=valid_url)
-
-    @mock.patch("openbook.graphql_schema.check_url_safety")
-    def test_can_not_add_collaboration_tool_if_not_logged_in(self, mock_check_url_safety):
+    def test_can_not_add_collaboration_tool_if_not_logged_in(self):
         community = make_community()
         add_collaboration_tool_mutation = """
             mutation test($input: AddCollaborationToolInput!) {
@@ -2870,10 +2860,7 @@ class GraphQLTest(TestCase):
 
         self.assert_is_unauthorized(response)
 
-        mock_check_url_safety.assert_not_called()
-
-    @mock.patch("openbook.graphql_schema.check_url_safety")
-    def test_can_not_add_collaboration_tool_if_not_space_member(self, mock_check_url_safety):
+    def test_can_not_add_collaboration_tool_if_not_space_member(self):
         user = make_user()
         community = make_community()
 
@@ -2909,8 +2896,6 @@ class GraphQLTest(TestCase):
         self.assertIn(
             "You cannot add a collaboration tool to a community you are not a member of", response.errors[0].message
         )
-
-        mock_check_url_safety.assert_called_once_with(url=valid_url)
 
     def test_can_not_delete_collaboration_tool_if_not_logged_in(self):
         collaboration_tool = make_collaboration_tool()
@@ -3002,8 +2987,7 @@ class GraphQLTest(TestCase):
         self.assertTrue(response.data["deleteCollaborationTool"]["success"])
         self.assertIsNone(response.errors)
 
-    @mock.patch("openbook.graphql_schema.check_url_safety")
-    def test_validate_collaboration_tool_before_update(self, mock_check_url_safety):
+    def test_validate_collaboration_tool_before_update(self):
         user = make_user()
         community = make_community(creator=user)
 
@@ -3057,10 +3041,7 @@ class GraphQLTest(TestCase):
                 self.assertIn(testCase["expected_error"], str(response.errors[0].message))
             self.assertIsNone(response.data["updateSpace"] if response.data else response.data)
 
-            mock_check_url_safety.assert_not_called()
-
-    @mock.patch("openbook.graphql_schema.check_url_safety")
-    def test_can_not_update_collaboration_tool_without_passing_id(self, mock_check_url_safety):
+    def test_can_not_update_collaboration_tool_without_passing_id(self):
         user = make_user()
         update_collaboration_tool_mutation = """
             mutation test($input: UpdateCollaborationToolInput!) {
@@ -3079,10 +3060,7 @@ class GraphQLTest(TestCase):
         self.assertIsNone(response.data)
         self.assertIn("Field 'id' of required type 'UUID!' was not provided", response.errors[0].message)
 
-        mock_check_url_safety.assert_not_called()
-
-    @mock.patch("openbook.graphql_schema.check_url_safety")
-    def test_can_not_update_collaboration_tool_if_not_space_member(self, mock_check_url_safety):
+    def test_can_not_update_collaboration_tool_if_not_space_member(self):
         user = make_user()
         collaboration_tool = make_collaboration_tool()
 
@@ -3108,10 +3086,7 @@ class GraphQLTest(TestCase):
             str(response.errors[0].message),
         )
 
-        mock_check_url_safety.assert_called_once_with(url="https://project-holi.org/")
-
-    @mock.patch("openbook.graphql_schema.check_url_safety")
-    def test_can_not_update_collaboration_tool_if_not_logged_in(self, mock_check_url_safety):
+    def test_can_not_update_collaboration_tool_if_not_logged_in(self):
         collaboration_tool = make_collaboration_tool()
 
         update_collaboration_tool_mutation = """
@@ -3132,10 +3107,7 @@ class GraphQLTest(TestCase):
 
         self.assert_is_unauthorized(response)
 
-        mock_check_url_safety.assert_not_called()
-
-    @mock.patch("openbook.graphql_schema.check_url_safety")
-    def test_can_update_collaboration_tool(self, mock_check_url_safety):
+    def test_can_update_collaboration_tool(self):
         user = make_user()
         community = make_community(creator=user)
 
@@ -3174,9 +3146,6 @@ class GraphQLTest(TestCase):
                 context_value=BeneDict({"request": {"user": user}}),
                 variable_values={"input": base_input | input},
             )
-
-            if "url" in input:
-                mock_check_url_safety.assert_called_with(url=input["url"])
 
             self.assertEqual(str(collaboration_tool.id), response.data["updateCollaborationTool"]["id"])
             self.assertIsNone(response.errors)

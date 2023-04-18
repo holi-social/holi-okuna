@@ -101,9 +101,6 @@ def url_safety_validator(url: str):
 
     if threat_types:
         logger.debug(f"The link has the following threat types: {threat_types}")
-
-        # TODO: use ValidationError and let graphql_error_context_middleware handles it
-        raise GraphQLError(
-            "The link cannot be posted as it was detected as malicious",
-            extensions={"code": GraphQLErrorCodes.BAD_USER_INPUT},
+        raise ValidationError(
+            _("The link cannot be posted as it was detected as malicious"),
         )
