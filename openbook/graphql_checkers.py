@@ -12,9 +12,9 @@ ENVIRONMENT_ID = settings.ENVIRONMENT_ID
 
 
 def check_url_safety(url: str):
-    if ENVIRONMENT_ID == 'local':
+    if ENVIRONMENT_ID == "local":
         return
-    
+
     webrisk_client = WebRiskServiceClient()
 
     request = SearchUrisRequest()
@@ -30,8 +30,8 @@ def check_url_safety(url: str):
     threat_types = response.threat.threat_types
 
     if threat_types:
-        logger.debug(f"The URL has the following threat types: {threat_types}")
+        logger.debug(f"The link has the following threat types: {threat_types}")
         raise GraphQLError(
-            "The URL cannot be posted as it was detected as malicious",
+            "The link cannot be posted as it was detected as malicious",
             extensions={"code": GraphQLErrorCodes.BAD_USER_INPUT, "field": "url"},
         )
