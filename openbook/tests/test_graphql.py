@@ -2677,7 +2677,7 @@ class GraphQLTest(TestCase):
         self.assertTrue(response.data["deleteSpace"]["success"])
         self.assertIsNone(response.errors)
 
-    @mock.patch("openbook_auth.models.check_url_safety")
+    @mock.patch("openbook.graphql_schema.check_url_safety")
     def test_can_not_add_collaboration_tool_missing_required_fields(self, mock_check_url_safety):
         user = make_user()
 
@@ -2724,7 +2724,7 @@ class GraphQLTest(TestCase):
 
             mock_check_url_safety.assert_not_called()
 
-    @mock.patch("openbook_auth.models.check_url_safety")
+    @mock.patch("openbook.graphql_schema.check_url_safety")
     def test_validates_collaboration_tool_before_creation(self, mock_check_url_safety):
         user = make_user()
 
@@ -2785,7 +2785,7 @@ class GraphQLTest(TestCase):
 
             mock_check_url_safety.assert_not_called()
 
-    @mock.patch("openbook_auth.models.check_url_safety")
+    @mock.patch("openbook.graphql_schema.check_url_safety")
     def test_can_add_collaboration_tool(self, mock_check_url_safety):
         user = make_user()
 
@@ -2838,7 +2838,7 @@ class GraphQLTest(TestCase):
 
         mock_check_url_safety.assert_called_once_with(url=valid_url)
 
-    @mock.patch("openbook_auth.models.check_url_safety")
+    @mock.patch("openbook.graphql_schema.check_url_safety")
     def test_can_not_add_collaboration_tool_if_not_logged_in(self, mock_check_url_safety):
         community = make_community()
         add_collaboration_tool_mutation = """
@@ -2872,7 +2872,7 @@ class GraphQLTest(TestCase):
 
         mock_check_url_safety.assert_not_called()
 
-    @mock.patch("openbook_auth.models.check_url_safety")
+    @mock.patch("openbook.graphql_schema.check_url_safety")
     def test_can_not_add_collaboration_tool_if_not_space_member(self, mock_check_url_safety):
         user = make_user()
         community = make_community()
@@ -2910,7 +2910,7 @@ class GraphQLTest(TestCase):
             "You cannot add a collaboration tool to a community you are not a member of", response.errors[0].message
         )
 
-        mock_check_url_safety.assert_not_called()
+        mock_check_url_safety.assert_called_once_with(url=valid_url)
 
     def test_can_not_delete_collaboration_tool_if_not_logged_in(self):
         collaboration_tool = make_collaboration_tool()
@@ -3002,7 +3002,7 @@ class GraphQLTest(TestCase):
         self.assertTrue(response.data["deleteCollaborationTool"]["success"])
         self.assertIsNone(response.errors)
 
-    @mock.patch("openbook_auth.models.check_url_safety")
+    @mock.patch("openbook.graphql_schema.check_url_safety")
     def test_validate_collaboration_tool_before_update(self, mock_check_url_safety):
         user = make_user()
         community = make_community(creator=user)
@@ -3059,7 +3059,7 @@ class GraphQLTest(TestCase):
 
             mock_check_url_safety.assert_not_called()
 
-    @mock.patch("openbook_auth.models.check_url_safety")
+    @mock.patch("openbook.graphql_schema.check_url_safety")
     def test_can_not_update_collaboration_tool_without_passing_id(self, mock_check_url_safety):
         user = make_user()
         update_collaboration_tool_mutation = """
@@ -3081,7 +3081,7 @@ class GraphQLTest(TestCase):
 
         mock_check_url_safety.assert_not_called()
 
-    @mock.patch("openbook_auth.models.check_url_safety")
+    @mock.patch("openbook.graphql_schema.check_url_safety")
     def test_can_not_update_collaboration_tool_if_not_space_member(self, mock_check_url_safety):
         user = make_user()
         collaboration_tool = make_collaboration_tool()
@@ -3108,9 +3108,9 @@ class GraphQLTest(TestCase):
             str(response.errors[0].message),
         )
 
-        mock_check_url_safety.assert_not_called()
+        mock_check_url_safety.assert_called_once_with(url="https://project-holi.org/")
 
-    @mock.patch("openbook_auth.models.check_url_safety")
+    @mock.patch("openbook.graphql_schema.check_url_safety")
     def test_can_not_update_collaboration_tool_if_not_logged_in(self, mock_check_url_safety):
         collaboration_tool = make_collaboration_tool()
 
@@ -3134,7 +3134,7 @@ class GraphQLTest(TestCase):
 
         mock_check_url_safety.assert_not_called()
 
-    @mock.patch("openbook_auth.models.check_url_safety")
+    @mock.patch("openbook.graphql_schema.check_url_safety")
     def test_can_update_collaboration_tool(self, mock_check_url_safety):
         user = make_user()
         community = make_community(creator=user)
