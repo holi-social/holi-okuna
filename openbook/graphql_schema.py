@@ -1055,6 +1055,8 @@ class Mutation:
                 description=data.get("description"),
                 collection_type=data.get("collection_type"),
             )
+
+        # TODO: Once the graphql_error_context_middleware is reintroduced, consider removing the try/except block.
         except ValidationError as error:
             raise GraphQLError(
                 error.detail,
@@ -1080,6 +1082,8 @@ class Mutation:
                 description=data.get("description"),
                 collection_type=data.get("collection_type"),
             )
+
+        # TODO: Once the graphql_error_context_middleware is reintroduced, consider removing the try/except block.
         except ValidationError as error:
             raise GraphQLError(
                 error.detail,
