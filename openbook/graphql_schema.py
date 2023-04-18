@@ -9,7 +9,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.contrib.gis import geos
 from django.db import Error, transaction
-from django.db.models import Count, F, Value
+from django.db.models import Count, F, Value, Prefetch
 from django.db.models.functions import Concat
 from django.db.models.lookups import IContains
 from django.utils.translation import gettext_lazy as _
@@ -465,10 +465,31 @@ class Query:
         description="idOrName can either be the space id or name (slug). If none of them is found, an error with the message 'Space not found' is thrown."
     )
     def space_by_id(self, info, id_or_name: str) -> Optional[Space]:
+        user = info.context.request.user
+
+        # check if current user is member of the community to filter out members-only tasks
+        is_member = False
+        is_anonymous = user.is_anonymous
+
+        if not is_anonymous and is_uuid(id_or_name):
+            is_member = user.is_member_of_community_with_id(community_id=id_or_name)
+        elif not is_anonymous:
+            is_member = user.is_member_of_community_with_name(community_name=id_or_name)
+
         query = Q(id=uuid.UUID(id_or_name)) if is_uuid(id_or_name) else Q(name=id_or_name)
+
+        tasks_query = Q()
+
+        if not is_member:
+            tasks_query.add(Q(visibility="PUBLIC"), Q.AND)
+
         try:
             return (
-                CommunityModel.objects.prefetch_related("links", "memberships__user__profile", "tasks")
+                CommunityModel.objects.prefetch_related(
+                    "links",
+                    "memberships__user__profile",
+                    Prefetch("tasks", queryset=TaskModel.objects.filter(tasks_query)),
+                )
                 .filter(
                     ModeratedObject.not_moderated_query(
                         info.context.request.user, ModeratedObject.OBJECT_TYPE_COMMUNITY
