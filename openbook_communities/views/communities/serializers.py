@@ -7,7 +7,7 @@ from openbook_categories.validators import category_name_exists
 from openbook_common.serializers import CommonCommunityMembershipSerializer, PointSerializer
 from openbook_common.serializers_fields.community import CommunityPostsCountField
 from openbook_common.serializers_fields.request import RestrictedImageFileSizeField
-from openbook_common.validators import hex_color_validator
+from openbook_common.validators import hex_color_validator, url_safety_validator
 from openbook_communities.models import CollaborationTool, Community, Task, VisibilityType
 from openbook_communities.serializers_fields import (
     IsInvitedField,
@@ -285,6 +285,7 @@ class AddCollaborationToolSerializer(serializers.Serializer):
     )
     url = serializers.URLField(
         max_length=settings.COLLABORATION_TOOL_URL_MAX_LENGTH,
+        validators=[url_safety_validator],
         required=True,
     )
     title = serializers.CharField(
@@ -309,6 +310,7 @@ class UpdateCollaborationToolSerializer(serializers.Serializer):
     )
     url = serializers.URLField(
         max_length=settings.COLLABORATION_TOOL_URL_MAX_LENGTH,
+        validators=[url_safety_validator],
         required=False,
     )
     title = serializers.CharField(

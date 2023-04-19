@@ -2,6 +2,7 @@ import re
 
 from rest_framework.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+from openbook.graphql_errors import GraphQLErrorCodes
 
 from openbook_common.types import ReactionType
 from openbook_common.utils.model_loaders import (
@@ -9,6 +10,16 @@ from openbook_common.utils.model_loaders import (
     get_emoji_group_model,
     get_language_model,
 )
+
+from graphql import GraphQLError
+from openbook import settings
+
+from google.cloud.webrisk_v1 import WebRiskServiceClient, SearchUrisRequest, ThreatType
+import structlog
+
+logger = structlog.getLogger(__name__)
+
+ENVIRONMENT_ID = settings.ENVIRONMENT_ID
 
 
 def is_valid_hex_color(hex_color):
@@ -67,4 +78,29 @@ def language_code_exists(language_code):
     if not Language.objects.filter(code=language_code).exists():
         raise ValidationError(
             _("No supported language with the provided code exists."),
+        )
+
+
+def url_safety_validator(url: str):
+    if ENVIRONMENT_ID == "local":
+        return
+
+    webrisk_client = WebRiskServiceClient()
+
+    request = SearchUrisRequest()
+    request.uri = url
+    request.threat_types = [
+        ThreatType.MALWARE,
+        ThreatType.SOCIAL_ENGINEERING,
+        ThreatType.SOCIAL_ENGINEERING_EXTENDED_COVERAGE,
+        ThreatType.UNWANTED_SOFTWARE,
+    ]
+
+    response = webrisk_client.search_uris(request)
+    threat_types = response.threat.threat_types
+
+    if threat_types:
+        logger.debug(f"The link has the following threat types: {threat_types}")
+        raise ValidationError(
+            _("The link cannot be posted as it was detected as malicious"),
         )
