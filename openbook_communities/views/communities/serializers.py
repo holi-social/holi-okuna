@@ -297,9 +297,15 @@ class AddCollaborationToolSerializer(serializers.Serializer):
         min_length=settings.COLLABORATION_TOOL_DESCRIPTION_MIN_LENGTH,
         max_length=settings.COLLABORATION_TOOL_DESCRIPTION_MAX_LENGTH,
         required=False,
+        allow_blank=True,
     )
     collection_type = serializers.ChoiceField(
         allow_blank=False, required=False, choices=CollaborationTool.CollectionType.choices
+    )
+    thumbnail = RestrictedImageFileSizeField(
+        allow_empty_file=False,
+        required=False,
+        max_upload_size=settings.TASK_THUMBNAIL_MAX_SIZE,
     )
 
 
@@ -322,8 +328,14 @@ class UpdateCollaborationToolSerializer(serializers.Serializer):
         min_length=settings.COLLABORATION_TOOL_DESCRIPTION_MIN_LENGTH,
         max_length=settings.COLLABORATION_TOOL_DESCRIPTION_MAX_LENGTH,
         required=False,
+        allow_blank=True,
     )
     collection_type = serializers.ChoiceField(required=False, choices=CollaborationTool.CollectionType.choices)
+    thumbnail = RestrictedImageFileSizeField(
+        allow_empty_file=False,
+        required=False,
+        max_upload_size=settings.TASK_THUMBNAIL_MAX_SIZE,
+    )
 
 
 class CreateTaskSerializer(serializers.Serializer):

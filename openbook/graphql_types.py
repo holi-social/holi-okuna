@@ -276,6 +276,7 @@ class CollaborationTool:
     description: gql.auto
     collection_type: CollectionType
     domain: gql.auto
+    thumbnail: Optional[str]
 
 
 @gql.django.type(TaskModel)

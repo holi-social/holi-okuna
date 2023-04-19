@@ -677,6 +677,7 @@ class AddCollaborationToolInput:
     title: str
     description: Optional[str] = strawberry.UNSET
     collection_type: CollectionType
+    thumbnail: Optional[Upload] = strawberry.UNSET
 
 
 @gql.input
@@ -686,6 +687,7 @@ class UpdateCollaborationToolInput:
     title: Optional[str] = strawberry.UNSET
     description: Optional[str] = strawberry.UNSET
     collection_type: Optional[CollectionType] = strawberry.UNSET
+    thumbnail: Optional[Upload] = strawberry.UNSET
 
 
 @gql.type
@@ -1083,6 +1085,7 @@ class Mutation:
                 title=data.get("title"),
                 description=data.get("description"),
                 collection_type=data.get("collection_type"),
+                thumbnail=data.get("thumbnail"),
             )
 
         # TODO: Once the graphql_error_context_middleware is reintroduced, consider removing the try/except block.
@@ -1110,6 +1113,7 @@ class Mutation:
                 title=data.get("title"),
                 description=data.get("description"),
                 collection_type=data.get("collection_type"),
+                thumbnail=data.get("thumbnail"),
             )
 
         # TODO: Once the graphql_error_context_middleware is reintroduced, consider removing the try/except block.
