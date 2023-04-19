@@ -4652,6 +4652,7 @@ class User(ModelWithUUID, AbstractUser):
         title,
         collection_type,
         description=None,
+        thumbnail=None,
     ):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
@@ -4666,6 +4667,7 @@ class User(ModelWithUUID, AbstractUser):
             title=title,
             collection_type=collection_type,
             description=description,
+            thumbnail=thumbnail,
         )
 
         return collaboration_tool
@@ -4677,6 +4679,7 @@ class User(ModelWithUUID, AbstractUser):
         title=None,
         collection_type=None,
         description=None,
+        thumbnail=None,
     ):
         CollaborationTool = get_collaboration_tool_model()
         collaboration_tool = CollaborationTool.objects.get(id=collaboration_tool_id)
@@ -4688,6 +4691,7 @@ class User(ModelWithUUID, AbstractUser):
             title=title,
             collection_type=collection_type,
             description=description,
+            thumbnail=thumbnail,
         )
 
         return collaboration_tool

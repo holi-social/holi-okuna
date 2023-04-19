@@ -1239,6 +1239,22 @@ class CollaborationTool(ModelWithUUID):
         null=False,
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    thumbnail = ProcessedImageField(
+        storage=community_task_image_storage,
+        verbose_name=_("thumbnail"),
+        blank=True,
+        null=True,
+        upload_to=upload_to_community_task_thumbnail_directory,
+        processors=[
+            ExifRotate(),
+            ResizeToFit(
+                width=settings.CONTENT_IMAGE_MAX_DIMENSION,
+                height=settings.CONTENT_IMAGE_MAX_DIMENSION,
+                upscale=False,
+            ),
+        ],
+        max_length=settings.IMAGE_URL_MAX_LENGTH,
+    )
 
     def update(
         self,
@@ -1246,6 +1262,7 @@ class CollaborationTool(ModelWithUUID):
         title=None,
         description=None,
         collection_type=None,
+        thumbnail=None,
     ):
         if url is not None:
             self.url = url
@@ -1260,6 +1277,9 @@ class CollaborationTool(ModelWithUUID):
         if collection_type is not None:
             self.collection_type = collection_type
 
+        if thumbnail is not None:
+            self.thumbnail = thumbnail
+
         self.save()
 
     @classmethod
@@ -1271,6 +1291,7 @@ class CollaborationTool(ModelWithUUID):
         title,
         collection_type,
         description=None,
+        thumbnail=None,
     ):
         collaboration_tool = cls.objects.create(
             creator=creator,
@@ -1280,6 +1301,7 @@ class CollaborationTool(ModelWithUUID):
             title=title,
             collection_type=collection_type,
             description=description,
+            thumbnail=thumbnail,
         )
 
         collaboration_tool.save()
