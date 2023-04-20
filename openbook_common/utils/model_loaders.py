@@ -137,6 +137,14 @@ def get_community_membership_request_notification_model():
     return apps.get_model("openbook_notifications.CommunityMembershipRequestNotification")
 
 
+def get_community_admin_privileges_granted_notification_model():
+    return apps.get_model("openbook_notifications.CommunityAdminPrivilegesGrantedNotification")
+
+
+def get_community_admin_privileges_revoked_notification_model():
+    return apps.get_model("openbook_notifications.CommunityAdminPrivilegesRevokedNotification")
+
+
 def get_post_comment_notification_model():
     return apps.get_model("openbook_notifications.PostCommentNotification")
 

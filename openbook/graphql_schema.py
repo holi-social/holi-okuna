@@ -1,6 +1,9 @@
 import hashlib
 from collections import defaultdict
 from datetime import datetime, timedelta
+import json
+
+from rest_framework.exceptions import ValidationError
 
 import requests
 import structlog
@@ -9,7 +12,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.contrib.gis import geos
 from django.db import Error, transaction
-from django.db.models import Count, F, Value
+from django.db.models import Count, F, Value, Prefetch
 from django.db.models.functions import Concat
 from django.db.models.lookups import IContains
 from django.utils.translation import gettext_lazy as _
@@ -56,6 +59,8 @@ PUBLISHED_NOTIFICATION_TYPES = [
     NotificationModel.CONNECTION_CONFIRMED,
     NotificationModel.COMMUNITY_MEMBERSHIP_REQUEST,
     NotificationModel.COMMUNITY_MEMBERSHIP_APPROVED,
+    NotificationModel.COMMUNITY_ADMIN_PRIVILEGES_GRANTED,
+    NotificationModel.COMMUNITY_ADMIN_PRIVILEGES_REVOKED,
     NotificationModel.COMMUNITY_NEW_POST,
     NotificationModel.POST_COMMENT_USER_MENTION,
     NotificationModel.RELEASE_INFO,
@@ -463,10 +468,31 @@ class Query:
         description="idOrName can either be the space id or name (slug). If none of them is found, an error with the message 'Space not found' is thrown."
     )
     def space_by_id(self, info, id_or_name: str) -> Optional[Space]:
+        user = info.context.request.user
+
+        # check if current user is member of the community to filter out members-only tasks
+        is_member = False
+        is_anonymous = user.is_anonymous
+
+        if not is_anonymous and is_uuid(id_or_name):
+            is_member = user.is_member_of_community_with_id(community_id=id_or_name)
+        elif not is_anonymous:
+            is_member = user.is_member_of_community_with_name(community_name=id_or_name)
+
         query = Q(id=uuid.UUID(id_or_name)) if is_uuid(id_or_name) else Q(name=id_or_name)
+
+        tasks_query = Q()
+
+        if not is_member:
+            tasks_query.add(Q(visibility="PUBLIC"), Q.AND)
+
         try:
             return (
-                CommunityModel.objects.prefetch_related("links", "memberships__user__profile", "tasks")
+                CommunityModel.objects.prefetch_related(
+                    "links",
+                    "memberships__user__profile",
+                    Prefetch("tasks", queryset=TaskModel.objects.filter(tasks_query)),
+                )
                 .filter(
                     ModeratedObject.not_moderated_query(
                         info.context.request.user, ModeratedObject.OBJECT_TYPE_COMMUNITY
@@ -651,6 +677,7 @@ class AddCollaborationToolInput:
     title: str
     description: Optional[str] = strawberry.UNSET
     collection_type: CollectionType
+    thumbnail: Optional[Upload] = strawberry.UNSET
 
 
 @gql.input
@@ -660,6 +687,7 @@ class UpdateCollaborationToolInput:
     title: Optional[str] = strawberry.UNSET
     description: Optional[str] = strawberry.UNSET
     collection_type: Optional[CollectionType] = strawberry.UNSET
+    thumbnail: Optional[Upload] = strawberry.UNSET
 
 
 @gql.type
@@ -712,7 +740,7 @@ class Mutation:
             raise
 
         if input.first_name or input.last_name:
-            update_ory_user.delay(current_user.id)
+            update_ory_user(current_user.id)
             if current_user.is_member_of_communities():
                 publish_user_name_updated_event(user=current_user)
 
@@ -811,6 +839,12 @@ class Mutation:
                     publish_space_user_added_event(username=str(user_id), community=space)
 
                     return space
+                case (cT.ADMINISTRATOR, a.GRANT_ADMIN_ACCESS):
+                    return current_user.add_administrator_with_username_to_community_with_name(user_id, space.name)
+                case (cT.ADMINISTRATOR, a.REVOKE_ADMIN_ACCESS):
+                    return current_user.remove_administrator_with_username_from_community_with_name(
+                        user_id, space.name
+                    )
                 case _:
                     raise GraphQLError(
                         "Operation not allowed",
@@ -1038,35 +1072,59 @@ class Mutation:
 
     @gql.mutation
     def add_collaboration_tool(self, info, input: AddCollaborationToolInput) -> CollaborationTool:
-        current_user = verify_authorized_user(info)
+        try:
+            current_user = verify_authorized_user(info)
 
-        serializer = AddCollaborationToolSerializer(data=to_input_dict(input))
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
+            serializer = AddCollaborationToolSerializer(data=to_input_dict(input))
+            serializer.is_valid(raise_exception=True)
+            data = serializer.validated_data
 
-        return current_user.add_collaboration_tool(
-            space_id=data.get("space_id"),
-            url=data.get("url"),
-            title=data.get("title"),
-            description=data.get("description"),
-            collection_type=data.get("collection_type"),
-        )
+            return current_user.add_collaboration_tool(
+                space_id=data.get("space_id"),
+                url=data.get("url"),
+                title=data.get("title"),
+                description=data.get("description"),
+                collection_type=data.get("collection_type"),
+                thumbnail=data.get("thumbnail"),
+            )
+
+        # TODO: Once the graphql_error_context_middleware is reintroduced, consider removing the try/except block.
+        except ValidationError as error:
+            raise GraphQLError(
+                error.detail,
+                extensions={
+                    "code": GraphQLErrorCodes.BAD_USER_INPUT,
+                    "errors": json.dumps(error.get_full_details()),
+                },
+            )
 
     @gql.mutation
     def update_collaboration_tool(self, info, input: UpdateCollaborationToolInput) -> CollaborationTool:
-        current_user = verify_authorized_user(info)
+        try:
+            current_user = verify_authorized_user(info)
 
-        serializer = UpdateCollaborationToolSerializer(data=to_input_dict(input))
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
+            serializer = UpdateCollaborationToolSerializer(data=to_input_dict(input))
+            serializer.is_valid(raise_exception=True)
+            data = serializer.validated_data
 
-        return current_user.update_collaboration_tool(
-            collaboration_tool_id=data.get("id"),
-            url=data.get("url"),
-            title=data.get("title"),
-            description=data.get("description"),
-            collection_type=data.get("collection_type"),
-        )
+            return current_user.update_collaboration_tool(
+                collaboration_tool_id=data.get("id"),
+                url=data.get("url"),
+                title=data.get("title"),
+                description=data.get("description"),
+                collection_type=data.get("collection_type"),
+                thumbnail=data.get("thumbnail"),
+            )
+
+        # TODO: Once the graphql_error_context_middleware is reintroduced, consider removing the try/except block.
+        except ValidationError as error:
+            raise GraphQLError(
+                error.detail,
+                extensions={
+                    "code": GraphQLErrorCodes.BAD_USER_INPUT,
+                    "errors": json.dumps(error.get_full_details()),
+                },
+            )
 
     @gql.mutation
     def delete_collaboration_tool(self, info, id: uuid.UUID) -> Result:

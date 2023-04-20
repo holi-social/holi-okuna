@@ -63,6 +63,8 @@ class Paged(List[GenericType]):
 class UpdateConnectionAction(Enum):
     CONNECT = "CONNECT"
     DISCONNECT = "DISCONNECT"
+    GRANT_ADMIN_ACCESS = "GRANT_ADMIN_ACCESS"
+    REVOKE_ADMIN_ACCESS = "REVOKE_ADMIN_ACCESS"
 
 
 @gql.enum
@@ -119,6 +121,8 @@ class NotificationType(Enum):
     FRA = strawberry.enum_value("FRA", description="FOLLOW_REQUEST_APPROVED")
     CMR = strawberry.enum_value("CMR", description="COMMUNITY_MEMBERSHIP_REQUEST")
     CMRA = strawberry.enum_value("CMRA", description="COMMUNITY_MEMBERSHIP_APPROVED")
+    CAPG = strawberry.enum_value("CAPG", description="COMMUNITY_ADMIN_PRIVILEGES_GRANTED")
+    CAPR = strawberry.enum_value("CAPR", description="COMMUNITY_ADMIN_PRIVILEGES_REVOKED")
     CI = strawberry.enum_value("CI", description="COMMUNITY_INVITE")
     PUM = strawberry.enum_value("PUM", description="POST_USER_MENTION")
     PCUM = strawberry.enum_value("PCUM", description="POST_COMMENT_USER_MENTION")
@@ -272,6 +276,7 @@ class CollaborationTool:
     description: gql.auto
     collection_type: CollectionType
     domain: gql.auto
+    thumbnail: Optional[str]
 
 
 @gql.django.type(TaskModel)
@@ -512,7 +517,7 @@ class Space:
         self, info, offset: int = 0, limit: int = 10, visibility: VisibilityFilter = VisibilityFilter.ALL
     ) -> Paged[Post]:
         current_user: UserModel = info.context.request.user
-        query = PostModel.objects.filter(community=self)
+        query = PostModel.objects.filter(PostModel.is_visible_query(current_user), community=self)
         if (
             current_user.is_anonymous
             or not CommunityMembershipModel.objects.filter(community=self, user=current_user).exists()
