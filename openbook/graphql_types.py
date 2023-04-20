@@ -517,7 +517,7 @@ class Space:
         self, info, offset: int = 0, limit: int = 10, visibility: VisibilityFilter = VisibilityFilter.ALL
     ) -> Paged[Post]:
         current_user: UserModel = info.context.request.user
-        query = PostModel.objects.filter(community=self)
+        query = PostModel.objects.filter(PostModel.is_visible_query(current_user), community=self)
         if (
             current_user.is_anonymous
             or not CommunityMembershipModel.objects.filter(community=self, user=current_user).exists()
