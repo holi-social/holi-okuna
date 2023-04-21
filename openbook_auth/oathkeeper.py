@@ -43,9 +43,11 @@ class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
                         are_guidelines_accepted=True,
                     )
                 except Exception as ex:
-                    if isinstance(ex, ValidationError):
-                        raise exceptions.AuthenticationFailed(next(iter(ex.messages), "authentication failed"))
-                    raise exceptions.AuthenticationFailed(str(ex))  # return AnonymousUser(), None
+                    # when we can't create the user, the app stays most functional if we just continue anonymously
+                    return AnonymousUser(), None
+                    # if isinstance(ex, ValidationError):
+                    #     raise exceptions.AuthenticationFailed(next(iter(ex.messages), "authentication failed"))
+                    # raise exceptions.AuthenticationFailed(str(ex))  # return AnonymousUser(), None
 
         if not user.is_active:
             msg = _("User account is disabled.")
