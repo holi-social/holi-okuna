@@ -2,6 +2,7 @@ import json
 
 from graphql import GraphQLError
 from rest_framework.exceptions import ValidationError
+from djangorestframework_camel_case.util import camelize
 
 from openbook.graphql_errors import GraphQLErrorCodes
 
@@ -18,6 +19,6 @@ class GraphQLErrorExtension(Extension):
                 "Bad user input",
                 extensions={
                     "code": GraphQLErrorCodes.BAD_USER_INPUT,
-                    "errors": json.dumps(error.get_full_details()),
+                    "errors": json.dumps(camelize(error.get_full_details())),
                 },
             )
