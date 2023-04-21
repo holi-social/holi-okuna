@@ -50,6 +50,7 @@ from openbook_posts.views.posts.serializers import (
     CreatePostSerializer,
     CreateCommunityPostSerializer,
 )
+from openbook.middleware.graphql_error_extension import GraphQLErrorExtension
 
 from .graphql_types import *
 
@@ -1072,59 +1073,37 @@ class Mutation:
 
     @gql.mutation
     def add_collaboration_tool(self, info, input: AddCollaborationToolInput) -> CollaborationTool:
-        try:
-            current_user = verify_authorized_user(info)
+        current_user = verify_authorized_user(info)
 
-            serializer = AddCollaborationToolSerializer(data=to_input_dict(input))
-            serializer.is_valid(raise_exception=True)
-            data = serializer.validated_data
+        serializer = AddCollaborationToolSerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
 
-            return current_user.add_collaboration_tool(
-                space_id=data.get("space_id"),
-                url=data.get("url"),
-                title=data.get("title"),
-                description=data.get("description"),
-                collection_type=data.get("collection_type"),
-                thumbnail=data.get("thumbnail"),
-            )
-
-        # TODO: Once the graphql_error_context_middleware is reintroduced, consider removing the try/except block.
-        except ValidationError as error:
-            raise GraphQLError(
-                error.detail,
-                extensions={
-                    "code": GraphQLErrorCodes.BAD_USER_INPUT,
-                    "errors": json.dumps(error.get_full_details()),
-                },
-            )
+        return current_user.add_collaboration_tool(
+            space_id=data.get("space_id"),
+            url=data.get("url"),
+            title=data.get("title"),
+            description=data.get("description"),
+            collection_type=data.get("collection_type"),
+            thumbnail=data.get("thumbnail"),
+        )
 
     @gql.mutation
     def update_collaboration_tool(self, info, input: UpdateCollaborationToolInput) -> CollaborationTool:
-        try:
-            current_user = verify_authorized_user(info)
+        current_user = verify_authorized_user(info)
 
-            serializer = UpdateCollaborationToolSerializer(data=to_input_dict(input))
-            serializer.is_valid(raise_exception=True)
-            data = serializer.validated_data
+        serializer = UpdateCollaborationToolSerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
 
-            return current_user.update_collaboration_tool(
-                collaboration_tool_id=data.get("id"),
-                url=data.get("url"),
-                title=data.get("title"),
-                description=data.get("description"),
-                collection_type=data.get("collection_type"),
-                thumbnail=data.get("thumbnail"),
-            )
-
-        # TODO: Once the graphql_error_context_middleware is reintroduced, consider removing the try/except block.
-        except ValidationError as error:
-            raise GraphQLError(
-                error.detail,
-                extensions={
-                    "code": GraphQLErrorCodes.BAD_USER_INPUT,
-                    "errors": json.dumps(error.get_full_details()),
-                },
-            )
+        return current_user.update_collaboration_tool(
+            collaboration_tool_id=data.get("id"),
+            url=data.get("url"),
+            title=data.get("title"),
+            description=data.get("description"),
+            collection_type=data.get("collection_type"),
+            thumbnail=data.get("thumbnail"),
+        )
 
     @gql.mutation
     def delete_collaboration_tool(self, info, id: uuid.UUID) -> Result:
@@ -1143,5 +1122,6 @@ schema = strawberry.Schema(
     mutation=Mutation,
     extensions=[
         DjangoOptimizerExtension,
+        GraphQLErrorExtension,
     ],
 )
