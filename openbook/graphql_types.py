@@ -102,6 +102,19 @@ class Geolocation:
 
 
 @gql.type
+class Geolocation:
+    longitude: float
+    latitude: float
+
+    @staticmethod
+    def from_point(point):
+        if not point:
+            return None
+
+        return Geolocation(longitude=point.x, latitude=point.y)
+
+
+@gql.type
 class Reaction:
     type: ReactionType
     count: int

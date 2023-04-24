@@ -1,5 +1,7 @@
 from django.conf import settings
 from rest_framework import serializers
+from rest_framework_gis.serializers import GeoFeatureModelSerializer
+from django.contrib.gis.db.models import MultiPolygonField
 
 from openbook_auth.models import User, UserProfile
 from openbook_circles.models import Circle
@@ -257,3 +259,11 @@ class ProxyDomainCheckSerializer(serializers.Serializer):
 class PointSerializer(serializers.Serializer):
     longitude = serializers.FloatField()
     latitude = serializers.FloatField()
+
+
+class MultiPolygonSerializer(GeoFeatureModelSerializer):
+    geolocation = MultiPolygonField()
+
+    class Meta:
+        model = UserProfile
+        geo_field = "geolocation"

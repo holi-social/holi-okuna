@@ -2,6 +2,7 @@ import hashlib
 from collections import defaultdict
 from datetime import datetime, timedelta
 import json
+from typing import Tuple
 
 from rest_framework.exceptions import ValidationError
 
@@ -47,7 +48,6 @@ from openbook_moderation.models import ModeratedObject
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
 from openbook_common.utils.helpers import is_uuid
 from openbook_posts.views.posts.serializers import (
-    CreatePostSerializer,
     CreateCommunityPostSerializer,
 )
 
@@ -83,6 +83,7 @@ def spaces_for_filter(
     limit: int,
     topic_id: Optional[uuid.UUID] = None,
     location: Optional[str] = None,
+    geolocation: Optional[geos.MultiPolygon] = None,
     skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
     topic_slug: Optional[str] = None,
     skill_slugs: Optional[List[Optional[str]]] = None,
@@ -93,6 +94,8 @@ def spaces_for_filter(
         query.add(Q(topics__id__contains=topic_id), Q.AND)
     if location is not None:
         query.add(Q(location__icontains=location), Q.AND)
+    if geolocation is not None:
+        query.add(Q(geolocation__within=geolocation), Q.AND)
     if skill_ids:
         query.add(Q(tasks__skills__id__in=skill_ids), Q.AND)
     if topic_slug is not None:
@@ -326,12 +329,20 @@ class Query:
     @gql.django.field
     def discover_spaces(
         self,
+        info,
         topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
         location: Optional[str] = None,
         skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
         offset: int = 0,
         limit: int = 10,
     ) -> List[Optional[DiscoverSpaces]]:
+
+        current_user: UserModel = info.context.request.user
+        geolocation = (
+            current_user.profile.geolocation
+            if current_user.is_anonymous and current_user.profile.geolocation is not None
+            else None
+        )
 
         # Inner utility function for generating a unique cache key consisting of
         # prefix and SHA-256 hash of the discover spaces filters
@@ -340,6 +351,9 @@ class Query:
             key_prefix = "discover_spaces"
 
             key_parts = []
+
+            if geolocation is not None:
+                key_parts.append(geolocation)
 
             if location is not None:
                 key_parts.append(location)
@@ -370,6 +384,19 @@ class Query:
         if hash_key in cache:
             return cache.get(hash_key)
         else:
+            # get all spaces by geolocation (independent of other filters)
+            if geolocation is not None:
+                result.append(
+                    DiscoverSpaces(
+                        location=location,
+                        spaces=spaces_for_filter(
+                            offset=offset,
+                            limit=limit,
+                            geolocation=geolocation,
+                        ),
+                    )
+                )
+
             # get all spaces by location (independent of other filters)
             if location is not None:
                 result.append(
@@ -563,7 +590,7 @@ def to_input_dict(input):
 
 
 @gql.input
-class GeolocationInput:
+class GeolocationPointInput:
     latitude: float
     longitude: float
 
@@ -578,6 +605,33 @@ class GeolocationInput:
 
 
 @gql.input
+class GeolocationMultiPolygonInput:
+    coordinates: List[List[List[Tuple[float, float]]]]
+
+    @staticmethod
+    def to_multipolygon(geolocation_input):
+        if geolocation_input is None:
+            return None
+
+        coordinates = []
+        for polygon_coords in geolocation_input.get("coordinates"):
+            exterior_ring = []
+            for coord in polygon_coords[0]:
+                longitude, latitude = coord
+                exterior_ring.append((longitude, latitude))
+            interior_rings = []
+            for interior_ring_coords in polygon_coords[1:]:
+                interior_ring = []
+                for coord in interior_ring_coords:
+                    longitude, latitude = coord
+                    interior_ring.append((longitude, latitude))
+                interior_rings.append(interior_ring)
+            polygon = (exterior_ring, interior_rings)
+            coordinates.append(polygon)
+        return geos.MultiPolygon(coordinates)
+
+
+@gql.input
 class UpdateAuthenticatedUserInput:
     avatar: Optional[Upload] = strawberry.UNSET
     first_name: Optional[str] = strawberry.UNSET
@@ -585,7 +639,7 @@ class UpdateAuthenticatedUserInput:
     about_me: Optional[str] = strawberry.UNSET
     pronouns: Optional[str] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
-    geolocation: Optional[GeolocationInput] = strawberry.UNSET
+    geolocation: Optional[GeolocationMultiPolygonInput] = strawberry.UNSET
     engagement_level: Optional[str] = strawberry.UNSET
     interests: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
@@ -638,7 +692,7 @@ class UpdateSpaceInput:
     avatar: Optional[Upload] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
-    geolocation: Optional[GeolocationInput] = strawberry.UNSET
+    geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     contact_description: Optional[str] = strawberry.UNSET
     contact_email: Optional[str] = strawberry.UNSET
     contact_phone: Optional[str] = strawberry.UNSET
@@ -666,7 +720,7 @@ class CreateTaskInput:
     thumbnail: Optional[Upload] = strawberry.UNSET
     skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
-    geolocation: Optional[GeolocationInput] = strawberry.UNSET
+    geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     contact_phone: Optional[str] = strawberry.UNSET
 
 
@@ -723,7 +777,7 @@ class Mutation:
                 about_me=data.get("about_me"),
                 pronouns=data.get("pronouns"),
                 location=data.get("location"),
-                geolocation=(GeolocationInput.to_point(data.get("geolocation"))),
+                geolocation=(GeolocationMultiPolygonInput.to_multipolygon(data.get("geolocation"))),
                 engagement_level=data.get("engagement_level"),
                 interests=data.get("interests"),
                 sdgs=data.get("sdgs"),
@@ -981,7 +1035,7 @@ class Mutation:
             avatar=data.get("avatar"),
             sdg_ids=data.get("sdgs"),
             location=data.get("location"),
-            geolocation=(GeolocationInput.to_point(data.get("geolocation"))),
+            geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
             contact_description=data.get("contact_description"),
             contact_email=data.get("contact_email"),
             contact_phone=data.get("contact_phone"),
@@ -1013,7 +1067,7 @@ class Mutation:
             visibility=data.get("visibility"),
             location_type=data.get("location_type"),
             location=data.get("location"),
-            geolocation=(GeolocationInput.to_point(data.get("geolocation"))),
+            geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
             regularity=data.get("regularity"),
             contact_email=data.get("contact_email"),
             contact_phone=data.get("contact_phone"),
