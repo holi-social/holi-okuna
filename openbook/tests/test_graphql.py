@@ -1683,6 +1683,8 @@ class GraphQLTest(TestCase):
         data = self.get_space_by_id_with_posts(user_member, space.id, VisibilityFilter.ALL)
         posts_data = data["posts"]["data"]
         self.assertEqual(data["id"], str(space.id))
+        self.assertEqual(data["hasPublicPosts"], True)
+        self.assertEqual(data["hasPrivatePosts"], True)
         self.assertEqual(data["posts"]["totalResults"], len(public_posts) + len(private_posts))
         self.assertCountEqual(self.private_post_ids(posts_data), private_ids)
         self.assertCountEqual(self.public_post_ids(posts_data), public_ids)
@@ -2198,6 +2200,8 @@ class GraphQLTest(TestCase):
                 spaceById(idOrName:$id) {
                     id
                     name
+                    hasPublicPosts
+                    hasPrivatePosts
                     posts(visibility:$visibility) {
                         totalResults
                         data {
