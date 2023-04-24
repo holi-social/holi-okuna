@@ -3642,10 +3642,15 @@ class GraphQLTest(TestCase):
         response = schema.execute_sync(
             create_task_mutation,
             variable_values={"input": valid_input},
-            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            context_value=BeneDict({"request": {"user": user}}),
         )
 
-        self.assert_is_unauthorized(response)
+        field_errors = json.loads(response.errors[0].extensions["errors"])
+
+        self.assertIn(
+            field_errors[0]["message"],
+            "You cannot add a task to a community you are not an administrator of",
+        )
 
     def test_can_not_update_task_missing_required_fields(self):
         user = make_user()
@@ -3733,14 +3738,14 @@ class GraphQLTest(TestCase):
             {"field": "name", "value": "c", "expected_code": "min_length"},
             {"field": "name", "value": "c" * 400, "expected_code": "max_length"},
             {"field": "description", "value": "c" * 2000, "expected_code": "max_length"},
-            {"field": "locationType", "value": None, "expected_code": "Expected non-nullable type"},
-            {"field": "regularity", "value": None, "expected_code": "Expected non-nullable type"},
-            {"field": "contactEmail", "value": None, "expected_code": "Expected non-nullable type"},
+            {"field": "locationType", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "regularity", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "contactEmail", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "contactPhone", "value": "c" * 500, "expected_code": "max_length"},
             {
                 "field": "skills",
                 "value": [non_existent_skill_id],
-                "expected_code": f"No skill with the id '{non_existent_skill_id}' found.",
+                "expected_error": f"No skill with the id '{non_existent_skill_id}' found.",
             },
         ]
 
@@ -3752,14 +3757,15 @@ class GraphQLTest(TestCase):
             )
 
             if "expected_code" in testCase:
-                self.assertIn(
+                field_errors = json.loads(response.errors[0].extensions["errors"])
+                self.assertEqual(
                     testCase["expected_code"],
-                    str(response.errors[0].message),
-                    f"{str(response.errors[0].message)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
+                    field_errors[testCase["field"]][0]["code"],
+                    f"{str(response.errors[0].extensions)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
                 )
             else:
                 self.assertIn(testCase["expected_error"], str(response.errors[0].message))
-            self.assertIsNone(response.data["updateTask"] if response.data else response.data)
+            self.assertIsNone(response.data["createTask"] if response.data else response.data)
 
     def test_can_update_task(self):
         user = make_user()
@@ -3887,8 +3893,12 @@ class GraphQLTest(TestCase):
         )
 
         self.assertIsNone(response.data)
+
+        field_errors = json.loads(response.errors[0].extensions["errors"])
+
         self.assertIn(
-            "You cannot update a task of a community you are not an administrator of", str(response.errors[0].message)
+            field_errors[0]["message"],
+            "You cannot update a task of a community you are not an administrator of",
         )
 
     def test_can_not_delete_task_if_not_space_admin(self):
