@@ -639,7 +639,8 @@ class GraphQLTest(TestCase):
         self.assertIsNotNone(response.errors)
         self.assertIsNone(response.data)
         self.assertIn(
-            "You cannot add a public post to a community you're not administrator of", response.errors[0].message
+            "You cannot add a public post to a community you're not administrator of",
+            response.errors[0].extensions["errors"],
         )
 
     def test_cant_create_space_post_external_user(self):
@@ -658,7 +659,7 @@ class GraphQLTest(TestCase):
 
         self.assertIsNotNone(response.errors)
         self.assertIsNone(response.data)
-        self.assertIn("You cannot post to a community you're not member of", response.errors[0].message)
+        self.assertIn("You cannot post to a community you're not member of", response.errors[0].extensions["errors"])
 
     def test_cant_create_space_post_invalid_input(self):
         space_admin = make_user()
@@ -1571,7 +1572,7 @@ class GraphQLTest(TestCase):
 
         self.assertIsNone(response.data)
         self.assertIsNotNone(response.errors)
-        self.assertIn("User is already an administrator.", response.errors[0].message)
+        self.assertIn("User is already an administrator.", response.errors[0].extensions["errors"])
         self.assertTrue(
             space.is_user_with_username_administrator_of_community_with_name(space_admin.username, space.name)
         )
@@ -1587,7 +1588,9 @@ class GraphQLTest(TestCase):
 
         self.assertIsNone(response.data)
         self.assertIsNotNone(response.errors)
-        self.assertIn("Cannot make administrator a user that is not part of the space.", response.errors[0].message)
+        self.assertIn(
+            "Cannot make administrator a user that is not part of the space.", response.errors[0].extensions["errors"]
+        )
         self.assertFalse(space.is_user_with_username_member_of_community_with_name(external_user.username, space.name))
 
         # Admin user cannot revoke admin privileges to a member user
@@ -1601,7 +1604,7 @@ class GraphQLTest(TestCase):
 
         self.assertIsNone(response.data)
         self.assertIsNotNone(response.errors)
-        self.assertIn("User to remove is not an administrator.", response.errors[0].message)
+        self.assertIn("User to remove is not an administrator.", response.errors[0].extensions["errors"])
         self.assertFalse(
             space.is_user_with_username_administrator_of_community_with_name(space_member.username, space.name)
         )
@@ -1625,7 +1628,8 @@ class GraphQLTest(TestCase):
 
         self.assertIsNone(response.data)
         self.assertIn(
-            "Only the administrators of the space can grant administrator privileges.", response.errors[0].message
+            "Only the administrators of the space can grant administrator privileges.",
+            response.errors[0].extensions["errors"],
         )
         self.assertFalse(
             space.is_user_with_username_administrator_of_community_with_name(member_user_2.username, space.name)
@@ -1642,7 +1646,8 @@ class GraphQLTest(TestCase):
 
         self.assertIsNone(response.data)
         self.assertIn(
-            "Only the administrators of the space can revoke administrator privileges.", response.errors[0].message
+            "Only the administrators of the space can revoke administrator privileges.",
+            response.errors[0].extensions["errors"],
         )
         self.assertFalse(
             space.is_user_with_username_administrator_of_community_with_name(member_user_2.username, space.name)
@@ -2273,8 +2278,9 @@ class GraphQLTest(TestCase):
             variable_values={"input": {}},
         )
 
-        self.assertEqual("required", response.errors[0].original_error.detail["title"][0].code)
-        self.assertEqual("required", response.errors[0].original_error.detail["description"][0].code)
+        field_errors = json.loads(str(response.errors[0].extensions["errors"]))
+        self.assertEqual("required", field_errors["title"][0]["code"])
+        self.assertEqual("required", field_errors["description"][0]["code"])
         self.assertIsNone(response.data)
 
     def test_invalid_spaces_do_not_pass_validation(self):
@@ -2327,10 +2333,11 @@ class GraphQLTest(TestCase):
 
             self.assertIsNotNone(response.errors, testCase)
             if "expected_code" in testCase:
-                self.assertIn(
+                field_errors = json.loads(response.errors[0].extensions["errors"])
+                self.assertEqual(
                     testCase["expected_code"],
-                    str(response.errors[0].message),
-                    f"{str(response.errors[0].message)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
+                    field_errors[testCase["field"]][0]["code"],
+                    f"{str(response.errors[0].extensions)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
                 )
             else:
                 self.assertIn(testCase["expected_error"], str(response.errors[0].message))
@@ -2490,10 +2497,11 @@ class GraphQLTest(TestCase):
             )
 
             if "expected_code" in testCase:
-                self.assertIn(
+                field_errors = json.loads(response.errors[0].extensions["errors"])
+                self.assertEqual(
                     testCase["expected_code"],
-                    str(response.errors[0].message),
-                    f"{str(response.errors[0].message)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
+                    field_errors[testCase["field"]][0]["code"],
+                    f"{str(response.errors[0].extensions)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
                 )
             else:
                 self.assertIn(testCase["expected_error"], str(response.errors[0].message))
@@ -2593,7 +2601,7 @@ class GraphQLTest(TestCase):
         invalid_uuid = str(uuid4())
 
         expectedErrors = [
-            {"field": "id", "value": None, "expected_code": "null"},
+            {"field": "id", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "id", "value": invalid_uuid, "expected_error": "No community with the provided id exists."},
             {"field": "title", "value": "", "expected_code": "blank"},
             {"field": "title", "value": "f", "expected_code": "min_length"},
@@ -2628,7 +2636,7 @@ class GraphQLTest(TestCase):
             {"field": "location", "value": None, "expected_code": "null"},
             {"field": "contactDescription", "value": "f" * 101, "expected_code": "max_length"},
             {"field": "contactPhone", "value": "9" * 101, "expected_code": "max_length"},
-            {"field": "contactMail", "value": "invalid", "expected_code": "invalid"},
+            {"field": "contactEmail", "value": "invalid", "expected_code": "invalid"},
         ]
 
         for testCase in expectedErrors:
@@ -2641,10 +2649,11 @@ class GraphQLTest(TestCase):
             )
 
             if "expected_code" in testCase:
-                self.assertIn(
+                field_errors = json.loads(response.errors[0].extensions["errors"])
+                self.assertEqual(
                     testCase["expected_code"],
-                    str(response.errors[0].message),
-                    f"{str(response.errors[0].message)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
+                    field_errors[testCase["field"]][0]["code"],
+                    f"{str(response.errors[0].extensions)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
                 )
             else:
                 self.assertIn(testCase["expected_error"], str(response.errors[0].message))
@@ -2801,7 +2810,9 @@ class GraphQLTest(TestCase):
         )
 
         self.assertIsNone(response.data)
-        self.assertIn("Can't update a community that you do not administrate.", str(response.errors[0].message))
+        self.assertIn(
+            "Can't update a community that you do not administrate.", str(response.errors[0].extensions["errors"])
+        )
 
     def test_can_not_update_space_if_not_logged_in(self):
         community = make_community()
@@ -2839,7 +2850,9 @@ class GraphQLTest(TestCase):
         )
 
         self.assertIsNone(response.data)
-        self.assertIn("Can't delete a community that you do not administrate.", str(response.errors[0].message))
+        self.assertIn(
+            "Can't delete a community that you do not administrate.", str(response.errors[0].extensions["errors"])
+        )
 
     def test_can_not_delete_space_if_not_logged_in(self):
         community = make_community()
@@ -2962,7 +2975,7 @@ class GraphQLTest(TestCase):
             {"field": "title", "value": "c" * 61, "expected_code": "max_length"},
             {"field": "description", "value": "c", "expected_code": "min_length"},
             {"field": "description", "value": "c" * 101, "expected_code": "max_length"},
-            {"field": "collectionType", "value": None, "expected_code": "Expected non-nullable type"},
+            {"field": "collectionType", "value": None, "expected_error": "Expected non-nullable type"},
         ]
 
         for testCase in expectedErrors:
@@ -2973,10 +2986,11 @@ class GraphQLTest(TestCase):
             )
 
             if "expected_code" in testCase:
-                self.assertIn(
+                field_errors = json.loads(response.errors[0].extensions["errors"])
+                self.assertEqual(
                     testCase["expected_code"],
-                    str(response.errors[0].message),
-                    f"{str(response.errors[0].message)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
+                    field_errors[testCase["field"]][0]["code"],
+                    f"{str(response.errors[0].extensions)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
                 )
             else:
                 self.assertIn(testCase["expected_error"], str(response.errors[0].message))
@@ -3097,7 +3111,8 @@ class GraphQLTest(TestCase):
 
         self.assertIsNone(response.data)
         self.assertIn(
-            "You cannot add a collaboration tool to a community you are not a member of", response.errors[0].message
+            "You cannot add a collaboration tool to a community you are not a member of",
+            response.errors[0].extensions["errors"],
         )
 
     def test_can_not_delete_collaboration_tool_if_not_logged_in(self):
@@ -3139,7 +3154,8 @@ class GraphQLTest(TestCase):
 
         self.assertIsNone(response.data)
         self.assertIn(
-            "You cannot delete a collaboration tool in a community you are not a member of", response.errors[0].message
+            "You cannot delete a collaboration tool in a community you are not a member of",
+            response.errors[0].extensions["errors"],
         )
 
     def test_can_delete_collaboration_tool_if_admin(self):
@@ -3190,7 +3206,7 @@ class GraphQLTest(TestCase):
         self.assertTrue(response.data["deleteCollaborationTool"]["success"])
         self.assertIsNone(response.errors)
 
-    def test_validate_collaboration_tool_before_update(self):
+    def test_validates_collaboration_tool_before_update(self):
         user = make_user()
         community = make_community(creator=user)
 
@@ -3207,7 +3223,7 @@ class GraphQLTest(TestCase):
         invalid_uuid = str(uuid4())
 
         expectedErrors = [
-            {"field": "id", "value": None, "expected_code": "null"},
+            {"field": "id", "value": None, "expected_error": "Expected non-nullable type"},
             {
                 "field": "id",
                 "value": invalid_uuid,
@@ -3235,10 +3251,11 @@ class GraphQLTest(TestCase):
             )
 
             if "expected_code" in testCase:
-                self.assertIn(
+                field_errors = json.loads(response.errors[0].extensions["errors"])
+                self.assertEqual(
                     testCase["expected_code"],
-                    str(response.errors[0].message),
-                    f"{str(response.errors[0].message)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
+                    field_errors[testCase["field"]][0]["code"],
+                    f"{str(response.errors[0].extensions)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
                 )
             else:
                 self.assertIn(testCase["expected_error"], str(response.errors[0].message))
@@ -3286,7 +3303,7 @@ class GraphQLTest(TestCase):
         self.assertIsNone(response.data)
         self.assertIn(
             "You cannot update a collaboration tool in a community you are not a member of",
-            str(response.errors[0].message),
+            str(response.errors[0].extensions["errors"]),
         )
 
     def test_can_not_update_collaboration_tool_if_not_logged_in(self):
@@ -3480,14 +3497,14 @@ class GraphQLTest(TestCase):
             {"field": "name", "value": "c", "expected_code": "min_length"},
             {"field": "name", "value": "c" * 400, "expected_code": "max_length"},
             {"field": "description", "value": "c" * 2000, "expected_code": "max_length"},
-            {"field": "locationType", "value": None, "expected_code": "Expected non-nullable type"},
-            {"field": "regularity", "value": None, "expected_code": "Expected non-nullable type"},
-            {"field": "contactEmail", "value": None, "expected_code": "Expected non-nullable type"},
+            {"field": "locationType", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "regularity", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "contactEmail", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "contactPhone", "value": "c" * 500, "expected_code": "max_length"},
             {
                 "field": "skills",
                 "value": [non_existent_skill_id],
-                "expected_code": f"No skill with the id '{non_existent_skill_id}' found.",
+                "expected_error": f"No skill with the id '{non_existent_skill_id}' found.",
             },
         ]
 
@@ -3499,10 +3516,11 @@ class GraphQLTest(TestCase):
             )
 
             if "expected_code" in testCase:
-                self.assertIn(
+                field_errors = json.loads(response.errors[0].extensions["errors"])
+                self.assertEqual(
                     testCase["expected_code"],
-                    str(response.errors[0].message),
-                    f"{str(response.errors[0].message)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
+                    field_errors[testCase["field"]][0]["code"],
+                    f"{str(response.errors[0].extensions)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
                 )
             else:
                 self.assertIn(testCase["expected_error"], str(response.errors[0].message))
@@ -3894,7 +3912,8 @@ class GraphQLTest(TestCase):
 
         self.assertIsNone(response.data)
         self.assertIn(
-            "Can't delete a task within a community that you do not administrate.", str(response.errors[0].message)
+            "Can't delete a task within a community that you do not administrate.",
+            str(response.errors[0].extensions["errors"]),
         )
 
     def test_can_not_delete_task_if_not_logged_in(self):
@@ -3986,7 +4005,6 @@ class GraphQLTest(TestCase):
             space_by_id_query,
             context_value=BeneDict({"request": {"user": user_member}}),
         )
-        print(response_member.errors)
         self.assertIsNone(response_member.errors)
         tasks_member = response_member.data["spaceById"]["tasks"]
         self.assertEqual(len(tasks_member), 2)
