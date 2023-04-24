@@ -38,6 +38,7 @@ from openbook_communities.views.communities.serializers import (
     AddCollaborationToolSerializer,
     CreateCommunitySerializer,
     CreateTaskSerializer,
+    UpdateTaskSerializer,
     UpdateCollaborationToolSerializer,
     UpdateCommunitySerializer,
     ValidateCommunitySerializer,
@@ -671,6 +672,24 @@ class CreateTaskInput:
 
 
 @gql.input
+class UpdateTaskInput:
+    task_id: uuid.UUID
+    space_id: uuid.UUID
+    name: str
+    description: str
+    visibility: VisibilityType
+    location_type: TaskModel.LocationType
+    regularity: TaskModel.Regularity
+    contact_email: str
+    slots_available: Optional[int] = strawberry.UNSET
+    thumbnail: Optional[Upload] = strawberry.UNSET
+    skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    location: Optional[str] = strawberry.UNSET
+    geolocation: Optional[GeolocationInput] = strawberry.UNSET
+    contact_phone: Optional[str] = strawberry.UNSET
+
+
+@gql.input
 class AddCollaborationToolInput:
     space_id: uuid.UUID
     url: str
@@ -1021,6 +1040,31 @@ class Mutation:
             contact_phone=data.get("contact_phone"),
             skills=data.get("skills"),
             thumbnail=data.get("thumbnail"),
+        )
+
+    @gql.mutation
+    def update_task(self, info, input: UpdateTaskInput) -> Task:
+        current_user = verify_authorized_user(info)
+
+        serializer = UpdateTaskSerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        return current_user.update_task(
+            task_id=data.get("task_id"),
+            space_id=data.get("space_id"),
+            name=data.get("name"),
+            description=data.get("description"),
+            slots_available=data.get("slots_available"),
+            visibility=data.get("visibility"),
+            location_type=data.get("location_type"),
+            location=data.get("location"),
+            geolocation=(GeolocationInput.to_point(data.get("geolocation"))),
+            regularity=data.get("regularity"),
+            contact_email=data.get("contact_email"),
+            contact_phone=data.get("contact_phone"),
+            skills=data.get("skills"),
+            thumbnail=data.get("thumbnail"),
+            update_thumbnail=input.thumbnail is not strawberry.UNSET,
         )
 
     @gql.mutation
