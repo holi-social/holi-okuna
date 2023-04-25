@@ -532,6 +532,18 @@ class Space:
 
         return Paged.of(query.order_by("-created"), offset, limit)
 
+    @gql.django.field
+    def has_public_posts(self, info) -> bool:
+        current_user: UserModel = info.context.request.user
+        query = PostModel.objects.filter(PostModel.is_visible_query(current_user), community=self)
+        return query.filter(circles__id=get_circle_model().get_world_circle_id()).exists()
+
+    @gql.django.field
+    def has_private_posts(self, info) -> bool:
+        current_user: UserModel = info.context.request.user
+        query = PostModel.objects.filter(PostModel.is_visible_query(current_user), community=self)
+        return query.exclude(circles__id=get_circle_model().get_world_circle_id()).exists()
+
 
 @gql.django.type(PostCommentModel)
 class PostComment:
