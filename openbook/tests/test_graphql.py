@@ -3592,30 +3592,18 @@ class GraphQLTest(TestCase):
             }
             """
 
-        valid_space_id = str(community.id)
-        valid_name = "Valid name"
-        valid_description = "Valid description"
-        valid_visibility = "MEMBERS"
-        valid_location_type = "HYBRID"
-        valid_regularity = "REGULARLY"
-        valid_contact_email = "email@email.com"
-        valid_skills = [str(skill.id)]
-        valid_slots_available = 1
-        valid_location = "Hamburg, Germany"
-        valid_contact_phone = "+49176176176176"
-
         valid_input = {
-            "spaceId": valid_space_id,
-            "name": valid_name,
-            "description": valid_description,
-            "visibility": valid_visibility,
-            "locationType": valid_location_type,
-            "regularity": valid_regularity,
-            "contactEmail": valid_contact_email,
-            "skills": valid_skills,
-            "slotsAvailable": valid_slots_available,
-            "location": valid_location,
-            "contactPhone": valid_contact_phone,
+            "spaceId": str(community.id),
+            "name": "Valid name",
+            "description": "Valid description",
+            "visibility": "MEMBERS",
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
         }
 
         response = schema.execute_sync(
@@ -3641,39 +3629,281 @@ class GraphQLTest(TestCase):
             }
             """
 
-        valid_space_id = str(community.id)
-        valid_name = "Valid name"
-        valid_description = "Valid description"
-        valid_visibility = "MEMBERS"
-        valid_location_type = "HYBRID"
-        valid_regularity = "REGULARLY"
-        valid_contact_email = "email@email.com"
-        valid_skills = [str(skill.id)]
-        valid_slots_available = 1
-        valid_location = "Hamburg, Germany"
-        valid_contact_phone = "+49176176176176"
-
         valid_input = {
-            "spaceId": valid_space_id,
-            "name": valid_name,
-            "description": valid_description,
-            "visibility": valid_visibility,
-            "locationType": valid_location_type,
-            "regularity": valid_regularity,
-            "contactEmail": valid_contact_email,
-            "skills": valid_skills,
-            "slotsAvailable": valid_slots_available,
-            "location": valid_location,
-            "contactPhone": valid_contact_phone,
+            "spaceId": str(community.id),
+            "name": "Valid name",
+            "description": "Valid description",
+            "visibility": "MEMBERS",
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
         }
 
         response = schema.execute_sync(
             create_task_mutation,
             variable_values={"input": valid_input},
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        field_errors = json.loads(response.errors[0].extensions["errors"])
+
+        self.assertIn(
+            field_errors[0]["message"],
+            "You cannot add a task to a community you are not an administrator of",
+        )
+
+    def test_can_not_update_task_missing_required_fields(self):
+        user = make_user()
+
+        community = make_community(creator=user)
+        task = make_community_task(community)
+
+        update_task_mutation = """
+            mutation test($input: UpdateTaskInput!) {
+                updateTask(input: $input) {
+                    id
+                }
+            }
+            """
+
+        valid_input = {
+            "taskId": str(task.id),
+            "spaceId": str(community.id),
+            "name": "Valid name",
+            "description": "Valid description",
+            "visibility": "MEMBERS",
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+        }
+        expected_errors = {
+            "taskId": "Field 'taskId' of required type 'UUID!' was not provided.",
+            "name": "Field 'name' of required type 'String!' was not provided.",
+            "description": "Field 'description' of required type 'String!' was not provided.",
+            "spaceId": "Field 'spaceId' of required type 'UUID!' was not provided.",
+            "visibility": "Field 'visibility' of required type 'VisibilityType!' was not provided.",
+            "locationType": "Field 'locationType' of required type 'LocationType!' was not provided.",
+            "regularity": "Field 'regularity' of required type 'Regularity!' was not provided.",
+            "contactEmail": "Field 'contactEmail' of required type 'String!' was not provided.",
+        }
+        valid_input_keys = valid_input.keys()
+
+        for input_key in valid_input_keys:
+            test_input = copy.copy(valid_input)
+            test_input.pop(input_key)
+            response = schema.execute_sync(
+                update_task_mutation,
+                context_value=BeneDict({"request": {"user": user}}),
+                variable_values={"input": test_input},
+            )
+
+            self.assertIn(expected_errors[input_key], str(response.errors[0].message))
+            self.assertIsNone(response.data["updateTask"] if response.data else response.data)
+
+    def test_validates_task_before_update(self):
+        user = make_user()
+
+        community = make_community(creator=user)
+        task = make_community_task(community)
+        skill = make_skill()
+
+        update_task_mutation = """
+            mutation test($input: UpdateTaskInput!) {
+                updateTask(input: $input) {
+                    id
+                }
+            }
+            """
+
+        non_existent_skill_id = str(uuid4())
+
+        valid_input = {
+            "taskId": str(task.id),
+            "spaceId": str(community.id),
+            "name": "Valid name",
+            "description": "Valid description",
+            "visibility": "MEMBERS",
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
+        }
+
+        expectedErrors = [
+            {"field": "taskId", "value": str(uuid4()), "expected_error": "No task with the provided id exists."},
+            {"field": "spaceId", "value": str(uuid4()), "expected_error": "No community with the provided id exists."},
+            {"field": "name", "value": "c", "expected_code": "min_length"},
+            {"field": "name", "value": "c" * 400, "expected_code": "max_length"},
+            {"field": "description", "value": "c" * 2000, "expected_code": "max_length"},
+            {"field": "locationType", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "regularity", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "contactEmail", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "contactPhone", "value": "c" * 500, "expected_code": "max_length"},
+            {
+                "field": "skills",
+                "value": [non_existent_skill_id],
+                "expected_error": f"No skill with the id '{non_existent_skill_id}' found.",
+            },
+        ]
+
+        for testCase in expectedErrors:
+            response = schema.execute_sync(
+                update_task_mutation,
+                context_value=BeneDict({"request": {"user": user}}),
+                variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
+            )
+
+            if "expected_code" in testCase:
+                field_errors = json.loads(response.errors[0].extensions["errors"])
+                self.assertEqual(
+                    testCase["expected_code"],
+                    field_errors[testCase["field"]][0]["code"],
+                    f"{str(response.errors[0].extensions)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
+                )
+            else:
+                self.assertIn(testCase["expected_error"], str(response.errors[0].message))
+            self.assertIsNone(response.data["createTask"] if response.data else response.data)
+
+    def test_can_update_task(self):
+        user = make_user()
+
+        community = make_community(creator=user)
+        task = make_community_task(community)
+        skill = make_skill()
+
+        update_task_mutation = """
+            mutation test($input: UpdateTaskInput!) {
+                updateTask(input: $input) {
+                    id
+                    name
+                    description
+                    visibility
+                }
+            }
+            """
+
+        valid_name = "Valid name"
+        valid_description = "Valid description"
+        valid_visibility = "MEMBERS"
+
+        valid_input = {
+            "taskId": str(task.id),
+            "spaceId": str(community.id),
+            "name": valid_name,
+            "description": valid_description,
+            "visibility": valid_visibility,
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
+        }
+
+        response = schema.execute_sync(
+            update_task_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": valid_input},
+        )
+
+        self.assertIsNone(response.errors)
+
+        updateTask = response.data["updateTask"]
+        self.assertIn("id", updateTask)
+        self.assertEqual(valid_name, updateTask["name"])
+        self.assertEqual(valid_description, updateTask["description"])
+        self.assertEqual(valid_visibility, updateTask["visibility"])
+
+    def test_can_not_update_task_if_not_logged_in(self):
+        community = make_community()
+        task = make_community_task(community)
+        skill = make_skill()
+
+        update_task_mutation = """
+            mutation test($input: UpdateTaskInput!) {
+                updateTask(input: $input) {
+                    id
+                    name
+                }
+            }
+            """
+
+        valid_input = {
+            "taskId": str(task.id),
+            "spaceId": str(community.id),
+            "name": "Valid name",
+            "description": "Valid description",
+            "visibility": "MEMBERS",
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
+        }
+
+        response = schema.execute_sync(
+            update_task_mutation,
+            variable_values={"input": valid_input},
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
         )
 
         self.assert_is_unauthorized(response)
+
+    def test_can_not_update_task_if_not_admin(self):
+        user = make_user()
+        community = make_community()
+        community.add_member(user)
+        skill = make_skill()
+        task = make_community_task(community)
+
+        update_task_mutation = """
+            mutation test($input: UpdateTaskInput!) {
+                updateTask(input: $input) {
+                    id
+                    name
+                }
+            }
+            """
+
+        valid_input = {
+            "taskId": str(task.id),
+            "spaceId": str(community.id),
+            "name": "Valid name",
+            "description": "Valid description",
+            "visibility": "MEMBERS",
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
+        }
+
+        response = schema.execute_sync(
+            update_task_mutation,
+            variable_values={"input": valid_input},
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        self.assertIsNone(response.data)
+
+        field_errors = json.loads(response.errors[0].extensions["errors"])
+
+        self.assertIn(
+            field_errors[0]["message"],
+            "You cannot update a task of a community you are not an administrator of",
+        )
 
     def test_can_not_delete_task_if_not_space_admin(self):
         user = make_user()
