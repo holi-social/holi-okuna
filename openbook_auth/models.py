@@ -682,6 +682,7 @@ class User(ModelWithUUID, AbstractUser):
         sdgs=None,
         skills=None,
         save=True,
+        update_location=False,
     ):
 
         profile = self.profile
@@ -698,8 +699,9 @@ class User(ModelWithUUID, AbstractUser):
         if name:
             profile.name = name
 
-        profile.location = location
-        profile.geolocation = geolocation
+        if update_location:
+            profile.location = location
+            profile.geolocation = geolocation
 
         if avatar is not None:
             profile.avatar = avatar

@@ -609,7 +609,7 @@ class GeolocationBoundariesInput:
 
     @staticmethod
     def to_multipolygon(geolocation_input):
-        if geolocation_input is None:
+        if geolocation_input is None or geolocation_input.get("boundaries") is None:
             return None
 
         boundaries = []
@@ -625,7 +625,7 @@ class GeolocationBoundariesInput:
                     longitude, latitude = coord
                     interior_ring.append((longitude, latitude))
                 interior_rings.append(interior_ring)
-            polygon = (exterior_ring, interior_rings)
+            polygon = geos.Polygon(exterior_ring, *interior_rings)
             boundaries.append(polygon)
         return geos.MultiPolygon(boundaries)
 
@@ -777,6 +777,7 @@ class Mutation:
                 pronouns=data.get("pronouns"),
                 location=data.get("location"),
                 geolocation=(GeolocationBoundariesInput.to_multipolygon(data.get("geolocation"))),
+                update_location=input.location is not strawberry.UNSET or input.geolocation is not strawberry.UNSET,
                 engagement_level=data.get("engagement_level"),
                 interests=data.get("interests"),
                 sdgs=data.get("sdgs"),

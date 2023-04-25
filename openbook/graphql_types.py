@@ -106,6 +106,7 @@ class GeolocationPoint:
 GeolocationMultiPolygon = strawberry.scalar(
     List[List[List[Tuple[float, float]]]],
     name="GeolocationMultiPolygon",
+    description="4-dimensional array describing boundaries of a geolocation",
     serialize=lambda v: v,
     parse_value=lambda v: v,
 )
@@ -115,15 +116,13 @@ GeolocationMultiPolygon = strawberry.scalar(
 class GeolocationBoundaries:
     boundaries: GeolocationMultiPolygon
 
-    class Meta:
-        name = "GeolocationBoundaries"
-
     @staticmethod
-    def from_boundaries(boundaries):
-        if not boundaries:
+    def from_multipolygon(multipolygon):
+        if not multipolygon:
             return None
-        # TODO(SF)
-        return GeolocationBoundaries(boundaries=[])
+
+        boundaries = list(map(lambda v: list(map(list, v)), multipolygon.coords))
+        return GeolocationBoundaries(boundaries=boundaries)
 
 
 @gql.type
@@ -256,7 +255,7 @@ class User:
 
     @gql.django.field(select_related=["profile"])
     def geolocation(self) -> Optional[GeolocationBoundaries]:
-        return GeolocationBoundaries.from_boundaries(self.profile.geolocation)
+        return GeolocationBoundaries.from_multipolygon(self.profile.geolocation)
 
     @gql.django.field(select_related=["profile"])
     def engagement_level(self) -> Optional[str]:

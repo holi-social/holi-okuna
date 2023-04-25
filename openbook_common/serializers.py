@@ -256,14 +256,28 @@ class ProxyDomainCheckSerializer(serializers.Serializer):
     )
 
 
-class PointSerializer(serializers.Serializer):
+class GeolocationPointSerializer(serializers.Serializer):
     longitude = serializers.FloatField()
     latitude = serializers.FloatField()
 
 
-class MultiPolygonSerializer(GeoFeatureModelSerializer):
-    geolocation = MultiPolygonField()
+# TODO(SF) better solution? GeoFeatureModelSerializer would require more changes
+class GeolocationBoundariesSerializer(serializers.Serializer):
 
-    class Meta:
-        model = UserProfile
-        geo_field = "geolocation"
+    boundaries = serializers.ListField(
+        required=False,
+        allow_empty=True,
+        child=serializers.ListField(
+            required=True,
+            allow_empty=False,
+            child=serializers.ListField(
+                required=True,
+                allow_empty=False,
+                child=serializers.ListField(
+                    required=True,
+                    allow_empty=False,
+                    child=serializers.FloatField(),
+                ),
+            ),
+        ),
+    )

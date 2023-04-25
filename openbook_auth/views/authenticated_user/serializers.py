@@ -19,7 +19,7 @@ from openbook_auth.validators import (
 from django.contrib.auth.password_validation import validate_password
 
 from openbook_common.models import Badge, Language
-from openbook_common.serializers import MultiPolygonSerializer
+from openbook_common.serializers import GeolocationBoundariesSerializer
 from openbook_common.serializers_fields.request import (
     FriendlyUrlField,
     RestrictedImageFileSizeField,
@@ -200,7 +200,7 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
         required=False,
         allow_blank=True,
     )
-    geolocation = MultiPolygonSerializer(required=False)
+    geolocation = GeolocationBoundariesSerializer(required=False)
     visibility = serializers.ChoiceField(choices=User.VISIBILITY_TYPES, required=False)
 
     last_name = serializers.CharField(

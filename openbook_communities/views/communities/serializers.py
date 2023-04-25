@@ -4,7 +4,7 @@ from rest_framework import serializers
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
 from openbook_categories.models import Category
 from openbook_categories.validators import category_name_exists
-from openbook_common.serializers import CommonCommunityMembershipSerializer, PointSerializer
+from openbook_common.serializers import CommonCommunityMembershipSerializer, GeolocationPointSerializer
 from openbook_common.serializers_fields.community import CommunityPostsCountField
 from openbook_common.serializers_fields.request import RestrictedImageFileSizeField
 from openbook_common.validators import hex_color_validator, url_safety_validator
@@ -151,7 +151,7 @@ class UpdateCommunitySerializer(serializers.Serializer):
         max_length=settings.COMMUNITY_LOCATION_MAX_LENGTH,
         required=False,
     )
-    geolocation = PointSerializer(required=False)
+    geolocation = GeolocationPointSerializer(required=False)
 
     contact_description = serializers.CharField(
         required=False,
@@ -346,7 +346,7 @@ class CreateTaskSerializer(serializers.Serializer):
         required=False,
         allow_blank=True,
     )
-    geolocation = PointSerializer(required=False)
+    geolocation = GeolocationPointSerializer(required=False)
     visibility = serializers.ChoiceField(required=True, choices=VisibilityType.choices)
     location_type = serializers.ChoiceField(required=True, choices=Task.LocationType.choices)
     regularity = serializers.ChoiceField(required=False, choices=Task.Regularity.choices)
