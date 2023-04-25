@@ -1173,6 +1173,36 @@ class Task(ModelWithUUID):
         task.save()
         return task
 
+    def update(
+        self,
+        name,
+        description,
+        visibility,
+        location_type,
+        contact_email,
+        slots_available=1,
+        location=None,
+        geolocation=None,
+        regularity=None,
+        contact_phone=None,
+        skills=None,
+        thumbnail=None,
+    ):
+        self.name = name
+        self.description = description
+        self.visibility = visibility
+        self.location_type = location_type
+        self.contact_email = contact_email
+        self.slots_available = slots_available
+        self.location = location
+        self.geolocation = geolocation
+        self.regularity = regularity
+        self.contact_phone = contact_phone
+        self.skills.set(skills)
+        self.thumbnail = thumbnail
+        self.save()
+        return self
+
 
 @gql.enum
 class ExternalLinkType(models.TextChoices):
