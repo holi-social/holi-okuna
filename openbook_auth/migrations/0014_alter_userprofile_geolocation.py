@@ -5,7 +5,7 @@ from django.db import migrations
 
 
 def migrate_point_to_multipolygon(apps, schema_editor):
-    UserProfile = apps.get_model('openbook_auth', 'UserProfile')
+    UserProfile = apps.get_model("openbook_auth", "UserProfile")
     for instance in UserProfile.objects.all():
         instance.geolocation = None
         instance.save()

@@ -3,7 +3,7 @@ from enum import Enum
 from uuid import UUID
 
 import strawberry
-from typing import List, TypeVar, Optional
+from typing import List, TypeVar, Optional, Tuple
 
 from django.db.models import Q
 from strawberry_django_plus import gql
@@ -89,7 +89,7 @@ class VisibilityFilter(Enum):
 
 
 @gql.type
-class Geolocation:
+class GeolocationPoint:
     longitude: float
     latitude: float
 
@@ -98,20 +98,32 @@ class Geolocation:
         if not point:
             return None
 
-        return Geolocation(longitude=point.x, latitude=point.y)
+        return GeolocationPoint(longitude=point.x, latitude=point.y)
+
+
+# Necessary to create a custom scalar for 4-dimensional arrays, as GraphQL schema parsing throws error "Decorated type deeper than introspection query"
+# See e.g. https://github.com/graphql/graphql-js/issues/2643
+GeolocationMultiPolygon = strawberry.scalar(
+    List[List[List[Tuple[float, float]]]],
+    name="GeolocationMultiPolygon",
+    serialize=lambda v: v,
+    parse_value=lambda v: v,
+)
 
 
 @gql.type
-class Geolocation:
-    longitude: float
-    latitude: float
+class GeolocationBoundaries:
+    boundaries: GeolocationMultiPolygon
+
+    class Meta:
+        name = "GeolocationBoundaries"
 
     @staticmethod
-    def from_point(point):
-        if not point:
+    def from_boundaries(boundaries):
+        if not boundaries:
             return None
-
-        return Geolocation(longitude=point.x, latitude=point.y)
+        # TODO(SF)
+        return GeolocationBoundaries(boundaries=[])
 
 
 @gql.type
@@ -243,8 +255,8 @@ class User:
         return self.profile.location
 
     @gql.django.field(select_related=["profile"])
-    def geolocation(self) -> Optional[Geolocation]:
-        return Geolocation.from_point(self.profile.geolocation)
+    def geolocation(self) -> Optional[GeolocationBoundaries]:
+        return GeolocationBoundaries.from_boundaries(self.profile.geolocation)
 
     @gql.django.field(select_related=["profile"])
     def engagement_level(self) -> Optional[str]:
@@ -311,8 +323,8 @@ class Task:
     contact_phone: Optional[str]
 
     @gql.django.field
-    def geolocation(self) -> Optional[Geolocation]:
-        return Geolocation.from_point(self.geolocation)
+    def geolocation(self) -> Optional[GeolocationPoint]:
+        return GeolocationPoint.from_point(self.geolocation)
 
 
 @gql.django.type(InsightModel)
@@ -487,8 +499,8 @@ class Space:
     contact_phone: Optional[str]
 
     @gql.django.field
-    def geolocation(self) -> Optional[Geolocation]:
-        return Geolocation.from_point(self.geolocation)
+    def geolocation(self) -> Optional[GeolocationPoint]:
+        return GeolocationPoint.from_point(self.geolocation)
 
     @gql.django.field(
         description="A list of all active members and their role", prefetch_related="memberships__user__profile"

@@ -2,7 +2,6 @@ import hashlib
 from collections import defaultdict
 from datetime import datetime, timedelta
 import json
-from typing import Tuple
 
 from rest_framework.exceptions import ValidationError
 
@@ -83,7 +82,7 @@ def spaces_for_filter(
     limit: int,
     topic_id: Optional[uuid.UUID] = None,
     location: Optional[str] = None,
-    geolocation: Optional[geos.MultiPolygon] = None,
+    # geolocation: Optional[geos.MultiPolygon] = None,
     skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
     topic_slug: Optional[str] = None,
     skill_slugs: Optional[List[Optional[str]]] = None,
@@ -94,8 +93,8 @@ def spaces_for_filter(
         query.add(Q(topics__id__contains=topic_id), Q.AND)
     if location is not None:
         query.add(Q(location__icontains=location), Q.AND)
-    if geolocation is not None:
-        query.add(Q(geolocation__within=geolocation), Q.AND)
+    # if geolocation is not None:
+    #     query.add(Q(geolocation__within=geolocation), Q.AND)
     if skill_ids:
         query.add(Q(tasks__skills__id__in=skill_ids), Q.AND)
     if topic_slug is not None:
@@ -338,11 +337,11 @@ class Query:
     ) -> List[Optional[DiscoverSpaces]]:
 
         current_user: UserModel = info.context.request.user
-        geolocation = (
-            current_user.profile.geolocation
-            if current_user.is_anonymous and current_user.profile.geolocation is not None
-            else None
-        )
+        # geolocation = (
+        #     current_user.profile.geolocation
+        #     if current_user.is_anonymous and current_user.profile.geolocation is not None
+        #     else None
+        # )
 
         # Inner utility function for generating a unique cache key consisting of
         # prefix and SHA-256 hash of the discover spaces filters
@@ -352,8 +351,8 @@ class Query:
 
             key_parts = []
 
-            if geolocation is not None:
-                key_parts.append(geolocation)
+            # if geolocation is not None:
+            #     key_parts.append(geolocation)
 
             if location is not None:
                 key_parts.append(location)
@@ -385,17 +384,17 @@ class Query:
             return cache.get(hash_key)
         else:
             # get all spaces by geolocation (independent of other filters)
-            if geolocation is not None:
-                result.append(
-                    DiscoverSpaces(
-                        location=location,
-                        spaces=spaces_for_filter(
-                            offset=offset,
-                            limit=limit,
-                            geolocation=geolocation,
-                        ),
-                    )
-                )
+            # if geolocation is not None:
+            #     result.append(
+            #         DiscoverSpaces(
+            #             location=location,
+            #             spaces=spaces_for_filter(
+            #                 offset=offset,
+            #                 limit=limit,
+            #                 geolocation=geolocation,
+            #             ),
+            #         )
+            #     )
 
             # get all spaces by location (independent of other filters)
             if location is not None:
@@ -605,16 +604,16 @@ class GeolocationPointInput:
 
 
 @gql.input
-class GeolocationMultiPolygonInput:
-    coordinates: List[List[List[Tuple[float, float]]]]
+class GeolocationBoundariesInput:
+    boundaries: GeolocationMultiPolygon
 
     @staticmethod
     def to_multipolygon(geolocation_input):
         if geolocation_input is None:
             return None
 
-        coordinates = []
-        for polygon_coords in geolocation_input.get("coordinates"):
+        boundaries = []
+        for polygon_coords in geolocation_input.get("boundaries"):
             exterior_ring = []
             for coord in polygon_coords[0]:
                 longitude, latitude = coord
@@ -627,8 +626,8 @@ class GeolocationMultiPolygonInput:
                     interior_ring.append((longitude, latitude))
                 interior_rings.append(interior_ring)
             polygon = (exterior_ring, interior_rings)
-            coordinates.append(polygon)
-        return geos.MultiPolygon(coordinates)
+            boundaries.append(polygon)
+        return geos.MultiPolygon(boundaries)
 
 
 @gql.input
@@ -639,7 +638,7 @@ class UpdateAuthenticatedUserInput:
     about_me: Optional[str] = strawberry.UNSET
     pronouns: Optional[str] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
-    geolocation: Optional[GeolocationMultiPolygonInput] = strawberry.UNSET
+    geolocation: Optional[GeolocationBoundariesInput] = strawberry.UNSET
     engagement_level: Optional[str] = strawberry.UNSET
     interests: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
@@ -777,7 +776,7 @@ class Mutation:
                 about_me=data.get("about_me"),
                 pronouns=data.get("pronouns"),
                 location=data.get("location"),
-                geolocation=(GeolocationMultiPolygonInput.to_multipolygon(data.get("geolocation"))),
+                geolocation=(GeolocationBoundariesInput.to_multipolygon(data.get("geolocation"))),
                 engagement_level=data.get("engagement_level"),
                 interests=data.get("interests"),
                 sdgs=data.get("sdgs"),
