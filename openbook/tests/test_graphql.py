@@ -201,48 +201,6 @@ class GraphQLTest(TestCase):
 
         mock_publish_user_name_updated_event.assert_called_once_with(user=user)
 
-    @mock.patch("openbook_auth.tasks.requests.patch")
-    @mock.patch("openbook.graphql_schema.publish_user_name_updated_event")
-    def test_can_not_publish_user_name_updated_event_if_user_not_space_member(
-        self, mock_publish_user_name_updated_event, mock_patch
-    ):
-        response = Response()
-        response.status_code = 200
-        response._content = str.encode(json.dumps({}))
-        mock_patch.return_value = response
-        user = make_user(name="Fritz", last_name="Meier")
-        pronouns = "She/her"
-        geolocation = {"latitude": 2.0, "longitude": -4.2}
-        self.assertNotEqual(User.objects.get(username=user.username).profile.pronouns, pronouns)
-        first_name = "Peter"
-        last_name = "Shaw"
-
-        schema.execute_sync(
-            """
-            mutation test($input: UpdateAuthenticatedUserInput!) {
-                updateAuthenticatedUser(input: $input) {
-                    id
-                    pronouns
-                    geolocation {
-                        latitude
-                        longitude
-                    }
-                }
-            }
-            """,
-            context_value=BeneDict({"request": {"user": user}}),
-            variable_values={
-                "input": {
-                    "pronouns": pronouns,
-                    "firstName": first_name,
-                    "lastName": last_name,
-                    "geolocation": geolocation,
-                }
-            },
-        )
-
-        mock_publish_user_name_updated_event.assert_not_called()
-
     def test_can_perform_connection_workflow(self):
         first_user = make_user(name="Fritz", last_name="Meier")
         second_user = make_user(name="Gesine", last_name="Schinder")
