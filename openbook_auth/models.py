@@ -745,7 +745,6 @@ class User(ModelWithUUID, AbstractUser):
         if skills is not None:
             profile.skills.set(skills)
 
-        # TODO integrate our image provider service in order to delete previous avatars (extending delete_profile_avatar)
         if update_avatar:
             self.update_profile_avatar(avatar, save=False)
         if update_cover:
@@ -4639,6 +4638,56 @@ class User(ModelWithUUID, AbstractUser):
             thumbnail=thumbnail,
         )
 
+    def update_task(
+        self,
+        task_id,
+        space_id,
+        name,
+        description,
+        visibility,
+        location_type,
+        contact_email,
+        slots_available=None,
+        location=None,
+        geolocation=None,
+        regularity=None,
+        contact_phone=None,
+        skills=None,
+        thumbnail=None,
+        update_thumbnail=False,
+    ):
+        Community = get_community_model()
+        community = Community.objects.get(id=space_id)
+
+        check_can_update_task_in_community(user=self, community=community)
+
+        Task = get_task_model()
+        task = Task.objects.get(id=task_id)
+
+        new_thumbnail = task.thumbnail
+
+        if update_thumbnail and thumbnail is not None:
+            new_thumbnail = thumbnail
+
+        if update_thumbnail and thumbnail is None:
+            delete_file_field(task.thumbnail)
+            new_thumbnail = None
+
+        return task.update(
+            name=name,
+            description=description,
+            visibility=visibility,
+            location_type=location_type,
+            contact_email=contact_email,
+            slots_available=slots_available,
+            location=location,
+            geolocation=geolocation,
+            regularity=regularity,
+            contact_phone=contact_phone,
+            skills=skills,
+            thumbnail=new_thumbnail,
+        )
+
     def delete_task_with_id(self, task_id):
         Task = get_task_model()
         task = Task.objects.get(id=task_id)
@@ -4654,6 +4703,7 @@ class User(ModelWithUUID, AbstractUser):
         title,
         collection_type,
         description=None,
+        thumbnail=None,
     ):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
@@ -4668,6 +4718,7 @@ class User(ModelWithUUID, AbstractUser):
             title=title,
             collection_type=collection_type,
             description=description,
+            thumbnail=thumbnail,
         )
 
         return collaboration_tool
@@ -4679,6 +4730,7 @@ class User(ModelWithUUID, AbstractUser):
         title=None,
         collection_type=None,
         description=None,
+        thumbnail=None,
     ):
         CollaborationTool = get_collaboration_tool_model()
         collaboration_tool = CollaborationTool.objects.get(id=collaboration_tool_id)
@@ -4690,6 +4742,7 @@ class User(ModelWithUUID, AbstractUser):
             title=title,
             collection_type=collection_type,
             description=description,
+            thumbnail=thumbnail,
         )
 
         return collaboration_tool

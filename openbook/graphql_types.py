@@ -300,6 +300,7 @@ class CollaborationTool:
     description: gql.auto
     collection_type: CollectionType
     domain: gql.auto
+    thumbnail: Optional[str]
 
 
 @gql.django.type(TaskModel)
@@ -540,7 +541,9 @@ class Space:
         self, info, offset: int = 0, limit: int = 10, visibility: VisibilityFilter = VisibilityFilter.ALL
     ) -> Paged[Post]:
         current_user: UserModel = info.context.request.user
-        query = PostModel.objects.filter(community=self)
+        query = PostModel.objects.filter(
+            PostModel.is_visible_query(current_user), status=PostModel.STATUS_PUBLISHED, community=self
+        )
         if (
             current_user.is_anonymous
             or not CommunityMembershipModel.objects.filter(community=self, user=current_user).exists()
@@ -554,6 +557,22 @@ class Space:
                 query = query.exclude(circles__id=get_circle_model().get_world_circle_id())
 
         return Paged.of(query.order_by("-created"), offset, limit)
+
+    @gql.django.field
+    def has_public_posts(self, info) -> bool:
+        current_user: UserModel = info.context.request.user
+        query = PostModel.objects.filter(
+            PostModel.is_visible_query(current_user), status=PostModel.STATUS_PUBLISHED, community=self
+        )
+        return query.filter(circles__id=get_circle_model().get_world_circle_id()).exists()
+
+    @gql.django.field
+    def has_private_posts(self, info) -> bool:
+        current_user: UserModel = info.context.request.user
+        query = PostModel.objects.filter(
+            PostModel.is_visible_query(current_user), status=PostModel.STATUS_PUBLISHED, community=self
+        )
+        return query.exclude(circles__id=get_circle_model().get_world_circle_id()).exists()
 
 
 @gql.django.type(PostCommentModel)
