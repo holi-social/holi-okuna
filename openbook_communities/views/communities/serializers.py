@@ -21,6 +21,7 @@ from openbook_communities.validators import (
     community_name_characters_validator,
     community_name_not_taken_validator,
     community_id_exists,
+    task_id_exists,
     sdg_with_id_exists,
     topic_with_id_exists,
     skill_with_id_exists,
@@ -339,6 +340,55 @@ class UpdateCollaborationToolSerializer(serializers.Serializer):
 
 
 class CreateTaskSerializer(serializers.Serializer):
+    space_id = serializers.UUIDField(
+        validators=[community_id_exists],
+        required=True,
+    )
+    name = serializers.CharField(
+        min_length=settings.TASK_NAME_MIN_LENGTH,
+        max_length=settings.TASK_NAME_MAX_LENGTH,
+        required=True,
+    )
+    description = serializers.CharField(
+        max_length=settings.TASK_DESCRIPTION_MAX_LENGTH,
+        required=True,
+    )
+    slots_available = serializers.IntegerField(required=False, max_value=600)
+    location = serializers.CharField(
+        max_length=settings.TASK_LOCATION_MAX_LENGTH,
+        required=False,
+        allow_blank=True,
+    )
+    geolocation = PointSerializer(required=False)
+    visibility = serializers.ChoiceField(required=True, choices=VisibilityType.choices)
+    location_type = serializers.ChoiceField(required=True, choices=Task.LocationType.choices)
+    regularity = serializers.ChoiceField(required=False, choices=Task.Regularity.choices)
+    contact_email = serializers.EmailField(
+        required=True,
+    )
+    contact_phone = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        max_length=settings.TASK_CONTACT_PHONE_MAX_LENGTH,
+    )
+    skills = serializers.ListField(
+        min_length=settings.TASK_SKILLS_MIN_AMOUNT,
+        max_length=settings.TASK_SKILLS_MAX_AMOUNT,
+        required=False,
+        child=serializers.UUIDField(validators=[skill_with_id_exists]),
+    )
+    thumbnail = RestrictedImageFileSizeField(
+        allow_empty_file=False,
+        required=False,
+        max_upload_size=settings.TASK_THUMBNAIL_MAX_SIZE,
+    )
+
+
+class UpdateTaskSerializer(serializers.Serializer):
+    task_id = serializers.UUIDField(
+        validators=[task_id_exists],
+        required=True,
+    )
     space_id = serializers.UUIDField(
         validators=[community_id_exists],
         required=True,
