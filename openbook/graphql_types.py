@@ -101,14 +101,19 @@ class GeolocationPoint:
         return GeolocationPoint(longitude=point.x, latitude=point.y)
 
 
+def valuefn(value):
+    print(f"value {value}")
+    return value
+
+
 # Necessary to create a custom scalar for 4-dimensional arrays, as GraphQL schema parsing throws error "Decorated type deeper than introspection query"
 # See e.g. https://github.com/graphql/graphql-js/issues/2643
 GeolocationMultiPolygon = strawberry.scalar(
-    List[List[List[Tuple[float, float]]]],
+    List[List[List[List[float]]]],  # Tuple[float, float]
     name="GeolocationMultiPolygon",
     description="4-dimensional array describing boundaries of a geolocation",
-    serialize=lambda v: v,
-    parse_value=lambda v: v,
+    serialize=valuefn,  # lambda v: v,
+    parse_value=valuefn,  # lambda v: v,
 )
 
 

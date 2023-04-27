@@ -408,7 +408,7 @@ class UpdateTaskSerializer(serializers.Serializer):
         required=False,
         allow_blank=True,
     )
-    geolocation = PointSerializer(required=False)
+    geolocation = GeolocationPointSerializer(required=False)
     visibility = serializers.ChoiceField(required=True, choices=VisibilityType.choices)
     location_type = serializers.ChoiceField(required=True, choices=Task.LocationType.choices)
     regularity = serializers.ChoiceField(required=False, choices=Task.Regularity.choices)
