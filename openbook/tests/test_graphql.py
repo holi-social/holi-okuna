@@ -2363,8 +2363,11 @@ class GraphQLTest(TestCase):
         self.assertIn("Unauthorized", str(response.errors[0].message))
         self.assertEqual("UNAUTHORIZED", str(response.errors[0].extensions["code"]))
 
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook.graphql_schema.publish_space_created_event")
-    def test_can_not_create_spaces_missing_required_fields(self, mock_publish_space_created_event):
+    def test_can_not_create_spaces_missing_required_fields(
+        self, mock_publish_space_created_event, mock_invalidate_discover_spaces_query_cache
+    ):
         user = make_user()
         topic_ids = [str(make_topic().id) for _ in range(7)]
         valid_topics = topic_ids[:2]
@@ -2408,6 +2411,7 @@ class GraphQLTest(TestCase):
             self.assertIsNone(response.data["createSpace"] if response.data else response.data)
 
         mock_publish_space_created_event.assert_not_called()
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
 
     def test_validates_space_before_creation(self):
         user = make_user()
@@ -2469,8 +2473,9 @@ class GraphQLTest(TestCase):
                 self.assertIn(testCase["expected_error"], str(response.errors[0].message))
             self.assertIsNone(response.data["createSpace"] if response.data else response.data)
 
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook.graphql_schema.publish_space_created_event")
-    def test_can_create_space(self, mock_publish_space_created_event):
+    def test_can_create_space(self, mock_publish_space_created_event, mock_invalidate_discover_spaces_query_cache):
         user = make_user()
         topic_ids = [str(make_topic().id) for _ in range(2)]
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
@@ -2521,9 +2526,13 @@ class GraphQLTest(TestCase):
 
         community = Community.objects.get(id=created_space["id"])
         mock_publish_space_created_event.assert_called_once_with(community=community)
+        mock_invalidate_discover_spaces_query_cache.assert_called_once()
 
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook.graphql_schema.publish_space_created_event")
-    def test_can_not_create_space_if_not_logged_in(self, mock_publish_space_created_event):
+    def test_can_not_create_space_if_not_logged_in(
+        self, mock_publish_space_created_event, mock_invalidate_discover_spaces_query_cache
+    ):
         topic_ids = [str(make_topic().id) for _ in range(7)]
         valid_topics = topic_ids[:2]
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
@@ -2545,6 +2554,7 @@ class GraphQLTest(TestCase):
 
         self.assert_is_unauthorized(response)
         mock_publish_space_created_event.assert_not_called()
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
 
     def test_validates_space_update(self):
         user = make_user()
@@ -2621,7 +2631,8 @@ class GraphQLTest(TestCase):
                 self.assertIn(testCase["expected_error"], str(response.errors[0].message))
             self.assertIsNone(response.data["updateSpace"] if response.data else response.data)
 
-    def test_can_not_update_space_without_passing_id(self):
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_not_update_space_without_passing_id(self, mock_invalidate_discover_spaces_query_cache):
         user = make_user()
         update_space_mutation = """
             mutation test($input: UpdateSpaceInput!) {
@@ -2639,8 +2650,10 @@ class GraphQLTest(TestCase):
 
         self.assertIsNone(response.data)
         self.assertIn("Field 'id' of required type 'UUID!' was not provided", response.errors[0].message)
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
 
-    def test_can_update_space(self):
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_update_space(self, mock_invalidate_discover_spaces_query_cache):
         user = make_user()
         community = make_community(creator=user)
         topic_ids = [str(make_topic().id) for _ in range(3)]
@@ -2689,6 +2702,8 @@ class GraphQLTest(TestCase):
 
             self.assertEqual(str(community.id), response.data["updateSpace"]["id"])
             self.assertIsNone(response.errors)
+
+        mock_invalidate_discover_spaces_query_cache.assert_called()
 
     def test_updated_space_has_new_values(self):
         user = make_user()
@@ -2754,7 +2769,8 @@ class GraphQLTest(TestCase):
         self.assertEqual("+49 123 12345", updated_space["contactPhone"])
         self.assertEqual("contact@space.com", updated_space["contactEmail"])
 
-    def test_can_not_update_space_if_not_admin(self):
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_not_update_space_if_not_admin(self, mock_invalidate_discover_spaces_query_cache):
         user = make_user()
         community = make_community()
         update_space_mutation = """
@@ -2776,7 +2792,8 @@ class GraphQLTest(TestCase):
             "Can't update a community that you do not administrate.", str(response.errors[0].extensions["errors"])
         )
 
-    def test_can_not_update_space_if_not_logged_in(self):
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_not_update_space_if_not_logged_in(self, mock_invalidate_discover_spaces_query_cache):
         community = make_community()
         update_space_mutation = """
             mutation test($input: UpdateSpaceInput!) {
@@ -2793,8 +2810,10 @@ class GraphQLTest(TestCase):
         )
 
         self.assert_is_unauthorized(response)
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
 
-    def test_can_not_delete_space_if_not_admin(self):
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_not_delete_space_if_not_admin(self, mock_invalidate_discover_spaces_query_cache):
         user = make_user()
         community = make_community()
         delete_space_mutation = """
@@ -2816,7 +2835,10 @@ class GraphQLTest(TestCase):
             "Can't delete a community that you do not administrate.", str(response.errors[0].extensions["errors"])
         )
 
-    def test_can_not_delete_space_if_not_logged_in(self):
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
+
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_not_delete_space_if_not_logged_in(self, mock_invalidate_discover_spaces_query_cache):
         community = make_community()
         delete_space_mutation = """
             mutation test($id: UUID!) {
@@ -2833,8 +2855,10 @@ class GraphQLTest(TestCase):
         )
 
         self.assert_is_unauthorized(response)
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
 
-    def test_can_delete_space(self):
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_delete_space(self, mock_invalidate_discover_spaces_query_cache):
         user = make_user()
         community = make_community(creator=user)
 
@@ -2854,6 +2878,7 @@ class GraphQLTest(TestCase):
 
         self.assertTrue(response.data["deleteSpace"]["success"])
         self.assertIsNone(response.errors)
+        mock_invalidate_discover_spaces_query_cache.assert_called_once()
 
     def test_can_not_add_collaboration_tool_missing_required_fields(self):
         user = make_user()
