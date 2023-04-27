@@ -21,7 +21,6 @@ from django.conf.urls.static import static
 from django.views.decorators.csrf import csrf_exempt
 from proxy.views import proxy_view
 
-from openbook.middleware import graphql_error_context_middleware
 from openbook.graphql_schema import schema
 from openbook_auth.views.auth.views import (
     Register,
