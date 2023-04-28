@@ -1,4 +1,4 @@
-FROM python:3.11.0-alpine3.14
+FROM python:3.11.3
 
 RUN apt-get -y update && \
     apt-get -y upgrade && \
