@@ -156,7 +156,7 @@ ROOT_URLCONF = "openbook.urls"
 
 AUTH_USER_MODEL = "openbook_auth.User"
 
-TEST_RUNNER = 'pytest_runner.run_tests'
+TEST_RUNNER = "pytest_runner.run_tests"
 
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 

@@ -6,15 +6,12 @@ from django.test import Client
 from typing import List, Optional
 from uuid import UUID, uuid4
 from datetime import datetime, timedelta
-from PIL import Image
-from io import BytesIO
 from unittest import mock
 
 from django.conf import settings
 from benedict import BeneDict
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from requests.models import Response
@@ -57,21 +54,20 @@ from django.core.management import call_command
 logger = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def client():
     return Client()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def django_db_setup(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
-        call_command('loaddata', 'openbook_circles/fixtures/circles.json')
-        call_command('loaddata', 'openbook_moderation/fixtures/moderation_categories.json')
+        call_command("loaddata", "openbook_circles/fixtures/circles.json")
+        call_command("loaddata", "openbook_moderation/fixtures/moderation_categories.json")
 
 
 @pytest.mark.django_db
 class TestUsers:
-
     def test_get_authenticated_user_returns_self_reference(self, client):
         value = settings.TESTING
         assert value is True
@@ -598,8 +594,10 @@ class TestUsers:
 
         assert response.errors is not None
         assert response.data is None
-        assert "You cannot add a public post to a community you're not administrator of" in \
-               response.errors[0].extensions["errors"]
+        assert (
+            "You cannot add a public post to a community you're not administrator of"
+            in response.errors[0].extensions["errors"]
+        )
 
     def test_cant_create_space_post_external_user(self):
         space_admin = make_user()
@@ -1310,13 +1308,18 @@ class TestUsers:
             connect_action=UpdateConnectionAction.CONNECT,
         )
 
-        assert len(after_request_space["connectionStatusToMyself"]), len([SpaceUserConnectionType.MEMBERSHIP_REQUESTOR.value, SpaceUserConnectionType.FOLLOWER.value])
+        assert len(after_request_space["connectionStatusToMyself"]), len(
+            [SpaceUserConnectionType.MEMBERSHIP_REQUESTOR.value, SpaceUserConnectionType.FOLLOWER.value]
+        )
 
         # Staff received MembershipRequest notification
         staff_request_received_notification = self.get_notifications(space_creator)["data"][0]
         assert staff_request_received_notification["notificationType"] == "CMR"
         assert staff_request_received_notification["options"]["space"]["title"] == space.title
-        assert staff_request_received_notification["options"]["user"]["fullName"] == membership_requestor.profile.full_name()
+        assert (
+            staff_request_received_notification["options"]["user"]["fullName"]
+            == membership_requestor.profile.full_name()
+        )
 
         # Approve user
         space_after_approval = self.mutate_update_space_user_connection_data(
@@ -1338,7 +1341,9 @@ class TestUsers:
         )
 
         # User has correct connection status
-        assert len(self.get_space_for_user(membership_requestor, space)["connectionStatusToMyself"]) == len([SpaceUserConnectionType.MEMBER.value, SpaceUserConnectionType.FOLLOWER.value])
+        assert len(self.get_space_for_user(membership_requestor, space)["connectionStatusToMyself"]) == len(
+            [SpaceUserConnectionType.MEMBER.value, SpaceUserConnectionType.FOLLOWER.value]
+        )
 
         # User has approval notification
         membership_requestor_notifications = self.get_notifications(membership_requestor)
@@ -1350,7 +1355,9 @@ class TestUsers:
         assert staff_notifications["totalResults"] == 1
         assert staff_notifications["data"][0]["notificationType"] == "CMRA"
         assert staff_notifications["data"][0]["options"]["space"]["title"] == space.title
-        assert staff_notifications["data"][0]["options"]["user"]["fullName"] == membership_requestor.profile.full_name()
+        assert (
+            staff_notifications["data"][0]["options"]["user"]["fullName"] == membership_requestor.profile.full_name()
+        )
 
     @mock.patch("openbook.graphql_schema.publish_space_user_added_event")
     def test_space_membership_request_rejection_process(self, mock_publish_space_user_added_event):
@@ -1382,14 +1389,18 @@ class TestUsers:
             connect_action=UpdateConnectionAction.CONNECT,
         )
 
-        assert len(after_request_space["connectionStatusToMyself"]) == len([SpaceUserConnectionType.MEMBERSHIP_REQUESTOR.value, SpaceUserConnectionType.FOLLOWER.value])
+        assert len(after_request_space["connectionStatusToMyself"]) == len(
+            [SpaceUserConnectionType.MEMBERSHIP_REQUESTOR.value, SpaceUserConnectionType.FOLLOWER.value]
+        )
 
         # Staff received MembershipRequest notification
         staff_request_received_notification = self.get_notifications(space_creator)["data"][0]
         assert staff_request_received_notification["notificationType"] == "CMR"
         assert staff_request_received_notification["options"]["space"]["title"] == space.title
-        assert staff_request_received_notification["options"]["user"]["fullName"] == membership_requestor.profile.full_name()
-
+        assert (
+            staff_request_received_notification["options"]["user"]["fullName"]
+            == membership_requestor.profile.full_name()
+        )
 
         # Approve user
         space_after_rejection = self.mutate_update_space_user_connection_data(
@@ -1406,7 +1417,9 @@ class TestUsers:
         )
 
         # User has correct connection status
-        assert len(self.get_space_for_user(membership_requestor, space)["connectionStatusToMyself"]) == len([SpaceUserConnectionType.FOLLOWER.value])
+        assert len(self.get_space_for_user(membership_requestor, space)["connectionStatusToMyself"]) == len(
+            [SpaceUserConnectionType.FOLLOWER.value]
+        )
 
         # User has no notification
         membership_requestor_notifications = self.get_notifications(membership_requestor)
@@ -1498,7 +1511,9 @@ class TestUsers:
         assert response.data is None
         assert response.errors is not None
         assert "User is already an administrator." in response.errors[0].extensions["errors"]
-        assert space.is_user_with_username_administrator_of_community_with_name(space_admin.username, space.name) is True
+        assert (
+            space.is_user_with_username_administrator_of_community_with_name(space_admin.username, space.name) is True
+        )
 
         # Admin user cannot grant admin privileges to an external user
         response = self.mutate_update_space_user_connection_raw(
@@ -1511,7 +1526,10 @@ class TestUsers:
 
         assert response.data is None
         assert response.errors is not None
-        assert "Cannot make administrator a user that is not part of the space." in response.errors[0].extensions["errors"]
+        assert (
+            "Cannot make administrator a user that is not part of the space."
+            in response.errors[0].extensions["errors"]
+        )
         assert space.is_user_with_username_member_of_community_with_name(external_user.username, space.name) is False
 
         # Admin user cannot revoke admin privileges to a member user
@@ -1526,7 +1544,10 @@ class TestUsers:
         assert response.data is None
         assert response.errors is not None
         assert "User to remove is not an administrator." in response.errors[0].extensions["errors"]
-        assert space.is_user_with_username_administrator_of_community_with_name(space_member.username, space.name) is False
+        assert (
+            space.is_user_with_username_administrator_of_community_with_name(space_member.username, space.name)
+            is False
+        )
 
     def test_space_member_grant_and_revoke_admin_access_errors(self):
         member_user = make_user()
@@ -1546,8 +1567,14 @@ class TestUsers:
         )
 
         assert response.data is None
-        assert "Only the administrators of the space can grant administrator privileges." in response.errors[0].extensions["errors"]
-        assert space.is_user_with_username_administrator_of_community_with_name(member_user_2.username, space.name) is False
+        assert (
+            "Only the administrators of the space can grant administrator privileges."
+            in response.errors[0].extensions["errors"]
+        )
+        assert (
+            space.is_user_with_username_administrator_of_community_with_name(member_user_2.username, space.name)
+            is False
+        )
 
         # Member user cannot revoke admin privileges to an admin user
         response = self.mutate_update_space_user_connection_raw(
@@ -1559,8 +1586,14 @@ class TestUsers:
         )
 
         assert response.data is None
-        assert "Only the administrators of the space can revoke administrator privileges." in response.errors[0].extensions["errors"]
-        assert space.is_user_with_username_administrator_of_community_with_name(member_user_2.username, space.name) is False
+        assert (
+            "Only the administrators of the space can revoke administrator privileges."
+            in response.errors[0].extensions["errors"]
+        )
+        assert (
+            space.is_user_with_username_administrator_of_community_with_name(member_user_2.username, space.name)
+            is False
+        )
 
     def test_space_with_posts(self):
         user_member = make_user()
@@ -2019,7 +2052,6 @@ class TestUsers:
             """,
             context_value=BeneDict({"request": {"user": user or AnonymousUser}}),
         )
-
 
     def mutate_update_space_user_connection_raw(
         self,
@@ -3004,7 +3036,10 @@ class TestUsers:
         )
 
         assert response.data is None
-        assert "You cannot add a collaboration tool to a community you are not a member of" in response.errors[0].extensions["errors"]
+        assert (
+            "You cannot add a collaboration tool to a community you are not a member of"
+            in response.errors[0].extensions["errors"]
+        )
 
     def test_can_not_delete_collaboration_tool_if_not_logged_in(self):
         collaboration_tool = make_collaboration_tool()
@@ -3044,7 +3079,10 @@ class TestUsers:
         )
 
         assert response.data is None
-        assert "You cannot delete a collaboration tool in a community you are not a member of" in response.errors[0].extensions["errors"]
+        assert (
+            "You cannot delete a collaboration tool in a community you are not a member of"
+            in response.errors[0].extensions["errors"]
+        )
 
     def test_can_delete_collaboration_tool_if_admin(self):
         user = make_user()
@@ -3185,7 +3223,9 @@ class TestUsers:
         )
 
         assert response.data is None
-        assert "You cannot update a collaboration tool in a community you are not a member of" in str(response.errors[0].extensions["errors"])
+        assert "You cannot update a collaboration tool in a community you are not a member of" in str(
+            response.errors[0].extensions["errors"]
+        )
 
     def test_can_not_update_collaboration_tool_if_not_logged_in(self):
         collaboration_tool = make_collaboration_tool()
@@ -3788,7 +3828,9 @@ class TestUsers:
         )
 
         assert response.data is None
-        assert "Can't delete a task within a community that you do not administrate." in str(response.errors[0].extensions["errors"])
+        assert "Can't delete a task within a community that you do not administrate." in str(
+            response.errors[0].extensions["errors"]
+        )
 
     def test_can_not_delete_task_if_not_logged_in(self):
         community = make_community()

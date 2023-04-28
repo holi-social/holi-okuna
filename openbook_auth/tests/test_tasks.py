@@ -15,7 +15,7 @@ from openbook_auth.tasks import update_ory_user
 from openbook_common.tests.helpers import make_user
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def client():
     return Client()
 
@@ -27,7 +27,6 @@ def user(db, django_user_model):
 
 @pytest.mark.django_db
 class TestUpdateOryUser:
-
     @mock.patch("requests.patch")
     def test_update_ory_user_success(self, mock_patch, user):
         json_body = [
