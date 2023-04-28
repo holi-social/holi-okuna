@@ -32,12 +32,13 @@ NO_TOPICS_AVAILABLE = "no topics available, please generate topics first (via lo
 
 @contextmanager
 def image_fetcher(url=f"{settings.IMAGEKIT_URL}/tr:w-300,h-300/default-image.jpg"):
-    with request.urlopen(url) as response:
-        with io.BytesIO(response.read()) as image_io:
-            in_memory_file = InMemoryUploadedFile(
-                image_io, "ImageField", "image.jpg", "JPEG", sys.getsizeof(image_io), None
-            )
-            yield in_memory_file
+    yield None
+    #with request.urlopen(url) as response:
+    #    with io.BytesIO(response.read()) as image_io:
+    #        in_memory_file = InMemoryUploadedFile(
+    #            image_io, "ImageField", "image.jpg", "JPEG", sys.getsizeof(image_io), None
+    #        )
+    #        yield in_memory_file
 
 
 class Command(BaseCommand):

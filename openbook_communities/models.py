@@ -353,7 +353,7 @@ class Community(ModelWithUUID):
             creator=creator,
             avatar=avatar,
             cover=cover,
-            cover_blurhash=blurhash.encode(cover, x_components=4, y_components=3),
+            cover_blurhash=blurhash.encode(cover, x_components=4, y_components=3) if cover is not None else None,
             color=color,
             user_adjective=user_adjective,
             users_adjective=users_adjective,
