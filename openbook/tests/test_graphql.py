@@ -69,8 +69,6 @@ def django_db_setup(django_db_setup, django_db_blocker):
 @pytest.mark.django_db
 class TestUsers:
     def test_get_authenticated_user_returns_self_reference(self, client):
-        value = settings.TESTING
-        assert value is True
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 

@@ -1,5 +1,6 @@
 from . import *
 
+ENVIRONMENT = EnvironmentChecker.TEST_VALUE
 TESTING = True
 
 for queueConfig in RQ_QUEUES.values():

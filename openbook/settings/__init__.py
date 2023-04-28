@@ -37,11 +37,7 @@ ENVIRONMENT = os.environ.get("ENVIRONMENT")
 ENVIRONMENT_ID = os.environ.get("ENVIRONMENT_ID", "local")
 
 if not ENVIRONMENT:
-    if "test" in sys.argv:
-        logger.info("No ENVIRONMENT variable found but test detected. Setting ENVIRONMENT=TEST_VALUE")
-        ENVIRONMENT = EnvironmentChecker.TEST_VALUE
-    else:
-        raise NameError("ENVIRONMENT environment variable is required")
+    ENVIRONMENT = EnvironmentChecker.TEST_VALUE
 
 environment_checker = EnvironmentChecker(environment_value=ENVIRONMENT)
 
