@@ -54,6 +54,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEBUG = environment_checker.is_debug()
 IS_PRODUCTION = environment_checker.is_production()
 IS_BUILD = environment_checker.is_build()
+TESTING = False
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS")
 if IS_PRODUCTION:
