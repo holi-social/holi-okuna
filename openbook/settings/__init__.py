@@ -236,38 +236,6 @@ if DEBUG:
     for queueConfig in RQ_QUEUES.values():
         queueConfig["ASYNC"] = False
 
-# FYI: NOSE is a (deprecated) unit testing library
-# NOSE_DEFAULT_ARGS = [
-#     "--logging-level=ERROR",
-#     "--verbosity=1",
-# ]
-# NOSE_COVERAGE_ARGS = [
-#     "--cover-erase",
-#     "--cover-package=.",
-#     "--with-spec",
-#     "--spec-color",
-#     "--with-coverage",
-# ]
-# if IS_BUILD:
-#     NOSE_ARGS = (
-#         NOSE_DEFAULT_ARGS
-#         + NOSE_COVERAGE_ARGS
-#         + [
-#             "--cover-xml",
-#         ]
-#     )
-# elif environment_checker.is_quicktest():
-#     NOSE_ARGS = NOSE_DEFAULT_ARGS
-# else:
-#     NOSE_ARGS = (
-#         NOSE_DEFAULT_ARGS
-#         + NOSE_COVERAGE_ARGS
-#         + [
-#             "--cover-html",
-#             "--cover-html-dir=reports/cover",
-#         ]
-#     )
-
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -432,7 +400,7 @@ USE_L10N = True
 
 USE_TZ = True
 
-LOCALE_PATHS = (os.path.join(BASE_DIR, "../../locale"),)
+LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 
 LANGUAGES = [
     ("en", _("English")),
@@ -458,9 +426,9 @@ MEDIA_ROOT = os.environ.get("MEDIA_ROOT", "./media")
 
 MEDIA_URL = os.environ.get("MEDIA_URL", "/media/")
 
-STATICFILES_DIRS = (os.path.join(BASE_DIR, "openbook/../static"),)
+STATICFILES_DIRS = (os.path.join(BASE_DIR, "openbook/static"),)
 
-STATIC_ROOT = os.path.join(BASE_DIR, "../static")
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 # Video encoding
 
