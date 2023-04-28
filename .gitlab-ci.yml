@@ -29,6 +29,7 @@ setup:
   image: "registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder"
   stage: "setup"
   script:
+    - apt-get update && apt-get install -y apt-utils
     - python3 -m venv venv
     - source venv/bin/activate
     - pip install --upgrade pip
