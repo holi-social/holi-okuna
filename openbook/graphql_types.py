@@ -464,6 +464,7 @@ class Space:
     avatar: str
     avatar_default_color: str
     cover: str
+    cover_blurhash: Optional[str]
     location: gql.auto
     links: List[Optional[ExternalLink]]
     tasks: List[Optional["Task"]]

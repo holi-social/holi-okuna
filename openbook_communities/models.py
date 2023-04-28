@@ -51,6 +51,8 @@ from openbook_moderation.models import ModeratedObject
 from openbook_posts.models import Post
 from openbook_terms.models import SDG, Topic, Skill
 
+import blurhash
+
 community_image_storage = default_storage
 community_task_image_storage = default_storage
 
@@ -121,6 +123,7 @@ class Community(ModelWithUUID):
         ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
+    cover_blurhash = models.CharField(editable=False, blank=False, null=True, max_length=64)
     created = models.DateTimeField(default=timezone.now, editable=False)
     starrers = models.ManyToManyField(User, related_name="favorite_communities", blank=True)
     banned_users = models.ManyToManyField(User, related_name="banned_of_communities", blank=True)
@@ -350,6 +353,7 @@ class Community(ModelWithUUID):
             creator=creator,
             avatar=avatar,
             cover=cover,
+            cover_blurhash=blurhash.encode(cover, x_components=4, y_components=3),
             color=color,
             user_adjective=user_adjective,
             users_adjective=users_adjective,
