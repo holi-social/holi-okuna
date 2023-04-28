@@ -46,15 +46,15 @@ class LinkedUsersAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         response_linked_users = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(len(response_linked_users), amount_of_linked_users)
+        assert len(response_linked_users) == amount_of_linked_users
 
         for response_member in response_linked_users:
             response_member_id = response_member.get("id")
-            self.assertIn(response_member_id, linked_users_ids)
+            assert response_member_id in linked_users_ids
 
     def _get_url(self):
         return reverse("linked-users")
@@ -87,15 +87,15 @@ class SearchLinkedUsersAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+            assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
             response_linked_users = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_linked_users)
 
-            self.assertEqual(response_members_count, 1)
+            assert response_members_count == 1
             retrieved_linked_member = response_linked_users[0]
 
-            self.assertEqual(retrieved_linked_member["id"], linked_user.id)
+            assert retrieved_linked_member["id"] == linked_user.id
             linked_user.unfollow_user_with_id(user.pk)
 
     def test_can_search_linked_users_by_username(self):
@@ -120,15 +120,15 @@ class SearchLinkedUsersAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+            assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
             response_linked_users = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_linked_users)
 
-            self.assertEqual(response_members_count, 1)
+            assert response_members_count == 1
             retrieved_linked_member = response_linked_users[0]
 
-            self.assertEqual(retrieved_linked_member["id"], linked_user.id)
+            assert retrieved_linked_member["id"] == linked_user.id
             linked_user.unfollow_user_with_id(user.pk)
 
     def _get_url(self):

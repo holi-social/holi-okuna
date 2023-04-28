@@ -54,15 +54,15 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(len(response_posts), len(community_posts_ids))
+        assert len(response_posts) == len(community_posts_ids)
 
         for response_post in response_posts:
             response_post_id = response_post.get("id")
-            self.assertIn(response_post_id, community_posts_ids)
+            assert response_post_id in community_posts_ids
 
     @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_can_retrieve_posts_with_max_id_and_count(self):
@@ -90,15 +90,15 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, {"count": count, "max_id": max_id}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(count, len(response_posts))
+        assert count == len(response_posts)
 
         for response_post in response_posts:
             response_post_id = response_post.get("id")
-            self.assertTrue(response_post_id < max_id)
+            assert response_post_id < max_id
 
     def test_can_retrieve_posts_from_private_community_member_of(self):
         """should be able to retrieve the posts for a private community member of and return 200"""
@@ -131,15 +131,15 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(len(response_posts), len(community_posts_ids))
+        assert len(response_posts) == len(community_posts_ids)
 
         for response_post in response_posts:
             response_post_id = response_post.get("id")
-            self.assertIn(response_post_id, community_posts_ids)
+            assert response_post_id in community_posts_ids
 
     def test_cannot_retrieve_posts_from_private_community_not_part_of(self):
         """should not be able to retrieve the posts for a private community not part of and return 400"""
@@ -154,7 +154,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_400_BAD_REQUEST == f"Response: {response.data}"
 
     def test_cannot_retrieve_soft_deleted_posts_from_community(self):
         """should not be able to retrieve soft deleted posts of a community"""
@@ -178,11 +178,11 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(0, len(response_posts))
+        assert 0 == len(response_posts)
 
     def test_cannot_retrieve_moderated_approved_posts_from_community(self):
         """should not be able to retrieve moderated approved posts of a community"""
@@ -220,11 +220,11 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(0, len(response_posts))
+        assert 0 == len(response_posts)
 
     def test_can_retrieve_moderated_rejected_posts_from_community(self):
         """should be able to retrieve moderated rejected posts of a community"""
@@ -264,15 +264,15 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(len(response_posts), len(community_posts_ids))
+        assert len(response_posts) == len(community_posts_ids)
 
         for response_post in response_posts:
             response_post_id = response_post.get("id")
-            self.assertIn(response_post_id, community_posts_ids)
+            assert response_post_id in community_posts_ids
 
     def test_can_retrieve_moderated_pending_posts_from_community(self):
         """should be able to retrieve moderated pending posts of a community"""
@@ -301,15 +301,15 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(len(response_posts), len(community_posts_ids))
+        assert len(response_posts) == len(community_posts_ids)
 
         for response_post in response_posts:
             response_post_id = response_post.get("id")
-            self.assertIn(response_post_id, community_posts_ids)
+            assert response_post_id in community_posts_ids
 
     def test_cannot_retrieve_posts_from_community_banned_from(self):
         """should not be able to retrieve the posts for a community banned from and return 403"""
@@ -330,7 +330,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_403_FORBIDDEN == f"Response: {response.data}"
 
     def test_cannot_retrieve_posts_from_blocked_user(self):
         """should not be able to retrieve the community posts for a blocked user and return 200"""
@@ -351,11 +351,11 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        assert status.HTTP_200_OK == response.status_code
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(len(response_posts), 0)
+        assert len(response_posts) == 0
 
     def test_cannot_retrieve_posts_from_blocking_user(self):
         """should not be able to retrieve the community posts for a blocking user and return 200"""
@@ -376,11 +376,11 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        assert status.HTTP_200_OK == response.status_code
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(len(response_posts), 0)
+        assert len(response_posts) == 0
 
     def test_can_retrieve_posts_from_blocked_staff_member(self):
         """should be able to retrieve the community posts for a blocked staff member and return 200"""
@@ -397,16 +397,16 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        assert status.HTTP_200_OK == response.status_code
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(1, len(response_posts))
+        assert 1 == len(response_posts)
 
         response_post = response_posts[0]
 
         response_post_id = response_post.get("id")
-        self.assertEqual(response_post_id, post.pk)
+        assert response_post_id == post.pk
 
     def test_can_retrieve_posts_from_blocking_staff_member(self):
         """should be able to retrieve the community posts for a blocking staff member and return 200"""
@@ -423,16 +423,16 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        assert status.HTTP_200_OK == response.status_code
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(1, len(response_posts))
+        assert 1 == len(response_posts)
 
         response_post = response_posts[0]
 
         response_post_id = response_post.get("id")
-        self.assertEqual(response_post_id, post.pk)
+        assert response_post_id == post.pk
 
     def test_can_retrieve_posts_from_blocking_member_if_staff(self):
         """should be able to retrieve the community posts of a blocking member if staff and return 200"""
@@ -450,16 +450,16 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        assert status.HTTP_200_OK == response.status_code
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(1, len(response_posts))
+        assert 1 == len(response_posts)
 
         response_post = response_posts[0]
 
         response_post_id = response_post.get("id")
-        self.assertEqual(response_post_id, post.pk)
+        assert response_post_id == post.pk
 
     def test_can_retrieve_posts_from_blocked_member_if_staff(self):
         """should be able to retrieve the community posts of a blocked member if staff and return 200"""
@@ -477,16 +477,16 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        assert status.HTTP_200_OK == response.status_code
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(1, len(response_posts))
+        assert 1 == len(response_posts)
 
         response_post = response_posts[0]
 
         response_post_id = response_post.get("id")
-        self.assertEqual(response_post_id, post.pk)
+        assert response_post_id == post.pk
 
     def test_can_create_community_text_post_part_of(self):
         """should be able to create a post for a community part of and return 201"""
@@ -502,8 +502,8 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.put(url, {"text": post_text}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
-        self.assertTrue(Post.objects.filter(text=post_text).exists())
+        assert response.status_code, status.HTTP_201_CREATED == f"Response: {response.data}"
+        assert Post.objects.filter(text=post_text).exists()
 
     def test_can_create_community_image_post_part_of(self):
         """should be able to create an image post for a community part of and return 201"""
@@ -520,8 +520,8 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.put(url, {"image": post_image}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
-        self.assertTrue(Post.objects.filter(image__isnull=False).exists())
+        assert response.status_code, status.HTTP_201_CREATED == f"Response: {response.data}"
+        assert Post.objects.filter(image__isnull=False).exists()
 
     def test_can_create_community_post_draft(self):
         """should be able to create an post draft for a community part of and return 201"""
@@ -538,8 +538,8 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.put(url, {"text": post_text, "is_draft": True}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
-        self.assertEqual(user.posts.filter(text=post_text, status=Post.STATUS_DRAFT).count(), 1)
+        assert response.status_code, status.HTTP_201_CREATED == f"Response: {response.data}"
+        assert user.posts.filter(text=post_text, status=Post.STATUS_DRAFT).count() == 1
 
     def test_cant_create_community_post_not_part_of(self):
         """should not be able to create a post for a community part of and return 400"""
@@ -554,8 +554,8 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
         response = self.client.put(url, {"text": post_text}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
-        self.assertFalse(Post.objects.filter(text=post_text).exists())
+        assert response.status_code, status.HTTP_400_BAD_REQUEST == f"Response: {response.data}"
+        assert not Post.objects.filter(text=post_text).exists()
 
     def test_create_public_community_post_detects_mention(self):
         """should detect mentions when creating a public community post"""
@@ -576,10 +576,10 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
 
         url = self._get_url(community_name=community.name)
         response = self.client.put(url, data, **headers, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_201_CREATED == f"Response: {response.data}"
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
-        self.assertTrue(post.mentions.filter(id=mentioned_user.pk).exists())
+        assert post.mentions.filter(id=mentioned_user.pk).exists()
 
     def test_create_private_community_post_does_not_detects_mention_if_not_part_of(
         self,
@@ -606,11 +606,11 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
 
         url = self._get_url(community_name=community.name)
         response = self.client.put(url, data, **headers, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_201_CREATED == f"Response: {response.data}"
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
         post_user_mention_query = PostUserMention.objects.filter(post_id=post.pk, user_id=mentioned_user.pk)
-        self.assertTrue(post_user_mention_query.exists())
+        assert post_user_mention_query.exists()
         self.assertFalse(
             PostUserMentionNotification.objects.filter(post_user_mention=post_user_mention_query.get()).exists()
         )
@@ -644,10 +644,10 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
 
         url = self._get_url(community_name=community.name)
         response = self.client.put(url, data, **headers, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_201_CREATED == f"Response: {response.data}"
         post = Post.objects.get(text=post_text, creator_id=user.pk)
 
-        self.assertTrue(post.mentions.filter(id=mentioned_user.pk).exists())
+        assert post.mentions.filter(id=mentioned_user.pk).exists()
 
     def test_create_community_post_notifies_subscribers(self):
         """should notify subscribers when creating a community post"""
@@ -677,7 +677,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
             1,
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_201_CREATED == f"Response: {response.data}"
 
     def test_create_community_post_does_not_notify_blocked_subscribers(self):
         """should NOT notify subscribers who are blocked by creator/have blocked creator when creating a community post"""
@@ -711,7 +711,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
             ).exists()
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_201_CREATED == f"Response: {response.data}"
 
     def test_create_community_post_does_notify_blocked_subscribers_if_admin(self):
         """should notify subscribers who are blocked by admin/have blocked admin when creating a community post"""
@@ -743,7 +743,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
             ).exists()
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_201_CREATED == f"Response: {response.data}"
 
     def test_create_community_post_for_one_community_does_not_notify_admin_for_all_communities_they_are_subscribed_to(
         self,
@@ -788,8 +788,8 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
             notification__notification_type=Notification.COMMUNITY_NEW_POST,
         )
 
-        # self.assertEqual(retrieved_notifications_subscription.pk, community_notifications_subscription.pk)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
+        # assert retrieved_notifications_subscription.pk == community_notifications_subscription.pk
+        assert response.status_code, status.HTTP_201_CREATED == f"Response: {response.data}"
 
     def _get_url(self, community_name):
         return reverse("community-posts", kwargs={"community_name": community_name})
@@ -820,15 +820,15 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(len(response_posts), len(community_posts_ids))
+        assert len(response_posts) == len(community_posts_ids)
 
         for response_post in response_posts:
             response_post_id = response_post.get("id")
-            self.assertIn(response_post_id, community_posts_ids)
+            assert response_post_id in community_posts_ids
 
     def test_can_retrieve_closed_posts_from_community_if_moderator(self):
         """should be able to retrieve closed posts for a community if moderator"""
@@ -861,15 +861,15 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(len(response_posts), len(community_posts_ids))
+        assert len(response_posts) == len(community_posts_ids)
 
         for response_post in response_posts:
             response_post_id = response_post.get("id")
-            self.assertIn(response_post_id, community_posts_ids)
+            assert response_post_id in community_posts_ids
 
     @unittest.skip("TODO HOLI-2370 change to UUIDs as ids makes this obsolete")
     def test_can_retrieve_closed_posts_with_max_id_and_count(self):
@@ -897,15 +897,15 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(admin)
         response = self.client.get(url, {"count": count, "max_id": max_id}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         response_posts = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(count, len(response_posts))
+        assert count == len(response_posts)
 
         for response_post in response_posts:
             response_post_id = response_post.get("id")
-            self.assertTrue(response_post_id < max_id)
+            assert response_post_id < max_id
 
     def test_cannot_retrieve_closed_posts_from_community_if_member(self):
         """should not be able to retrieve closed posts for a community if just a member"""
@@ -933,7 +933,7 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_400_BAD_REQUEST == f"Response: {response.data}"
 
     def _get_url(self, community_name):
         return reverse("closed-community-posts", kwargs={"community_name": community_name})
@@ -958,14 +958,14 @@ class GetCommunityPostsCountAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertIn("posts_count", parsed_response)
+        assert "posts_count" in parsed_response
         response_posts_count = parsed_response["posts_count"]
 
-        self.assertEqual(response_posts_count, amount_of_posts)
+        assert response_posts_count == amount_of_posts
 
     def _get_url(self, community_name):
         return reverse("community-posts-count", kwargs={"community_name": community_name})

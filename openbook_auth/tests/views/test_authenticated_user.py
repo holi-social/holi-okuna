@@ -65,13 +65,13 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertIn("username", parsed_response)
+        assert "username" in parsed_response
         response_username = parsed_response["username"]
-        self.assertEqual(response_username, user.username)
+        assert response_username == user.username
 
     def test_can_update_user_username(self):
         """should be able to update the authenticated user username and return 200"""
@@ -86,11 +86,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         user.refresh_from_db()
 
-        self.assertEqual(user.username, new_username)
+        assert user.username == new_username
 
     def test_can_update_user_username_to_same_username(self):
         """should be able to update the authenticated user username to the same it already has and return 200"""
@@ -103,11 +103,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         user.refresh_from_db()
 
-        self.assertEqual(user.username, user.username)
+        assert user.username == user.username
 
     def test_cannot_update_user_username_to_taken_username(self):
         """should be able to update the authenticated user username to a taken username and return 400"""
@@ -122,7 +122,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_400_BAD_REQUEST == f"Response: {response.data}"
 
         user.refresh_from_db()
 
@@ -207,13 +207,13 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         response = self.client.patch(url, data, **headers)
 
         # make sure HTTP response is expected
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"response.data {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"response.data {response.data}"
 
         user.refresh_from_db()
 
         # make sure new retrieved value is same as update_value
         retrieved_value = user.profile.engagement_level
-        self.assertEqual(retrieved_value, update_value)
+        assert retrieved_value == update_value
 
     def _test_can_not_update_user_engagement_level_if_current_value_is_not_none(self):
         user = make_user()
@@ -242,7 +242,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         # make sure new retrieved value is same as initial_engagement_level
         user.refresh_from_db()
         retrieved_value = user.profile.engagement_level
-        self.assertEqual(retrieved_value, initial_engagement_level)
+        assert retrieved_value == initial_engagement_level
 
     def _test_ignore_update_user_engagement_level_if_same_value_is_provided(self):
         user = make_user()
@@ -256,12 +256,12 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"response.data {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"response.data {response.data}"
 
         # make sure new retrieved value is same as update_value
         user.refresh_from_db()
         retrieved_value = user.profile.engagement_level
-        self.assertEqual(retrieved_value, update_value)
+        assert retrieved_value == update_value
 
     def _test_can_update_user_profile_field(self, field_name, field_selector, update_value):
         user = make_user()
@@ -273,13 +273,13 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"response.data {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"response.data {response.data}"
 
         user.refresh_from_db()
 
         retrieved_value = field_selector(user)
 
-        self.assertCountEqual(retrieved_value, update_value)
+        assert len(retrieved_value) == len(update_value) and set(retrieved_value) == set(update_value)
 
     def test_validates_interests_constraints(self):
         self._user_profile_update_expect_400({"interests": ["11111111-2222-3333-4444-555555555555"]})
@@ -318,11 +318,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         user.refresh_from_db()
 
-        self.assertEqual(user.profile.followers_count_visible, new_followers_count_visible)
+        assert user.profile.followers_count_visible == new_followers_count_visible
 
     def test_can_update_user_community_posts_visible(self):
         """should be able to update the authenticated user community_posts_visible and return 200"""
@@ -337,11 +337,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         user.refresh_from_db()
 
-        self.assertEqual(user.profile.community_posts_visible, new_community_posts_visible)
+        assert user.profile.community_posts_visible == new_community_posts_visible
 
     def test_can_update_user_avatar(self):
         """should be able to update the authenticated user avatar and return 200"""
@@ -356,11 +356,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         user.refresh_from_db()
 
-        self.assertIsNotNone(user.profile.avatar)
+        assert user.profile.avatar is not None
 
     def test_can_update_user_avatar_plus_username(self):
         """should be able to update the authenticated user avatar and username and return 200"""
@@ -376,12 +376,12 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         user.refresh_from_db()
 
-        self.assertIsNotNone(user.profile.avatar)
-        self.assertEqual(user.username, new_username)
+        assert user.profile.avatar is not None
+        assert user.username == new_username
 
     def test_can_delete_user_avatar(self):
         """should be able to delete the authenticated user avatar and return 200"""
@@ -398,11 +398,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         user.refresh_from_db()
 
-        self.assertTrue(not user.profile.avatar)
+        assert not user.profile.avatar
 
     def test_can_update_user_cover(self):
         """should be able to update the authenticated user cover and return 200"""
@@ -417,11 +417,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         user.refresh_from_db()
 
-        self.assertIsNotNone(user.profile.cover)
+        assert user.profile.cover is not None
 
     def test_can_delete_user_cover(self):
         """should be able to delete the authenticated user cover and return 200"""
@@ -438,11 +438,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         user.refresh_from_db()
 
-        self.assertTrue(not user.profile.cover)
+        assert not user.profile.cover
 
     def test_can_delete_user_about_me(self):
         """should be able to delete the authenticated user about me and return 200"""
@@ -459,11 +459,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         user.refresh_from_db()
 
-        self.assertTrue(not user.profile.about_me)
+        assert not user.profile.about_me
 
     def test_can_delete_user_location(self):
         """should be able to delete the authenticated user location and return 200"""
@@ -480,11 +480,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         user.refresh_from_db()
 
-        self.assertTrue(not user.profile.location)
+        assert not user.profile.location
 
     def test_can_delete_user_url(self):
         """should be able to delete the authenticated user url and return 200"""
@@ -501,11 +501,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         user.refresh_from_db()
 
-        self.assertTrue(not user.profile.url)
+        assert not user.profile.url
 
     def test_can_update_user_url(self):
         """should be able to update the authenticated user url and return 200"""
@@ -520,11 +520,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         user.refresh_from_db()
 
-        self.assertEqual(new_url, user.profile.url)
+        assert new_url == user.profile.url
 
     def test_can_update_user_url_with_not_fully_qualified_urls(self):
         """should be able to update the authenticated user url with not fully qualified urls and return 200"""
@@ -543,11 +543,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         user.refresh_from_db()
 
-        self.assertEqual("https://" + unfully_qualified_url, user.profile.url)
+        assert "https://" + unfully_qualified_url == user.profile.url
 
     def test_can_update_user_visibility(self):
         """should be able to update the authenticated user visibility and return 200"""
@@ -565,11 +565,11 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
                 response = self.client.patch(url, data, **headers)
 
-                self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+                assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
                 user.refresh_from_db()
 
-                self.assertEqual(user.visibility, new_visibility)
+                assert user.visibility == new_visibility
 
     def test_when_updating_visibility_to_public_existing_follow_requests_get_deleted(
         self,
@@ -590,9 +590,9 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
-        self.assertFalse(user.has_follow_request_from_user(user_requesting_to_follow))
+        assert not user.has_follow_request_from_user(user_requesting_to_follow)
 
     def test_when_updating_visibility_to_private_existing_connection_requests_get_deleted(
         self,
@@ -617,9 +617,9 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
-        self.assertEqual(user.targeted_connections.count(), 0)
+        assert user.targeted_connections.count() == 0
 
     def test_when_updating_visibility_to_non_private_from_non_private_existing_connection_requests_dont_get_deleted(
         self,
@@ -650,9 +650,9 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
                 response = self.client.patch(url, data, **headers)
 
-                self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+                assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
-                self.assertEqual(user.targeted_connections.count(), number_of_connection_requests)
+                assert user.targeted_connections.count() == number_of_connection_requests
 
     def _get_url(self):
         return reverse("authenticated-user")
@@ -679,9 +679,9 @@ class AuthenticatedUserDeleteTests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
-        self.assertFalse(User.objects.filter(pk=user.pk).exists())
+        assert not User.objects.filter(pk=user.pk).exists()
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_cant_delete_user_with_wrong_password(self):
@@ -699,9 +699,9 @@ class AuthenticatedUserDeleteTests(OpenbookAPITestCase):
 
         response = self.client.post(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_401_UNAUTHORIZED == f"Response: {response.data}"
 
-        self.assertTrue(User.objects.filter(pk=user.pk).exists())
+        assert User.objects.filter(pk=user.pk).exists()
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_cant_delete_user_without_password(self):
@@ -715,9 +715,9 @@ class AuthenticatedUserDeleteTests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_400_BAD_REQUEST == f"Response: {response.data}"
 
-        self.assertTrue(User.objects.filter(pk=user.pk).exists())
+        assert User.objects.filter(pk=user.pk).exists()
 
     def _get_url(self):
         return reverse("delete-authenticated-user")
@@ -738,13 +738,13 @@ class AuthenticatedUserNotificationsSettingsTests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertIn("id", parsed_response)
+        assert "id" in parsed_response
         response_id = parsed_response["id"]
-        self.assertEqual(response_id, user.notifications_settings.pk)
+        assert response_id == user.notifications_settings.pk
 
     def test_can_update_notifications_settings(self):
         """should be able to update notifications settings and return 200"""
@@ -808,7 +808,7 @@ class AuthenticatedUserNotificationsSettingsTests(OpenbookAPITestCase):
 
         response = self.client.patch(url, data, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         notifications_settings.refresh_from_db()
 
@@ -820,7 +820,7 @@ class AuthenticatedUserNotificationsSettingsTests(OpenbookAPITestCase):
             notifications_settings.post_reaction_notifications,
             new_post_reaction_notifications,
         )
-        self.assertEqual(notifications_settings.follow_notifications, new_follow_notifications)
+        assert notifications_settings.follow_notifications == new_follow_notifications
         self.assertEqual(
             notifications_settings.follow_request_notifications,
             new_follow_request_notifications,
@@ -884,8 +884,8 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
         response = self.client.patch(self.url, data, **headers)
         parsed_reponse = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
-        self.assertEqual(parsed_reponse["username"], user.username)
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
+        assert parsed_reponse["username"] == user.username
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_cannot_change_password_without_current_password(self):
@@ -898,7 +898,7 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
         data = {"new_password": new_password}
 
         response = self.client.patch(self.url, data, **headers)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_400_BAD_REQUEST == f"Response: {response.data}"
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_cannot_change_password_without_correct_password(self):
@@ -915,7 +915,7 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
         }
 
         response = self.client.patch(self.url, data, **headers)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_401_UNAUTHORIZED == f"Response: {response.data}"
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_cannot_change_password_without_new_password(self):
@@ -928,7 +928,7 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
         data = {"current_password": current_raw_password}
 
         response = self.client.patch(self.url, data, **headers)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_400_BAD_REQUEST == f"Response: {response.data}"
 
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_cannot_change_email_to_existing_email(self):
@@ -941,7 +941,7 @@ class AuthenticatedUserSettingsAPITests(OpenbookAPITestCase):
         with mock.patch.object(AuthenticatedUserSettings, "send_confirmation_email", return_value=None):
             response = self.client.patch(self.url, data, **headers)
 
-            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
+            assert response.status_code, status.HTTP_400_BAD_REQUEST == f"Response: {response.data}"
 
 
 class AuthenticatedUserAcceptGuidelines(OpenbookAPITestCase):
@@ -960,10 +960,10 @@ class AuthenticatedUserAcceptGuidelines(OpenbookAPITestCase):
 
         response = self.client.post(self.url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         user.refresh_from_db()
-        self.assertTrue(user.are_guidelines_accepted)
+        assert user.are_guidelines_accepted
 
     def test_cant_accept_guidelines_if_aleady_accepted(self):
         """should not be able to accept the guidelines if already accepted and return 400"""
@@ -974,10 +974,10 @@ class AuthenticatedUserAcceptGuidelines(OpenbookAPITestCase):
 
         response = self.client.post(self.url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_400_BAD_REQUEST == f"Response: {response.data}"
 
         user.refresh_from_db()
-        self.assertTrue(user.are_guidelines_accepted)
+        assert user.are_guidelines_accepted
 
 
 class AuthenticatedUserLanguageAPI(OpenbookAPITestCase):
@@ -994,9 +994,9 @@ class AuthenticatedUserLanguageAPI(OpenbookAPITestCase):
 
         response = self.client.get(self.url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
-        self.assertTrue(len(parsed_response), 25)
+        assert len(parsed_response), 25
 
     def test_can_set_language(self):
         """should be able to set user language and return 200"""
@@ -1006,9 +1006,9 @@ class AuthenticatedUserLanguageAPI(OpenbookAPITestCase):
 
         response = self.client.post(self.url, {"language_id": language.id}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
         user.refresh_from_db()
-        self.assertTrue(user.language.id, language.id)
+        assert user.language.id, language.id
 
     def test_cannot_set_invalid_language(self):
         """should be able to set user language and return 200"""
@@ -1020,8 +1020,8 @@ class AuthenticatedUserLanguageAPI(OpenbookAPITestCase):
 
         response = self.client.post(self.url, {"language_id": 99999}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_400_BAD_REQUEST == f"Response: {response.data}"
         user.refresh_from_db()
-        self.assertTrue(user.language.id, language.id)
+        assert user.language.id, language.id
 
     url = reverse("user-language")

@@ -50,16 +50,16 @@ class SearchUsersAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, {"query": "lil"}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(len(parsed_response), len(lil_users))
+        assert len(parsed_response) == len(lil_users)
 
         response_usernames = [user["username"] for user in parsed_response]
 
         for lil_user in lil_users:
-            self.assertIn(lil_user.username, response_usernames)
+            assert lil_user.username in response_usernames
 
     def test_cant_query_blocked_user(self):
         user = make_user()
@@ -72,11 +72,11 @@ class SearchUsersAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, {"query": user_to_query.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(len(parsed_response), 0)
+        assert len(parsed_response) == 0
 
     def test_cant_query_blocking_user(self):
         user = make_user()
@@ -89,11 +89,11 @@ class SearchUsersAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, {"query": user_to_query.username}, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(len(parsed_response), 0)
+        assert len(parsed_response) == 0
 
     def test_can_limit_amount_of_queried_users(self):
         total_users = 10
@@ -112,7 +112,7 @@ class SearchUsersAPITests(OpenbookAPITestCase):
 
         parsed_reponse = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(len(parsed_reponse), limited_users)
+        assert len(parsed_reponse) == limited_users
 
     def test_cannot_query_soft_deleted_user(self):
         user = make_user()
@@ -132,7 +132,7 @@ class SearchUsersAPITests(OpenbookAPITestCase):
 
         parsed_reponse = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertEqual(0, len(parsed_reponse))
+        assert 0 == len(parsed_reponse)
 
     def _get_url(self):
         return reverse("search-users")
@@ -152,13 +152,13 @@ class GetUserAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertIn("username", parsed_response)
+        assert "username" in parsed_response
         response_username = parsed_response["username"]
-        self.assertEqual(response_username, user.username)
+        assert response_username == user.username
 
     def test_cant_retrieve_blocked_user(self):
         """should not be able to retrieve a blocked user and return 403"""
@@ -172,7 +172,7 @@ class GetUserAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_403_FORBIDDEN == f"Response: {response.data}"
 
     def test_cant_retrieve_blocking_user(self):
         """should not be able to retrieve a blocking user and return 403"""
@@ -186,7 +186,7 @@ class GetUserAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_403_FORBIDDEN == f"Response: {response.data}"
 
     def test_cant_retrieve_soft_deleted_user(self):
         """should not be able to retrieve a soft deleted user and return 403"""
@@ -200,7 +200,7 @@ class GetUserAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_404_NOT_FOUND == f"Response: {response.data}"
 
     def _get_url(self, user):
         return reverse("get-user", kwargs={"user_username": user.username})
@@ -224,8 +224,8 @@ class BlockUserAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
-        self.assertTrue(user.has_blocked_user_with_id(user_id=user_to_block.pk))
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
+        assert user.has_blocked_user_with_id(user_id=user_to_block.pk)
 
     def test_cannot_block_already_blocked_user(self):
         """should not be able to block an already blocked user and return 403"""
@@ -239,8 +239,8 @@ class BlockUserAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
-        self.assertTrue(user.has_blocked_user_with_id(user_id=user_to_block.pk))
+        assert response.status_code, status.HTTP_403_FORBIDDEN == f"Response: {response.data}"
+        assert user.has_blocked_user_with_id(user_id=user_to_block.pk)
 
     def test_cannot_block_blocking_user(self):
         """should not be able to block a blocking user and return 400"""
@@ -254,8 +254,8 @@ class BlockUserAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
-        self.assertTrue(blocking_user.has_blocked_user_with_id(user_id=user.pk))
+        assert response.status_code, status.HTTP_403_FORBIDDEN == f"Response: {response.data}"
+        assert blocking_user.has_blocked_user_with_id(user_id=user.pk)
 
     def test_disconnects_from_user(self):
         """should disconnect from the blocked user"""
@@ -271,8 +271,8 @@ class BlockUserAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
-        self.assertFalse(user.is_connected_with_user_with_id(user_id=user_to_block.pk))
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
+        assert not user.is_connected_with_user_with_id(user_id=user_to_block.pk)
 
     def test_unfollows_user(self):
         """should unfollow the blocked user"""
@@ -287,8 +287,8 @@ class BlockUserAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
-        self.assertFalse(user.is_following_user_with_id(user_id=user_to_block.pk))
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
+        assert not user.is_following_user_with_id(user_id=user_to_block.pk)
 
     def test_gets_unfollowed_by_blocked_user(self):
         """should be unfollowed by the blocked user"""
@@ -303,8 +303,8 @@ class BlockUserAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
-        self.assertFalse(user_to_block.is_following_user_with_id(user_id=user_to_block.pk))
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
+        assert not user_to_block.is_following_user_with_id(user_id=user_to_block.pk)
 
     def test_a_blocking_user_should_remove_notifications_subscriptions(self):
         """should remove notifications subscriptions for both on blocking of a user"""
@@ -318,10 +318,10 @@ class BlockUserAPITests(OpenbookAPITestCase):
         url = self._get_url(user_to_block)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
         UserNotificationsSubscription = get_user_notifications_subscription_model()
-        self.assertFalse(UserNotificationsSubscription.objects.filter(subscriber=user, user=user_to_block).exists())
-        self.assertFalse(UserNotificationsSubscription.objects.filter(subscriber=user_to_block, user=user).exists())
+        assert not UserNotificationsSubscription.objects.filter(subscriber=user, user=user_to_block).exists()
+        assert not UserNotificationsSubscription.objects.filter(subscriber=user_to_block, user=user).exists()
 
     def test_blocking_user_should_remove_their_notifications_subscriptions(self):
         """should remove notifications subscriptions for both when a blocking user"""
@@ -335,10 +335,10 @@ class BlockUserAPITests(OpenbookAPITestCase):
         url = self._get_url(user)
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
         UserNotificationsSubscription = get_user_notifications_subscription_model()
-        self.assertFalse(UserNotificationsSubscription.objects.filter(subscriber=blocking_user, user=user).exists())
-        self.assertFalse(UserNotificationsSubscription.objects.filter(subscriber=user, user=blocking_user).exists())
+        assert not UserNotificationsSubscription.objects.filter(subscriber=blocking_user, user=user).exists()
+        assert not UserNotificationsSubscription.objects.filter(subscriber=user, user=blocking_user).exists()
 
     def _get_url(self, user):
         return reverse("block-user", kwargs={"user_username": user.username})
@@ -361,8 +361,8 @@ class UnblockUserAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
-        self.assertFalse(user.has_blocked_user_with_id(user_id=blocked_user.pk))
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
+        assert not user.has_blocked_user_with_id(user_id=blocked_user.pk)
 
     def test_cannot_unblock_not_blocked_user(self):
         """should not be able to unblock a not blocked user and return 400"""
@@ -375,8 +375,8 @@ class UnblockUserAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
-        self.assertFalse(user.has_blocked_user_with_id(user_id=blocked_user.pk))
+        assert response.status_code, status.HTTP_400_BAD_REQUEST == f"Response: {response.data}"
+        assert not user.has_blocked_user_with_id(user_id=blocked_user.pk)
 
     def test_cannot_unblock_unblocking_user(self):
         """should not be able to unblock a blocking user and return 400"""
@@ -390,8 +390,8 @@ class UnblockUserAPITests(OpenbookAPITestCase):
 
         response = self.client.post(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
-        self.assertTrue(blocking_user.has_blocked_user_with_id(user_id=user.pk))
+        assert response.status_code, status.HTTP_400_BAD_REQUEST == f"Response: {response.data}"
+        assert blocking_user.has_blocked_user_with_id(user_id=user.pk)
 
     def _get_url(self, user):
         return reverse("unblock-user", kwargs={"user_username": user.username})
@@ -411,9 +411,9 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
         url = self._get_url(user_to_subscribe)
         response = self.client.put(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_201_CREATED == f"Response: {response.data}"
         UserNotificationsSubscription = get_user_notifications_subscription_model()
-        self.assertTrue(UserNotificationsSubscription.objects.filter(subscriber=user, user=user_to_subscribe).exists())
+        assert UserNotificationsSubscription.objects.filter(subscriber=user, user=user_to_subscribe).exists()
         self.assertTrue(
             UserNotificationsSubscription.objects.get(subscriber=user, user=user_to_subscribe).new_post_notifications
         )
@@ -426,10 +426,10 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
         url = self._get_url(user)
         response = self.client.put(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_400_BAD_REQUEST == f"Response: {response.data}"
 
         UserNotificationsSubscription = get_user_notifications_subscription_model()
-        self.assertFalse(UserNotificationsSubscription.objects.filter(subscriber=user, user=user).exists())
+        assert not UserNotificationsSubscription.objects.filter(subscriber=user, user=user).exists()
 
     def test_cannot_subscribe_to_notifications_from_user_if_already_subscribed(self):
         """should not be able to subscribe to a user if already subscribed and return 400"""
@@ -442,7 +442,7 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
         url = self._get_url(user_to_subscribe)
         response = self.client.put(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_400_BAD_REQUEST == f"Response: {response.data}"
         UserNotificationsSubscription = get_user_notifications_subscription_model()
         self.assertEqual(
             UserNotificationsSubscription.objects.filter(subscriber=user, user=user_to_subscribe).count(),
@@ -460,7 +460,7 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
         url = self._get_url(user_to_subscribe)
         response = self.client.put(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_403_FORBIDDEN == f"Response: {response.data}"
         UserNotificationsSubscription = get_user_notifications_subscription_model()
         self.assertFalse(
             UserNotificationsSubscription.objects.filter(subscriber=user, user=user_to_subscribe).exists()
@@ -477,7 +477,7 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
         url = self._get_url(user_to_subscribe)
         response = self.client.put(url, **headers, format="multipart")
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_403_FORBIDDEN == f"Response: {response.data}"
         UserNotificationsSubscription = get_user_notifications_subscription_model()
         self.assertFalse(
             UserNotificationsSubscription.objects.filter(subscriber=user, user=user_to_subscribe).exists()
@@ -494,7 +494,7 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
         url = self._get_url(user_to_unsubscribe)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
         UserNotificationsSubscription = get_user_notifications_subscription_model()
         self.assertFalse(
             UserNotificationsSubscription.objects.get(subscriber=user, user=user_to_unsubscribe).new_post_notifications
@@ -511,7 +511,7 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
         url = self._get_url(user_to_unsubscribe)
         response = self.client.delete(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_400_BAD_REQUEST == f"Response: {response.data}"
         UserNotificationsSubscription = get_user_notifications_subscription_model()
         self.assertFalse(
             UserNotificationsSubscription.objects.filter(subscriber=user, user=user_to_unsubscribe).exists()
@@ -544,14 +544,14 @@ class GetUserPostsCountAPITests(OpenbookAPITestCase):
 
         response = self.client.get(url, **headers)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
+        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
 
         parsed_response = json.loads(response.content, object_hook=uuid_id_parser)
 
-        self.assertIn("posts_count", parsed_response)
+        assert "posts_count" in parsed_response
         response_posts_count = parsed_response["posts_count"]
 
-        self.assertEqual(response_posts_count, amount_of_posts)
+        assert response_posts_count == amount_of_posts
 
     def _get_url(self, user_username):
         return reverse("user-posts-count", kwargs={"user_username": user_username})

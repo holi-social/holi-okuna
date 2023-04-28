@@ -25,7 +25,7 @@ class SpaceCreatedEventTestCase(testcases.TestCase):
 
         eventPayload = {"eventType": "SpaceCreated", "eventVersion": "1.0.0", "data": encoded_data}
 
-        self.assertEqual(eventPayload, event_dict)
+        assert eventPayload == event_dict
 
 
 class SpaceUserAddedEventTestCase(testcases.TestCase):
@@ -46,7 +46,7 @@ class SpaceUserAddedEventTestCase(testcases.TestCase):
 
         eventPayload = {"eventType": "SpaceUserAdded", "eventVersion": "1.0.0", "data": encoded_data}
 
-        self.assertEqual(eventPayload, event_dict)
+        assert eventPayload == event_dict
 
 
 class UserNameUpdatedEventTestCase(testcases.TestCase):
@@ -65,4 +65,4 @@ class UserNameUpdatedEventTestCase(testcases.TestCase):
 
         eventPayload = {"eventType": "UserNameUpdated", "eventVersion": "1.0.0", "data": encoded_data}
 
-        self.assertEqual(eventPayload, event_dict)
+        assert eventPayload == event_dict
