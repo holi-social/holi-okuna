@@ -39,15 +39,15 @@ class UserModelTest(TestAssertionsMixin, TestCase):
         membership_requestor.request_membership_to_community_with_name(space.name)
 
         # precondition
-        assert membership_requestor.is_membership_requestor_of_community_with_name(space.name)
+        self.assertTrue(membership_requestor.is_membership_requestor_of_community_with_name(space.name))
 
         returned_space = space_creator.approve_membership_request_to_community_for_username(
             membership_requestor.username, space.name
         )
 
         # postcondition
-        assert membership_requestor.is_member_of_community_with_name(space.name)
-        assert not membership_requestor.is_membership_requestor_of_community_with_name(space.name)
+        self.assertTrue(membership_requestor.is_member_of_community_with_name(space.name))
+        self.assertFalse(membership_requestor.is_membership_requestor_of_community_with_name(space.name))
 
         self.assertNotification(
             membership_requestor.notifications.get(),
@@ -87,18 +87,18 @@ class UserModelTest(TestAssertionsMixin, TestCase):
         membership_requestor.request_membership_to_community_with_name(space.name)
 
         # precondition
-        assert membership_requestor.is_membership_requestor_of_community_with_name(space.name)
+        self.assertTrue(membership_requestor.is_membership_requestor_of_community_with_name(space.name))
 
         returned_space = space_creator.revoke_membership_request_to_community_for_username(
             membership_requestor.username, space.name
         )
 
         # postcondition
-        assert not membership_requestor.is_member_of_community_with_name(space.name)
-        assert not membership_requestor.is_membership_requestor_of_community_with_name(space.name)
+        self.assertFalse(membership_requestor.is_member_of_community_with_name(space.name))
+        self.assertFalse(membership_requestor.is_membership_requestor_of_community_with_name(space.name))
 
-        assert not membership_requestor.notifications.exists()
-        assert not space_creator.notifications.exists()
+        self.assertFalse(membership_requestor.notifications.exists())
+        self.assertFalse(space_creator.notifications.exists())
 
     def test_delete_comment_with_id_success(self):
         posting_user = make_user()
@@ -113,13 +113,13 @@ class UserModelTest(TestAssertionsMixin, TestCase):
         )
         comment = post.comment(text=f"comment text", commenter=comment_user)
         comment2 = post.comment(text=f"comment text 2", commenter=comment_user)
-        assert post.comments.count() == 2
+        self.assertEqual(post.comments.count(), 2)
 
         comment_user.delete_comment_with_id(comment.id)
 
-        assert post.comments.count() == 1
+        self.assertEqual(post.comments.count(), 1)
         self.assertNotIn(comment.id, post.comments.values_list("id", flat=True))
-        assert comment2.id in post.comments.values_list("id", flat=True)
+        self.assertIn(comment2.id, post.comments.values_list("id", flat=True))
 
     def test_delete_comment_with_id_error_wrong_id(self):
         posting_user = make_user()
@@ -134,13 +134,13 @@ class UserModelTest(TestAssertionsMixin, TestCase):
         )
         comment = post.comment(text=f"comment text", commenter=comment_user)
         post.comment(text=f"comment text 2", commenter=comment_user)
-        assert post.comments.count() == 2
+        self.assertEqual(post.comments.count(), 2)
 
         with self.assertRaises(PostComment.DoesNotExist):
             comment_user.delete_comment_with_id(uuid.uuid4())
 
-        assert post.comments.count() == 2
-        assert comment.id in post.comments.values_list("id", flat=True)
+        self.assertEqual(post.comments.count(), 2)
+        self.assertIn(comment.id, post.comments.values_list("id", flat=True))
 
     def test_delete_comment_with_id_error_different_user(self):
         posting_user = make_user()
@@ -156,13 +156,13 @@ class UserModelTest(TestAssertionsMixin, TestCase):
         )
         comment = post.comment(text=f"comment text", commenter=comment_user)
         post.comment(text=f"comment text 2", commenter=other_user)
-        assert post.comments.count() == 2
+        self.assertEqual(post.comments.count(), 2)
 
         with self.assertRaises(ValidationError):
             other_user.delete_comment_with_id(comment.id)
 
-        assert post.comments.count() == 2
-        assert comment.id in post.comments.values_list("id", flat=True)
+        self.assertEqual(post.comments.count(), 2)
+        self.assertIn(comment.id, post.comments.values_list("id", flat=True))
 
     def test_create_community_encircled_post_success(self):
         space_creator = make_user()
@@ -178,10 +178,10 @@ class UserModelTest(TestAssertionsMixin, TestCase):
             space_id=space.id,
             visibility=VisibilityType.MEMBERS.value,
         )
-        assert space.posts.count() == 1
-        assert post_private.community.id == space.id
-        assert post_private.text == post_private_text
-        assert post_private.title == post_private_title
+        self.assertEqual(space.posts.count(), 1)
+        self.assertEqual(post_private.community.id, space.id)
+        self.assertEqual(post_private.text, post_private_text)
+        self.assertEqual(post_private.title, post_private_title)
         self.assertNotIn(world_circle_id, post_private.circles.values_list("id", flat=True))
 
         post_public_text = make_fake_post_text()
@@ -190,11 +190,11 @@ class UserModelTest(TestAssertionsMixin, TestCase):
             text=post_public_text, title=post_public_title, space_id=space.id, visibility=VisibilityType.PUBLIC.value
         )
 
-        assert space.posts.count() == 2
-        assert post_public.community.id == space.id
-        assert post_public.text == post_public_text
-        assert post_public.title == post_public_title
-        assert world_circle_id in post_public.circles.values_list("id", flat=True)
+        self.assertEqual(space.posts.count(), 2)
+        self.assertEqual(post_public.community.id, space.id)
+        self.assertEqual(post_public.text, post_public_text)
+        self.assertEqual(post_public.title, post_public_title)
+        self.assertIn(world_circle_id, post_public.circles.values_list("id", flat=True))
 
     def test_create_community_encircled_post_member_user_can_create_only_private_post(self):
         space_creator = make_user()
@@ -211,10 +211,10 @@ class UserModelTest(TestAssertionsMixin, TestCase):
             space_id=space.id,
             visibility=VisibilityType.MEMBERS.value,
         )
-        assert space.posts.count() == 1
-        assert private_post.community.id == space.id
-        assert private_post.text == post_private_text
-        assert private_post.title == post_private_title
+        self.assertEqual(space.posts.count(), 1)
+        self.assertEqual(private_post.community.id, space.id)
+        self.assertEqual(private_post.text, post_private_text)
+        self.assertEqual(private_post.title, post_private_title)
 
         post_public_text = make_fake_post_text()
         post_public_title = make_fake_post_title()
@@ -226,7 +226,7 @@ class UserModelTest(TestAssertionsMixin, TestCase):
                 space_id=space.id,
                 visibility=VisibilityType.PUBLIC.value,
             )
-        assert space.posts.count() == 1
+        self.assertEqual(space.posts.count(), 1)
 
     def test_create_community_encircled_post_error_user_not_member(self):
         space_creator = make_user()
@@ -241,4 +241,4 @@ class UserModelTest(TestAssertionsMixin, TestCase):
                 text=post_text, title=post_title, space_id=space.id, visibility=VisibilityType.PUBLIC.value
             )
 
-        assert space.posts.count() == 0
+        self.assertEqual(space.posts.count(), 0)

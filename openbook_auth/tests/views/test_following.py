@@ -38,15 +38,15 @@ class FollowingsAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, **headers)
 
-        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_followings = json.loads(response.content, object_hook=uuid_id_parser)
 
-        assert len(response_followings) == amount_of_followings
+        self.assertEqual(len(response_followings), amount_of_followings)
 
         for response_member in response_followings:
             response_member_id = response_member.get("id")
-            assert response_member_id in followings_ids
+            self.assertIn(response_member_id, followings_ids)
 
     def test_cant_retrieve_soft_deleted_followings(self):
         """should be able to retrieve the authenticated user linked users"""
@@ -66,11 +66,11 @@ class FollowingsAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, **headers)
 
-        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_followings = json.loads(response.content, object_hook=uuid_id_parser)
 
-        assert 0 == len(response_followings)
+        self.assertEqual(0, len(response_followings))
 
     def _get_url(self):
         return reverse("followings")
@@ -103,15 +103,15 @@ class SearchFollowingsAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             response_followings = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_followings)
 
-            assert response_members_count == 1
+            self.assertEqual(response_members_count, 1)
             retrieved_user = response_followings[0]
 
-            assert retrieved_user["id"] == following_user.id
+            self.assertEqual(retrieved_user["id"], following_user.id)
             user.unfollow_user_with_id(following_user.pk)
 
     def test_can_search_followings_by_username(self):
@@ -136,15 +136,15 @@ class SearchFollowingsAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             response_followings = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_followings)
 
-            assert response_members_count == 1
+            self.assertEqual(response_members_count, 1)
             retrieved_user = response_followings[0]
 
-            assert retrieved_user["id"] == following_user.id
+            self.assertEqual(retrieved_user["id"], following_user.id)
             user.unfollow_user_with_id(following_user.pk)
 
     def test_cant_search_soft_deleted_followings(self):
@@ -170,12 +170,12 @@ class SearchFollowingsAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             response_followings = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_followings)
 
-            assert 0 == response_members_count
+            self.assertEqual(0, response_members_count)
 
     def _get_url(self):
         return reverse("search-followings")

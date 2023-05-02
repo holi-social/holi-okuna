@@ -1,8 +1,6 @@
 import json
-import pytest
 from datetime import datetime
 from unittest import mock
-from django.test import Client
 
 from django.test import TestCase
 from django_rq import get_queue
@@ -15,38 +13,38 @@ from openbook_auth.tasks import update_ory_user
 from openbook_common.tests.helpers import make_user
 
 
-@pytest.fixture(scope="session")
-def client():
-    return Client()
+class TestUpdateOryUser(TestCase):
+    user: User | None = None
 
+    @classmethod
+    def setUpTestData(cls) -> None:
+        cls.user = make_user()
 
-@pytest.fixture(autouse=True)
-def user(db, django_user_model):
-    return make_user()
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.user.delete()
+        super().tearDownClass()
 
-
-@pytest.mark.django_db
-class TestUpdateOryUser:
     @mock.patch("requests.patch")
-    def test_update_ory_user_success(self, mock_patch, user):
+    def test_update_ory_user_success(self, mock_patch):
         json_body = [
-            {"op": "replace", "path": "/traits/given_name", "value": user.profile.name},
-            {"op": "replace", "path": "/traits/family_name", "value": user.profile.last_name},
+            {"op": "replace", "path": "/traits/given_name", "value": self.user.profile.name},
+            {"op": "replace", "path": "/traits/family_name", "value": self.user.profile.last_name},
             {
                 "op": "replace",
                 "path": "/traits/name",
-                "value": user.profile.full_name(),
+                "value": self.user.profile.full_name(),
             },
         ]
         response_content = json.dumps(
             {
                 "created_at": "2019-08-24T14:15:22Z",
                 "credentials": {},
-                "id": user.username,
+                "id": self.user.username,
                 "state": "active",
                 "traits": {
-                    "email": user.email,
-                    "name": {"first": user.profile.name, "last": user.profile.last_name},
+                    "email": self.user.email,
+                    "name": {"first": self.user.profile.name, "last": self.user.profile.last_name},
                 },
                 "updated_at": str(datetime.now()),
             }
@@ -56,26 +54,26 @@ class TestUpdateOryUser:
         response._content = str.encode(response_content)
         mock_patch.return_value = response
 
-        job: Job = update_ory_user.delay(user.id)
+        job: Job = update_ory_user.delay(self.user.id)
 
         mock_patch.assert_called_once_with(
-            f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
+            f"{settings.ORY_BASE_URL}/admin/identities/{self.user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
             json=json_body,
         )
-        assert not job.is_failed
-        assert job.is_finished
-        assert job.result is None
+        self.assertFalse(job.is_failed)
+        self.assertTrue(job.is_finished)
+        self.assertIsNone(job.result)
 
     @mock.patch("requests.patch")
-    def test_update_ory_user_failure_user_not_exist(self, mock_patch, user):
+    def test_update_ory_user_failure_user_not_exist(self, mock_patch):
         json_body = [
-            {"op": "replace", "path": "/traits/given_name", "value": user.profile.name},
-            {"op": "replace", "path": "/traits/family_name", "value": user.profile.last_name},
+            {"op": "replace", "path": "/traits/given_name", "value": self.user.profile.name},
+            {"op": "replace", "path": "/traits/family_name", "value": self.user.profile.last_name},
             {
                 "op": "replace",
                 "path": "/traits/name",
-                "value": user.profile.full_name(),
+                "value": self.user.profile.full_name(),
             },
         ]
         response_content = json.dumps(
@@ -86,26 +84,26 @@ class TestUpdateOryUser:
         response._content = str.encode(response_content)
         mock_patch.return_value = response
 
-        job: Job = update_ory_user.delay(user.id)
+        job: Job = update_ory_user.delay(self.user.id)
 
         mock_patch.assert_called_once_with(
-            f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
+            f"{settings.ORY_BASE_URL}/admin/identities/{self.user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
             json=json_body,
         )
-        assert job.is_failed
-        assert not job.is_finished
-        assert job.result is None
+        self.assertTrue(job.is_failed)
+        self.assertFalse(job.is_finished)
+        self.assertIsNone(job.result)
 
     @mock.patch("requests.patch")
-    def test_update_ory_user_failure_bad_request(self, mock_patch, user):
+    def test_update_ory_user_failure_bad_request(self, mock_patch):
         json_body = [
-            {"op": "replace", "path": "/traits/given_name", "value": user.profile.name},
-            {"op": "replace", "path": "/traits/family_name", "value": user.profile.last_name},
+            {"op": "replace", "path": "/traits/given_name", "value": self.user.profile.name},
+            {"op": "replace", "path": "/traits/family_name", "value": self.user.profile.last_name},
             {
                 "op": "replace",
                 "path": "/traits/name",
-                "value": user.profile.full_name(),
+                "value": self.user.profile.full_name(),
             },
         ]
         response_content = json.dumps({"error": {"code": 400, "status": "Bad request", "message": "Unsupported"}})
@@ -114,13 +112,13 @@ class TestUpdateOryUser:
         response._content = str.encode(response_content)
         mock_patch.return_value = response
 
-        job: Job = update_ory_user.delay(user.id)
+        job: Job = update_ory_user.delay(self.user.id)
 
         mock_patch.assert_called_once_with(
-            f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
+            f"{settings.ORY_BASE_URL}/admin/identities/{self.user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
             json=json_body,
         )
-        assert job.is_failed
-        assert not job.is_finished
-        assert job.result is None
+        self.assertTrue(job.is_failed)
+        self.assertFalse(job.is_finished)
+        self.assertIsNone(job.result)

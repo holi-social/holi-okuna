@@ -14,18 +14,18 @@ class CommunitiesHelperTests(OpenbookAPITestCase):
         make_community(title="bar-12345678")
         make_community(title=long_name)
 
-        assert "" == create_community_name_from_title_and_hash("", hash)
-        assert "foo" == create_community_name_from_title_and_hash("FOO", hash)
-        assert "foo-bar" == create_community_name_from_title_and_hash(" Foo Bar ", hash)
-        assert "foobar" == create_community_name_from_title_and_hash("Foo%$&bar", hash)
-        assert "bar-23456789" == create_community_name_from_title_and_hash("bar", "2345678901")
-        assert "bar-123456789" == create_community_name_from_title_and_hash("bar", hash)
-        assert "bar-1234" == create_community_name_from_title_and_hash("bar", "1234")
-        assert f"{long_name[:51]}-12345678" == create_community_name_from_title_and_hash(long_name, hash)
+        self.assertEqual("", create_community_name_from_title_and_hash("", hash))
+        self.assertEqual("foo", create_community_name_from_title_and_hash("FOO", hash))
+        self.assertEqual("foo-bar", create_community_name_from_title_and_hash(" Foo Bar ", hash))
+        self.assertEqual("foobar", create_community_name_from_title_and_hash("Foo%$&bar", hash))
+        self.assertEqual("bar-23456789", create_community_name_from_title_and_hash("bar", "2345678901"))
+        self.assertEqual("bar-123456789", create_community_name_from_title_and_hash("bar", hash))
+        self.assertEqual("bar-1234", create_community_name_from_title_and_hash("bar", "1234"))
+        self.assertEqual(f"{long_name[:51]}-12345678", create_community_name_from_title_and_hash(long_name, hash))
 
         with self.assertRaises(Exception) as context:
             create_community_name_from_title_and_hash("bar", "12345678")
-        assert "Community name already taken." in str(context.exception)
+        self.assertTrue("Community name already taken." in str(context.exception))
         with self.assertRaises(Exception) as context:
             create_community_name_from_title_and_hash("bar", "")
-        assert "Community name already taken." in str(context.exception)
+        self.assertTrue("Community name already taken." in str(context.exception))

@@ -37,15 +37,15 @@ class BlockedUsersAPITests(OpenbookAPITestCase):
         url = self._get_url()
         response = self.client.get(url, **headers)
 
-        assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
         response_blocked_users = json.loads(response.content, object_hook=uuid_id_parser)
 
-        assert len(response_blocked_users) == amount_of_blocked_users
+        self.assertEqual(len(response_blocked_users), amount_of_blocked_users)
 
         for response_member in response_blocked_users:
             response_member_id = response_member.get("id")
-            assert response_member_id in blocked_users_ids
+            self.assertIn(response_member_id, blocked_users_ids)
 
     def _get_url(self):
         return reverse("blocked-users")
@@ -78,15 +78,15 @@ class SearchBlockedUsersAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             response_blocked_users = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_blocked_users)
 
-            assert response_members_count == 1
+            self.assertEqual(response_members_count, 1)
             retrieved_blocked_member = response_blocked_users[0]
 
-            assert retrieved_blocked_member["id"] == blocked_user.id
+            self.assertEqual(retrieved_blocked_member["id"], blocked_user.id)
             user.unblock_user_with_id(blocked_user.pk)
 
     def test_can_search_blocked_users_by_username(self):
@@ -111,15 +111,15 @@ class SearchBlockedUsersAPITests(OpenbookAPITestCase):
 
             response = self.client.get(url, {"query": final_query}, **headers)
 
-            assert response.status_code, status.HTTP_200_OK == f"Response: {response.data}"
+            self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
 
             response_blocked_users = json.loads(response.content, object_hook=uuid_id_parser)
             response_members_count = len(response_blocked_users)
 
-            assert response_members_count == 1
+            self.assertEqual(response_members_count, 1)
             retrieved_blocked_member = response_blocked_users[0]
 
-            assert retrieved_blocked_member["id"] == blocked_user.id
+            self.assertEqual(retrieved_blocked_member["id"], blocked_user.id)
             user.unblock_user_with_id(blocked_user.pk)
 
     def _get_url(self):

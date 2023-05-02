@@ -11,24 +11,24 @@ from openbook_notifications.models import Notification
 class LastSeenNotificationTests(testcases.TestCase):
     def test_when_notification_with_id_does_not_exist_nothing_happens(self):
         user = make_user()
-        assert user.last_seen_notification_timestamp is None
+        self.assertIsNone(user.last_seen_notification_timestamp)
 
         unknown_id = uuid.uuid4()
         user.store_last_seen_notification(unknown_id)
 
-        assert user.last_seen_notification_timestamp is None
+        self.assertIsNone(user.last_seen_notification_timestamp)
 
         timestamp = timezone.now() - timedelta(days=2)
         user.last_seen_notification_timestamp = timestamp
 
         user.store_last_seen_notification(unknown_id)
 
-        assert user.last_seen_notification_timestamp == timestamp
+        self.assertEqual(user.last_seen_notification_timestamp, timestamp)
 
     def test_user_without_last_seen_notification_timestamp_always_gets_new_timestamp(self):
         user = make_user()
         notification = make_notification(user)
-        assert not notification.read
+        self.assertFalse(notification.read)
 
         new_timestamp = timezone.now()
 
@@ -37,13 +37,13 @@ class LastSeenNotificationTests(testcases.TestCase):
 
         user.store_last_seen_notification(notification.id)
 
-        assert user.last_seen_notification_timestamp == new_timestamp
-        assert Notification.objects.get(id=notification.id).read
+        self.assertEqual(user.last_seen_notification_timestamp, new_timestamp)
+        self.assertTrue(Notification.objects.get(id=notification.id).read)
 
     def test_last_seen_timestamp_is_not_updated_when_older(self):
         user = make_user()
         notification = make_notification(user)
-        assert not notification.read
+        self.assertFalse(notification.read)
 
         newer_timestamp = timezone.now()
         older_timestamp = newer_timestamp - timedelta(seconds=10)
@@ -54,9 +54,9 @@ class LastSeenNotificationTests(testcases.TestCase):
 
         user.store_last_seen_notification(notification.id)
 
-        assert user.last_seen_notification_timestamp == newer_timestamp
+        self.assertEqual(user.last_seen_notification_timestamp, newer_timestamp)
         # when the last_seen_timestamp is not updated, the read status is also not changed.
-        assert not Notification.objects.get(id=notification.id).read
+        self.assertFalse(Notification.objects.get(id=notification.id).read)
 
     def test_last_seen_timestamp_is_updated_when_newer(self):
         user = make_user()
@@ -71,5 +71,5 @@ class LastSeenNotificationTests(testcases.TestCase):
 
         user.store_last_seen_notification(notification.id)
 
-        assert user.last_seen_notification_timestamp == newer_timestamp
-        assert Notification.objects.get(id=notification.id).read
+        self.assertEqual(user.last_seen_notification_timestamp, newer_timestamp)
+        self.assertTrue(Notification.objects.get(id=notification.id).read)
