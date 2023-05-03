@@ -2792,6 +2792,8 @@ class GraphQLTest(TestCase):
             "Can't update a community that you do not administrate.", str(response.errors[0].extensions["errors"])
         )
 
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
+
     @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
     def test_can_not_update_space_if_not_logged_in(self, mock_invalidate_discover_spaces_query_cache):
         community = make_community()
@@ -2812,8 +2814,11 @@ class GraphQLTest(TestCase):
         self.assert_is_unauthorized(response)
         mock_invalidate_discover_spaces_query_cache.assert_not_called()
 
+    @mock.patch("openbook.graphql_schema.publish_space_deleted_event")
     @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
-    def test_can_not_delete_space_if_not_admin(self, mock_invalidate_discover_spaces_query_cache):
+    def test_can_not_delete_space_if_not_admin(
+        self, mock_invalidate_discover_spaces_query_cache, mock_publish_space_deleted_event
+    ):
         user = make_user()
         community = make_community()
         delete_space_mutation = """
@@ -2836,9 +2841,13 @@ class GraphQLTest(TestCase):
         )
 
         mock_invalidate_discover_spaces_query_cache.assert_not_called()
+        mock_publish_space_deleted_event.assert_not_called()
 
+    @mock.patch("openbook.graphql_schema.publish_space_deleted_event")
     @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
-    def test_can_not_delete_space_if_not_logged_in(self, mock_invalidate_discover_spaces_query_cache):
+    def test_can_not_delete_space_if_not_logged_in(
+        self, mock_invalidate_discover_spaces_query_cache, mock_publish_space_deleted_event
+    ):
         community = make_community()
         delete_space_mutation = """
             mutation test($id: UUID!) {
@@ -2856,9 +2865,11 @@ class GraphQLTest(TestCase):
 
         self.assert_is_unauthorized(response)
         mock_invalidate_discover_spaces_query_cache.assert_not_called()
+        mock_publish_space_deleted_event.assert_not_called()
 
+    @mock.patch("openbook.graphql_schema.publish_space_deleted_event")
     @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
-    def test_can_delete_space(self, mock_invalidate_discover_spaces_query_cache):
+    def test_can_delete_space(self, mock_invalidate_discover_spaces_query_cache, mock_publish_space_deleted_event):
         user = make_user()
         community = make_community(creator=user)
 
@@ -2879,6 +2890,7 @@ class GraphQLTest(TestCase):
         self.assertTrue(response.data["deleteSpace"]["success"])
         self.assertIsNone(response.errors)
         mock_invalidate_discover_spaces_query_cache.assert_called_once()
+        mock_publish_space_deleted_event.assert_called_once_with(community)
 
     def test_can_not_add_collaboration_tool_missing_required_fields(self):
         user = make_user()
