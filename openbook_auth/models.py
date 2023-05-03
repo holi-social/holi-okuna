@@ -4815,7 +4815,7 @@ class UserProfile(ModelWithUUID):
         blank=True,
         null=True,
     )
-    geolocation = models.MultiPolygonField(blank=True, null=True)
+    geolocation = models.GeometryField(blank=True, null=True)
     engagement_level = models.CharField(
         _("engagement level"),
         max_length=10,

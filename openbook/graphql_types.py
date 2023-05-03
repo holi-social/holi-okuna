@@ -1,6 +1,7 @@
 import uuid
 from enum import Enum
 from uuid import UUID
+import json
 
 import strawberry
 from typing import List, TypeVar, Optional, Tuple
@@ -101,33 +102,15 @@ class GeolocationPoint:
         return GeolocationPoint(longitude=point.x, latitude=point.y)
 
 
-def valuefn(value):
-    print(f"value {value}")
-    return value
-
-
 # Necessary to create a custom scalar for 4-dimensional arrays, as GraphQL schema parsing throws error "Decorated type deeper than introspection query"
 # See e.g. https://github.com/graphql/graphql-js/issues/2643
-GeolocationMultiPolygon = strawberry.scalar(
-    List[List[List[List[float]]]],  # Tuple[float, float]
-    name="GeolocationMultiPolygon",
-    description="4-dimensional array describing boundaries of a geolocation",
-    serialize=valuefn,  # lambda v: v,
-    parse_value=valuefn,  # lambda v: v,
+GeolocationGeometry = strawberry.scalar(
+    object,
+    name="GeolocationGeometry",
+    description="GeoJSON describing the geometry of a geolocation, e.g. boundaries",
+    serialize=lambda v: v,
+    parse_value=lambda v: v,
 )
-
-
-@gql.type
-class GeolocationBoundaries:
-    boundaries: GeolocationMultiPolygon
-
-    @staticmethod
-    def from_multipolygon(multipolygon):
-        if not multipolygon:
-            return None
-
-        boundaries = list(map(lambda v: list(map(list, v)), multipolygon.coords))
-        return GeolocationBoundaries(boundaries=boundaries)
 
 
 @gql.type
@@ -259,8 +242,8 @@ class User:
         return self.profile.location
 
     @gql.django.field(select_related=["profile"])
-    def geolocation(self) -> Optional[GeolocationBoundaries]:
-        return GeolocationBoundaries.from_multipolygon(self.profile.geolocation)
+    def geolocation(self) -> Optional[GeolocationGeometry]:
+        return json.loads(self.profile.geolocation.geojson)
 
     @gql.django.field(select_related=["profile"])
     def engagement_level(self) -> Optional[str]:

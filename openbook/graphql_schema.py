@@ -2,6 +2,7 @@ import hashlib
 from collections import defaultdict
 from datetime import datetime, timedelta
 import json
+from django.contrib.gis.geos import GEOSGeometry
 
 from rest_framework.exceptions import ValidationError
 
@@ -70,33 +71,6 @@ PUBLISHED_NOTIFICATION_TYPES = [
 logger = structlog.getLogger(__name__)
 
 
-@gql.input
-class GeolocationBoundariesInput:
-    boundaries: GeolocationMultiPolygon
-
-    @staticmethod
-    def to_multipolygon(geolocation_input):
-        if geolocation_input is None or geolocation_input.get("boundaries") is None:
-            return None
-
-        boundaries = []
-        for polygon_coords in geolocation_input.get("boundaries"):
-            exterior_ring = []
-            for coord in polygon_coords[0]:
-                longitude, latitude = coord
-                exterior_ring.append((longitude, latitude))
-            interior_rings = []
-            for interior_ring_coords in polygon_coords[1:]:
-                interior_ring = []
-                for coord in interior_ring_coords:
-                    longitude, latitude = coord
-                    interior_ring.append((longitude, latitude))
-                interior_rings.append(interior_ring)
-            polygon = geos.Polygon(exterior_ring, *interior_rings)
-            boundaries.append(polygon)
-        return geos.MultiPolygon(boundaries)
-
-
 def get_id_spaces_count_map(query):
     with_num_spaces = list(query)
     id_to_num_spaces = {}
@@ -111,7 +85,7 @@ def spaces_for_filter(
     limit: int,
     topic_id: Optional[uuid.UUID] = None,
     location: Optional[str] = None,
-    geolocation: Optional[geos.MultiPolygon] = None,
+    geolocation: Optional[geos.GEOSGeometry] = None,
     skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
     topic_slug: Optional[str] = None,
     skill_slugs: Optional[List[Optional[str]]] = None,
@@ -120,7 +94,7 @@ def spaces_for_filter(
     query = Q()
     if topic_id is not None:
         query.add(Q(topics__id__contains=topic_id), Q.AND)
-    if location is not None:
+    if location is not None:  # TODO(SF) remove or keep for legacy?
         query.add(Q(location__icontains=location), Q.AND)
     if geolocation is not None:
         query.add(Q(geolocation__within=geolocation), Q.AND)
@@ -151,7 +125,7 @@ class NewNotificationsResponse:
 
 
 def filter_spaces_by_skill_ids(location, geolocation, skill_ids, limit):
-    # TODO(SF) this is bullshit - filter by name OR geolocation?
+    # TODO(SF) this is bullshit - or keep filtering by name OR geolocation?
     return CommunityModel.objects.raw(
         """
             select s.id, s.skill_id, s.rn 
@@ -161,12 +135,16 @@ def filter_spaces_by_skill_ids(location, geolocation, skill_ids, limit):
                 where occ.id = octask.community_id and octask.id = octskill.task_id  
             ) s
             where s.skill_id = skill.id 
-            and UPPER(s.location) like UPPER(%s)
+            and (
+              UPPER(s.location) like UPPER(%s)
+              or
+              ST_Within(s.geolocation, ST_GeomFromGeoJSON(%s))
+            )
             and s.rn <= %s
             and skill.id = ANY(%s)
             order by skill.id
             """,
-        [f"%{location}%", geolocation, limit, skill_ids],
+        [f"%{location}%", geolocation.geojson, limit, skill_ids],
     ).prefetch_related("memberships__user__profile")
 
 
@@ -337,8 +315,7 @@ class Query:
         self,
         topic_id: Optional[uuid.UUID] = None,
         location: Optional[str] = None,
-        # TODO(SF) make optional again
-        geolocation: GeolocationMultiPolygon = None,
+        geolocation: Optional[GeolocationGeometry] = None,
         skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
         topic_slug: Optional[str] = None,
         skill_slugs: Optional[List[Optional[str]]] = None,
@@ -346,16 +323,13 @@ class Query:
         offset: int = 0,
         limit: int = 10,
     ) -> Paged[Space]:
-        # TODO(SF) why is the geolocation None??
-        print(f"geolocation {geolocation}")
-        print(f"location {location}")
         return spaces_for_filter(
             offset,
             limit,
             topic_id,
             location,
-            # TODO(SF) move util fn
-            GeolocationBoundariesInput.to_multipolygon({"boundaries": geolocation}),
+            # TODO(SF) transform to GEOSGeometry
+            geolocation,
             skill_ids,
             topic_slug,
             skill_slugs,
@@ -368,22 +342,27 @@ class Query:
         info,
         topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
         location: Optional[str] = None,
-        geolocation: Optional[GeolocationMultiPolygon] = None,
+        geolocation: Optional[GeolocationGeometry] = None,
         skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
         offset: int = 0,
         limit: int = 10,
     ) -> List[Optional[DiscoverSpaces]]:
         current_user: UserModel = info.context.request.user
+
+        if not geolocation:
+            if not current_user.is_anonymous and current_user.profile.geolocation is not None:
+                geolocation = current_user.profile.geolocation
+                location = current_user.profile.location
         # TODO(SF) improve?
-        geolocation = (
-            GeolocationBoundariesInput.to_multipolygon({"boundaries": geolocation})
-            if geolocation
-            else (
-                current_user.profile.geolocation
-                if not current_user.is_anonymous and current_user.profile.geolocation is not None
-                else None
-            )
-        )
+        # geolocation = (
+        #     geolocation
+        #     if geolocation  # TODO(SF) transform to GEOSGeometry
+        #     else (
+        #         current_user.profile.geolocation
+        #         if not current_user.is_anonymous and current_user.profile.geolocation is not None
+        #         else None
+        #     )
+        # )
 
         # Inner utility function for generating a unique cache key consisting of
         # prefix and SHA-256 hash of the discover spaces filters
@@ -478,7 +457,7 @@ class Query:
                 )
 
                 spaces_from_db = filter_spaces_by_skill_ids(
-                    location=location if geolocation is None else None,
+                    location=location,  # TOOD(SF) ? if geolocation is None else None,
                     geolocation=geolocation,
                     skill_ids=skill_ids,
                     limit=limit,
@@ -658,7 +637,7 @@ class UpdateAuthenticatedUserInput:
     about_me: Optional[str] = strawberry.UNSET
     pronouns: Optional[str] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
-    geolocation: Optional[GeolocationBoundariesInput] = strawberry.UNSET
+    geolocation: Optional[GeolocationGeometry] = strawberry.UNSET
     engagement_level: Optional[str] = strawberry.UNSET
     interests: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
@@ -816,7 +795,8 @@ class Mutation:
                 about_me=data.get("about_me"),
                 pronouns=data.get("pronouns"),
                 location=data.get("location"),
-                geolocation=(GeolocationBoundariesInput.to_multipolygon(data.get("geolocation"))),
+                # TODO(SF) util fn?
+                geolocation=json.dumps(data.get("geolocation")["geolocation"]),
                 update_location=input.location is not strawberry.UNSET or input.geolocation is not strawberry.UNSET,
                 engagement_level=data.get("engagement_level"),
                 interests=data.get("interests"),

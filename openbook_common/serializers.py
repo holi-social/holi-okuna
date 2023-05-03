@@ -1,5 +1,7 @@
 from django.conf import settings
 from rest_framework import serializers
+from rest_framework_gis.serializers import GeoFeatureModelSerializer
+from django.contrib.gis.db.models import GeometryField
 
 from openbook_auth.models import User, UserProfile
 from openbook_circles.models import Circle
@@ -259,21 +261,10 @@ class GeolocationPointSerializer(serializers.Serializer):
     latitude = serializers.FloatField()
 
 
-class GeolocationBoundariesSerializer(serializers.Serializer):
-    boundaries = serializers.ListField(
-        required=False,
-        allow_empty=True,
-        child=serializers.ListField(
-            required=True,
-            allow_empty=False,
-            child=serializers.ListField(
-                required=True,
-                allow_empty=False,
-                child=serializers.ListField(
-                    required=True,
-                    allow_empty=False,
-                    child=serializers.FloatField(),
-                ),
-            ),
-        ),
-    )
+class GeolocationGeometrySerializer(GeoFeatureModelSerializer):
+    geometry = GeometryField()
+
+    class Meta:
+        model = UserProfile
+        geo_field = "geolocation"
+        fields = ("geolocation",)
