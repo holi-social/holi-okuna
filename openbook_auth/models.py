@@ -627,11 +627,8 @@ class User(ModelWithUUID, AbstractUser):
 
     # engagement_level may only be set once
     def update_engagement_level(self, engagement_level):
-        if self.profile.engagement_level is None:
-            self.profile.engagement_level = engagement_level
-            self.profile.save()
-        elif self.profile.engagement_level != engagement_level:
-            raise ValidationError("Engagement level may not change after it is set once.")
+        self.profile.engagement_level = engagement_level
+        self.profile.save()
 
     def verify_email_with_token(self, token):
         new_email = check_email_verification_token_is_valid_for_email(user=self, email_verification_token=token)
