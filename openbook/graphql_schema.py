@@ -2,7 +2,7 @@ import hashlib
 from collections import defaultdict
 from datetime import datetime, timedelta
 import json
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis import geos
 
 from rest_framework.exceptions import ValidationError
 
@@ -79,7 +79,7 @@ def get_id_spaces_count_map(query):
     return id_to_num_spaces
 
 
-@cached_as(CommunityModel)
+# @cached_as(CommunityModel)
 def spaces_for_filter(
     offset: int,
     limit: int,
@@ -94,7 +94,7 @@ def spaces_for_filter(
     query = Q()
     if topic_id is not None:
         query.add(Q(topics__id__contains=topic_id), Q.AND)
-    if location is not None:  # TODO(SF) remove or keep for legacy?
+    if geolocation is None and location is not None:  # TODO(SF) keep for legacy?
         query.add(Q(location__icontains=location), Q.AND)
     if geolocation is not None:
         query.add(Q(geolocation__within=geolocation), Q.AND)
@@ -125,7 +125,8 @@ class NewNotificationsResponse:
 
 
 def filter_spaces_by_skill_ids(location, geolocation, skill_ids, limit):
-    # TODO(SF) this is bullshit - or keep filtering by name OR geolocation?
+    # TODO(SF) keep filtering by name OR geolocation?
+    geojson = geolocation.geojson if geolocation else None
     return CommunityModel.objects.raw(
         """
             select s.id, s.skill_id, s.rn 
@@ -144,7 +145,7 @@ def filter_spaces_by_skill_ids(location, geolocation, skill_ids, limit):
             and skill.id = ANY(%s)
             order by skill.id
             """,
-        [f"%{location}%", geolocation.geojson, limit, skill_ids],
+        [f"%{location}%", geojson, limit, skill_ids],
     ).prefetch_related("memberships__user__profile")
 
 
@@ -328,7 +329,6 @@ class Query:
             limit,
             topic_id,
             location,
-            # TODO(SF) transform to GEOSGeometry
             geolocation,
             skill_ids,
             topic_slug,
@@ -353,16 +353,6 @@ class Query:
             if not current_user.is_anonymous and current_user.profile.geolocation is not None:
                 geolocation = current_user.profile.geolocation
                 location = current_user.profile.location
-        # TODO(SF) improve?
-        # geolocation = (
-        #     geolocation
-        #     if geolocation  # TODO(SF) transform to GEOSGeometry
-        #     else (
-        #         current_user.profile.geolocation
-        #         if not current_user.is_anonymous and current_user.profile.geolocation is not None
-        #         else None
-        #     )
-        # )
 
         # Inner utility function for generating a unique cache key consisting of
         # prefix and SHA-256 hash of the discover spaces filters
@@ -637,7 +627,7 @@ class UpdateAuthenticatedUserInput:
     about_me: Optional[str] = strawberry.UNSET
     pronouns: Optional[str] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
-    geolocation: Optional[GeolocationGeometry] = strawberry.UNSET
+    geolocation: Optional[GeolocationGeometryInput] = strawberry.UNSET
     engagement_level: Optional[str] = strawberry.UNSET
     interests: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
@@ -795,8 +785,7 @@ class Mutation:
                 about_me=data.get("about_me"),
                 pronouns=data.get("pronouns"),
                 location=data.get("location"),
-                # TODO(SF) util fn?
-                geolocation=json.dumps(data.get("geolocation")["geolocation"]),
+                geolocation=data.get("geolocation"),
                 update_location=input.location is not strawberry.UNSET or input.geolocation is not strawberry.UNSET,
                 engagement_level=data.get("engagement_level"),
                 interests=data.get("interests"),
@@ -811,9 +800,9 @@ class Mutation:
                 delete_avatar(data["avatar"])
             raise
 
-        if input.first_name or input.last_name:
-            update_ory_user(current_user.id)
-            publish_user_name_updated_event(user=current_user)
+        # if input.first_name or input.last_name:
+        #     update_ory_user(current_user.id)
+        #     publish_user_name_updated_event(user=current_user)
 
         return current_user
 

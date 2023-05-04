@@ -2,6 +2,7 @@ import uuid
 from enum import Enum
 from uuid import UUID
 import json
+from django.contrib.gis import geos
 
 import strawberry
 from typing import List, TypeVar, Optional, Tuple
@@ -102,14 +103,23 @@ class GeolocationPoint:
         return GeolocationPoint(longitude=point.x, latitude=point.y)
 
 
-# Necessary to create a custom scalar for 4-dimensional arrays, as GraphQL schema parsing throws error "Decorated type deeper than introspection query"
+# Necessary to create a custom scalars for geolocation geometries, as GraphQL schema parsing throws error "Decorated type deeper than introspection query" for 4-dimensional arrays (e.g. MultiPolygons)
 # See e.g. https://github.com/graphql/graphql-js/issues/2643
 GeolocationGeometry = strawberry.scalar(
-    object,
+    geos.GEOSGeometry,
     name="GeolocationGeometry",
-    description="GeoJSON describing the geometry of a geolocation, e.g. boundaries",
-    serialize=lambda v: v,
-    parse_value=lambda v: v,
+    description="GeoJSON describing the geometry feature of a geolocation",
+    serialize=lambda value: json.loads(value.geojson),
+    parse_value=lambda value: geos.GEOSGeometry(json.dumps(value["geometry"])),
+)
+
+# Separate type for geometry input to be used by the GeoFeatureModelSerializer
+GeolocationGeometryInput = strawberry.scalar(
+    object,
+    name="GeolocationGeometryInput",
+    description="GeoJSON input describing the geometry feature of a geolocation",
+    serialize=lambda value: value,
+    parse_value=lambda value: value,
 )
 
 
@@ -243,7 +253,7 @@ class User:
 
     @gql.django.field(select_related=["profile"])
     def geolocation(self) -> Optional[GeolocationGeometry]:
-        return json.loads(self.profile.geolocation.geojson)
+        return self.profile.geolocation
 
     @gql.django.field(select_related=["profile"])
     def engagement_level(self) -> Optional[str]:

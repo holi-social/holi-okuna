@@ -2,6 +2,8 @@ from django.conf import settings
 from rest_framework import serializers
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from django.contrib.gis.db.models import GeometryField
+import json
+from django.contrib.gis import geos
 
 from openbook_auth.models import User, UserProfile
 from openbook_circles.models import Circle
@@ -268,3 +270,6 @@ class GeolocationGeometrySerializer(GeoFeatureModelSerializer):
         model = UserProfile
         geo_field = "geolocation"
         fields = ("geolocation",)
+
+    def to_internal_value(self, data):
+        return geos.GEOSGeometry(json.dumps(data["geometry"]))
