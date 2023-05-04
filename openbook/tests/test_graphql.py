@@ -2899,7 +2899,7 @@ class GraphQLTest(TestCase):
             """
 
         valid_space_id = str(community.id)
-        valid_url = "https://project-holi.org/"
+        valid_url = "https://holi.social/"
         valid_title = "Project Holi"
         valid_collection_type = "COLLABORATION"
 
@@ -2943,7 +2943,7 @@ class GraphQLTest(TestCase):
             """
 
         valid_space_id = str(community.id)
-        valid_url = "https://project-holi.org/"
+        valid_url = "https://holi.social/"
         valid_title = "Project Holi"
         valid_description = "holi is the network where people and organizations come together for the common good"
         valid_collection_type = "COLLABORATION"
@@ -2959,7 +2959,7 @@ class GraphQLTest(TestCase):
         expectedErrors = [
             {"field": "url", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "url", "value": "", "expected_code": "blank"},
-            {"field": "url", "value": "project-holi.org", "expected_code": "invalid"},
+            {"field": "url", "value": "holi.social", "expected_code": "invalid"},
             {"field": "title", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "title", "value": "", "expected_code": "blank"},
             {"field": "title", "value": "c", "expected_code": "min_length"},
@@ -3007,7 +3007,7 @@ class GraphQLTest(TestCase):
             """
 
         valid_space_id = str(community.id)
-        valid_url = "https://project-holi.org/"
+        valid_url = "https://holi.social/"
         valid_title = "Project Holi"
         valid_description = "holi is the network where people and organizations come together for the common good"
         valid_collection_type = "COLLABORATION"
@@ -3047,7 +3047,7 @@ class GraphQLTest(TestCase):
             }
             """
         valid_space_id = str(community.id)
-        valid_url = "https://project-holi.org/"
+        valid_url = "https://holi.social/"
         valid_title = "Project Holi"
         valid_description = "holi is the network where people and organizations come together for the common good"
         valid_collection_type = "COLLABORATION"
@@ -3081,7 +3081,7 @@ class GraphQLTest(TestCase):
             """
 
         valid_space_id = str(community.id)
-        valid_url = "https://project-holi.org/"
+        valid_url = "https://holi.social/"
         valid_title = "Project Holi"
         valid_description = "holi is the network where people and organizations come together for the common good"
         valid_collection_type = "COLLABORATION"
@@ -3222,7 +3222,7 @@ class GraphQLTest(TestCase):
             },
             {"field": "url", "value": None, "expected_code": "null"},
             {"field": "url", "value": "", "expected_code": "blank"},
-            {"field": "url", "value": "project-holi.org", "expected_code": "invalid"},
+            {"field": "url", "value": "holi.social", "expected_code": "invalid"},
             {"field": "title", "value": None, "expected_code": "null"},
             {"field": "title", "value": "", "expected_code": "blank"},
             {"field": "title", "value": "c", "expected_code": "min_length"},
@@ -3265,7 +3265,7 @@ class GraphQLTest(TestCase):
         response = schema.execute_sync(
             update_collaboration_tool_mutation,
             context_value=BeneDict({"request": {"user": user}}),
-            variable_values={"input": {"url": "https://project-holi.org/"}},
+            variable_values={"input": {"url": "https://holi.social/"}},
         )
 
         self.assertIsNone(response.data)
@@ -3283,7 +3283,7 @@ class GraphQLTest(TestCase):
             }
             """
 
-        input = {"id": str(collaboration_tool.id), "url": "https://project-holi.org/"}
+        input = {"id": str(collaboration_tool.id), "url": "https://holi.social/"}
 
         response = schema.execute_sync(
             update_collaboration_tool_mutation,
@@ -3308,7 +3308,7 @@ class GraphQLTest(TestCase):
             }
             """
 
-        input = {"id": str(collaboration_tool.id), "url": "https://project-holi.org/"}
+        input = {"id": str(collaboration_tool.id), "url": "https://holi.social/"}
 
         response = schema.execute_sync(
             update_collaboration_tool_mutation,
@@ -3333,7 +3333,7 @@ class GraphQLTest(TestCase):
             """
         base_input = {"id": str(collaboration_tool.id)}
 
-        valid_url = "https://project-holi.org/"
+        valid_url = "https://holi.social/"
         valid_title = "Project Holi"
         valid_description = "holi is the network where people and organizations come together for the common good"
         valid_collection_type = "COLLABORATION"
@@ -3379,7 +3379,7 @@ class GraphQLTest(TestCase):
             }
             """
         id = str(collaboration_tool.id)
-        new_url = "https://project-holi.org/"
+        new_url = "https://holi.social/"
         new_title = "Project Holi"
         new_description = "holi is the network where people and organizations come together for the common good"
         new_collection_type = "COLLABORATION"

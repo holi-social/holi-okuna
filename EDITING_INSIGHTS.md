@@ -9,7 +9,7 @@ connect to it.
 
 ### Using reverse proxy
 
-https://0kuna-adm1n.project-holi.org/admin currently provides the admin interface of the branch. We should switch this to production later. And provide access to staging as well via another domain.
+https://0kuna-adm1n.holi.social/admin currently provides the admin interface of the branch. We should switch this to production later. And provide access to staging as well via another domain.
 
 ## Setting up editing insights
 
