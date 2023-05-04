@@ -3007,7 +3007,7 @@ class GraphQLTest(TestCase):
         valid_title = "Project Holi"
         valid_description = "holi is the network where people and organizations come together for the common good"
         valid_collection_type = "COLLABORATION"
-        valid_domain = "Project-Holi"
+        valid_domain = "Holi"
 
         valid_input = {
             "spaceId": valid_space_id,
