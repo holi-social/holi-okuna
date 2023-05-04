@@ -6,7 +6,7 @@ locals {
 # okuna environments zone
 resource "google_dns_managed_zone" "okuna_environments_zone" {
   project  = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
-  name     = "okuna-environments-zone"
+  name     = "okuna-holi-social-environments-zone"
   dns_name = local.okuna_environments_zone_dns_name
 }
 
