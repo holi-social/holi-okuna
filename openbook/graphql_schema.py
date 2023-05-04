@@ -22,6 +22,7 @@ from strawberry_django_plus.optimizer import DjangoOptimizerExtension
 
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook.helpers import (
+    publish_space_deleted_event,
     publish_space_user_added_event,
     publish_space_created_event,
     publish_user_name_updated_event,
@@ -986,11 +987,14 @@ class Mutation:
     @gql.mutation
     def delete_space(self, info, id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
+        space = CommunityModel.objects.get(id=id)
 
         with transaction.atomic():
             current_user.delete_community_with_id(
                 community_id=id,
             )
+
+        publish_space_deleted_event(space)
 
         invalidate_discover_spaces_query_cache()
 
