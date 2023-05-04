@@ -73,7 +73,7 @@ resource "google_cloud_run_service" "okuna" {
         env {
           name = "ALLOWED_HOSTS"
           # TODO This could break the admin interface, we need to check it after deployment
-          value = local.dns_name
+          value = "${local.dns_name},${local.project_holi_dns_name}"
         }
         env {
           name  = "RDS_DB_NAME"
