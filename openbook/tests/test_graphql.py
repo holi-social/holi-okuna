@@ -25,7 +25,7 @@ from openbook.graphql_schema import (
     schema,
 )
 from openbook.graphql_types import VisibilityFilter
-from openbook_auth.models import User, UserConnectionStatus
+from openbook_auth.models import User, UserConnectionStatus, EngagementLevelChoice
 from openbook_common.tests.helpers import (
     get_test_images,
     get_test_videos,
@@ -153,6 +153,7 @@ class GraphQLTest(TestCase):
         self.assertNotEqual(User.objects.get(username=user.username).profile.pronouns, pronouns)
         first_name = "Peter"
         last_name = "Shaw"
+        engagement_level = EngagementLevelChoice.INITIATOR
 
         json_body = [
             {"op": "replace", "path": "/traits/given_name", "value": f"{first_name}"},
@@ -166,6 +167,7 @@ class GraphQLTest(TestCase):
                 updateAuthenticatedUser(input: $input) {
                     id
                     pronouns
+                    engagementLevel
                     geolocation {
                         latitude
                         longitude
@@ -179,6 +181,7 @@ class GraphQLTest(TestCase):
                     "pronouns": pronouns,
                     "firstName": first_name,
                     "lastName": last_name,
+                    "engagementLevel": engagement_level,
                     "geolocation": geolocation,
                 }
             },
@@ -195,6 +198,7 @@ class GraphQLTest(TestCase):
         self.assertEqual(graphql_pronouns, pronouns)
         self.assertEqual(last_name, persisted_profile.last_name)
         self.assertEqual(first_name, persisted_profile.name)
+        self.assertEqual(persisted_profile.engagement_level, EngagementLevelChoice.INITIATOR)
         self.assertIsNotNone(persisted_profile.geolocation)
         self.assertEqual(geolocation["longitude"], persisted_profile.geolocation.x)
         self.assertEqual(geolocation["latitude"], persisted_profile.geolocation.y)
