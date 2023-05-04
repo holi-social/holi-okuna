@@ -149,7 +149,7 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "ORY_BASE_URL"
-          value = local.environment == "production" ? "https://auth.project-holi.org" : "https://dev-auth.project-holi.org"
+          value = local.environment == "production" ? "https://auth.holi.social" : "https://dev-auth.holi.social"
         }
         env {
           name = "ORY_ACCESS_TOKEN"
