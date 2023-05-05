@@ -9,6 +9,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
+        ("openbook_posts", "0012_remove_postcommentreaction_emoji_and_more"),
         ("openbook_auth", "0010_update_user_pk"),
     ]
 

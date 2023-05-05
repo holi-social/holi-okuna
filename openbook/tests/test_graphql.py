@@ -26,7 +26,7 @@ from openbook.graphql_schema import (
     schema,
 )
 from openbook.graphql_types import VisibilityFilter
-from openbook_auth.models import User, UserConnectionStatus
+from openbook_auth.models import User, UserConnectionStatus, EngagementLevelChoice
 from openbook_common.tests.helpers import (
     get_test_images,
     get_test_videos,
@@ -156,6 +156,7 @@ class GraphQLTest(TestCase):
         self.assertNotEqual(User.objects.get(username=user.username).profile.pronouns, pronouns)
         first_name = "Peter"
         last_name = "Shaw"
+        engagement_level = EngagementLevelChoice.INITIATOR
 
         json_body = [
             {"op": "replace", "path": "/traits/given_name", "value": f"{first_name}"},
@@ -172,6 +173,7 @@ class GraphQLTest(TestCase):
                     location
                     geolocation
                     geolocationId
+                    engagementLevel
                 }
             }
             """,
@@ -183,6 +185,7 @@ class GraphQLTest(TestCase):
                     "lastName": last_name,
                     "location": location,
                     "geolocation": geolocation,
+                    "engagementLevel": engagement_level,
                 }
             },
         )
@@ -198,9 +201,10 @@ class GraphQLTest(TestCase):
         self.assertEqual(graphql_pronouns, pronouns)
         self.assertEqual(last_name, persisted_profile.last_name)
         self.assertEqual(first_name, persisted_profile.name)
-        self.assertIsNotNone(persisted_profile.geolocation)
+        self.assertEqual(persisted_profile.engagement_level, EngagementLevelChoice.INITIATOR)
         self.assertEqual(location, persisted_profile.location)
         self.assertEqual(geolocation_id, persisted_profile.geolocation_id)
+        self.assertIsNotNone(persisted_profile.geolocation)
         self.assertEqual(geos.GEOSGeometry(json.dumps(geolocation_geometry)), persisted_profile.geolocation)
 
         mock_publish_user_name_updated_event.assert_called_once_with(user=user)
@@ -2382,8 +2386,11 @@ class GraphQLTest(TestCase):
         self.assertIn("Unauthorized", str(response.errors[0].message))
         self.assertEqual("UNAUTHORIZED", str(response.errors[0].extensions["code"]))
 
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook.graphql_schema.publish_space_created_event")
-    def test_can_not_create_spaces_missing_required_fields(self, mock_publish_space_created_event):
+    def test_can_not_create_spaces_missing_required_fields(
+        self, mock_publish_space_created_event, mock_invalidate_discover_spaces_query_cache
+    ):
         user = make_user()
         topic_ids = [str(make_topic().id) for _ in range(7)]
         valid_topics = topic_ids[:2]
@@ -2427,6 +2434,7 @@ class GraphQLTest(TestCase):
             self.assertIsNone(response.data["createSpace"] if response.data else response.data)
 
         mock_publish_space_created_event.assert_not_called()
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
 
     def test_validates_space_before_creation(self):
         user = make_user()
@@ -2488,8 +2496,9 @@ class GraphQLTest(TestCase):
                 self.assertIn(testCase["expected_error"], str(response.errors[0].message))
             self.assertIsNone(response.data["createSpace"] if response.data else response.data)
 
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook.graphql_schema.publish_space_created_event")
-    def test_can_create_space(self, mock_publish_space_created_event):
+    def test_can_create_space(self, mock_publish_space_created_event, mock_invalidate_discover_spaces_query_cache):
         user = make_user()
         topic_ids = [str(make_topic().id) for _ in range(2)]
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
@@ -2540,9 +2549,13 @@ class GraphQLTest(TestCase):
 
         community = Community.objects.get(id=created_space["id"])
         mock_publish_space_created_event.assert_called_once_with(community=community)
+        mock_invalidate_discover_spaces_query_cache.assert_called_once()
 
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook.graphql_schema.publish_space_created_event")
-    def test_can_not_create_space_if_not_logged_in(self, mock_publish_space_created_event):
+    def test_can_not_create_space_if_not_logged_in(
+        self, mock_publish_space_created_event, mock_invalidate_discover_spaces_query_cache
+    ):
         topic_ids = [str(make_topic().id) for _ in range(7)]
         valid_topics = topic_ids[:2]
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
@@ -2564,6 +2577,7 @@ class GraphQLTest(TestCase):
 
         self.assert_is_unauthorized(response)
         mock_publish_space_created_event.assert_not_called()
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
 
     def test_validates_space_update(self):
         user = make_user()
@@ -2640,7 +2654,8 @@ class GraphQLTest(TestCase):
                 self.assertIn(testCase["expected_error"], str(response.errors[0].message))
             self.assertIsNone(response.data["updateSpace"] if response.data else response.data)
 
-    def test_can_not_update_space_without_passing_id(self):
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_not_update_space_without_passing_id(self, mock_invalidate_discover_spaces_query_cache):
         user = make_user()
         update_space_mutation = """
             mutation test($input: UpdateSpaceInput!) {
@@ -2658,8 +2673,10 @@ class GraphQLTest(TestCase):
 
         self.assertIsNone(response.data)
         self.assertIn("Field 'id' of required type 'UUID!' was not provided", response.errors[0].message)
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
 
-    def test_can_update_space(self):
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_update_space(self, mock_invalidate_discover_spaces_query_cache):
         user = make_user()
         community = make_community(creator=user)
         topic_ids = [str(make_topic().id) for _ in range(3)]
@@ -2708,6 +2725,8 @@ class GraphQLTest(TestCase):
 
             self.assertEqual(str(community.id), response.data["updateSpace"]["id"])
             self.assertIsNone(response.errors)
+
+        mock_invalidate_discover_spaces_query_cache.assert_called()
 
     def test_updated_space_has_new_values(self):
         user = make_user()
@@ -2773,7 +2792,8 @@ class GraphQLTest(TestCase):
         self.assertEqual("+49 123 12345", updated_space["contactPhone"])
         self.assertEqual("contact@space.com", updated_space["contactEmail"])
 
-    def test_can_not_update_space_if_not_admin(self):
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_not_update_space_if_not_admin(self, mock_invalidate_discover_spaces_query_cache):
         user = make_user()
         community = make_community()
         update_space_mutation = """
@@ -2795,7 +2815,10 @@ class GraphQLTest(TestCase):
             "Can't update a community that you do not administrate.", str(response.errors[0].extensions["errors"])
         )
 
-    def test_can_not_update_space_if_not_logged_in(self):
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
+
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_not_update_space_if_not_logged_in(self, mock_invalidate_discover_spaces_query_cache):
         community = make_community()
         update_space_mutation = """
             mutation test($input: UpdateSpaceInput!) {
@@ -2812,8 +2835,13 @@ class GraphQLTest(TestCase):
         )
 
         self.assert_is_unauthorized(response)
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
 
-    def test_can_not_delete_space_if_not_admin(self):
+    @mock.patch("openbook.graphql_schema.publish_space_deleted_event")
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_not_delete_space_if_not_admin(
+        self, mock_invalidate_discover_spaces_query_cache, mock_publish_space_deleted_event
+    ):
         user = make_user()
         community = make_community()
         delete_space_mutation = """
@@ -2835,7 +2863,14 @@ class GraphQLTest(TestCase):
             "Can't delete a community that you do not administrate.", str(response.errors[0].extensions["errors"])
         )
 
-    def test_can_not_delete_space_if_not_logged_in(self):
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
+        mock_publish_space_deleted_event.assert_not_called()
+
+    @mock.patch("openbook.graphql_schema.publish_space_deleted_event")
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_not_delete_space_if_not_logged_in(
+        self, mock_invalidate_discover_spaces_query_cache, mock_publish_space_deleted_event
+    ):
         community = make_community()
         delete_space_mutation = """
             mutation test($id: UUID!) {
@@ -2852,8 +2887,12 @@ class GraphQLTest(TestCase):
         )
 
         self.assert_is_unauthorized(response)
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
+        mock_publish_space_deleted_event.assert_not_called()
 
-    def test_can_delete_space(self):
+    @mock.patch("openbook.graphql_schema.publish_space_deleted_event")
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_delete_space(self, mock_invalidate_discover_spaces_query_cache, mock_publish_space_deleted_event):
         user = make_user()
         community = make_community(creator=user)
 
@@ -2873,6 +2912,8 @@ class GraphQLTest(TestCase):
 
         self.assertTrue(response.data["deleteSpace"]["success"])
         self.assertIsNone(response.errors)
+        mock_invalidate_discover_spaces_query_cache.assert_called_once()
+        mock_publish_space_deleted_event.assert_called_once_with(community)
 
     def test_can_not_add_collaboration_tool_missing_required_fields(self):
         user = make_user()
@@ -2889,7 +2930,7 @@ class GraphQLTest(TestCase):
             """
 
         valid_space_id = str(community.id)
-        valid_url = "https://project-holi.org/"
+        valid_url = "https://holi.social/"
         valid_title = "Project Holi"
         valid_collection_type = "COLLABORATION"
 
@@ -2933,7 +2974,7 @@ class GraphQLTest(TestCase):
             """
 
         valid_space_id = str(community.id)
-        valid_url = "https://project-holi.org/"
+        valid_url = "https://holi.social/"
         valid_title = "Project Holi"
         valid_description = "holi is the network where people and organizations come together for the common good"
         valid_collection_type = "COLLABORATION"
@@ -2949,7 +2990,7 @@ class GraphQLTest(TestCase):
         expectedErrors = [
             {"field": "url", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "url", "value": "", "expected_code": "blank"},
-            {"field": "url", "value": "project-holi.org", "expected_code": "invalid"},
+            {"field": "url", "value": "holi.social", "expected_code": "invalid"},
             {"field": "title", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "title", "value": "", "expected_code": "blank"},
             {"field": "title", "value": "c", "expected_code": "min_length"},
@@ -2997,11 +3038,11 @@ class GraphQLTest(TestCase):
             """
 
         valid_space_id = str(community.id)
-        valid_url = "https://project-holi.org/"
+        valid_url = "https://holi.social/"
         valid_title = "Project Holi"
         valid_description = "holi is the network where people and organizations come together for the common good"
         valid_collection_type = "COLLABORATION"
-        valid_domain = "Project-Holi"
+        valid_domain = "Holi"
 
         valid_input = {
             "spaceId": valid_space_id,
@@ -3037,7 +3078,7 @@ class GraphQLTest(TestCase):
             }
             """
         valid_space_id = str(community.id)
-        valid_url = "https://project-holi.org/"
+        valid_url = "https://holi.social/"
         valid_title = "Project Holi"
         valid_description = "holi is the network where people and organizations come together for the common good"
         valid_collection_type = "COLLABORATION"
@@ -3071,7 +3112,7 @@ class GraphQLTest(TestCase):
             """
 
         valid_space_id = str(community.id)
-        valid_url = "https://project-holi.org/"
+        valid_url = "https://holi.social/"
         valid_title = "Project Holi"
         valid_description = "holi is the network where people and organizations come together for the common good"
         valid_collection_type = "COLLABORATION"
@@ -3212,7 +3253,7 @@ class GraphQLTest(TestCase):
             },
             {"field": "url", "value": None, "expected_code": "null"},
             {"field": "url", "value": "", "expected_code": "blank"},
-            {"field": "url", "value": "project-holi.org", "expected_code": "invalid"},
+            {"field": "url", "value": "holi.social", "expected_code": "invalid"},
             {"field": "title", "value": None, "expected_code": "null"},
             {"field": "title", "value": "", "expected_code": "blank"},
             {"field": "title", "value": "c", "expected_code": "min_length"},
@@ -3255,7 +3296,7 @@ class GraphQLTest(TestCase):
         response = schema.execute_sync(
             update_collaboration_tool_mutation,
             context_value=BeneDict({"request": {"user": user}}),
-            variable_values={"input": {"url": "https://project-holi.org/"}},
+            variable_values={"input": {"url": "https://holi.social/"}},
         )
 
         self.assertIsNone(response.data)
@@ -3273,7 +3314,7 @@ class GraphQLTest(TestCase):
             }
             """
 
-        input = {"id": str(collaboration_tool.id), "url": "https://project-holi.org/"}
+        input = {"id": str(collaboration_tool.id), "url": "https://holi.social/"}
 
         response = schema.execute_sync(
             update_collaboration_tool_mutation,
@@ -3298,7 +3339,7 @@ class GraphQLTest(TestCase):
             }
             """
 
-        input = {"id": str(collaboration_tool.id), "url": "https://project-holi.org/"}
+        input = {"id": str(collaboration_tool.id), "url": "https://holi.social/"}
 
         response = schema.execute_sync(
             update_collaboration_tool_mutation,
@@ -3323,7 +3364,7 @@ class GraphQLTest(TestCase):
             """
         base_input = {"id": str(collaboration_tool.id)}
 
-        valid_url = "https://project-holi.org/"
+        valid_url = "https://holi.social/"
         valid_title = "Project Holi"
         valid_description = "holi is the network where people and organizations come together for the common good"
         valid_collection_type = "COLLABORATION"
@@ -3369,7 +3410,7 @@ class GraphQLTest(TestCase):
             }
             """
         id = str(collaboration_tool.id)
-        new_url = "https://project-holi.org/"
+        new_url = "https://holi.social/"
         new_title = "Project Holi"
         new_description = "holi is the network where people and organizations come together for the common good"
         new_collection_type = "COLLABORATION"

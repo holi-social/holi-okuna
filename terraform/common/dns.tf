@@ -1,15 +1,12 @@
-## these dns changes are done in the infra shared project (https://gitlab.com/holisticfoundation/holi-infra)
-## because the zone apis.project-holi.org is managed in that project.
-
 locals {
-  # effectively, this is social.apis.project-holi.org
+  # effectively, this is social.apis.holi.social
   okuna_environments_zone_dns_name = "social.${data.terraform_remote_state.holi_infra_state.outputs.dns_apis_zone_domain}."
 }
 
 # okuna environments zone
 resource "google_dns_managed_zone" "okuna_environments_zone" {
   project  = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
-  name     = "okuna-environments-zone"
+  name     = "okuna-holi-social-environments-zone"
   dns_name = local.okuna_environments_zone_dns_name
 }
 

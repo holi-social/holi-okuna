@@ -1,4 +1,3 @@
-import hashlib
 from collections import defaultdict
 from datetime import datetime, timedelta
 import json
@@ -23,10 +22,12 @@ from strawberry_django_plus.optimizer import DjangoOptimizerExtension
 
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook.helpers import (
+    publish_space_deleted_event,
     publish_space_user_added_event,
     publish_space_created_event,
     publish_user_name_updated_event,
 )
+from openbook.utils import generate_discover_spaces_hash_key, invalidate_discover_spaces_query_cache
 from openbook_auth.images import delete_avatar
 from openbook_auth.tasks import update_ory_user
 from openbook_auth.validators import string_not_empty
@@ -341,34 +342,6 @@ class Query:
         if not geolocation:
             if not current_user.is_anonymous and current_user.geolocation is not None:
                 geolocation = current_user.geolocation
-
-        # Inner utility function for generating a unique cache key consisting of
-        # prefix and SHA-256 hash of the discover spaces filters
-        # e.g discover_spaces:2cbce4f20876d36947b2db0d6b229c8b2b80741434ceca8e7e3f2258114c2511
-        def generate_discover_spaces_hash_key(topic_ids, geolocation, skill_ids, offset, limit):
-            key_prefix = "discover_spaces"
-
-            key_parts = []
-
-            if geolocation is not None:
-                key_parts.append(str(geolocation.id))
-
-            if topic_ids is not None:
-                key_parts.extend([str(topic_id) for topic_id in topic_ids])
-
-            if skill_ids is not None:
-                key_parts.extend([str(skill_id) for skill_id in skill_ids])
-
-            if offset is not None:
-                key_parts.append(str(offset))
-
-            if limit is not None:
-                key_parts.append(str(limit))
-
-            key = "_".join(key_parts)
-
-            key_hash = hashlib.sha256(key.encode()).hexdigest()
-            return f"{key_prefix}:{key_hash}"
 
         result = []
 
@@ -994,6 +967,7 @@ class Mutation:
         )
 
         publish_space_created_event(community=community)
+        invalidate_discover_spaces_query_cache()
 
         return community
 
@@ -1004,8 +978,7 @@ class Mutation:
         serializer = UpdateCommunitySerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-
-        return current_user.update_community_with_id(
+        space = current_user.update_community_with_id(
             community_id=data.get("id"),
             title=data.get("title"),
             description=data.get("description"),
@@ -1020,14 +993,23 @@ class Mutation:
             contact_phone=data.get("contact_phone"),
         )
 
+        invalidate_discover_spaces_query_cache()
+
+        return space
+
     @gql.mutation
     def delete_space(self, info, id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
+        space = CommunityModel.objects.get(id=id)
 
         with transaction.atomic():
             current_user.delete_community_with_id(
                 community_id=id,
             )
+
+        publish_space_deleted_event(space)
+
+        invalidate_discover_spaces_query_cache()
 
         return Result(success=True)
 
