@@ -9,6 +9,7 @@ from openbook_auth.models import User, UserProfile
 from openbook_circles.models import Circle
 from openbook_common.models import Emoji, EmojiGroup, Badge, Language, LinkPreview
 from openbook_common.serializers_fields.user import IsFollowingField, IsFollowedField
+from openbook_common.types import GeolocationFeature
 from openbook_communities.models import Community, CommunityMembership
 from openbook_communities.serializers_fields import (
     IsFavoriteField,
@@ -263,13 +264,11 @@ class GeolocationPointSerializer(serializers.Serializer):
     latitude = serializers.FloatField()
 
 
-class GeolocationGeometrySerializer(GeoFeatureModelSerializer):
-    geometry = GeometryField()
-
+class GeolocationFeatureSerializer(GeoFeatureModelSerializer):
     class Meta:
         model = UserProfile
         geo_field = "geolocation"
         fields = ("geolocation",)
 
     def to_internal_value(self, data):
-        return geos.GEOSGeometry(json.dumps(data["geometry"]))
+        return GeolocationFeature.from_geojson(data)

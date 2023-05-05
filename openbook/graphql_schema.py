@@ -2,7 +2,6 @@ import hashlib
 from collections import defaultdict
 from datetime import datetime, timedelta
 import json
-from django.contrib.gis import geos
 
 from rest_framework.exceptions import ValidationError
 
@@ -79,13 +78,12 @@ def get_id_spaces_count_map(query):
     return id_to_num_spaces
 
 
-# @cached_as(CommunityModel)
+@cached_as(CommunityModel)
 def spaces_for_filter(
     offset: int,
     limit: int,
     topic_id: Optional[uuid.UUID] = None,
-    location: Optional[str] = None,
-    geolocation: Optional[geos.GEOSGeometry] = None,
+    geolocation: Optional[GeolocationFeature] = None,
     skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
     topic_slug: Optional[str] = None,
     skill_slugs: Optional[List[Optional[str]]] = None,
@@ -94,10 +92,8 @@ def spaces_for_filter(
     query = Q()
     if topic_id is not None:
         query.add(Q(topics__id__contains=topic_id), Q.AND)
-    if geolocation is None and location is not None:  # TODO(SF) keep for legacy?
-        query.add(Q(location__icontains=location), Q.AND)
     if geolocation is not None:
-        query.add(Q(geolocation__within=geolocation), Q.AND)
+        query.add(Q(geolocation__within=geolocation.geometry), Q.AND)
     if skill_ids:
         query.add(Q(tasks__skills__id__in=skill_ids), Q.AND)
     if topic_slug is not None:
@@ -124,9 +120,9 @@ class NewNotificationsResponse:
     status: bool
 
 
-def filter_spaces_by_skill_ids(location, geolocation, skill_ids, limit):
-    # TODO(SF) keep filtering by name OR geolocation?
-    geojson = geolocation.geojson if geolocation else None
+def filter_spaces_by_skill_ids(geolocation, skill_ids, limit):
+    geojson = geolocation.geometry.geojson if geolocation and geolocation.geometry else None
+    skipLocationFilter = "false" if geojson else "true"
     return CommunityModel.objects.raw(
         """
             select s.id, s.skill_id, s.rn 
@@ -136,16 +132,12 @@ def filter_spaces_by_skill_ids(location, geolocation, skill_ids, limit):
                 where occ.id = octask.community_id and octask.id = octskill.task_id  
             ) s
             where s.skill_id = skill.id 
-            and (
-              UPPER(s.location) like UPPER(%s)
-              or
-              ST_Within(s.geolocation, ST_GeomFromGeoJSON(%s))
-            )
+            and (%s or ST_Within(s.geolocation, ST_GeomFromGeoJSON(%s)))
             and s.rn <= %s
             and skill.id = ANY(%s)
             order by skill.id
             """,
-        [f"%{location}%", geojson, limit, skill_ids],
+        [skipLocationFilter, geojson, limit, skill_ids],
     ).prefetch_related("memberships__user__profile")
 
 
@@ -315,8 +307,7 @@ class Query:
     def spaces(
         self,
         topic_id: Optional[uuid.UUID] = None,
-        location: Optional[str] = None,
-        geolocation: Optional[GeolocationGeometry] = None,
+        geolocation: Optional[GeoJSON] = None,
         skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
         topic_slug: Optional[str] = None,
         skill_slugs: Optional[List[Optional[str]]] = None,
@@ -328,7 +319,6 @@ class Query:
             offset,
             limit,
             topic_id,
-            location,
             geolocation,
             skill_ids,
             topic_slug,
@@ -341,8 +331,7 @@ class Query:
         self,
         info,
         topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
-        location: Optional[str] = None,
-        geolocation: Optional[GeolocationGeometry] = None,
+        geolocation: Optional[GeoJSON] = None,
         skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
         offset: int = 0,
         limit: int = 10,
@@ -350,23 +339,19 @@ class Query:
         current_user: UserModel = info.context.request.user
 
         if not geolocation:
-            if not current_user.is_anonymous and current_user.profile.geolocation is not None:
-                geolocation = current_user.profile.geolocation
-                location = current_user.profile.location
+            if not current_user.is_anonymous and current_user.geolocation is not None:
+                geolocation = current_user.geolocation
 
         # Inner utility function for generating a unique cache key consisting of
         # prefix and SHA-256 hash of the discover spaces filters
         # e.g discover_spaces:2cbce4f20876d36947b2db0d6b229c8b2b80741434ceca8e7e3f2258114c2511
-        def generate_discover_spaces_hash_key(topic_ids, location, geolocation, skill_ids, offset, limit):
+        def generate_discover_spaces_hash_key(topic_ids, geolocation, skill_ids, offset, limit):
             key_prefix = "discover_spaces"
 
             key_parts = []
 
             if geolocation is not None:
-                key_parts.append(str(hash(geolocation)))
-
-            if geolocation is None and location is not None:
-                key_parts.append(location)
+                key_parts.append(str(geolocation.id))
 
             if topic_ids is not None:
                 key_parts.extend([str(topic_id) for topic_id in topic_ids])
@@ -387,7 +372,7 @@ class Query:
 
         result = []
 
-        hash_key = generate_discover_spaces_hash_key(topic_ids, location, geolocation, skill_ids, offset, limit)
+        hash_key = generate_discover_spaces_hash_key(topic_ids, geolocation, skill_ids, offset, limit)
 
         # Check whether the resolver result has already been cached and return it,
         # otherwise, query the database, create the result, and cache it.
@@ -398,24 +383,11 @@ class Query:
             if geolocation is not None:
                 result.append(
                     DiscoverSpaces(
-                        location=location,
+                        location_id=geolocation.id,
                         spaces=spaces_for_filter(
                             offset=offset,
                             limit=limit,
                             geolocation=geolocation,
-                        ),
-                    )
-                )
-
-            # get all spaces by location (independent of other filters)
-            if geolocation is None and location is not None:
-                result.append(
-                    DiscoverSpaces(
-                        location=location,
-                        spaces=spaces_for_filter(
-                            offset=offset,
-                            limit=limit,
-                            location=location,
                         ),
                     )
                 )
@@ -440,14 +412,13 @@ class Query:
                         )
                     )
 
-            # get all spaces by skill_id (including location filter)
+            # get all spaces by skill_id (including geolocation filter)
             if skill_ids is not None:
                 skill_id_to_num_spaces = get_id_spaces_count_map(
                     SkillModel.objects.filter(id__in=skill_ids).annotate(num_spaces=Count("tasks__community"))
                 )
 
                 spaces_from_db = filter_spaces_by_skill_ids(
-                    location=location,  # TOOD(SF) ? if geolocation is None else None,
                     geolocation=geolocation,
                     skill_ids=skill_ids,
                     limit=limit,
@@ -461,7 +432,7 @@ class Query:
                     result.append(
                         DiscoverSpaces(
                             skill_id=skill_id,
-                            location=location,
+                            location_id=geolocation.id if geolocation else None,
                             spaces=Paged(spaces, skill_id_to_num_spaces[skill_id]),
                         )
                     )
@@ -627,7 +598,7 @@ class UpdateAuthenticatedUserInput:
     about_me: Optional[str] = strawberry.UNSET
     pronouns: Optional[str] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
-    geolocation: Optional[GeolocationGeometryInput] = strawberry.UNSET
+    geolocation: Optional[GeoJSONInput] = strawberry.UNSET
     engagement_level: Optional[str] = strawberry.UNSET
     interests: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
@@ -800,9 +771,9 @@ class Mutation:
                 delete_avatar(data["avatar"])
             raise
 
-        # if input.first_name or input.last_name:
-        #     update_ory_user(current_user.id)
-        #     publish_user_name_updated_event(user=current_user)
+        if input.first_name or input.last_name:
+            update_ory_user(current_user.id)
+            publish_user_name_updated_event(user=current_user)
 
         return current_user
 

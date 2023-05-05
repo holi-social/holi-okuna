@@ -28,7 +28,7 @@ from openbook_auth.helpers import (
 )
 from openbook_common.helpers import get_supported_translation_language, PQ, PrefixedQ
 from openbook_common.models import Badge, ModelWithUUID
-from openbook_common.types import VisibilityType
+from openbook_common.types import VisibilityType, GeolocationFeature
 from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import (
     get_collaboration_tool_model,
@@ -230,6 +230,16 @@ class User(ModelWithUUID, AbstractUser):
                 return self.profile.name[0].upper()
             else:
                 return self.profile.name[0].upper() + self.profile.last_name[0].upper()
+
+    @property
+    def geolocation(self):
+        if not self.profile.geolocation:
+            return None
+        return GeolocationFeature(
+            id=self.profile.geolocation_id,
+            name=self.profile.location,
+            geometry=self.profile.geolocation,
+        )
 
     class Meta:
         verbose_name = _("user")
@@ -700,8 +710,14 @@ class User(ModelWithUUID, AbstractUser):
             profile.name = name
 
         if update_location:
-            profile.location = location
-            profile.geolocation = geolocation
+            if geolocation:
+                profile.location = location or geolocation.name
+                profile.geolocation = geolocation.geometry
+                profile.geolocation_id = geolocation.id
+            else:
+                profile.location = location
+                profile.geolocation = None
+                profile.geolocation_id = None
 
         if avatar is not None:
             profile.avatar = avatar
@@ -4816,6 +4832,7 @@ class UserProfile(ModelWithUUID):
         null=True,
     )
     geolocation = models.GeometryField(blank=True, null=True)
+    geolocation_id = models.CharField(max_length=settings.PROFILE_GEOLOCATION_ID_MAX_LENGTH, blank=True, null=True)
     engagement_level = models.CharField(
         _("engagement level"),
         max_length=10,

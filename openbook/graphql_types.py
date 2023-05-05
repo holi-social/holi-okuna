@@ -2,7 +2,6 @@ import uuid
 from enum import Enum
 from uuid import UUID
 import json
-from django.contrib.gis import geos
 
 import strawberry
 from typing import List, TypeVar, Optional, Tuple
@@ -13,7 +12,7 @@ from django.db.models import QuerySet
 
 import logging
 from openbook_common.models import LinkPreview as LinkPreviewModel
-from openbook_common.types import ReactionType
+from openbook_common.types import ReactionType, GeolocationFeature
 from openbook_common.utils.model_loaders import get_circle_model
 from openbook_communities.models import (
     Community as CommunityModel,
@@ -103,20 +102,22 @@ class GeolocationPoint:
         return GeolocationPoint(longitude=point.x, latitude=point.y)
 
 
-# Necessary to create a custom scalars for geolocation geometries, as GraphQL schema parsing throws error "Decorated type deeper than introspection query" for 4-dimensional arrays (e.g. MultiPolygons)
+# Custom scalars for GeoJSON containing geolocation geometries are necessary, as GraphQL schema parsing throws an error ("Decorated type deeper than introspection query") for 4-dimensional arrays (e.g. MultiPolygons)
 # See e.g. https://github.com/graphql/graphql-js/issues/2643
-GeolocationGeometry = strawberry.scalar(
-    geos.GEOSGeometry,
-    name="GeolocationGeometry",
+GeoJSON = strawberry.scalar(
+    GeolocationFeature,
+    name="GeoJSON",
     description="GeoJSON describing the geometry feature of a geolocation",
-    serialize=lambda value: json.loads(value.geojson),
-    parse_value=lambda value: geos.GEOSGeometry(json.dumps(value["geometry"])),
+    serialize=lambda value: json.loads(
+        value.geometry.geojson
+    ),  # This is asymmetrical as we do not store all feature data
+    parse_value=lambda value: GeolocationFeature.from_geojson(value),
 )
 
-# Separate type for geometry input to be used by the GeoFeatureModelSerializer
-GeolocationGeometryInput = strawberry.scalar(
+# Separate type for GeoJSON input to be used by the GeoFeatureModelSerializer
+GeoJSONInput = strawberry.scalar(
     object,
-    name="GeolocationGeometryInput",
+    name="GeoJSONInput",
     description="GeoJSON input describing the geometry feature of a geolocation",
     serialize=lambda value: value,
     parse_value=lambda value: value,
@@ -252,8 +253,12 @@ class User:
         return self.profile.location
 
     @gql.django.field(select_related=["profile"])
-    def geolocation(self) -> Optional[GeolocationGeometry]:
-        return self.profile.geolocation
+    def geolocation(self) -> Optional[GeoJSON]:
+        return self.geolocation
+
+    @gql.django.field(select_related=["profile"])
+    def geolocation_id(self) -> Optional[str]:
+        return self.profile.geolocation_id
 
     @gql.django.field(select_related=["profile"])
     def engagement_level(self) -> Optional[str]:
@@ -638,7 +643,7 @@ class Notification:
 @gql.type
 class DiscoverSpaces:
     topic_id: Optional[uuid.UUID] = None
-    location: Optional[str] = None
+    location_id: Optional[str] = None
     skill_id: Optional[uuid.UUID] = None
     spaces: Paged[Space]
 
