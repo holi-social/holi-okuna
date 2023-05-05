@@ -59,9 +59,9 @@ class Community(ModelWithUUID):
     moderated_object = GenericRelation(ModeratedObject, related_query_name="communities")
     creator = models.ForeignKey(
         User,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="created_communities",
-        null=False,
+        null=True,
         blank=False,
     )
     name = models.SlugField(
@@ -528,7 +528,6 @@ class Community(ModelWithUUID):
         contact_email=None,
         contact_phone=None,
     ):
-
         if title:
             self.title = title
 
@@ -1216,7 +1215,6 @@ class ExternalLinkType(models.TextChoices):
 
 
 class ExternalLink(ModelWithUUID):
-
     url = models.TextField(blank=False)
     community = models.ForeignKey(
         Community,

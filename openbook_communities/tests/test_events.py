@@ -5,6 +5,7 @@ from openbook_communities.events.events import (
     SpaceCreatedEvent,
     SpaceDeletedEvent,
     SpaceUserAddedEvent,
+    UserDeletedEvent,
     UserNameUpdatedEvent,
 )
 
@@ -75,10 +76,8 @@ class UserNameUpdatedEventTestCase(testcases.TestCase):
 
 class SpaceDeletedEventTestCase(testcases.TestCase):
     def test_should_create_space_deleted_event(self):
-        user = make_user()
         community = make_community()
 
-        user = UserPayload.from_user(user)
         space = SpacePayload.from_community(community)
 
         data = {"space": space.to_dict()}
@@ -90,5 +89,24 @@ class SpaceDeletedEventTestCase(testcases.TestCase):
         event_dict = event.to_dict()
 
         eventPayload = {"eventType": "SpaceDeleted", "eventVersion": "1.0.0", "data": encoded_data}
+
+        self.assertEqual(eventPayload, event_dict)
+
+
+class UserDeletedEventTestCase(testcases.TestCase):
+    def test_should_create_space_deleted_event(self):
+        user = make_user()
+
+        user = UserPayload.from_user(user)
+
+        data = {"user": user.to_dict()}
+
+        encoded_data = json.dumps(data).encode("utf-8")
+
+        event = UserDeletedEvent(user)
+
+        event_dict = event.to_dict()
+
+        eventPayload = {"eventType": "UserDeleted", "eventVersion": "1.0.0", "data": encoded_data}
 
         self.assertEqual(eventPayload, event_dict)
