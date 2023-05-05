@@ -883,11 +883,14 @@ class Mutation:
 
                 logger.warning(f"All spaces exclusively administered by {current_user.username} will be deleted")
 
-                for space in exclusive_administrated_communities:
-                    # Make a copy of the space before deleting it to pass it as a SpaceDeleted event payload
-                    space_to_delete = deepcopy(space)
-                    space.delete()
-                    publish_space_deleted_event(space_to_delete)
+                if exclusive_administrated_communities:
+                    for space in exclusive_administrated_communities:
+                        # Make a copy of the space before deleting it to pass it as a SpaceDeleted event payload
+                        space_to_delete = deepcopy(space)
+                        space.delete()
+                        publish_space_deleted_event(space_to_delete)
+
+                    invalidate_discover_spaces_query_cache()
 
                 return Result(success=True)
             except (Exception,):
