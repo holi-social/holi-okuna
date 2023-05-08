@@ -250,7 +250,6 @@ class User(ModelWithUUID, AbstractUser):
         are_guidelines_accepted=None,
         badge=None,
     ):
-
         if not is_of_legal_age:
             raise ValidationError(
                 _("You must confirm you are over 16 years old to make an account"),
@@ -564,9 +563,6 @@ class User(ModelWithUUID, AbstractUser):
         for post in self.posts.all().iterator():
             post.soft_delete()
 
-        for community in self.created_communities.all().iterator():
-            community.soft_delete()
-
         self.delete_all_notifications()
         self.is_deleted = True
         self.save()
@@ -574,9 +570,6 @@ class User(ModelWithUUID, AbstractUser):
     def unsoft_delete(self):
         for post in self.posts.all.iterator():
             post.unsoft_delete()
-
-        for community in self.created_communities.all().iterator():
-            community.unsoft_delete()
 
         self.is_deleted = False
         self.save()
@@ -680,7 +673,6 @@ class User(ModelWithUUID, AbstractUser):
         skills=None,
         save=True,
     ):
-
         profile = self.profile
 
         if username:
@@ -766,7 +758,6 @@ class User(ModelWithUUID, AbstractUser):
         post_comment_user_mention_notifications=None,
         post_user_mention_notifications=None,
     ):
-
         notifications_settings = self.notifications_settings
 
         notifications_settings.update(
@@ -2444,7 +2435,6 @@ class User(ModelWithUUID, AbstractUser):
         return User.objects.filter(blocked_users_query)
 
     def search_top_posts_excluded_communities_with_query(self, query):
-
         excluded_communities_search_query = Q(user=self)
         excluded_communities_search_query.add(
             (Q(community__title__icontains=query) | Q(community__name__icontains=query)),
@@ -2464,7 +2454,6 @@ class User(ModelWithUUID, AbstractUser):
         return top_posts_community_exclusions
 
     def search_profile_posts_excluded_communities_with_query(self, query):
-
         excluded_communities_search_query = Q(user=self)
         excluded_communities_search_query.add(
             (Q(community__title__icontains=query) | Q(community__name__icontains=query)),
@@ -2484,7 +2473,6 @@ class User(ModelWithUUID, AbstractUser):
         return profile_posts_community_exclusions
 
     def get_received_follow_requests(self, max_id=None):
-
         if max_id:
             return self.received_follow_requests.filter(id__lt=max_id)
 
@@ -2613,6 +2601,17 @@ class User(ModelWithUUID, AbstractUser):
     def get_administrated_communities(self):
         Community = get_community_model()
         return Community.objects.filter(memberships__user=self, memberships__is_administrator=True)
+
+    """
+    Gets all communities where the user is the exclusive administrator.
+    An exclusive administrator is defined as the only user with administrator privileges in a given community.
+    """
+
+    def get_exclusive_administrated_communities(self):
+        Community = get_community_model()
+        return Community.objects.annotate(
+            num_admins=Count("memberships", filter=Q(memberships__is_administrator=True))
+        ).filter(memberships__user=self, memberships__is_administrator=True, num_admins=1)
 
     def search_administrated_communities_with_query(self, query):
         administrated_communities_query = Q(memberships__user=self, memberships__is_administrator=True)
@@ -3127,7 +3126,6 @@ class User(ModelWithUUID, AbstractUser):
         followed_users = followed_users_query.values("followed_user__id").cache()
 
         for followed_user in followed_users:
-
             followed_user_id = followed_user["followed_user__id"]
 
             followed_user_query = Q(creator_id=followed_user_id)
@@ -4238,7 +4236,6 @@ class User(ModelWithUUID, AbstractUser):
         return blocked_users_query
 
     def _make_get_post_with_id_query(self, post_id):
-
         Post = get_post_model()
 
         posts_query = Q(is_deleted=False, status=Post.STATUS_PUBLISHED)
@@ -4265,7 +4262,6 @@ class User(ModelWithUUID, AbstractUser):
         return posts_query
 
     def _make_get_posts_query_for_user(self, user, max_id=None):
-
         Post = get_post_model()
 
         posts_query = Q(creator_id=user.pk, is_deleted=False, status=Post.STATUS_PUBLISHED)
@@ -4438,7 +4434,6 @@ class User(ModelWithUUID, AbstractUser):
         return reactions_query
 
     def _make_get_post_comment_with_id_query(self, post_comment_id, post, post_comment_parent_id=None):
-
         post_comments_query = self._make_get_comments_for_post_query(
             post=post, post_comment_parent_id=post_comment_parent_id
         )
@@ -4450,7 +4445,6 @@ class User(ModelWithUUID, AbstractUser):
         return post_comments_query
 
     def _make_get_comments_for_post_query(self, post, post_comment_parent_id=None, max_id=None, min_id=None):
-
         # Comments from the post
         comments_query = Q(post_id=post.pk)
 
@@ -4935,7 +4929,6 @@ class UserNotificationsSettings(ModelWithUUID):
         post_user_mention_notifications=None,
         post_comment_reaction_notifications=None,
     ):
-
         if post_comment_notifications is not None:
             self.post_comment_notifications = post_comment_notifications
 
