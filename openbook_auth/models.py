@@ -2708,6 +2708,23 @@ class User(ModelWithUUID, AbstractUser):
 
         return post
 
+    def update_community_encircled_post(
+        self, post_id, title=None, text=None, image=None, video=None, is_draft=False, visibility=None
+    ):
+        Post = get_post_model()
+        post = Post.objects.get(id=post_id)
+        check_can_update_post(user=self, post=post)
+        circles_ids = self._get_circles_ids_by_visibility_and_community_id(visibility, post.community.id)
+        post.update_post(
+            text=text,
+            title=title,
+            image=image,
+            is_draft=is_draft,
+            circles_ids=circles_ids,
+        )
+
+        return post
+
     def create_community_post(
         self, community_name, text=None, image=None, video=None, created=None, is_draft=False, visibility=None
     ):

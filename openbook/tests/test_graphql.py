@@ -49,7 +49,7 @@ from openbook_communities.models import Community, CommunityNotificationsSubscri
 from openbook_common.types import VisibilityType
 from openbook_insights.models import Insight
 from openbook_moderation.models import ModeratedObject
-from openbook_posts.models import PostCommentReaction
+from openbook_posts.models import PostCommentReaction, Post
 
 logger = logging.getLogger(__name__)
 
@@ -526,6 +526,32 @@ class GraphQLTest(TestCase):
             variable_values={"input": info},
         )
 
+    def update_space_post(self, user, post_id, info):
+        return schema.execute_sync(
+            """
+            mutation test($id: UUID!, $input: UpdatePostInput!){
+                updateSpacePost(id: $id, input: $input) {
+                    id
+                    title
+                    posts {
+                        totalResults
+                        data {
+                            title
+                            text
+                            isPublic
+                            created
+                            image {
+                                url
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"id": str(post_id), "input": info},
+        )
+
     def test_space_user_can_create_space_post(self):
         space_admin = make_user()
         member_user = make_user()
@@ -658,6 +684,117 @@ class GraphQLTest(TestCase):
         self.assertIn(
             "Field 'visibility' of required type 'VisibilityType!' was not provided", response.errors[0].message
         )
+
+    def test_space_user_can_edit_space_post(self):
+        space_admin = make_user()
+        posting_user = make_user()
+        space = make_community(creator=space_admin)
+        space.add_member(posting_user)
+        space.add_administrator(posting_user)
+
+        space_post = Post.create_post(
+            creator=posting_user,
+            community_id=space.id,
+            image=SimpleUploadedFile(name="foo.jpg", content=simple_jpeg_bytes),
+            text=make_fake_post_text(),
+            title=make_fake_post_title(),
+            circles_ids=[]
+        )
+
+        valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+
+        input_data = {
+            "visibility": VisibilityType.PUBLIC.value,
+            "text": make_fake_post_text(),
+            "title": None,
+            "image": valid_image
+        }
+
+        response = self.update_space_post(posting_user, space_post.id, input_data)
+        self.assertIsNone(response.errors)
+        self.assertIsNotNone(response.data)
+
+        data = response.data["updateSpacePost"]
+        self.assertEqual(data["id"], str(space.id))
+        self.assertEqual(data["posts"]["totalResults"], 1)
+
+        posts_data = data["posts"]["data"]
+        self.assertIsNone(posts_data[0]["title"])
+        self.assertEqual(posts_data[0]["text"], input_data["text"])
+        self.assertEqual(posts_data[0]["isPublic"], True)
+        self.assertIn("/cover.jpg/", posts_data[0]["image"]["url"])
+
+    def test_cant_edit_space_post_to_public_visibility_member_user(self):
+        space_admin = make_user()
+        posting_user = make_user()
+        space = make_community(creator=space_admin)
+        space.add_member(posting_user)
+
+        post_title = make_fake_post_title()
+        post_text = make_fake_post_text()
+        space_post = Post.create_post(
+            creator=posting_user,
+            community_id=space.id,
+            image=SimpleUploadedFile(name="foo.jpg", content=simple_jpeg_bytes),
+            text=post_text,
+            title=post_title,
+            circles_ids=[]
+        )
+
+        input_data = {
+            "visibility": VisibilityType.PUBLIC.value,
+            "text": make_fake_post_text(),
+            "title": make_fake_post_title(),
+        }
+
+        response = self.update_space_post(posting_user, space_post.id, input_data)
+        self.assertIsNotNone(response.errors)
+        self.assertIsNone(response.data)
+        self.assertIn(
+            "You cannot add a public post to a community you're not administrator of",
+            response.errors[0].extensions["errors"],
+        )
+
+        space_post.refresh_from_db()
+        self.assertEqual(space_post.title, post_title)
+        self.assertIn("/foo.jpg/", space_post.image.image.url)
+
+    def test_cant_edit_space_post_other_user(self):
+        space_admin = make_user()
+        posting_user = make_user()
+        other_user = make_user()
+        space = make_community(creator=space_admin)
+        space.add_member(posting_user)
+        space.add_member(other_user)
+
+        post_title = make_fake_post_title()
+        post_text = make_fake_post_text()
+        space_post = Post.create_post(
+            creator=posting_user,
+            community_id=space.id,
+            image=SimpleUploadedFile(name="foo.jpg", content=simple_jpeg_bytes),
+            text=post_text,
+            title=post_title,
+            circles_ids=[]
+        )
+
+        valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+
+        input_data = {
+            "visibility": VisibilityType.MEMBERS.value,
+            "text": make_fake_post_text(),
+            "title": None,
+            "image": valid_image
+        }
+
+        response = self.update_space_post(other_user, space_post.id, input_data)
+        self.assertIsNotNone(response.errors)
+        self.assertIsNone(response.data)
+        self.assertEqual(response.errors[0].message, "This post does not belong to you.")
+
+        space_post.refresh_from_db()
+        self.assertEqual(space_post.title, post_title)
+        self.assertIn("/foo.jpg/", space_post.image.image.url)
 
     def test_insights_by_user_id_success_user_anonymous(self):
         insight_user = make_user()
