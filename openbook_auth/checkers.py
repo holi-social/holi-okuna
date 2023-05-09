@@ -325,22 +325,8 @@ def check_has_circles_with_ids(user, circles_ids):
 
 
 def check_can_delete_post(user, post):
-    Post = get_post_model()
-
     if not user.has_post(post=post):
-        if Post.is_post_with_id_a_community_post(post.pk):
-            # If the comment is in a community, check if we're moderators
-            if not user.is_moderator_of_community_with_name(
-                post.community.name
-            ) and not user.is_administrator_of_community_with_name(post.community.name):
-                raise ValidationError(
-                    _("Only moderators/administrators can remove community posts."),
-                )
-            else:
-                # TODO Not the best place to log this but doing the check for community again on delete is wasteful
-                post.community.create_remove_post_log(source_user=user, target_user=post.creator)
-        else:
-            raise ValidationError(_("You cannot remove a post that does not belong to you"))
+        raise ValidationError(_("You cannot remove a post that does not belong to you"))
 
 
 def check_can_delete_list_with_id(user, list_id):

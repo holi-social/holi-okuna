@@ -1,4 +1,5 @@
 from copy import deepcopy
+import uuid
 from collections import defaultdict
 from datetime import datetime, timedelta
 import json
@@ -84,14 +85,14 @@ def get_id_spaces_count_map(query):
 
 @cached_as(CommunityModel)
 def spaces_for_filter(
-    offset: int,
-    limit: int,
-    topic_id: Optional[uuid.UUID] = None,
-    location: Optional[str] = None,
-    skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
-    topic_slug: Optional[str] = None,
-    skill_slugs: Optional[List[Optional[str]]] = None,
-    member_id: Optional[uuid.UUID] = None,
+        offset: int,
+        limit: int,
+        topic_id: Optional[uuid.UUID] = None,
+        location: Optional[str] = None,
+        skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
+        topic_slug: Optional[str] = None,
+        skill_slugs: Optional[List[Optional[str]]] = None,
+        member_id: Optional[uuid.UUID] = None,
 ):
     query = Q()
     if topic_id is not None:
@@ -202,11 +203,11 @@ class Query:
         users_to_exclude_ids = [current_user.id] if not current_user.is_anonymous else []
         excludes_filter = ~Q(id__in=users_to_exclude_ids) & UserModel.is_visible_query(current_user)
         full_name_query = (
-            IContains(
-                Concat(F("profile__name"), Value(" "), F("profile__last_name")),
-                substring,
-            )
-            & excludes_filter
+                IContains(
+                    Concat(F("profile__name"), Value(" "), F("profile__last_name")),
+                    substring,
+                )
+                & excludes_filter
         )
 
         total_results = UserModel.objects.filter(full_name_query).count()
@@ -214,7 +215,7 @@ class Query:
         by_first_name_query = UserModel.objects.select_related("profile").filter(
             Q(profile__name__icontains=substring) & excludes_filter
         )
-        by_first_name = list(by_first_name_query[offset : offset + limit])
+        by_first_name = list(by_first_name_query[offset: offset + limit])
         by_first_name_len = len(by_first_name)
 
         if by_first_name_len >= limit:
@@ -230,7 +231,7 @@ class Query:
         by_full_name = list(
             UserModel.objects.select_related("profile").filter(
                 full_name_query & ~Q(profile__name__icontains=substring)
-            )[new_offset : new_offset + new_limit]
+            )[new_offset: new_offset + new_limit]
         )
         return Paged(by_first_name + by_full_name, total_results)
 
@@ -307,15 +308,15 @@ class Query:
 
     @gql.django.field
     def spaces(
-        self,
-        topic_id: Optional[uuid.UUID] = None,
-        location: Optional[str] = None,
-        skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
-        topic_slug: Optional[str] = None,
-        skill_slugs: Optional[List[Optional[str]]] = None,
-        member_id: Optional[uuid.UUID] = None,
-        offset: int = 0,
-        limit: int = 10,
+            self,
+            topic_id: Optional[uuid.UUID] = None,
+            location: Optional[str] = None,
+            skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
+            topic_slug: Optional[str] = None,
+            skill_slugs: Optional[List[Optional[str]]] = None,
+            member_id: Optional[uuid.UUID] = None,
+            offset: int = 0,
+            limit: int = 10,
     ) -> Paged[Space]:
         return spaces_for_filter(
             offset,
@@ -330,12 +331,12 @@ class Query:
 
     @gql.django.field
     def discover_spaces(
-        self,
-        topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
-        location: Optional[str] = None,
-        skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
-        offset: int = 0,
-        limit: int = 10,
+            self,
+            topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
+            location: Optional[str] = None,
+            skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
+            offset: int = 0,
+            limit: int = 10,
     ) -> List[Optional[DiscoverSpaces]]:
         result = []
 
@@ -763,8 +764,8 @@ class Mutation:
 
         # Disconnect action (only run if current connection status is different than NOT_CONNECTED)
         elif (
-            input.action == UpdateConnectionAction.DISCONNECT
-            and current_connection_status != UserConnectionStatus.NOT_CONNECTED
+                input.action == UpdateConnectionAction.DISCONNECT
+                and current_connection_status != UserConnectionStatus.NOT_CONNECTED
         ):
             current_user.disconnect_from_user_with_id(user_id=user_to_connect_to.id)
 
@@ -796,12 +797,12 @@ class Mutation:
 
     @gql.mutation(description="When no userId is provided, the logged in user is used instead.")
     def update_space_user_connection(
-        self,
-        info,
-        space_id: uuid.UUID,
-        connection_type: SpaceUserConnectionType,
-        connect_action: UpdateConnectionAction,
-        user_id: Optional[uuid.UUID] = None,
+            self,
+            info,
+            space_id: uuid.UUID,
+            connection_type: SpaceUserConnectionType,
+            connect_action: UpdateConnectionAction,
+            user_id: Optional[uuid.UUID] = None,
     ) -> Space:
         current_user = verify_authorized_user(info)
         space = CommunityModel.objects.get(id=space_id)
@@ -857,6 +858,15 @@ class Mutation:
         return CommunityModel.objects.get(id=data.get("space_id"))
 
     @gql.mutation
+    def delete_space_post(self, info: Info, id: uuid.UUID) -> Space:
+        current_user = verify_authorized_user(info)
+
+        post = PostModel.objects.get(id=id)
+        current_user.delete_post(post)
+
+        return post.community
+
+    @gql.mutation
     def delete_authenticated_user(self, info) -> Result:
         current_user = verify_authorized_user(info)
         headers = {"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"}
@@ -909,11 +919,11 @@ class Mutation:
 
     @gql.mutation
     def report_content(
-        self,
-        info,
-        object_id: uuid.UUID,
-        content_type: ContentType,
-        description: Optional[str] = None,
+            self,
+            info,
+            object_id: uuid.UUID,
+            content_type: ContentType,
+            description: Optional[str] = None,
     ) -> Result:
         current_user = verify_authorized_user(info)
 
@@ -1076,11 +1086,11 @@ class Mutation:
 
     @gql.mutation
     def update_post_reaction(
-        self,
-        info,
-        id: uuid.UUID,
-        reaction_type: ReactionType,
-        reaction_action: ReactionAction,
+            self,
+            info,
+            id: uuid.UUID,
+            reaction_type: ReactionType,
+            reaction_action: ReactionAction,
     ) -> Post:
         current_user = verify_authorized_user(info)
         post = PostModel.objects.get(id=id)
@@ -1092,11 +1102,11 @@ class Mutation:
 
     @gql.mutation
     def update_post_comment_reaction(
-        self,
-        info,
-        id: uuid.UUID,
-        reaction_type: ReactionType,
-        reaction_action: ReactionAction,
+            self,
+            info,
+            id: uuid.UUID,
+            reaction_type: ReactionType,
+            reaction_action: ReactionAction,
     ) -> PostComment:
         current_user = verify_authorized_user(info)
         post_comment = PostCommentModel.objects.get(id=id)
