@@ -50,14 +50,14 @@ from openbook_communities.models import Community, CommunityNotificationsSubscri
 from openbook_common.types import VisibilityType
 from openbook_insights.models import Insight
 from openbook_moderation.models import ModeratedObject
-from openbook_posts.models import PostCommentReaction
 from openbook.tests.test_data import geolocation, geolocation_id, geolocation_geometry
+from openbook_notifications.models import CommunityNewPostNotification
+from openbook_posts.models import PostCommentReaction, PostUserMention, PostComment, PostImage, Post
 
 logger = logging.getLogger(__name__)
 
 
 class GraphQLTest(TestCase):
-
     fixtures = ["openbook_circles/fixtures/circles.json", "openbook_moderation/fixtures/moderation_categories.json"]
 
     def test_get_authenticated_user_returns_self_reference(self):
@@ -208,6 +208,78 @@ class GraphQLTest(TestCase):
         self.assertEqual(geos.GEOSGeometry(json.dumps(geolocation_geometry)), persisted_profile.geolocation)
 
         mock_publish_user_name_updated_event.assert_called_once_with(user=user)
+
+    @mock.patch("openbook_auth.tasks.requests.delete")
+    @mock.patch("openbook.graphql_schema.publish_user_deleted_event")
+    @mock.patch("openbook.graphql_schema.publish_space_deleted_event")
+    def test_can_delete_authenticated_user(
+        self, mock_publish_space_deleted_event, mock_publish_user_deleted_event, mock_delete
+    ):
+        response = Response()
+        response.status_code = 204
+        response._content = str.encode(json.dumps({}))
+        mock_delete.return_value = response
+
+        user = make_user(name="Fritz", last_name="Meier")
+        space = make_community(creator=user)
+
+        mutation_response = schema.execute_sync(
+            """
+            mutation test {
+                deleteAuthenticatedUser {
+                    success
+                }
+            }
+            """,
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+        mock_delete.assert_called_once_with(
+            f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
+            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+        )
+
+        self.assertEqual(mutation_response.data["deleteAuthenticatedUser"]["success"], True)
+
+        mock_publish_user_deleted_event.assert_called_once_with(user=user)
+        mock_publish_space_deleted_event.assert_called_once_with(space)
+
+    @mock.patch("openbook_auth.tasks.requests.delete")
+    @mock.patch("openbook.graphql_schema.publish_user_deleted_event")
+    @mock.patch("openbook.graphql_schema.publish_space_deleted_event")
+    def test_cannot_delete_space_if_deleted_authenticated_user_not_only_admin(
+        self, mock_publish_space_deleted_event, mock_publish_user_deleted_event, mock_delete
+    ):
+        response = Response()
+        response.status_code = 204
+        response._content = str.encode(json.dumps({}))
+        mock_delete.return_value = response
+
+        user = make_user(name="Fritz", last_name="Meier")
+        space = make_community(creator=user)
+
+        admin = make_user(name="John", last_name="Doe")
+        space.add_member(admin)
+        space.add_administrator(admin)
+
+        mutation_response = schema.execute_sync(
+            """
+            mutation test {
+                deleteAuthenticatedUser {
+                    success
+                }
+            }
+            """,
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+        mock_delete.assert_called_once_with(
+            f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
+            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+        )
+
+        self.assertEqual(mutation_response.data["deleteAuthenticatedUser"]["success"], True)
+
+        mock_publish_user_deleted_event.assert_called_once_with(user=user)
+        mock_publish_space_deleted_event.assert_not_called()
 
     def test_can_perform_connection_workflow(self):
         first_user = make_user(name="Fritz", last_name="Meier")
@@ -661,6 +733,91 @@ class GraphQLTest(TestCase):
         self.assertIsNone(response.data)
         self.assertIn(
             "Field 'visibility' of required type 'VisibilityType!' was not provided", response.errors[0].message
+        )
+
+    def test_can_delete_space_post(self):
+        space_admin = make_user()
+        posting_user = make_user()
+        subscriber_user = make_user()
+        image_name = "test-image.jpg"
+
+        space = make_community(creator=space_admin)
+        space.add_member(posting_user)
+        space.add_member(subscriber_user)
+
+        CommunityNotificationsSubscription.enable_new_post_notification_for_community(
+            community=space, subscriber=subscriber_user
+        )
+
+        post = posting_user.create_community_encircled_post(
+            space.id,
+            text=make_fake_post_text(),
+            title=make_fake_post_title(),
+            image=SimpleUploadedFile(name=image_name, content=simple_jpeg_bytes),
+            visibility=VisibilityType.MEMBERS.value,
+        )
+        PostUserMention.create_post_user_mention(user=space_admin, post=post)
+        PostComment.create_comment(text=make_fake_post_text(), post=post, commenter=posting_user)
+
+        response = self.delete_space_post(post.id, posting_user)
+
+        self.assertIsNone(response.errors)
+        self.assertEqual(response.data["deleteSpacePost"]["posts"]["totalResults"], 0)
+
+        self.assertEqual(CommunityNewPostNotification.objects.filter(post=post).count(), 0)
+        self.assertEqual(PostUserMention.objects.filter(post=post).count(), 0)
+        self.assertEqual(PostComment.objects.filter(post=post).count(), 0)
+        self.assertEqual(PostImage.objects.filter(post=post).count(), 0)
+
+    def test_can_not_delete_space_post(self):
+        space_admin = make_user()
+        posting_user = make_user()
+        image_name = "test-image.jpg"
+
+        space = make_community(creator=space_admin)
+        space.add_member(posting_user)
+
+        post = posting_user.create_community_encircled_post(
+            space.id,
+            text=make_fake_post_text(),
+            title=make_fake_post_title(),
+            image=SimpleUploadedFile(name=image_name, content=simple_jpeg_bytes),
+            visibility=VisibilityType.MEMBERS.value,
+        )
+        PostUserMention.create_post_user_mention(user=space_admin, post=post)
+        PostComment.create_comment(text=make_fake_post_text(), post=post, commenter=posting_user)
+
+        response = self.delete_space_post(post.id, space_admin)
+
+        self.assertIsNone(response.data)
+        self.assertIsNotNone(response.errors)
+        self.assertEqual("Bad user input", str(response.errors[0].message))
+
+        query_post = Post.objects.get(id=post.id)
+        self.assertEqual(query_post.id, post.id)
+        self.assertEqual(query_post.title, post.title)
+
+        self.assertEqual(PostUserMention.objects.filter(post=post).count(), 1)
+        self.assertEqual(PostComment.objects.filter(post=post).count(), 1)
+        self.assertEqual(PostImage.objects.filter(post=post).count(), 1)
+
+    def delete_space_post(self, post_id, user):
+        return schema.execute_sync(
+            """
+                mutation Mutation($id: UUID!) {
+                    deleteSpacePost(id: $id) {
+                        id
+                        title
+                        posts {
+                            totalResults
+                        }
+                    }
+                }
+            """,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={
+                "id": str(post_id),
+            },
         )
 
     def test_insights_by_user_id_success_user_anonymous(self):
