@@ -1,3 +1,4 @@
+import uuid
 from collections import defaultdict
 from datetime import datetime, timedelta
 import json
@@ -853,6 +854,15 @@ class Mutation:
         current_user.create_community_encircled_post(**data)
 
         return CommunityModel.objects.get(id=data.get("space_id"))
+
+    @gql.mutation
+    def delete_space_post(self, info: Info, id: uuid.UUID) -> Space:
+        current_user = verify_authorized_user(info)
+
+        post = PostModel.objects.get(id=id)
+        current_user.delete_post(post)
+
+        return post.community
 
     @gql.mutation
     def delete_authenticated_user(self, info) -> Result:
