@@ -1,3 +1,5 @@
+from copy import deepcopy
+import uuid
 from collections import defaultdict
 from datetime import datetime, timedelta
 import json
@@ -25,6 +27,7 @@ from openbook.helpers import (
     publish_space_deleted_event,
     publish_space_user_added_event,
     publish_space_created_event,
+    publish_user_deleted_event,
     publish_user_name_updated_event,
 )
 from openbook.utils import generate_discover_spaces_hash_key, invalidate_discover_spaces_query_cache
@@ -876,6 +879,15 @@ class Mutation:
         return post.community
 
     @gql.mutation
+    def delete_space_post(self, info: Info, id: uuid.UUID) -> Space:
+        current_user = verify_authorized_user(info)
+
+        post = PostModel.objects.get(id=id)
+        current_user.delete_post(post)
+
+        return post.community
+
+    @gql.mutation
     def delete_authenticated_user(self, info) -> Result:
         current_user = verify_authorized_user(info)
         headers = {"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"}
@@ -894,8 +906,23 @@ class Mutation:
         # we just retry a couple of times
         for count in range(3, -1, -1):
             try:
+                exclusive_administrated_communities = list(current_user.get_exclusive_administrated_communities())
+
                 current_user.delete()
+                publish_user_deleted_event(user=current_user)
                 logger.info(f"Successfully deleted user {current_user.username}")
+
+                logger.warning(f"All spaces exclusively administered by {current_user.username} will be deleted")
+
+                if exclusive_administrated_communities:
+                    for space in exclusive_administrated_communities:
+                        # Make a copy of the space before deleting it to pass it as a SpaceDeleted event payload
+                        space_to_delete = deepcopy(space)
+                        space.delete()
+                        publish_space_deleted_event(space_to_delete)
+
+                    invalidate_discover_spaces_query_cache()
+
                 return Result(success=True)
             except (Exception,):
                 logger.warning(
