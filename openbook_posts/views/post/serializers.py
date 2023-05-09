@@ -176,6 +176,10 @@ class EditPostSerializer(serializers.Serializer):
         allow_blank=True,
         validators=post_text_validators,
     )
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
+        required=True,
+    )
 
 
 class EditCommunityPostSerializer(serializers.Serializer):
