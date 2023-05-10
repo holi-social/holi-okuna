@@ -18,6 +18,8 @@ from openbook_common.serializers_fields.post import (
     PostIsMutedField,
     IsEncircledField,
 )
+from openbook_common.serializers_fields.request import RestrictedFileSizeField, RestrictedImageFileSizeField
+from openbook_common.types import VisibilityType
 from openbook_communities.models import CommunityMembership, Community
 from openbook_communities.serializers_fields import CommunityMembershipsField
 from openbook_posts.models import PostImage, Post
@@ -178,6 +180,33 @@ class EditPostSerializer(serializers.Serializer):
         validators=[post_id_exists],
         required=True,
     )
+
+
+class EditCommunityPostSerializer(serializers.Serializer):
+    title = serializers.CharField(
+        max_length=settings.POST_TITLE_MAX_LENGTH,
+        required=False,
+        allow_null=True,
+    )
+    text = serializers.CharField(
+        max_length=settings.POST_MAX_LENGTH,
+        required=False,
+        allow_blank=False,
+        validators=post_text_validators,
+    )
+    visibility = serializers.ChoiceField(VisibilityType.choices)
+    image = RestrictedImageFileSizeField(
+        allow_empty_file=False,
+        required=False,
+        max_upload_size=settings.POST_MEDIA_MAX_SIZE,
+    )
+    video = RestrictedFileSizeField(
+        allow_empty_file=False,
+        required=False,
+        max_upload_size=settings.POST_MEDIA_MAX_SIZE,
+    )
+    is_draft = serializers.BooleanField(default=False)
+    remove_image = serializers.BooleanField(default=False)
 
 
 class AuthenticatedUserEditPostSerializer(serializers.ModelSerializer):
