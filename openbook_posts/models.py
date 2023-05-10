@@ -199,6 +199,40 @@ class Post(ModelWithUUID):
 
         return post
 
+    def update_post(
+        self,
+        circles_ids=None,
+        image=None,
+        text=None,
+        video=None,
+        is_draft=False,
+        title=None,
+        remove_image=False,
+    ):
+        if image and video:
+            raise ValidationError(_("A post must have an image or a video, not both."))
+
+        if self.is_draft() and not is_draft:
+            raise ValidationError(_("You cannot change the status of a published post to draft."))
+
+        self.title = title
+
+        if text:
+            self.text = text
+            self.language = get_language_for_text(text)
+
+        if image:
+            self._update_image(image)
+        elif remove_image:
+            self._delete_media_image()
+
+        self.circles.set(circles_ids)
+
+        if self.is_draft() and not is_draft:
+            self.publish()
+        else:
+            self.save()
+
     @classmethod
     def get_reaction_counts_for_post_with_id(cls, post_id, reaction_type=None, reactor_id=None):
         reactions_query = Q(
@@ -581,8 +615,17 @@ class Post(ModelWithUUID):
     def get_first_media_image(self):
         return self.media.filter(type=PostMedia.MEDIA_TYPE_IMAGE).first()
 
-    def _add_media_image(self, image, order):
+    def _add_media_image(self, image, order=None):
         return PostImage.create_post_media_image(image=image, post_id=self.pk, order=order)
+
+    def _delete_media_image(self):
+        if self.has_image():
+            delete_file_field(self.image.image)
+            self.image.delete()
+
+    def _update_image(self, image):
+        self._delete_media_image()
+        self._add_media_image(image=image)
 
     def _add_media_video(self, video, order):
         return PostVideo.create_post_media_video(file=video, post_id=self.pk, order=order)

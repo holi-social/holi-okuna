@@ -50,6 +50,7 @@ from openbook_communities.views.communities.serializers import (
 )
 from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_moderation.models import ModeratedObject
+from openbook_posts.views.post.serializers import EditCommunityPostSerializer
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
 from openbook_common.utils.helpers import is_uuid
 from openbook_posts.views.posts.serializers import (
@@ -644,6 +645,15 @@ class CreatePostInput:
 
 
 @gql.input
+class UpdatePostInput:
+    title: Optional[str] = strawberry.UNSET
+    text: Optional[str] = strawberry.UNSET
+    image: Optional[Upload] = strawberry.UNSET
+    visibility: Optional[VisibilityType] = strawberry.UNSET
+    remove_image: Optional[bool] = strawberry.UNSET
+
+
+@gql.input
 class CreateTaskInput:
     space_id: uuid.UUID
     name: str
@@ -872,6 +882,18 @@ class Mutation:
         current_user.create_community_encircled_post(**data)
 
         return CommunityModel.objects.get(id=data.get("space_id"))
+
+    @gql.mutation
+    def update_space_post(self, info: Info, id: uuid.UUID, input: UpdatePostInput) -> Space:
+        current_user = verify_authorized_user(info)
+
+        serializer = EditCommunityPostSerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        post = current_user.update_community_encircled_post(post_id=id, **data)
+
+        return post.community
 
     @gql.mutation
     def delete_space_post(self, info: Info, id: uuid.UUID) -> Space:
