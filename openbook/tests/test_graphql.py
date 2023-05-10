@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 
 from benedict import BeneDict
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.gis import geos
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
@@ -49,6 +50,7 @@ from openbook_communities.models import Community, CommunityNotificationsSubscri
 from openbook_common.types import VisibilityType
 from openbook_insights.models import Insight
 from openbook_moderation.models import ModeratedObject
+from openbook.tests.test_data import geolocation, geolocation_id, geolocation_geometry
 from openbook_notifications.models import CommunityNewPostNotification
 from openbook_posts.models import PostCommentReaction, PostUserMention, PostComment, PostImage, Post
 
@@ -149,7 +151,8 @@ class GraphQLTest(TestCase):
         community = make_community()
         community.add_member(user)
         pronouns = "She/her"
-        geolocation = {"latitude": 2.0, "longitude": -4.2}
+        location = "Bremerhaven"
+
         self.assertNotEqual(User.objects.get(username=user.username).profile.pronouns, pronouns)
         first_name = "Peter"
         last_name = "Shaw"
@@ -167,11 +170,10 @@ class GraphQLTest(TestCase):
                 updateAuthenticatedUser(input: $input) {
                     id
                     pronouns
+                    location
+                    geolocation
+                    geolocationId
                     engagementLevel
-                    geolocation {
-                        latitude
-                        longitude
-                    }
                 }
             }
             """,
@@ -181,8 +183,9 @@ class GraphQLTest(TestCase):
                     "pronouns": pronouns,
                     "firstName": first_name,
                     "lastName": last_name,
-                    "engagementLevel": engagement_level,
+                    "location": location,
                     "geolocation": geolocation,
+                    "engagementLevel": engagement_level,
                 }
             },
         )
@@ -199,9 +202,10 @@ class GraphQLTest(TestCase):
         self.assertEqual(last_name, persisted_profile.last_name)
         self.assertEqual(first_name, persisted_profile.name)
         self.assertEqual(persisted_profile.engagement_level, EngagementLevelChoice.INITIATOR)
+        self.assertEqual(location, persisted_profile.location)
+        self.assertEqual(geolocation_id, persisted_profile.geolocation_id)
         self.assertIsNotNone(persisted_profile.geolocation)
-        self.assertEqual(geolocation["longitude"], persisted_profile.geolocation.x)
-        self.assertEqual(geolocation["latitude"], persisted_profile.geolocation.y)
+        self.assertEqual(geos.GEOSGeometry(json.dumps(geolocation_geometry)), persisted_profile.geolocation)
 
         mock_publish_user_name_updated_event.assert_called_once_with(user=user)
 
@@ -1242,17 +1246,26 @@ class GraphQLTest(TestCase):
         creator = make_user()
         topic1 = make_topic()
         topic2 = make_topic()
-        space1 = make_community(creator=creator, topics=[topic1, topic2], location="Location1")
-        space2 = make_community(topics=[topic1], location="Location2")
+        # locations inside geolocation filter
+        geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
+        geolocation2 = geos.Point(8.5798387, 53.5590841, srid=4326)
+        # location outside geolocation filter
+        geolocation3 = geos.Point(9.76302, 53.5586627, srid=4326)
+        space1 = make_community(
+            creator=creator, topics=[topic1, topic2], location="Location1", geolocation=geolocation1
+        )
+        space2 = make_community(topics=[topic1], location="Location2", geolocation=geolocation2)
+        space3 = make_community(topics=[topic2], location="Location3", geolocation=geolocation3)
         skill1 = make_skill()
         skill2 = make_skill()
         skill3 = make_skill()
         make_community_task(space1, skills=[skill1, skill2])
         make_community_task(space2, skills=[skill2, skill3])
+        make_community_task(space3, skills=[skill3])
 
         filter_query = """
-            query($topicId: UUID, $location: String, $skillIds: [UUID], $memberId: UUID) {
-                spaces(topicId: $topicId, location: $location, skillIds: $skillIds, memberId: $memberId) {
+            query($topicId: UUID, $geolocation: GeoJSON, $skillIds: [UUID], $memberId: UUID) {
+                spaces(topicId: $topicId, geolocation: $geolocation, skillIds: $skillIds, memberId: $memberId) {
                     totalResults
                     data {
                         id
@@ -1270,41 +1283,41 @@ class GraphQLTest(TestCase):
             self.assert_paged_results_equal(filter_response.data["spaces"], expected_data)
 
         # Return all spaces for empty filter
-        assert_filtered_spaces({}, [space1, space2])
+        assert_filtered_spaces({}, [space1, space2, space3])
 
         # Filter by common topic
         assert_filtered_spaces({"topicId": str(topic1.id)}, [space1, space2])
 
         # Filter by unique topic
-        assert_filtered_spaces({"topicId": str(topic2.id)}, [space1])
+        assert_filtered_spaces({"topicId": str(topic2.id)}, [space1, space3])
 
         # Filter by location
-        assert_filtered_spaces({"location": space2.location}, [space2])
+        assert_filtered_spaces({"geolocation": geolocation}, [space1, space2])
 
         # Filter by topic and location
-        assert_filtered_spaces({"topicId": str(topic1.id), "location": space1.location}, [space1])
+        assert_filtered_spaces({"topicId": str(topic2.id), "geolocation": geolocation}, [space1])
 
         # Filter by single skill
         assert_filtered_spaces({"skillIds": [str(skill1.id)]}, [space1])
 
         # Filter by multiple skills
-        assert_filtered_spaces({"skillIds": [str(skill1.id), str(skill3.id)]}, [space1, space2])
+        assert_filtered_spaces({"skillIds": [str(skill1.id), str(skill2.id)]}, [space1, space2])
 
         # Filter by skills and location
-        assert_filtered_spaces({"skillIds": [str(skill2.id)], "location": space2.location}, [space2])
+        assert_filtered_spaces({"skillIds": [str(skill3.id)], "geolocation": geolocation}, [space2])
 
         # Filter by skills and topics
         assert_filtered_spaces({"skillIds": [str(skill2.id)], "topicId": str(topic2.id)}, [space1])
 
+        # Filter by member id
         assert_filtered_spaces({"memberId": creator.username}, [space1])
-        assert_filtered_spaces({"memberId": creator.username, "location": space1.location}, [space1])
-        assert_filtered_spaces({"memberId": creator.username, "location": space2.location}, [])
+        assert_filtered_spaces({"memberId": creator.username, "geolocation": geolocation}, [space1])
 
         # Filter by skills, topics and location
         assert_filtered_spaces(
             {
                 "skillIds": [str(skill3.id)],
-                "location": space1.location,
+                "geolocation": geolocation,
                 "topicId": str(topic2.id),
             },
             [],
@@ -1313,9 +1326,14 @@ class GraphQLTest(TestCase):
     def test_filters_for_discover_spaces(self):
         topic1 = make_topic()
         topic2 = make_topic()
-        space1 = make_community(topics=[topic1, topic2], location="Location1")
-        space2 = make_community(topics=[topic1], location="Location2")
-        space3 = make_community(topics=[topic2], location="Location2")
+        # locations inside geolocation filter
+        geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
+        geolocation2 = geos.Point(8.5798387, 53.5590841, srid=4326)
+        # location outside geolocation filter
+        geolocation3 = geos.Point(9.76302, 53.5586627, srid=4326)
+        space1 = make_community(topics=[topic1, topic2], location="Location1", geolocation=geolocation1)
+        space2 = make_community(topics=[topic1], location="Location2", geolocation=geolocation2)
+        space3 = make_community(topics=[topic2], location="Location3", geolocation=geolocation3)
         skill1 = make_skill()
         skill2 = make_skill()
         skill3 = make_skill()
@@ -1323,11 +1341,11 @@ class GraphQLTest(TestCase):
         make_community_task(space2, skills=[skill2, skill3])
 
         filter_query = """
-            query($topicIds: [UUID], $location: String, $skillIds: [UUID]) {
-                discoverSpaces(topicIds: $topicIds, location: $location, skillIds: $skillIds) {
+            query($topicIds: [UUID], $geolocation: GeoJSON, $skillIds: [UUID]) {
+                discoverSpaces(topicIds: $topicIds, geolocation: $geolocation, skillIds: $skillIds) {
                     topicId
                     skillId
-                    location
+                    locationId
                     spaces {
                         totalResults
                         data {
@@ -1342,7 +1360,11 @@ class GraphQLTest(TestCase):
             return {"id": str(space.id)}
 
         def assert_filtered_spaces(filter_options, expected_spaces):
-            filter_response = schema.execute_sync(filter_query, variable_values=filter_options)
+            filter_response = schema.execute_sync(
+                filter_query,
+                variable_values=filter_options,
+                context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            )
             expected_data = list(map(transform_space, expected_spaces))
             self.assert_paged_results_equal(
                 filter_response.data["discoverSpaces"][0]["spaces"],
@@ -1355,31 +1377,24 @@ class GraphQLTest(TestCase):
         # Filter by unique topic
         assert_filtered_spaces({"topicIds": [str(topic2.id)]}, [space1, space3])
 
-        # Filter by topic and location
-        assert_filtered_spaces({"topicIds": [str(topic1.id)], "location": space1.location}, [space1])
-
-        # Filter by skills and topics
-        assert_filtered_spaces(
-            {"skillIds": [str(skill2.id)], "topicIds": [str(topic2.id)]},
-            [space1, space3],
-        )
-
-        # Filter by skills, topics and location
-        assert_filtered_spaces(
-            {
-                "skillIds": [str(skill3.id)],
-                "location": space1.location,
-                "topicIds": [str(topic2.id)],
-            },
-            [space1],
-        )
-
         filter_response = schema.execute_sync(
-            filter_query, variable_values={"topicIds": [str(topic1.id), str(topic2.id)]}
+            filter_query,
+            variable_values={
+                "topicIds": [str(topic1.id), str(topic2.id)],
+                "skillIds": [str(skill3.id)],
+                "geolocation": geolocation,
+            },
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
         )
-        self.assertEqual(len(filter_response.data["discoverSpaces"]), 2)
-        t1, t2 = (0, 1) if filter_response.data["discoverSpaces"][0]["topicId"] == str(topic1.id) else (1, 0)
+        self.assertEqual(len(filter_response.data["discoverSpaces"]), 4)
+        location, t1, t2, skill = (
+            (0, 1, 2, 3) if filter_response.data["discoverSpaces"][1]["topicId"] == str(topic1.id) else (0, 2, 1, 3)
+        )
 
+        self.assert_paged_results_equal(
+            filter_response.data["discoverSpaces"][location]["spaces"],
+            list(map(transform_space, [space1, space2])),
+        )
         self.assert_paged_results_equal(
             filter_response.data["discoverSpaces"][t1]["spaces"],
             list(map(transform_space, [space1, space2])),
@@ -1387,6 +1402,10 @@ class GraphQLTest(TestCase):
         self.assert_paged_results_equal(
             filter_response.data["discoverSpaces"][t2]["spaces"],
             list(map(transform_space, [space1, space3])),
+        )
+        self.assert_paged_results_equal(
+            filter_response.data["discoverSpaces"][skill]["spaces"],
+            list(map(transform_space, [space2])),
         )
 
     def test_sort_spaces_by_member_count(self):

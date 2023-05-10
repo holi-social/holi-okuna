@@ -7,22 +7,23 @@ from openbook.utils import (
     invalidate_discover_spaces_query_cache,
 )
 from openbook_common.tests.helpers import make_skill, make_topic
+from openbook_common.types import GeolocationFeature
 
 
 class DiscoverSpacesQueryCacheTest(TestCase):
     def test_invalidate_discover_spaces_query_cache(self):
         topic_ids = [str(make_topic().id) for _ in range(3)]
-        location = "Hamburg, Germany"
+        geolocation = GeolocationFeature(id="123")
         skill_ids = [str(make_skill().id) for _ in range(3)]
         result = []
 
         other_topic_ids = [str(make_topic().id) for _ in range(3)]
-        other_location = "Munich, Germany"
+        other_geolocation = GeolocationFeature(id="234")
         other_skill_ids = [str(make_skill().id) for _ in range(3)]
         other_result = []
 
-        hash_key = generate_discover_spaces_hash_key(topic_ids, location, skill_ids, 0, 10)
-        other_hash_key = generate_discover_spaces_hash_key(other_topic_ids, other_location, other_skill_ids, 0, 10)
+        hash_key = generate_discover_spaces_hash_key(topic_ids, geolocation, skill_ids, 0, 10)
+        other_hash_key = generate_discover_spaces_hash_key(other_topic_ids, other_geolocation, other_skill_ids, 0, 10)
 
         # Set up the cache
         cache.set(hash_key, result)
