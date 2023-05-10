@@ -313,6 +313,8 @@ class Query:
     def spaces(
         self,
         topic_id: Optional[uuid.UUID] = None,
+        # TODO: Only for temporary backwards compatibility, remove in HOLI-4353
+        location: Optional[str] = None,
         geolocation: Optional[GeoJSON] = None,
         skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
         topic_slug: Optional[str] = None,
@@ -337,6 +339,8 @@ class Query:
         self,
         info,
         topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
+        # TODO: Only for temporary backwards compatibility, remove in HOLI-4353
+        location: Optional[str] = None,
         geolocation: Optional[GeoJSON] = None,
         skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
         offset: int = 0,
@@ -731,6 +735,10 @@ class Mutation:
         input_dict = to_input_dict(input)
         if input.first_name:
             input_dict["name"] = input.first_name
+
+        # TODO: Only for temporary backwards compatibility, remove in HOLI-4353
+        if input.geolocation and "properties" not in input.geolocation:
+            input_dict.pop("geolocation")
 
         serializer = UpdateAuthenticatedUserSerializer(data=input_dict)
         serializer.is_valid(raise_exception=True)

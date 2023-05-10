@@ -252,9 +252,14 @@ class User:
     def location(self) -> Optional[str]:
         return self.profile.location
 
-    @gql.django.field(select_related=["profile"])
-    def geolocation(self) -> Optional[GeoJSON]:
-        return self.geolocation
+    @gql.django.field()
+    # TODO: Only for temporary backwards compatibility, replace by GeoJSON in HOLI-4353 (see below)
+    def geolocation(self) -> Optional[GeolocationPoint]:
+        return None
+
+    # @gql.django.field(select_related=["profile"])
+    # def geolocation_new(self) -> Optional[GeoJSON]:
+    #     return self.geolocation
 
     @gql.django.field(select_related=["profile"])
     def geolocation_id(self) -> Optional[str]:
@@ -643,6 +648,8 @@ class Notification:
 @gql.type
 class DiscoverSpaces:
     topic_id: Optional[uuid.UUID] = None
+    # TODO: Only for temporary backwards compatibility, remove in HOLI-4353
+    location: Optional[str] = None
     location_id: Optional[str] = None
     skill_id: Optional[uuid.UUID] = None
     spaces: Paged[Space]
