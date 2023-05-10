@@ -61,6 +61,7 @@ class AuthenticatedUser(APIView):
                 update_avatar="avatar" in data,
                 cover=data.get("cover"),
                 update_cover="cover" in data,
+                update_location="location" in data,
                 save=True,
             )
 

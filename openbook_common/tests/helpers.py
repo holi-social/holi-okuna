@@ -276,6 +276,7 @@ def make_community(
     title=None,
     topics=None,
     location=None,
+    geolocation=None,
 ) -> Community:
     if not creator:
         creator = make_user()
@@ -302,6 +303,7 @@ def make_community(
         location=location,
     )
     community.topics.set(topics)
+    community.geolocation = geolocation
     community.save()
 
     return community

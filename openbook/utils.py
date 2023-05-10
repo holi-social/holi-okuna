@@ -5,11 +5,11 @@ DISCOVER_SPACES_CACHE_KEY_PREFIX = "discover_spaces"
 
 # Generates a unique cache key consisting of DISCOVER_SPACES_CACHE_KEY_PREFIX and SHA-256 hash of the discover spaces filters
 # e.g discover_spaces:2cbce4f20876d36947b2db0d6b229c8b2b80741434ceca8e7e3f2258114c2511
-def generate_discover_spaces_hash_key(topic_ids, location, skill_ids, offset, limit):
+def generate_discover_spaces_hash_key(topic_ids, geolocation, skill_ids, offset, limit):
     key_parts = []
 
-    if location is not None:
-        key_parts.append(location)
+    if geolocation is not None:
+        key_parts.append(str(geolocation.id))
 
     if topic_ids is not None:
         key_parts.extend([str(topic_id) for topic_id in topic_ids])

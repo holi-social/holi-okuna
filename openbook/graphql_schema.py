@@ -53,7 +53,6 @@ from openbook_moderation.models import ModeratedObject
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
 from openbook_common.utils.helpers import is_uuid
 from openbook_posts.views.posts.serializers import (
-    CreatePostSerializer,
     CreateCommunityPostSerializer,
 )
 from openbook.middleware.graphql_error_extension import GraphQLErrorExtension
@@ -89,7 +88,7 @@ def spaces_for_filter(
     offset: int,
     limit: int,
     topic_id: Optional[uuid.UUID] = None,
-    location: Optional[str] = None,
+    geolocation: Optional[GeolocationFeature] = None,
     skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
     topic_slug: Optional[str] = None,
     skill_slugs: Optional[List[Optional[str]]] = None,
@@ -98,8 +97,8 @@ def spaces_for_filter(
     query = Q()
     if topic_id is not None:
         query.add(Q(topics__id__contains=topic_id), Q.AND)
-    if location is not None:
-        query.add(Q(location__icontains=location), Q.AND)
+    if geolocation is not None:
+        query.add(Q(geolocation__within=geolocation.geometry), Q.AND)
     if skill_ids:
         query.add(Q(tasks__skills__id__in=skill_ids), Q.AND)
     if topic_slug is not None:
@@ -126,7 +125,9 @@ class NewNotificationsResponse:
     status: bool
 
 
-def filter_spaces_by_skill_ids(location, skill_ids, limit):
+def filter_spaces_by_skill_ids(geolocation, skill_ids, limit):
+    geojson = geolocation.geometry.geojson if geolocation and geolocation.geometry else None
+    skipLocationFilter = "false" if geojson else "true"
     return CommunityModel.objects.raw(
         """
             select s.id, s.skill_id, s.rn 
@@ -136,12 +137,12 @@ def filter_spaces_by_skill_ids(location, skill_ids, limit):
                 where occ.id = octask.community_id and octask.id = octskill.task_id  
             ) s
             where s.skill_id = skill.id 
-            and UPPER(s.location) like UPPER(%s)
+            and (%s or ST_Within(s.geolocation, ST_GeomFromGeoJSON(%s)))
             and s.rn <= %s
             and skill.id = ANY(%s)
             order by skill.id
             """,
-        [f"%{location}%", limit, skill_ids],
+        [skipLocationFilter, geojson, limit, skill_ids],
     ).prefetch_related("memberships__user__profile")
 
 
@@ -311,7 +312,7 @@ class Query:
     def spaces(
         self,
         topic_id: Optional[uuid.UUID] = None,
-        location: Optional[str] = None,
+        geolocation: Optional[GeoJSON] = None,
         skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
         topic_slug: Optional[str] = None,
         skill_slugs: Optional[List[Optional[str]]] = None,
@@ -323,7 +324,7 @@ class Query:
             offset,
             limit,
             topic_id,
-            location,
+            geolocation,
             skill_ids,
             topic_slug,
             skill_slugs,
@@ -333,30 +334,37 @@ class Query:
     @gql.django.field
     def discover_spaces(
         self,
+        info,
         topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
-        location: Optional[str] = None,
+        geolocation: Optional[GeoJSON] = None,
         skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
         offset: int = 0,
         limit: int = 10,
     ) -> List[Optional[DiscoverSpaces]]:
+        current_user: UserModel = info.context.request.user
+
+        if not geolocation:
+            if not current_user.is_anonymous and current_user.geolocation is not None:
+                geolocation = current_user.geolocation
+
         result = []
 
-        hash_key = generate_discover_spaces_hash_key(topic_ids, location, skill_ids, offset, limit)
+        hash_key = generate_discover_spaces_hash_key(topic_ids, geolocation, skill_ids, offset, limit)
 
         # Check whether the resolver result has already been cached and return it,
         # otherwise, query the database, create the result, and cache it.
         if hash_key in cache:
             return cache.get(hash_key)
         else:
-            # get all spaces by location (independent of other filters)
-            if location is not None:
+            # get all spaces by geolocation (independent of other filters)
+            if geolocation is not None:
                 result.append(
                     DiscoverSpaces(
-                        location=location,
+                        location_id=geolocation.id,
                         spaces=spaces_for_filter(
                             offset=offset,
                             limit=limit,
-                            location=location,
+                            geolocation=geolocation,
                         ),
                     )
                 )
@@ -381,13 +389,17 @@ class Query:
                         )
                     )
 
-            # get all spaces by skill_id (including location filter)
+            # get all spaces by skill_id (including geolocation filter)
             if skill_ids is not None:
                 skill_id_to_num_spaces = get_id_spaces_count_map(
                     SkillModel.objects.filter(id__in=skill_ids).annotate(num_spaces=Count("tasks__community"))
                 )
 
-                spaces_from_db = filter_spaces_by_skill_ids(location, skill_ids, limit)
+                spaces_from_db = filter_spaces_by_skill_ids(
+                    geolocation=geolocation,
+                    skill_ids=skill_ids,
+                    limit=limit,
+                )
 
                 spaces_map = defaultdict(list)
 
@@ -397,7 +409,7 @@ class Query:
                     result.append(
                         DiscoverSpaces(
                             skill_id=skill_id,
-                            location=location,
+                            location_id=geolocation.id if geolocation else None,
                             spaces=Paged(spaces, skill_id_to_num_spaces[skill_id]),
                         )
                     )
@@ -541,7 +553,7 @@ def to_input_dict(input):
 
 
 @gql.input
-class GeolocationInput:
+class GeolocationPointInput:
     latitude: float
     longitude: float
 
@@ -563,7 +575,7 @@ class UpdateAuthenticatedUserInput:
     about_me: Optional[str] = strawberry.UNSET
     pronouns: Optional[str] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
-    geolocation: Optional[GeolocationInput] = strawberry.UNSET
+    geolocation: Optional[GeoJSONInput] = strawberry.UNSET
     engagement_level: Optional[str] = strawberry.UNSET
     interests: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
@@ -616,7 +628,7 @@ class UpdateSpaceInput:
     avatar: Optional[Upload] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
-    geolocation: Optional[GeolocationInput] = strawberry.UNSET
+    geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     contact_description: Optional[str] = strawberry.UNSET
     contact_email: Optional[str] = strawberry.UNSET
     contact_phone: Optional[str] = strawberry.UNSET
@@ -644,7 +656,7 @@ class CreateTaskInput:
     thumbnail: Optional[Upload] = strawberry.UNSET
     skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
-    geolocation: Optional[GeolocationInput] = strawberry.UNSET
+    geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     contact_phone: Optional[str] = strawberry.UNSET
 
 
@@ -662,7 +674,7 @@ class UpdateTaskInput:
     thumbnail: Optional[Upload] = strawberry.UNSET
     skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
-    geolocation: Optional[GeolocationInput] = strawberry.UNSET
+    geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     contact_phone: Optional[str] = strawberry.UNSET
 
 
@@ -721,7 +733,8 @@ class Mutation:
                 about_me=data.get("about_me"),
                 pronouns=data.get("pronouns"),
                 location=data.get("location"),
-                geolocation=(GeolocationInput.to_point(data.get("geolocation"))),
+                geolocation=data.get("geolocation"),
+                update_location=input.location is not strawberry.UNSET or input.geolocation is not strawberry.UNSET,
                 engagement_level=data.get("engagement_level"),
                 interests=data.get("interests"),
                 sdgs=data.get("sdgs"),
@@ -1004,7 +1017,7 @@ class Mutation:
             avatar=data.get("avatar"),
             sdg_ids=data.get("sdgs"),
             location=data.get("location"),
-            geolocation=(GeolocationInput.to_point(data.get("geolocation"))),
+            geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
             contact_description=data.get("contact_description"),
             contact_email=data.get("contact_email"),
             contact_phone=data.get("contact_phone"),
@@ -1045,7 +1058,7 @@ class Mutation:
             visibility=data.get("visibility"),
             location_type=data.get("location_type"),
             location=data.get("location"),
-            geolocation=(GeolocationInput.to_point(data.get("geolocation"))),
+            geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
             regularity=data.get("regularity"),
             contact_email=data.get("contact_email"),
             contact_phone=data.get("contact_phone"),
@@ -1069,7 +1082,7 @@ class Mutation:
             visibility=data.get("visibility"),
             location_type=data.get("location_type"),
             location=data.get("location"),
-            geolocation=(GeolocationInput.to_point(data.get("geolocation"))),
+            geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
             regularity=data.get("regularity"),
             contact_email=data.get("contact_email"),
             contact_phone=data.get("contact_phone"),
