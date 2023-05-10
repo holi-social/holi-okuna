@@ -2708,7 +2708,15 @@ class User(ModelWithUUID, AbstractUser):
         return post
 
     def update_community_encircled_post(
-        self, post_id, title=None, text=None, image=None, video=None, is_draft=False, visibility=None
+        self,
+        post_id,
+        title=None,
+        text=None,
+        image=None,
+        video=None,
+        is_draft=False,
+        visibility=None,
+        remove_image=False,
     ):
         Post = get_post_model()
         post = Post.objects.get(id=post_id)
@@ -2720,6 +2728,7 @@ class User(ModelWithUUID, AbstractUser):
             image=image,
             is_draft=is_draft,
             circles_ids=circles_ids,
+            remove_image=remove_image,
         )
 
         return post

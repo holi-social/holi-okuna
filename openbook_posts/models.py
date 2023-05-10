@@ -207,6 +207,7 @@ class Post(ModelWithUUID):
         video=None,
         is_draft=False,
         title=None,
+        remove_image=False,
     ):
         if image and video:
             raise ValidationError(_("A post must have an image or a video, not both."))
@@ -221,7 +222,9 @@ class Post(ModelWithUUID):
             self.language = get_language_for_text(text)
 
         if image:
-            self.update_image(image)
+            self._update_image(image)
+        elif remove_image:
+            self._delete_media_image()
 
         self.circles.set(circles_ids)
 
@@ -616,12 +619,12 @@ class Post(ModelWithUUID):
         return PostImage.create_post_media_image(image=image, post_id=self.pk, order=order)
 
     def _delete_media_image(self):
-        delete_file_field(self.image.image)
-        self.image.delete()
-
-    def update_image(self, image):
         if self.has_image():
-            self._delete_media_image()
+            delete_file_field(self.image.image)
+            self.image.delete()
+
+    def _update_image(self, image):
+        self._delete_media_image()
         self._add_media_image(image=image)
 
     def _add_media_video(self, video, order):

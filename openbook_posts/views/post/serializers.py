@@ -206,6 +206,7 @@ class EditCommunityPostSerializer(serializers.Serializer):
         max_upload_size=settings.POST_MEDIA_MAX_SIZE,
     )
     is_draft = serializers.BooleanField(default=False)
+    remove_image = serializers.BooleanField(default=False)
 
 
 class AuthenticatedUserEditPostSerializer(serializers.ModelSerializer):

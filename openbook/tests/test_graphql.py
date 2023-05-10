@@ -775,6 +775,7 @@ class GraphQLTest(TestCase):
 
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
 
+        # test post update with replace of the post image
         input_data = {
             "visibility": VisibilityType.PUBLIC.value,
             "text": make_fake_post_text(),
@@ -795,6 +796,28 @@ class GraphQLTest(TestCase):
         self.assertEqual(posts_data[0]["text"], input_data["text"])
         self.assertEqual(posts_data[0]["isPublic"], True)
         self.assertIn("/cover.jpg/", posts_data[0]["image"]["url"])
+
+        # test post update with removal of the post image
+        input_data = {
+            "visibility": VisibilityType.PUBLIC.value,
+            "text": make_fake_post_text(),
+            "title": None,
+            "removeImage": True,
+        }
+
+        response = self.update_space_post(posting_user, space_post.id, input_data)
+        self.assertIsNone(response.errors)
+        self.assertIsNotNone(response.data)
+
+        data = response.data["updateSpacePost"]
+        self.assertEqual(data["id"], str(space.id))
+        self.assertEqual(data["posts"]["totalResults"], 1)
+
+        posts_data = data["posts"]["data"]
+        self.assertIsNone(posts_data[0]["title"])
+        self.assertEqual(posts_data[0]["text"], input_data["text"])
+        self.assertEqual(posts_data[0]["isPublic"], True)
+        self.assertIsNone(posts_data[0]["image"])
 
     def test_cant_edit_space_post_to_public_visibility_member_user(self):
         space_admin = make_user()

@@ -637,6 +637,7 @@ class UpdatePostInput:
     text: Optional[str] = strawberry.UNSET
     image: Optional[Upload] = strawberry.UNSET
     visibility: Optional[VisibilityType] = strawberry.UNSET
+    remove_image: Optional[bool] = strawberry.UNSET
 
 
 @gql.input
