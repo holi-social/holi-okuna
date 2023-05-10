@@ -431,3 +431,4 @@ class UpdateTaskSerializer(serializers.Serializer):
         required=False,
         max_upload_size=settings.TASK_THUMBNAIL_MAX_SIZE,
     )
+    remove_thumbnail = serializers.BooleanField(default=False)

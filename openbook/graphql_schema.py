@@ -1,10 +1,6 @@
 from copy import deepcopy
-import uuid
 from collections import defaultdict
 from datetime import datetime, timedelta
-import json
-
-from rest_framework.exceptions import ValidationError
 
 import requests
 import structlog
@@ -682,6 +678,7 @@ class UpdateTaskInput:
     contact_email: str
     slots_available: Optional[int] = strawberry.UNSET
     thumbnail: Optional[Upload] = strawberry.UNSET
+    remove_thumbnail: Optional[bool] = strawberry.UNSET
     skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
@@ -1110,7 +1107,7 @@ class Mutation:
             contact_phone=data.get("contact_phone"),
             skills=data.get("skills"),
             thumbnail=data.get("thumbnail"),
-            update_thumbnail=input.thumbnail is not strawberry.UNSET,
+            remove_thumbnail=data.get("remove_thumbnail"),
         )
 
     @gql.mutation

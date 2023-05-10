@@ -4138,6 +4138,7 @@ class GraphQLTest(TestCase):
                     name
                     description
                     visibility
+                    thumbnail
                 }
             }
             """
@@ -4145,6 +4146,7 @@ class GraphQLTest(TestCase):
         valid_name = "Valid name"
         valid_description = "Valid description"
         valid_visibility = "MEMBERS"
+        valid_thumbnail = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
 
         valid_input = {
             "taskId": str(task.id),
@@ -4159,6 +4161,7 @@ class GraphQLTest(TestCase):
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
+            "thumbnail": valid_thumbnail,
         }
 
         response = schema.execute_sync(
@@ -4174,6 +4177,38 @@ class GraphQLTest(TestCase):
         self.assertEqual(valid_name, updateTask["name"])
         self.assertEqual(valid_description, updateTask["description"])
         self.assertEqual(valid_visibility, updateTask["visibility"])
+        self.assertIn("cover.jpg", updateTask["thumbnail"])
+
+        valid_name = "New valid name"
+        valid_description = "New valid description"
+        valid_visibility = "PUBLIC"
+
+        valid_input = {
+            "taskId": str(task.id),
+            "spaceId": str(community.id),
+            "name": valid_name,
+            "description": valid_description,
+            "visibility": valid_visibility,
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "removeThumbnail": True,
+        }
+
+        response = schema.execute_sync(
+            update_task_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": valid_input},
+        )
+
+        self.assertIsNone(response.errors)
+
+        updateTask = response.data["updateTask"]
+        self.assertIn("id", updateTask)
+        self.assertEqual(valid_name, updateTask["name"])
+        self.assertEqual(valid_description, updateTask["description"])
+        self.assertEqual(valid_visibility, updateTask["visibility"])
+        self.assertEqual("", updateTask["thumbnail"])
 
     def test_can_not_update_task_if_not_logged_in(self):
         community = make_community()

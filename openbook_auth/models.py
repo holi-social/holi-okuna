@@ -4687,7 +4687,7 @@ class User(ModelWithUUID, AbstractUser):
         contact_phone=None,
         skills=None,
         thumbnail=None,
-        update_thumbnail=False,
+        remove_thumbnail=False,
     ):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
@@ -4697,16 +4697,7 @@ class User(ModelWithUUID, AbstractUser):
         Task = get_task_model()
         task = Task.objects.get(id=task_id)
 
-        new_thumbnail = task.thumbnail
-
-        if update_thumbnail and thumbnail is not None:
-            new_thumbnail = thumbnail
-
-        if update_thumbnail and thumbnail is None:
-            delete_file_field(task.thumbnail)
-            new_thumbnail = None
-
-        return task.update(
+        return task.update_task(
             name=name,
             description=description,
             visibility=visibility,
@@ -4718,7 +4709,8 @@ class User(ModelWithUUID, AbstractUser):
             regularity=regularity,
             contact_phone=contact_phone,
             skills=skills,
-            thumbnail=new_thumbnail,
+            thumbnail=thumbnail,
+            remove_thumbnail=remove_thumbnail,
         )
 
     def delete_task_with_id(self, task_id):
