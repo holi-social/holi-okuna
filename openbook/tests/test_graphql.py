@@ -171,7 +171,10 @@ class GraphQLTest(TestCase):
                     id
                     pronouns
                     location
-                    geolocation
+                    geolocation {
+                      latitude
+                      longitude
+                    }
                     geolocationId
                     engagementLevel
                 }
@@ -204,6 +207,8 @@ class GraphQLTest(TestCase):
         self.assertEqual(persisted_profile.engagement_level, EngagementLevelChoice.INITIATOR)
         self.assertEqual(location, persisted_profile.location)
         self.assertEqual(geolocation_id, persisted_profile.geolocation_id)
+        # TODO: Only for temporary backwards compatibility, adjust in HOLI-4353
+        self.assertIsNone(updated_user["geolocation"])
         self.assertIsNotNone(persisted_profile.geolocation)
         self.assertEqual(geos.GEOSGeometry(json.dumps(geolocation_geometry)), persisted_profile.geolocation)
 
