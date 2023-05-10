@@ -1453,8 +1453,11 @@ class GraphQLTest(TestCase):
         self.assertEqual(following_section["spaces"]["totalResults"], 1)
         self.assertEqual(following_section["spaces"]["data"][0]["id"], str(space4.id))
 
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook.graphql_schema.publish_space_user_added_event")
-    def test_space_membership_request_approval_process(self, mock_publish_space_user_added_event):
+    def test_space_membership_request_approval_process(
+        self, mock_publish_space_user_added_event, mock_invalidate_discover_spaces_query_cache
+    ):
         membership_requestor = make_user()
         space_creator = make_user()
         space = make_community(creator=space_creator)
@@ -1511,7 +1514,6 @@ class GraphQLTest(TestCase):
         mock_publish_space_user_added_event.assert_called_once_with(
             username=membership_requestor.username, community=community
         )
-
         self.assert_paged_results_equal(
             space_after_approval["members"],
             [member_result(space_creator, is_admin=True), member_result(membership_requestor, is_admin=False)],
@@ -1538,8 +1540,13 @@ class GraphQLTest(TestCase):
             membership_requestor.profile.full_name(),
         )
 
+        mock_invalidate_discover_spaces_query_cache.assert_called()
+
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook.graphql_schema.publish_space_user_added_event")
-    def test_space_membership_request_rejection_process(self, mock_publish_space_user_added_event):
+    def test_space_membership_request_rejection_process(
+        self, mock_publish_space_user_added_event, mock_invalidate_discover_spaces_query_cache
+    ):
         membership_requestor = make_user()
         space_creator = make_user()
         space = make_community(creator=space_creator)
@@ -1612,7 +1619,10 @@ class GraphQLTest(TestCase):
 
         mock_publish_space_user_added_event.assert_not_called()
 
-    def test_space_admin_grant_and_revoke_admin_access_success(self):
+        mock_invalidate_discover_spaces_query_cache.assert_called()
+
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_space_admin_grant_and_revoke_admin_access_success(self, mock_invalidate_discover_spaces_query_cache):
         space_member = make_user()
         space_creator = make_user()
         space = make_community(creator=space_creator)
@@ -1670,7 +1680,10 @@ class GraphQLTest(TestCase):
         self.assertEqual(notification.community, space)
         self.assertEqual(notification.notification.first().notification_type, "CAPR")
 
-    def test_space_admin_grant_and_revoke_admin_access_errors(self):
+        mock_invalidate_discover_spaces_query_cache.assert_called()
+
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_space_admin_grant_and_revoke_admin_access_errors(self, mock_invalidate_discover_spaces_query_cache):
         space_member = make_user()
         space_creator = make_user()
         space_admin = make_user()
@@ -1728,7 +1741,10 @@ class GraphQLTest(TestCase):
             space.is_user_with_username_administrator_of_community_with_name(space_member.username, space.name)
         )
 
-    def test_space_member_grant_and_revoke_admin_access_errors(self):
+        mock_invalidate_discover_spaces_query_cache.assert_called()
+
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_space_member_grant_and_revoke_admin_access_errors(self, mock_invalidate_discover_spaces_query_cache):
         member_user = make_user()
         member_user_2 = make_user()
         space_creator = make_user()
@@ -1771,6 +1787,8 @@ class GraphQLTest(TestCase):
         self.assertFalse(
             space.is_user_with_username_administrator_of_community_with_name(member_user_2.username, space.name)
         )
+
+        mock_invalidate_discover_spaces_query_cache.assert_called()
 
     def test_space_with_posts(self):
         user_member = make_user()
