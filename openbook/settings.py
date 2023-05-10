@@ -140,6 +140,7 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://localhost",
     r"^https://\w+\.web\.project-holi\.org",
+    r"^https://\w+\.web\.holi\.social",
 ]
 CORS_ALLOW_CREDENTIALS = True
 
