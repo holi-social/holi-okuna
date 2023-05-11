@@ -660,6 +660,20 @@ class User(ModelWithUUID, AbstractUser):
         self._send_password_reset_email_with_token(password_reset_token)
         return password_reset_token
 
+    def _update_avatar(self, avatar, save=True):
+        if avatar is None:
+            self._delete_avatar(save=False)
+        else:
+            self.profile.avatar = avatar
+
+        if save:
+            self.profile.save()
+
+    def _delete_avatar(self, save=True):
+        delete_file_field(self.profile.avatar)
+        self.profile.avatar = None
+        self.profile.avatar.delete(save=save)
+
     def update(
         self,
         username=None,
@@ -683,6 +697,7 @@ class User(ModelWithUUID, AbstractUser):
         skills=None,
         save=True,
         update_location=False,
+        remove_avatar=False,
     ):
         profile = self.profile
 
@@ -709,7 +724,9 @@ class User(ModelWithUUID, AbstractUser):
                 profile.geolocation_id = None
 
         if avatar is not None:
-            profile.avatar = avatar
+            self._update_avatar(avatar, save=False)
+        elif remove_avatar:
+            self._delete_avatar()
 
         if cover is not None:
             profile.cover = cover

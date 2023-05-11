@@ -116,9 +116,9 @@ class GraphQLTest(TestCase):
         )
 
     def test_get_user_by_name_first_name_matches_first(self):
-        make_user(name="Thomas", last_name="Petersen"),
-        make_user(name="Peter", last_name="Muster"),
-        make_user(name="Petra", last_name="Meier"),
+        make_user(name="Thomas", last_name="Petersen")
+        make_user(name="Peter", last_name="Muster")
+        make_user(name="Petra", last_name="Meier")
         make_user(name="Fritz", last_name="Meier")
 
         executed = schema.execute_sync(

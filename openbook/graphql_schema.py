@@ -577,6 +577,7 @@ class UpdateAuthenticatedUserInput:
     interests: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    remove_avatar: Optional[bool] = strawberry.UNSET
 
 
 @gql.input
@@ -750,6 +751,7 @@ class Mutation:
                 skills=data.get("skills"),
                 avatar=data.get("avatar"),
                 update_avatar=update_avatar,
+                remove_avatar=data.get("remove_avatar"),
                 save=True,
             )
         except Error:
