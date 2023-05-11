@@ -622,7 +622,9 @@ class UpdateSpaceInput:
     description: Optional[str] = strawberry.UNSET
     topics: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     cover: Optional[Upload] = strawberry.UNSET
+    remove_cover: Optional[bool] = strawberry.UNSET
     avatar: Optional[Upload] = strawberry.UNSET
+    remove_avatar: Optional[bool] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
@@ -1031,9 +1033,11 @@ class Mutation:
             community_id=data.get("id"),
             title=data.get("title"),
             description=data.get("description"),
-            cover=data.get("cover"),
             topic_ids=data.get("topics"),
+            cover=data.get("cover"),
+            remove_cover=data.get("remove_cover"),
             avatar=data.get("avatar"),
+            remove_avatar=data.get("remove_avatar"),
             sdg_ids=data.get("sdgs"),
             location=data.get("location"),
             geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),

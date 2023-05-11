@@ -521,7 +521,9 @@ class Community(ModelWithUUID):
         topic_ids=None,
         sdg_ids=None,
         cover=None,
+        remove_cover=False,
         avatar=None,
+        remove_avatar=False,
         location=None,
         geolocation=None,
         contact_description=None,
@@ -559,10 +561,14 @@ class Community(ModelWithUUID):
             self.set_topics_with_ids(topic_ids=topic_ids)
 
         if cover is not None:
-            self.update_cover(cover, save=False)
+            self._update_cover(cover, save=False)
+        elif remove_cover:
+            self._delete_cover()
 
         if avatar is not None:
-            self.update_avatar(avatar, save=False)
+            self._update_avatar(avatar, save=False)
+        elif remove_avatar:
+            self._delete_avatar()
 
         if sdg_ids is not None:
             self.set_sdgs_with_ids(sdg_ids=sdg_ids)
@@ -765,30 +771,30 @@ class Community(ModelWithUUID):
     def count_pending_moderated_objects(self):
         return self.moderated_objects.filter(status=ModeratedObject.STATUS_PENDING).count()
 
-    def update_cover(self, cover, save=True):
+    def _update_cover(self, cover, save=True):
         if cover is None:
-            self.delete_cover(save=False)
+            self._delete_cover(save=False)
         else:
             self.cover = cover
 
         if save:
             self.save()
 
-    def delete_cover(self, save=True):
+    def _delete_cover(self, save=True):
         delete_file_field(self.cover)
         self.cover = None
         self.cover.delete(save=save)
 
-    def update_avatar(self, avatar, save=True):
+    def _update_avatar(self, avatar, save=True):
         if avatar is None:
-            self.delete_avatar(save=False)
+            self._delete_avatar(save=False)
         else:
             self.avatar = avatar
 
         if save:
             self.save()
 
-    def delete_avatar(self, save=True):
+    def _delete_avatar(self, save=True):
         delete_file_field(self.avatar)
         self.avatar = None
         self.avatar.delete(save=save)

@@ -139,11 +139,13 @@ class UpdateCommunitySerializer(serializers.Serializer):
         required=False,
         max_upload_size=settings.COMMUNITY_COVER_MAX_SIZE,
     )
+    remove_cover = serializers.BooleanField(default=False)
     avatar = RestrictedImageFileSizeField(
         allow_empty_file=False,
         required=False,
         max_upload_size=settings.COMMUNITY_AVATAR_MAX_SIZE,
     )
+    remove_avatar = serializers.BooleanField(default=False)
     sdgs = serializers.ListField(
         required=False,
         child=serializers.UUIDField(validators=[sdg_with_id_exists]),

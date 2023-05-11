@@ -3049,6 +3049,8 @@ class GraphQLTest(TestCase):
             {"contactDescription": "Lorem ipsum"},
             {"contactPhone": "+49 123 12345"},
             {"contactEmail": "contact@space.com"},
+            {"removeCover": True},
+            {"removeAvatar": True},
         ]
 
         for input in valid_inputs:
@@ -3126,6 +3128,26 @@ class GraphQLTest(TestCase):
         self.assertEqual("Lorem ipsum", updated_space["contactDescription"])
         self.assertEqual("+49 123 12345", updated_space["contactPhone"])
         self.assertEqual("contact@space.com", updated_space["contactEmail"])
+
+        # test space avatar and cover deletion
+        input = {
+            "id": str(community.id),
+            "removeCover": True,
+            "removeAvatar": True,
+        }
+
+        response = schema.execute_sync(
+            update_space_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": input},
+        )
+
+        self.assertIsNone(response.errors)
+
+        updated_space = response.data["updateSpace"]
+        self.assertEqual(str(community.id), updated_space["id"])
+        self.assertEqual("", updated_space["cover"])
+        self.assertEqual("", updated_space["avatar"])
 
     @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
     def test_can_not_update_space_if_not_admin(self, mock_invalidate_discover_spaces_query_cache):
