@@ -3,6 +3,7 @@ import uuid
 from collections import defaultdict
 from datetime import datetime, timedelta
 import json
+from typing_extensions import Annotated
 
 from rest_framework.exceptions import ValidationError
 
@@ -313,8 +314,13 @@ class Query:
     def spaces(
         self,
         topic_id: Optional[uuid.UUID] = None,
-        # TODO: Only for temporary backwards compatibility, remove in HOLI-4353
-        location: Optional[str] = None,
+        location: Annotated[
+            Optional[str],
+            strawberry.argument(
+                # Using description instead of deprecation_reason as deprecated arguments are removed in GraphQL Mesh
+                description="Unsupported since version 1.0.16, use geolocation instead",
+            ),
+        ] = None,
         geolocation: Optional[GeoJSON] = None,
         skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
         topic_slug: Optional[str] = None,
@@ -339,8 +345,11 @@ class Query:
         self,
         info,
         topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
-        # TODO: Only for temporary backwards compatibility, remove in HOLI-4353
-        location: Optional[str] = None,
+        location: Annotated[
+            Optional[str],
+            # Using description instead of deprecation_reason as deprecated arguments are removed in GraphQL Mesh
+            strawberry.argument(description="Unsupported since version 1.0.16, use geolocation instead"),
+        ] = None,
         geolocation: Optional[GeoJSON] = None,
         skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
         offset: int = 0,
@@ -459,10 +468,17 @@ class Query:
             )
         )
 
-    @gql.django.field(
-        description="idOrName can either be the space id or name (slug). If none of them is found, an error with the message 'Space not found' is thrown."
-    )
-    def space_by_id(self, info, id_or_name: str) -> Optional[Space]:
+    @gql.django.field
+    def space_by_id(
+        self,
+        info,
+        id_or_name: Annotated[
+            str,
+            strawberry.argument(
+                description="idOrName can either be the space id or name (slug). If none of them is found, an error with the message 'Space not found' is thrown."
+            ),
+        ],
+    ) -> Optional[Space]:
         user = info.context.request.user
 
         # check if current user is member of the community to filter out members-only tasks

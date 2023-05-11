@@ -252,8 +252,8 @@ class User:
     def location(self) -> Optional[str]:
         return self.profile.location
 
-    @gql.django.field()
     # TODO: Only for temporary backwards compatibility, replace by GeoJSON in HOLI-4353 (see below)
+    @gql.django.field(deprecation_reason="Type change to GeoJSON planned, deprecated since version 1.0.16")
     def geolocation(self) -> Optional[GeolocationPoint]:
         return None
 
@@ -648,8 +648,10 @@ class Notification:
 @gql.type
 class DiscoverSpaces:
     topic_id: Optional[uuid.UUID] = None
-    # TODO: Only for temporary backwards compatibility, remove in HOLI-4353
-    location: Optional[str] = None
+    location: Optional[str] = strawberry.field(
+        deprecation_reason="Unsupported since version 1.0.16, use location_id instead",
+        default=None,
+    )
     location_id: Optional[str] = None
     skill_id: Optional[uuid.UUID] = None
     spaces: Paged[Space]
