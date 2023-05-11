@@ -584,30 +584,30 @@ class User(ModelWithUUID, AbstractUser):
         self.is_deleted = False
         self.save()
 
-    def update_profile_cover(self, cover, save=True):
+    def _update_profile_cover(self, cover, save=True):
         if cover is None:
-            self.delete_profile_cover(save=False)
+            self._delete_profile_cover(save=False)
         else:
             self.profile.cover = cover
 
         if save:
             self.profile.save()
 
-    def delete_profile_cover(self, save=True):
+    def _delete_profile_cover(self, save=True):
         delete_file_field(self.profile.cover)
         self.profile.cover = None
         self.profile.cover.delete(save=save)
 
-    def update_profile_avatar(self, avatar, save=True):
+    def _update_profile_avatar(self, avatar, save=True):
         if avatar is None:
-            self.delete_profile_avatar(save=False)
+            self._delete_profile_avatar(save=False)
         else:
             self.profile.avatar = avatar
 
         if save:
             self.profile.save()
 
-    def delete_profile_avatar(self, save=True):
+    def _delete_profile_avatar(self, save=True):
         delete_file_field(self.profile.avatar)
         self.profile.avatar = None
         self.profile.avatar.delete(save=save)
@@ -660,20 +660,6 @@ class User(ModelWithUUID, AbstractUser):
         self._send_password_reset_email_with_token(password_reset_token)
         return password_reset_token
 
-    def _update_avatar(self, avatar, save=True):
-        if avatar is None:
-            self._delete_avatar(save=False)
-        else:
-            self.profile.avatar = avatar
-
-        if save:
-            self.profile.save()
-
-    def _delete_avatar(self, save=True):
-        delete_file_field(self.profile.avatar)
-        self.profile.avatar = None
-        self.profile.avatar.delete(save=save)
-
     def update(
         self,
         username=None,
@@ -723,14 +709,6 @@ class User(ModelWithUUID, AbstractUser):
                 profile.geolocation = None
                 profile.geolocation_id = None
 
-        if avatar is not None:
-            self._update_avatar(avatar, save=False)
-        elif remove_avatar:
-            self._delete_avatar()
-
-        if cover is not None:
-            profile.cover = cover
-
         if about_me is not None:
             if len(about_me) == 0:
                 profile.about_me = None
@@ -768,9 +746,12 @@ class User(ModelWithUUID, AbstractUser):
             profile.skills.set(skills)
 
         if update_avatar:
-            self.update_profile_avatar(avatar, save=False)
+            self._update_profile_avatar(avatar, save=False)
+        elif remove_avatar:
+            self._delete_profile_avatar(save=False)
+
         if update_cover:
-            self.update_profile_cover(cover, save=False)
+            self._update_profile_cover(cover, save=False)
 
         if save:
             profile.save()
@@ -4781,6 +4762,7 @@ class User(ModelWithUUID, AbstractUser):
         collection_type=None,
         description=None,
         thumbnail=None,
+        remove_thumbnail=False,
     ):
         CollaborationTool = get_collaboration_tool_model()
         collaboration_tool = CollaborationTool.objects.get(id=collaboration_tool_id)
@@ -4793,6 +4775,7 @@ class User(ModelWithUUID, AbstractUser):
             collection_type=collection_type,
             description=description,
             thumbnail=thumbnail,
+            remove_thumbnail=remove_thumbnail,
         )
 
         return collaboration_tool

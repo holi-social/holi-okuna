@@ -706,6 +706,7 @@ class UpdateCollaborationToolInput:
     description: Optional[str] = strawberry.UNSET
     collection_type: Optional[CollectionType] = strawberry.UNSET
     thumbnail: Optional[Upload] = strawberry.UNSET
+    remove_thumbnail: Optional[bool] = strawberry.UNSET
 
 
 @gql.type
@@ -1195,6 +1196,7 @@ class Mutation:
             description=data.get("description"),
             collection_type=data.get("collection_type"),
             thumbnail=data.get("thumbnail"),
+            remove_thumbnail=data.get("remove_thumbnail"),
         )
 
     @gql.mutation

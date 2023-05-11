@@ -1335,6 +1335,20 @@ class CollaborationTool(ModelWithUUID):
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
 
+    def _update_thumbnail(self, thumbnail, save=True):
+        if thumbnail is None:
+            self._delete_avatar(save=False)
+        else:
+            self.thumbnail = thumbnail
+
+        if save:
+            self.save()
+
+    def _delete_thumbnail(self, save=True):
+        delete_file_field(self.thumbnail)
+        self.thumbnail = None
+        self.thumbnail.delete(save=save)
+
     def update(
         self,
         url=None,
@@ -1342,6 +1356,7 @@ class CollaborationTool(ModelWithUUID):
         description=None,
         collection_type=None,
         thumbnail=None,
+        remove_thumbnail=False,
     ):
         if url is not None:
             self.url = url
@@ -1357,7 +1372,9 @@ class CollaborationTool(ModelWithUUID):
             self.collection_type = collection_type
 
         if thumbnail is not None:
-            self.thumbnail = thumbnail
+            self._update_thumbnail(thumbnail, save=False)
+        elif remove_thumbnail:
+            self._delete_thumbnail(save=False)
 
         self.save()
 
