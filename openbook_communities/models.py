@@ -1200,15 +1200,15 @@ class Task(ModelWithUUID):
         self.contact_email = contact_email
         self.regularity = regularity
 
-        if location:
-            self.location = location
-        if geolocation:
-            self.geolocation = geolocation
-        if contact_phone:
-            self.contact_phone = contact_phone
-        if slots_available:
+        if slots_available is not None:
             self.slots_available = slots_available
-        if skills:
+        if location is not None:
+            self.location = location
+        if geolocation is not None:
+            self.geolocation = geolocation
+        if contact_phone is not None:
+            self.contact_phone = contact_phone
+        if skills is not None:
             self.skills.set(skills)
 
         if remove_thumbnail:
