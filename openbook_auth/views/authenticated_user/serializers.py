@@ -233,7 +233,6 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
         allow_empty=True,
         child=serializers.UUIDField(validators=[skill_with_id_exists]),
     )
-    remove_avatar = serializers.BooleanField(default=False)
 
 
 class DeleteAuthenticatedUserSerializer(serializers.Serializer):

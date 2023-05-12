@@ -136,16 +136,16 @@ class UpdateCommunitySerializer(serializers.Serializer):
     )
     cover = RestrictedImageFileSizeField(
         allow_empty_file=False,
+        allow_null=True,
         required=False,
         max_upload_size=settings.COMMUNITY_COVER_MAX_SIZE,
     )
-    remove_cover = serializers.BooleanField(default=False)
     avatar = RestrictedImageFileSizeField(
         allow_empty_file=False,
+        allow_null=True,
         required=False,
         max_upload_size=settings.COMMUNITY_AVATAR_MAX_SIZE,
     )
-    remove_avatar = serializers.BooleanField(default=False)
     sdgs = serializers.ListField(
         required=False,
         child=serializers.UUIDField(validators=[sdg_with_id_exists]),
@@ -336,6 +336,7 @@ class UpdateCollaborationToolSerializer(serializers.Serializer):
     collection_type = serializers.ChoiceField(required=False, choices=CollaborationTool.CollectionType.choices)
     thumbnail = RestrictedImageFileSizeField(
         allow_empty_file=False,
+        allow_null=True,
         required=False,
         max_upload_size=settings.TASK_THUMBNAIL_MAX_SIZE,
     )
@@ -431,7 +432,7 @@ class UpdateTaskSerializer(serializers.Serializer):
     )
     thumbnail = RestrictedImageFileSizeField(
         allow_empty_file=False,
+        allow_null=True,
         required=False,
         max_upload_size=settings.TASK_THUMBNAIL_MAX_SIZE,
     )
-    remove_thumbnail = serializers.BooleanField(default=False)

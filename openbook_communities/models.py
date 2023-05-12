@@ -560,15 +560,15 @@ class Community(ModelWithUUID):
         if topic_ids is not None:
             self.set_topics_with_ids(topic_ids=topic_ids)
 
-        if cover is not None:
-            self._update_cover(cover, save=False)
-        elif remove_cover:
+        if remove_cover:
             self._delete_cover()
+        elif cover:
+            self._update_cover(cover, save=False)
 
-        if avatar is not None:
-            self._update_avatar(avatar, save=False)
-        elif remove_avatar:
+        if remove_avatar:
             self._delete_avatar()
+        elif avatar:
+            self._update_avatar(avatar, save=False)
 
         if sdg_ids is not None:
             self.set_sdgs_with_ids(sdg_ids=sdg_ids)
@@ -786,10 +786,9 @@ class Community(ModelWithUUID):
         self.cover.delete(save=save)
 
     def _update_avatar(self, avatar, save=True):
-        if avatar is None:
+        if self.avatar:
             self._delete_avatar(save=False)
-        else:
-            self.avatar = avatar
+        self.avatar = avatar
 
         if save:
             self.save()
@@ -1242,16 +1241,26 @@ class Task(ModelWithUUID):
         if skills:
             self.skills.set(skills)
 
-        if remove_thumbnail and self.thumbnail:
-            delete_file_field(self.thumbnail)
-            self.thumbnail = None
-        elif thumbnail and thumbnail != self.thumbnail:
-            if self.thumbnail:
-                delete_file_field(self.thumbnail)
-            self.thumbnail = thumbnail
+        if remove_thumbnail:
+            self._delete_thumbnail(save=False)
+        elif thumbnail:
+            self._update_thumbnail(thumbnail, save=False)
 
         self.save()
         return self
+
+    def _update_thumbnail(self, thumbnail, save=True):
+        if self.thumbnail:
+            self._delete_thumbnail(save=False)
+        self.thumbnail = thumbnail
+
+        if save:
+            self.save()
+
+    def _delete_thumbnail(self, save=True):
+        delete_file_field(self.thumbnail)
+        self.thumbnail = None
+        self.thumbnail.delete(save=save)
 
 
 @gql.enum
@@ -1336,10 +1345,9 @@ class CollaborationTool(ModelWithUUID):
     )
 
     def _update_thumbnail(self, thumbnail, save=True):
-        if thumbnail is None:
-            self._delete_avatar(save=False)
-        else:
-            self.thumbnail = thumbnail
+        if self.thumbnail:
+            self._delete_thumbnail(save=False)
+        self.thumbnail = thumbnail
 
         if save:
             self.save()
@@ -1371,10 +1379,10 @@ class CollaborationTool(ModelWithUUID):
         if collection_type is not None:
             self.collection_type = collection_type
 
-        if thumbnail is not None:
-            self._update_thumbnail(thumbnail, save=False)
-        elif remove_thumbnail:
+        if remove_thumbnail:
             self._delete_thumbnail(save=False)
+        elif thumbnail is not None:
+            self._update_thumbnail(thumbnail, save=False)
 
         self.save()
 

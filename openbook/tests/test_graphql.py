@@ -806,7 +806,7 @@ class GraphQLTest(TestCase):
             "visibility": VisibilityType.PUBLIC.value,
             "text": make_fake_post_text(),
             "title": None,
-            "removeImage": True,
+            "image": None,
         }
 
         response = self.update_space_post(posting_user, space_post.id, input_data)
@@ -3049,8 +3049,8 @@ class GraphQLTest(TestCase):
             {"contactDescription": "Lorem ipsum"},
             {"contactPhone": "+49 123 12345"},
             {"contactEmail": "contact@space.com"},
-            {"removeCover": True},
-            {"removeAvatar": True},
+            {"cover": None},
+            {"avatar": None},
         ]
 
         for input in valid_inputs:
@@ -3132,8 +3132,8 @@ class GraphQLTest(TestCase):
         # test space avatar and cover deletion
         input = {
             "id": str(community.id),
-            "removeCover": True,
-            "removeAvatar": True,
+            "cover": None,
+            "avatar": None,
         }
 
         response = schema.execute_sync(
@@ -4214,7 +4214,7 @@ class GraphQLTest(TestCase):
             "locationType": "HYBRID",
             "regularity": "REGULARLY",
             "contactEmail": "email@email.com",
-            "removeThumbnail": True,
+            "thumbnail": None,
         }
 
         response = schema.execute_sync(

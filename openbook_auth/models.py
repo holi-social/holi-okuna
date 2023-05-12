@@ -599,10 +599,9 @@ class User(ModelWithUUID, AbstractUser):
         self.profile.cover.delete(save=save)
 
     def _update_profile_avatar(self, avatar, save=True):
-        if avatar is None:
+        if self.profile.avatar:
             self._delete_profile_avatar(save=False)
-        else:
-            self.profile.avatar = avatar
+        self.profile.avatar = avatar
 
         if save:
             self.profile.save()
@@ -672,7 +671,6 @@ class User(ModelWithUUID, AbstractUser):
         community_posts_visible=None,
         visibility=None,
         avatar=None,
-        update_avatar=False,
         cover=None,
         update_cover=False,
         last_name=None,
@@ -745,10 +743,10 @@ class User(ModelWithUUID, AbstractUser):
         if skills is not None:
             profile.skills.set(skills)
 
-        if update_avatar:
-            self._update_profile_avatar(avatar, save=False)
-        elif remove_avatar:
+        if remove_avatar:
             self._delete_profile_avatar(save=False)
+        elif avatar:
+            self._update_profile_avatar(avatar, save=False)
 
         if update_cover:
             self._update_profile_cover(cover, save=False)

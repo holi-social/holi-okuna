@@ -577,7 +577,6 @@ class UpdateAuthenticatedUserInput:
     interests: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
-    remove_avatar: Optional[bool] = strawberry.UNSET
 
 
 @gql.input
@@ -623,9 +622,7 @@ class UpdateSpaceInput:
     description: Optional[str] = strawberry.UNSET
     topics: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     cover: Optional[Upload] = strawberry.UNSET
-    remove_cover: Optional[bool] = strawberry.UNSET
     avatar: Optional[Upload] = strawberry.UNSET
-    remove_avatar: Optional[bool] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
@@ -649,7 +646,6 @@ class UpdatePostInput:
     text: Optional[str] = strawberry.UNSET
     image: Optional[Upload] = strawberry.UNSET
     visibility: Optional[VisibilityType] = strawberry.UNSET
-    remove_image: Optional[bool] = strawberry.UNSET
 
 
 @gql.input
@@ -681,7 +677,6 @@ class UpdateTaskInput:
     contact_email: str
     slots_available: Optional[int] = strawberry.UNSET
     thumbnail: Optional[Upload] = strawberry.UNSET
-    remove_thumbnail: Optional[bool] = strawberry.UNSET
     skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
     geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
@@ -706,7 +701,6 @@ class UpdateCollaborationToolInput:
     description: Optional[str] = strawberry.UNSET
     collection_type: Optional[CollectionType] = strawberry.UNSET
     thumbnail: Optional[Upload] = strawberry.UNSET
-    remove_thumbnail: Optional[bool] = strawberry.UNSET
 
 
 @gql.type
@@ -719,15 +713,6 @@ class Mutation:
     @gql.mutation
     def update_authenticated_user(self, info, input: UpdateAuthenticatedUserInput) -> User:
         current_user = verify_authorized_user(info)
-        update_avatar = False
-
-        if input.avatar:
-            if input.avatar in ("", {}):
-                raise GraphQLError(
-                    f"Attribute 'avatar' should be missing or contain a file, but was: '{input.avatar}'"
-                )
-            else:
-                update_avatar = True
 
         input_dict = to_input_dict(input)
         if input.first_name:
@@ -736,6 +721,10 @@ class Mutation:
         serializer = UpdateAuthenticatedUserSerializer(data=input_dict)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+
+        remove_avatar = False
+        if "avatar" in data and data.get("avatar") is None:
+            remove_avatar = True
 
         try:
             current_user.update(
@@ -751,12 +740,11 @@ class Mutation:
                 sdgs=data.get("sdgs"),
                 skills=data.get("skills"),
                 avatar=data.get("avatar"),
-                update_avatar=update_avatar,
-                remove_avatar=data.get("remove_avatar"),
+                remove_avatar=remove_avatar,
                 save=True,
             )
         except Error:
-            if update_avatar:
+            if remove_avatar:
                 delete_avatar(data["avatar"])
             raise
 
@@ -892,6 +880,9 @@ class Mutation:
         serializer = EditCommunityPostSerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+
+        if "image" in data and data.get("image") is None:
+            data["remove_image"] = True
 
         post = current_user.update_community_encircled_post(post_id=id, **data)
 
@@ -1032,15 +1023,26 @@ class Mutation:
         serializer = UpdateCommunitySerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+
+        if "avatar" in data and data.get("avatar") is None:
+            remove_avatar = True
+        else:
+            remove_avatar = False
+
+        if "cover" in data and data.get("cover") is None:
+            remove_cover = True
+        else:
+            remove_cover = False
+
         space = current_user.update_community_with_id(
             community_id=data.get("id"),
             title=data.get("title"),
             description=data.get("description"),
             topic_ids=data.get("topics"),
             cover=data.get("cover"),
-            remove_cover=data.get("remove_cover"),
+            remove_cover=remove_cover,
             avatar=data.get("avatar"),
-            remove_avatar=data.get("remove_avatar"),
+            remove_avatar=remove_avatar,
             sdg_ids=data.get("sdgs"),
             location=data.get("location"),
             geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
@@ -1099,6 +1101,12 @@ class Mutation:
         serializer = UpdateTaskSerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+
+        if "thumbnail" in data and data.get("thumbnail") is None:
+            remove_thumbnail = True
+        else:
+            remove_thumbnail = False
+
         return current_user.update_task(
             task_id=data.get("task_id"),
             space_id=data.get("space_id"),
@@ -1114,7 +1122,7 @@ class Mutation:
             contact_phone=data.get("contact_phone"),
             skills=data.get("skills"),
             thumbnail=data.get("thumbnail"),
-            remove_thumbnail=data.get("remove_thumbnail"),
+            remove_thumbnail=remove_thumbnail,
         )
 
     @gql.mutation
@@ -1189,6 +1197,11 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
+        if "thumbnail" in data and data.get("thumbnail") is None:
+            remove_thumbnail = True
+        else:
+            remove_thumbnail = False
+
         return current_user.update_collaboration_tool(
             collaboration_tool_id=data.get("id"),
             url=data.get("url"),
@@ -1196,7 +1209,7 @@ class Mutation:
             description=data.get("description"),
             collection_type=data.get("collection_type"),
             thumbnail=data.get("thumbnail"),
-            remove_thumbnail=data.get("remove_thumbnail"),
+            remove_thumbnail=remove_thumbnail,
         )
 
     @gql.mutation
