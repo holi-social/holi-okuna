@@ -197,6 +197,7 @@ class EditCommunityPostSerializer(serializers.Serializer):
     visibility = serializers.ChoiceField(VisibilityType.choices)
     image = RestrictedImageFileSizeField(
         allow_empty_file=False,
+        allow_null=True,
         required=False,
         max_upload_size=settings.POST_MEDIA_MAX_SIZE,
     )
@@ -206,7 +207,6 @@ class EditCommunityPostSerializer(serializers.Serializer):
         max_upload_size=settings.POST_MEDIA_MAX_SIZE,
     )
     is_draft = serializers.BooleanField(default=False)
-    remove_image = serializers.BooleanField(default=False)
 
 
 class AuthenticatedUserEditPostSerializer(serializers.ModelSerializer):

@@ -521,7 +521,9 @@ class Community(ModelWithUUID):
         topic_ids=None,
         sdg_ids=None,
         cover=None,
+        remove_cover=False,
         avatar=None,
+        remove_avatar=False,
         location=None,
         geolocation=None,
         contact_description=None,
@@ -558,11 +560,15 @@ class Community(ModelWithUUID):
         if topic_ids is not None:
             self.set_topics_with_ids(topic_ids=topic_ids)
 
-        if cover is not None:
-            self.update_cover(cover, save=False)
+        if remove_cover:
+            self._delete_cover()
+        elif cover:
+            self._update_cover(cover, save=False)
 
-        if avatar is not None:
-            self.update_avatar(avatar, save=False)
+        if remove_avatar:
+            self._delete_avatar()
+        elif avatar:
+            self._update_avatar(avatar, save=False)
 
         if sdg_ids is not None:
             self.set_sdgs_with_ids(sdg_ids=sdg_ids)
@@ -765,30 +771,29 @@ class Community(ModelWithUUID):
     def count_pending_moderated_objects(self):
         return self.moderated_objects.filter(status=ModeratedObject.STATUS_PENDING).count()
 
-    def update_cover(self, cover, save=True):
+    def _update_cover(self, cover, save=True):
         if cover is None:
-            self.delete_cover(save=False)
+            self._delete_cover(save=False)
         else:
             self.cover = cover
 
         if save:
             self.save()
 
-    def delete_cover(self, save=True):
+    def _delete_cover(self, save=True):
         delete_file_field(self.cover)
         self.cover = None
         self.cover.delete(save=save)
 
-    def update_avatar(self, avatar, save=True):
-        if avatar is None:
-            self.delete_avatar(save=False)
-        else:
-            self.avatar = avatar
+    def _update_avatar(self, avatar, save=True):
+        if self.avatar:
+            self._delete_avatar(save=False)
+        self.avatar = avatar
 
         if save:
             self.save()
 
-    def delete_avatar(self, save=True):
+    def _delete_avatar(self, save=True):
         delete_file_field(self.avatar)
         self.avatar = None
         self.avatar.delete(save=save)
@@ -1186,21 +1191,46 @@ class Task(ModelWithUUID):
         contact_phone=None,
         skills=None,
         thumbnail=None,
+        remove_thumbnail=False,
     ):
         self.name = name
         self.description = description
         self.visibility = visibility
         self.location_type = location_type
         self.contact_email = contact_email
-        self.slots_available = slots_available
-        self.location = location
-        self.geolocation = geolocation
         self.regularity = regularity
-        self.contact_phone = contact_phone
-        self.skills.set(skills)
-        self.thumbnail = thumbnail
+
+        if slots_available is not None:
+            self.slots_available = slots_available
+        if location is not None:
+            self.location = location
+        if geolocation is not None:
+            self.geolocation = geolocation
+        if contact_phone is not None:
+            self.contact_phone = contact_phone
+        if skills is not None:
+            self.skills.set(skills)
+
+        if remove_thumbnail:
+            self._delete_thumbnail(save=False)
+        elif thumbnail:
+            self._update_thumbnail(thumbnail, save=False)
+
         self.save()
         return self
+
+    def _update_thumbnail(self, thumbnail, save=True):
+        if self.thumbnail:
+            self._delete_thumbnail(save=False)
+        self.thumbnail = thumbnail
+
+        if save:
+            self.save()
+
+    def _delete_thumbnail(self, save=True):
+        delete_file_field(self.thumbnail)
+        self.thumbnail = None
+        self.thumbnail.delete(save=save)
 
 
 @gql.enum
@@ -1284,6 +1314,19 @@ class CollaborationTool(ModelWithUUID):
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
 
+    def _update_thumbnail(self, thumbnail, save=True):
+        if self.thumbnail:
+            self._delete_thumbnail(save=False)
+        self.thumbnail = thumbnail
+
+        if save:
+            self.save()
+
+    def _delete_thumbnail(self, save=True):
+        delete_file_field(self.thumbnail)
+        self.thumbnail = None
+        self.thumbnail.delete(save=save)
+
     def update(
         self,
         url=None,
@@ -1291,6 +1334,7 @@ class CollaborationTool(ModelWithUUID):
         description=None,
         collection_type=None,
         thumbnail=None,
+        remove_thumbnail=False,
     ):
         if url is not None:
             self.url = url
@@ -1305,8 +1349,10 @@ class CollaborationTool(ModelWithUUID):
         if collection_type is not None:
             self.collection_type = collection_type
 
-        if thumbnail is not None:
-            self.thumbnail = thumbnail
+        if remove_thumbnail:
+            self._delete_thumbnail(save=False)
+        elif thumbnail is not None:
+            self._update_thumbnail(thumbnail, save=False)
 
         self.save()
 

@@ -1,11 +1,7 @@
 from copy import deepcopy
-import uuid
 from collections import defaultdict
 from datetime import datetime, timedelta
-import json
 from typing_extensions import Annotated
-
-from rest_framework.exceptions import ValidationError
 
 import requests
 import structlog
@@ -38,6 +34,7 @@ from openbook_auth.validators import string_not_empty
 from openbook_auth.views.authenticated_user.serializers import (
     UpdateAuthenticatedUserSerializer,
 )
+from openbook_common.helpers import is_parameter_null
 from openbook_communities.models import CommunityMembership
 
 from openbook_communities.views.communities.serializers import (
@@ -670,7 +667,6 @@ class UpdatePostInput:
     text: Optional[str] = strawberry.UNSET
     image: Optional[Upload] = strawberry.UNSET
     visibility: Optional[VisibilityType] = strawberry.UNSET
-    remove_image: Optional[bool] = strawberry.UNSET
 
 
 @gql.input
@@ -738,15 +734,6 @@ class Mutation:
     @gql.mutation
     def update_authenticated_user(self, info, input: UpdateAuthenticatedUserInput) -> User:
         current_user = verify_authorized_user(info)
-        update_avatar = False
-
-        if input.avatar:
-            if input.avatar in ("", {}):
-                raise GraphQLError(
-                    f"Attribute 'avatar' should be missing or contain a file, but was: '{input.avatar}'"
-                )
-            else:
-                update_avatar = True
 
         input_dict = to_input_dict(input)
         if input.first_name:
@@ -759,6 +746,8 @@ class Mutation:
         serializer = UpdateAuthenticatedUserSerializer(data=input_dict)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+
+        remove_avatar = is_parameter_null(data, "avatar")
 
         try:
             current_user.update(
@@ -774,11 +763,11 @@ class Mutation:
                 sdgs=data.get("sdgs"),
                 skills=data.get("skills"),
                 avatar=data.get("avatar"),
-                update_avatar=update_avatar,
+                remove_avatar=remove_avatar,
                 save=True,
             )
         except Error:
-            if update_avatar:
+            if remove_avatar:
                 delete_avatar(data["avatar"])
             raise
 
@@ -914,6 +903,8 @@ class Mutation:
         serializer = EditCommunityPostSerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+
+        data["remove_image"] = is_parameter_null(data, "image")
 
         post = current_user.update_community_encircled_post(post_id=id, **data)
 
@@ -1054,13 +1045,16 @@ class Mutation:
         serializer = UpdateCommunitySerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+
         space = current_user.update_community_with_id(
             community_id=data.get("id"),
             title=data.get("title"),
             description=data.get("description"),
-            cover=data.get("cover"),
             topic_ids=data.get("topics"),
+            cover=data.get("cover"),
+            remove_cover=is_parameter_null(data, "cover"),
             avatar=data.get("avatar"),
+            remove_avatar=is_parameter_null(data, "avatar"),
             sdg_ids=data.get("sdgs"),
             location=data.get("location"),
             geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
@@ -1119,6 +1113,7 @@ class Mutation:
         serializer = UpdateTaskSerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+
         return current_user.update_task(
             task_id=data.get("task_id"),
             space_id=data.get("space_id"),
@@ -1134,7 +1129,7 @@ class Mutation:
             contact_phone=data.get("contact_phone"),
             skills=data.get("skills"),
             thumbnail=data.get("thumbnail"),
-            update_thumbnail=input.thumbnail is not strawberry.UNSET,
+            remove_thumbnail=is_parameter_null(data, "thumbnail"),
         )
 
     @gql.mutation
@@ -1216,6 +1211,7 @@ class Mutation:
             description=data.get("description"),
             collection_type=data.get("collection_type"),
             thumbnail=data.get("thumbnail"),
+            remove_thumbnail=is_parameter_null(data, "thumbnail"),
         )
 
     @gql.mutation
