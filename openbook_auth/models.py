@@ -672,7 +672,7 @@ class User(ModelWithUUID, AbstractUser):
         visibility=None,
         avatar=None,
         cover=None,
-        update_cover=False,
+        remove_cover=False,
         last_name=None,
         pronouns=None,
         engagement_level=None,
@@ -748,7 +748,9 @@ class User(ModelWithUUID, AbstractUser):
         elif avatar:
             self._update_profile_avatar(avatar, save=False)
 
-        if update_cover:
+        if remove_cover:
+            self._delete_profile_cover(save=False)
+        elif cover:
             self._update_profile_cover(cover, save=False)
 
         if save:
@@ -4701,7 +4703,7 @@ class User(ModelWithUUID, AbstractUser):
         Task = get_task_model()
         task = Task.objects.get(id=task_id)
 
-        return task.update_task(
+        return task.update(
             name=name,
             description=description,
             visibility=visibility,

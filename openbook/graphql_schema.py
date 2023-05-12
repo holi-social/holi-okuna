@@ -33,6 +33,7 @@ from openbook_auth.validators import string_not_empty
 from openbook_auth.views.authenticated_user.serializers import (
     UpdateAuthenticatedUserSerializer,
 )
+from openbook_common.helpers import is_parameter_null
 from openbook_communities.models import CommunityMembership
 
 from openbook_communities.views.communities.serializers import (
@@ -722,9 +723,7 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        remove_avatar = False
-        if "avatar" in data and data.get("avatar") is None:
-            remove_avatar = True
+        remove_avatar = is_parameter_null(data, "avatar")
 
         try:
             current_user.update(
@@ -881,8 +880,7 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        if "image" in data and data.get("image") is None:
-            data["remove_image"] = True
+        data["remove_image"] = is_parameter_null(data, "image")
 
         post = current_user.update_community_encircled_post(post_id=id, **data)
 
@@ -1024,25 +1022,15 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        if "avatar" in data and data.get("avatar") is None:
-            remove_avatar = True
-        else:
-            remove_avatar = False
-
-        if "cover" in data and data.get("cover") is None:
-            remove_cover = True
-        else:
-            remove_cover = False
-
         space = current_user.update_community_with_id(
             community_id=data.get("id"),
             title=data.get("title"),
             description=data.get("description"),
             topic_ids=data.get("topics"),
             cover=data.get("cover"),
-            remove_cover=remove_cover,
+            remove_cover=is_parameter_null(data, "cover"),
             avatar=data.get("avatar"),
-            remove_avatar=remove_avatar,
+            remove_avatar=is_parameter_null(data, "avatar"),
             sdg_ids=data.get("sdgs"),
             location=data.get("location"),
             geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
@@ -1102,11 +1090,6 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        if "thumbnail" in data and data.get("thumbnail") is None:
-            remove_thumbnail = True
-        else:
-            remove_thumbnail = False
-
         return current_user.update_task(
             task_id=data.get("task_id"),
             space_id=data.get("space_id"),
@@ -1122,7 +1105,7 @@ class Mutation:
             contact_phone=data.get("contact_phone"),
             skills=data.get("skills"),
             thumbnail=data.get("thumbnail"),
-            remove_thumbnail=remove_thumbnail,
+            remove_thumbnail=is_parameter_null(data, "thumbnail"),
         )
 
     @gql.mutation
@@ -1197,11 +1180,6 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        if "thumbnail" in data and data.get("thumbnail") is None:
-            remove_thumbnail = True
-        else:
-            remove_thumbnail = False
-
         return current_user.update_collaboration_tool(
             collaboration_tool_id=data.get("id"),
             url=data.get("url"),
@@ -1209,7 +1187,7 @@ class Mutation:
             description=data.get("description"),
             collection_type=data.get("collection_type"),
             thumbnail=data.get("thumbnail"),
-            remove_thumbnail=remove_thumbnail,
+            remove_thumbnail=is_parameter_null(data, "thumbnail"),
         )
 
     @gql.mutation
