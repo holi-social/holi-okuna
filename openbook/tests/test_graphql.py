@@ -850,7 +850,10 @@ class TestUsers:
         response = self.update_space_post(posting_user, space_post.id, input_data)
         assert response.errors is not None
         assert response.data is None
-        assert "You cannot add a public post to a community you're not administrator of" in response.errors[0].extensions["errors"]
+        assert (
+            "You cannot add a public post to a community you're not administrator of"
+            in response.errors[0].extensions["errors"]
+        )
 
         space_post.refresh_from_db()
         assert space_post.title == post_title
