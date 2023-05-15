@@ -136,12 +136,15 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://localhost",
     r"^https://\w+\.web\.project-holi\.org",
+    r"^https://\w+\.web\.holi\.social",
+    r"^https://\w+\.app\.holi\.social",
 ]
 CORS_ALLOW_CREDENTIALS = True
 
 # Needed for using the /admin interface for editing insights, HOLI-1562
 CSRF_TRUSTED_ORIGINS = [
     "https://0kuna-adm1n.project-holi.org",
+    "https://0kuna-adm1n.holi.social",
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -491,6 +494,7 @@ PROFILE_NAME_MAX_LENGTH = 192
 PROFILE_LAST_NAME_MAX_LENGTH = 192
 PROFILE_PRONOUNS_MAX_LENGTH = 192
 PROFILE_LOCATION_MAX_LENGTH = 192
+PROFILE_GEOLOCATION_ID_MAX_LENGTH = 255
 PROFILE_ABOUT_ME_MAX_LENGTH = int(os.environ.get("PROFILE_ABOUT_ME_MAX_LENGTH", "3000"))
 PROFILE_AVATAR_MAX_SIZE = int(os.environ.get("PROFILE_AVATAR_MAX_SIZE", "10485760"))
 PROFILE_AVATAR_URL_MAX_LENGTH = 500

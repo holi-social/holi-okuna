@@ -11,6 +11,7 @@ from unittest import mock
 from django.conf import settings
 from benedict import BeneDict
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.gis import geos
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils import timezone
@@ -24,7 +25,7 @@ from openbook.graphql_schema import (
     schema,
 )
 from openbook.graphql_types import VisibilityFilter
-from openbook_auth.models import User, UserConnectionStatus
+from openbook_auth.models import User, UserConnectionStatus, EngagementLevelChoice
 from openbook_common.tests.helpers import (
     get_test_images,
     get_test_videos,
@@ -48,8 +49,10 @@ from openbook_communities.models import Community, CommunityNotificationsSubscri
 from openbook_common.types import VisibilityType
 from openbook_insights.models import Insight
 from openbook_moderation.models import ModeratedObject
-from openbook_posts.models import PostCommentReaction
 from django.core.management import call_command
+from openbook.tests.test_data import geolocation, geolocation_id, geolocation_geometry
+from openbook_notifications.models import CommunityNewPostNotification
+from openbook_posts.models import PostCommentReaction, PostUserMention, PostComment, PostImage, Post
 
 logger = logging.getLogger(__name__)
 
@@ -124,9 +127,9 @@ class TestUsers:
         )
 
     def test_get_user_by_name_first_name_matches_first(self):
-        make_user(name="Thomas", last_name="Petersen"),
-        make_user(name="Peter", last_name="Muster"),
-        make_user(name="Petra", last_name="Meier"),
+        make_user(name="Thomas", last_name="Petersen")
+        make_user(name="Peter", last_name="Muster")
+        make_user(name="Petra", last_name="Meier")
         make_user(name="Fritz", last_name="Meier")
 
         executed = schema.execute_sync(
@@ -159,10 +162,14 @@ class TestUsers:
         community = make_community()
         community.add_member(user)
         pronouns = "She/her"
-        geolocation = {"latitude": 2.0, "longitude": -4.2}
         assert User.objects.get(username=user.username).profile.pronouns != pronouns
+
+        geolocation = {"latitude": 2.0, "longitude": -4.2}
+        location = "Bremerhaven"
+
         first_name = "Peter"
         last_name = "Shaw"
+        engagement_level = EngagementLevelChoice.INITIATOR
 
         json_body = [
             {"op": "replace", "path": "/traits/given_name", "value": f"{first_name}"},
@@ -176,10 +183,13 @@ class TestUsers:
                 updateAuthenticatedUser(input: $input) {
                     id
                     pronouns
+                    location
                     geolocation {
-                        latitude
-                        longitude
+                      latitude
+                      longitude
                     }
+                    geolocationId
+                    engagementLevel
                 }
             }
             """,
@@ -189,7 +199,9 @@ class TestUsers:
                     "pronouns": pronouns,
                     "firstName": first_name,
                     "lastName": last_name,
+                    "location": location,
                     "geolocation": geolocation,
+                    "engagementLevel": engagement_level,
                 }
             },
         )
@@ -201,15 +213,93 @@ class TestUsers:
         updated_user = executed.data["updateAuthenticatedUser"]
         graphql_pronouns = updated_user["pronouns"]
         persisted_profile = User.objects.get(username=user.username).profile
+
         assert graphql_pronouns == persisted_profile.pronouns
         assert graphql_pronouns == pronouns
         assert last_name == persisted_profile.last_name
         assert first_name == persisted_profile.name
+
+        assert persisted_profile.engagement_level == EngagementLevelChoice.INITIATOR
+        assert location == persisted_profile.location
+        assert geolocation_id == persisted_profile.geolocation_id
+        # TODO: Only for temporary backwards compatibility, adjust in HOLI-4353
+        assert updated_user["geolocation"] is None
         assert persisted_profile.geolocation is not None
-        assert geolocation["longitude"] == persisted_profile.geolocation.x
-        assert geolocation["latitude"] == persisted_profile.geolocation.y
+        assert geos.GEOSGeometry(json.dumps(geolocation_geometry)) == persisted_profile.geolocation
 
         mock_publish_user_name_updated_event.assert_called_once_with(user=user)
+
+    @mock.patch("openbook_auth.tasks.requests.delete")
+    @mock.patch("openbook.graphql_schema.publish_user_deleted_event")
+    @mock.patch("openbook.graphql_schema.publish_space_deleted_event")
+    def test_can_delete_authenticated_user(
+        self, mock_publish_space_deleted_event, mock_publish_user_deleted_event, mock_delete
+    ):
+        response = Response()
+        response.status_code = 204
+        response._content = str.encode(json.dumps({}))
+        mock_delete.return_value = response
+
+        user = make_user(name="Fritz", last_name="Meier")
+        space = make_community(creator=user)
+
+        mutation_response = schema.execute_sync(
+            """
+            mutation test {
+                deleteAuthenticatedUser {
+                    success
+                }
+            }
+            """,
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+        mock_delete.assert_called_once_with(
+            f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
+            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+        )
+
+        assert mutation_response.data["deleteAuthenticatedUser"]["success"] is True
+
+        mock_publish_user_deleted_event.assert_called_once_with(user=user)
+        mock_publish_space_deleted_event.assert_called_once_with(space)
+
+    @mock.patch("openbook_auth.tasks.requests.delete")
+    @mock.patch("openbook.graphql_schema.publish_user_deleted_event")
+    @mock.patch("openbook.graphql_schema.publish_space_deleted_event")
+    def test_cannot_delete_space_if_deleted_authenticated_user_not_only_admin(
+        self, mock_publish_space_deleted_event, mock_publish_user_deleted_event, mock_delete
+    ):
+        response = Response()
+        response.status_code = 204
+        response._content = str.encode(json.dumps({}))
+        mock_delete.return_value = response
+
+        user = make_user(name="Fritz", last_name="Meier")
+        space = make_community(creator=user)
+
+        admin = make_user(name="John", last_name="Doe")
+        space.add_member(admin)
+        space.add_administrator(admin)
+
+        mutation_response = schema.execute_sync(
+            """
+            mutation test {
+                deleteAuthenticatedUser {
+                    success
+                }
+            }
+            """,
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+        mock_delete.assert_called_once_with(
+            f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
+            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+        )
+
+        assert mutation_response.data["deleteAuthenticatedUser"]["success"] is True
+
+        mock_publish_user_deleted_event.assert_called_once_with(user=user)
+        mock_publish_space_deleted_event.assert_not_called()
 
     def test_can_perform_connection_workflow(self):
         first_user = make_user(name="Fritz", last_name="Meier")
@@ -518,6 +608,32 @@ class TestUsers:
             variable_values={"input": info},
         )
 
+    def update_space_post(self, user, post_id, info):
+        return schema.execute_sync(
+            """
+            mutation test($id: UUID!, $input: UpdatePostInput!){
+                updateSpacePost(id: $id, input: $input) {
+                    id
+                    title
+                    posts {
+                        totalResults
+                        data {
+                            title
+                            text
+                            isPublic
+                            created
+                            image {
+                                url
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"id": str(post_id), "input": info},
+        )
+
     def test_space_user_can_create_space_post(self):
         space_admin = make_user()
         member_user = make_user()
@@ -648,6 +764,222 @@ class TestUsers:
         assert response.errors is not None
         assert response.data is None
         assert "Field 'visibility' of required type 'VisibilityType!' was not provided" in response.errors[0].message
+
+    def test_space_user_can_edit_space_post(self):
+        space_admin = make_user()
+        posting_user = make_user()
+        space = make_community(creator=space_admin)
+        space.add_member(posting_user)
+        space.add_administrator(posting_user)
+
+        space_post = Post.create_post(
+            creator=posting_user,
+            community_id=space.id,
+            image=SimpleUploadedFile(name="foo.jpg", content=simple_jpeg_bytes),
+            text=make_fake_post_text(),
+            title=make_fake_post_title(),
+            circles_ids=[],
+        )
+
+        valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+
+        # test post update with replace of the post image
+        input_data = {
+            "visibility": VisibilityType.PUBLIC.value,
+            "text": make_fake_post_text(),
+            "title": None,
+            "image": valid_image,
+        }
+
+        response = self.update_space_post(posting_user, space_post.id, input_data)
+        assert response.errors is None
+        assert response.data is not None
+
+        data = response.data["updateSpacePost"]
+        assert data["id"] == str(space.id)
+        assert data["posts"]["totalResults"] == 1
+
+        posts_data = data["posts"]["data"]
+        assert posts_data[0]["title"] is None
+        assert posts_data[0]["text"] == input_data["text"]
+        assert posts_data[0]["isPublic"] == True
+        assert "/cover.jpg/" in posts_data[0]["image"]["url"]
+
+        # test post update with removal of the post image
+        input_data = {
+            "visibility": VisibilityType.PUBLIC.value,
+            "text": make_fake_post_text(),
+            "title": None,
+            "image": None,
+        }
+
+        response = self.update_space_post(posting_user, space_post.id, input_data)
+        assert response.errors is None
+        assert response.data is not None
+
+        data = response.data["updateSpacePost"]
+        assert data["id"] == str(space.id)
+        assert data["posts"]["totalResults"] == 1
+
+        posts_data = data["posts"]["data"]
+        assert posts_data[0]["title"] is None
+        assert posts_data[0]["text"] == input_data["text"]
+        assert posts_data[0]["isPublic"] is True
+        assert posts_data[0]["image"] is None
+
+    def test_cant_edit_space_post_to_public_visibility_member_user(self):
+        space_admin = make_user()
+        posting_user = make_user()
+        space = make_community(creator=space_admin)
+        space.add_member(posting_user)
+
+        post_title = make_fake_post_title()
+        post_text = make_fake_post_text()
+        space_post = Post.create_post(
+            creator=posting_user,
+            community_id=space.id,
+            image=SimpleUploadedFile(name="foo.jpg", content=simple_jpeg_bytes),
+            text=post_text,
+            title=post_title,
+            circles_ids=[],
+        )
+
+        input_data = {
+            "visibility": VisibilityType.PUBLIC.value,
+            "text": make_fake_post_text(),
+            "title": make_fake_post_title(),
+        }
+
+        response = self.update_space_post(posting_user, space_post.id, input_data)
+        assert response.errors is not None
+        assert response.data is None
+        assert "You cannot add a public post to a community you're not administrator of" in response.errors[0].extensions["errors"]
+
+        space_post.refresh_from_db()
+        assert space_post.title == post_title
+        assert "/foo.jpg/" in space_post.image.image.url
+
+    def test_cant_edit_space_post_other_user(self):
+        space_admin = make_user()
+        posting_user = make_user()
+        other_user = make_user()
+        space = make_community(creator=space_admin)
+        space.add_member(posting_user)
+        space.add_member(other_user)
+
+        post_title = make_fake_post_title()
+        post_text = make_fake_post_text()
+        space_post = Post.create_post(
+            creator=posting_user,
+            community_id=space.id,
+            image=SimpleUploadedFile(name="foo.jpg", content=simple_jpeg_bytes),
+            text=post_text,
+            title=post_title,
+            circles_ids=[],
+        )
+
+        valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+
+        input_data = {
+            "visibility": VisibilityType.MEMBERS.value,
+            "text": make_fake_post_text(),
+            "title": None,
+            "image": valid_image,
+        }
+
+        response = self.update_space_post(other_user, space_post.id, input_data)
+        assert response.errors is not None
+        assert response.data is None
+        assert response.errors[0].message == "This post does not belong to you."
+
+        space_post.refresh_from_db()
+        assert space_post.title == post_title
+        assert "/foo.jpg/" in space_post.image.image.url
+
+    def test_can_delete_space_post(self):
+        space_admin = make_user()
+        posting_user = make_user()
+        subscriber_user = make_user()
+        image_name = "test-image.jpg"
+
+        space = make_community(creator=space_admin)
+        space.add_member(posting_user)
+        space.add_member(subscriber_user)
+
+        CommunityNotificationsSubscription.enable_new_post_notification_for_community(
+            community=space, subscriber=subscriber_user
+        )
+
+        post = posting_user.create_community_encircled_post(
+            space.id,
+            text=make_fake_post_text(),
+            title=make_fake_post_title(),
+            image=SimpleUploadedFile(name=image_name, content=simple_jpeg_bytes),
+            visibility=VisibilityType.MEMBERS.value,
+        )
+        PostUserMention.create_post_user_mention(user=space_admin, post=post)
+        PostComment.create_comment(text=make_fake_post_text(), post=post, commenter=posting_user)
+
+        response = self.delete_space_post(post.id, posting_user)
+
+        assert response.errors is None
+        assert response.data["deleteSpacePost"]["posts"]["totalResults"] == 0
+
+        assert CommunityNewPostNotification.objects.filter(post=post).count() == 0
+        assert PostUserMention.objects.filter(post=post).count() == 0
+        assert PostComment.objects.filter(post=post).count() == 0
+        assert PostImage.objects.filter(post=post).count() == 0
+
+    def test_can_not_delete_space_post(self):
+        space_admin = make_user()
+        posting_user = make_user()
+        image_name = "test-image.jpg"
+
+        space = make_community(creator=space_admin)
+        space.add_member(posting_user)
+
+        post = posting_user.create_community_encircled_post(
+            space.id,
+            text=make_fake_post_text(),
+            title=make_fake_post_title(),
+            image=SimpleUploadedFile(name=image_name, content=simple_jpeg_bytes),
+            visibility=VisibilityType.MEMBERS.value,
+        )
+        PostUserMention.create_post_user_mention(user=space_admin, post=post)
+        PostComment.create_comment(text=make_fake_post_text(), post=post, commenter=posting_user)
+
+        response = self.delete_space_post(post.id, space_admin)
+
+        assert response.data is None
+        assert response.errors is not None
+        assert "Bad user input" == str(response.errors[0].message)
+
+        query_post = Post.objects.get(id=post.id)
+        assert query_post.id == post.id
+        assert query_post.title == post.title
+
+        assert PostUserMention.objects.filter(post=post).count() == 1
+        assert PostComment.objects.filter(post=post).count() == 1
+        assert PostImage.objects.filter(post=post).count() == 1
+
+    def delete_space_post(self, post_id, user):
+        return schema.execute_sync(
+            """
+                mutation Mutation($id: UUID!) {
+                    deleteSpacePost(id: $id) {
+                        id
+                        title
+                        posts {
+                            totalResults
+                        }
+                    }
+                }
+            """,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={
+                "id": str(post_id),
+            },
+        )
 
     def test_insights_by_user_id_success_user_anonymous(self):
         insight_user = make_user()
@@ -1064,17 +1396,26 @@ class TestUsers:
         creator = make_user()
         topic1 = make_topic()
         topic2 = make_topic()
-        space1 = make_community(creator=creator, topics=[topic1, topic2], location="Location1")
-        space2 = make_community(topics=[topic1], location="Location2")
+        # locations inside geolocation filter
+        geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
+        geolocation2 = geos.Point(8.5798387, 53.5590841, srid=4326)
+        # location outside geolocation filter
+        geolocation3 = geos.Point(9.76302, 53.5586627, srid=4326)
+        space1 = make_community(
+            creator=creator, topics=[topic1, topic2], location="Location1", geolocation=geolocation1
+        )
+        space2 = make_community(topics=[topic1], location="Location2", geolocation=geolocation2)
+        space3 = make_community(topics=[topic2], location="Location3", geolocation=geolocation3)
         skill1 = make_skill()
         skill2 = make_skill()
         skill3 = make_skill()
         make_community_task(space1, skills=[skill1, skill2])
         make_community_task(space2, skills=[skill2, skill3])
+        make_community_task(space3, skills=[skill3])
 
         filter_query = """
-            query($topicId: UUID, $location: String, $skillIds: [UUID], $memberId: UUID) {
-                spaces(topicId: $topicId, location: $location, skillIds: $skillIds, memberId: $memberId) {
+            query($topicId: UUID, $geolocation: GeoJSON, $skillIds: [UUID], $memberId: UUID) {
+                spaces(topicId: $topicId, geolocation: $geolocation, skillIds: $skillIds, memberId: $memberId) {
                     totalResults
                     data {
                         id
@@ -1092,41 +1433,41 @@ class TestUsers:
             self.assert_paged_results_equal(filter_response.data["spaces"], expected_data)
 
         # Return all spaces for empty filter
-        assert_filtered_spaces({}, [space1, space2])
+        assert_filtered_spaces({}, [space1, space2, space3])
 
         # Filter by common topic
         assert_filtered_spaces({"topicId": str(topic1.id)}, [space1, space2])
 
         # Filter by unique topic
-        assert_filtered_spaces({"topicId": str(topic2.id)}, [space1])
+        assert_filtered_spaces({"topicId": str(topic2.id)}, [space1, space3])
 
         # Filter by location
-        assert_filtered_spaces({"location": space2.location}, [space2])
+        assert_filtered_spaces({"geolocation": geolocation}, [space1, space2])
 
         # Filter by topic and location
-        assert_filtered_spaces({"topicId": str(topic1.id), "location": space1.location}, [space1])
+        assert_filtered_spaces({"topicId": str(topic2.id), "geolocation": geolocation}, [space1])
 
         # Filter by single skill
         assert_filtered_spaces({"skillIds": [str(skill1.id)]}, [space1])
 
         # Filter by multiple skills
-        assert_filtered_spaces({"skillIds": [str(skill1.id), str(skill3.id)]}, [space1, space2])
+        assert_filtered_spaces({"skillIds": [str(skill1.id), str(skill2.id)]}, [space1, space2])
 
         # Filter by skills and location
-        assert_filtered_spaces({"skillIds": [str(skill2.id)], "location": space2.location}, [space2])
+        assert_filtered_spaces({"skillIds": [str(skill3.id)], "geolocation": geolocation}, [space2])
 
         # Filter by skills and topics
         assert_filtered_spaces({"skillIds": [str(skill2.id)], "topicId": str(topic2.id)}, [space1])
 
+        # Filter by member id
         assert_filtered_spaces({"memberId": creator.username}, [space1])
-        assert_filtered_spaces({"memberId": creator.username, "location": space1.location}, [space1])
-        assert_filtered_spaces({"memberId": creator.username, "location": space2.location}, [])
+        assert_filtered_spaces({"memberId": creator.username, "geolocation": geolocation}, [space1])
 
         # Filter by skills, topics and location
         assert_filtered_spaces(
             {
                 "skillIds": [str(skill3.id)],
-                "location": space1.location,
+                "geolocation": geolocation,
                 "topicId": str(topic2.id),
             },
             [],
@@ -1135,9 +1476,14 @@ class TestUsers:
     def test_filters_for_discover_spaces(self):
         topic1 = make_topic()
         topic2 = make_topic()
-        space1 = make_community(topics=[topic1, topic2], location="Location1")
-        space2 = make_community(topics=[topic1], location="Location2")
-        space3 = make_community(topics=[topic2], location="Location2")
+        # locations inside geolocation filter
+        geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
+        geolocation2 = geos.Point(8.5798387, 53.5590841, srid=4326)
+        # location outside geolocation filter
+        geolocation3 = geos.Point(9.76302, 53.5586627, srid=4326)
+        space1 = make_community(topics=[topic1, topic2], location="Location1", geolocation=geolocation1)
+        space2 = make_community(topics=[topic1], location="Location2", geolocation=geolocation2)
+        space3 = make_community(topics=[topic2], location="Location3", geolocation=geolocation3)
         skill1 = make_skill()
         skill2 = make_skill()
         skill3 = make_skill()
@@ -1145,11 +1491,11 @@ class TestUsers:
         make_community_task(space2, skills=[skill2, skill3])
 
         filter_query = """
-            query($topicIds: [UUID], $location: String, $skillIds: [UUID]) {
-                discoverSpaces(topicIds: $topicIds, location: $location, skillIds: $skillIds) {
+            query($topicIds: [UUID], $geolocation: GeoJSON, $skillIds: [UUID]) {
+                discoverSpaces(topicIds: $topicIds, geolocation: $geolocation, skillIds: $skillIds) {
                     topicId
                     skillId
-                    location
+                    locationId
                     spaces {
                         totalResults
                         data {
@@ -1164,7 +1510,11 @@ class TestUsers:
             return {"id": str(space.id)}
 
         def assert_filtered_spaces(filter_options, expected_spaces):
-            filter_response = schema.execute_sync(filter_query, variable_values=filter_options)
+            filter_response = schema.execute_sync(
+                filter_query,
+                variable_values=filter_options,
+                context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            )
             expected_data = list(map(transform_space, expected_spaces))
             self.assert_paged_results_equal(
                 filter_response.data["discoverSpaces"][0]["spaces"],
@@ -1177,31 +1527,26 @@ class TestUsers:
         # Filter by unique topic
         assert_filtered_spaces({"topicIds": [str(topic2.id)]}, [space1, space3])
 
-        # Filter by topic and location
-        assert_filtered_spaces({"topicIds": [str(topic1.id)], "location": space1.location}, [space1])
-
-        # Filter by skills and topics
-        assert_filtered_spaces(
-            {"skillIds": [str(skill2.id)], "topicIds": [str(topic2.id)]},
-            [space1, space3],
-        )
-
-        # Filter by skills, topics and location
-        assert_filtered_spaces(
-            {
-                "skillIds": [str(skill3.id)],
-                "location": space1.location,
-                "topicIds": [str(topic2.id)],
-            },
-            [space1],
-        )
-
         filter_response = schema.execute_sync(
-            filter_query, variable_values={"topicIds": [str(topic1.id), str(topic2.id)]}
+            filter_query,
+            variable_values={
+                "topicIds": [str(topic1.id), str(topic2.id)],
+                "skillIds": [str(skill3.id)],
+                "geolocation": geolocation,
+            },
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+        )
+        assert len(filter_response.data["discoverSpaces"]) == 4
+        location, t1, t2, skill = (
+            (0, 1, 2, 3) if filter_response.data["discoverSpaces"][1]["topicId"] == str(topic1.id) else (0, 2, 1, 3)
         )
         assert len(filter_response.data["discoverSpaces"]) == 2
         t1, t2 = (0, 1) if filter_response.data["discoverSpaces"][0]["topicId"] == str(topic1.id) else (1, 0)
 
+        self.assert_paged_results_equal(
+            filter_response.data["discoverSpaces"][location]["spaces"],
+            list(map(transform_space, [space1, space2])),
+        )
         self.assert_paged_results_equal(
             filter_response.data["discoverSpaces"][t1]["spaces"],
             list(map(transform_space, [space1, space2])),
@@ -1209,6 +1554,10 @@ class TestUsers:
         self.assert_paged_results_equal(
             filter_response.data["discoverSpaces"][t2]["spaces"],
             list(map(transform_space, [space1, space3])),
+        )
+        self.assert_paged_results_equal(
+            filter_response.data["discoverSpaces"][skill]["spaces"],
+            list(map(transform_space, [space2])),
         )
 
     def test_sort_spaces_by_member_count(self):
@@ -1275,8 +1624,11 @@ class TestUsers:
         assert following_section["spaces"]["totalResults"] == 1
         assert following_section["spaces"]["data"][0]["id"] == str(space4.id)
 
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook.graphql_schema.publish_space_user_added_event")
-    def test_space_membership_request_approval_process(self, mock_publish_space_user_added_event):
+    def test_space_membership_request_approval_process(
+        self, mock_publish_space_user_added_event, mock_invalidate_discover_spaces_query_cache
+    ):
         membership_requestor = make_user()
         space_creator = make_user()
         space = make_community(creator=space_creator)
@@ -1332,7 +1684,6 @@ class TestUsers:
         mock_publish_space_user_added_event.assert_called_once_with(
             username=membership_requestor.username, community=community
         )
-
         self.assert_paged_results_equal(
             space_after_approval["members"],
             [member_result(space_creator, is_admin=True), member_result(membership_requestor, is_admin=False)],
@@ -1357,8 +1708,13 @@ class TestUsers:
             staff_notifications["data"][0]["options"]["user"]["fullName"] == membership_requestor.profile.full_name()
         )
 
+        mock_invalidate_discover_spaces_query_cache.assert_called()
+
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook.graphql_schema.publish_space_user_added_event")
-    def test_space_membership_request_rejection_process(self, mock_publish_space_user_added_event):
+    def test_space_membership_request_rejection_process(
+        self, mock_publish_space_user_added_event, mock_invalidate_discover_spaces_query_cache
+    ):
         membership_requestor = make_user()
         space_creator = make_user()
         space = make_community(creator=space_creator)
@@ -1429,7 +1785,10 @@ class TestUsers:
 
         mock_publish_space_user_added_event.assert_not_called()
 
-    def test_space_admin_grant_and_revoke_admin_access_success(self):
+        mock_invalidate_discover_spaces_query_cache.assert_called()
+
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_space_admin_grant_and_revoke_admin_access_success(self, mock_invalidate_discover_spaces_query_cache):
         space_member = make_user()
         space_creator = make_user()
         space = make_community(creator=space_creator)
@@ -1487,7 +1846,10 @@ class TestUsers:
         assert notification.community == space
         assert notification.notification.first().notification_type == "CAPR"
 
-    def test_space_admin_grant_and_revoke_admin_access_errors(self):
+        mock_invalidate_discover_spaces_query_cache.assert_called()
+
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_space_admin_grant_and_revoke_admin_access_errors(self, mock_invalidate_discover_spaces_query_cache):
         space_member = make_user()
         space_creator = make_user()
         space_admin = make_user()
@@ -1547,7 +1909,10 @@ class TestUsers:
             is False
         )
 
-    def test_space_member_grant_and_revoke_admin_access_errors(self):
+        mock_invalidate_discover_spaces_query_cache.assert_called()
+
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_space_member_grant_and_revoke_admin_access_errors(self, mock_invalidate_discover_spaces_query_cache):
         member_user = make_user()
         member_user_2 = make_user()
         space_creator = make_user()
@@ -1592,6 +1957,8 @@ class TestUsers:
             space.is_user_with_username_administrator_of_community_with_name(member_user_2.username, space.name)
             is False
         )
+
+        mock_invalidate_discover_spaces_query_cache.assert_called()
 
     def test_space_with_posts(self):
         user_member = make_user()
@@ -2341,8 +2708,11 @@ class TestUsers:
         assert "Unauthorized" in str(response.errors[0].message)
         assert "UNAUTHORIZED" == str(response.errors[0].extensions["code"])
 
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook.graphql_schema.publish_space_created_event")
-    def test_can_not_create_spaces_missing_required_fields(self, mock_publish_space_created_event):
+    def test_can_not_create_spaces_missing_required_fields(
+        self, mock_publish_space_created_event, mock_invalidate_discover_spaces_query_cache
+    ):
         user = make_user()
         topic_ids = [str(make_topic().id) for _ in range(7)]
         valid_topics = topic_ids[:2]
@@ -2386,6 +2756,7 @@ class TestUsers:
             assert (response.data["createSpace"] if response.data else response.data) is None
 
         mock_publish_space_created_event.assert_not_called()
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
 
     def test_validates_space_before_creation(self):
         user = make_user()
@@ -2443,8 +2814,9 @@ class TestUsers:
                 assert testCase["expected_error"] in str(response.errors[0].message)
             assert (response.data["createSpace"] if response.data else response.data) is None
 
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook.graphql_schema.publish_space_created_event")
-    def test_can_create_space(self, mock_publish_space_created_event):
+    def test_can_create_space(self, mock_publish_space_created_event, mock_invalidate_discover_spaces_query_cache):
         user = make_user()
         topic_ids = [str(make_topic().id) for _ in range(2)]
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
@@ -2495,9 +2867,13 @@ class TestUsers:
 
         community = Community.objects.get(id=created_space["id"])
         mock_publish_space_created_event.assert_called_once_with(community=community)
+        mock_invalidate_discover_spaces_query_cache.assert_called_once()
 
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook.graphql_schema.publish_space_created_event")
-    def test_can_not_create_space_if_not_logged_in(self, mock_publish_space_created_event):
+    def test_can_not_create_space_if_not_logged_in(
+        self, mock_publish_space_created_event, mock_invalidate_discover_spaces_query_cache
+    ):
         topic_ids = [str(make_topic().id) for _ in range(7)]
         valid_topics = topic_ids[:2]
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
@@ -2519,6 +2895,7 @@ class TestUsers:
 
         self.assert_is_unauthorized(response)
         mock_publish_space_created_event.assert_not_called()
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
 
     def test_validates_space_update(self):
         user = make_user()
@@ -2591,7 +2968,8 @@ class TestUsers:
                 assert testCase["expected_error"] in str(response.errors[0].message)
             assert (response.data["updateSpace"] if response.data else response.data) is None
 
-    def test_can_not_update_space_without_passing_id(self):
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_not_update_space_without_passing_id(self, mock_invalidate_discover_spaces_query_cache):
         user = make_user()
         update_space_mutation = """
             mutation test($input: UpdateSpaceInput!) {
@@ -2609,8 +2987,10 @@ class TestUsers:
 
         assert response.data is None
         assert "Field 'id' of required type 'UUID!' was not provided" in response.errors[0].message
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
 
-    def test_can_update_space(self):
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_update_space(self, mock_invalidate_discover_spaces_query_cache):
         user = make_user()
         community = make_community(creator=user)
         topic_ids = [str(make_topic().id) for _ in range(3)]
@@ -2648,6 +3028,8 @@ class TestUsers:
             {"contactDescription": "Lorem ipsum"},
             {"contactPhone": "+49 123 12345"},
             {"contactEmail": "contact@space.com"},
+            {"cover": None},
+            {"avatar": None},
         ]
 
         for input in valid_inputs:
@@ -2659,6 +3041,8 @@ class TestUsers:
 
             assert str(community.id) == response.data["updateSpace"]["id"]
             assert response.errors is None
+
+        mock_invalidate_discover_spaces_query_cache.assert_called()
 
     def test_updated_space_has_new_values(self):
         user = make_user()
@@ -2724,7 +3108,28 @@ class TestUsers:
         assert "+49 123 12345" == updated_space["contactPhone"]
         assert "contact@space.com" == updated_space["contactEmail"]
 
-    def test_can_not_update_space_if_not_admin(self):
+        # test space avatar and cover deletion
+        input = {
+            "id": str(community.id),
+            "cover": None,
+            "avatar": None,
+        }
+
+        response = schema.execute_sync(
+            update_space_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": input},
+        )
+
+        assert response.errors is None
+
+        updated_space = response.data["updateSpace"]
+        assert str(community.id) == updated_space["id"]
+        assert "" == updated_space["cover"]
+        assert "" == updated_space["avatar"]
+
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_not_update_space_if_not_admin(self, mock_invalidate_discover_spaces_query_cache):
         user = make_user()
         community = make_community()
         update_space_mutation = """
@@ -2744,7 +3149,10 @@ class TestUsers:
         assert response.data is None
         assert "Can't update a community that you do not administrate." in str(response.errors[0].extensions["errors"])
 
-    def test_can_not_update_space_if_not_logged_in(self):
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
+
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_not_update_space_if_not_logged_in(self, mock_invalidate_discover_spaces_query_cache):
         community = make_community()
         update_space_mutation = """
             mutation test($input: UpdateSpaceInput!) {
@@ -2761,8 +3169,13 @@ class TestUsers:
         )
 
         self.assert_is_unauthorized(response)
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
 
-    def test_can_not_delete_space_if_not_admin(self):
+    @mock.patch("openbook.graphql_schema.publish_space_deleted_event")
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_not_delete_space_if_not_admin(
+        self, mock_invalidate_discover_spaces_query_cache, mock_publish_space_deleted_event
+    ):
         user = make_user()
         community = make_community()
         delete_space_mutation = """
@@ -2782,7 +3195,14 @@ class TestUsers:
         assert response.data is None
         assert "Can't delete a community that you do not administrate." in str(response.errors[0].extensions["errors"])
 
-    def test_can_not_delete_space_if_not_logged_in(self):
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
+        mock_publish_space_deleted_event.assert_not_called()
+
+    @mock.patch("openbook.graphql_schema.publish_space_deleted_event")
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_not_delete_space_if_not_logged_in(
+        self, mock_invalidate_discover_spaces_query_cache, mock_publish_space_deleted_event
+    ):
         community = make_community()
         delete_space_mutation = """
             mutation test($id: UUID!) {
@@ -2799,8 +3219,12 @@ class TestUsers:
         )
 
         self.assert_is_unauthorized(response)
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
+        mock_publish_space_deleted_event.assert_not_called()
 
-    def test_can_delete_space(self):
+    @mock.patch("openbook.graphql_schema.publish_space_deleted_event")
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    def test_can_delete_space(self, mock_invalidate_discover_spaces_query_cache, mock_publish_space_deleted_event):
         user = make_user()
         community = make_community(creator=user)
 
@@ -2821,6 +3245,9 @@ class TestUsers:
         assert response.data["deleteSpace"]["success"] is True
         assert response.errors is None
 
+        mock_invalidate_discover_spaces_query_cache.assert_called_once()
+        mock_publish_space_deleted_event.assert_called_once_with(community)
+
     def test_can_not_add_collaboration_tool_missing_required_fields(self):
         user = make_user()
 
@@ -2836,7 +3263,7 @@ class TestUsers:
             """
 
         valid_space_id = str(community.id)
-        valid_url = "https://project-holi.org/"
+        valid_url = "https://holi.social/"
         valid_title = "Project Holi"
         valid_collection_type = "COLLABORATION"
 
@@ -2880,7 +3307,7 @@ class TestUsers:
             """
 
         valid_space_id = str(community.id)
-        valid_url = "https://project-holi.org/"
+        valid_url = "https://holi.social/"
         valid_title = "Project Holi"
         valid_description = "holi is the network where people and organizations come together for the common good"
         valid_collection_type = "COLLABORATION"
@@ -2896,7 +3323,7 @@ class TestUsers:
         expectedErrors = [
             {"field": "url", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "url", "value": "", "expected_code": "blank"},
-            {"field": "url", "value": "project-holi.org", "expected_code": "invalid"},
+            {"field": "url", "value": "holi.social", "expected_code": "invalid"},
             {"field": "title", "value": None, "expected_error": "Expected non-nullable type"},
             {"field": "title", "value": "", "expected_code": "blank"},
             {"field": "title", "value": "c", "expected_code": "min_length"},
@@ -2940,11 +3367,11 @@ class TestUsers:
             """
 
         valid_space_id = str(community.id)
-        valid_url = "https://project-holi.org/"
+        valid_url = "https://holi.social/"
         valid_title = "Project Holi"
         valid_description = "holi is the network where people and organizations come together for the common good"
         valid_collection_type = "COLLABORATION"
-        valid_domain = "Project-Holi"
+        valid_domain = "Holi"
 
         valid_input = {
             "spaceId": valid_space_id,
@@ -2980,7 +3407,7 @@ class TestUsers:
             }
             """
         valid_space_id = str(community.id)
-        valid_url = "https://project-holi.org/"
+        valid_url = "https://holi.social/"
         valid_title = "Project Holi"
         valid_description = "holi is the network where people and organizations come together for the common good"
         valid_collection_type = "COLLABORATION"
@@ -3014,7 +3441,7 @@ class TestUsers:
             """
 
         valid_space_id = str(community.id)
-        valid_url = "https://project-holi.org/"
+        valid_url = "https://holi.social/"
         valid_title = "Project Holi"
         valid_description = "holi is the network where people and organizations come together for the common good"
         valid_collection_type = "COLLABORATION"
@@ -3155,7 +3582,7 @@ class TestUsers:
             },
             {"field": "url", "value": None, "expected_code": "null"},
             {"field": "url", "value": "", "expected_code": "blank"},
-            {"field": "url", "value": "project-holi.org", "expected_code": "invalid"},
+            {"field": "url", "value": "holi.social", "expected_code": "invalid"},
             {"field": "title", "value": None, "expected_code": "null"},
             {"field": "title", "value": "", "expected_code": "blank"},
             {"field": "title", "value": "c", "expected_code": "min_length"},
@@ -3194,7 +3621,7 @@ class TestUsers:
         response = schema.execute_sync(
             update_collaboration_tool_mutation,
             context_value=BeneDict({"request": {"user": user}}),
-            variable_values={"input": {"url": "https://project-holi.org/"}},
+            variable_values={"input": {"url": "https://holi.social/"}},
         )
 
         assert response.data is None
@@ -3212,7 +3639,7 @@ class TestUsers:
             }
             """
 
-        input = {"id": str(collaboration_tool.id), "url": "https://project-holi.org/"}
+        input = {"id": str(collaboration_tool.id), "url": "https://holi.social/"}
 
         response = schema.execute_sync(
             update_collaboration_tool_mutation,
@@ -3236,7 +3663,7 @@ class TestUsers:
             }
             """
 
-        input = {"id": str(collaboration_tool.id), "url": "https://project-holi.org/"}
+        input = {"id": str(collaboration_tool.id), "url": "https://holi.social/"}
 
         response = schema.execute_sync(
             update_collaboration_tool_mutation,
@@ -3261,7 +3688,7 @@ class TestUsers:
             """
         base_input = {"id": str(collaboration_tool.id)}
 
-        valid_url = "https://project-holi.org/"
+        valid_url = "https://holi.social/"
         valid_title = "Project Holi"
         valid_description = "holi is the network where people and organizations come together for the common good"
         valid_collection_type = "COLLABORATION"
@@ -3307,7 +3734,7 @@ class TestUsers:
             }
             """
         id = str(collaboration_tool.id)
-        new_url = "https://project-holi.org/"
+        new_url = "https://holi.social/"
         new_title = "Project Holi"
         new_description = "holi is the network where people and organizations come together for the common good"
         new_collection_type = "COLLABORATION"
@@ -3689,6 +4116,7 @@ class TestUsers:
                     name
                     description
                     visibility
+                    thumbnail
                 }
             }
             """
@@ -3696,6 +4124,7 @@ class TestUsers:
         valid_name = "Valid name"
         valid_description = "Valid description"
         valid_visibility = "MEMBERS"
+        valid_thumbnail = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
 
         valid_input = {
             "taskId": str(task.id),
@@ -3710,6 +4139,7 @@ class TestUsers:
             "slotsAvailable": 1,
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
+            "thumbnail": valid_thumbnail,
         }
 
         response = schema.execute_sync(
@@ -3725,6 +4155,38 @@ class TestUsers:
         assert valid_name == updateTask["name"]
         assert valid_description == updateTask["description"]
         assert valid_visibility == updateTask["visibility"]
+        assert "cover.jpg" in updateTask["thumbnail"]
+
+        valid_name = "New valid name"
+        valid_description = "New valid description"
+        valid_visibility = "PUBLIC"
+
+        valid_input = {
+            "taskId": str(task.id),
+            "spaceId": str(community.id),
+            "name": valid_name,
+            "description": valid_description,
+            "visibility": valid_visibility,
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "thumbnail": None,
+        }
+
+        response = schema.execute_sync(
+            update_task_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": valid_input},
+        )
+
+        assert response.errors is None
+
+        updateTask = response.data["updateTask"]
+        assert "id" in updateTask
+        assert valid_name == updateTask["name"]
+        assert valid_description == updateTask["description"]
+        assert valid_visibility == updateTask["visibility"]
+        assert "" == updateTask["thumbnail"]
 
     def test_can_not_update_task_if_not_logged_in(self):
         community = make_community()

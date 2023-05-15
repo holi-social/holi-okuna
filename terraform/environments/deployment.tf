@@ -73,7 +73,7 @@ resource "google_cloud_run_service" "okuna" {
         env {
           name = "ALLOWED_HOSTS"
           # TODO This could break the admin interface, we need to check it after deployment
-          value = local.dns_name
+          value = "${local.dns_name},${local.project_holi_dns_name}"
         }
         env {
           name  = "RDS_DB_NAME"
@@ -149,7 +149,7 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "ORY_BASE_URL"
-          value = local.environment == "production" ? "https://auth.project-holi.org" : "https://dev-auth.project-holi.org"
+          value = local.environment == "production" ? "https://auth.holi.social" : "https://dev-auth.holi.social"
         }
         env {
           name = "ORY_ACCESS_TOKEN"
@@ -205,6 +205,21 @@ resource "google_cloud_run_service" "okuna" {
 }
 
 resource "google_cloud_run_domain_mapping" "okuna" {
+  project = google_cloud_run_service.okuna.project
+  # location needs to be the same as the service's
+  location = google_cloud_run_service.okuna.location
+  name     = local.project_holi_dns_name
+
+  metadata {
+    namespace = google_cloud_run_service.okuna.project
+  }
+
+  spec {
+    route_name = google_cloud_run_service.okuna.name
+  }
+}
+
+resource "google_cloud_run_domain_mapping" "holi_social_okuna" {
   project = google_cloud_run_service.okuna.project
   # location needs to be the same as the service's
   location = google_cloud_run_service.okuna.location

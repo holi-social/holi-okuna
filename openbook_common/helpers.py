@@ -103,6 +103,10 @@ def attr_filled(obj, attr):
     return bool(getattr(obj, attr, None))
 
 
+def is_parameter_null(obj, attr):
+    return attr in obj and obj[attr] is None
+
+
 def prefix_keys(kwargs, prefix):
     if prefix:
         return {prefix + "__" + key.lstrip("_"): value for key, value in kwargs.items()}
