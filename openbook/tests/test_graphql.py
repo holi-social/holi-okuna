@@ -162,11 +162,9 @@ class TestUsers:
         community = make_community()
         community.add_member(user)
         pronouns = "She/her"
-        assert User.objects.get(username=user.username).profile.pronouns != pronouns
-
-        geolocation = {"latitude": 2.0, "longitude": -4.2}
         location = "Bremerhaven"
 
+        assert User.objects.get(username=user.username).profile.pronouns != pronouns
         first_name = "Peter"
         last_name = "Shaw"
         engagement_level = EngagementLevelChoice.INITIATOR
@@ -218,7 +216,6 @@ class TestUsers:
         assert graphql_pronouns == pronouns
         assert last_name == persisted_profile.last_name
         assert first_name == persisted_profile.name
-
         assert persisted_profile.engagement_level == EngagementLevelChoice.INITIATOR
         assert location == persisted_profile.location
         assert geolocation_id == persisted_profile.geolocation_id
@@ -1540,8 +1537,6 @@ class TestUsers:
         location, t1, t2, skill = (
             (0, 1, 2, 3) if filter_response.data["discoverSpaces"][1]["topicId"] == str(topic1.id) else (0, 2, 1, 3)
         )
-        assert len(filter_response.data["discoverSpaces"]) == 2
-        t1, t2 = (0, 1) if filter_response.data["discoverSpaces"][0]["topicId"] == str(topic1.id) else (1, 0)
 
         self.assert_paged_results_equal(
             filter_response.data["discoverSpaces"][location]["spaces"],
