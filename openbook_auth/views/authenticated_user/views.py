@@ -58,9 +58,9 @@ class AuthenticatedUser(APIView):
                 sdgs=data.get("sdgs"),
                 skills=data.get("skills"),
                 avatar=data.get("avatar"),
-                update_avatar="avatar" in data,
+                remove_avatar="avatar" in data and data["avatar"] is None,
                 cover=data.get("cover"),
-                update_cover="cover" in data,
+                remove_cover="cover" in data and data["cover"] is None,
                 update_location="location" in data,
                 save=True,
             )

@@ -221,10 +221,10 @@ class Post(ModelWithUUID):
             self.text = text
             self.language = get_language_for_text(text)
 
-        if image:
-            self._update_image(image)
-        elif remove_image:
+        if remove_image:
             self._delete_media_image()
+        elif image:
+            self._update_image(image)
 
         self.circles.set(circles_ids)
 

@@ -584,30 +584,29 @@ class User(ModelWithUUID, AbstractUser):
         self.is_deleted = False
         self.save()
 
-    def update_profile_cover(self, cover, save=True):
+    def _update_profile_cover(self, cover, save=True):
         if cover is None:
-            self.delete_profile_cover(save=False)
+            self._delete_profile_cover(save=False)
         else:
             self.profile.cover = cover
 
         if save:
             self.profile.save()
 
-    def delete_profile_cover(self, save=True):
+    def _delete_profile_cover(self, save=True):
         delete_file_field(self.profile.cover)
         self.profile.cover = None
         self.profile.cover.delete(save=save)
 
-    def update_profile_avatar(self, avatar, save=True):
-        if avatar is None:
-            self.delete_profile_avatar(save=False)
-        else:
-            self.profile.avatar = avatar
+    def _update_profile_avatar(self, avatar, save=True):
+        if self.profile.avatar:
+            self._delete_profile_avatar(save=False)
+        self.profile.avatar = avatar
 
         if save:
             self.profile.save()
 
-    def delete_profile_avatar(self, save=True):
+    def _delete_profile_avatar(self, save=True):
         delete_file_field(self.profile.avatar)
         self.profile.avatar = None
         self.profile.avatar.delete(save=save)
@@ -672,9 +671,8 @@ class User(ModelWithUUID, AbstractUser):
         community_posts_visible=None,
         visibility=None,
         avatar=None,
-        update_avatar=False,
         cover=None,
-        update_cover=False,
+        remove_cover=False,
         last_name=None,
         pronouns=None,
         engagement_level=None,
@@ -683,6 +681,7 @@ class User(ModelWithUUID, AbstractUser):
         skills=None,
         save=True,
         update_location=False,
+        remove_avatar=False,
     ):
         profile = self.profile
 
@@ -707,12 +706,6 @@ class User(ModelWithUUID, AbstractUser):
                 profile.location = location
                 profile.geolocation = None
                 profile.geolocation_id = None
-
-        if avatar is not None:
-            profile.avatar = avatar
-
-        if cover is not None:
-            profile.cover = cover
 
         if about_me is not None:
             if len(about_me) == 0:
@@ -750,10 +743,15 @@ class User(ModelWithUUID, AbstractUser):
         if skills is not None:
             profile.skills.set(skills)
 
-        if update_avatar:
-            self.update_profile_avatar(avatar, save=False)
-        if update_cover:
-            self.update_profile_cover(cover, save=False)
+        if remove_avatar:
+            self._delete_profile_avatar(save=False)
+        elif avatar:
+            self._update_profile_avatar(avatar, save=False)
+
+        if remove_cover:
+            self._delete_profile_cover(save=False)
+        elif cover:
+            self._update_profile_cover(cover, save=False)
 
         if save:
             profile.save()
@@ -1866,7 +1864,9 @@ class User(ModelWithUUID, AbstractUser):
         invites_enabled=None,
         topic_ids=None,
         cover=None,
+        remove_cover=False,
         avatar=None,
+        remove_avatar=False,
         sdg_ids=None,
         location=None,
         geolocation=None,
@@ -1890,7 +1890,9 @@ class User(ModelWithUUID, AbstractUser):
             invites_enabled=invites_enabled,
             topic_ids=topic_ids,
             cover=cover,
+            remove_cover=remove_cover,
             avatar=avatar,
+            remove_avatar=remove_avatar,
             sdg_ids=sdg_ids,
             location=location,
             geolocation=geolocation,
@@ -1913,7 +1915,9 @@ class User(ModelWithUUID, AbstractUser):
         invites_enabled=None,
         topic_ids=None,
         cover=None,
+        remove_cover=False,
         avatar=None,
+        remove_avatar=False,
         sdg_ids=None,
         location=None,
         geolocation=None,
@@ -1940,7 +1944,9 @@ class User(ModelWithUUID, AbstractUser):
             invites_enabled=invites_enabled,
             topic_ids=topic_ids,
             cover=cover,
+            remove_cover=remove_cover,
             avatar=avatar,
+            remove_avatar=remove_avatar,
             sdg_ids=sdg_ids,
             location=location,
             geolocation=geolocation,
@@ -4687,7 +4693,7 @@ class User(ModelWithUUID, AbstractUser):
         contact_phone=None,
         skills=None,
         thumbnail=None,
-        update_thumbnail=False,
+        remove_thumbnail=False,
     ):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
@@ -4696,15 +4702,6 @@ class User(ModelWithUUID, AbstractUser):
 
         Task = get_task_model()
         task = Task.objects.get(id=task_id)
-
-        new_thumbnail = task.thumbnail
-
-        if update_thumbnail and thumbnail is not None:
-            new_thumbnail = thumbnail
-
-        if update_thumbnail and thumbnail is None:
-            delete_file_field(task.thumbnail)
-            new_thumbnail = None
 
         return task.update(
             name=name,
@@ -4718,7 +4715,8 @@ class User(ModelWithUUID, AbstractUser):
             regularity=regularity,
             contact_phone=contact_phone,
             skills=skills,
-            thumbnail=new_thumbnail,
+            thumbnail=thumbnail,
+            remove_thumbnail=remove_thumbnail,
         )
 
     def delete_task_with_id(self, task_id):
@@ -4764,6 +4762,7 @@ class User(ModelWithUUID, AbstractUser):
         collection_type=None,
         description=None,
         thumbnail=None,
+        remove_thumbnail=False,
     ):
         CollaborationTool = get_collaboration_tool_model()
         collaboration_tool = CollaborationTool.objects.get(id=collaboration_tool_id)
@@ -4776,6 +4775,7 @@ class User(ModelWithUUID, AbstractUser):
             collection_type=collection_type,
             description=description,
             thumbnail=thumbnail,
+            remove_thumbnail=remove_thumbnail,
         )
 
         return collaboration_tool
