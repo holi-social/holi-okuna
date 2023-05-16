@@ -1258,6 +1258,33 @@ class ExternalLink(ModelWithUUID):
         choices=ExternalLinkType.choices,
     )
 
+    @classmethod
+    def create(
+        cls,
+        community,
+        url,
+        type,
+    ):
+        external_link = cls.objects.create(
+            community=community,
+            url=url,
+            type=type,
+        )
+
+        return external_link
+
+    def update(
+        self,
+        url=None,
+        type=None,
+    ):
+        if url is not None:
+            self.url = url
+        if type is not None:
+            self.type = type
+
+        self.save()
+
 
 class CollaborationTool(ModelWithUUID):
     @gql.enum
