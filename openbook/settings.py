@@ -700,3 +700,6 @@ COLLABORATION_TOOL_DOMAIN_MAX_LENGTH = 63  # Maximum number of characters for a 
 
 # Google Pub/Sub
 GOOGLE_CLOUD_PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT_ID")
+
+# External links
+EXTERNAL_LINK_URL_MAX_LENGTH = 500
