@@ -34,6 +34,7 @@ from openbook_common.tests.helpers import (
     make_collaboration_tool,
     make_community,
     make_community_task,
+    make_external_link,
     make_fake_post_text,
     make_fake_post_title,
     make_sdg,
@@ -4448,6 +4449,447 @@ class GraphQLTest(TestCase):
         tasks_external = response_external.data["spaceById"]["tasks"]
         self.assertEqual(len(tasks_external), 1)
         self.assertEqual(tasks_external[0].get("id"), str(public_task.id))
+
+    def test_can_not_add_external_link_missing_required_fields(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        add_external_link_mutation = """
+            mutation test($input: AddExternalLinkInput!) {
+                addExternalLink(input: $input) {
+                    id
+                }
+            }
+            """
+
+        valid_space_id = str(community.id)
+        valid_url = "https://www.instagram.com/"
+        valid_type = "INSTAGRAM"
+
+        expectedErrors = [
+            {
+                "input": {"url": valid_url, "spaceId": valid_space_id},
+                "expected_error": "was not provided",
+            },
+            {
+                "input": {"url": valid_url, "type": valid_type},
+                "expected_error": "was not provided",
+            },
+            {
+                "input": {"spaceId": valid_space_id, "type": valid_type},
+                "expected_error": "was not provided",
+            },
+        ]
+
+        for testCase in expectedErrors:
+            response = schema.execute_sync(
+                add_external_link_mutation,
+                context_value=BeneDict({"request": {"user": user}}),
+                variable_values={"input": testCase["input"]},
+            )
+
+            self.assertIn(testCase["expected_error"], str(response.errors[0].message))
+            self.assertIsNone(response.data["addExternalLink"] if response.data else response.data)
+
+    def test_validates_external_link_before_creation(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        add_external_link_mutation = """
+            mutation test($input: AddExternalLinkInput!) {
+                addExternalLink(input: $input) {
+                    id
+                }
+            }
+            """
+
+        valid_space_id = str(community.id)
+        valid_url = "https://www.instagram.com/"
+        valid_type = "INSTAGRAM"
+
+        valid_input = {
+            "spaceId": valid_space_id,
+            "url": valid_url,
+            "type": valid_type,
+        }
+
+        expectedErrors = [
+            {"field": "url", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "url", "value": "", "expected_code": "blank"},
+            {"field": "url", "value": "holi.social", "expected_code": "invalid"},
+            {"field": "type", "value": None, "expected_error": "Expected non-nullable type"},
+        ]
+
+        for testCase in expectedErrors:
+            response = schema.execute_sync(
+                add_external_link_mutation,
+                context_value=BeneDict({"request": {"user": user}}),
+                variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
+            )
+
+            if "expected_code" in testCase:
+                field_errors = json.loads(response.errors[0].extensions["errors"])
+                self.assertEqual(
+                    testCase["expected_code"],
+                    field_errors[testCase["field"]][0]["code"],
+                    f"{str(response.errors[0].extensions)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
+                )
+            else:
+                self.assertIn(testCase["expected_error"], str(response.errors[0].message))
+            self.assertIsNone(response.data["addExternalLink"] if response.data else response.data)
+
+    def test_can_add_external_link(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        add_external_link_mutation = """
+            mutation test($input: AddExternalLinkInput!) {
+                addExternalLink(input: $input) {
+                    id
+                    url
+                    type
+                }
+            }
+            """
+
+        valid_space_id = str(community.id)
+        valid_url = "https://www.instagram.com/"
+        valid_type = "INSTAGRAM"
+
+        valid_input = {
+            "spaceId": valid_space_id,
+            "url": valid_url,
+            "type": valid_type,
+        }
+
+        response = schema.execute_sync(
+            add_external_link_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": valid_input},
+        )
+
+        self.assertIsNone(response.errors)
+
+        added_external_link = response.data["addExternalLink"]
+        self.assertIn("id", added_external_link)
+        self.assertEqual(valid_url, added_external_link["url"])
+        self.assertIn(valid_type, added_external_link["type"])
+
+    def test_can_not_add_external_link_if_not_logged_in(self):
+        community = make_community()
+        add_external_link_mutation = """
+            mutation test($input: AddExternalLinkInput!) {
+                addExternalLink(input: $input) {
+                    id
+                }
+            }
+            """
+        valid_space_id = str(community.id)
+        valid_url = "https://www.instagram.com/"
+        valid_type = "INSTAGRAM"
+
+        valid_input = {
+            "spaceId": valid_space_id,
+            "url": valid_url,
+            "type": valid_type,
+        }
+
+        response = schema.execute_sync(
+            add_external_link_mutation,
+            variable_values={"input": valid_input},
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+        )
+
+        self.assert_is_unauthorized(response)
+
+    def test_can_not_add_external_link_if_not_space_admin(self):
+        user = make_user()
+
+        community = make_community()
+        community.add_member(user)
+
+        add_external_link_mutation = """
+            mutation test($input: AddExternalLinkInput!) {
+                addExternalLink(input: $input) {
+                    id
+                }
+            }
+            """
+
+        valid_space_id = str(community.id)
+        valid_url = "https://www.instagram.com/"
+        valid_type = "INSTAGRAM"
+
+        valid_input = {
+            "spaceId": valid_space_id,
+            "url": valid_url,
+            "type": valid_type,
+        }
+
+        response = schema.execute_sync(
+            add_external_link_mutation,
+            variable_values={"input": valid_input},
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        self.assertIsNone(response.data)
+        self.assertIn(
+            "You cannot add an external link to a community that you do not administrate",
+            response.errors[0].extensions["errors"],
+        )
+
+    def test_can_not_delete_external_link_if_not_logged_in(self):
+        external_link = make_external_link()
+
+        delete_external_link_mutation = """
+            mutation test($id: UUID!) {
+                deleteExternalLink(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            delete_external_link_mutation,
+            variable_values={"id": str(external_link.id)},
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+        )
+
+        self.assert_is_unauthorized(response)
+
+    def test_can_not_delete_external_link_if_not_space_admin(self):
+        user = make_user()
+
+        community = make_community()
+        community.add_member(user)
+
+        external_link = make_external_link(community=community)
+
+        delete_external_link_mutation = """
+            mutation test($id: UUID!) {
+                deleteExternalLink(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            delete_external_link_mutation,
+            variable_values={"id": str(external_link.id)},
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        self.assertIsNone(response.data)
+        self.assertIn(
+            "You cannot delete an external link in a community that you do not administrate",
+            response.errors[0].extensions["errors"],
+        )
+
+    def test_can_delete_external_link_if_admin(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        external_link = make_external_link(community=community)
+
+        delete_external_link_mutation = """
+            mutation test($id: UUID!) {
+                deleteExternalLink(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            delete_external_link_mutation,
+            variable_values={"id": str(external_link.id)},
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        self.assertTrue(response.data["deleteExternalLink"]["success"])
+        self.assertIsNone(response.errors)
+
+    def test_validates_external_link_before_update(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        external_link = make_external_link(community=community)
+
+        update_external_link_mutation = """
+            mutation test($input: UpdateExternalLinkInput!) {
+                updateExternalLink(input: $input) {
+                    id
+                }
+            }
+            """
+        base_input = {"id": str(external_link.id)}
+        invalid_uuid = str(uuid4())
+
+        expectedErrors = [
+            {"field": "id", "value": None, "expected_error": "Expected non-nullable type"},
+            {
+                "field": "id",
+                "value": invalid_uuid,
+                "expected_error": "No external link with the provided id exists.",
+            },
+            {"field": "url", "value": None, "expected_code": "null"},
+            {"field": "url", "value": "", "expected_code": "blank"},
+            {"field": "url", "value": "holi.social", "expected_code": "invalid"},
+            {"field": "type", "value": None, "expected_code": "null"},
+        ]
+
+        for testCase in expectedErrors:
+            response = schema.execute_sync(
+                update_external_link_mutation,
+                context_value=BeneDict({"request": {"user": user}}),
+                variable_values={
+                    "input": base_input | {testCase["field"]: testCase["value"]},
+                },
+            )
+
+            if "expected_code" in testCase:
+                field_errors = json.loads(response.errors[0].extensions["errors"])
+                self.assertEqual(
+                    testCase["expected_code"],
+                    field_errors[testCase["field"]][0]["code"],
+                    f"{str(response.errors[0].extensions)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
+                )
+            else:
+                self.assertIn(testCase["expected_error"], str(response.errors[0].message))
+            self.assertIsNone(response.data["updateExternalLink"] if response.data else response.data)
+
+    def test_can_not_update_external_link_without_passing_id(self):
+        user = make_user()
+        update_external_link_mutation = """
+            mutation test($input: UpdateExternalLinkInput!) {
+                updateExternalLink(input: $input) {
+                    id
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            update_external_link_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": {"url": "https://www.instagram.com/", "type": "INSTAGRAM"}},
+        )
+
+        self.assertIsNone(response.data)
+        self.assertIn("Field 'id' of required type 'UUID!' was not provided", response.errors[0].message)
+
+    def test_can_not_update_external_link_if_not_space_admin(self):
+        user = make_user()
+
+        community = make_community()
+        community.add_member(user)
+
+        external_link = make_external_link(community=community)
+
+        update_external_link_mutation = """
+            mutation test($input: UpdateExternalLinkInput!) {
+                updateExternalLink(input: $input) {
+                    id
+                }
+            }
+            """
+
+        input = {"id": str(external_link.id), "url": "https://www.instagram.com/", "type": "INSTAGRAM"}
+
+        response = schema.execute_sync(
+            update_external_link_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": input},
+        )
+
+        self.assertIsNone(response.data)
+        self.assertIn(
+            "You cannot update an external link in a community that you do not administrate",
+            str(response.errors[0].extensions["errors"]),
+        )
+
+    def test_can_not_update_external_link_if_not_logged_in(self):
+        external_link = make_external_link()
+
+        update_external_link_mutation = """
+            mutation test($input: UpdateExternalLinkInput!) {
+                updateExternalLink(input: $input) {
+                    id
+                }
+            }
+            """
+
+        input = {"id": str(external_link.id), "url": "https://www.instagram.com/", "type": "INSTAGRAM"}
+
+        response = schema.execute_sync(
+            update_external_link_mutation,
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            variable_values={"input": input},
+        )
+
+        self.assert_is_unauthorized(response)
+
+    def test_can_update_external_link(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        external_link = make_external_link(community=community)
+
+        update_external_link_mutation = """
+            mutation test($input: UpdateExternalLinkInput!) {
+                updateExternalLink(input: $input) {
+                    id
+                }
+            }
+            """
+
+        input = {"id": str(external_link.id), "url": "https://www.instagram.com/", "type": "INSTAGRAM"}
+
+        response = schema.execute_sync(
+            update_external_link_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": input},
+        )
+
+        self.assertEqual(str(external_link.id), response.data["updateExternalLink"]["id"])
+        self.assertIsNone(response.errors)
+
+    def test_updated_external_link_has_new_values(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        external_link = make_external_link(community=community)
+
+        update_external_link_mutation = """
+            mutation test($input: UpdateExternalLinkInput!) {
+                updateExternalLink(input: $input) {
+                    id
+                    url
+                    type
+                }
+            }
+            """
+        id = str(external_link.id)
+        new_url = "https://www.instagram.com/"
+        new_type = "INSTAGRAM"
+
+        input = {
+            "id": id,
+            "url": new_url,
+            "type": new_type,
+        }
+
+        response = schema.execute_sync(
+            update_external_link_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": input},
+        )
+
+        self.assertIsNone(response.errors)
+
+        updated_external_link = response.data["updateExternalLink"]
+
+        self.assertEqual(id, updated_external_link["id"])
+        self.assertEqual(new_url, updated_external_link["url"])
+        self.assertEqual(new_type, updated_external_link["type"])
 
 
 def approve_verify_moderated_object(object_id, user):

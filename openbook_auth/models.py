@@ -34,6 +34,7 @@ from openbook_common.utils.model_loaders import (
     get_collaboration_tool_model,
     get_connection_model,
     get_circle_model,
+    get_external_link_model,
     get_follow_model,
     get_list_model,
     get_community_invite_model,
@@ -4790,6 +4791,55 @@ class User(ModelWithUUID, AbstractUser):
         check_can_delete_collaboration_tool_from_community(user=self, community=community)
 
         return collaboration_tool.delete()
+
+    def add_external_link(
+        self,
+        space_id,
+        url,
+        type,
+    ):
+        Community = get_community_model()
+        community = Community.objects.get(id=space_id)
+
+        check_can_add_external_link_to_community(user=self, community=community)
+
+        ExternalLink = get_external_link_model()
+        external_link = ExternalLink.create(
+            community=community,
+            url=url,
+            type=type,
+        )
+
+        return external_link
+
+    def update_external_link(
+        self,
+        external_link_id,
+        url=None,
+        type=None,
+    ):
+        ExternalLink = get_external_link_model()
+        external_link = ExternalLink.objects.get(id=external_link_id)
+
+        check_can_update_external_link_in_community(user=self, community=external_link.community)
+
+        external_link.update(
+            url=url,
+            type=type,
+        )
+
+        return external_link
+
+    def delete_external_link(self, external_link_id):
+        ExternalLink = get_external_link_model()
+        external_link = ExternalLink.objects.get(id=external_link_id)
+
+        Community = get_community_model()
+        community = Community.objects.get(id=external_link.community.id)
+
+        check_can_delete_external_link_from_community(user=self, community=community)
+
+        return external_link.delete()
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL, dispatch_uid="bootstrap_auth_token")
