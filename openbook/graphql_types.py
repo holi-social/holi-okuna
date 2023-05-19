@@ -191,6 +191,7 @@ class ExternalLink:
     id: gql.auto
     url: gql.auto
     type: ExternalLinkType
+    name: gql.auto
 
 
 @gql.django.type(PostImageModel)

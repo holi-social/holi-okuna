@@ -450,6 +450,11 @@ class AddExternalLinkSerializer(serializers.Serializer):
         required=False,
     )
     type = serializers.ChoiceField(required=False, choices=ExternalLinkType.choices)
+    name = serializers.CharField(
+        max_length=settings.EXTERNAL_LINK_NAME_MAX_LENGTH,
+        required=True,
+        allow_blank=False,
+    )
 
 
 class UpdateExternalLinkSerializer(serializers.Serializer):
@@ -463,3 +468,8 @@ class UpdateExternalLinkSerializer(serializers.Serializer):
         required=False,
     )
     type = serializers.ChoiceField(required=False, choices=ExternalLinkType.choices)
+    name = serializers.CharField(
+        max_length=settings.EXTERNAL_LINK_NAME_MAX_LENGTH,
+        required=True,
+        allow_blank=False,
+    )
