@@ -47,7 +47,7 @@ from openbook_common.utils.model_loaders import (
     get_community_admin_privileges_granted_notification_model,
     get_community_admin_privileges_revoked_notification_model,
 )
-from openbook_communities.models import Community, CommunityNotificationsSubscription
+from openbook_communities.models import Community, CommunityNotificationsSubscription, CommunityMembership
 from openbook_common.types import VisibilityType
 from openbook_insights.models import Insight
 from openbook_moderation.models import ModeratedObject
@@ -1974,6 +1974,61 @@ class GraphQLTest(TestCase):
         )
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
+
+    def test_space_member_leaves_community_success(self):
+        member_user = make_user()
+        space_creator = make_user()
+
+        space = make_community(creator=space_creator)
+        space.add_member(member_user)
+
+        CommunityNotificationsSubscription.enable_new_post_notification_for_community(
+            community=space, subscriber=member_user
+        )
+
+        response = self.mutate_update_space_user_connection_raw(
+            auth_user=member_user,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBER,
+            connect_action=UpdateConnectionAction.LEAVE_SPACE,
+        )
+
+        self.assertIsNone(response.errors)
+        self.assertIsNotNone(response.data)
+
+        memberships = space.memberships.all()
+        self.assertEqual(len(memberships), 1)
+        self.assertNotIn(member_user, memberships)
+        self.assertFalse(
+            CommunityNotificationsSubscription.objects.filter(community=space, subscriber=member_user).exists()
+        )
+
+    def test_space_only_member_leaves_community(self):
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+
+        CommunityNotificationsSubscription.enable_new_post_notification_for_community(
+            community=space, subscriber=space_creator
+        )
+
+        response = self.mutate_update_space_user_connection_raw(
+            auth_user=space_creator,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBER,
+            connect_action=UpdateConnectionAction.LEAVE_SPACE,
+        )
+
+        self.assertIsNotNone(response.errors)
+        self.assertIsNone(response.data)
+        self.assertIn(response.errors[0].message, "Bad user input")
+
+        memberships = space.memberships.all()
+        self.assertEqual(len(memberships), 1)
+        self.assertEqual(space_creator.id, memberships[0].user.id)
+
+        self.assertTrue(
+            CommunityNotificationsSubscription.objects.filter(community=space, subscriber=space_creator).exists()
+        )
 
     def test_space_with_posts(self):
         user_member = make_user()
