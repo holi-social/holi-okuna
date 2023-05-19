@@ -4465,18 +4465,23 @@ class GraphQLTest(TestCase):
         valid_space_id = str(community.id)
         valid_url = "https://www.instagram.com/"
         valid_type = "INSTAGRAM"
+        valid_name = "Instagram"
 
         expectedErrors = [
             {
-                "input": {"url": valid_url, "spaceId": valid_space_id},
+                "input": {"url": valid_url, "spaceId": valid_space_id, "type": valid_type},
                 "expected_error": "was not provided",
             },
             {
-                "input": {"url": valid_url, "type": valid_type},
+                "input": {"url": valid_url, "type": valid_type, "name": valid_name},
                 "expected_error": "was not provided",
             },
             {
-                "input": {"spaceId": valid_space_id, "type": valid_type},
+                "input": {"spaceId": valid_space_id, "type": valid_type, "name": valid_name},
+                "expected_error": "was not provided",
+            },
+            {
+                "input": {"spaceId": valid_space_id, "url": valid_url, "name": valid_name},
                 "expected_error": "was not provided",
             },
         ]
@@ -4506,11 +4511,13 @@ class GraphQLTest(TestCase):
         valid_space_id = str(community.id)
         valid_url = "https://www.instagram.com/"
         valid_type = "INSTAGRAM"
+        valid_name = "Instagram"
 
         valid_input = {
             "spaceId": valid_space_id,
             "url": valid_url,
             "type": valid_type,
+            "name": valid_name,
         }
 
         expectedErrors = [
@@ -4518,6 +4525,7 @@ class GraphQLTest(TestCase):
             {"field": "url", "value": "", "expected_code": "blank"},
             {"field": "url", "value": "holi.social", "expected_code": "invalid"},
             {"field": "type", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "name", "value": None, "expected_error": "Expected non-nullable type"},
         ]
 
         for testCase in expectedErrors:
@@ -4548,6 +4556,7 @@ class GraphQLTest(TestCase):
                     id
                     url
                     type
+                    name
                 }
             }
             """
@@ -4555,11 +4564,13 @@ class GraphQLTest(TestCase):
         valid_space_id = str(community.id)
         valid_url = "https://www.instagram.com/"
         valid_type = "INSTAGRAM"
+        valid_name = "Instagram"
 
         valid_input = {
             "spaceId": valid_space_id,
             "url": valid_url,
             "type": valid_type,
+            "name": valid_name,
         }
 
         response = schema.execute_sync(
@@ -4574,6 +4585,7 @@ class GraphQLTest(TestCase):
         self.assertIn("id", added_external_link)
         self.assertEqual(valid_url, added_external_link["url"])
         self.assertIn(valid_type, added_external_link["type"])
+        self.assertEqual(valid_name, added_external_link["name"])
 
     def test_can_not_add_external_link_if_not_logged_in(self):
         community = make_community()
@@ -4587,11 +4599,13 @@ class GraphQLTest(TestCase):
         valid_space_id = str(community.id)
         valid_url = "https://www.instagram.com/"
         valid_type = "INSTAGRAM"
+        valid_name = "Instagram"
 
         valid_input = {
             "spaceId": valid_space_id,
             "url": valid_url,
             "type": valid_type,
+            "name": valid_name,
         }
 
         response = schema.execute_sync(
@@ -4619,11 +4633,13 @@ class GraphQLTest(TestCase):
         valid_space_id = str(community.id)
         valid_url = "https://www.instagram.com/"
         valid_type = "INSTAGRAM"
+        valid_name = "Instagram"
 
         valid_input = {
             "spaceId": valid_space_id,
             "url": valid_url,
             "type": valid_type,
+            "name": valid_name,
         }
 
         response = schema.execute_sync(
@@ -4735,6 +4751,7 @@ class GraphQLTest(TestCase):
             {"field": "url", "value": "", "expected_code": "blank"},
             {"field": "url", "value": "holi.social", "expected_code": "invalid"},
             {"field": "type", "value": None, "expected_code": "null"},
+            {"field": "name", "value": None, "expected_code": "null"},
         ]
 
         for testCase in expectedErrors:
@@ -4792,7 +4809,12 @@ class GraphQLTest(TestCase):
             }
             """
 
-        input = {"id": str(external_link.id), "url": "https://www.instagram.com/", "type": "INSTAGRAM"}
+        input = {
+            "id": str(external_link.id),
+            "url": "https://www.instagram.com/",
+            "type": "INSTAGRAM",
+            "name": "Instagram",
+        }
 
         response = schema.execute_sync(
             update_external_link_mutation,
@@ -4817,7 +4839,12 @@ class GraphQLTest(TestCase):
             }
             """
 
-        input = {"id": str(external_link.id), "url": "https://www.instagram.com/", "type": "INSTAGRAM"}
+        input = {
+            "id": str(external_link.id),
+            "url": "https://www.instagram.com/",
+            "type": "INSTAGRAM",
+            "name": "Instagram",
+        }
 
         response = schema.execute_sync(
             update_external_link_mutation,
@@ -4841,7 +4868,12 @@ class GraphQLTest(TestCase):
             }
             """
 
-        input = {"id": str(external_link.id), "url": "https://www.instagram.com/", "type": "INSTAGRAM"}
+        input = {
+            "id": str(external_link.id),
+            "url": "https://www.instagram.com/",
+            "type": "INSTAGRAM",
+            "name": "Instagram",
+        }
 
         response = schema.execute_sync(
             update_external_link_mutation,
@@ -4864,17 +4896,20 @@ class GraphQLTest(TestCase):
                     id
                     url
                     type
+                    name
                 }
             }
             """
         id = str(external_link.id)
         new_url = "https://www.instagram.com/"
         new_type = "INSTAGRAM"
+        new_name = "Instagram"
 
         input = {
             "id": id,
             "url": new_url,
             "type": new_type,
+            "name": new_name,
         }
 
         response = schema.execute_sync(
@@ -4890,6 +4925,7 @@ class GraphQLTest(TestCase):
         self.assertEqual(id, updated_external_link["id"])
         self.assertEqual(new_url, updated_external_link["url"])
         self.assertEqual(new_type, updated_external_link["type"])
+        self.assertEqual(new_name, updated_external_link["name"])
 
 
 def approve_verify_moderated_object(object_id, user):

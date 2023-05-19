@@ -1257,6 +1257,9 @@ class ExternalLink(ModelWithUUID):
         max_length=9,
         choices=ExternalLinkType.choices,
     )
+    name = models.CharField(
+        max_length=settings.EXTERNAL_LINK_NAME_MAX_LENGTH,
+    )
 
     @classmethod
     def create(
@@ -1264,11 +1267,13 @@ class ExternalLink(ModelWithUUID):
         community,
         url,
         type,
+        name,
     ):
         external_link = cls.objects.create(
             community=community,
             url=url,
             type=type,
+            name=name,
         )
 
         return external_link
@@ -1277,11 +1282,14 @@ class ExternalLink(ModelWithUUID):
         self,
         url=None,
         type=None,
+        name=None,
     ):
         if url is not None:
             self.url = url
         if type is not None:
             self.type = type
+        if name is not None:
+            self.name = name
 
         self.save()
 

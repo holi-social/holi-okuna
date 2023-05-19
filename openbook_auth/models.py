@@ -4797,6 +4797,7 @@ class User(ModelWithUUID, AbstractUser):
         space_id,
         url,
         type,
+        name,
     ):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
@@ -4808,6 +4809,7 @@ class User(ModelWithUUID, AbstractUser):
             community=community,
             url=url,
             type=type,
+            name=name,
         )
 
         return external_link
@@ -4817,6 +4819,7 @@ class User(ModelWithUUID, AbstractUser):
         external_link_id,
         url=None,
         type=None,
+        name=None,
     ):
         ExternalLink = get_external_link_model()
         external_link = ExternalLink.objects.get(id=external_link_id)
@@ -4826,6 +4829,7 @@ class User(ModelWithUUID, AbstractUser):
         external_link.update(
             url=url,
             type=type,
+            name=name,
         )
 
         return external_link
