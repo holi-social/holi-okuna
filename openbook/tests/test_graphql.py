@@ -1975,6 +1975,34 @@ class GraphQLTest(TestCase):
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
+    def test_space_member_leaves_community_success(self):
+        member_user = make_user()
+        space_creator = make_user()
+
+        space = make_community(creator=space_creator)
+        space.add_member(member_user)
+
+        CommunityNotificationsSubscription.enable_new_post_notification_for_community(
+            community=space, subscriber=member_user
+        )
+
+        response = self.mutate_update_space_user_connection_raw(
+            auth_user=member_user,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBER,
+            connect_action=UpdateConnectionAction.LEAVE_SPACE,
+        )
+
+        self.assertIsNone(response.errors)
+        self.assertIsNotNone(response.data)
+
+        memberships = space.memberships.all()
+        self.assertEqual(len(memberships), 1)
+        self.assertNotIn(member_user, memberships)
+        self.assertFalse(
+            CommunityNotificationsSubscription.objects.filter(community=space, subscriber=member_user).exists()
+        )
+
     def test_space_with_posts(self):
         user_member = make_user()
         user_external = make_user()
