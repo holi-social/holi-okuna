@@ -440,9 +440,16 @@ def check_can_leave_community_with_name(user, community_name):
             _("You cannot leave a community you're not part of."),
         )
 
-    if user.is_creator_of_community_with_name(community_name=community_name):
+    if get_community_model().has_with_other_members(community_name=community_name, username=user.user_name):
         raise ValidationError(
-            _("You cannot leave a community you created."),
+            _("You cannot leave a space where you are the only member"),
+        )
+
+
+def check_can_user_leave_and_delete_community(user, community_name):
+    if get_community_model().has_with_other_members(community_name=community_name, user_name=user.username):
+        raise ValidationError(
+            _("You cannot delete a space that has other members"),
         )
 
 

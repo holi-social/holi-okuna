@@ -203,6 +203,10 @@ class Community(ModelWithUUID):
         return Community.DEFAULT_AVATAR_COLORS[color]
 
     @classmethod
+    def has_with_other_members(cls, community_name, username):
+        return cls.objects.filter(name=community_name).memberships.exclude(user__username=username).exists()
+
+    @classmethod
     def is_user_with_username_invited_to_community_with_name(cls, username, community_name):
         CommunityInvite = get_community_invite_model()
         return CommunityInvite.is_user_with_username_invited_to_community_with_name(

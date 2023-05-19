@@ -28,6 +28,7 @@ from openbook.helpers import (
     publish_user_name_updated_event,
 )
 from openbook.utils import generate_discover_spaces_hash_key, invalidate_discover_spaces_query_cache
+from openbook_auth.checkers import check_can_user_leave_and_delete_community
 from openbook_auth.images import delete_avatar
 from openbook_auth.tasks import update_ory_user
 from openbook_auth.validators import string_not_empty
@@ -878,6 +879,11 @@ class Mutation:
                     return current_user.enable_new_post_notifications_for_community_with_name(space.name)
                 case (cT.FOLLOWER, a.DISCONNECT):
                     return current_user.disable_new_post_notifications_for_community_with_name(space.name)
+                case (cT.MEMBER, a.LEAVE_SPACE):
+                    current_user.leave_community_with_name(space.name)
+                case (cT.MEMBER, a.DELETE_SPACE):
+                    check_can_user_leave_and_delete_community(user=current_user, community_name=space.name)
+                    current_user.delete_community_with_name(space.name)
                 case _:
                     raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
         else:

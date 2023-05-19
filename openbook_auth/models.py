@@ -2112,6 +2112,10 @@ class User(ModelWithUUID, AbstractUser):
 
         return community
 
+    def leave_and_delete_community_with_name(self, community_name):
+        check_can_user_leave_and_delete_community(user=self, community_name=community_name)
+        return self.delete_community_with_name(community_name=community_name)
+
     def leave_community_with_name(self, community_name):
         check_can_leave_community_with_name(user=self, community_name=community_name)
 

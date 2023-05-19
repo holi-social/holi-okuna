@@ -63,8 +63,10 @@ class Paged(List[GenericType]):
 @gql.enum
 class UpdateConnectionAction(Enum):
     CONNECT = "CONNECT"
+    DELETE_SPACE = "DELETE_SPACE"
     DISCONNECT = "DISCONNECT"
     GRANT_ADMIN_ACCESS = "GRANT_ADMIN_ACCESS"
+    LEAVE_SPACE = "LEAVE_SPACE"
     REVOKE_ADMIN_ACCESS = "REVOKE_ADMIN_ACCESS"
 
 
