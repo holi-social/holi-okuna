@@ -524,7 +524,7 @@ def make_external_link(
 
     if not name:
         name = fake.text(max_nb_chars=settings.EXTERNAL_LINK_NAME_MAX_LENGTH)
-        
+
     return mixer.blend(
         ExternalLink,
         community=community,

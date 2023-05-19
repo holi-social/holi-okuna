@@ -4809,7 +4809,12 @@ class GraphQLTest(TestCase):
             }
             """
 
-        input = {"id": str(external_link.id), "url": "https://www.instagram.com/", "type": "INSTAGRAM", "name": "Instagram"}
+        input = {
+            "id": str(external_link.id),
+            "url": "https://www.instagram.com/",
+            "type": "INSTAGRAM",
+            "name": "Instagram",
+        }
 
         response = schema.execute_sync(
             update_external_link_mutation,
@@ -4834,7 +4839,12 @@ class GraphQLTest(TestCase):
             }
             """
 
-        input = {"id": str(external_link.id), "url": "https://www.instagram.com/", "type": "INSTAGRAM", "name": "Instagram"}
+        input = {
+            "id": str(external_link.id),
+            "url": "https://www.instagram.com/",
+            "type": "INSTAGRAM",
+            "name": "Instagram",
+        }
 
         response = schema.execute_sync(
             update_external_link_mutation,
@@ -4858,7 +4868,12 @@ class GraphQLTest(TestCase):
             }
             """
 
-        input = {"id": str(external_link.id), "url": "https://www.instagram.com/", "type": "INSTAGRAM", "name": "Instagram"}
+        input = {
+            "id": str(external_link.id),
+            "url": "https://www.instagram.com/",
+            "type": "INSTAGRAM",
+            "name": "Instagram",
+        }
 
         response = schema.execute_sync(
             update_external_link_mutation,
