@@ -879,11 +879,10 @@ class Mutation:
                     return current_user.enable_new_post_notifications_for_community_with_name(space.name)
                 case (cT.FOLLOWER, a.DISCONNECT):
                     return current_user.disable_new_post_notifications_for_community_with_name(space.name)
-                case (cT.MEMBER, a.LEAVE_SPACE):
-                    current_user.leave_community_with_name(space.name)
-                case (cT.MEMBER, a.DELETE_SPACE):
-                    check_can_user_leave_and_delete_community(user=current_user, community_name=space.name)
-                    current_user.delete_community_with_name(space.name)
+                case (cT.MEMBER | cT.ADMINISTRATOR, a.LEAVE_SPACE):
+                    return current_user.leave_community_with_name(space.name)
+                case (cT.MEMBER | cT.ADMINISTRATOR, a.DELETE_SPACE):
+                    return current_user.leave_and_delete_community_with_name(space.name)
                 case _:
                     raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
         else:
