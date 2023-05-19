@@ -511,6 +511,7 @@ def make_external_link(
     community=None,
     url=None,
     type=None,
+    name=None,
 ) -> Community:
     if not community:
         community = make_community()
@@ -521,9 +522,13 @@ def make_external_link(
     if not type:
         type = fake.random_element(elements=["instagram", "facebook"])
 
+    if not name:
+        name = fake.text(max_nb_chars=settings.EXTERNAL_LINK_NAME_MAX_LENGTH)
+        
     return mixer.blend(
         ExternalLink,
         community=community,
         url=url,
         type=type,
+        name=name,
     )

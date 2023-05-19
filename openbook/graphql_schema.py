@@ -731,6 +731,7 @@ class AddExternalLinkInput:
     space_id: uuid.UUID
     url: str
     type: ExternalLinkType
+    name: str
 
 
 @gql.input
@@ -738,6 +739,7 @@ class UpdateExternalLinkInput:
     id: uuid.UUID
     url: Optional[str] = strawberry.UNSET
     type: Optional[ExternalLinkType] = strawberry.UNSET
+    name: Optional[str] = strawberry.UNSET
 
 
 @gql.type
@@ -1253,6 +1255,7 @@ class Mutation:
             space_id=data.get("space_id"),
             url=data.get("url"),
             type=data.get("type"),
+            name=data.get("name"),
         )
 
     @gql.mutation
@@ -1267,6 +1270,7 @@ class Mutation:
             external_link_id=data.get("id"),
             url=data.get("url"),
             type=data.get("type"),
+            name=data.get("name"),
         )
 
     @gql.mutation
