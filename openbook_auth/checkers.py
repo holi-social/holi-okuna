@@ -18,6 +18,7 @@ from openbook_common.utils.model_loaders import (
     get_post_reaction_model,
     get_user_invite_model,
     get_user_model,
+    get_community_membership_model,
 )
 
 
@@ -441,16 +442,18 @@ def check_can_leave_community_with_name(user, community_name):
         )
 
     Community = get_community_model()
+    CommunityMembership = get_community_membership_model()
+    community = Community.objects.get(name=community_name)
 
-    if not Community.has_other_members(community_name=community_name, username=user.username):
+    if not CommunityMembership.has_other_members(community_id=community.id, user_id=user.id):
         raise ValidationError(
-            _("You cannot leave a space where you are the only member"),
+            _("You cannot leave a community where you are the only member"),
         )
 
     if user.is_administrator_of_community_with_name(community_name=community_name):
-        if not Community.has_other_admins(community_name=community_name, username=user.username):
+        if not CommunityMembership.has_other_admins(community_id=community.id, user_id=user.id):
             raise ValidationError(
-                _("You cannot leave a space where you are the only admin"),
+                _("You cannot leave a community where you are the only admin"),
             )
 
 

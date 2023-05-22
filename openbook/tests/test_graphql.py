@@ -2032,7 +2032,7 @@ class GraphQLTest(TestCase):
             CommunityNotificationsSubscription.objects.filter(community=space, subscriber=space_creator).exists()
         )
 
-    def test_space_only_member_leaves_community_success(self):
+    def test_space_member_leaves_community_error_only_member(self):
         space_creator = make_user()
 
         space = make_community(creator=space_creator)
@@ -2051,7 +2051,7 @@ class GraphQLTest(TestCase):
         self.assertIsNotNone(response.errors)
         self.assertIsNone(response.data)
         self.assertIn(
-            "You cannot leave a space where you are the only member", str(response.errors[0].extensions["errors"])
+            "You cannot leave a community where you are the only member", str(response.errors[0].extensions["errors"])
         )
 
         memberships = space.memberships.all()
@@ -2061,7 +2061,7 @@ class GraphQLTest(TestCase):
             CommunityNotificationsSubscription.objects.filter(community=space, subscriber=space_creator).exists()
         )
 
-    def test_space_only_admin_leaves_community(self):
+    def test_space_admin_leaves_community_error_only_admin(self):
         space_creator = make_user()
         member_user_admin = make_user()
 
@@ -2082,7 +2082,7 @@ class GraphQLTest(TestCase):
         self.assertIsNotNone(response.errors)
         self.assertIsNone(response.data)
         self.assertIn(
-            "You cannot leave a space where you are the only admin", str(response.errors[0].extensions["errors"])
+            "You cannot leave a community where you are the only admin", str(response.errors[0].extensions["errors"])
         )
 
         memberships = space.memberships.all()
