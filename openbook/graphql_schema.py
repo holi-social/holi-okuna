@@ -878,6 +878,8 @@ class Mutation:
                     return current_user.enable_new_post_notifications_for_community_with_name(space.name)
                 case (cT.FOLLOWER, a.DISCONNECT):
                     return current_user.disable_new_post_notifications_for_community_with_name(space.name)
+                case (cT.MEMBER | cT.ADMINISTRATOR, a.LEAVE_SPACE):
+                    return current_user.leave_community_with_name(space.name)
                 case _:
                     raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
         else:
