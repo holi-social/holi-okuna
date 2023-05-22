@@ -20,6 +20,7 @@ The Okuna-based backend for HOLI.
   - [Access local db](#access-local-db)
   - [Admin Dashboard](#admin-dashboard)
   - [Pycharm](#pycharm)
+  - [Translations](#translations)
 
 ## Introduction
 
@@ -203,7 +204,8 @@ brew install ffmpeg
 ## CI/CD
 
 The CI/CD pipeline follows our normal flow, deploying branch environments and deploying main to staging automatically
-and to production manually. The e2e tests that should go in between staging and prod deployments are missing up until now.
+and to production manually. The e2e tests that should go in between staging and prod deployments are missing up until
+now.
 
 ## Access local db
 
@@ -217,7 +219,8 @@ psql -h localhost okuna -U <RDS_USERNAME>
 
 When using a local database, first execute `python manage.py createsuperuser` to create an admin account with your
 desired credentials.
-If you are connected to the staging database, use the credentials found in [Passbolt](https://cloud.passbolt.com/holi/app/passwords)
+If you are connected to the staging database, use the credentials found
+in [Passbolt](https://cloud.passbolt.com/holi/app/passwords)
 
 After starting Okuna, you can access the admin ui at `http://localhost:8000/admin/`
 
@@ -225,3 +228,21 @@ After starting Okuna, you can access the admin ui at `http://localhost:8000/admi
 
 Shared run configurations can be found in the `.run` subfolder.
 You can use these to start your dev server or run tests.
+
+## Translations
+
+Django offers translation utility hooks out of the box. For us at **holi**, these are useful to display localized response
+messages to the Front-end. These "hooks" are called translation strings, and they store the extracted translation
+strings into a message file with the `.po` extension.
+
+```python
+   # Translation Strings
+_("Welcome holis")
+```
+
+You must generate new translations whenever you update or include a new response message using translation strings,
+including `raise` messages. This can be done in your term
+
+```sh
+   ./manage.py makemessages --all --no-wrap
+```
