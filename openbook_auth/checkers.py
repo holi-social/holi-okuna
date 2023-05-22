@@ -18,6 +18,7 @@ from openbook_common.utils.model_loaders import (
     get_post_reaction_model,
     get_user_invite_model,
     get_user_model,
+    get_community_membership_model,
 )
 
 
@@ -440,10 +441,20 @@ def check_can_leave_community_with_name(user, community_name):
             _("You cannot leave a community you're not part of."),
         )
 
-    if user.is_creator_of_community_with_name(community_name=community_name):
+    Community = get_community_model()
+    CommunityMembership = get_community_membership_model()
+    community = Community.objects.get(name=community_name)
+
+    if not CommunityMembership.has_other_members(community_id=community.id, user_id=user.id):
         raise ValidationError(
-            _("You cannot leave a community you created."),
+            _("You cannot leave a community where you are the only member"),
         )
+
+    if user.is_administrator_of_community_with_name(community_name=community_name):
+        if not CommunityMembership.has_other_admins(community_id=community.id, user_id=user.id):
+            raise ValidationError(
+                _("You cannot leave a community where you are the only admin"),
+            )
 
 
 def check_can_invite_user_with_username_to_community_with_name(user, username, community_name):
