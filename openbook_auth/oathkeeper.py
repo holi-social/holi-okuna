@@ -43,6 +43,7 @@ class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
                         are_guidelines_accepted=True,
                     )
                 except Exception as ex:
+                    logger.exception("Could not create user with id %s", user_id)
                     # when we can't create the user, the app stays most functional if we just continue anonymously
                     return AnonymousUser(), None
                     # if isinstance(ex, ValidationError):
