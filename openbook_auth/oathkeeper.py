@@ -4,6 +4,7 @@ from django.contrib.auth.models import AnonymousUser
 from rest_framework import authentication
 
 from rest_framework import exceptions
+from django.core.exceptions import ValidationError
 
 from django.utils.translation import gettext_lazy as _
 
@@ -34,12 +35,20 @@ class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
             except User.DoesNotExist:
                 if not user_email:
                     return None
-                user = User.create_user(
-                    username=user_id,
-                    email=user_email,
-                    is_of_legal_age=True,
-                    are_guidelines_accepted=True,
-                )
+                try:
+                    user = User.create_user(
+                        username=user_id,
+                        email=user_email,
+                        is_of_legal_age=True,
+                        are_guidelines_accepted=True,
+                    )
+                except Exception as ex:
+                    logger.exception("Could not create user with id %s", user_id)
+                    # when we can't create the user, the app stays most functional if we just continue anonymously
+                    return AnonymousUser(), None
+                    # if isinstance(ex, ValidationError):
+                    #     raise exceptions.AuthenticationFailed(next(iter(ex.messages), "authentication failed"))
+                    # raise exceptions.AuthenticationFailed(str(ex))  # return AnonymousUser(), None
 
         if not user.is_active:
             msg = _("User account is disabled.")
