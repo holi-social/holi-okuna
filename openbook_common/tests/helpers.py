@@ -14,7 +14,7 @@ from openbook_categories.models import Category
 from openbook_circles.models import Circle
 from openbook_common.models import Emoji, EmojiGroup, Badge, Language
 from openbook_common.utils.helpers import get_random_pastel_color
-from openbook_communities.models import CollaborationTool, Community, Task
+from openbook_communities.models import CollaborationTool, Community, ExternalLink, Task
 from openbook_devices.models import Device
 from openbook_hashtags.models import Hashtag
 from openbook_lists.models import List
@@ -276,6 +276,7 @@ def make_community(
     title=None,
     topics=None,
     location=None,
+    geolocation=None,
 ) -> Community:
     if not creator:
         creator = make_user()
@@ -302,6 +303,7 @@ def make_community(
         location=location,
     )
     community.topics.set(topics)
+    community.geolocation = geolocation
     community.save()
 
     return community
@@ -502,4 +504,31 @@ def make_collaboration_tool(
         title=title,
         description=description,
         collection_type=collection_type,
+    )
+
+
+def make_external_link(
+    community=None,
+    url=None,
+    type=None,
+    name=None,
+) -> Community:
+    if not community:
+        community = make_community()
+
+    if not url:
+        url = fake.url()
+
+    if not type:
+        type = fake.random_element(elements=["instagram", "facebook"])
+
+    if not name:
+        name = fake.text(max_nb_chars=settings.EXTERNAL_LINK_NAME_MAX_LENGTH)
+
+    return mixer.blend(
+        ExternalLink,
+        community=community,
+        url=url,
+        type=type,
+        name=name,
     )

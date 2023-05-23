@@ -1,9 +1,10 @@
 import uuid
 from enum import Enum
 from uuid import UUID
+import json
 
 import strawberry
-from typing import List, TypeVar, Optional
+from typing import List, TypeVar, Optional, Tuple
 
 from django.db.models import Q
 from strawberry_django_plus import gql
@@ -11,7 +12,7 @@ from django.db.models import QuerySet
 
 import logging
 from openbook_common.models import LinkPreview as LinkPreviewModel
-from openbook_common.types import ReactionType
+from openbook_common.types import ReactionType, GeolocationFeature
 from openbook_common.utils.model_loaders import get_circle_model
 from openbook_communities.models import (
     Community as CommunityModel,
@@ -64,6 +65,7 @@ class UpdateConnectionAction(Enum):
     CONNECT = "CONNECT"
     DISCONNECT = "DISCONNECT"
     GRANT_ADMIN_ACCESS = "GRANT_ADMIN_ACCESS"
+    LEAVE_SPACE = "LEAVE_SPACE"
     REVOKE_ADMIN_ACCESS = "REVOKE_ADMIN_ACCESS"
 
 
@@ -89,7 +91,7 @@ class VisibilityFilter(Enum):
 
 
 @gql.type
-class Geolocation:
+class GeolocationPoint:
     longitude: float
     latitude: float
 
@@ -98,7 +100,29 @@ class Geolocation:
         if not point:
             return None
 
-        return Geolocation(longitude=point.x, latitude=point.y)
+        return GeolocationPoint(longitude=point.x, latitude=point.y)
+
+
+# Custom scalars for GeoJSON containing geolocation geometries are necessary, as GraphQL schema parsing throws an error ("Decorated type deeper than introspection query") for 4-dimensional arrays (e.g. MultiPolygons)
+# See e.g. https://github.com/graphql/graphql-js/issues/2643
+GeoJSON = strawberry.scalar(
+    GeolocationFeature,
+    name="GeoJSON",
+    description="GeoJSON describing the geometry feature of a geolocation",
+    serialize=lambda value: json.loads(
+        value.geometry.geojson
+    ),  # This is asymmetrical as we do not store all feature data
+    parse_value=lambda value: GeolocationFeature.from_geojson(value),
+)
+
+# Separate type for GeoJSON input to be used by the GeoFeatureModelSerializer
+GeoJSONInput = strawberry.scalar(
+    object,
+    name="GeoJSONInput",
+    description="GeoJSON input describing the geometry feature of a geolocation",
+    serialize=lambda value: value,
+    parse_value=lambda value: value,
+)
 
 
 @gql.type
@@ -168,6 +192,7 @@ class ExternalLink:
     id: gql.auto
     url: gql.auto
     type: ExternalLinkType
+    name: gql.auto
 
 
 @gql.django.type(PostImageModel)
@@ -229,9 +254,18 @@ class User:
     def location(self) -> Optional[str]:
         return self.profile.location
 
+    # TODO: Only for temporary backwards compatibility, replace by GeoJSON in HOLI-4353 (see below)
+    @gql.django.field(deprecation_reason="Type change to GeoJSON planned, deprecated since version 1.0.16")
+    def geolocation(self) -> Optional[GeolocationPoint]:
+        return None
+
+    # @gql.django.field(select_related=["profile"])
+    # def geolocation_new(self) -> Optional[GeoJSON]:
+    #     return self.geolocation
+
     @gql.django.field(select_related=["profile"])
-    def geolocation(self) -> Optional[Geolocation]:
-        return Geolocation.from_point(self.profile.geolocation)
+    def geolocation_id(self) -> Optional[str]:
+        return self.profile.geolocation_id
 
     @gql.django.field(select_related=["profile"])
     def engagement_level(self) -> Optional[str]:
@@ -299,8 +333,8 @@ class Task:
     contact_phone: Optional[str]
 
     @gql.django.field
-    def geolocation(self) -> Optional[Geolocation]:
-        return Geolocation.from_point(self.geolocation)
+    def geolocation(self) -> Optional[GeolocationPoint]:
+        return GeolocationPoint.from_point(self.geolocation)
 
 
 @gql.django.type(InsightModel)
@@ -475,8 +509,8 @@ class Space:
     contact_phone: Optional[str]
 
     @gql.django.field
-    def geolocation(self) -> Optional[Geolocation]:
-        return Geolocation.from_point(self.geolocation)
+    def geolocation(self) -> Optional[GeolocationPoint]:
+        return GeolocationPoint.from_point(self.geolocation)
 
     @gql.django.field(
         description="A list of all active members and their role", prefetch_related="memberships__user__profile"
@@ -517,7 +551,9 @@ class Space:
         self, info, offset: int = 0, limit: int = 10, visibility: VisibilityFilter = VisibilityFilter.ALL
     ) -> Paged[Post]:
         current_user: UserModel = info.context.request.user
-        query = PostModel.objects.filter(PostModel.is_visible_query(current_user), community=self)
+        query = PostModel.objects.filter(
+            PostModel.is_visible_query(current_user), status=PostModel.STATUS_PUBLISHED, community=self
+        )
         if (
             current_user.is_anonymous
             or not CommunityMembershipModel.objects.filter(community=self, user=current_user).exists()
@@ -531,6 +567,22 @@ class Space:
                 query = query.exclude(circles__id=get_circle_model().get_world_circle_id())
 
         return Paged.of(query.order_by("-created"), offset, limit)
+
+    @gql.django.field
+    def has_public_posts(self, info) -> bool:
+        current_user: UserModel = info.context.request.user
+        query = PostModel.objects.filter(
+            PostModel.is_visible_query(current_user), status=PostModel.STATUS_PUBLISHED, community=self
+        )
+        return query.filter(circles__id=get_circle_model().get_world_circle_id()).exists()
+
+    @gql.django.field
+    def has_private_posts(self, info) -> bool:
+        current_user: UserModel = info.context.request.user
+        query = PostModel.objects.filter(
+            PostModel.is_visible_query(current_user), status=PostModel.STATUS_PUBLISHED, community=self
+        )
+        return query.exclude(circles__id=get_circle_model().get_world_circle_id()).exists()
 
 
 @gql.django.type(PostCommentModel)
@@ -598,7 +650,11 @@ class Notification:
 @gql.type
 class DiscoverSpaces:
     topic_id: Optional[uuid.UUID] = None
-    location: Optional[str] = None
+    location: Optional[str] = strawberry.field(
+        deprecation_reason="Unsupported since version 1.0.16, use location_id instead",
+        default=None,
+    )
+    location_id: Optional[str] = None
     skill_id: Optional[uuid.UUID] = None
     spaces: Paged[Space]
 

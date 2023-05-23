@@ -251,3 +251,7 @@ def get_collaboration_tool_model():
 
 def get_task_model():
     return apps.get_model("openbook_communities.Task")
+
+
+def get_external_link_model():
+    return apps.get_model("openbook_communities.ExternalLink")

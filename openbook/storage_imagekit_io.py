@@ -16,6 +16,10 @@ class IncorrectFilename(Exception):
     pass
 
 
+class UploadError(Exception):
+    pass
+
+
 class ImagekitIoStorage(Storage):
     def __init__(self):
         self.imagekit = ImageKit(
@@ -57,6 +61,10 @@ class ImagekitIoStorage(Storage):
         options = {"folder": settings.IMAGEKIT_PREFIX + object_type, "tags": tags}
         content.name = object_id + _get_file_extension(filename)
         upload = self.imagekit.upload(file=content, file_name=content.name, options=options)
+
+        if upload["error"] is not None:
+            logger.error("UPLOAD result with error: %s", upload["error"])
+            raise UploadError("There was a problem uploading the image. Please retry.")
 
         if old_files and old_files["response"]:
             self.delete_images(map(lambda file: file["fileId"], old_files["response"]))

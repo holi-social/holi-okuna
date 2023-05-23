@@ -5,7 +5,12 @@ from rest_framework.exceptions import ValidationError, NotFound
 
 from openbook_terms.models import SDG, Topic, Skill
 
-from openbook_common.utils.model_loaders import get_collaboration_tool_model, get_community_model
+from openbook_common.utils.model_loaders import (
+    get_collaboration_tool_model,
+    get_community_model,
+    get_external_link_model,
+    get_task_model,
+)
 
 
 def community_name_characters_validator(community_name):
@@ -54,9 +59,25 @@ def community_id_exists(community_id):
         )
 
 
+def task_id_exists(task_id):
+    Task = get_task_model()
+    if not Task.objects.filter(id=task_id).exists():
+        raise NotFound(
+            _("No task with the provided id exists."),
+        )
+
+
 def collaboration_tool_id_exists(collaboration_tool_id):
     collaboration_tool = get_collaboration_tool_model()
     if not collaboration_tool.objects.filter(id=collaboration_tool_id).exists():
         raise NotFound(
             _("No collaboration tool with the provided id exists."),
+        )
+
+
+def external_link_id_exists(external_link_id):
+    external_link = get_external_link_model()
+    if not external_link.objects.filter(id=external_link_id).exists():
+        raise NotFound(
+            _("No external link with the provided id exists."),
         )

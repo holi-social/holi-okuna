@@ -4,11 +4,11 @@ from rest_framework import serializers
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
 from openbook_categories.models import Category
 from openbook_categories.validators import category_name_exists
-from openbook_common.serializers import CommonCommunityMembershipSerializer, PointSerializer
+from openbook_common.serializers import CommonCommunityMembershipSerializer, GeolocationPointSerializer
 from openbook_common.serializers_fields.community import CommunityPostsCountField
 from openbook_common.serializers_fields.request import RestrictedImageFileSizeField
 from openbook_common.validators import hex_color_validator, url_safety_validator
-from openbook_communities.models import CollaborationTool, Community, Task, VisibilityType
+from openbook_communities.models import CollaborationTool, Community, ExternalLinkType, Task, VisibilityType
 from openbook_communities.serializers_fields import (
     IsInvitedField,
     IsCreatorField,
@@ -21,6 +21,8 @@ from openbook_communities.validators import (
     community_name_characters_validator,
     community_name_not_taken_validator,
     community_id_exists,
+    external_link_id_exists,
+    task_id_exists,
     sdg_with_id_exists,
     topic_with_id_exists,
     skill_with_id_exists,
@@ -135,11 +137,13 @@ class UpdateCommunitySerializer(serializers.Serializer):
     )
     cover = RestrictedImageFileSizeField(
         allow_empty_file=False,
+        allow_null=True,
         required=False,
         max_upload_size=settings.COMMUNITY_COVER_MAX_SIZE,
     )
     avatar = RestrictedImageFileSizeField(
         allow_empty_file=False,
+        allow_null=True,
         required=False,
         max_upload_size=settings.COMMUNITY_AVATAR_MAX_SIZE,
     )
@@ -151,7 +155,7 @@ class UpdateCommunitySerializer(serializers.Serializer):
         max_length=settings.COMMUNITY_LOCATION_MAX_LENGTH,
         required=False,
     )
-    geolocation = PointSerializer(required=False)
+    geolocation = GeolocationPointSerializer(required=False)
 
     contact_description = serializers.CharField(
         required=False,
@@ -333,6 +337,7 @@ class UpdateCollaborationToolSerializer(serializers.Serializer):
     collection_type = serializers.ChoiceField(required=False, choices=CollaborationTool.CollectionType.choices)
     thumbnail = RestrictedImageFileSizeField(
         allow_empty_file=False,
+        allow_null=True,
         required=False,
         max_upload_size=settings.TASK_THUMBNAIL_MAX_SIZE,
     )
@@ -358,7 +363,7 @@ class CreateTaskSerializer(serializers.Serializer):
         required=False,
         allow_blank=True,
     )
-    geolocation = PointSerializer(required=False)
+    geolocation = GeolocationPointSerializer(required=False)
     visibility = serializers.ChoiceField(required=True, choices=VisibilityType.choices)
     location_type = serializers.ChoiceField(required=True, choices=Task.LocationType.choices)
     regularity = serializers.ChoiceField(required=False, choices=Task.Regularity.choices)
@@ -380,4 +385,91 @@ class CreateTaskSerializer(serializers.Serializer):
         allow_empty_file=False,
         required=False,
         max_upload_size=settings.TASK_THUMBNAIL_MAX_SIZE,
+    )
+    remove_thumbnail = serializers.BooleanField(default=False)
+
+
+class UpdateTaskSerializer(serializers.Serializer):
+    task_id = serializers.UUIDField(
+        validators=[task_id_exists],
+        required=True,
+    )
+    space_id = serializers.UUIDField(
+        validators=[community_id_exists],
+        required=True,
+    )
+    name = serializers.CharField(
+        min_length=settings.TASK_NAME_MIN_LENGTH,
+        max_length=settings.TASK_NAME_MAX_LENGTH,
+        required=True,
+    )
+    description = serializers.CharField(
+        max_length=settings.TASK_DESCRIPTION_MAX_LENGTH,
+        required=True,
+    )
+    slots_available = serializers.IntegerField(required=False, max_value=600)
+    location = serializers.CharField(
+        max_length=settings.TASK_LOCATION_MAX_LENGTH,
+        required=False,
+        allow_blank=True,
+    )
+    geolocation = GeolocationPointSerializer(required=False)
+    visibility = serializers.ChoiceField(required=True, choices=VisibilityType.choices)
+    location_type = serializers.ChoiceField(required=True, choices=Task.LocationType.choices)
+    regularity = serializers.ChoiceField(required=False, choices=Task.Regularity.choices)
+    contact_email = serializers.EmailField(
+        required=True,
+    )
+    contact_phone = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        max_length=settings.TASK_CONTACT_PHONE_MAX_LENGTH,
+    )
+    skills = serializers.ListField(
+        min_length=settings.TASK_SKILLS_MIN_AMOUNT,
+        max_length=settings.TASK_SKILLS_MAX_AMOUNT,
+        required=False,
+        child=serializers.UUIDField(validators=[skill_with_id_exists]),
+    )
+    thumbnail = RestrictedImageFileSizeField(
+        allow_empty_file=False,
+        allow_null=True,
+        required=False,
+        max_upload_size=settings.TASK_THUMBNAIL_MAX_SIZE,
+    )
+
+
+class AddExternalLinkSerializer(serializers.Serializer):
+    space_id = serializers.UUIDField(
+        validators=[community_id_exists],
+        required=True,
+    )
+    url = serializers.URLField(
+        max_length=settings.EXTERNAL_LINK_URL_MAX_LENGTH,
+        validators=[url_safety_validator],
+        required=False,
+    )
+    type = serializers.ChoiceField(required=False, choices=ExternalLinkType.choices)
+    name = serializers.CharField(
+        max_length=settings.EXTERNAL_LINK_NAME_MAX_LENGTH,
+        required=True,
+        allow_blank=False,
+    )
+
+
+class UpdateExternalLinkSerializer(serializers.Serializer):
+    id = serializers.UUIDField(
+        validators=[external_link_id_exists],
+        required=True,
+    )
+    url = serializers.URLField(
+        max_length=settings.EXTERNAL_LINK_URL_MAX_LENGTH,
+        validators=[url_safety_validator],
+        required=False,
+    )
+    type = serializers.ChoiceField(required=False, choices=ExternalLinkType.choices)
+    name = serializers.CharField(
+        max_length=settings.EXTERNAL_LINK_NAME_MAX_LENGTH,
+        required=True,
+        allow_blank=False,
     )

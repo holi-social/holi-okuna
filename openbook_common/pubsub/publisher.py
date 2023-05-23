@@ -4,6 +4,7 @@ from openbook import settings
 import structlog
 
 from openbook_common.pubsub.event import Event
+from openbook_common.pubsub.wrappers import skip_test_events
 
 logger = structlog.getLogger(__name__)
 
@@ -11,6 +12,7 @@ GOOGLE_CLOUD_PROJECT_ID = settings.GOOGLE_CLOUD_PROJECT_ID
 ENVIRONMENT_ID = settings.ENVIRONMENT_ID
 
 
+@skip_test_events
 def publish_event(topic: str, event: Event) -> None:
     try:
         publisher = (
