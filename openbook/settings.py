@@ -139,7 +139,6 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://localhost",
-    r"^https://\w+\.web\.project-holi\.org",
     r"^https://\w+\.web\.holi\.social",
     r"^https://\w+\.app\.holi\.social",
 ]
@@ -147,7 +146,6 @@ CORS_ALLOW_CREDENTIALS = True
 
 # Needed for using the /admin interface for editing insights, HOLI-1562
 CSRF_TRUSTED_ORIGINS = [
-    "https://0kuna-adm1n.project-holi.org",
     "https://0kuna-adm1n.holi.social",
 ]
 
