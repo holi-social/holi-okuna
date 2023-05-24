@@ -400,6 +400,7 @@ class Post:
     id: gql.auto
     title: gql.auto
     text: gql.auto
+    space: Optional["Space"] = gql.django.field(field_name="community")
     created: gql.auto
     modified: gql.auto
     creator: User = gql.django.field(select_related="creator__profile")

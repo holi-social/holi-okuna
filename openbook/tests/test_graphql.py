@@ -592,15 +592,16 @@ class GraphQLTest(TestCase):
                 createSpacePost(input: $input) {
                     id
                     title
-                    posts {
+                    space {
+                      id
+                      posts {
                         totalResults
-                        data {
-                            title
-                            text
-                            isPublic
-                            created
-                        }
+                      }
                     }
+                    text
+                    isPublic
+                    created
+                    
                 }
             }
             """,
@@ -615,17 +616,17 @@ class GraphQLTest(TestCase):
                 updateSpacePost(id: $id, input: $input) {
                     id
                     title
-                    posts {
+                    space {
+                      id
+                      posts {
                         totalResults
-                        data {
-                            title
-                            text
-                            isPublic
-                            created
-                            image {
-                                url
-                            }
-                        }
+                      }
+                    }
+                    text
+                    isPublic
+                    created
+                    image {
+                        url
                     }
                 }
             }
@@ -650,12 +651,12 @@ class GraphQLTest(TestCase):
         response = self.create_space_post(space_admin, input_data)
 
         data = response.data["createSpacePost"]
-        posts_data = data["posts"]["data"]
 
-        self.assertEqual(data["id"], str(space.id))
-        self.assertEqual(data["posts"]["totalResults"], 1)
-        self.assertEqual(posts_data[0]["text"], input_data["text"])
-        self.assertEqual(posts_data[0]["isPublic"], True)
+        self.assertEqual(data["space"]["id"], str(space.id))
+        self.assertEqual(data["space"]["posts"]["totalResults"], 1)
+
+        self.assertEqual(data["text"], input_data["text"])
+        self.assertEqual(data["isPublic"], True)
 
         # space admin can create private post
         input_data = {
@@ -667,12 +668,11 @@ class GraphQLTest(TestCase):
         response = self.create_space_post(space_admin, input_data)
 
         data = response.data["createSpacePost"]
-        posts_data = data["posts"]["data"]
 
-        self.assertEqual(data["id"], str(space.id))
-        self.assertEqual(data["posts"]["totalResults"], 2)
-        self.assertEqual(posts_data[0]["text"], input_data["text"])
-        self.assertEqual(posts_data[0]["isPublic"], False)
+        self.assertEqual(data["space"]["id"], str(space.id))
+        self.assertEqual(data["space"]["posts"]["totalResults"], 2)
+        self.assertEqual(data["text"], input_data["text"])
+        self.assertEqual(data["isPublic"], False)
 
     def test_member_user_can_create_only_member_visibility_space_post(self):
         space_admin = make_user()
@@ -690,12 +690,11 @@ class GraphQLTest(TestCase):
         response = self.create_space_post(member_user, input_data)
 
         data = response.data["createSpacePost"]
-        posts_data = data["posts"]["data"]
 
-        self.assertEqual(data["id"], str(space.id))
-        self.assertEqual(data["posts"]["totalResults"], 1)
-        self.assertEqual(posts_data[0]["text"], input_data["text"])
-        self.assertEqual(posts_data[0]["isPublic"], False)
+        self.assertEqual(data["space"]["id"], str(space.id))
+        self.assertEqual(data["space"]["posts"]["totalResults"], 1)
+        self.assertEqual(data["text"], input_data["text"])
+        self.assertEqual(data["isPublic"], False)
 
         # member user cannot create public post
         input_data = {
@@ -798,14 +797,13 @@ class GraphQLTest(TestCase):
         self.assertIsNotNone(response.data)
 
         data = response.data["updateSpacePost"]
-        self.assertEqual(data["id"], str(space.id))
-        self.assertEqual(data["posts"]["totalResults"], 1)
+        self.assertEqual(data["id"], str(space_post.id))
+        self.assertEqual(data["space"]["posts"]["totalResults"], 1)
 
-        posts_data = data["posts"]["data"]
-        self.assertIsNone(posts_data[0]["title"])
-        self.assertEqual(posts_data[0]["text"], input_data["text"])
-        self.assertEqual(posts_data[0]["isPublic"], True)
-        self.assertIn("/cover.jpg/", posts_data[0]["image"]["url"])
+        self.assertIsNone(data["title"])
+        self.assertEqual(data["text"], input_data["text"])
+        self.assertEqual(data["isPublic"], True)
+        self.assertIn("/cover.jpg/", data["image"]["url"])
 
         # test post update with removal of the post image
         input_data = {
@@ -820,14 +818,13 @@ class GraphQLTest(TestCase):
         self.assertIsNotNone(response.data)
 
         data = response.data["updateSpacePost"]
-        self.assertEqual(data["id"], str(space.id))
-        self.assertEqual(data["posts"]["totalResults"], 1)
+        self.assertEqual(data["id"], str(space_post.id))
+        self.assertEqual(data["space"]["posts"]["totalResults"], 1)
 
-        posts_data = data["posts"]["data"]
-        self.assertIsNone(posts_data[0]["title"])
-        self.assertEqual(posts_data[0]["text"], input_data["text"])
-        self.assertEqual(posts_data[0]["isPublic"], True)
-        self.assertIsNone(posts_data[0]["image"])
+        self.assertIsNone(data["title"])
+        self.assertEqual(data["text"], input_data["text"])
+        self.assertEqual(data["isPublic"], True)
+        self.assertIsNone(data["image"])
 
     def test_cant_edit_space_post_to_public_visibility_member_user(self):
         space_admin = make_user()
