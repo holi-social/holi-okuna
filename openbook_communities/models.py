@@ -814,6 +814,7 @@ class CommunityMembership(ModelWithUUID):
         null=False,
         blank=False,
     )
+
     community = models.ForeignKey(
         Community,
         on_delete=models.CASCADE,
@@ -821,6 +822,7 @@ class CommunityMembership(ModelWithUUID):
         null=False,
         blank=False,
     )
+
     is_administrator = models.BooleanField(_("is administrator"), default=False)
     is_moderator = models.BooleanField(_("is moderator"), default=False)
     created = models.DateTimeField(editable=False)
@@ -843,6 +845,14 @@ class CommunityMembership(ModelWithUUID):
         )
 
         return membership
+
+    @classmethod
+    def has_other_admins(cls, community_id, user_id):
+        return cls.objects.filter(community_id=community_id, is_administrator=True).exclude(user_id=user_id).exists()
+
+    @classmethod
+    def has_other_members(cls, community_id, user_id):
+        return cls.objects.filter(community_id=community_id).exclude(user_id=user_id).exists()
 
     def save(self, *args, **kwargs):
         """On save, update timestamps"""
@@ -1257,6 +1267,41 @@ class ExternalLink(ModelWithUUID):
         max_length=9,
         choices=ExternalLinkType.choices,
     )
+    name = models.CharField(
+        max_length=settings.EXTERNAL_LINK_NAME_MAX_LENGTH,
+    )
+
+    @classmethod
+    def create(
+        cls,
+        community,
+        url,
+        type,
+        name,
+    ):
+        external_link = cls.objects.create(
+            community=community,
+            url=url,
+            type=type,
+            name=name,
+        )
+
+        return external_link
+
+    def update(
+        self,
+        url=None,
+        type=None,
+        name=None,
+    ):
+        if url is not None:
+            self.url = url
+        if type is not None:
+            self.type = type
+        if name is not None:
+            self.name = name
+
+        self.save()
 
 
 class CollaborationTool(ModelWithUUID):

@@ -39,8 +39,10 @@ from openbook_communities.models import CommunityMembership
 
 from openbook_communities.views.communities.serializers import (
     AddCollaborationToolSerializer,
+    AddExternalLinkSerializer,
     CreateCommunitySerializer,
     CreateTaskSerializer,
+    UpdateExternalLinkSerializer,
     UpdateTaskSerializer,
     UpdateCollaborationToolSerializer,
     UpdateCommunitySerializer,
@@ -724,6 +726,22 @@ class UpdateCollaborationToolInput:
     thumbnail: Optional[Upload] = strawberry.UNSET
 
 
+@gql.input
+class AddExternalLinkInput:
+    space_id: uuid.UUID
+    url: str
+    type: ExternalLinkType
+    name: str
+
+
+@gql.input
+class UpdateExternalLinkInput:
+    id: uuid.UUID
+    url: Optional[str] = strawberry.UNSET
+    type: Optional[ExternalLinkType] = strawberry.UNSET
+    name: Optional[str] = strawberry.UNSET
+
+
 @gql.type
 class Result:
     success: bool
@@ -860,6 +878,8 @@ class Mutation:
                     return current_user.enable_new_post_notifications_for_community_with_name(space.name)
                 case (cT.FOLLOWER, a.DISCONNECT):
                     return current_user.disable_new_post_notifications_for_community_with_name(space.name)
+                case (cT.MEMBER | cT.ADMINISTRATOR, a.LEAVE_SPACE):
+                    return current_user.leave_community_with_name(space.name)
                 case _:
                     raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
         else:
@@ -1221,6 +1241,47 @@ class Mutation:
         with transaction.atomic():
             current_user.delete_collaboration_tool(
                 collaboration_tool_id=id,
+            )
+
+        return Result(success=True)
+
+    @gql.mutation
+    def add_external_link(self, info, input: AddExternalLinkInput) -> ExternalLink:
+        current_user = verify_authorized_user(info)
+
+        serializer = AddExternalLinkSerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        return current_user.add_external_link(
+            space_id=data.get("space_id"),
+            url=data.get("url"),
+            type=data.get("type"),
+            name=data.get("name"),
+        )
+
+    @gql.mutation
+    def update_external_link(self, info, input: UpdateExternalLinkInput) -> ExternalLink:
+        current_user = verify_authorized_user(info)
+
+        serializer = UpdateExternalLinkSerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        return current_user.update_external_link(
+            external_link_id=data.get("id"),
+            url=data.get("url"),
+            type=data.get("type"),
+            name=data.get("name"),
+        )
+
+    @gql.mutation
+    def delete_external_link(self, info, id: uuid.UUID) -> Result:
+        current_user = verify_authorized_user(info)
+
+        with transaction.atomic():
+            current_user.delete_external_link(
+                external_link_id=id,
             )
 
         return Result(success=True)

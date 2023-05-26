@@ -65,6 +65,7 @@ class UpdateConnectionAction(Enum):
     CONNECT = "CONNECT"
     DISCONNECT = "DISCONNECT"
     GRANT_ADMIN_ACCESS = "GRANT_ADMIN_ACCESS"
+    LEAVE_SPACE = "LEAVE_SPACE"
     REVOKE_ADMIN_ACCESS = "REVOKE_ADMIN_ACCESS"
 
 
@@ -191,6 +192,7 @@ class ExternalLink:
     id: gql.auto
     url: gql.auto
     type: ExternalLinkType
+    name: gql.auto
 
 
 @gql.django.type(PostImageModel)
@@ -514,7 +516,10 @@ class Space:
         description="A list of all active members and their role", prefetch_related="memberships__user__profile"
     )
     def members(self, info, offset: int = 0, limit: int = 10) -> Paged[SpaceMember]:
-        return Paged(self.memberships.all()[offset : offset + limit], self.memberships.count())
+        return Paged(
+            self.memberships.all().order_by("-is_administrator", "user")[offset : offset + limit],
+            self.memberships.count(),
+        )
 
     @gql.django.field
     def connection_status_to_myself(self, info) -> List[Optional[SpaceUserConnectionType]]:

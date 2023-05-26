@@ -8,7 +8,7 @@ from openbook_common.serializers import CommonCommunityMembershipSerializer, Geo
 from openbook_common.serializers_fields.community import CommunityPostsCountField
 from openbook_common.serializers_fields.request import RestrictedImageFileSizeField
 from openbook_common.validators import hex_color_validator, url_safety_validator
-from openbook_communities.models import CollaborationTool, Community, Task, VisibilityType
+from openbook_communities.models import CollaborationTool, Community, ExternalLinkType, Task, VisibilityType
 from openbook_communities.serializers_fields import (
     IsInvitedField,
     IsCreatorField,
@@ -21,6 +21,7 @@ from openbook_communities.validators import (
     community_name_characters_validator,
     community_name_not_taken_validator,
     community_id_exists,
+    external_link_id_exists,
     task_id_exists,
     sdg_with_id_exists,
     topic_with_id_exists,
@@ -435,4 +436,40 @@ class UpdateTaskSerializer(serializers.Serializer):
         allow_null=True,
         required=False,
         max_upload_size=settings.TASK_THUMBNAIL_MAX_SIZE,
+    )
+
+
+class AddExternalLinkSerializer(serializers.Serializer):
+    space_id = serializers.UUIDField(
+        validators=[community_id_exists],
+        required=True,
+    )
+    url = serializers.URLField(
+        max_length=settings.EXTERNAL_LINK_URL_MAX_LENGTH,
+        validators=[url_safety_validator],
+        required=False,
+    )
+    type = serializers.ChoiceField(required=False, choices=ExternalLinkType.choices)
+    name = serializers.CharField(
+        max_length=settings.EXTERNAL_LINK_NAME_MAX_LENGTH,
+        required=True,
+        allow_blank=False,
+    )
+
+
+class UpdateExternalLinkSerializer(serializers.Serializer):
+    id = serializers.UUIDField(
+        validators=[external_link_id_exists],
+        required=True,
+    )
+    url = serializers.URLField(
+        max_length=settings.EXTERNAL_LINK_URL_MAX_LENGTH,
+        validators=[url_safety_validator],
+        required=False,
+    )
+    type = serializers.ChoiceField(required=False, choices=ExternalLinkType.choices)
+    name = serializers.CharField(
+        max_length=settings.EXTERNAL_LINK_NAME_MAX_LENGTH,
+        required=True,
+        allow_blank=False,
     )
