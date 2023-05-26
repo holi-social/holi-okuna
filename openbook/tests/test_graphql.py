@@ -1977,15 +1977,13 @@ class TestUsers:
             connect_action=UpdateConnectionAction.LEAVE_SPACE,
         )
 
-        self.assertIsNone(response.errors)
-        self.assertIsNotNone(response.data)
+        assert response.errors is None
+        assert response.data is not None
 
         memberships = space.memberships.all()
-        self.assertEqual(len(memberships), 1)
-        self.assertNotIn(member_user, memberships)
-        self.assertFalse(
-            CommunityNotificationsSubscription.objects.filter(community=space, subscriber=member_user).exists()
-        )
+        assert len(memberships) == 1
+        assert member_user not in memberships
+        assert not CommunityNotificationsSubscription.objects.filter(community=space, subscriber=member_user).exists()
 
     def test_space_admin_leaves_community_success(self):
         space_creator = make_user()
@@ -2006,15 +2004,15 @@ class TestUsers:
             connect_action=UpdateConnectionAction.LEAVE_SPACE,
         )
 
-        self.assertIsNone(response.errors)
-        self.assertIsNotNone(response.data)
+        assert response.errors is None
+        assert response.data is not None
 
         memberships = space.memberships.all()
-        self.assertEqual(len(memberships), 1)
-        self.assertNotIn(space_creator, memberships)
-        self.assertFalse(
-            CommunityNotificationsSubscription.objects.filter(community=space, subscriber=space_creator).exists()
-        )
+        assert len(memberships) == 1
+        assert space_creator not in memberships
+        assert not CommunityNotificationsSubscription.objects.filter(
+            community=space, subscriber=space_creator
+        ).exists()
 
     def test_space_member_leaves_community_error_only_member(self):
         space_creator = make_user()
@@ -2032,18 +2030,15 @@ class TestUsers:
             connect_action=UpdateConnectionAction.LEAVE_SPACE,
         )
 
-        self.assertIsNotNone(response.errors)
-        self.assertIsNone(response.data)
-        self.assertIn(
-            "You cannot leave a community where you are the only member", str(response.errors[0].extensions["errors"])
+        assert response.errors is not None
+        assert response.data is None
+        assert "You cannot leave a community where you are the only member" in str(
+            response.errors[0].extensions["errors"]
         )
 
         memberships = space.memberships.all()
-        self.assertEqual(len(memberships), 1)
-
-        self.assertTrue(
-            CommunityNotificationsSubscription.objects.filter(community=space, subscriber=space_creator).exists()
-        )
+        assert len(memberships) == 1
+        assert CommunityNotificationsSubscription.objects.filter(community=space, subscriber=space_creator).exists()
 
     def test_space_admin_leaves_community_error_only_admin(self):
         space_creator = make_user()
@@ -2063,18 +2058,16 @@ class TestUsers:
             connect_action=UpdateConnectionAction.LEAVE_SPACE,
         )
 
-        self.assertIsNotNone(response.errors)
-        self.assertIsNone(response.data)
-        self.assertIn(
-            "You cannot leave a community where you are the only admin", str(response.errors[0].extensions["errors"])
+        assert response.errors is not None
+        assert response.data is None
+        assert "You cannot leave a community where you are the only admin" in str(
+            response.errors[0].extensions["errors"]
         )
 
         memberships = space.memberships.all()
-        self.assertEqual(len(memberships), 2)
+        assert len(memberships) == 2
 
-        self.assertTrue(
-            CommunityNotificationsSubscription.objects.filter(community=space, subscriber=space_creator).exists()
-        )
+        assert CommunityNotificationsSubscription.objects.filter(community=space, subscriber=space_creator).exists()
 
     def test_space_with_posts(self):
         user_member = make_user()
@@ -4555,8 +4548,8 @@ class TestUsers:
                 variable_values={"input": testCase["input"]},
             )
 
-            self.assertIn(testCase["expected_error"], str(response.errors[0].message))
-            self.assertIsNone(response.data["addExternalLink"] if response.data else response.data)
+            assert testCase["expected_error"] in str(response.errors[0].message)
+            assert (response.data["addExternalLink"] if response.data else response.data) is None
 
     def test_validates_external_link_before_creation(self):
         user = make_user()
@@ -4599,14 +4592,12 @@ class TestUsers:
 
             if "expected_code" in testCase:
                 field_errors = json.loads(response.errors[0].extensions["errors"])
-                self.assertEqual(
-                    testCase["expected_code"],
-                    field_errors[testCase["field"]][0]["code"],
-                    f"{str(response.errors[0].extensions)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
-                )
+                assert (
+                    testCase["expected_code"] == field_errors[testCase["field"]][0]["code"]
+                ), f"{str(response.errors[0].extensions)} does not contain code: {testCase['expected_code']} from testCase: {testCase}"
             else:
-                self.assertIn(testCase["expected_error"], str(response.errors[0].message))
-            self.assertIsNone(response.data["addExternalLink"] if response.data else response.data)
+                assert testCase["expected_error"] in str(response.errors[0].message)
+            assert (response.data["addExternalLink"] if response.data else response.data) is None
 
     def test_can_add_external_link(self):
         user = make_user()
@@ -4641,13 +4632,13 @@ class TestUsers:
             variable_values={"input": valid_input},
         )
 
-        self.assertIsNone(response.errors)
+        assert response.errors is None
 
         added_external_link = response.data["addExternalLink"]
-        self.assertIn("id", added_external_link)
-        self.assertEqual(valid_url, added_external_link["url"])
-        self.assertIn(valid_type, added_external_link["type"])
-        self.assertEqual(valid_name, added_external_link["name"])
+        assert "id" in added_external_link
+        assert valid_url == added_external_link["url"]
+        assert valid_type in added_external_link["type"]
+        assert valid_name == added_external_link["name"]
 
     def test_can_not_add_external_link_if_not_logged_in(self):
         community = make_community()
@@ -4710,10 +4701,10 @@ class TestUsers:
             context_value=BeneDict({"request": {"user": user}}),
         )
 
-        self.assertIsNone(response.data)
-        self.assertIn(
-            "You cannot add an external link to a community that you do not administrate",
-            response.errors[0].extensions["errors"],
+        assert response.data is None
+        assert (
+            "You cannot add an external link to a community that you do not administrate"
+            in response.errors[0].extensions["errors"]
         )
 
     def test_can_not_delete_external_link_if_not_logged_in(self):
@@ -4757,10 +4748,10 @@ class TestUsers:
             context_value=BeneDict({"request": {"user": user}}),
         )
 
-        self.assertIsNone(response.data)
-        self.assertIn(
-            "You cannot delete an external link in a community that you do not administrate",
-            response.errors[0].extensions["errors"],
+        assert response.data is None
+        assert (
+            "You cannot delete an external link in a community that you do not administrate"
+            in response.errors[0].extensions["errors"]
         )
 
     def test_can_delete_external_link_if_admin(self):
@@ -4783,8 +4774,8 @@ class TestUsers:
             context_value=BeneDict({"request": {"user": user}}),
         )
 
-        self.assertTrue(response.data["deleteExternalLink"]["success"])
-        self.assertIsNone(response.errors)
+        assert response.data["deleteExternalLink"]["success"] is True
+        assert response.errors is None
 
     def test_validates_external_link_before_update(self):
         user = make_user()
@@ -4827,14 +4818,12 @@ class TestUsers:
 
             if "expected_code" in testCase:
                 field_errors = json.loads(response.errors[0].extensions["errors"])
-                self.assertEqual(
-                    testCase["expected_code"],
-                    field_errors[testCase["field"]][0]["code"],
-                    f"{str(response.errors[0].extensions)} does not contain code: {testCase['expected_code']} from testCase: {testCase}",
-                )
+                assert (
+                    testCase["expected_code"] == field_errors[testCase["field"]][0]["code"]
+                ), f"{str(response.errors[0].extensions)} does not contain code: {testCase['expected_code']} from testCase: {testCase}"
             else:
-                self.assertIn(testCase["expected_error"], str(response.errors[0].message))
-            self.assertIsNone(response.data["updateExternalLink"] if response.data else response.data)
+                assert testCase["expected_error"] in str(response.errors[0].message)
+            assert (response.data["updateExternalLink"] if response.data else response.data) is None
 
     def test_can_not_update_external_link_without_passing_id(self):
         user = make_user()
@@ -4852,8 +4841,8 @@ class TestUsers:
             variable_values={"input": {"url": "https://www.instagram.com/", "type": "INSTAGRAM"}},
         )
 
-        self.assertIsNone(response.data)
-        self.assertIn("Field 'id' of required type 'UUID!' was not provided", response.errors[0].message)
+        assert response.data is None
+        assert "Field 'id' of required type 'UUID!' was not provided" in response.errors[0].message
 
     def test_can_not_update_external_link_if_not_space_admin(self):
         user = make_user()
@@ -4884,10 +4873,9 @@ class TestUsers:
             variable_values={"input": input},
         )
 
-        self.assertIsNone(response.data)
-        self.assertIn(
-            "You cannot update an external link in a community that you do not administrate",
-            str(response.errors[0].extensions["errors"]),
+        assert response.data is None
+        assert "You cannot update an external link in a community that you do not administrate" in str(
+            response.errors[0].extensions["errors"]
         )
 
     def test_can_not_update_external_link_if_not_logged_in(self):
@@ -4943,8 +4931,8 @@ class TestUsers:
             variable_values={"input": input},
         )
 
-        self.assertEqual(str(external_link.id), response.data["updateExternalLink"]["id"])
-        self.assertIsNone(response.errors)
+        assert str(external_link.id) == response.data["updateExternalLink"]["id"]
+        assert response.errors is None
 
     def test_updated_external_link_has_new_values(self):
         user = make_user()
@@ -4980,14 +4968,14 @@ class TestUsers:
             variable_values={"input": input},
         )
 
-        self.assertIsNone(response.errors)
+        assert response.errors is None
 
         updated_external_link = response.data["updateExternalLink"]
 
-        self.assertEqual(id, updated_external_link["id"])
-        self.assertEqual(new_url, updated_external_link["url"])
-        self.assertEqual(new_type, updated_external_link["type"])
-        self.assertEqual(new_name, updated_external_link["name"])
+        assert id == updated_external_link["id"]
+        assert new_url == updated_external_link["url"]
+        assert new_type == updated_external_link["type"]
+        assert new_name == updated_external_link["name"]
 
 
 def approve_verify_moderated_object(object_id, user):

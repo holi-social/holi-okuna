@@ -29,7 +29,6 @@ setup:
   image: "registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder"
   stage: "setup"
   script:
-    - apt-get update && apt-get install -y apt-utils
     - python3 -m venv venv
     - source venv/bin/activate
     - pip install --upgrade pip
@@ -51,7 +50,7 @@ test:
     - /etc/init.d/redis-server start
     - source venv/bin/activate
     - black --check .
-    - python -m pytest
+    - python -m pytest --cov
   tags:
     - holi-big # more cpu, quicker testing
 
