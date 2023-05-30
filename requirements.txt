@@ -61,6 +61,10 @@ pinocchio==0.4.3
 psycopg2==2.9.5
 psycopg2-binary==2.9.5
 pyjwt==1.7.1
+pytest==7.3.1
+pytest-cov==4.0.0
+pytest-django==4.5.2
+pytest_xdist==3.2.1
 python-dotenv==0.21.0
 python-magic==0.4.27
 pytz==2022.6

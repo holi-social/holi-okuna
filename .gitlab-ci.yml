@@ -50,7 +50,7 @@ test:
     - /etc/init.d/redis-server start
     - source venv/bin/activate
     - black --check .
-    - python manage.py test
+    - python -m pytest --cov
   tags:
     - holi-big # more cpu, quicker testing
 
@@ -73,7 +73,6 @@ build_docker:
     - docker build --cache-from $GCR_IMAGE -t $GCR_IMAGE:latest -t $GCR_IMAGE:$CI_COMMIT_SHA -t $GCR_IMAGE:$CI_COMMIT_REF_SLUG .
     - docker push $GCR_IMAGE:$CI_COMMIT_SHA # this is the tag that is used for deployment
     - docker push $GCR_IMAGE:$CI_COMMIT_REF_SLUG # just for easily knowing which is the last image for a branch
-
 .deploy:
   stage: "deploy"
   image:
