@@ -898,6 +898,8 @@ class Mutation:
                     return current_user.remove_administrator_with_username_from_community_with_name(
                         user_id, space.name
                     )
+                case (cT.ADMINISTRATOR, a.LEAVE_SPACE):
+                    return user_id.leave_community_with_name(space.name)
                 case _:
                     raise GraphQLError(
                         "Operation not allowed",
