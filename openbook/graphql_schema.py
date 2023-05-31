@@ -35,7 +35,6 @@ from openbook_auth.views.authenticated_user.serializers import (
     UpdateAuthenticatedUserSerializer,
 )
 from openbook_common.helpers import is_parameter_null
-from openbook_communities.models import CommunityMembership
 
 from openbook_communities.views.communities.serializers import (
     AddCollaborationToolSerializer,
@@ -84,7 +83,7 @@ def get_id_spaces_count_map(query):
     return id_to_num_spaces
 
 
-@cached_as(CommunityModel, CommunityMembership)
+@cached_as(CommunityModel, CommunityMembershipModel)
 def spaces_for_filter(
     offset: int,
     limit: int,
