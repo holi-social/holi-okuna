@@ -26,6 +26,7 @@ from openbook.graphql_schema import (
 )
 from openbook.graphql_types import VisibilityFilter
 from openbook_auth.models import User, UserConnectionStatus, EngagementLevelChoice
+from openbook_common.models import AppVersion
 from openbook_common.tests.helpers import (
     get_test_images,
     get_test_videos,
@@ -47,7 +48,7 @@ from openbook_common.utils.model_loaders import (
     get_community_admin_privileges_revoked_notification_model,
 )
 from openbook_communities.models import Community, CommunityNotificationsSubscription, CommunityMembership
-from openbook_common.types import VisibilityType
+from openbook_common.types import VisibilityType, NeedUpdateType
 from openbook_insights.models import Insight
 from openbook_moderation.models import ModeratedObject
 from django.core.management import call_command
@@ -4976,6 +4977,33 @@ class TestUsers:
         assert new_url == updated_external_link["url"]
         assert new_type == updated_external_link["type"]
         assert new_name == updated_external_link["name"]
+
+    def test_check_app_version(self):
+        app_version = AppVersion.objects.create(version="2023.5.1000", need_update=NeedUpdateType.FORCED)
+
+        # Check success
+        response = self.check_app_version("2023.5.1000")
+        assert response.errors is None
+        assert response.data is not None
+        assert response.data["checkAppVersion"]["needUpdate"] == app_version.need_update
+
+        # Check error version not found
+        response = self.check_app_version("2023.5.1234")
+        assert response.errors is not None
+        assert response.data is None
+        assert "App version not found" in response.errors[0].message
+
+    def check_app_version(self, version: str):
+        response = schema.execute_sync(
+            f"""
+            query {{
+                checkAppVersion(version: "{version}") {{
+                    needUpdate
+                }}
+            }}
+            """,
+        )
+        return response
 
 
 def approve_verify_moderated_object(object_id, user):
