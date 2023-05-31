@@ -2142,6 +2142,50 @@ class TestUsers:
         assert len(self.private_post_ids(posts_data)) == 0
         assert posts_data[0]["created"] >= posts_data[1]["created"]
 
+    def test_space_with_sorted_members(self):
+        # Create space and members
+        admin1 = make_user(name="Xenia", last_name="Admin")
+        admin2 = make_user(name="John", last_name="Admin")
+        user1 = make_user(name="Angela", last_name="User")
+        user2 = make_user(name="Angela", last_name="Member")
+        user3 = make_user(name="Another", last_name="User")
+        space = make_community(creator=admin1)
+        space.add_member(admin2)
+        space.add_administrator(admin2)
+        space.add_member(user1)
+        space.add_member(user2)
+        space.add_member(user3)
+
+        response = schema.execute_sync(
+            """
+            query($id:String!) {
+                spaceById(idOrName:$id) {
+                    members {
+                        totalResults
+                        data {
+                            user {
+                                fullName
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            variable_values={"id": str(space.id)},
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+        )
+
+        # Check sort order of members: First by membership (admins before members), then by full name
+        assert response.errors is None
+        paged_members = response.data["spaceById"]["members"]
+        assert paged_members["totalResults"] == 5
+        members = paged_members["data"]
+        assert members[0]["user"]["fullName"] == "John Admin"
+        assert members[1]["user"]["fullName"] == "Xenia Admin"
+        assert members[2]["user"]["fullName"] == "Angela Member"
+        assert members[3]["user"]["fullName"] == "Angela User"
+        assert members[4]["user"]["fullName"] == "Another User"
+
     @staticmethod
     def public_post_ids(posts_data):
         return [post_data["id"] for post_data in posts_data if post_data["isPublic"]]
