@@ -225,7 +225,7 @@ class LinkPreview(ModelWithUUID):
 class AppVersion(ModelWithUUID):
     version = models.CharField(max_length=16, unique=True, blank=False, null=False)
     need_update = models.CharField(
-        max_length=10,
+        max_length=12,
         choices=NeedUpdateType.choices,
         default=NeedUpdateType.NO,
         blank=False,
