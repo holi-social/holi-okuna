@@ -18,6 +18,13 @@ class VisibilityType(TextChoices):
     PUBLIC = ("PUBLIC",)
 
 
+@gql.enum
+class NeedUpdateType(TextChoices):
+    NO = ("NO",)
+    RECOMMENDED = ("RECOMMENDED",)
+    MANDATORY = ("MANDATORY",)
+
+
 # Helper class for the result of parsing GeoJSON
 class GeolocationFeature:
     id: str
