@@ -35,7 +35,6 @@ from openbook_auth.views.authenticated_user.serializers import (
     UpdateAuthenticatedUserSerializer,
 )
 from openbook_common.helpers import is_parameter_null
-from openbook_common.types import NeedUpdateType
 from openbook_communities.models import CommunityMembership
 from openbook_common.models import AppVersion
 
@@ -126,11 +125,6 @@ def spaces_for_filter(
 class NewNotificationsResponse:
     id: Optional[UUID]
     status: bool
-
-
-@gql.type
-class NeedUpdateResponse:
-    need_update: NeedUpdateType
 
 
 def filter_spaces_by_skill_ids(geolocation, skill_ids, limit):
@@ -269,7 +263,7 @@ class Query:
         except AppVersion.DoesNotExist:
             raise GraphQLError("App version not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
 
-        return NeedUpdateResponse(need_update=app_version.need_update)
+        return app_version
 
     @gql.django.field
     def insights_by_user_id(self, info, id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Insight]:

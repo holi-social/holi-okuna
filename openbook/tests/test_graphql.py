@@ -4986,6 +4986,8 @@ class TestUsers:
         assert response.errors is None
         assert response.data is not None
         assert response.data["checkAppVersion"]["needUpdate"] == app_version.need_update
+        assert response.data["checkAppVersion"]["appStoreUrl"] == settings.APPLE_APP_STORE_DEFAULT_URL
+        assert response.data["checkAppVersion"]["playStoreUrl"] == settings.GOOGLE_PLAY_STORE_DEFAULT_URL
 
         # Check error version not found
         response = self.check_app_version("2023.5.1234")
@@ -4999,6 +5001,8 @@ class TestUsers:
             query {{
                 checkAppVersion(version: "{version}") {{
                     needUpdate
+                    appStoreUrl
+                    playStoreUrl
                 }}
             }}
             """,

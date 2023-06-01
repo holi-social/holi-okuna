@@ -34,4 +34,4 @@ class ProxyBlacklistDomainAdmin(admin.ModelAdmin):
 @admin.register(AppVersion)
 class AppVersionAdmin(admin.ModelAdmin):
     readonly_fields = ("created",)
-    list_display = ("version", "need_update", "created")
+    list_display = ("version", "need_update", "app_store_url", "play_store_url", "created")
