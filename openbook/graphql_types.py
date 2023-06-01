@@ -12,7 +12,8 @@ from django.db.models import QuerySet
 
 import logging
 from openbook_common.models import LinkPreview as LinkPreviewModel
-from openbook_common.types import ReactionType, GeolocationFeature
+from openbook_common.models import AppVersion as AppVersionModel
+from openbook_common.types import ReactionType, GeolocationFeature, NeedUpdateType
 from openbook_common.utils.model_loaders import get_circle_model
 from openbook_communities.models import (
     Community as CommunityModel,
@@ -101,6 +102,13 @@ class GeolocationPoint:
             return None
 
         return GeolocationPoint(longitude=point.x, latitude=point.y)
+
+
+@gql.django.type(AppVersionModel)
+class AppVersionResponse:
+    need_update: gql.auto
+    app_store_url: gql.auto
+    play_store_url: gql.auto
 
 
 # Custom scalars for GeoJSON containing geolocation geometries are necessary, as GraphQL schema parsing throws an error ("Decorated type deeper than introspection query") for 4-dimensional arrays (e.g. MultiPolygons)

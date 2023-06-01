@@ -35,7 +35,7 @@ from openbook_auth.views.authenticated_user.serializers import (
     UpdateAuthenticatedUserSerializer,
 )
 from openbook_common.helpers import is_parameter_null
-
+from openbook_common.models import AppVersion
 from openbook_communities.views.communities.serializers import (
     AddCollaborationToolSerializer,
     AddExternalLinkSerializer,
@@ -253,6 +253,15 @@ class Query:
             offset,
             limit,
         )
+
+    @gql.django.field
+    def check_app_version(self, version: str) -> AppVersionResponse:
+        try:
+            app_version = AppVersion.objects.get(version=version)
+        except AppVersion.DoesNotExist:
+            logger.warning(f"App version {version} not found")
+            return AppVersionResponse(need_update=NeedUpdateType.NO)
+        return app_version
 
     @gql.django.field
     def insights_by_user_id(self, info, id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Insight]:
