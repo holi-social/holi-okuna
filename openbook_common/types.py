@@ -21,8 +21,8 @@ class VisibilityType(TextChoices):
 @gql.enum
 class NeedUpdateType(TextChoices):
     NO = ("NO",)
-    SUGGESTED = ("SUGGESTED",)
-    FORCED = ("FORCED",)
+    RECOMMENDED = ("RECOMMENDED",)
+    MANDATORY = ("MANDATORY",)
 
 
 # Helper class for the result of parsing GeoJSON

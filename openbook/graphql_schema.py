@@ -257,12 +257,12 @@ class Query:
         )
 
     @gql.django.field
-    def check_app_version(self, version: str) -> NeedUpdateResponse:
+    def check_app_version(self, version: str) -> AppVersionResponse:
         try:
             app_version = AppVersion.objects.get(version=version)
         except AppVersion.DoesNotExist:
-            raise GraphQLError("App version not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
-
+            logger.warning(f"App version {version} not found")
+            return AppVersionResponse(need_update=NeedUpdateType.NO)
         return app_version
 
     @gql.django.field

@@ -4979,7 +4979,7 @@ class TestUsers:
         assert new_name == updated_external_link["name"]
 
     def test_check_app_version(self):
-        app_version = AppVersion.objects.create(version="2023.5.1000", need_update=NeedUpdateType.FORCED)
+        app_version = AppVersion.objects.create(version="2023.5.1000", need_update=NeedUpdateType.MANDATORY)
 
         # Check success
         response = self.check_app_version("2023.5.1000")
@@ -4991,9 +4991,9 @@ class TestUsers:
 
         # Check error version not found
         response = self.check_app_version("2023.5.1234")
-        assert response.errors is not None
-        assert response.data is None
-        assert "App version not found" in response.errors[0].message
+        assert response.errors is None
+        assert response.data is not None
+        assert response.data["checkAppVersion"]["needUpdate"] == NeedUpdateType.NO
 
     def check_app_version(self, version: str):
         response = schema.execute_sync(
