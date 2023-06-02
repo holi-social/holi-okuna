@@ -256,7 +256,6 @@ class Query:
 
     @gql.django.field
     def check_app_version(self, version: str, build_number: str) -> AppVersionResponse:
-        print(build_number)
         try:
             app_version = AppVersion.objects.get(version=version)
         except AppVersion.DoesNotExist:
