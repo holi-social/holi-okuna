@@ -2100,7 +2100,7 @@ class User(ModelWithUUID, AbstractUser):
                 staff_member.id, community_to_join.id, user_to_approve.id
             )
 
-    def _notify_membership_removal(self, community, user_to_remove):
+    def notify_membership_removal(self, community, user_to_remove):
         CommunityMembershipRevokedNotification = get_community_membership_revoked_notification_model()
         CommunityMembershipRevokedNotification.create_community_membership_revoked_notification(
             community.id, user_to_remove.id
@@ -2149,7 +2149,7 @@ class User(ModelWithUUID, AbstractUser):
             user_to_remove.unsubscribe_from_community_notifications(community=community)
 
         community.remove_member(user_to_remove)
-        self._notify_membership_removal(self, community, user_to_remove)
+        self.notify_membership_removal(community, user_to_remove)
 
         return community
 
