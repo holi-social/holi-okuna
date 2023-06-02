@@ -568,6 +568,22 @@ def check_can_add_administrator_with_username_to_community_with_name(user, usern
         )
 
 
+def check_can_remove_member_from_community(user, username, community_name):
+    if not user.is_administrator_of_community_with_name(community_name=community_name):
+        raise ValidationError(
+            _("Only the administrators of the space can remove members."),
+        )
+
+    Community = get_community_model()
+
+    if not Community.is_user_with_username_member_of_community_with_name(
+        username=username, community_name=community_name
+    ):
+        raise ValidationError(
+            _("User to remove is not an administrator."),
+        )
+
+
 def check_can_remove_administrator_with_username_to_community_with_name(user, username, community_name):
     if not user.is_administrator_of_community_with_name(community_name=community_name):
         raise ValidationError(

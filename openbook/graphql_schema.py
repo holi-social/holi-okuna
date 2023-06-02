@@ -890,7 +890,6 @@ class Mutation:
                 case (cT.MEMBER, a.CONNECT):
                     space = current_user.approve_membership_request_to_community_for_username(user_id, space.name)
                     publish_space_user_added_event(username=str(user_id), community=space)
-
                     return space
                 case (cT.ADMINISTRATOR, a.GRANT_ADMIN_ACCESS):
                     return current_user.add_administrator_with_username_to_community_with_name(user_id, space.name)
@@ -898,8 +897,8 @@ class Mutation:
                     return current_user.remove_administrator_with_username_from_community_with_name(
                         user_id, space.name
                     )
-                case (cT.ADMINISTRATOR, a.LEAVE_SPACE):
-                    return user_id.leave_community_with_name(space.name)
+                case (cT.ADMINISTRATOR, a.REMOVE_MEMBER):
+                    return current_user.remove_member_from_community(user_id, space.name)
                 case _:
                     raise GraphQLError(
                         "Operation not allowed",
