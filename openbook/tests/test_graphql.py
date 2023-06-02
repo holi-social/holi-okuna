@@ -5026,7 +5026,7 @@ class TestUsers:
         app_version = AppVersion.objects.create(version="2023.5.1000", need_update=NeedUpdateType.MANDATORY)
 
         # Check success
-        response = self.check_app_version("2023.5.1000")
+        response = self.check_app_version(version="2023.5.1000", build_number="1000")
         assert response.errors is None
         assert response.data is not None
         assert response.data["checkAppVersion"]["needUpdate"] == app_version.need_update
@@ -5034,16 +5034,16 @@ class TestUsers:
         assert response.data["checkAppVersion"]["playStoreUrl"] == settings.GOOGLE_PLAY_STORE_DEFAULT_URL
 
         # Check error version not found
-        response = self.check_app_version("2023.5.1234")
+        response = self.check_app_version(version="2023.5.1234", build_number="1000")
         assert response.errors is None
         assert response.data is not None
         assert response.data["checkAppVersion"]["needUpdate"] == NeedUpdateType.NO
 
-    def check_app_version(self, version: str):
+    def check_app_version(self, version: str, build_number: str):
         response = schema.execute_sync(
             f"""
             query {{
-                checkAppVersion(version: "{version}") {{
+                checkAppVersion(version: "{version}", buildNumber: "{build_number}") {{
                     needUpdate
                     appStoreUrl
                     playStoreUrl
