@@ -26,7 +26,6 @@ default:
     - holi-small # build on smaller machine
 
 setup:
-  #image: "registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder"
   image: "gitlab.holi.team:5050/app/holi-docker/holi-okuna-builder"
   stage: "setup"
   script:
@@ -36,7 +35,6 @@ setup:
     - pip install -r requirements.txt --exists-action s
 
 test:
-  #image: "registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder"
   image: "gitlab.holi.team:5050/app/holi-docker/holi-okuna-builder"
   services:
     - name: postgis/postgis:12-3.3-alpine
