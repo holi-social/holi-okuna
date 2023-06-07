@@ -67,6 +67,7 @@ class UpdateConnectionAction(Enum):
     DISCONNECT = "DISCONNECT"
     GRANT_ADMIN_ACCESS = "GRANT_ADMIN_ACCESS"
     LEAVE_SPACE = "LEAVE_SPACE"
+    REMOVE_MEMBER = "REMOVE_MEMBER"
     REVOKE_ADMIN_ACCESS = "REVOKE_ADMIN_ACCESS"
 
 
@@ -153,6 +154,7 @@ class NotificationType(Enum):
     FRA = strawberry.enum_value("FRA", description="FOLLOW_REQUEST_APPROVED")
     CMR = strawberry.enum_value("CMR", description="COMMUNITY_MEMBERSHIP_REQUEST")
     CMRA = strawberry.enum_value("CMRA", description="COMMUNITY_MEMBERSHIP_APPROVED")
+    CMRE = strawberry.enum_value("CMRE", description="COMMUNITY_MEMBERSHIP_REVOKED")
     CAPG = strawberry.enum_value("CAPG", description="COMMUNITY_ADMIN_PRIVILEGES_GRANTED")
     CAPR = strawberry.enum_value("CAPR", description="COMMUNITY_ADMIN_PRIVILEGES_REVOKED")
     CI = strawberry.enum_value("CI", description="COMMUNITY_INVITE")

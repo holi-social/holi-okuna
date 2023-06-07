@@ -6,6 +6,7 @@ from openbook_notifications.models import (
     CommunityNewPostNotification,
     CommunityAdminPrivilegesGrantedNotification,
     CommunityAdminPrivilegesRevokedNotification,
+    CommunityMembershipRevokedNotification,
 )
 from openbook_notifications.models.release_notification import ReleaseNotification
 
@@ -56,7 +57,16 @@ class CommunityAdminPrivilegesGrantedNotificationAdmin(ModelAdmin):
 
 
 @admin.register(CommunityAdminPrivilegesRevokedNotification)
-class CommunityAdminPrivilegesRevokedNotification(ModelAdmin):
+class CommunityAdminPrivilegesRevokedNotificationAdmin(ModelAdmin):
+    list_display = ("id", "revoked_user", "community", "created")
+
+    @admin.display(description="Notification created")
+    def created(self, obj):
+        return obj.notification.first().created if obj.notification.first() else None
+
+
+@admin.register(CommunityMembershipRevokedNotification)
+class CommunityMembershipRevokedNotificationAdmin(ModelAdmin):
     list_display = ("id", "revoked_user", "community", "created")
 
     @admin.display(description="Notification created")
