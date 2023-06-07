@@ -64,6 +64,7 @@ from openbook_common.utils.model_loaders import (
     get_follow_request_approved_notification_model,
     get_community_membership_request_notification_model,
     get_community_membership_approved_notification_model,
+    get_community_membership_revoked_notification_model,
     get_community_admin_privileges_granted_notification_model,
     get_community_admin_privileges_revoked_notification_model,
     get_community_notifications_subscription_model,
@@ -2099,6 +2100,12 @@ class User(ModelWithUUID, AbstractUser):
                 staff_member.id, community_to_join.id, user_to_approve.id
             )
 
+    def notify_membership_removal(self, community, user_to_remove):
+        CommunityMembershipRevokedNotification = get_community_membership_revoked_notification_model()
+        CommunityMembershipRevokedNotification.create_community_membership_revoked_notification(
+            community.id, user_to_remove.id
+        )
+
     def revoke_membership_request_to_community_for_username(self, username, community_name):
         check_is_staff_of_community_with_name(self, community_name)
         Community = get_community_model()
@@ -2127,6 +2134,24 @@ class User(ModelWithUUID, AbstractUser):
         community_to_leave.remove_member(self)
 
         return community_to_leave
+
+    def remove_member_from_community(self, username, community_name):
+        check_can_remove_member_from_community(user=self, username=username, community_name=community_name)
+
+        Community = get_community_model()
+        community = Community.objects.get(name=community_name)
+        user_to_remove = User.objects.get(username=username)
+
+        if user_to_remove.has_favorite_community_with_name(community_name):
+            user_to_remove.unfavorite_community_with_name(community_name=community_name)
+
+        if user_to_remove.is_subscribed_to_community_notifications(community=community):
+            user_to_remove.unsubscribe_from_community_notifications(community=community)
+
+        community.remove_member(user_to_remove)
+        self.notify_membership_removal(community, user_to_remove)
+
+        return community
 
     def invite_user_with_username_to_community_with_name(self, username, community_name):
         check_can_invite_user_with_username_to_community_with_name(
