@@ -12,7 +12,7 @@ from mixer.backend.django import mixer
 from openbook import settings
 from openbook_circles.models import Circle
 from openbook_common.tests.models import OpenbookAPITestCase
-from openbook_auth.models import User
+from openbook_auth.models import User, EngagementLevelChoice
 
 import logging
 import json
@@ -150,9 +150,9 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         """should be able to update the authenticated user profile engagement level if current value is None and return 200"""
         self._test_can_update_user_engagement_level_if_current_value_is_none()
 
-    def test_can_not_update_user_engagement_level_if_current_value_is_not_none(self):
-        """should not be able to update the authenticated user profile engagement level and return 400"""
-        self._test_can_not_update_user_engagement_level_if_current_value_is_not_none()
+    def test_can_update_user_profile_engagement_level(self):
+        """should be able to update the authenticated user profile engagement level and return 200"""
+        self._test_update_user_engagement_level_if_current_value_is_not_none()
 
     def test_ignore_update_user_engagement_level_if_same_value_is_provided(self):
         """should ignore update the authenticated user profile engagement level if same value is provided and return 200"""
@@ -215,7 +215,7 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         retrieved_value = user.profile.engagement_level
         self.assertEqual(retrieved_value, update_value)
 
-    def _test_can_not_update_user_engagement_level_if_current_value_is_not_none(self):
+    def _test_update_user_engagement_level_if_current_value_is_not_none(self):
         user = make_user()
         initial_engagement_level = user.profile.engagement_level
         headers = make_authentication_headers_for_user(user)
@@ -235,21 +235,20 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
         # make sure HTTP response is expected
         self.assertEqual(
             response.status_code,
-            status.HTTP_400_BAD_REQUEST,
+            status.HTTP_200_OK,
             f"response.data {response.data}",
         )
 
-        # make sure new retrieved value is same as initial_engagement_level
+        # make sure new retrieved value is different from initial_engagement_level
         user.refresh_from_db()
         retrieved_value = user.profile.engagement_level
-        self.assertEqual(retrieved_value, initial_engagement_level)
+        self.assertNotEqual(retrieved_value, initial_engagement_level)
 
     def _test_ignore_update_user_engagement_level_if_same_value_is_provided(self):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
         update_value = user.profile.engagement_level
-
         data = {"engagement_level": update_value}
 
         url = self._get_url()

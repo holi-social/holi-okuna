@@ -37,11 +37,7 @@ ENVIRONMENT = os.environ.get("ENVIRONMENT")
 ENVIRONMENT_ID = os.environ.get("ENVIRONMENT_ID", "local")
 
 if not ENVIRONMENT:
-    if "test" in sys.argv:
-        logger.info("No ENVIRONMENT variable found but test detected. Setting ENVIRONMENT=TEST_VALUE")
-        ENVIRONMENT = EnvironmentChecker.TEST_VALUE
-    else:
-        raise NameError("ENVIRONMENT environment variable is required")
+    ENVIRONMENT = EnvironmentChecker.TEST_VALUE
 
 environment_checker = EnvironmentChecker(environment_value=ENVIRONMENT)
 
@@ -58,7 +54,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEBUG = environment_checker.is_debug()
 IS_PRODUCTION = environment_checker.is_production()
 IS_BUILD = environment_checker.is_build()
-TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"
+TESTING = False
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS")
 if IS_PRODUCTION:
@@ -86,7 +82,7 @@ INSTALLED_APPS = [
     "django.contrib.gis",
     "rest_framework",
     "rest_framework.authtoken",
-    "django_nose",
+    "pytest_django",
     "ordered_model",
     "storages",
     "video_encoding",
@@ -139,13 +135,13 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://localhost",
-    r"^https://\w+\.web\.project-holi\.org",
+    r"^https://\w+\.dev\.holi\.social",
+    r"^https://app\.holi\.social",
 ]
 CORS_ALLOW_CREDENTIALS = True
 
 # Needed for using the /admin interface for editing insights, HOLI-1562
 CSRF_TRUSTED_ORIGINS = [
-    "https://0kuna-adm1n.project-holi.org",
     "https://0kuna-adm1n.holi.social",
 ]
 
@@ -158,7 +154,7 @@ ROOT_URLCONF = "openbook.urls"
 
 AUTH_USER_MODEL = "openbook_auth.User"
 
-TEST_RUNNER = "django_nose.NoseTestSuiteRunner"
+TEST_RUNNER = "pytest_runner.run_tests"
 
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 
@@ -234,41 +230,9 @@ RQ_QUEUES = {
     },
 }
 
-if DEBUG or TESTING:
+if DEBUG:
     for queueConfig in RQ_QUEUES.values():
         queueConfig["ASYNC"] = False
-
-# FYI: NOSE is a (deprecated) unit testing library
-NOSE_DEFAULT_ARGS = [
-    "--logging-level=ERROR",
-    "--verbosity=1",
-]
-NOSE_COVERAGE_ARGS = [
-    "--cover-erase",
-    "--cover-package=.",
-    "--with-spec",
-    "--spec-color",
-    "--with-coverage",
-]
-if IS_BUILD:
-    NOSE_ARGS = (
-        NOSE_DEFAULT_ARGS
-        + NOSE_COVERAGE_ARGS
-        + [
-            "--cover-xml",
-        ]
-    )
-elif environment_checker.is_quicktest():
-    NOSE_ARGS = NOSE_DEFAULT_ARGS
-else:
-    NOSE_ARGS = (
-        NOSE_DEFAULT_ARGS
-        + NOSE_COVERAGE_ARGS
-        + [
-            "--cover-html",
-            "--cover-html-dir=reports/cover",
-        ]
-    )
 
 TEMPLATES = [
     {
@@ -293,7 +257,7 @@ WSGI_APPLICATION = "openbook.wsgi.application"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-if IS_BUILD or TESTING:
+if IS_BUILD:
     TEST_DB_NAME = os.environ.get("TEST_DB_NAME", "okuna_test_db")
     TEST_DB_USERNAME = os.environ.get("TEST_DB_USERNAME", "okuna_test_user")
     TEST_DB_PASSWORD = os.environ.get("TEST_DB_PASSWORD", "okuna_test_password")
@@ -528,6 +492,7 @@ PROFILE_NAME_MAX_LENGTH = 192
 PROFILE_LAST_NAME_MAX_LENGTH = 192
 PROFILE_PRONOUNS_MAX_LENGTH = 192
 PROFILE_LOCATION_MAX_LENGTH = 192
+PROFILE_GEOLOCATION_ID_MAX_LENGTH = 255
 PROFILE_ABOUT_ME_MAX_LENGTH = int(os.environ.get("PROFILE_ABOUT_ME_MAX_LENGTH", "3000"))
 PROFILE_AVATAR_MAX_SIZE = int(os.environ.get("PROFILE_AVATAR_MAX_SIZE", "10485760"))
 PROFILE_AVATAR_URL_MAX_LENGTH = 500
@@ -610,17 +575,9 @@ AWS_STATIC_LOCATION = "static"
 AWS_PRIVATE_MEDIA_LOCATION = os.environ.get("AWS_PRIVATE_MEDIA_LOCATION")
 AWS_DEFAULT_ACL = None
 
-# Testing overrides
-if TESTING:
-    OS_TRANSLATION_STRATEGY_NAME = "testing"
-    MIN_UNIQUE_TOP_POST_REACTIONS_COUNT = 1
-    MIN_UNIQUE_TOP_POST_COMMENTS_COUNT = 1
-    MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT = 1
-
 # TODO Think about what to do for storage backend
 
-if not TESTING:
-    DEFAULT_FILE_STORAGE = "openbook.storage_imagekit_io.ImagekitIoStorage"
+DEFAULT_FILE_STORAGE = "openbook.storage_imagekit_io.ImagekitIoStorage"
 
 if False:  # IS_PRODUCTION:
     AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
@@ -697,3 +654,11 @@ COLLABORATION_TOOL_DOMAIN_MAX_LENGTH = 63  # Maximum number of characters for a 
 
 # Google Pub/Sub
 GOOGLE_CLOUD_PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT_ID")
+
+# External links
+EXTERNAL_LINK_NAME_MAX_LENGTH = 100
+EXTERNAL_LINK_URL_MAX_LENGTH = 500
+
+# App store urls
+APPLE_APP_STORE_DEFAULT_URL = "itms-apps://apps.apple.com/app/id6446693757"
+GOOGLE_PLAY_STORE_DEFAULT_URL = "market://details?id=foundation.holistic.projectholi"

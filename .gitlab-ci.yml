@@ -26,7 +26,7 @@ default:
     - holi-small # build on smaller machine
 
 setup:
-  image: "registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder"
+  image: "gitlab.holi.team:5050/app/holi-docker/holi-okuna-builder"
   stage: "setup"
   script:
     - python3 -m venv venv
@@ -35,7 +35,7 @@ setup:
     - pip install -r requirements.txt --exists-action s
 
 test:
-  image: "registry.gitlab.com/holisticfoundation/holi-docker/holi-okuna-builder"
+  image: "gitlab.holi.team:5050/app/holi-docker/holi-okuna-builder"
   services:
     - name: postgis/postgis:12-3.3-alpine
       alias: postgres
@@ -50,7 +50,7 @@ test:
     - /etc/init.d/redis-server start
     - source venv/bin/activate
     - black --check .
-    - python manage.py test
+    - python -m pytest --cov
   tags:
     - holi-big # more cpu, quicker testing
 
@@ -65,15 +65,14 @@ build_docker:
     - docker:20.10-dind
   variables:
     # this could be fetched via terraform output ("gcr_location" in infra project), but then we would need an extra job for terraform
-    GCR_IMAGE: eu.gcr.io/holi-shared/holi-okuna
+    GCR_IMAGE: europe-north1-docker.pkg.dev/holi-shared/docker/holi-okuna
   before_script:
-    - cat $GOOGLE_CLOUD_SERVICE_ACCOUNT | docker login -u _json_key --password-stdin https://eu.gcr.io
+    - cat $GOOGLE_CLOUD_SERVICE_ACCOUNT | docker login -u _json_key --password-stdin https://europe-north1-docker.pkg.dev
   script:
-    - docker pull $GCR_IMAGE || true # Allows us to use --cache-from
-    - docker build --cache-from $GCR_IMAGE -t $GCR_IMAGE:$CI_COMMIT_SHA -t $GCR_IMAGE:$CI_COMMIT_REF_SLUG .
+    - docker pull $GCR_IMAGE || true # Allows us to use --cache-from, we need to tag with latest in the next command for this to work
+    - docker build --cache-from $GCR_IMAGE -t $GCR_IMAGE:latest -t $GCR_IMAGE:$CI_COMMIT_SHA -t $GCR_IMAGE:$CI_COMMIT_REF_SLUG .
     - docker push $GCR_IMAGE:$CI_COMMIT_SHA # this is the tag that is used for deployment
     - docker push $GCR_IMAGE:$CI_COMMIT_REF_SLUG # just for easily knowing which is the last image for a branch
-
 .deploy:
   stage: "deploy"
   image:

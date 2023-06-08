@@ -1,22 +1,25 @@
-FROM python:3.11.0
+FROM python:3.11.3
 
-RUN apt-get -y update && apt-get -y upgrade && apt-get install -y \
-    ffmpeg \
-    binutils \
-    libproj-dev \
-    libgdal-dev \
-    libgeos-dev 
+RUN apt-get -y update && \
+    apt-get -y upgrade && \
+    apt-get install -y \
+        ffmpeg \
+        binutils \
+        libproj-dev \
+        libgdal-dev \
+        libgeos-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /requirements.txt
 
-RUN pip install --upgrade pip
-RUN pip install -r /requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --cache-dir=/root/.cache/pip -r /requirements.txt && \
+    rm -rf /root/.cache/pip/*
 
 COPY . /opt/okuna-api
 
 # Copy any files over
-COPY .docker/api/wait-for-it.sh /wait-for-it.sh
-COPY .docker/api/entrypoint.sh /entrypoint.sh
+COPY .docker/api/wait-for-it.sh .docker/api/entrypoint.sh /
 #COPY .docker/api/bootstrap_development_data.sh /bootstrap_development_data.sh
 
 # Change permissions

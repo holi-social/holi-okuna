@@ -1,8 +1,7 @@
+from copy import deepcopy
 from collections import defaultdict
 from datetime import datetime, timedelta
-import json
-
-from rest_framework.exceptions import ValidationError
+from typing_extensions import Annotated
 
 import requests
 import structlog
@@ -22,8 +21,10 @@ from strawberry_django_plus.optimizer import DjangoOptimizerExtension
 
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook.helpers import (
+    publish_space_deleted_event,
     publish_space_user_added_event,
     publish_space_created_event,
+    publish_user_deleted_event,
     publish_user_name_updated_event,
 )
 from openbook.utils import generate_discover_spaces_hash_key, invalidate_discover_spaces_query_cache
@@ -33,11 +34,14 @@ from openbook_auth.validators import string_not_empty
 from openbook_auth.views.authenticated_user.serializers import (
     UpdateAuthenticatedUserSerializer,
 )
-
+from openbook_common.helpers import is_parameter_null
+from openbook_common.models import AppVersion
 from openbook_communities.views.communities.serializers import (
     AddCollaborationToolSerializer,
+    AddExternalLinkSerializer,
     CreateCommunitySerializer,
     CreateTaskSerializer,
+    UpdateExternalLinkSerializer,
     UpdateTaskSerializer,
     UpdateCollaborationToolSerializer,
     UpdateCommunitySerializer,
@@ -45,10 +49,10 @@ from openbook_communities.views.communities.serializers import (
 )
 from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_moderation.models import ModeratedObject
+from openbook_posts.views.post.serializers import EditCommunityPostSerializer
 from openbook_posts.views.post_comments.serializers import CommentPostSerializer
 from openbook_common.utils.helpers import is_uuid
 from openbook_posts.views.posts.serializers import (
-    CreatePostSerializer,
     CreateCommunityPostSerializer,
 )
 from openbook.middleware.graphql_error_extension import GraphQLErrorExtension
@@ -79,12 +83,12 @@ def get_id_spaces_count_map(query):
     return id_to_num_spaces
 
 
-@cached_as(CommunityModel)
+@cached_as(CommunityModel, CommunityMembershipModel)
 def spaces_for_filter(
     offset: int,
     limit: int,
     topic_id: Optional[uuid.UUID] = None,
-    location: Optional[str] = None,
+    geolocation: Optional[GeolocationFeature] = None,
     skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
     topic_slug: Optional[str] = None,
     skill_slugs: Optional[List[Optional[str]]] = None,
@@ -93,8 +97,8 @@ def spaces_for_filter(
     query = Q()
     if topic_id is not None:
         query.add(Q(topics__id__contains=topic_id), Q.AND)
-    if location is not None:
-        query.add(Q(location__icontains=location), Q.AND)
+    if geolocation is not None:
+        query.add(Q(geolocation__within=geolocation.geometry), Q.AND)
     if skill_ids:
         query.add(Q(tasks__skills__id__in=skill_ids), Q.AND)
     if topic_slug is not None:
@@ -121,7 +125,9 @@ class NewNotificationsResponse:
     status: bool
 
 
-def filter_spaces_by_skill_ids(location, skill_ids, limit):
+def filter_spaces_by_skill_ids(geolocation, skill_ids, limit):
+    geojson = geolocation.geometry.geojson if geolocation and geolocation.geometry else None
+    skipLocationFilter = "false" if geojson else "true"
     return CommunityModel.objects.raw(
         """
             select s.id, s.skill_id, s.rn 
@@ -131,12 +137,12 @@ def filter_spaces_by_skill_ids(location, skill_ids, limit):
                 where occ.id = octask.community_id and octask.id = octskill.task_id  
             ) s
             where s.skill_id = skill.id 
-            and UPPER(s.location) like UPPER(%s)
+            and (%s or ST_Within(s.geolocation, ST_GeomFromGeoJSON(%s)))
             and s.rn <= %s
             and skill.id = ANY(%s)
             order by skill.id
             """,
-        [f"%{location}%", limit, skill_ids],
+        [skipLocationFilter, geojson, limit, skill_ids],
     ).prefetch_related("memberships__user__profile")
 
 
@@ -249,6 +255,15 @@ class Query:
         )
 
     @gql.django.field
+    def check_app_version(self, version: str, build_number: str) -> AppVersionResponse:
+        try:
+            app_version = AppVersion.objects.get(version=version)
+        except AppVersion.DoesNotExist:
+            logger.warning(f"App version {version} not found")
+            return AppVersionResponse(need_update=NeedUpdateType.NO)
+        return app_version
+
+    @gql.django.field
     def insights_by_user_id(self, info, id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         current_user = info.context.request.user
         try:
@@ -306,7 +321,14 @@ class Query:
     def spaces(
         self,
         topic_id: Optional[uuid.UUID] = None,
-        location: Optional[str] = None,
+        location: Annotated[
+            Optional[str],
+            strawberry.argument(
+                # Using description instead of deprecation_reason as deprecated arguments are removed in GraphQL Mesh
+                description="Unsupported since version 1.0.16, use geolocation instead",
+            ),
+        ] = None,
+        geolocation: Optional[GeoJSON] = None,
         skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
         topic_slug: Optional[str] = None,
         skill_slugs: Optional[List[Optional[str]]] = None,
@@ -318,7 +340,7 @@ class Query:
             offset,
             limit,
             topic_id,
-            location,
+            geolocation,
             skill_ids,
             topic_slug,
             skill_slugs,
@@ -328,30 +350,42 @@ class Query:
     @gql.django.field
     def discover_spaces(
         self,
+        info,
         topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
-        location: Optional[str] = None,
+        location: Annotated[
+            Optional[str],
+            # Using description instead of deprecation_reason as deprecated arguments are removed in GraphQL Mesh
+            strawberry.argument(description="Unsupported since version 1.0.16, use geolocation instead"),
+        ] = None,
+        geolocation: Optional[GeoJSON] = None,
         skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
         offset: int = 0,
         limit: int = 10,
     ) -> List[Optional[DiscoverSpaces]]:
+        current_user: UserModel = info.context.request.user
+
+        if not geolocation:
+            if not current_user.is_anonymous and current_user.geolocation is not None:
+                geolocation = current_user.geolocation
+
         result = []
 
-        hash_key = generate_discover_spaces_hash_key(topic_ids, location, skill_ids, offset, limit)
+        hash_key = generate_discover_spaces_hash_key(topic_ids, geolocation, skill_ids, offset, limit)
 
         # Check whether the resolver result has already been cached and return it,
         # otherwise, query the database, create the result, and cache it.
         if hash_key in cache:
             return cache.get(hash_key)
         else:
-            # get all spaces by location (independent of other filters)
-            if location is not None:
+            # get all spaces by geolocation (independent of other filters)
+            if geolocation is not None:
                 result.append(
                     DiscoverSpaces(
-                        location=location,
+                        location_id=geolocation.id,
                         spaces=spaces_for_filter(
                             offset=offset,
                             limit=limit,
-                            location=location,
+                            geolocation=geolocation,
                         ),
                     )
                 )
@@ -376,13 +410,17 @@ class Query:
                         )
                     )
 
-            # get all spaces by skill_id (including location filter)
+            # get all spaces by skill_id (including geolocation filter)
             if skill_ids is not None:
                 skill_id_to_num_spaces = get_id_spaces_count_map(
                     SkillModel.objects.filter(id__in=skill_ids).annotate(num_spaces=Count("tasks__community"))
                 )
 
-                spaces_from_db = filter_spaces_by_skill_ids(location, skill_ids, limit)
+                spaces_from_db = filter_spaces_by_skill_ids(
+                    geolocation=geolocation,
+                    skill_ids=skill_ids,
+                    limit=limit,
+                )
 
                 spaces_map = defaultdict(list)
 
@@ -392,7 +430,7 @@ class Query:
                     result.append(
                         DiscoverSpaces(
                             skill_id=skill_id,
-                            location=location,
+                            location_id=geolocation.id if geolocation else None,
                             spaces=Paged(spaces, skill_id_to_num_spaces[skill_id]),
                         )
                     )
@@ -437,10 +475,17 @@ class Query:
             )
         )
 
-    @gql.django.field(
-        description="idOrName can either be the space id or name (slug). If none of them is found, an error with the message 'Space not found' is thrown."
-    )
-    def space_by_id(self, info, id_or_name: str) -> Optional[Space]:
+    @gql.django.field
+    def space_by_id(
+        self,
+        info,
+        id_or_name: Annotated[
+            str,
+            strawberry.argument(
+                description="idOrName can either be the space id or name (slug). If none of them is found, an error with the message 'Space not found' is thrown."
+            ),
+        ],
+    ) -> Optional[Space]:
         user = info.context.request.user
 
         # check if current user is member of the community to filter out members-only tasks
@@ -536,7 +581,7 @@ def to_input_dict(input):
 
 
 @gql.input
-class GeolocationInput:
+class GeolocationPointInput:
     latitude: float
     longitude: float
 
@@ -558,7 +603,7 @@ class UpdateAuthenticatedUserInput:
     about_me: Optional[str] = strawberry.UNSET
     pronouns: Optional[str] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
-    geolocation: Optional[GeolocationInput] = strawberry.UNSET
+    geolocation: Optional[GeoJSONInput] = strawberry.UNSET
     engagement_level: Optional[str] = strawberry.UNSET
     interests: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
@@ -611,7 +656,7 @@ class UpdateSpaceInput:
     avatar: Optional[Upload] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
-    geolocation: Optional[GeolocationInput] = strawberry.UNSET
+    geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     contact_description: Optional[str] = strawberry.UNSET
     contact_email: Optional[str] = strawberry.UNSET
     contact_phone: Optional[str] = strawberry.UNSET
@@ -627,6 +672,14 @@ class CreatePostInput:
 
 
 @gql.input
+class UpdatePostInput:
+    title: Optional[str] = strawberry.UNSET
+    text: Optional[str] = strawberry.UNSET
+    image: Optional[Upload] = strawberry.UNSET
+    visibility: Optional[VisibilityType] = strawberry.UNSET
+
+
+@gql.input
 class CreateTaskInput:
     space_id: uuid.UUID
     name: str
@@ -639,7 +692,7 @@ class CreateTaskInput:
     thumbnail: Optional[Upload] = strawberry.UNSET
     skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
-    geolocation: Optional[GeolocationInput] = strawberry.UNSET
+    geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     contact_phone: Optional[str] = strawberry.UNSET
 
 
@@ -657,7 +710,7 @@ class UpdateTaskInput:
     thumbnail: Optional[Upload] = strawberry.UNSET
     skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
-    geolocation: Optional[GeolocationInput] = strawberry.UNSET
+    geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
     contact_phone: Optional[str] = strawberry.UNSET
 
 
@@ -681,6 +734,22 @@ class UpdateCollaborationToolInput:
     thumbnail: Optional[Upload] = strawberry.UNSET
 
 
+@gql.input
+class AddExternalLinkInput:
+    space_id: uuid.UUID
+    url: str
+    type: ExternalLinkType
+    name: str
+
+
+@gql.input
+class UpdateExternalLinkInput:
+    id: uuid.UUID
+    url: Optional[str] = strawberry.UNSET
+    type: Optional[ExternalLinkType] = strawberry.UNSET
+    name: Optional[str] = strawberry.UNSET
+
+
 @gql.type
 class Result:
     success: bool
@@ -691,23 +760,20 @@ class Mutation:
     @gql.mutation
     def update_authenticated_user(self, info, input: UpdateAuthenticatedUserInput) -> User:
         current_user = verify_authorized_user(info)
-        update_avatar = False
-
-        if input.avatar:
-            if input.avatar in ("", {}):
-                raise GraphQLError(
-                    f"Attribute 'avatar' should be missing or contain a file, but was: '{input.avatar}'"
-                )
-            else:
-                update_avatar = True
 
         input_dict = to_input_dict(input)
         if input.first_name:
             input_dict["name"] = input.first_name
 
+        # TODO: Only for temporary backwards compatibility, remove in HOLI-4353
+        if input.geolocation and "properties" not in input.geolocation:
+            input_dict.pop("geolocation")
+
         serializer = UpdateAuthenticatedUserSerializer(data=input_dict)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+
+        remove_avatar = is_parameter_null(data, "avatar")
 
         try:
             current_user.update(
@@ -716,17 +782,18 @@ class Mutation:
                 about_me=data.get("about_me"),
                 pronouns=data.get("pronouns"),
                 location=data.get("location"),
-                geolocation=(GeolocationInput.to_point(data.get("geolocation"))),
+                geolocation=data.get("geolocation"),
+                update_location=input.location is not strawberry.UNSET or input.geolocation is not strawberry.UNSET,
                 engagement_level=data.get("engagement_level"),
                 interests=data.get("interests"),
                 sdgs=data.get("sdgs"),
                 skills=data.get("skills"),
                 avatar=data.get("avatar"),
-                update_avatar=update_avatar,
+                remove_avatar=remove_avatar,
                 save=True,
             )
         except Error:
-            if update_avatar:
+            if remove_avatar:
                 delete_avatar(data["avatar"])
             raise
 
@@ -806,6 +873,8 @@ class Mutation:
         cT = SpaceUserConnectionType
         a = UpdateConnectionAction
 
+        invalidate_discover_spaces_query_cache()
+
         if not user_id or current_user.username == user_id:
             # perform for current user
             match (connection_type, connect_action):
@@ -817,6 +886,8 @@ class Mutation:
                     return current_user.enable_new_post_notifications_for_community_with_name(space.name)
                 case (cT.FOLLOWER, a.DISCONNECT):
                     return current_user.disable_new_post_notifications_for_community_with_name(space.name)
+                case (cT.MEMBER | cT.ADMINISTRATOR, a.LEAVE_SPACE):
+                    return current_user.leave_community_with_name(space.name)
                 case _:
                     raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
         else:
@@ -835,6 +906,8 @@ class Mutation:
                     return current_user.remove_administrator_with_username_from_community_with_name(
                         user_id, space.name
                     )
+                case (cT.ADMINISTRATOR, a.LEAVE_SPACE):
+                    return user_id.leave_community_with_name(space.name)
                 case _:
                     raise GraphQLError(
                         "Operation not allowed",
@@ -852,6 +925,29 @@ class Mutation:
         current_user.create_community_encircled_post(**data)
 
         return CommunityModel.objects.get(id=data.get("space_id"))
+
+    @gql.mutation
+    def update_space_post(self, info: Info, id: uuid.UUID, input: UpdatePostInput) -> Space:
+        current_user = verify_authorized_user(info)
+
+        serializer = EditCommunityPostSerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        data["remove_image"] = is_parameter_null(data, "image")
+
+        post = current_user.update_community_encircled_post(post_id=id, **data)
+
+        return post.community
+
+    @gql.mutation
+    def delete_space_post(self, info: Info, id: uuid.UUID) -> Space:
+        current_user = verify_authorized_user(info)
+
+        post = PostModel.objects.get(id=id)
+        current_user.delete_post(post)
+
+        return post.community
 
     @gql.mutation
     def delete_authenticated_user(self, info) -> Result:
@@ -872,8 +968,23 @@ class Mutation:
         # we just retry a couple of times
         for count in range(3, -1, -1):
             try:
+                exclusive_administrated_communities = list(current_user.get_exclusive_administrated_communities())
+
                 current_user.delete()
+                publish_user_deleted_event(user=current_user)
                 logger.info(f"Successfully deleted user {current_user.username}")
+
+                logger.warning(f"All spaces exclusively administered by {current_user.username} will be deleted")
+
+                if exclusive_administrated_communities:
+                    for space in exclusive_administrated_communities:
+                        # Make a copy of the space before deleting it to pass it as a SpaceDeleted event payload
+                        space_to_delete = deepcopy(space)
+                        space.delete()
+                        publish_space_deleted_event(space_to_delete)
+
+                    invalidate_discover_spaces_query_cache()
+
                 return Result(success=True)
             except (Exception,):
                 logger.warning(
@@ -964,16 +1075,19 @@ class Mutation:
         serializer = UpdateCommunitySerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+
         space = current_user.update_community_with_id(
             community_id=data.get("id"),
             title=data.get("title"),
             description=data.get("description"),
-            cover=data.get("cover"),
             topic_ids=data.get("topics"),
+            cover=data.get("cover"),
+            remove_cover=is_parameter_null(data, "cover"),
             avatar=data.get("avatar"),
+            remove_avatar=is_parameter_null(data, "avatar"),
             sdg_ids=data.get("sdgs"),
             location=data.get("location"),
-            geolocation=(GeolocationInput.to_point(data.get("geolocation"))),
+            geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
             contact_description=data.get("contact_description"),
             contact_email=data.get("contact_email"),
             contact_phone=data.get("contact_phone"),
@@ -986,11 +1100,14 @@ class Mutation:
     @gql.mutation
     def delete_space(self, info, id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
+        space = CommunityModel.objects.get(id=id)
 
         with transaction.atomic():
             current_user.delete_community_with_id(
                 community_id=id,
             )
+
+        publish_space_deleted_event(space)
 
         invalidate_discover_spaces_query_cache()
 
@@ -1011,7 +1128,7 @@ class Mutation:
             visibility=data.get("visibility"),
             location_type=data.get("location_type"),
             location=data.get("location"),
-            geolocation=(GeolocationInput.to_point(data.get("geolocation"))),
+            geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
             regularity=data.get("regularity"),
             contact_email=data.get("contact_email"),
             contact_phone=data.get("contact_phone"),
@@ -1026,6 +1143,7 @@ class Mutation:
         serializer = UpdateTaskSerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+
         return current_user.update_task(
             task_id=data.get("task_id"),
             space_id=data.get("space_id"),
@@ -1035,13 +1153,13 @@ class Mutation:
             visibility=data.get("visibility"),
             location_type=data.get("location_type"),
             location=data.get("location"),
-            geolocation=(GeolocationInput.to_point(data.get("geolocation"))),
+            geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
             regularity=data.get("regularity"),
             contact_email=data.get("contact_email"),
             contact_phone=data.get("contact_phone"),
             skills=data.get("skills"),
             thumbnail=data.get("thumbnail"),
-            update_thumbnail=input.thumbnail is not strawberry.UNSET,
+            remove_thumbnail=is_parameter_null(data, "thumbnail"),
         )
 
     @gql.mutation
@@ -1123,6 +1241,7 @@ class Mutation:
             description=data.get("description"),
             collection_type=data.get("collection_type"),
             thumbnail=data.get("thumbnail"),
+            remove_thumbnail=is_parameter_null(data, "thumbnail"),
         )
 
     @gql.mutation
@@ -1132,6 +1251,47 @@ class Mutation:
         with transaction.atomic():
             current_user.delete_collaboration_tool(
                 collaboration_tool_id=id,
+            )
+
+        return Result(success=True)
+
+    @gql.mutation
+    def add_external_link(self, info, input: AddExternalLinkInput) -> ExternalLink:
+        current_user = verify_authorized_user(info)
+
+        serializer = AddExternalLinkSerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        return current_user.add_external_link(
+            space_id=data.get("space_id"),
+            url=data.get("url"),
+            type=data.get("type"),
+            name=data.get("name"),
+        )
+
+    @gql.mutation
+    def update_external_link(self, info, input: UpdateExternalLinkInput) -> ExternalLink:
+        current_user = verify_authorized_user(info)
+
+        serializer = UpdateExternalLinkSerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        return current_user.update_external_link(
+            external_link_id=data.get("id"),
+            url=data.get("url"),
+            type=data.get("type"),
+            name=data.get("name"),
+        )
+
+    @gql.mutation
+    def delete_external_link(self, info, id: uuid.UUID) -> Result:
+        current_user = verify_authorized_user(info)
+
+        with transaction.atomic():
+            current_user.delete_external_link(
+                external_link_id=id,
             )
 
         return Result(success=True)

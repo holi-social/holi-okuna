@@ -4,6 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.test import TestCase
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
+from openbook_auth.models import EngagementLevelChoice
 from openbook_circles.models import Circle
 from openbook_common.tests.assertions import TestAssertionsMixin
 from openbook_common.tests.helpers import make_user, make_community, make_fake_post_text, make_fake_post_title
@@ -242,3 +243,12 @@ class UserModelTest(TestAssertionsMixin, TestCase):
             )
 
         self.assertEqual(space.posts.count(), 0)
+
+    def test_update_engagement_level(self):
+        user = make_user()
+
+        user.update_engagement_level(EngagementLevelChoice.INITIATOR)
+        self.assertEqual(user.profile.engagement_level, EngagementLevelChoice.INITIATOR)
+
+        user.update_engagement_level(EngagementLevelChoice.INTERESTED)
+        self.assertEqual(user.profile.engagement_level, EngagementLevelChoice.INTERESTED)

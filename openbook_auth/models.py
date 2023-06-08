@@ -28,12 +28,13 @@ from openbook_auth.helpers import (
 )
 from openbook_common.helpers import get_supported_translation_language, PQ, PrefixedQ
 from openbook_common.models import Badge, ModelWithUUID
-from openbook_common.types import VisibilityType
+from openbook_common.types import VisibilityType, GeolocationFeature
 from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import (
     get_collaboration_tool_model,
     get_connection_model,
     get_circle_model,
+    get_external_link_model,
     get_follow_model,
     get_list_model,
     get_community_invite_model,
@@ -231,6 +232,16 @@ class User(ModelWithUUID, AbstractUser):
             else:
                 return self.profile.name[0].upper() + self.profile.last_name[0].upper()
 
+    @property
+    def geolocation(self):
+        if not self.profile.geolocation:
+            return None
+        return GeolocationFeature(
+            id=self.profile.geolocation_id,
+            name=self.profile.location,
+            geometry=self.profile.geolocation,
+        )
+
     class Meta:
         verbose_name = _("user")
         verbose_name_plural = _("users")
@@ -250,7 +261,6 @@ class User(ModelWithUUID, AbstractUser):
         are_guidelines_accepted=None,
         badge=None,
     ):
-
         if not is_of_legal_age:
             raise ValidationError(
                 _("You must confirm you are over 16 years old to make an account"),
@@ -564,9 +574,6 @@ class User(ModelWithUUID, AbstractUser):
         for post in self.posts.all().iterator():
             post.soft_delete()
 
-        for community in self.created_communities.all().iterator():
-            community.soft_delete()
-
         self.delete_all_notifications()
         self.is_deleted = True
         self.save()
@@ -575,36 +582,32 @@ class User(ModelWithUUID, AbstractUser):
         for post in self.posts.all.iterator():
             post.unsoft_delete()
 
-        for community in self.created_communities.all().iterator():
-            community.unsoft_delete()
-
         self.is_deleted = False
         self.save()
 
-    def update_profile_cover(self, cover, save=True):
+    def _update_profile_cover(self, cover, save=True):
         if cover is None:
-            self.delete_profile_cover(save=False)
+            self._delete_profile_cover(save=False)
         else:
             self.profile.cover = cover
 
         if save:
             self.profile.save()
 
-    def delete_profile_cover(self, save=True):
+    def _delete_profile_cover(self, save=True):
         delete_file_field(self.profile.cover)
         self.profile.cover = None
         self.profile.cover.delete(save=save)
 
-    def update_profile_avatar(self, avatar, save=True):
-        if avatar is None:
-            self.delete_profile_avatar(save=False)
-        else:
-            self.profile.avatar = avatar
+    def _update_profile_avatar(self, avatar, save=True):
+        if self.profile.avatar:
+            self._delete_profile_avatar(save=False)
+        self.profile.avatar = avatar
 
         if save:
             self.profile.save()
 
-    def delete_profile_avatar(self, save=True):
+    def _delete_profile_avatar(self, save=True):
         delete_file_field(self.profile.avatar)
         self.profile.avatar = None
         self.profile.avatar.delete(save=save)
@@ -627,11 +630,8 @@ class User(ModelWithUUID, AbstractUser):
 
     # engagement_level may only be set once
     def update_engagement_level(self, engagement_level):
-        if self.profile.engagement_level is None:
-            self.profile.engagement_level = engagement_level
-            self.profile.save()
-        elif self.profile.engagement_level != engagement_level:
-            raise ValidationError("Engagement level may not change after it is set once.")
+        self.profile.engagement_level = engagement_level
+        self.profile.save()
 
     def verify_email_with_token(self, token):
         new_email = check_email_verification_token_is_valid_for_email(user=self, email_verification_token=token)
@@ -672,9 +672,8 @@ class User(ModelWithUUID, AbstractUser):
         community_posts_visible=None,
         visibility=None,
         avatar=None,
-        update_avatar=False,
         cover=None,
-        update_cover=False,
+        remove_cover=False,
         last_name=None,
         pronouns=None,
         engagement_level=None,
@@ -682,8 +681,9 @@ class User(ModelWithUUID, AbstractUser):
         sdgs=None,
         skills=None,
         save=True,
+        update_location=False,
+        remove_avatar=False,
     ):
-
         profile = self.profile
 
         if username:
@@ -698,14 +698,15 @@ class User(ModelWithUUID, AbstractUser):
         if name:
             profile.name = name
 
-        profile.location = location
-        profile.geolocation = geolocation
-
-        if avatar is not None:
-            profile.avatar = avatar
-
-        if cover is not None:
-            profile.cover = cover
+        if update_location:
+            if geolocation:
+                profile.location = location or geolocation.name
+                profile.geolocation = geolocation.geometry
+                profile.geolocation_id = geolocation.id
+            else:
+                profile.location = location
+                profile.geolocation = None
+                profile.geolocation_id = None
 
         if about_me is not None:
             if len(about_me) == 0:
@@ -743,10 +744,15 @@ class User(ModelWithUUID, AbstractUser):
         if skills is not None:
             profile.skills.set(skills)
 
-        if update_avatar:
-            self.update_profile_avatar(avatar, save=False)
-        if update_cover:
-            self.update_profile_cover(cover, save=False)
+        if remove_avatar:
+            self._delete_profile_avatar(save=False)
+        elif avatar:
+            self._update_profile_avatar(avatar, save=False)
+
+        if remove_cover:
+            self._delete_profile_cover(save=False)
+        elif cover:
+            self._update_profile_cover(cover, save=False)
 
         if save:
             profile.save()
@@ -769,7 +775,6 @@ class User(ModelWithUUID, AbstractUser):
         post_comment_user_mention_notifications=None,
         post_user_mention_notifications=None,
     ):
-
         notifications_settings = self.notifications_settings
 
         notifications_settings.update(
@@ -1860,7 +1865,9 @@ class User(ModelWithUUID, AbstractUser):
         invites_enabled=None,
         topic_ids=None,
         cover=None,
+        remove_cover=False,
         avatar=None,
+        remove_avatar=False,
         sdg_ids=None,
         location=None,
         geolocation=None,
@@ -1884,7 +1891,9 @@ class User(ModelWithUUID, AbstractUser):
             invites_enabled=invites_enabled,
             topic_ids=topic_ids,
             cover=cover,
+            remove_cover=remove_cover,
             avatar=avatar,
+            remove_avatar=remove_avatar,
             sdg_ids=sdg_ids,
             location=location,
             geolocation=geolocation,
@@ -1907,7 +1916,9 @@ class User(ModelWithUUID, AbstractUser):
         invites_enabled=None,
         topic_ids=None,
         cover=None,
+        remove_cover=False,
         avatar=None,
+        remove_avatar=False,
         sdg_ids=None,
         location=None,
         geolocation=None,
@@ -1934,7 +1945,9 @@ class User(ModelWithUUID, AbstractUser):
             invites_enabled=invites_enabled,
             topic_ids=topic_ids,
             cover=cover,
+            remove_cover=remove_cover,
             avatar=avatar,
+            remove_avatar=remove_avatar,
             sdg_ids=sdg_ids,
             location=location,
             geolocation=geolocation,
@@ -2447,7 +2460,6 @@ class User(ModelWithUUID, AbstractUser):
         return User.objects.filter(blocked_users_query)
 
     def search_top_posts_excluded_communities_with_query(self, query):
-
         excluded_communities_search_query = Q(user=self)
         excluded_communities_search_query.add(
             (Q(community__title__icontains=query) | Q(community__name__icontains=query)),
@@ -2467,7 +2479,6 @@ class User(ModelWithUUID, AbstractUser):
         return top_posts_community_exclusions
 
     def search_profile_posts_excluded_communities_with_query(self, query):
-
         excluded_communities_search_query = Q(user=self)
         excluded_communities_search_query.add(
             (Q(community__title__icontains=query) | Q(community__name__icontains=query)),
@@ -2487,7 +2498,6 @@ class User(ModelWithUUID, AbstractUser):
         return profile_posts_community_exclusions
 
     def get_received_follow_requests(self, max_id=None):
-
         if max_id:
             return self.received_follow_requests.filter(id__lt=max_id)
 
@@ -2617,6 +2627,17 @@ class User(ModelWithUUID, AbstractUser):
         Community = get_community_model()
         return Community.objects.filter(memberships__user=self, memberships__is_administrator=True)
 
+    """
+    Gets all communities where the user is the exclusive administrator.
+    An exclusive administrator is defined as the only user with administrator privileges in a given community.
+    """
+
+    def get_exclusive_administrated_communities(self):
+        Community = get_community_model()
+        return Community.objects.annotate(
+            num_admins=Count("memberships", filter=Q(memberships__is_administrator=True))
+        ).filter(memberships__user=self, memberships__is_administrator=True, num_admins=1)
+
     def search_administrated_communities_with_query(self, query):
         administrated_communities_query = Q(memberships__user=self, memberships__is_administrator=True)
         administrated_communities_name_query = Q(name__icontains=query)
@@ -2707,6 +2728,32 @@ class User(ModelWithUUID, AbstractUser):
             created=created,
             is_draft=is_draft,
             circles_ids=circles_ids,
+        )
+
+        return post
+
+    def update_community_encircled_post(
+        self,
+        post_id,
+        title=None,
+        text=None,
+        image=None,
+        video=None,
+        is_draft=False,
+        visibility=None,
+        remove_image=False,
+    ):
+        Post = get_post_model()
+        post = Post.objects.get(id=post_id)
+        check_can_update_post(user=self, post=post)
+        circles_ids = self._get_circles_ids_by_visibility_and_community_id(visibility, post.community.id)
+        post.update_post(
+            text=text,
+            title=title,
+            image=image,
+            is_draft=is_draft,
+            circles_ids=circles_ids,
+            remove_image=remove_image,
         )
 
         return post
@@ -3130,7 +3177,6 @@ class User(ModelWithUUID, AbstractUser):
         followed_users = followed_users_query.values("followed_user__id").cache()
 
         for followed_user in followed_users:
-
             followed_user_id = followed_user["followed_user__id"]
 
             followed_user_query = Q(creator_id=followed_user_id)
@@ -4241,7 +4287,6 @@ class User(ModelWithUUID, AbstractUser):
         return blocked_users_query
 
     def _make_get_post_with_id_query(self, post_id):
-
         Post = get_post_model()
 
         posts_query = Q(is_deleted=False, status=Post.STATUS_PUBLISHED)
@@ -4268,7 +4313,6 @@ class User(ModelWithUUID, AbstractUser):
         return posts_query
 
     def _make_get_posts_query_for_user(self, user, max_id=None):
-
         Post = get_post_model()
 
         posts_query = Q(creator_id=user.pk, is_deleted=False, status=Post.STATUS_PUBLISHED)
@@ -4441,7 +4485,6 @@ class User(ModelWithUUID, AbstractUser):
         return reactions_query
 
     def _make_get_post_comment_with_id_query(self, post_comment_id, post, post_comment_parent_id=None):
-
         post_comments_query = self._make_get_comments_for_post_query(
             post=post, post_comment_parent_id=post_comment_parent_id
         )
@@ -4453,7 +4496,6 @@ class User(ModelWithUUID, AbstractUser):
         return post_comments_query
 
     def _make_get_comments_for_post_query(self, post, post_comment_parent_id=None, max_id=None, min_id=None):
-
         # Comments from the post
         comments_query = Q(post_id=post.pk)
 
@@ -4652,7 +4694,7 @@ class User(ModelWithUUID, AbstractUser):
         contact_phone=None,
         skills=None,
         thumbnail=None,
-        update_thumbnail=False,
+        remove_thumbnail=False,
     ):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
@@ -4661,15 +4703,6 @@ class User(ModelWithUUID, AbstractUser):
 
         Task = get_task_model()
         task = Task.objects.get(id=task_id)
-
-        new_thumbnail = task.thumbnail
-
-        if update_thumbnail and thumbnail is not None:
-            new_thumbnail = thumbnail
-
-        if update_thumbnail and thumbnail is None:
-            delete_file_field(task.thumbnail)
-            new_thumbnail = None
 
         return task.update(
             name=name,
@@ -4683,7 +4716,8 @@ class User(ModelWithUUID, AbstractUser):
             regularity=regularity,
             contact_phone=contact_phone,
             skills=skills,
-            thumbnail=new_thumbnail,
+            thumbnail=thumbnail,
+            remove_thumbnail=remove_thumbnail,
         )
 
     def delete_task_with_id(self, task_id):
@@ -4729,6 +4763,7 @@ class User(ModelWithUUID, AbstractUser):
         collection_type=None,
         description=None,
         thumbnail=None,
+        remove_thumbnail=False,
     ):
         CollaborationTool = get_collaboration_tool_model()
         collaboration_tool = CollaborationTool.objects.get(id=collaboration_tool_id)
@@ -4741,6 +4776,7 @@ class User(ModelWithUUID, AbstractUser):
             collection_type=collection_type,
             description=description,
             thumbnail=thumbnail,
+            remove_thumbnail=remove_thumbnail,
         )
 
         return collaboration_tool
@@ -4755,6 +4791,59 @@ class User(ModelWithUUID, AbstractUser):
         check_can_delete_collaboration_tool_from_community(user=self, community=community)
 
         return collaboration_tool.delete()
+
+    def add_external_link(
+        self,
+        space_id,
+        url,
+        type,
+        name,
+    ):
+        Community = get_community_model()
+        community = Community.objects.get(id=space_id)
+
+        check_can_add_external_link_to_community(user=self, community=community)
+
+        ExternalLink = get_external_link_model()
+        external_link = ExternalLink.create(
+            community=community,
+            url=url,
+            type=type,
+            name=name,
+        )
+
+        return external_link
+
+    def update_external_link(
+        self,
+        external_link_id,
+        url=None,
+        type=None,
+        name=None,
+    ):
+        ExternalLink = get_external_link_model()
+        external_link = ExternalLink.objects.get(id=external_link_id)
+
+        check_can_update_external_link_in_community(user=self, community=external_link.community)
+
+        external_link.update(
+            url=url,
+            type=type,
+            name=name,
+        )
+
+        return external_link
+
+    def delete_external_link(self, external_link_id):
+        ExternalLink = get_external_link_model()
+        external_link = ExternalLink.objects.get(id=external_link_id)
+
+        Community = get_community_model()
+        community = Community.objects.get(id=external_link.community.id)
+
+        check_can_delete_external_link_from_community(user=self, community=community)
+
+        return external_link.delete()
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL, dispatch_uid="bootstrap_auth_token")
@@ -4813,7 +4902,8 @@ class UserProfile(ModelWithUUID):
         blank=True,
         null=True,
     )
-    geolocation = models.PointField(blank=True, null=True)
+    geolocation = models.GeometryField(blank=True, null=True)
+    geolocation_id = models.CharField(max_length=settings.PROFILE_GEOLOCATION_ID_MAX_LENGTH, blank=True, null=True)
     engagement_level = models.CharField(
         _("engagement level"),
         max_length=10,
@@ -4938,7 +5028,6 @@ class UserNotificationsSettings(ModelWithUUID):
         post_user_mention_notifications=None,
         post_comment_reaction_notifications=None,
     ):
-
         if post_comment_notifications is not None:
             self.post_comment_notifications = post_comment_notifications
 
