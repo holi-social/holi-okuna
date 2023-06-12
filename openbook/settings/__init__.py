@@ -34,7 +34,7 @@ load_dotenv(verbose=True, dotenv_path=find_dotenv())
 
 # The current execution environment
 environment_checker = EnvironmentChecker(os.environ.get("ENVIRONMENT", EnvironmentChecker.TEST_VALUE))
-ENVIRONMENT = environment_checker.get_environment
+ENVIRONMENT = environment_checker.get_environment()
 ENVIRONMENT_ID = os.environ.get("ENVIRONMENT_ID", "local")
 
 # Django SECRET_KEY
