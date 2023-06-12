@@ -381,7 +381,7 @@ SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if IS_PRODUCTION:
     if not SENTRY_DSN:
         raise NameError("SENTRY_DSN environment variable is required when running on a production environment")
-    sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration(), RqIntegration()])
+    sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration(), RqIntegration()], environment="production")
 else:
     if SENTRY_DSN:
         logger.info("SENTRY_DSN environment variable ignored.")

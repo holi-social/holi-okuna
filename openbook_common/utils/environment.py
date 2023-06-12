@@ -8,7 +8,7 @@ class EmptyEnvironmentValueError(AttributeError):
 
 class EnvironmentChecker:
     PRODUCTION_VALUE = "production"
-    ACCEPTANCE_VALUE = "acceptance"
+    STAGING_VALUE = "staging"
     DEVELOPMENT_VALUE = "development"
     TEST_VALUE = "test"
     QUICKTEST_VALUE = "quicktest"
@@ -20,7 +20,7 @@ class EnvironmentChecker:
         QUICKTEST_VALUE,
         PRODUCTION_VALUE,
         DEVELOPMENT_VALUE,
-        ACCEPTANCE_VALUE,
+        STAGING_VALUE,
     ]
 
     def __init__(self, environment_value):
@@ -35,8 +35,8 @@ class EnvironmentChecker:
     def is_development(self):
         return self.environment_value == self.DEVELOPMENT_VALUE
 
-    def is_acceptance(self):
-        return self.environment_value == self.ACCEPTANCE_VALUE
+    def is_staging(self):
+        return self.environment_value == self.STAGING_VALUE
 
     def is_test(self):
         return self.environment_value == self.TEST_VALUE
@@ -45,7 +45,7 @@ class EnvironmentChecker:
         return self.environment_value == self.BUILD_VALUE
 
     def is_debug(self):
-        return self.is_development() or self.is_acceptance()
+        return self.is_development() or self.is_staging()
 
     def is_valid_environment_value(self, environment_value):
         return environment_value in self.ALLOWED_ENVIRONMENTS

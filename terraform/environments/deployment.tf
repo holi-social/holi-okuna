@@ -55,7 +55,7 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "ENVIRONMENT"
-          value = "production"
+          value = local.environment_name == "production" ? "production" : "development"
         }
         env {
           name  = "ENVIRONMENT_ID"
