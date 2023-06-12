@@ -33,13 +33,9 @@ logger = structlog.getLogger(__name__)
 load_dotenv(verbose=True, dotenv_path=find_dotenv())
 
 # The current execution environment
-ENVIRONMENT = os.environ.get("ENVIRONMENT")
+environment_checker = EnvironmentChecker(os.environ.get("ENVIRONMENT", EnvironmentChecker.TEST_VALUE))
+ENVIRONMENT = environment_checker.get_environment
 ENVIRONMENT_ID = os.environ.get("ENVIRONMENT_ID", "local")
-
-if not ENVIRONMENT:
-    ENVIRONMENT = EnvironmentChecker.TEST_VALUE
-
-environment_checker = EnvironmentChecker(environment_value=ENVIRONMENT)
 
 # Django SECRET_KEY
 SECRET_KEY = os.environ.get("SECRET_KEY")
