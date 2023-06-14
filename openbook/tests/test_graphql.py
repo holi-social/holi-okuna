@@ -173,9 +173,9 @@ class TestUsers:
         engagement_level = EngagementLevelChoice.INITIATOR
 
         json_body = [
-            {"op": "replace", "path": "/traits/given_name", "value": f"{first_name}"},
-            {"op": "replace", "path": "/traits/family_name", "value": f"{last_name}"},
-            {"op": "replace", "path": "/traits/name", "value": f"{first_name} {last_name}"},
+            {"op": "add", "path": "/traits/given_name", "value": f"{first_name}"},
+            {"op": "add", "path": "/traits/family_name", "value": f"{last_name}"},
+            {"op": "add", "path": "/traits/name", "value": f"{first_name} {last_name}"},
         ]
 
         executed = schema.execute_sync(
