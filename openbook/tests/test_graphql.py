@@ -46,6 +46,7 @@ from openbook_common.tests.helpers import (
 from openbook_common.utils.model_loaders import (
     get_community_admin_privileges_granted_notification_model,
     get_community_admin_privileges_revoked_notification_model,
+    get_community_membership_revoked_notification_model,
 )
 from openbook_communities.models import Community, CommunityNotificationsSubscription, CommunityMembership
 from openbook_common.types import VisibilityType, NeedUpdateType
@@ -172,9 +173,9 @@ class TestUsers:
         engagement_level = EngagementLevelChoice.INITIATOR
 
         json_body = [
-            {"op": "replace", "path": "/traits/given_name", "value": f"{first_name}"},
-            {"op": "replace", "path": "/traits/family_name", "value": f"{last_name}"},
-            {"op": "replace", "path": "/traits/name", "value": f"{first_name} {last_name}"},
+            {"op": "add", "path": "/traits/given_name", "value": f"{first_name}"},
+            {"op": "add", "path": "/traits/family_name", "value": f"{last_name}"},
+            {"op": "add", "path": "/traits/name", "value": f"{first_name} {last_name}"},
         ]
 
         executed = schema.execute_sync(
@@ -2069,6 +2070,81 @@ class TestUsers:
         assert len(memberships) == 2
 
         assert CommunityNotificationsSubscription.objects.filter(community=space, subscriber=space_creator).exists()
+
+    def test_remove_member_from_community_success(self):
+        space_creator = make_user()
+        member_user = make_user()
+
+        space = make_community(creator=space_creator)
+        space.add_member(member_user)
+
+        CommunityNotificationsSubscription.enable_new_post_notification_for_community(
+            community=space, subscriber=member_user
+        )
+
+        response = self.mutate_update_space_user_connection_raw(
+            auth_user=space_creator,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.ADMINISTRATOR,
+            connect_action=UpdateConnectionAction.REMOVE_MEMBER,
+            user_id=member_user.username,
+        )
+
+        assert response.errors is None
+        assert response.data is not None
+
+        memberships = space.memberships.all().values_list("user__id", flat=True)
+        assert len(memberships) == 1
+        assert member_user not in memberships
+
+        assert not CommunityNotificationsSubscription.objects.filter(community=space, subscriber=member_user).exists()
+        CommunityMembershipRevokedNotification = get_community_membership_revoked_notification_model()
+        community_membership_revoked_notifications = CommunityMembershipRevokedNotification.objects.filter(
+            revoked_user=member_user
+        )
+        assert len(community_membership_revoked_notifications) == 1
+        notification = community_membership_revoked_notifications.first()
+        assert notification.community == space
+        assert notification.notification.first().notification_type == "CMRE"
+
+    def test_remove_member_from_community_error_only_admin(self):
+        space_creator = make_user()
+        member_user = make_user()
+        request_user = make_user()
+
+        space = make_community(creator=space_creator)
+        space.add_member(member_user)
+        space.add_member(request_user)
+
+        CommunityNotificationsSubscription.enable_new_post_notification_for_community(
+            community=space, subscriber=member_user
+        )
+
+        response = self.mutate_update_space_user_connection_raw(
+            auth_user=request_user,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.ADMINISTRATOR,
+            connect_action=UpdateConnectionAction.REMOVE_MEMBER,
+            user_id=member_user.username,
+        )
+
+        assert response.errors is not None
+        assert response.data is None
+
+        assert "Only the administrators of the space can remove members" in str(
+            response.errors[0].extensions["errors"]
+        )
+
+        memberships = space.memberships.all().values_list("user__id", flat=True)
+        assert len(memberships) == 3
+        assert member_user.id in memberships
+        assert CommunityNotificationsSubscription.objects.filter(community=space, subscriber=member_user).exists()
+
+        CommunityMembershipRevokedNotification = get_community_membership_revoked_notification_model()
+        community_membership_revoked_notifications = CommunityMembershipRevokedNotification.objects.filter(
+            revoked_user=member_user
+        )
+        assert len(community_membership_revoked_notifications) == 0
 
     def test_space_with_posts(self):
         user_member = make_user()

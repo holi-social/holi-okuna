@@ -14,9 +14,9 @@ def update_ory_user(user_id: int) -> None:
 
     headers = {"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"}
     data = [
-        {"op": "replace", "path": "/traits/given_name", "value": user.profile.name},
-        {"op": "replace", "path": "/traits/family_name", "value": user.profile.last_name},
-        {"op": "replace", "path": "/traits/name", "value": f"{user.profile.full_name()}"},
+        {"op": "add", "path": "/traits/given_name", "value": user.profile.name},
+        {"op": "add", "path": "/traits/family_name", "value": user.profile.last_name},
+        {"op": "add", "path": "/traits/name", "value": f"{user.profile.full_name()}"},
     ]
     response = requests.patch(f"{settings.ORY_BASE_URL}/admin/identities/{user.username}", headers=headers, json=data)
     response_data = response.json()
