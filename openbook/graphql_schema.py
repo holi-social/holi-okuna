@@ -674,6 +674,7 @@ class CreatePostInput:
 
 @gql.input
 class UpdatePostInput:
+    post_id: uuid.UUID
     title: Optional[str] = strawberry.UNSET
     text: Optional[str] = strawberry.UNSET
     image: Optional[Upload] = strawberry.UNSET
@@ -914,7 +915,9 @@ class Mutation:
                         extensions={"code": GraphQLErrorCodes.FORBIDDEN},
                     )
 
-    @gql.mutation
+    @gql.mutation(
+        deprecation_reason="Changed return type to reflect created entity, use create_space_post_2. Deprecated since v1.1.0"
+    )
     def create_space_post(self, info: Info, input: CreatePostInput) -> Space:
         current_user = verify_authorized_user(info)
 
@@ -927,7 +930,17 @@ class Mutation:
         return CommunityModel.objects.get(id=data.get("space_id"))
 
     @gql.mutation
-    def update_space_post(self, info: Info, id: uuid.UUID, input: UpdatePostInput) -> Space:
+    def create_space_post_2(self, info: Info, input: CreatePostInput) -> Post:
+        current_user = verify_authorized_user(info)
+
+        serializer = CreateCommunityPostSerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        return current_user.create_community_encircled_post(**data)
+
+    @gql.mutation
+    def update_space_post(self, info: Info, input: UpdatePostInput) -> Post:
         current_user = verify_authorized_user(info)
 
         serializer = EditCommunityPostSerializer(data=to_input_dict(input))
@@ -936,9 +949,7 @@ class Mutation:
 
         data["remove_image"] = is_parameter_null(data, "image")
 
-        post = current_user.update_community_encircled_post(post_id=id, **data)
-
-        return post.community
+        return current_user.update_community_encircled_post(**data)
 
     @gql.mutation
     def delete_space_post(self, info: Info, id: uuid.UUID) -> Space:

@@ -159,7 +159,7 @@ class Post(ModelWithUUID):
         created=None,
         is_draft=False,
         title=None,
-    ):
+    ) -> "Post":
 
         if not community_name and not community_id and not circles_ids:
             raise ValidationError(_("A post requires circles or a community to be posted to."))
@@ -208,7 +208,7 @@ class Post(ModelWithUUID):
         is_draft=False,
         title=None,
         remove_image=False,
-    ):
+    ) -> "Post":
         if image and video:
             raise ValidationError(_("A post must have an image or a video, not both."))
 
@@ -232,6 +232,9 @@ class Post(ModelWithUUID):
             self.publish()
         else:
             self.save()
+
+        self.refresh_from_db()  # relation is not updated correctly in self
+        return self
 
     @classmethod
     def get_reaction_counts_for_post_with_id(cls, post_id, reaction_type=None, reactor_id=None):
@@ -671,7 +674,7 @@ class Post(ModelWithUUID):
         self._process_post_hashtags()
         self._process_post_links()
 
-        return post
+        return self
 
     def delete(self, *args, **kwargs):
         self.delete_media()

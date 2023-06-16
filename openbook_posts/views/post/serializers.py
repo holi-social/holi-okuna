@@ -183,6 +183,10 @@ class EditPostSerializer(serializers.Serializer):
 
 
 class EditCommunityPostSerializer(serializers.Serializer):
+    post_id = serializers.UUIDField(
+        validators=[post_id_exists],
+        required=True,
+    )
     title = serializers.CharField(
         max_length=settings.POST_TITLE_MAX_LENGTH,
         required=False,
