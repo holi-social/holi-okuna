@@ -503,7 +503,7 @@ class Space:
     name: gql.auto
     title: gql.auto
     description: gql.auto
-    creator: User
+    creator: Optional[User]
     created: gql.auto
     avatar: str
     avatar_default_color: str
