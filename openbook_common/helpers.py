@@ -4,6 +4,7 @@ from json import dumps
 from PIL import ExifTags
 from PIL.Image import Transpose
 import requests
+import blurhash
 from django.db.models import Q
 from langdetect import DetectorFactory
 from langdetect.lang_detect_exception import LangDetectException
@@ -154,3 +155,10 @@ class ExifRotate:
                 return img.transpose(Transpose.ROTATE_90)
             case _:
                 return img
+
+
+def generate_blurhash(obj) -> str | None:
+    try:
+        return blurhash.encode(obj, x_components=4, y_components=3) if obj is not None else None
+    except FileNotFoundError:
+        return None

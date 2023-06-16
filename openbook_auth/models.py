@@ -20,7 +20,7 @@ from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
 from strawberry_django_plus import gql
 
-from openbook_common.helpers import ExifRotate
+from openbook_common.helpers import ExifRotate, generate_blurhash
 from openbook_auth.checkers import *
 from openbook_auth.helpers import (
     upload_to_user_avatar_directory,
@@ -591,6 +591,7 @@ class User(ModelWithUUID, AbstractUser):
             self._delete_profile_cover(save=False)
         else:
             self.profile.cover = cover
+            self.profile.cover_blurhash = generate_blurhash(cover)
 
         if save:
             self.profile.save()
@@ -598,12 +599,14 @@ class User(ModelWithUUID, AbstractUser):
     def _delete_profile_cover(self, save=True):
         delete_file_field(self.profile.cover)
         self.profile.cover = None
+        self.profile.cover_blurhash = None
         self.profile.cover.delete(save=save)
 
     def _update_profile_avatar(self, avatar, save=True):
         if self.profile.avatar:
             self._delete_profile_avatar(save=False)
         self.profile.avatar = avatar
+        self.profile.avatar_blurhash = generate_blurhash(avatar)
 
         if save:
             self.profile.save()
@@ -611,6 +614,7 @@ class User(ModelWithUUID, AbstractUser):
     def _delete_profile_avatar(self, save=True):
         delete_file_field(self.profile.avatar)
         self.profile.avatar = None
+        self.profile.avatar_blurhash = None
         self.profile.avatar.delete(save=save)
 
     def update_username(self, username):
@@ -4955,6 +4959,7 @@ class UserProfile(ModelWithUUID):
         upload_to=upload_to_user_avatar_directory,
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
+    avatar_blurhash = models.CharField(max_length=50, blank=True, null=True)
     cover = ProcessedImageField(
         verbose_name=_("cover"),
         blank=False,
@@ -4970,6 +4975,7 @@ class UserProfile(ModelWithUUID):
         ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
+    cover_blurhash = models.CharField(max_length=50, blank=True, null=True)
     about_me = models.TextField(
         _("about me"),
         max_length=settings.PROFILE_ABOUT_ME_MAX_LENGTH,
@@ -5167,6 +5173,7 @@ def bootstrap_user_profile(
         name=name,
         user=user,
         avatar=avatar,
+        avatar_blurhash=generate_blurhash(avatar),
         is_of_legal_age=is_of_legal_age,
     )
 

@@ -85,7 +85,7 @@ from video_encoding.backends import get_backend
 from video_encoding.fields import VideoField
 from video_encoding.models import Format
 
-from openbook_common.helpers import get_language_for_text, attr_filled, PQ, PrefixedQ, ExifRotate
+from openbook_common.helpers import get_language_for_text, attr_filled, PQ, PrefixedQ, ExifRotate, generate_blurhash
 
 magic = get_magic()
 post_image_storage = default_storage
@@ -1089,13 +1089,14 @@ class PostImage(ModelWithUUID):
         ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
+    image_blurhash = models.CharField(max_length=50, blank=True, null=True)
     width = models.PositiveIntegerField(editable=False, null=False, blank=False)
     height = models.PositiveIntegerField(editable=False, null=False, blank=False)
     media = GenericRelation(PostMedia)
 
     @classmethod
     def create_post_media_image(cls, image, post_id, order):
-        post_image = cls.objects.create(image=image, post_id=post_id)
+        post_image = cls.objects.create(image=image, post_id=post_id, image_blurhash=generate_blurhash(image))
         PostMedia.create_post_media(
             type=PostMedia.MEDIA_TYPE_IMAGE,
             content_object=post_image,

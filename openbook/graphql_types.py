@@ -211,6 +211,7 @@ class PostImage:
     width: int
     height: int
     url: str = gql.django.field(field_name="image")
+    blurhash: Optional[str] = gql.django.field(field_name="image_blurhash")
 
 
 @gql.django.type(LinkPreviewModel)
@@ -243,6 +244,10 @@ class User:
     @gql.django.field(select_related=["profile"])
     def avatar(self) -> Optional[str]:
         return self.profile.avatar
+
+    @gql.django.field(select_related=["profile"])
+    def avatar_blurhash(self) -> Optional[str]:
+        return self.profile.avatar_blurhash
 
     @gql.django.field(select_related=["profile"])
     def first_name(self) -> Optional[str]:
@@ -321,6 +326,7 @@ class CollaborationTool:
     collection_type: CollectionType
     domain: gql.auto
     thumbnail: Optional[str]
+    thumbnail_blurhash: Optional[str]
 
 
 @gql.django.type(TaskModel)
@@ -339,6 +345,7 @@ class Task:
     regularity: TaskModel.Regularity
     skills: List[Skill]
     thumbnail: Optional[str]
+    thumbnail_blurhash: Optional[str]
     contact_email: str
     contact_phone: Optional[str]
 
@@ -355,6 +362,7 @@ class Insight:
     creator: Optional[User] = gql.django.field(select_related=["creator__profile"])
     date_published: gql.auto
     header_image: Optional[str]
+    header_image_blurhash: Optional[str]
     topic: Optional[Topic]
 
     @gql.django.field(prefetch_related="posts")
@@ -506,8 +514,10 @@ class Space:
     creator: User
     created: gql.auto
     avatar: str
+    avatar_blurhash: Optional[str]
     avatar_default_color: str
     cover: str
+    cover_blurhash: Optional[str]
     location: gql.auto
     links: List[Optional[ExternalLink]]
     tasks: List[Optional["Task"]]
