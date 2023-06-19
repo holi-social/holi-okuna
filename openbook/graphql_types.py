@@ -418,6 +418,7 @@ class Post:
     id: gql.auto
     title: gql.auto
     text: gql.auto
+    space: Optional["Space"] = gql.django.field(field_name="community")
     created: gql.auto
     modified: gql.auto
     creator: User = gql.django.field(select_related="creator__profile")
@@ -511,7 +512,7 @@ class Space:
     name: gql.auto
     title: gql.auto
     description: gql.auto
-    creator: User
+    creator: Optional[User]
     created: gql.auto
     avatar: str
     avatar_blurhash: Optional[str]
