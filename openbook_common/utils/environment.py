@@ -55,7 +55,7 @@ class EnvironmentChecker:
         return self.environment_value == self.BUILD_VALUE
 
     def is_debug(self):
-        return self.is_local()
+        return self.is_local() or self.is_development()
 
     def is_valid_environment_value(self, environment_value):
         return environment_value in self.ALLOWED_ENVIRONMENTS
