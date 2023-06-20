@@ -17,7 +17,7 @@ from strawberry_django_plus import gql
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
 from django.utils.translation import gettext_lazy as _
 
-from openbook_common.helpers import ExifRotate
+from openbook_common.helpers import ExifRotate, generate_blurhash
 from openbook_common.models import ModelWithUUID
 from openbook_common.types import VisibilityType
 from openbook_common.utils.helpers import delete_file_field, extract_and_capitalize_domain_name
@@ -105,6 +105,7 @@ class Community(ModelWithUUID):
         max_length=settings.IMAGE_URL_MAX_LENGTH,
         default=None,
     )
+    avatar_blurhash = models.CharField(max_length=50, blank=True, null=True)
     cover = ProcessedImageField(
         storage=community_image_storage,
         verbose_name=_("cover"),
@@ -121,6 +122,7 @@ class Community(ModelWithUUID):
         ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
+    cover_blurhash = models.CharField(max_length=50, blank=True, null=True)
     created = models.DateTimeField(default=timezone.now, editable=False)
     starrers = models.ManyToManyField(User, related_name="favorite_communities", blank=True)
     banned_users = models.ManyToManyField(User, related_name="banned_of_communities", blank=True)
@@ -349,7 +351,9 @@ class Community(ModelWithUUID):
             title=title,
             creator=creator,
             avatar=avatar,
+            avatar_blurhash=generate_blurhash(avatar),
             cover=cover,
+            cover_blurhash=generate_blurhash(cover),
             color=color,
             user_adjective=user_adjective,
             users_adjective=users_adjective,
@@ -776,19 +780,22 @@ class Community(ModelWithUUID):
             self._delete_cover(save=False)
         else:
             self.cover = cover
-
+            self.cover_blurhash = generate_blurhash(cover)
         if save:
             self.save()
 
     def _delete_cover(self, save=True):
         delete_file_field(self.cover)
         self.cover = None
+        self.cover_blurhash = None
         self.cover.delete(save=save)
 
     def _update_avatar(self, avatar, save=True):
-        if self.avatar:
+        if avatar is None:
             self._delete_avatar(save=False)
-        self.avatar = avatar
+        else:
+            self.avatar = avatar
+            self.avatar_blurhash = generate_blurhash(avatar)
 
         if save:
             self.save()
@@ -796,6 +803,7 @@ class Community(ModelWithUUID):
     def _delete_avatar(self, save=True):
         delete_file_field(self.avatar)
         self.avatar = None
+        self.avatar_blurhash = None
         self.avatar.delete(save=save)
 
     def __str__(self):
@@ -1127,6 +1135,7 @@ class Task(ModelWithUUID):
         ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
+    thumbnail_blurhash = models.CharField(max_length=50, blank=True, null=True)
     contact_email = models.EmailField(
         _("contact email"),
         blank=False,
@@ -1179,6 +1188,7 @@ class Task(ModelWithUUID):
             regularity=regularity,
             contact_phone=contact_phone,
             thumbnail=thumbnail,
+            thumbnail_blurhash=generate_blurhash(thumbnail),
         )
 
         if skills:
@@ -1233,6 +1243,7 @@ class Task(ModelWithUUID):
         if self.thumbnail:
             self._delete_thumbnail(save=False)
         self.thumbnail = thumbnail
+        self.thumbnail_blurhash = generate_blurhash(thumbnail)
 
         if save:
             self.save()
@@ -1240,6 +1251,7 @@ class Task(ModelWithUUID):
     def _delete_thumbnail(self, save=True):
         delete_file_field(self.thumbnail)
         self.thumbnail = None
+        self.thumbnail_blurhash = None
         self.thumbnail.delete(save=save)
 
 
@@ -1358,11 +1370,13 @@ class CollaborationTool(ModelWithUUID):
         ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
+    thumbnail_blurhash = models.CharField(max_length=50, blank=True, null=True)
 
     def _update_thumbnail(self, thumbnail, save=True):
         if self.thumbnail:
             self._delete_thumbnail(save=False)
         self.thumbnail = thumbnail
+        self.thumbnail_blurhash = generate_blurhash(thumbnail)
 
         if save:
             self.save()
@@ -1370,6 +1384,7 @@ class CollaborationTool(ModelWithUUID):
     def _delete_thumbnail(self, save=True):
         delete_file_field(self.thumbnail)
         self.thumbnail = None
+        self.thumbnail_blurhash = None
         self.thumbnail.delete(save=save)
 
     def update(

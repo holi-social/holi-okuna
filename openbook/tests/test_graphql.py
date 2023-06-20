@@ -1,6 +1,7 @@
 import copy
 import json
 import logging
+
 import pytest
 from django.test import Client
 from typing import List, Optional
@@ -26,6 +27,7 @@ from openbook.graphql_schema import (
 )
 from openbook.graphql_types import VisibilityFilter
 from openbook_auth.models import User, UserConnectionStatus, EngagementLevelChoice
+from openbook_common.helpers import generate_blurhash
 from openbook_common.models import AppVersion
 from openbook_common.tests.helpers import (
     get_test_images,
@@ -619,6 +621,16 @@ class TestUsers:
                       id
                       posts {
                         totalResults
+                        data {
+                            title
+                            text
+                            isPublic
+                            created
+                            image {
+                                url
+                                blurhash
+                            }
+                        }
                       }
                     }
                     text
@@ -650,6 +662,7 @@ class TestUsers:
                     created
                     image {
                         url
+                        blurhash
                     }
                 }
             }
@@ -951,10 +964,12 @@ class TestUsers:
         data = response.data["updateSpacePost"]
         assert data["id"] == str(space_post.id)
         assert data["space"]["posts"]["totalResults"] == 1
+
         assert data["title"] is None
         assert data["text"] == input_data["text"]
         assert data["isPublic"] is True
         assert "/cover.jpg/" in data["image"]["url"]
+        assert data["image"]["blurhash"] is not None
 
         # test post update with removal of the post image
         input_data = {
@@ -1205,6 +1220,7 @@ class TestUsers:
                         id
                         title
                         headerImage
+                        headerImageBlurhash
                     }}
                     totalResults
                 }}
@@ -1220,6 +1236,7 @@ class TestUsers:
         insight1_result = insights[0]
         assert insight1_result["title"] == insight1.title
         assert insight1_result["headerImage"] == insight1.header_image
+        assert insight1_result["headerImageBlurhash"] is not None
 
         insight2_result = insights[1]
         assert insight2_result["title"] == insight2.title
@@ -3430,8 +3447,14 @@ class TestUsers:
         user = make_user()
         community = make_community(creator=user)
         topic_ids = [str(make_topic().id) for _ in range(2)]
-        cover = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
-        avatar = SimpleUploadedFile(name="avatar.jpg", content=simple_jpeg_bytes)
+
+        test_image = get_test_images()[0]
+        with open(test_image["path"], "rb") as file:
+            content = file.read()
+            cover = SimpleUploadedFile(name="cover.jpg", content=content)
+            avatar = SimpleUploadedFile(name="avatar.jpg", content=content)
+        blurhash = generate_blurhash(test_image["path"])
+
         sdg_ids = [str(make_sdg().id) for _ in range(2)]
         location = "Hamburg, Germany"
         update_space_mutation = """
@@ -3442,7 +3465,9 @@ class TestUsers:
                     description
                     topics { id }
                     cover
+                    coverBlurhash
                     avatar
+                    avatarBlurhash
                     sdgs { id }
                     location
                     contactDescription
@@ -3482,6 +3507,8 @@ class TestUsers:
             assert topic["id"] in topic_ids
         assert "cover.jpg" in updated_space["cover"]
         assert "avatar.jpg" in updated_space["avatar"]
+        assert blurhash == updated_space["coverBlurhash"]
+        assert blurhash == updated_space["avatarBlurhash"]
         assert len(sdg_ids) == len(updated_space["sdgs"])
         for sdg in updated_space["sdgs"]:
             assert sdg["id"] in sdg_ids
@@ -3509,6 +3536,8 @@ class TestUsers:
         assert str(community.id) == updated_space["id"]
         assert "" == updated_space["cover"]
         assert "" == updated_space["avatar"]
+        assert updated_space["coverBlurhash"] is None
+        assert updated_space["avatarBlurhash"] is None
 
     @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
     def test_can_not_update_space_if_not_admin(self, mock_invalidate_discover_spaces_query_cache):
@@ -4499,6 +4528,7 @@ class TestUsers:
                     description
                     visibility
                     thumbnail
+                    thumbnailBlurhash
                 }
             }
             """
@@ -4506,7 +4536,7 @@ class TestUsers:
         valid_name = "Valid name"
         valid_description = "Valid description"
         valid_visibility = "MEMBERS"
-        valid_thumbnail = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+        valid_thumbnail = SimpleUploadedFile(name="thumbnail.jpg", content=simple_jpeg_bytes)
 
         valid_input = {
             "taskId": str(task.id),
@@ -4537,7 +4567,8 @@ class TestUsers:
         assert valid_name == updateTask["name"]
         assert valid_description == updateTask["description"]
         assert valid_visibility == updateTask["visibility"]
-        assert "cover.jpg" in updateTask["thumbnail"]
+        assert "thumbnail.jpg" in updateTask["thumbnail"]
+        assert updateTask["thumbnailBlurhash"] is not None
 
         valid_name = "New valid name"
         valid_description = "New valid description"
@@ -4569,6 +4600,7 @@ class TestUsers:
         assert valid_description == updateTask["description"]
         assert valid_visibility == updateTask["visibility"]
         assert "" == updateTask["thumbnail"]
+        assert updateTask["thumbnailBlurhash"] is None
 
     def test_can_not_update_task_if_not_logged_in(self):
         community = make_community()
