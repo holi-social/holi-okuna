@@ -608,30 +608,54 @@ class TestUsers:
             variable_values={"input": info},
         )
 
-    def update_space_post(self, user, post_id, info):
+    def create_space_post_2(self, user, info):
         return schema.execute_sync(
             """
-            mutation test($id: UUID!, $input: UpdatePostInput!){
-                updateSpacePost(id: $id, input: $input) {
+            mutation test($input: CreatePostInput!){
+                createSpacePost2(input: $input) {
                     id
                     title
-                    posts {
+                    space {
+                      id
+                      posts {
                         totalResults
-                        data {
-                            title
-                            text
-                            isPublic
-                            created
-                            image {
-                                url
-                            }
-                        }
+                      }
+                    }
+                    text
+                    isPublic
+                    created
+                    
+                }
+            }
+            """,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": info},
+        )
+
+    def update_space_post(self, user, info):
+        return schema.execute_sync(
+            """
+            mutation test($input: UpdatePostInput!){
+                updateSpacePost(input: $input) {
+                    id
+                    title
+                    space {
+                      id
+                      posts {
+                        totalResults
+                      }
+                    }
+                    text
+                    isPublic
+                    created
+                    image {
+                        url
                     }
                 }
             }
             """,
             context_value=BeneDict({"request": {"user": user}}),
-            variable_values={"id": str(post_id), "input": info},
+            variable_values={"input": info},
         )
 
     def test_space_user_can_create_space_post(self):
@@ -765,6 +789,134 @@ class TestUsers:
         assert response.data is None
         assert "Field 'visibility' of required type 'VisibilityType!' was not provided" in response.errors[0].message
 
+    def test_space_user_can_create_space_post_2(self):
+        space_admin = make_user()
+        member_user = make_user()
+        space = make_community(creator=space_admin)
+        space.add_member(member_user)
+
+        # space admin can create public post
+        input_data = {
+            "spaceId": str(space.id),
+            "visibility": VisibilityType.PUBLIC.value,
+            "text": make_fake_post_text(),
+        }
+
+        response = self.create_space_post_2(space_admin, input_data)
+
+        data = response.data["createSpacePost2"]
+
+        assert data["space"]["id"] == str(space.id)
+        assert data["space"]["posts"]["totalResults"] == 1
+        assert data["text"] == input_data["text"]
+        assert data["isPublic"] is True
+
+        # space admin can create private post
+        input_data = {
+            "spaceId": str(space.id),
+            "visibility": VisibilityType.MEMBERS.value,
+            "text": make_fake_post_text(),
+        }
+
+        response = self.create_space_post_2(space_admin, input_data)
+
+        data = response.data["createSpacePost2"]
+
+        assert data["space"]["id"] == str(space.id)
+        assert data["space"]["posts"]["totalResults"] == 2
+        assert data["text"] == input_data["text"]
+        assert data["isPublic"] is False
+
+    def test_member_user_can_create_only_member_visibility_space_post_2(self):
+        space_admin = make_user()
+        member_user = make_user()
+        space = make_community(creator=space_admin)
+        space.add_member(member_user)
+
+        # member user can create private post
+        input_data = {
+            "spaceId": str(space.id),
+            "visibility": VisibilityType.MEMBERS.value,
+            "text": make_fake_post_text(),
+        }
+
+        response = self.create_space_post_2(member_user, input_data)
+
+        data = response.data["createSpacePost2"]
+
+        assert data["space"]["id"] == str(space.id)
+        assert data["space"]["posts"]["totalResults"] == 1
+        assert data["text"] == input_data["text"]
+        assert data["isPublic"] == False
+
+        # member user cannot create public post
+        input_data = {
+            "spaceId": str(space.id),
+            "visibility": VisibilityType.PUBLIC.value,
+            "text": make_fake_post_text(),
+        }
+
+        response = self.create_space_post_2(member_user, input_data)
+
+        assert response.errors is not None
+        assert response.data is None
+        assert (
+            "You cannot add a public post to a community you're not administrator of"
+            in response.errors[0].extensions["errors"]
+        )
+
+    def test_cant_create_space_post_external_user_2(self):
+        space_admin = make_user()
+        external_user = make_user()
+        space = make_community(creator=space_admin)
+
+        # not member user can't create post for the space
+        input_data = {
+            "spaceId": str(space.id),
+            "visibility": VisibilityType.MEMBERS.value,
+            "text": make_fake_post_text(),
+        }
+
+        response = self.create_space_post_2(external_user, input_data)
+
+        assert response.errors is not None
+        assert response.data is None
+        assert "You cannot post to a community you're not member of" in response.errors[0].extensions["errors"]
+
+    def test_cant_create_space_post_invalid_input_2(self):
+        space_admin = make_user()
+        space = make_community(creator=space_admin)
+
+        # test space id field is missing
+        input_data = {
+            "visibility": VisibilityType.MEMBERS.value,
+            "text": make_fake_post_text(),
+        }
+
+        response = self.create_space_post_2(space_admin, input_data)
+        assert response.errors is not None
+        assert response.data is None
+        assert "Field 'spaceId' of required type 'UUID!' was not provided" in response.errors[0].message
+
+        # test post text field is missing
+        input_data = {
+            "spaceId": str(space.id),
+            "visibility": VisibilityType.PUBLIC.value,
+        }
+
+        response = self.create_space_post_2(space_admin, input_data)
+        assert response.errors is not None
+        assert response.data is None
+        assert "Field 'text' of required type 'String!' was not provided" in response.errors[0].message
+
+        # test visibility field is missing
+        input_data = {"spaceId": str(space.id), "text": make_fake_post_text()}
+
+        response = self.create_space_post_2(space_admin, input_data)
+        assert response.errors is not None
+        assert response.data is None
+        assert "Field 'visibility' of required type 'VisibilityType!' was not provided" in response.errors[0].message
+
     def test_space_user_can_edit_space_post(self):
         space_admin = make_user()
         posting_user = make_user()
@@ -785,47 +937,45 @@ class TestUsers:
 
         # test post update with replace of the post image
         input_data = {
+            "postId": str(space_post.id),
             "visibility": VisibilityType.PUBLIC.value,
             "text": make_fake_post_text(),
             "title": None,
             "image": valid_image,
         }
 
-        response = self.update_space_post(posting_user, space_post.id, input_data)
+        response = self.update_space_post(posting_user, input_data)
         assert response.errors is None
         assert response.data is not None
 
         data = response.data["updateSpacePost"]
-        assert data["id"] == str(space.id)
-        assert data["posts"]["totalResults"] == 1
-
-        posts_data = data["posts"]["data"]
-        assert posts_data[0]["title"] is None
-        assert posts_data[0]["text"] == input_data["text"]
-        assert posts_data[0]["isPublic"] == True
-        assert "/cover.jpg/" in posts_data[0]["image"]["url"]
+        assert data["id"] == str(space_post.id)
+        assert data["space"]["posts"]["totalResults"] == 1
+        assert data["title"] is None
+        assert data["text"] == input_data["text"]
+        assert data["isPublic"] is True
+        assert "/cover.jpg/" in data["image"]["url"]
 
         # test post update with removal of the post image
         input_data = {
+            "postId": str(space_post.id),
             "visibility": VisibilityType.PUBLIC.value,
             "text": make_fake_post_text(),
             "title": None,
             "image": None,
         }
 
-        response = self.update_space_post(posting_user, space_post.id, input_data)
+        response = self.update_space_post(posting_user, input_data)
         assert response.errors is None
         assert response.data is not None
 
         data = response.data["updateSpacePost"]
-        assert data["id"] == str(space.id)
-        assert data["posts"]["totalResults"] == 1
-
-        posts_data = data["posts"]["data"]
-        assert posts_data[0]["title"] is None
-        assert posts_data[0]["text"] == input_data["text"]
-        assert posts_data[0]["isPublic"] is True
-        assert posts_data[0]["image"] is None
+        assert data["id"] == str(space_post.id)
+        assert data["space"]["posts"]["totalResults"] == 1
+        assert data["title"] is None
+        assert data["text"] == input_data["text"]
+        assert data["isPublic"] is True
+        assert data["image"] is None
 
     def test_cant_edit_space_post_to_public_visibility_member_user(self):
         space_admin = make_user()
@@ -845,12 +995,13 @@ class TestUsers:
         )
 
         input_data = {
+            "postId": str(space_post.id),
             "visibility": VisibilityType.PUBLIC.value,
             "text": make_fake_post_text(),
             "title": make_fake_post_title(),
         }
 
-        response = self.update_space_post(posting_user, space_post.id, input_data)
+        response = self.update_space_post(posting_user, input_data)
         assert response.errors is not None
         assert response.data is None
         assert (
@@ -884,13 +1035,14 @@ class TestUsers:
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
 
         input_data = {
+            "postId": str(space_post.id),
             "visibility": VisibilityType.MEMBERS.value,
             "text": make_fake_post_text(),
             "title": None,
             "image": valid_image,
         }
 
-        response = self.update_space_post(other_user, space_post.id, input_data)
+        response = self.update_space_post(other_user, input_data)
         assert response.errors is not None
         assert response.data is None
         assert response.errors[0].message == "This post does not belong to you."
