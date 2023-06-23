@@ -15,13 +15,17 @@ import os
 import sys
 import structlog
 import sentry_sdk
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from dotenv import load_dotenv, find_dotenv
+from graphql import GraphQLError
 from sentry_sdk.integrations.django import DjangoIntegration
 
 # Logging config
 from sentry_sdk.integrations.rq import RqIntegration
+from sentry_sdk.scrubber import EventScrubber
 
+from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.utils.environment import EnvironmentChecker
 
 # Python 3.10 moved collections.Callable to collections.abc.Callable. This is a patch to make old libs work (in particular nose)
@@ -49,6 +53,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = environment_checker.is_debug()
 IS_PRODUCTION = environment_checker.is_production()
+IS_STAGING = environment_checker.is_staging()
 IS_BUILD = environment_checker.is_build()
 TESTING = False
 
@@ -372,12 +377,39 @@ OS_TRANSLATION_CONFIG = {
 
 UNICODE_JSON = True
 
+
+def sentry_event_processor(event, hint):
+    if "exc_info" not in hint:
+        return event
+
+    exception = hint["exc_info"][1]
+    if isinstance(exception, ValidationError):
+        return None
+    if isinstance(exception, GraphQLError) and exception.extensions["code"] in [
+        GraphQLErrorCodes.NOT_FOUND,
+        GraphQLErrorCodes.UNAUTHORIZED,
+        GraphQLErrorCodes.FORBIDDEN,
+        GraphQLErrorCodes.BAD_USER_INPUT,
+    ]:
+        return None
+
+    return event
+
+
 # The sentry DSN for error reporting
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
-if IS_PRODUCTION:
+if IS_PRODUCTION or IS_STAGING:
     if not SENTRY_DSN:
         raise NameError("SENTRY_DSN environment variable is required when running on a production environment")
-    sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration(), RqIntegration()], environment="production")
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        event_scrubber=EventScrubber(),  # Remove PII
+        integrations=[DjangoIntegration(), RqIntegration()],
+        ignore_errors=[ValidationError],
+        before_send=sentry_event_processor,
+        traces_sample_rate=0.05 if IS_PRODUCTION else 1,  # Only sample 5% of requests in prod, all in staging
+        environment=ENVIRONMENT,
+    )
 else:
     if SENTRY_DSN:
         logger.info("SENTRY_DSN environment variable ignored.")

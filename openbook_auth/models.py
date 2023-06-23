@@ -4412,7 +4412,7 @@ class User(ModelWithUUID, AbstractUser):
             },
             settings.SECRET_KEY,
             algorithm=settings.JWT_ALGORITHM,
-        ).decode("utf-8")
+        )
 
     def _make_password_reset_verification_token(self):
         return jwt.encode(
@@ -4423,7 +4423,7 @@ class User(ModelWithUUID, AbstractUser):
             },
             settings.SECRET_KEY,
             algorithm=settings.JWT_ALGORITHM,
-        ).decode("utf-8")
+        )
 
     def _can_see_post(self, post):
         post_query = self._make_get_post_with_id_query(post_id=post.pk)

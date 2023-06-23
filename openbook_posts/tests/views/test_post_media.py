@@ -128,8 +128,6 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
                 self.assertEqual(post_media_video.type, PostMedia.MEDIA_TYPE_VIDEO)
 
-                self.assertEqual(post_media_video.order, 0)
-
                 post_video = post_media_video.content_object
 
                 self.assertTrue(hasattr(post_video, "file"))

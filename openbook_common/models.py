@@ -32,6 +32,7 @@ class OrderedModelWithUUID(OrderedModel):
 
     class Meta:
         abstract = True
+        ordering = ("order",)
 
 
 class EmojiGroup(ModelWithUUID):
