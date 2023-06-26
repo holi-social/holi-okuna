@@ -37,7 +37,7 @@ from openbook_terms.models import (
     SDG as SDGModel,
     Skill as SkillModel,
 )
-from openbook_auth.models import User as UserModel, UserConnectionStatus, UserBlock, UserProfile
+from openbook_auth.models import User as UserModel, UserConnectionStatus, UserBlock
 from openbook_insights.models import Insight as InsightModel
 
 logger = logging.getLogger(__name__)
