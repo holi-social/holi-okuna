@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import collections
 import os
-import sys
 import structlog
 import sentry_sdk
 from django.utils.translation import gettext_lazy as _
@@ -124,6 +123,25 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.RemoteUserMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+if DEBUG:
+    INSTALLED_APPS += [
+        "debug_toolbar"
+    ]
+    MIDDLEWARE += [
+        "strawberry_django_plus.middlewares.debug_toolbar.DebugToolbarMiddleware",
+    ]
+
+    import socket
+    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+    INTERNAL_IPS = [".".join(ip.split(".")[:-1] + ["1"]) for ip in ips]
+
+    DEBUG_TOOLBAR_CONFIG = {
+        "SHOW_TEMPLATE_CONTEXT": True,
+    }
+
+MIDDLEWARE += [
     "openbook_common.middleware.TimezoneMiddleware",
     "openbook_common.middleware.ChunkedContentLengthMiddleware",
     "openbook.middleware.slow_log_middleware",
@@ -397,17 +415,17 @@ USE_TZ = True
 LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 
 LANGUAGES = [
-    ("en", _("English")),
-    ("de", _("German")),
-    ("es", _("Spanish")),
-    ("nl", _("Dutch")),
-    ("da", _("Danish")),
-    ("hu", _("Hungarian")),
-    ("sv", _("Swedish")),
-    ("fr", _("French")),
-    ("it", _("Italian")),
-    ("tr", _("Turkish")),
-    ("pt-br", _("Portuguese, Brazilian")),
+    ("en", "English"),
+    ("de", "German"),
+    ("es", "Spanish"),
+    ("nl", "Dutch"),
+    ("da", "Danish"),
+    ("hu", "Hungarian"),
+    ("sv", "Swedish"),
+    ("fr", "French"),
+    ("it", "Italian"),
+    ("tr", "Turkish"),
+    ("pt-br", "Portuguese, Braziliam"),
 ]
 
 LANGUAGE_CODE = "en"
