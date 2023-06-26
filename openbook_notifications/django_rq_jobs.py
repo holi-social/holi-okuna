@@ -1,5 +1,4 @@
 from hashlib import sha256
-from django.conf import settings
 from django_rq import job
 
 from openbook_common.utils.model_loaders import get_user_model

@@ -28,7 +28,6 @@ django-positions==0.6.0
 django-proxy==1.2.2
 django-redis==5.3.0
 django-replicated==2.7
-django-rq-scheduler==2023.6.2
 django-rq==2.8.1
 django-storages==1.13.2
 django-structlog==5.1.0
@@ -72,7 +71,6 @@ pyyaml==6.0
 redis==4.5.5
 requests-file==1.5.1
 rest-framework-generic-relations==2.1.0
-rq-scheduler==0.13.1
 rq==1.15.1
 s3transfer==0.6.1
 safety==2.3.5
