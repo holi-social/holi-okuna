@@ -126,14 +126,13 @@ MIDDLEWARE = [
 ]
 
 if DEBUG:
-    INSTALLED_APPS += [
-        "debug_toolbar"
-    ]
+    INSTALLED_APPS += ["debug_toolbar"]
     MIDDLEWARE += [
         "strawberry_django_plus.middlewares.debug_toolbar.DebugToolbarMiddleware",
     ]
 
     import socket
+
     hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
     INTERNAL_IPS = [".".join(ip.split(".")[:-1] + ["1"]) for ip in ips]
 
