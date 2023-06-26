@@ -12,16 +12,12 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import collections
 import os
-import sys
+
 import structlog
-import sentry_sdk
 from django.utils.translation import gettext_lazy as _
 from dotenv import load_dotenv, find_dotenv
-from sentry_sdk.integrations.django import DjangoIntegration
 
-# Logging config
-from sentry_sdk.integrations.rq import RqIntegration
-
+from openbook.settings import sentry_config
 from openbook_common.utils.environment import EnvironmentChecker
 
 # Python 3.10 moved collections.Callable to collections.abc.Callable. This is a patch to make old libs work (in particular nose)
@@ -49,6 +45,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = environment_checker.is_debug()
 IS_PRODUCTION = environment_checker.is_production()
+IS_STAGING = environment_checker.is_staging()
 IS_BUILD = environment_checker.is_build()
 TESTING = False
 
@@ -86,7 +83,6 @@ INSTALLED_APPS = [
     "django_media_fixtures",
     "cacheops",
     "django_rq",
-    "scheduler",
     "django_extensions",
     "openbook_common",
     "openbook_auth",
@@ -375,12 +371,9 @@ UNICODE_JSON = True
 # The sentry DSN for error reporting
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if IS_PRODUCTION:
-    if not SENTRY_DSN:
-        raise NameError("SENTRY_DSN environment variable is required when running on a production environment")
-    sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration(), RqIntegration()], environment="production")
-else:
-    if SENTRY_DSN:
-        logger.info("SENTRY_DSN environment variable ignored.")
+    sentry_config.init(sentry_dsn=SENTRY_DSN, sample_rate=0.01, environment=ENVIRONMENT)  # trace 1% of requests
+elif IS_STAGING:
+    sentry_config.init(sentry_dsn=SENTRY_DSN, sample_rate=1, environment=ENVIRONMENT)  # trace all requests
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/

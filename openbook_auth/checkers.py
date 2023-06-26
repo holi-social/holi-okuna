@@ -1026,7 +1026,7 @@ def check_email_verification_token_is_valid_for_email(user, email_verification_t
         token_contents = jwt.decode(
             email_verification_token,
             settings.SECRET_KEY,
-            algorithm=settings.JWT_ALGORITHM,
+            algorithms=[settings.JWT_ALGORITHM],
         )
         token_email = token_contents["email"]
         new_email = token_contents["new_email"]

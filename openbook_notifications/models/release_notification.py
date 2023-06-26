@@ -17,6 +17,9 @@ class ReleaseNotification(OrderedModelWithUUID):
         verbose_name="was sent",
     )
 
+    class Meta:
+        ordering = ["-notification__created"]
+
     def send_to_all_users(self) -> int:
         if self.is_sent:
             raise ValidationError("Notification was already processed")

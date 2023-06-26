@@ -1050,7 +1050,6 @@ class ProfilePostsCommunityExclusion(ModelWithUUID):
 
 class PostMedia(OrderedModelWithUUID):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="media")
-    order_with_respect_to = "post"
 
     MEDIA_TYPE_VIDEO = "V"
     MEDIA_TYPE_IMAGE = "I"
