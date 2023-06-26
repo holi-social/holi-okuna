@@ -1,102 +1,99 @@
 -i https://pypi.python.org/simple
 appdirs==1.4.4
-bandit==1.7.4
-beautifulsoup4==4.11.1
+bandit==1.7.5
+beautifulsoup4==4.12.2
 BeneDict~=0.3.2
-black[d]==22.10.0
+black[d]==22.10.0 # can not bump due to conflict with safety
 blurhash-python==1.2.0
-boto3==1.26.6
-botocore==1.29.6
-certifi==2022.9.24
-chardet==5.0.0
-coverage==6.5.0
-croniter==1.3.7
+boto3==1.26.159
+botocore==1.29.159
+certifi==2023.5.7
+chardet==5.1.0
+coverage==7.2.7
+croniter==1.4.1
 decorator==5.1.1
 django-amazon-ses==4.0.1
 django-appconf==1.0.5
-django-cacheops==6.1
-django-cors-headers==3.13.0
-django-cursor-pagination==0.2.0
+django-cacheops==7.0.1
+django-cors-headers==4.1.0
+django-cursor-pagination==0.2.1
 django-debug-toolbar==4.0.0
-django-extensions==3.2.1
+django-extensions==3.2.3
 django-imagekit==4.1.0
 django-media-fixtures==1.0.0
-django-model-utils==4.2.0
-django-modeltranslation==0.18.7
+django-model-utils==4.3.1
+django-modeltranslation==0.18.10
 django-nose==1.4.7
-django-ordered-model==3.6
+django-ordered-model==3.7.4
 django-positions==0.6.0
-django-proxy==1.2.1
-django-redis==5.2.0
+django-proxy==1.2.2
+django-redis==5.3.0
 django-replicated==2.7
-django-rq-scheduler==2022.11
-django-rq==2.6.0
-django-storages==1.13.1
-django-structlog==4.0.1
-django==4.1.3
+django-rq==2.8.1
+django-storages==1.13.2
+django-structlog==5.1.0
+django==4.2.2
 djangorestframework-camel-case==1.4.2
 djangorestframework==3.14.0
 dparse==0.6.2; python_version >= '3.5'
 faker==12.0.1 # mixer 7.2.2 depends on Faker<12.1 and >=5.4.0
 ffmpy==0.3.0
-filelock==3.8.0
-funcy==1.17
-gitdb==4.0.9; python_version >= '3.4'
-gitpython==3.1.29; python_version >= '3.4'
-google-cloud-pubsub==2.15.1
-google-cloud-webrisk==1.11.1
+filelock==3.12.2
+gitdb==4.0.10; python_version >= '3.4'
+gitpython==3.1.31; python_version >= '3.4'
+google-cloud-pubsub==2.17.1
+google-cloud-webrisk==1.12.0
 halo==0.0.31
-imagekitio==2.2.8
+imagekitio==3.0.2
 langdetect==1.0.9
 log-symbols==0.0.14
 mixer==7.2.2
-natsort==8.2.0; python_version >= '3.4'
-networkx==2.8.8; python_version >= '3.6'
+natsort==8.4.0; python_version >= '3.4'
+networkx==3.1; python_version >= '3.6'
 nose-exclude==0.5.0
 nose==1.3.7
-onesignal-sdk==1.1.0
+onesignal-sdk==1.1.0 # internally used by okuna, not worth the update
 pathtools==0.1.2
-pbr==5.11.0; python_version >= '2.6'
+pbr==5.11.1; python_version >= '2.6'
 pilkit==2.0
-pillow==9.3.0
+pillow==9.5.0
 pinocchio==0.4.3
-psycopg2==2.9.5
-psycopg2-binary==2.9.5
-pyjwt==1.7.1
-pytest==7.3.1
-pytest-cov==4.0.0
+psycopg2==2.9.6
+psycopg2-binary==2.9.6
+pyjwt==2.7.0
+pytest==7.3.2
+pytest-cov==4.1.0
 pytest-django==4.5.2
-pytest_xdist==3.2.1
-python-dotenv==0.21.0
+pytest_xdist==3.3.1
+python-dotenv==1.0.0
 python-magic==0.4.27
-pytz==2022.6
+pytz==2023.3
 pyyaml==6.0
-redis==4.3.4
+redis==4.5.5
 requests-file==1.5.1
 rest-framework-generic-relations==2.1.0
-rq-scheduler==0.11.0
-rq==1.11.1
-s3transfer==0.6.0
-safety==2.3.1
-sentry-sdk==1.10.1
+rq==1.15.1
+s3transfer==0.6.1
+safety==2.3.5
+sentry-sdk==1.26.0
 shutilwhich==1.1.0
 six==1.16.0
-soupsieve==2.3.2.post1; python_version >= '3.0'
+soupsieve==2.4.1; python_version >= '3.0'
 spinners==0.0.24
-sqlparse==0.4.3; python_version >= '3.5'
-stevedore==4.1.1; python_version >= '3.6'
-strawberry-graphql==0.158.1
-strawberry-django-plus==2.0.4
-termcolor==2.1.0
+sqlparse==0.4.4; python_version >= '3.5'
+stevedore==5.1.0; python_version >= '3.6'
+strawberry-graphql==0.189.0 # be careful, if strawberry django plus supports the latest version
+strawberry-django-plus==3.0.1
+termcolor==2.3.0
 text-unidecode==1.3
-tldextract==3.4.0
+tldextract==3.4.4
 toml==0.10.2
-uritools==4.0.0; python_version ~= '3.5'
+uritools==4.0.1; python_version ~= '3.5'
 url-normalize==1.4.3
-urlextract==1.7.1
-urllib3==1.26.12; python_version != '3.4'
-uvicorn==0.19.0
-watchdog==2.1.9
+urlextract==1.8.0
+urllib3==1.26.15; python_version != '3.4' # imagekit requires <1.27
+uvicorn==0.22.0
+watchdog==3.0.0
 webpreview==1.7.2
-whitenoise==6.2.0
-zipp==3.10.0; python_version >= '3.6'
+whitenoise==6.5.0
+zipp==3.15.0; python_version >= '3.6'

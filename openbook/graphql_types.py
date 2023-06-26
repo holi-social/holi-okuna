@@ -108,8 +108,12 @@ class GeolocationPoint:
 @gql.django.type(AppVersionModel)
 class AppVersionResponse:
     need_update: gql.auto
-    app_store_url: gql.auto
-    play_store_url: gql.auto
+    app_store_url: str = gql.django.field(
+        field_name="app_store_url", default=AppVersionModel._meta.get_field("app_store_url").get_default()
+    )
+    play_store_url: str = gql.django.field(
+        field_name="play_store_url", default=AppVersionModel._meta.get_field("app_store_url").get_default()
+    )
 
 
 # Custom scalars for GeoJSON containing geolocation geometries are necessary, as GraphQL schema parsing throws an error ("Decorated type deeper than introspection query") for 4-dimensional arrays (e.g. MultiPolygons)
