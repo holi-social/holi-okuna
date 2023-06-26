@@ -425,7 +425,7 @@ LANGUAGES = [
     ("fr", "French"),
     ("it", "Italian"),
     ("tr", "Turkish"),
-    ("pt-br", "Portuguese, Braziliam"),
+    ("pt-br", "Portuguese, Brazilian"),
 ]
 
 LANGUAGE_CODE = "en"
