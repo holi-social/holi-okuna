@@ -123,7 +123,7 @@ MIDDLEWARE = [
 if DEBUG:
     INSTALLED_APPS += ["debug_toolbar"]
     MIDDLEWARE += [
-        "strawberry_django_plus.middlewares.debug_toolbar.DebugToolbarMiddleware",
+        "strawberry_django.middlewares.debug_toolbar.DebugToolbarMiddleware",
     ]
 
     import socket
