@@ -44,7 +44,7 @@ gitpython==3.1.31; python_version >= '3.4'
 google-cloud-pubsub==2.17.1
 google-cloud-webrisk==1.12.0
 halo==0.0.31
-imagekitio==3.0.2
+imagekitio==2.2.8
 langdetect==1.0.9
 log-symbols==0.0.14
 mixer==7.2.2
