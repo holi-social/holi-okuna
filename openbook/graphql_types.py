@@ -389,21 +389,20 @@ class Insight:
     )
     def involved_users(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
         current_user = info.context.request.user
-        return Paged.of(
-            UserModel.objects.filter(
-                Q(UserModel.is_visible_query(current_user))
-                & Q(
-                    Q(curated_insights=self)
-                    | (Q(posts__insights=self) & PostModel.is_visible_query(current_user, "posts"))
-                    | (
-                        Q(posts_comments__post__insights=self)
-                        & PostCommentModel.is_visible_query(current_user, "posts_comments")
-                    )
+        visibility_filter = UserModel.is_visible_query(current_user)
+        query = UserModel.objects.filter(
+            visibility_filter,
+            Q(
+                Q(curated_insights=self)
+                | (Q(posts__insights=self) & PostModel.is_visible_query(current_user, "posts"))
+                | (
+                    Q(posts_comments__post__insights=self)
+                    & PostCommentModel.is_visible_query(current_user, "posts_comments")
                 )
-            ).distinct(),
-            offset,
-            limit,
-        )
+            ),
+        ).distinct()
+        query = query.select_related("profile")
+        return Paged.of(query, offset, limit)
 
 
 @gql.type

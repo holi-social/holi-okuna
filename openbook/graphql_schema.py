@@ -282,9 +282,11 @@ class Query:
     @gql.django.field
     def last_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         current_user = info.context.request.user
+
+        visibility_filter = Q(creator__isnull=True) | UserModel.is_visible_query(current_user, "creator")
         return Paged.of(
             InsightModel.objects.filter(
-                Q(creator__isnull=True) | UserModel.is_visible_query(current_user, "creator"),
+                visibility_filter,
                 date_published__lte=datetime.now(),
             )
             .select_related("creator", "creator__profile")
