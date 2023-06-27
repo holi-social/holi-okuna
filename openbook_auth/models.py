@@ -2,7 +2,6 @@ import logging
 import re
 import secrets
 from datetime import datetime, timedelta
-from functools import lru_cache
 from typing import Iterable
 
 from django.contrib.auth.models import AbstractUser, UserManager
@@ -4647,7 +4646,6 @@ class User(ModelWithUUID, AbstractUser):
             return f"Admin {self.__class__.__name__}, ID {self.id}"
 
     @staticmethod
-    @lru_cache(maxsize=128)
     def is_visible_query(user, prefix=None):
         pQ = PrefixedQ(prefix)
         # TODO find a solution for "& ModeratedObject.not_moderated_query(user, prefix))"
