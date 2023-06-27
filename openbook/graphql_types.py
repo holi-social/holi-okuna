@@ -14,7 +14,7 @@ import logging
 from openbook_common.models import LinkPreview as LinkPreviewModel
 from openbook_common.models import AppVersion as AppVersionModel
 from openbook_common.types import ReactionType, GeolocationFeature, NeedUpdateType
-from openbook_common.utils.model_loaders import get_circle_model
+from openbook_common.utils.model_loaders import get_circle_model, get_community_model
 from openbook_communities.models import (
     Community as CommunityModel,
     Task as TaskModel,
@@ -369,14 +369,14 @@ class Insight:
     header_image_blurhash: Optional[str]
     topic: Optional[Topic]
 
-    @gql.django.field(prefetch_related="posts")
+    @gql.django.field
     def posts(self, info) -> List["Post"]:
         current_user = info.context.request.user
         return (
-            PostModel.objects.filter(insights=self)
-            .filter(PostModel.is_visible_query(current_user))
-            .filter(UserBlock.not_blocked_query(current_user, "creator"))
-            .order_by("created")
+            self.posts.filter(
+                Q(PostModel.is_visible_query(current_user)) &
+                Q(UserBlock.not_blocked_query(current_user, "creator"))
+            ).order_by("created")
         )
 
     # this should be removed and be replaced by paged posts
@@ -384,10 +384,10 @@ class Insight:
     def number_of_posts(self, info) -> int:
         current_user = info.context.request.user
         return (
-            PostModel.objects.filter(insights=self)
-            .filter(PostModel.is_visible_query(current_user))
-            .filter(UserBlock.not_blocked_query(current_user, "creator"))
-            .count()
+            self.posts.filter(
+                Q(PostModel.is_visible_query(current_user)) &
+                Q(UserBlock.not_blocked_query(current_user, "creator"))
+            ).count()
         )
 
     @gql.django.field(
@@ -396,14 +396,16 @@ class Insight:
     def involved_users(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
         current_user = info.context.request.user
         return Paged.of(
-            UserModel.objects.select_related("profile")
-            .filter(UserModel.is_visible_query(current_user))
+            UserModel.objects
             .filter(
-                Q(curated_insights=self)
-                | (Q(posts__insights=self) & PostModel.is_visible_query(current_user, "posts"))
-                | (
-                    Q(posts_comments__post__insights=self)
-                    & PostCommentModel.is_visible_query(current_user, "posts_comments")
+                Q(UserModel.is_visible_query(current_user)) &
+                Q(
+                    Q(curated_insights=self)
+                    | (Q(posts__insights=self) & PostModel.is_visible_query(current_user, "posts"))
+                    | (
+                        Q(posts_comments__post__insights=self)
+                        & PostCommentModel.is_visible_query(current_user, "posts_comments")
+                    )
                 )
             )
             .distinct(),

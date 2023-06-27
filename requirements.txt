@@ -17,7 +17,7 @@ django-appconf==1.0.5
 django-cacheops==7.0.1
 django-cors-headers==4.1.0
 django-cursor-pagination==0.2.1
-django-debug-toolbar==4.0.0
+django-debug-toolbar==4.1.0
 django-extensions==3.2.3
 django-imagekit==4.1.0
 django-media-fixtures==1.0.0
