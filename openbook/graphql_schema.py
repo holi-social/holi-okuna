@@ -285,13 +285,13 @@ class Query:
         return Paged.of(
             InsightModel.objects.filter(
                 Q(creator__isnull=True) | UserModel.is_visible_query(current_user, "creator"),
-                date_published__lte=datetime.now()
+                date_published__lte=datetime.now(),
             )
-            .select_related('creator', 'creator__profile')
+            .select_related("creator", "creator__profile")
             .prefetch_related(
-                'posts',
-                'posts__creator',
-                'posts__comments__commenter',
+                "posts",
+                "posts__creator",
+                "posts__comments__commenter",
             )
             .order_by("-date_published", "id"),
             offset,

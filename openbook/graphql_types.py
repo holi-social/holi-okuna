@@ -372,23 +372,17 @@ class Insight:
     @gql.django.field
     def posts(self, info) -> List["Post"]:
         current_user = info.context.request.user
-        return (
-            self.posts.filter(
-                Q(PostModel.is_visible_query(current_user)) &
-                Q(UserBlock.not_blocked_query(current_user, "creator"))
-            ).order_by("created")
-        )
+        return self.posts.filter(
+            Q(PostModel.is_visible_query(current_user)) & Q(UserBlock.not_blocked_query(current_user, "creator"))
+        ).order_by("created")
 
     # this should be removed and be replaced by paged posts
     @gql.django.field
     def number_of_posts(self, info) -> int:
         current_user = info.context.request.user
-        return (
-            self.posts.filter(
-                Q(PostModel.is_visible_query(current_user)) &
-                Q(UserBlock.not_blocked_query(current_user, "creator"))
-            ).count()
-        )
+        return self.posts.filter(
+            Q(PostModel.is_visible_query(current_user)) & Q(UserBlock.not_blocked_query(current_user, "creator"))
+        ).count()
 
     @gql.django.field(
         description="A list of all users involved. Curator of the insight, Authors of all the posts and all commenters of those posts"
@@ -396,10 +390,9 @@ class Insight:
     def involved_users(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
         current_user = info.context.request.user
         return Paged.of(
-            UserModel.objects
-            .filter(
-                Q(UserModel.is_visible_query(current_user)) &
-                Q(
+            UserModel.objects.filter(
+                Q(UserModel.is_visible_query(current_user))
+                & Q(
                     Q(curated_insights=self)
                     | (Q(posts__insights=self) & PostModel.is_visible_query(current_user, "posts"))
                     | (
@@ -407,8 +400,7 @@ class Insight:
                         & PostCommentModel.is_visible_query(current_user, "posts_comments")
                     )
                 )
-            )
-            .distinct(),
+            ).distinct(),
             offset,
             limit,
         )
