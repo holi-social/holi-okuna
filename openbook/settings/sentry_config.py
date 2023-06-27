@@ -1,9 +1,12 @@
+from typing import Generator
+
 import sentry_sdk
 from django.core.exceptions import ValidationError
 from graphql import GraphQLError
+from sentry_sdk import configure_scope
 from sentry_sdk.integrations.django import DjangoIntegration
-from sentry_sdk.integrations.rq import RqIntegration
 from sentry_sdk.scrubber import EventScrubber
+from strawberry.extensions.tracing import SentryTracingExtensionSync
 
 from openbook.graphql_errors import GraphQLErrorCodes
 
@@ -26,14 +29,32 @@ def sentry_event_processor(event, hint):
     return event
 
 
+class HoliSentryTracingExtension(SentryTracingExtensionSync):
+    def on_operation(self) -> Generator[None, None, None]:
+        yield from super().on_operation()
+
+        query = self.execution_context.query.strip()
+        operation_name = self.execution_context.operation_name
+        if query and operation_name:
+            operation_type = "Query"
+
+            if query.startswith("mutation"):
+                operation_type = "Mutation"
+            if query.startswith("subscription"):
+                operation_type = "Subscription"
+
+            with configure_scope() as scope:
+                scope.set_transaction_name(f"{operation_type}:{operation_name}")
+
+
 def init(sentry_dsn: str, sample_rate: float, environment: str) -> None:
     if not sentry_dsn:
         raise NameError(f"Sentry DSN is required for {environment}")
     sentry_sdk.init(
         dsn=sentry_dsn,
         event_scrubber=EventScrubber(),  # Remove PII
-        integrations=[DjangoIntegration(), RqIntegration()],
+        integrations=[DjangoIntegration()],
         before_send=sentry_event_processor,
-        traces_sample_rate=sample_rate,  # Only sample 5% of requests in prod, all in staging
+        traces_sample_rate=sample_rate,
         environment=environment,
     )

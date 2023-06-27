@@ -1,6 +1,7 @@
 from copy import deepcopy
 from collections import defaultdict
 from datetime import datetime, timedelta
+
 from typing_extensions import Annotated
 
 import requests
@@ -58,6 +59,7 @@ from openbook_posts.views.posts.serializers import (
 from openbook.middleware.graphql_error_extension import GraphQLErrorExtension
 
 from .graphql_types import *
+from .settings.sentry_config import HoliSentryTracingExtension
 
 PUBLISHED_NOTIFICATION_TYPES = [
     NotificationModel.CONNECTION_REQUEST,
@@ -1314,5 +1316,6 @@ schema = strawberry.Schema(
     extensions=[
         DjangoOptimizerExtension,
         GraphQLErrorExtension,
+        HoliSentryTracingExtension,
     ],
 )
