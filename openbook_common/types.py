@@ -25,6 +25,14 @@ class NeedUpdateType(TextChoices):
     MANDATORY = ("MANDATORY",)
 
 
+@gql.enum
+class FeatureToggleType(TextChoices):
+    OFF = ("OFF",)
+    PREVIEW = ("PREVIEW",)
+    PRODUCTION = ("PRODUCTION",)
+    MAINTENANCE = ("MAINTENANCE",)
+
+
 # Helper class for the result of parsing GeoJSON
 class GeolocationFeature:
     id: str
