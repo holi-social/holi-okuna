@@ -283,10 +283,9 @@ class Query:
     def last_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         current_user = info.context.request.user
 
-        visibility_filter = Q(creator__isnull=True) | UserModel.is_visible_query(current_user, "creator")
         return Paged.of(
             InsightModel.objects.filter(
-                visibility_filter,
+                Q(creator__isnull=True) | Q(creator__is_deleted=False),
                 date_published__lte=datetime.now(),
             )
             .select_related("creator", "creator__profile")
