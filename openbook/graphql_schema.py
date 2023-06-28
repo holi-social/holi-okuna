@@ -281,9 +281,13 @@ class Query:
 
     @gql.django.field
     def last_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
-        current_user = info.context.request.user
+        cache_key = f"last_insights:{offset}:{limit}"
 
-        return Paged.of(
+        insights = cache.get(cache_key)
+        if insights:
+            return insights
+
+        paged_insights = Paged.of(
             InsightModel.objects.filter(
                 Q(creator__isnull=True) | Q(creator__is_deleted=False),
                 date_published__lte=datetime.now(),
@@ -298,6 +302,10 @@ class Query:
             offset,
             limit,
         )
+
+        cache.set(cache_key, paged_insights, timeout=300)
+
+        return paged_insights
 
     @gql.django.field
     def insight_by_id(self, info, id: uuid.UUID) -> Optional[Insight]:
