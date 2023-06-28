@@ -387,7 +387,7 @@ class Insight:
     @gql.django.field(
         description="A list of all users involved. Curator of the insight, Authors of all the posts and all commenters of those posts"
     )
-    def involved_users(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
+    def involved_users(self, info, offset: int = 0, limit: int = 3) -> Paged[User]:
         current_user = info.context.request.user
         visibility_filter = UserModel.is_visible_query(current_user)
         query = UserModel.objects.filter(
