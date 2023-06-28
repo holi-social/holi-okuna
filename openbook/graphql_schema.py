@@ -284,7 +284,7 @@ class Query:
         cache_key = f"last_insights:{offset}:{limit}"
 
         insights = cache.get(cache_key)
-        if insights:
+        if insights is not None:
             return insights
 
         paged_insights = Paged.of(
