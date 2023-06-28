@@ -54,6 +54,11 @@ class Insight(ModelWithUUID):
         null=True,
     )
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["-date_published"]),
+        ]
+
     def save(self, *args, **kwargs):
         if self.header_image:
             self.header_image_blurhash = generate_blurhash(self.header_image)
