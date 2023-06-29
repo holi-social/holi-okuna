@@ -3,16 +3,15 @@ from urllib.parse import urlparse, urljoin, urlsplit
 
 from django.conf import settings
 from django.contrib.gis.db import models
-from django.contrib.gis.db.models import Q, Count
+from django.contrib.gis.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from ordered_model.models import OrderedModel
 from requests import RequestException
 
-# Create your views here.
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
 from openbook_common.helpers import extract_urls_from_string, attr_filled
-from openbook_common.types import NeedUpdateType
+from openbook_common.types import NeedUpdateType, FeatureToggleType
 from openbook_common.utils.helpers import normalize_url
 from openbook_common.validators import hex_color_validator
 import tldextract
@@ -235,3 +234,15 @@ class AppVersion(ModelWithUUID):
     created = models.DateTimeField(default=timezone.now, editable=False)
     app_store_url = models.CharField(max_length=100, default=settings.APPLE_APP_STORE_DEFAULT_URL)
     play_store_url = models.CharField(max_length=100, default=settings.GOOGLE_PLAY_STORE_DEFAULT_URL)
+
+
+class FeatureToggle(ModelWithUUID):
+    name = models.CharField(max_length=50, unique=True, blank=False, null=False)
+    created = models.DateTimeField(default=timezone.now, editable=False)
+    status = models.CharField(
+        max_length=20,
+        choices=FeatureToggleType.choices,
+        default=FeatureToggleType.OFF,
+        blank=False,
+        null=False,
+    )
