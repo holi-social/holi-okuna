@@ -286,7 +286,7 @@ class Query:
                 Q(creator__isnull=True) | Q(creator__is_deleted=False),
                 date_published__lte=datetime.now(),
             )
-            .select_related("creator", "creator__profile")
+            .select_related("creator", "creator__profile", "topic")
             .prefetch_related(
                 "posts",
                 "posts__creator",
