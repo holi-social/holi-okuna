@@ -45,7 +45,7 @@ class PostCircleInline(admin.TabularInline):
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    inlines = [PostReactionInline, PostImageInline, PostCommentInline, PostCircleInline]
+    inlines = [PostReactionInline, PostImageInline, PostCommentInline]
     exclude = ["links"]
 
     list_display = (
