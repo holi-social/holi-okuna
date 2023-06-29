@@ -4,8 +4,9 @@ from uuid import UUID
 import json
 
 import strawberry
-from typing import List, TypeVar, Optional, Tuple
+from typing import List, TypeVar, Optional
 
+from cacheops import cached_as
 from django.db.models import Q
 from strawberry_django_plus import gql
 from django.db.models import QuerySet
@@ -383,6 +384,7 @@ class Insight:
     @gql.django.field(
         description="A list of all users involved. Curator of the insight, Authors of all the posts and all commenters of those posts"
     )
+    @cached_as(UserModel, timeout=300)
     def involved_users(self, info, offset: int = 0, limit: int = 3) -> Paged[User]:
         current_user = info.context.request.user
         query = UserModel.objects.filter(

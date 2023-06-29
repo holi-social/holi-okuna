@@ -6,7 +6,6 @@ from typing_extensions import Annotated
 
 import requests
 import structlog
-from cacheops import cached_as
 from django.conf import settings
 from django.core.cache import cache
 from django.contrib.gis import geos
@@ -280,13 +279,8 @@ class Query:
         )
 
     @gql.django.field
+    @cached_as(InsightModel, timeout=300)
     def last_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
-        cache_key = f"last_insights:{offset}:{limit}"
-
-        insights = cache.get(cache_key)
-        if insights is not None:
-            return insights
-
         paged_insights = Paged.of(
             InsightModel.objects.filter(
                 Q(creator__isnull=True) | Q(creator__is_deleted=False),
@@ -302,8 +296,6 @@ class Query:
             offset,
             limit,
         )
-
-        cache.set(cache_key, paged_insights, timeout=300)
 
         return paged_insights
 
