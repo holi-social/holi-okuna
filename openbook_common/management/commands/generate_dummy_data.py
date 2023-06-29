@@ -75,7 +75,8 @@ class Command(BaseCommand):
             raise CommandError(NO_USERS_AVAILABLE)
         for _ in range(nr):
             with image_fetcher() as image_file:
-                random.choice(users).create_public_post(
+                random.choice(users).create_post(
+                    is_public=True,
                     title=make_fake_post_title(),
                     text=fake.text(max_nb_chars=300),
                     image=image_file,
@@ -88,8 +89,8 @@ class Command(BaseCommand):
             raise CommandError(NO_USERS_AVAILABLE)
         for _ in range(nr):
             with image_fetcher() as image_file:
-                post = random.choice(users).create_public_post(
-                    title=make_fake_post_title(), text=fake.text(max_nb_chars=300), image=image_file
+                post = random.choice(users).create_post(
+                    is_public=True, title=make_fake_post_title(), text=fake.text(max_nb_chars=300), image=image_file
                 )
                 comment_count = random.randint(1, 5)
                 for _ in range(comment_count):
@@ -108,8 +109,8 @@ class Command(BaseCommand):
             raise CommandError(NO_USERS_AVAILABLE)
         for _ in range(nr):
             with image_fetcher() as image_file:
-                post = random.choice(users).create_public_post(
-                    title=make_fake_post_title(), text=fake.text(max_nb_chars=300), image=image_file
+                post = random.choice(users).create_post(
+                    is_public=True, title=make_fake_post_title(), text=fake.text(max_nb_chars=300), image=image_file
                 )
                 self._generate_reactions(post, users)
                 comment_count = random.randint(1, 5)

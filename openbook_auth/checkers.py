@@ -82,7 +82,7 @@ def check_comments_enabled_for_post_with_id(user, post_id):
 def check_can_translate_post_with_id(user, post_id):
     Post = get_post_model()
     post = Post.objects.get(id=post_id)
-    if post.is_encircled_post():
+    if not post.is_public:
         raise ValidationError(_("Only public posts can be translated"))
     if post.text is None:
         raise ValidationError(_("Post has no text to be translated"))
@@ -857,7 +857,7 @@ def check_has_muted_post_comment_with_id(user, post_comment_id):
 def check_can_translate_comment_with_id(user, post_comment_id):
     PostComment = get_post_comment_model()
     post_comment = PostComment.objects.get(pk=post_comment_id)
-    if post_comment.post.is_encircled_post():
+    if not post_comment.post.is_public:
         raise ValidationError(_("Only public post comments can be translated"))
     if post_comment.text is None:
         raise ValidationError(_("Post comment has no text to be translated"))

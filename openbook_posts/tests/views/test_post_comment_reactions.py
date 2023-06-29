@@ -42,7 +42,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         """should be able to react in own post comment and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
         post_comment = user.comment_post(post=post, text=make_fake_post_comment_text())
 
         data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
@@ -65,7 +65,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
         post_comment = user.comment_post(post=post, text=make_fake_post_comment_text())
         post_comment_reply = user.reply_to_comment_for_post(
             post=post, post_comment=post_comment, text=make_fake_post_comment_text()
@@ -120,7 +120,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
 
         user.connect_with_user_with_id(user_to_connect.pk)
 
-        connected_user_post = user_to_connect.create_public_post(text=make_fake_post_text())
+        connected_user_post = user_to_connect.create_post(is_public=True, text=make_fake_post_text())
         connected_user_post_comment = user_to_connect.comment_post(
             post=connected_user_post, text=make_fake_post_comment_text()
         )
@@ -214,7 +214,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
 
         foreign_user = make_user()
 
-        foreign_user_post = foreign_user.create_public_post(text=make_fake_post_text())
+        foreign_user_post = foreign_user.create_post(is_public=True, text=make_fake_post_text())
         foreign_user_post_comment = foreign_user.comment_post(
             post=foreign_user_post, text=make_fake_post_comment_text()
         )
@@ -274,7 +274,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
 
         user.join_community_with_name(community_name=community.name)
 
-        post = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = community_owner.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
         post_comment = community_owner.comment_post(post=post, text=make_fake_post_comment_text())
 
         community_owner.ban_user_with_username_from_community_with_name(
@@ -308,7 +308,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         post_creator.join_community_with_name(community_name=community.name)
         user.join_community_with_name(community_name=community.name)
 
-        community_post = post_creator.create_community_post(
+        community_post = post_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_comment_text()
         )
         community_post_comment = post_creator.comment_post(post=community_post, text=make_fake_post_comment_text())
@@ -340,7 +340,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         post_creator.join_community_with_name(community_name=community.name)
         user.join_community_with_name(community_name=community.name)
 
-        community_post = post_creator.create_community_post(
+        community_post = post_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_comment_text()
         )
         community_post_comment = post_creator.comment_post(post=community_post, text=make_fake_post_comment_text())
@@ -372,7 +372,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
 
         user.follow_user_with_id(user_to_block.pk)
 
-        post = user_to_block.create_public_post(text=make_fake_post_text())
+        post = user_to_block.create_post(is_public=True, text=make_fake_post_text())
         post_comment = user_to_block.comment_post(post=post, text=make_fake_post_comment_text())
 
         user.block_user_with_id(user_id=user_to_block.pk)
@@ -401,7 +401,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
 
         user.follow_user_with_id(blocking_user.pk)
 
-        post = blocking_user.create_public_post(text=make_fake_post_text())
+        post = blocking_user.create_post(is_public=True, text=make_fake_post_text())
 
         post_comment = blocking_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -434,7 +434,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
 
         user_to_block.join_community_with_name(community_name=community.name)
 
-        post = user_to_block.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = user_to_block.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
         post_comment = user_to_block.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         user.block_user_with_id(user_id=user_to_block.pk)
@@ -466,7 +466,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
 
         blocking_user.join_community_with_name(community_name=community.name)
 
-        post = blocking_user.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = blocking_user.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         post_comment = blocking_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -495,7 +495,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         community_owner = make_user()
         community = make_community(creator=community_owner)
 
-        post = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = community_owner.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         post_comment = community_owner.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -524,7 +524,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         community_owner = make_user()
         community = make_community(creator=community_owner)
 
-        post = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = community_owner.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -549,7 +549,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         """should be able to react in own post comment only once, update the old reaction and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
@@ -571,7 +571,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         reactor = make_user()
 
         headers = make_authentication_headers_for_user(reactor)
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
@@ -595,7 +595,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         reactor = make_user()
 
         headers = make_authentication_headers_for_user(reactor)
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
@@ -618,7 +618,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         reactor = make_user()
 
         headers = make_authentication_headers_for_user(reactor)
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
         user.mute_post_comment_with_id(post_comment_id=post_comment.pk)
 
@@ -638,7 +638,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         reactor = make_user()
 
         headers = make_authentication_headers_for_user(reactor)
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
         user.mute_post_with_id(post_id=post.pk)
 
@@ -654,7 +654,7 @@ class PostCommentReactionsAPITests(OpenbookAPITestCase):
         user = make_user()
 
         headers = make_authentication_headers_for_user(user)
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         data = self._get_create_post_comment_reaction_request_data(ReactionType.HEART)
@@ -695,7 +695,7 @@ class PostCommentReactionsEmojiCountAPITests(OpenbookAPITestCase):
         """should be able to retrieve a valid post comment reactions emoji count and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         reactions_to_react_with = [
@@ -741,7 +741,7 @@ class PostCommentReactionsEmojiCountAPITests(OpenbookAPITestCase):
         post_creator = make_user()
         blocked_user = make_user()
 
-        post = post_creator.create_public_post(text=make_fake_post_text())
+        post = post_creator.create_post(is_public=True, text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         blocked_user.react_to_post_comment_with_id(post_comment_id=post_comment.pk, reaction_type=ReactionType.HEART)
@@ -766,7 +766,7 @@ class PostCommentReactionsEmojiCountAPITests(OpenbookAPITestCase):
         post_creator = make_user()
         blocking_user = make_user()
 
-        post = post_creator.create_public_post(text=make_fake_post_text())
+        post = post_creator.create_post(is_public=True, text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         blocking_user.react_to_post_comment_with_id(post_comment_id=post_comment.pk, reaction_type=ReactionType.HEART)
@@ -795,7 +795,7 @@ class PostCommentReactionsEmojiCountAPITests(OpenbookAPITestCase):
 
         blocked_user = make_user()
 
-        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_creator.create_community_post_by_name(text=make_fake_post_text(), community_name=community.name)
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         blocked_user.react_to_post_comment_with_id(post_comment_id=post_comment.pk, reaction_type=ReactionType.HEART)
@@ -824,7 +824,7 @@ class PostCommentReactionsEmojiCountAPITests(OpenbookAPITestCase):
 
         blocking_user = make_user()
 
-        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_creator.create_community_post_by_name(text=make_fake_post_text(), community_name=community.name)
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         blocking_user.react_to_post_comment_with_id(post_comment_id=post_comment.pk, reaction_type=ReactionType.HEART)
@@ -853,7 +853,7 @@ class PostCommentReactionsEmojiCountAPITests(OpenbookAPITestCase):
 
         post_creator.join_community_with_name(community_name=community.name)
 
-        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_creator.create_community_post_by_name(text=make_fake_post_text(), community_name=community.name)
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         blocked_user.react_to_post_comment_with_id(post_comment_id=post_comment.pk, reaction_type=ReactionType.HEART)
@@ -890,7 +890,7 @@ class PostCommentReactionsEmojiCountAPITests(OpenbookAPITestCase):
 
         post_creator.join_community_with_name(community_name=community.name)
 
-        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_creator.create_community_post_by_name(text=make_fake_post_text(), community_name=community.name)
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
         blocking_user.react_to_post_comment_with_id(post_comment_id=post_comment.pk, reaction_type=ReactionType.HEART)

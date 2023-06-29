@@ -51,7 +51,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        draft_post = user.create_public_post(is_draft=True)
+        draft_post = user.create_post(is_public=True, is_draft=True)
 
         image_width = random.randint(100, 500)
         image_height = random.randint(100, 500)
@@ -104,7 +104,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         for test_video in test_videos:
             with open(test_video["path"], "rb") as file:
-                draft_post = user.create_public_post(is_draft=True)
+                draft_post = user.create_post(is_public=True, is_draft=True)
 
                 data = {"file": file}
 
@@ -137,7 +137,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         image = Image.new("RGB", (100, 100))
         tmp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
@@ -158,7 +158,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
-        draft_post = user.create_public_post(is_draft=True)
+        draft_post = user.create_post(is_public=True, is_draft=True)
 
         image = Image.new("RGB", (100, 100))
         image_tmp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
@@ -184,7 +184,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         post_text = make_fake_post_text()
 
-        post = user.create_public_post(text=post_text)
+        post = user.create_post(is_public=True, text=post_text)
 
         url = self._get_url(post=post)
 
@@ -206,7 +206,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_image["path"], "rb") as file:
             file = File(file)
-            post = user.create_public_post(image=file)
+            post = user.create_post(is_public=True, image=file)
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -235,7 +235,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_video["path"], "rb") as file:
             file = File(file)
-            post = user.create_public_post(video=file)
+            post = user.create_post(is_public=True, video=file)
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -267,7 +267,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_image["path"], "rb") as file:
             file = File(file)
-            post = foreign_user.create_public_post(image=file)
+            post = foreign_user.create_post(is_public=True, image=file)
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -297,7 +297,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_video["path"], "rb") as file:
             file = File(file)
-            post = foreign_user.create_public_post(video=file)
+            post = foreign_user.create_post(is_public=True, video=file)
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -329,7 +329,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_image["path"], "rb") as file:
             file = File(file)
-            post = following_user.create_public_post(image=file)
+            post = following_user.create_post(is_public=True, image=file)
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -361,7 +361,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_video["path"], "rb") as file:
             file = File(file)
-            post = following_user.create_public_post(video=file)
+            post = following_user.create_post(is_public=True, video=file)
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -393,7 +393,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_image["path"], "rb") as file:
             file = File(file)
-            post = follower_user.create_public_post(image=file)
+            post = follower_user.create_post(is_public=True, image=file)
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -425,7 +425,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_video["path"], "rb") as file:
             file = File(file)
-            post = follower_user.create_public_post(video=file)
+            post = follower_user.create_post(is_public=True, video=file)
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -579,7 +579,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_image["path"], "rb") as file:
             file = File(file)
-            post = community_member.create_community_post(image=file, community_name=public_community.name)
+            post = community_member.create_community_post_by_name(image=file, community_name=public_community.name)
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -612,7 +612,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_video["path"], "rb") as file:
             file = File(file)
-            post = community_member.create_community_post(video=file, community_name=public_community.name)
+            post = community_member.create_community_post_by_name(video=file, community_name=public_community.name)
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -648,7 +648,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_image["path"], "rb") as file:
             file = File(file)
-            post = community_creator.create_community_post(image=file, community_name=private_community.name)
+            post = community_creator.create_community_post_by_name(image=file, community_name=private_community.name)
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -684,7 +684,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_video["path"], "rb") as file:
             file = File(file)
-            post = community_creator.create_community_post(video=file, community_name=private_community.name)
+            post = community_creator.create_community_post_by_name(video=file, community_name=private_community.name)
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -714,7 +714,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_image["path"], "rb") as file:
             file = File(file)
-            post = community_creator.create_community_post(image=file, community_name=private_community.name)
+            post = community_creator.create_community_post_by_name(image=file, community_name=private_community.name)
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 
@@ -736,7 +736,7 @@ class PostMediaAPITests(OpenbookAPITestCase):
 
         with open(test_video["path"], "rb") as file:
             file = File(file)
-            post = community_creator.create_community_post(video=file, community_name=private_community.name)
+            post = community_creator.create_community_post_by_name(video=file, community_name=private_community.name)
 
         get_worker("high", worker_class=SimpleWorker).work(burst=True)
 

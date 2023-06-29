@@ -99,14 +99,8 @@ def make_only_public_community_posts_query():
     )
 
 
-def make_only_world_circle_posts_query():
-    Circle = get_circle_model()
-    world_circle_id = Circle.get_world_circle_id()
-    return Q(circles__id=world_circle_id)
-
-
 def make_only_public_posts_query():
-    return make_only_public_community_posts_query() | make_only_world_circle_posts_query()
+    return make_only_public_community_posts_query() | Q(is_public=True)
 
 
 def make_get_hashtag_posts_for_user_with_id_query(hashtag, user_id):
@@ -141,8 +135,8 @@ def make_get_hashtag_posts_for_user_with_id_query(hashtag, user_id):
 
 
 def make_circles_posts_query_for_user(user):
-    target_user_circles_posts_query = (
-        make_only_posts_of_circles_part_for_user_with_id_query(user_id=user.pk) | make_only_world_circle_posts_query()
+    target_user_circles_posts_query = make_only_posts_of_circles_part_for_user_with_id_query(user_id=user.pk) | Q(
+        is_public=True
     )
 
     return target_user_circles_posts_query

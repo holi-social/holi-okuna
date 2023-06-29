@@ -37,7 +37,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         for i in range(0, amount_of_posts):
             reporter_user = make_user()
             post_creator = make_user()
-            post = post_creator.create_public_post(text=make_fake_post_text())
+            post = post_creator.create_post(is_public=True, text=make_fake_post_text())
             posts_ids.append(post.pk)
             report_category = make_moderation_category()
             reporter_user.report_post(post=post, category_id=report_category.pk)
@@ -104,7 +104,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
 
         for i in range(0, amount_of_post_comments):
             reporter_user = make_user()
-            post = reporter_user.create_public_post(text=make_fake_post_text())
+            post = reporter_user.create_post(is_public=True, text=make_fake_post_text())
             post_comment_creator = make_user()
             post_comment = post_comment_creator.comment_post(post=post, text=make_fake_post_comment_text())
             post_comments_ids.append(post_comment.pk)
@@ -211,7 +211,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         for i in range(0, amount_of_posts):
             reporter_user = make_user()
             post_creator = make_user()
-            post = post_creator.create_public_post(text=make_fake_post_text())
+            post = post_creator.create_post(is_public=True, text=make_fake_post_text())
             report_category = make_moderation_category()
             reporter_user.report_post(post=post, category_id=report_category.pk)
 
@@ -251,7 +251,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         for i in range(0, amount_of_posts):
             reporter_user = make_user()
             post_creator = make_user()
-            post = post_creator.create_public_post(text=make_fake_post_text())
+            post = post_creator.create_post(is_public=True, text=make_fake_post_text())
             report_category = make_moderation_category()
             reporter_user.report_post(post=post, category_id=report_category.pk)
 
@@ -292,7 +292,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         for i in range(0, amount_of_posts):
             reporter_user = make_user()
             post_creator = make_user()
-            post = post_creator.create_public_post(text=make_fake_post_text())
+            post = post_creator.create_post(is_public=True, text=make_fake_post_text())
             report_category = make_moderation_category()
             reporter_user.report_post(post=post, category_id=report_category.pk)
 
@@ -332,7 +332,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         for i in range(0, amount_of_posts):
             reporter_user = make_user()
             post_creator = make_user()
-            post = post_creator.create_public_post(text=make_fake_post_text())
+            post = post_creator.create_post(is_public=True, text=make_fake_post_text())
             report_category = make_moderation_category()
             reporter_user.report_post(post=post, category_id=report_category.pk)
 
@@ -373,7 +373,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         for i in range(0, amount_of_posts):
             reporter_user = make_user()
             post_creator = make_user()
-            post = post_creator.create_public_post(text=make_fake_post_text())
+            post = post_creator.create_post(is_public=True, text=make_fake_post_text())
             report_category = make_moderation_category()
             reporter_user.report_post(post=post, category_id=report_category.pk)
 
@@ -419,7 +419,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
 
         # Item to filter for
         post_creator = make_user()
-        post = post_creator.create_public_post(text=make_fake_post_text())
+        post = post_creator.create_post(is_public=True, text=make_fake_post_text())
         reporter_user.report_post(post=post, category_id=report_category.pk)
 
         url = self._get_url()
@@ -453,7 +453,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
 
         # Item to filter for
         post_creator = make_user()
-        post = post_creator.create_public_post(text=make_fake_post_text())
+        post = post_creator.create_post(is_public=True, text=make_fake_post_text())
         post_comment = post_creator.comment_post(post=post, text=make_fake_post_text())
         reporter_user.report_comment_for_post(post=post, post_comment=post_comment, category_id=report_category.pk)
 
@@ -559,7 +559,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
         for i in range(0, amount_of_posts):
             reporter_user = make_user()
             post_creator = make_user()
-            post = post_creator.create_public_post(text=make_fake_post_text())
+            post = post_creator.create_post(is_public=True, text=make_fake_post_text())
             posts_ids.append(post.pk)
             report_category = make_moderation_category()
             reporter_user.report_post(post=post, category_id=report_category.pk)
@@ -587,7 +587,7 @@ class GlobalModeratedObjectsAPITests(OpenbookAPITestCase):
             reporter_user = make_user()
             post_creator = make_user()
             post_creator.join_community_with_name(community_name=community.name)
-            post = post_creator.create_public_post(text=make_fake_post_text())
+            post = post_creator.create_post(is_public=True, text=make_fake_post_text())
             posts_ids.append(post.pk)
             report_category = make_moderation_category()
             reporter_user.report_post(post=post, category_id=report_category.pk)
@@ -626,7 +626,9 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
             reporter_user = make_user()
             post_creator = make_user()
             post_creator.join_community_with_name(community_name=community.name)
-            post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+            post = post_creator.create_community_post_by_name(
+                text=make_fake_post_text(), community_name=community.name
+            )
             posts_ids.append(post.pk)
             report_category = make_moderation_category()
             reporter_user.report_post(post=post, category_id=report_category.pk)
@@ -667,7 +669,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
             reporter_user = make_user()
             post_comment_creator = make_user()
             post_comment_creator.join_community_with_name(community_name=community.name)
-            post = post_comment_creator.create_community_post(
+            post = post_comment_creator.create_community_post_by_name(
                 text=make_fake_post_text(), community_name=community.name
             )
             post_comment = post_comment_creator.comment_post(
@@ -781,7 +783,9 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
             reporter_user = make_user()
             post_creator = make_user()
             post_creator.join_community_with_name(community_name=community.name)
-            post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+            post = post_creator.create_community_post_by_name(
+                text=make_fake_post_text(), community_name=community.name
+            )
             report_category = make_moderation_category()
             reporter_user.report_post(post=post, category_id=report_category.pk)
 
@@ -830,7 +834,9 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
             reporter_user = make_user()
             post_creator = make_user()
             post_creator.join_community_with_name(community_name=community.name)
-            post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+            post = post_creator.create_community_post_by_name(
+                text=make_fake_post_text(), community_name=community.name
+            )
             report_category = make_moderation_category()
             reporter_user.report_post(post=post, category_id=report_category.pk)
 
@@ -880,7 +886,9 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
             reporter_user = make_user()
             post_creator = make_user()
             post_creator.join_community_with_name(community_name=community.name)
-            post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+            post = post_creator.create_community_post_by_name(
+                text=make_fake_post_text(), community_name=community.name
+            )
             report_category = make_moderation_category()
             reporter_user.report_post(post=post, category_id=report_category.pk)
 
@@ -930,7 +938,9 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
             reporter_user = make_user()
             post_creator = make_user()
             post_creator.join_community_with_name(community_name=community.name)
-            post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+            post = post_creator.create_community_post_by_name(
+                text=make_fake_post_text(), community_name=community.name
+            )
             report_category = make_moderation_category()
             reporter_user.report_post(post=post, category_id=report_category.pk)
 
@@ -982,7 +992,9 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
             reporter_user = make_user()
             post_creator = make_user()
             post_creator.join_community_with_name(community_name=community.name)
-            post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+            post = post_creator.create_community_post_by_name(
+                text=make_fake_post_text(), community_name=community.name
+            )
             report_category = make_moderation_category()
             reporter_user.report_post(post=post, category_id=report_category.pk)
 
@@ -1033,7 +1045,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
 
         post_creator = make_user()
         post_creator.join_community_with_name(community_name=community.name)
-        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_creator.create_community_post_by_name(text=make_fake_post_text(), community_name=community.name)
         reporter_user.report_post(post=post, category_id=report_category.pk)
 
         post_commenter = make_user()
@@ -1077,7 +1089,7 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
 
         post_creator = make_user()
         post_creator.join_community_with_name(community_name=community.name)
-        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_creator.create_community_post_by_name(text=make_fake_post_text(), community_name=community.name)
         reporter_user.report_post(post=post, category_id=report_category.pk)
 
         post_commenter = make_user()
@@ -1170,7 +1182,9 @@ class CommunityModeratedObjectsAPITests(OpenbookAPITestCase):
             reporter_user = make_user()
             post_creator = make_user()
             post_creator.join_community_with_name(community_name=community.name)
-            post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+            post = post_creator.create_community_post_by_name(
+                text=make_fake_post_text(), community_name=community.name
+            )
             posts_ids.append(post.pk)
             report_category = make_moderation_category()
             reporter_user.report_post(post=post, category_id=report_category.pk)

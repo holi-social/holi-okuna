@@ -111,7 +111,7 @@ class HashtagAPITests(OpenbookAPITestCase):
         for i in range(0, amount_of_posts):
             user = make_user()
             post_text = f"#{hashtag_name}"
-            user.create_public_post(text=post_text)
+            user.create_post(is_public=True, text=post_text)
 
         url = self._get_url(hashtag_name=hashtag_name)
 
@@ -150,7 +150,7 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
         hashtag = make_hashtag()
 
         fake_post_text = make_fake_post_text() + f" and a little hashtag #{hashtag.name}"
-        post_creator.create_community_post(community_name=community.name, text=fake_post_text)
+        post_creator.create_community_post_by_name(community_name=community.name, text=fake_post_text)
 
         url = self._get_url(hashtag_name=hashtag.name)
 
@@ -175,7 +175,7 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
         hashtag = make_hashtag()
 
         fake_post_text = make_fake_post_text() + f" and a little hashtag #{hashtag.name}"
-        post_creator.create_public_post(text=fake_post_text)
+        post_creator.create_post(is_public=True, text=fake_post_text)
 
         url = self._get_url(hashtag_name=hashtag.name)
 
@@ -207,7 +207,7 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
         hashtag = make_hashtag()
 
         fake_post_text = make_fake_post_text() + f" and a little hashtag #{hashtag.name}"
-        post_creator.create_community_post(community_name=community.name, text=fake_post_text)
+        post_creator.create_community_post_by_name(community_name=community.name, text=fake_post_text)
 
         url = self._get_url(hashtag_name=hashtag.name)
 
@@ -241,7 +241,7 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
         hashtag = make_hashtag()
 
         fake_post_text = make_fake_post_text() + f" and a little hashtag #{hashtag.name}"
-        post_creator.create_community_post(community_name=community.name, text=fake_post_text)
+        post_creator.create_community_post_by_name(community_name=community.name, text=fake_post_text)
 
         url = self._get_url(hashtag_name=hashtag.name)
 
@@ -286,7 +286,7 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
         hashtag = make_hashtag()
 
         fake_post_text = make_fake_post_text() + f" and a little hashtag #{hashtag.name}"
-        post_creator.create_public_post(text=fake_post_text)
+        post_creator.create_post(is_public=True, text=fake_post_text)
 
         user.block_user_with_username(username=post_creator.username)
 
@@ -310,7 +310,7 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
         hashtag = make_hashtag()
 
         fake_post_text = make_fake_post_text() + f" and a little hashtag #{hashtag.name}"
-        post_creator.create_public_post(text=fake_post_text)
+        post_creator.create_post(is_public=True, text=fake_post_text)
 
         post_creator.block_user_with_username(username=user.username)
 

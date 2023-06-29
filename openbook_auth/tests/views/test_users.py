@@ -538,7 +538,7 @@ class GetUserPostsCountAPITests(OpenbookAPITestCase):
         amount_of_posts = 5
 
         for i in range(0, amount_of_posts):
-            target_user.create_public_post(text=make_fake_post_text())
+            target_user.create_post(is_public=True, text=make_fake_post_text())
 
         url = self._get_url(user_username=target_user.username)
 

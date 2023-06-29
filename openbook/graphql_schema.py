@@ -937,7 +937,7 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        current_user.create_community_encircled_post(**data)
+        current_user.create_community_post(**data)
 
         return CommunityModel.objects.get(id=data.get("space_id"))
 
@@ -949,7 +949,7 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        return current_user.create_community_encircled_post(**data)
+        return current_user.create_community_post(**data)
 
     @gql.mutation
     def update_space_post(self, info: Info, input: UpdatePostInput) -> Post:
@@ -961,7 +961,7 @@ class Mutation:
 
         data["remove_image"] = is_parameter_null(data, "image")
 
-        return current_user.update_community_encircled_post(**data)
+        return current_user.update_community_post(**data)
 
     @gql.mutation
     def delete_space_post(self, info: Info, id: uuid.UUID) -> Space:
