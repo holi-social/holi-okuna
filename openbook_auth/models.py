@@ -463,7 +463,6 @@ class User(ModelWithUUID, AbstractUser):
         Returns count of public posts for not connected users
         """
         Post = get_post_model()
-        # Circle = get_circle_model()
         ModeratedObject = get_moderated_object_model()
 
         user_query = Q(creator_id=user.pk)
@@ -475,10 +474,6 @@ class User(ModelWithUUID, AbstractUser):
         )
 
         exclude_deleted_posts_query = Q(is_deleted=False, status=Post.STATUS_PUBLISHED)
-
-        # Get user world circle posts
-        # world_circle_id = Circle.get_world_circle_id()
-        # world_circle_posts_query = Q(creator__id=user.pk, circles__id=world_circle_id)
 
         posts_prefetch_related = "circles"
         posts_only = "id"
@@ -893,10 +888,6 @@ class User(ModelWithUUID, AbstractUser):
         return CommunityNotificationsSubscription.are_new_post_notifications_enabled_for_user_with_username_and_community_with_name(
             username=self.username, community_name=community.name
         )
-
-    def is_world_circle_id(self, id):
-        world_circle_id = self._get_world_circle_id()
-        return world_circle_id == id
 
     def is_connections_circle_id(self, circle_id):
         return self.connections_circle_id == circle_id
@@ -4349,9 +4340,7 @@ class User(ModelWithUUID, AbstractUser):
 
         posts_query = Q(creator_id=user.pk, is_deleted=False, status=Post.STATUS_PUBLISHED)
 
-        world_circle_id = self._get_world_circle_id()
-
-        posts_circles_query = Q(circles__id=world_circle_id)
+        posts_circles_query = Q(is_public=True)
 
         posts_circles_query.add(
             Q(
@@ -4371,10 +4360,6 @@ class User(ModelWithUUID, AbstractUser):
             posts_query.add(Q(id__lt=max_id), Q.AND)
 
         return posts_query
-
-    def _get_world_circle_id(self):
-        Circle = get_circle_model()
-        return Circle.get_world_circle_id()
 
     def _get_post_visibility_by_community_id(self, visibility, community_id) -> bool | None:
         membership = self.communities_memberships.get(community_id=community_id)
