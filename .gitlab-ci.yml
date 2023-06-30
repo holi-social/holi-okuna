@@ -156,6 +156,15 @@ staging_deploy:
   only:
     - main
 
+staging_trigger_unified-api_redeployment:
+  needs: ['staging_deploy']
+  stage: deploy
+  trigger:
+    project: 'app/holi-unified-api'
+    branch: 'main'
+  only:
+    - main
+
 # TODO: e2e tests
 
 production_deploy:
@@ -167,5 +176,14 @@ production_deploy:
     url: https://production.social.apis.holi.social
   variables:
     ENVIRONMENT_ID: production
+  only:
+    - production
+
+production_trigger_unified-api_redeployment:
+  needs: ['production_deploy']
+  stage: deploy
+  trigger:
+    project: 'app/holi-unified-api'
+    branch: 'production'
   only:
     - production
