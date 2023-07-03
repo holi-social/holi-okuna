@@ -42,10 +42,6 @@ class PostMediaAPITests(OpenbookAPITestCase):
     PostMediaAPI
     """
 
-    fixtures = [
-        "openbook_circles/fixtures/circles.json",
-    ]
-
     def test_can_add_media_image_to_draft_post(self):
         """should be able to add a media image to a draft post"""
         user = make_user()

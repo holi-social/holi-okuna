@@ -211,8 +211,6 @@ class BlockUserAPITests(OpenbookAPITestCase):
     BlockUserAPI
     """
 
-    fixtures = ["openbook_circles/fixtures/circles.json"]
-
     def test_can_block_user(self):
         """should be able to block a user and return 200"""
         user = make_user()
@@ -525,9 +523,6 @@ class SubscribeToUserNotificationsAPITests(OpenbookAPITestCase):
 
 
 class GetUserPostsCountAPITests(OpenbookAPITestCase):
-
-    fixtures = ["openbook_circles/fixtures/circles.json"]
-
     def test_can_retrieve_posts_count(self):
         """should be able to retrieve the posts count and return 200"""
         user = make_user()

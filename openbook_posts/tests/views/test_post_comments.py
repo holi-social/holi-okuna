@@ -47,7 +47,6 @@ class PostCommentsAPITests(OpenbookAPITestCase):
     """
 
     fixtures = [
-        "openbook_circles/fixtures/circles.json",
         "openbook_common/fixtures/languages.json",
     ]
 

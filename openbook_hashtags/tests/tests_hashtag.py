@@ -27,8 +27,6 @@ class HashtagAPITests(OpenbookAPITestCase):
     HashtagAPITests
     """
 
-    fixtures = ["openbook_circles/fixtures/circles.json"]
-
     def test_can_retrieve_hashtag(self):
         """should be able to retrieve a hashtag and return 200"""
         user = make_user()
@@ -133,8 +131,6 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
     """
     HashtagPostsAPITests
     """
-
-    fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_retrieves_public_community_post_with_hashtag(self):
         """should retrieve posts with a given hashtag and return 200"""

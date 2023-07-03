@@ -8,7 +8,7 @@ from openbook_common.utils.model_loaders import get_post_model
 
 
 class PostModelTest(TestAssertionsMixin, TestCase):
-    fixtures = ["openbook_circles/fixtures/circles.json", "openbook_moderation/fixtures/moderation_categories.json"]
+    fixtures = ["openbook_moderation/fixtures/moderation_categories.json"]
 
     def test_create_post_success(self):
         space_creator = make_user()

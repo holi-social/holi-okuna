@@ -62,7 +62,6 @@ class PostItemAPITests(OpenbookAPITestCase):
     """
 
     fixtures = [
-        "openbook_circles/fixtures/circles.json",
         "openbook_common/fixtures/languages.json",
     ]
 
@@ -1081,8 +1080,6 @@ class MutePostAPITests(OpenbookAPITestCase):
     MutePostAPI
     """
 
-    fixtures = ["openbook_circles/fixtures/circles.json"]
-
     def test_can_mute_own_post(self):
         """should be able to mute own post and return 200"""
         user = make_user()
@@ -1317,8 +1314,6 @@ class UnmutePostAPITests(OpenbookAPITestCase):
     """
     UnmutePostAPI
     """
-
-    fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_can_unmute_own_post(self):
         """should be able to unmute own post and return 200"""
@@ -1851,7 +1846,6 @@ class TranslatePostAPITests(OpenbookAPITestCase):
 
     fixtures = [
         "openbook_common/fixtures/languages.json",
-        "openbook_circles/fixtures/circles.json",
     ]
 
     def test_translate_post_text(self):
@@ -1950,10 +1944,6 @@ class SearchPostParticipantsAPITests(OpenbookAPITestCase):
     """
     SearchPostParticipantsAPI
     """
-
-    fixtures = [
-        "openbook_circles/fixtures/circles.json",
-    ]
 
     def test_retrieves_post_creator_by_username(self):
         """should retrieve the post creator by username and return 200"""
@@ -2313,10 +2303,6 @@ class GetPostParticipantsAPITests(OpenbookAPITestCase):
     SearchPostParticipantsAPI
     """
 
-    fixtures = [
-        "openbook_circles/fixtures/circles.json",
-    ]
-
     def test_retrieves_post_creator(self):
         """should retrieve the post creator and return 200"""
         user = make_user()
@@ -2402,8 +2388,6 @@ class PublishPostAPITests(OpenbookAPITestCase):
     """
     PublishPostAPI
     """
-
-    fixtures = ["openbook_circles/fixtures/circles.json"]
 
     @unittest.skip("TODO HOLI-1425")
     def test_publishing_draft_image_post_should_process_media(self):
@@ -2644,10 +2628,6 @@ class PostStatusAPITests(OpenbookAPITestCase):
     """
     PostStatusAPI
     """
-
-    fixtures = [
-        "openbook_circles/fixtures/circles.json",
-    ]
 
     def test_can_retrieve_own_post_status(self):
         """should be able to retrieve own post status"""

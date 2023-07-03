@@ -124,7 +124,7 @@ class Command(BaseCommand):
         users = self._get_random_users(int(nr / 1.5))
         if not users:
             raise CommandError(NO_USERS_AVAILABLE)
-        posts = Post.objects.filter(circles__id=Circle.get_world_circle_id()).all()[: int(nr * 4)]
+        posts = Post.objects.filter(is_public=True).all()[: int(nr * 4)]
         if not posts:
             raise CommandError(NO_POSTS_AVAILABLE)
         for _ in range(nr):

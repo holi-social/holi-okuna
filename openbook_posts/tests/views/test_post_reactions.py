@@ -29,8 +29,6 @@ class PostReactionsAPITests(OpenbookAPITestCase):
     PostReactionsAPI
     """
 
-    fixtures = ["openbook_circles/fixtures/circles.json"]
-
     def test_can_react_to_own_post(self):
         """should be able to reaction in own post and return 201"""
         user = make_user()
@@ -530,8 +528,6 @@ class PostReactionsEmojiCountAPITests(OpenbookAPITestCase):
     """
     PostReactionsEmojiCountAPI
     """
-
-    fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_can_retrieve_reactions_count(self):
         """should be able to retrieve a valid reactions emoji count and return 200"""

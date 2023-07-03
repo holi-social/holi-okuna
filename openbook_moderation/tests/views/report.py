@@ -28,10 +28,6 @@ class ReportPostAPITests(OpenbookAPITestCase):
     ReportPostAPI
     """
 
-    fixtures = [
-        "openbook_circles/fixtures/circles.json",
-    ]
-
     def test_can_report_public_post(self):
         """should be able to report a post with a description and return 201"""
         post_creator = make_user()
@@ -420,10 +416,6 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
     """
     ReportPostCommentAPI
     """
-
-    fixtures = [
-        "openbook_circles/fixtures/circles.json",
-    ]
 
     def test_can_report_public_post_comment(self):
         """should be able to report a post_comment with a description and return 201"""
@@ -844,10 +836,6 @@ class ReportUserAPITests(OpenbookAPITestCase):
     ReportUserAPI
     """
 
-    fixtures = [
-        "openbook_circles/fixtures/circles.json",
-    ]
-
     def test_can_report_user(self):
         """should be able to report a user with a description and return 201"""
         user = make_user()
@@ -1023,10 +1011,6 @@ class ReportCommunityAPITests(OpenbookAPITestCase):
     """
     ReportCommunityAPI
     """
-
-    fixtures = [
-        "openbook_circles/fixtures/circles.json",
-    ]
 
     def test_can_report_community(self):
         """should be able to report a community with a description and return 201"""
@@ -1209,10 +1193,6 @@ class ReportHashtagAPITests(OpenbookAPITestCase):
     """
     ReportHashtagAPI
     """
-
-    fixtures = [
-        "openbook_circles/fixtures/circles.json",
-    ]
 
     def test_can_report_hashtag(self):
         """should be able to report a hashtag with a description and return 201"""

@@ -14,7 +14,7 @@ from openbook_posts.models import PostComment
 
 
 class UserModelTest(TestAssertionsMixin, TestCase):
-    fixtures = ["openbook_circles/fixtures/circles.json", "openbook_moderation/fixtures/moderation_categories.json"]
+    fixtures = ["openbook_moderation/fixtures/moderation_categories.json"]
 
     def test_approve_membership_denied_for_non_staff_members(self):
         membership_requestor = make_user()

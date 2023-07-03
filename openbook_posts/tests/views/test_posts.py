@@ -78,7 +78,6 @@ class PostsAPITests(OpenbookAPITestCase):
     """
 
     fixtures = [
-        "openbook_circles/fixtures/circles.json",
         "openbook_common/fixtures/languages.json",
     ]
 
@@ -3478,8 +3477,6 @@ class TrendingPostsAPITests(OpenbookAPITestCase):
     TrendingPostsAPITests
     """
 
-    fixtures = ["openbook_circles/fixtures/circles.json"]
-
     def test_displays_community_posts_only(self):
         """should display community posts only and return 200"""
         user = make_user()
@@ -3904,10 +3901,6 @@ class TopPostsAPITests(OpenbookAPITestCase):
     """
     TopPostsAPITests
     """
-
-    fixtures = [
-        "openbook_circles/fixtures/circles.json",
-    ]
 
     def test_displays_community_posts_only(self):
         """should display community posts only in top posts and return 200"""

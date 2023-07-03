@@ -39,7 +39,6 @@ class PostCommentItemAPITests(OpenbookAPITestCase):
     """
 
     fixtures = [
-        "openbook_circles/fixtures/circles.json",
         "openbook_common/fixtures/languages.json",
     ]
 
@@ -2165,8 +2164,6 @@ class MutePostCommentAPITests(OpenbookAPITestCase):
     MutePostCommentAPI
     """
 
-    fixtures = ["openbook_circles/fixtures/circles.json"]
-
     def test_can_mute_own_post_comment(self):
         """should be able to mute own post comment and return 200"""
         user = make_user()
@@ -2424,8 +2421,6 @@ class UnmutePostCommentAPITests(OpenbookAPITestCase):
     UnmutePostCommentAPI
     """
 
-    fixtures = ["openbook_circles/fixtures/circles.json"]
-
     def test_can_unmute_own_post_comment(self):
         """should be able to unmute own post comment and return 200"""
         user = make_user()
@@ -2568,7 +2563,6 @@ class TranslatePostCommentAPITests(OpenbookAPITestCase):
 
     fixtures = [
         "openbook_common/fixtures/languages.json",
-        "openbook_circles/fixtures/circles.json",
     ]
 
     def test_translate_post_comment_text(self):

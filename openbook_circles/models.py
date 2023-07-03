@@ -76,14 +76,6 @@ class Circle(ModelWithUUID):
         except Circle.DoesNotExist:
             return False
 
-    @classmethod
-    def get_world_circle(cls):
-        return Circle.objects.get(pk=cls.get_world_circle_id())
-
-    @classmethod
-    def get_world_circle_id(cls):
-        return uuid.UUID(settings.WORLD_CIRCLE_ID)
-
     @property
     def users(self):
         Connection = get_connection_model()

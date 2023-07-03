@@ -27,8 +27,6 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
     PostReactionItemAPI
     """
 
-    fixtures = ["openbook_circles/fixtures/circles.json"]
-
     def test_can_delete_foreign_reaction_in_own_post(self):
         """should be able to delete a foreign reaction in own post and return 200"""
         user = make_user()

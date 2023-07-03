@@ -80,8 +80,6 @@ class CircleItemAPITests(OpenbookAPITestCase):
     CircleItemAPI
     """
 
-    fixtures = ["openbook_circles/fixtures/circles.json"]
-
     def test_delete_own_circle(self):
         """should be able to delete an own circle and return 200"""
         user = make_user()

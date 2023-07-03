@@ -30,8 +30,6 @@ fake = Faker()
 
 
 class PostCommentRepliesAPITests(OpenbookAPITestCase):
-    fixtures = ["openbook_circles/fixtures/circles.json"]
-
     def test_can_retrieve_comment_replies_from_public_community_post(self):
         """should be able to retrieve comment replies for posts"""
         user = make_user()
