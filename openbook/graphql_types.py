@@ -419,6 +419,7 @@ class Post:
     comments_enabled: gql.auto
     mentions: List[Optional[User]]
     links: List[Optional[LinkPreview]]
+    is_public: gql.auto
 
     @gql.field
     def image(self) -> Optional[PostImage]:
@@ -494,10 +495,6 @@ class Post:
             except PostReactionModel.DoesNotExist:
                 return ReactionCounts()
         return ReactionCounts()
-
-    @gql.django.field
-    def is_public(self) -> bool:
-        return self.is_public_post()
 
 
 @gql.django.type(CommunityModel)
@@ -578,13 +575,13 @@ class Space:
             current_user.is_anonymous
             or not CommunityMembershipModel.objects.filter(community=self, user=current_user).exists()
         ):
-            query = query.filter(circles__id=get_circle_model().get_world_circle_id())
+            query = query.filter(is_public=True)
         else:
             if visibility == VisibilityFilter.PUBLIC:
-                query = query.filter(circles__id=get_circle_model().get_world_circle_id())
+                query = query.filter(is_public=True)
 
             elif visibility == VisibilityFilter.MEMBERS:
-                query = query.exclude(circles__id=get_circle_model().get_world_circle_id())
+                query = query.filter(is_public=False)
 
         return Paged.of(query.order_by("-created"), offset, limit)
 
@@ -594,7 +591,7 @@ class Space:
         query = PostModel.objects.filter(
             PostModel.is_visible_query(current_user), status=PostModel.STATUS_PUBLISHED, community=self
         )
-        return query.filter(circles__id=get_circle_model().get_world_circle_id()).exists()
+        return query.filter(is_public=True).exists()
 
     @gql.django.field
     def has_private_posts(self, info) -> bool:
@@ -602,7 +599,7 @@ class Space:
         query = PostModel.objects.filter(
             PostModel.is_visible_query(current_user), status=PostModel.STATUS_PUBLISHED, community=self
         )
-        return query.exclude(circles__id=get_circle_model().get_world_circle_id()).exists()
+        return query.filter(is_public=False).exists()
 
 
 @gql.django.type(PostCommentModel)

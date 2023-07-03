@@ -80,8 +80,6 @@ class CircleItemAPITests(OpenbookAPITestCase):
     CircleItemAPI
     """
 
-    fixtures = ["openbook_circles/fixtures/circles.json"]
-
     def test_delete_own_circle(self):
         """should be able to delete an own circle and return 200"""
         user = make_user()
@@ -96,19 +94,6 @@ class CircleItemAPITests(OpenbookAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK, f"Response: {response.data}")
         self.assertTrue(Circle.objects.filter(id=circle_id).count() == 0)
-
-    def test_cannot_delete_world_circle(self):
-        """should not be able to own world circle and return 400"""
-        user = make_user()
-        headers = make_authentication_headers_for_user(user)
-
-        circle_id = Circle.get_world_circle_id()
-
-        url = self._get_url(circle_id)
-        response = self.client.delete(url, **headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
-        self.assertTrue(Circle.objects.filter(id=circle_id).count() == 1)
 
     def test_cannot_delete_connections_circle(self):
         """should not be able to delete own connections circle and return 400"""
@@ -232,25 +217,6 @@ class CircleItemAPITests(OpenbookAPITestCase):
         circle_color = fake.hex_color()
         circle = mixer.blend(Circle, creator=another_user, color=circle_color)
         circle_id = circle.pk
-
-        new_circle_name = fake.name()
-        new_circle_color = fake.hex_color()
-
-        data = {"name": new_circle_name, "color": new_circle_color}
-
-        url = self._get_url(circle_id)
-        response = self.client.patch(url, data, **headers)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
-        self.assertTrue(Circle.objects.filter(name=new_circle_name, id=circle_id, color=new_circle_color).count() == 0)
-
-    def test_cannot_update_world_circle(self):
-        """should not be able to update own world circle and return 400"""
-        user = make_user()
-
-        headers = make_authentication_headers_for_user(user)
-
-        circle_id = Circle.get_world_circle_id()
 
         new_circle_name = fake.name()
         new_circle_color = fake.hex_color()

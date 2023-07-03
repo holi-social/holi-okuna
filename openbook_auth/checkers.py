@@ -42,7 +42,7 @@ def check_can_update_post(user, post):
 
 def check_can_post_to_circles_with_ids(user, circles_ids=None):
     for circle_id in circles_ids:
-        if not user.has_circle_with_id(circle_id) and not user.is_world_circle_id(circle_id):
+        if not user.has_circle_with_id(circle_id):
             raise ValidationError(
                 _("You cannot post to circle with id %(id)s") % {"id": circle_id},
             )
@@ -82,7 +82,7 @@ def check_comments_enabled_for_post_with_id(user, post_id):
 def check_can_translate_post_with_id(user, post_id):
     Post = get_post_model()
     post = Post.objects.get(id=post_id)
-    if post.is_encircled_post():
+    if not post.is_public:
         raise ValidationError(_("Only public posts can be translated"))
     if post.text is None:
         raise ValidationError(_("Post has no text to be translated"))
@@ -668,11 +668,6 @@ def check_can_update_circle_with_id(user, circle_id):
             _("Can't update a circle that does not belong to you."),
         )
 
-    if user.is_world_circle_id(circle_id):
-        raise ValidationError(
-            _("Can't update the world circle."),
-        )
-
     if user.is_connections_circle_id(circle_id):
         raise ValidationError(
             _("Can't update the connections circle."),
@@ -683,11 +678,6 @@ def check_can_delete_circle_with_id(user, circle_id):
     if not user.has_circle_with_id(circle_id):
         raise ValidationError(
             _("Can't delete a circle that does not belong to you."),
-        )
-
-    if user.is_world_circle_id(circle_id):
-        raise ValidationError(
-            _("Can't delete the world circle."),
         )
 
     if user.is_connections_circle_id(circle_id):
@@ -857,7 +847,7 @@ def check_has_muted_post_comment_with_id(user, post_comment_id):
 def check_can_translate_comment_with_id(user, post_comment_id):
     PostComment = get_post_comment_model()
     post_comment = PostComment.objects.get(pk=post_comment_id)
-    if post_comment.post.is_encircled_post():
+    if not post_comment.post.is_public:
         raise ValidationError(_("Only public post comments can be translated"))
     if post_comment.text is None:
         raise ValidationError(_("Post comment has no text to be translated"))
@@ -1059,11 +1049,6 @@ def check_connection_circles_ids(user, circles_ids):
 
 def check_connection_circle_id(user, circle_id):
     check_has_circle_with_id(user=user, circle_id=circle_id)
-
-    if user.is_world_circle_id(circle_id):
-        raise ValidationError(
-            _("Can't connect in the world circle."),
-        )
 
 
 def check_email_not_taken(user, email):

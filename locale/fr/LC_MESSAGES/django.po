@@ -365,10 +365,6 @@ msgstr "L'utilisateur.trice à supprimer n'est pas un.e modérateur.trice."
 msgid "Can't update a circle that does not belong to you."
 msgstr "Impossible de mettre à jour un cercle qui ne vous appartient pas."
 
-#: openbook_auth/checkers.py:657
-msgid "Can't update the world circle."
-msgstr "Impossible de mettre à jour le cercle du monde entier."
-
 #: openbook_auth/checkers.py:662
 msgid "Can't update the connections circle."
 msgstr "Impossible de mettre à jour le cercle de connexions."
@@ -376,10 +372,6 @@ msgstr "Impossible de mettre à jour le cercle de connexions."
 #: openbook_auth/checkers.py:669
 msgid "Can't delete a circle that does not belong to you."
 msgstr "Impossible de supprimer un cercle qui ne vous appartient pas."
-
-#: openbook_auth/checkers.py:674
-msgid "Can't delete the world circle."
-msgstr "Impossible de supprimer le cercle du monde entier."
 
 #: openbook_auth/checkers.py:679
 msgid "Can't delete the connections circle."
@@ -554,10 +546,6 @@ msgstr "Jeton d'authentification invalide"
 #: openbook_auth/checkers.py:1024
 msgid "Token email does not match"
 msgstr "L'adresse courriel du jeton d'authentification ne correspond pas"
-
-#: openbook_auth/checkers.py:1049
-msgid "Can't connect in the world circle."
-msgstr "Impossible de se connecter au cercle du monde entier."
 
 #: openbook_auth/checkers.py:1060
 msgid "The email is already taken."

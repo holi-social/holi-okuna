@@ -522,7 +522,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         post_creator = make_user()
 
         post_creator.join_community_with_name(community_name=community.name)
-        post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = post_creator.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         reporter_user = make_user()
         report_category = make_moderation_category()
@@ -571,7 +571,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         post_creator = make_user()
 
         post_creator.join_community_with_name(community_name=community.name)
-        post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = post_creator.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         reporter_user = make_user()
         report_category = make_moderation_category()
@@ -617,7 +617,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         post_creator = make_user()
 
         post_creator.join_community_with_name(community_name=community.name)
-        post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = post_creator.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         reporter_user = make_user()
         report_category = make_moderation_category()
@@ -671,7 +671,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         post_creator = make_user()
 
         post_creator.join_community_with_name(community_name=community.name)
-        post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = post_creator.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         reporter_user = make_user()
         report_category = make_moderation_category()
@@ -727,7 +727,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         post_creator = make_user()
 
         post_creator.join_community_with_name(community_name=community.name)
-        post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = post_creator.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         reporter_user = make_user()
         report_category = make_moderation_category()
@@ -782,7 +782,7 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         post_creator = make_user()
 
         post_creator.join_community_with_name(community_name=community.name)
-        post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = post_creator.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         reporter_user = make_user()
         report_category = make_moderation_category()
@@ -829,7 +829,9 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         post_comment_creator = make_user()
 
         post_comment_creator.join_community_with_name(community_name=community.name)
-        post = post_comment_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_comment_creator.create_community_post_by_name(
+            text=make_fake_post_text(), community_name=community.name
+        )
         post_comment = post_comment_creator.comment_post(text=make_fake_post_comment_text(), post=post)
 
         reporter_user = make_user()
@@ -881,7 +883,9 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         post_comment_creator = make_user()
 
         post_comment_creator.join_community_with_name(community_name=community.name)
-        post = post_comment_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_comment_creator.create_community_post_by_name(
+            text=make_fake_post_text(), community_name=community.name
+        )
         post_comment = post_comment_creator.comment_post(text=make_fake_post_comment_text(), post=post)
 
         reporter_user = make_user()
@@ -927,7 +931,9 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         post_comment_creator = make_user()
 
         post_comment_creator.join_community_with_name(community_name=community.name)
-        post = post_comment_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_comment_creator.create_community_post_by_name(
+            text=make_fake_post_text(), community_name=community.name
+        )
         post_comment = post_comment_creator.comment_post(text=make_fake_post_comment_text(), post=post)
 
         reporter_user = make_user()
@@ -982,7 +988,9 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         post_comment_creator = make_user()
 
         post_comment_creator.join_community_with_name(community_name=community.name)
-        post = post_comment_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = post_comment_creator.create_community_post_by_name(
+            community_name=community.name, text=make_fake_post_text()
+        )
         post_comment = post_comment_creator.comment_post(post=post, text=make_fake_post_comment_text())
 
         reporter_user = make_user()
@@ -1039,7 +1047,9 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         post_comment_creator = make_user()
 
         post_comment_creator.join_community_with_name(community_name=community.name)
-        post = post_comment_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = post_comment_creator.create_community_post_by_name(
+            community_name=community.name, text=make_fake_post_text()
+        )
         post_comment = post_comment_creator.comment_post(post=post, text=make_fake_post_comment_text())
 
         reporter_user = make_user()
@@ -1095,7 +1105,9 @@ class ModeratedObjectAPITests(OpenbookAPITestCase):
         post_comment_creator = make_user()
 
         post_comment_creator.join_community_with_name(community_name=community.name)
-        post = post_comment_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = post_comment_creator.create_community_post_by_name(
+            community_name=community.name, text=make_fake_post_text()
+        )
         post_comment = post_comment_creator.comment_post(post=post, text=make_fake_post_comment_text())
 
         reporter_user = make_user()
@@ -1178,7 +1190,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
         # subscribe to notifications
         reporter_user.enable_new_post_notifications_for_user_with_username(username=user.username)
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_CRITICAL)
         reporter_user.report_user_with_username(username=user.username, category_id=report_category.pk)
@@ -1374,7 +1386,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_community.join_community_with_name(community_name=community.name)
         reporter_community.enable_new_post_notifications_for_community_with_name(community_name=community.name)
 
-        post = community_admin.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = community_admin.create_community_post_by_name(text=make_fake_post_text(), community_name=community.name)
 
         report_category = make_moderation_category()
         reporter_community.report_community(community=community, category_id=report_category.pk)
@@ -1487,7 +1499,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(
+        community_post = community_post_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
 
@@ -1526,7 +1538,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_post_creator.join_community_with_name(community_name=community.name)
         community_post_reactor.join_community_with_name(community_name=community.name)
 
-        community_post = community_post_creator.create_community_post(
+        community_post = community_post_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         emoji_group = make_reactions_emoji_group()
@@ -1567,7 +1579,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_post_commenter.join_community_with_name(community_name=community.name)
         community_post_replier.join_community_with_name(community_name=community.name)
 
-        community_post = community_post_creator.create_community_post(
+        community_post = community_post_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_commenter.comment_post(post=community_post, text=make_fake_post_text())
@@ -1605,7 +1617,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_post_replier.join_community_with_name(community_name=community.name)
 
         # create community post and comment
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -1654,7 +1666,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_post_comment_reactor.join_community_with_name(community_name=community.name)
 
         # create community post and comment
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -1707,7 +1719,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_post_comment_reply_reactor.join_community_with_name(community_name=community.name)
 
         # create community post and comment
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -1766,7 +1778,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         mmentioned_user.join_community_with_name(community_name=community.name)
 
         # create community post and comment with mention
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -1815,7 +1827,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         mmentioned_user.join_community_with_name(community_name=community.name)
 
         # create community post with mention
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=post_text
         )
 
@@ -1858,7 +1870,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(
+        community_post = community_post_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         reporter_community_post = make_user()
@@ -1890,7 +1902,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(
+        community_post = community_post_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
 
@@ -1923,7 +1935,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_comment_creator = make_user()
         community_post_comment_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -1972,7 +1984,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_post_another_commenter.join_community_with_name(community_name=community.name)
         community_post_replier.join_community_with_name(community_name=community.name)
 
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -2020,7 +2032,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_post_replier.join_community_with_name(community_name=community.name)
 
         # create community post and comment
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -2073,7 +2085,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_post_replier.join_community_with_name(community_name=community.name)
 
         # create community post and comment
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -2127,7 +2139,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_post_comment_reactor.join_community_with_name(community_name=community.name)
 
         # create community post and comment
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -2184,7 +2196,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         community_post_comment_reply_reactor.join_community_with_name(community_name=community.name)
 
         # create community post and comment
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -2247,7 +2259,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
         mmentioned_user.join_community_with_name(community_name=community.name)
 
         # create community post and comment with mention
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -2299,7 +2311,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_comment_creator = make_user()
         community_post_comment_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -2342,7 +2354,7 @@ class ApproveModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_comment_creator = make_user()
         community_post_comment_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -2588,7 +2600,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(
+        community_post = community_post_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
 
@@ -2628,7 +2640,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(
+        community_post = community_post_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         reporter_community_post = make_user()
@@ -2662,7 +2674,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(
+        community_post = community_post_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
 
@@ -2695,7 +2707,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_comment_creator = make_user()
         community_post_comment_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -2743,7 +2755,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_comment_creator = make_user()
         community_post_comment_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -2786,7 +2798,7 @@ class RejectModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_comment_creator = make_user()
         community_post_comment_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -2877,7 +2889,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         user = make_user()
 
         for i in range(0, number_of_reported_items):
-            post = user.create_public_post(text=make_fake_post_text())
+            post = user.create_post(is_public=True, text=make_fake_post_text())
 
             report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_LOW)
 
@@ -2926,7 +2938,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         user = make_user()
 
         for i in range(0, number_of_reported_items):
-            post = user.create_public_post(text=make_fake_post_text())
+            post = user.create_post(is_public=True, text=make_fake_post_text())
 
             report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_MEDIUM)
 
@@ -2974,7 +2986,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         user = make_user()
 
         for i in range(0, number_of_reported_items):
-            post = user.create_public_post(text=make_fake_post_text())
+            post = user.create_post(is_public=True, text=make_fake_post_text())
 
             report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_HIGH)
 
@@ -3054,7 +3066,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         for moderation_category_severity in moderation_category_severities:
             post_comment_creator = make_user()
-            post = post_comment_creator.create_public_post(text=make_fake_post_text())
+            post = post_comment_creator.create_post(is_public=True, text=make_fake_post_text())
             post_comment = post_comment_creator.comment_post(post=post, text=make_fake_post_comment_text())
 
             report_category = make_moderation_category(severity=moderation_category_severity)
@@ -3131,7 +3143,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         for moderation_category_severity in moderation_category_severities:
             post_creator = make_user()
-            post = post_creator.create_public_post(text=make_fake_post_text())
+            post = post_creator.create_post(is_public=True, text=make_fake_post_text())
 
             report_category = make_moderation_category(severity=moderation_category_severity)
 
@@ -3167,7 +3179,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
 
         user = make_user()
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         post_commenter = make_user()
         post_comment = post_commenter.comment_post(post=post, text=make_fake_post_comment_text())
@@ -3207,7 +3219,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
 
         user = make_user()
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         post_commenter = make_user()
         post_comment = post_commenter.comment_post(post=post, text=make_fake_post_comment_text())
@@ -3247,7 +3259,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
 
         post_creator = make_user()
-        post = post_creator.create_public_post(text=make_fake_post_text())
+        post = post_creator.create_post(is_public=True, text=make_fake_post_text())
 
         amount_of_post_comments = 5
         post_comment_ids = []
@@ -3297,7 +3309,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         for i in range(0, amount_of_posts):
             post_creator = make_user()
             post_creator.join_community_with_name(community_name=community.name)
-            post_comment = post_creator.create_community_post(
+            post_comment = post_creator.create_community_post_by_name(
                 community_name=community.name, text=make_fake_post_text()
             )
             post_ids.append(post_comment.pk)
@@ -3477,7 +3489,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
 
         post_creator = make_user()
-        post = post_creator.create_public_post(text=make_fake_post_text())
+        post = post_creator.create_post(is_public=True, text=make_fake_post_text())
 
         report_category = make_moderation_category()
 
@@ -3568,7 +3580,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         reporter_user = make_user()
 
         post_comment_creator = make_user()
-        post = post_comment_creator.create_public_post(text=make_fake_post_text())
+        post = post_comment_creator.create_post(is_public=True, text=make_fake_post_text())
         post_comment = post_comment_creator.comment_post(post=post, text=make_fake_post_comment_text())
 
         report_category = make_moderation_category()
@@ -3823,7 +3835,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(
+        community_post = community_post_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
 
@@ -3859,7 +3871,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(
+        community_post = community_post_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         reporter_community_post = make_user()
@@ -3889,7 +3901,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(
+        community_post = community_post_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
 
@@ -3923,7 +3935,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_comment_creator = make_user()
         community_post_comment_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -3968,7 +3980,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_comment_creator = make_user()
         community_post_comment_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -4007,7 +4019,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_comment_creator = make_user()
         community_post_comment_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -4086,7 +4098,7 @@ class VerifyModeratedObjectApiTests(OpenbookAPITestCase):
         image.save(tmp_file)
         tmp_file.seek(0)
 
-        post = post_creator.create_public_post(text=make_fake_post_text(), image=File(tmp_file))
+        post = post_creator.create_post(is_public=True, text=make_fake_post_text(), image=File(tmp_file))
 
         reporter_user = make_user()
         report_category = make_moderation_category(severity=ModerationCategory.SEVERITY_CRITICAL)
@@ -4338,7 +4350,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(
+        community_post = community_post_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
 
@@ -4375,7 +4387,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(
+        community_post = community_post_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         reporter_community_post = make_user()
@@ -4406,7 +4418,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_creator = make_user()
         community_post_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_creator.create_community_post(
+        community_post = community_post_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
 
@@ -4441,7 +4453,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_comment_creator = make_user()
         community_post_comment_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -4487,7 +4499,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_comment_creator = make_user()
         community_post_comment_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(
@@ -4529,7 +4541,7 @@ class UnverifyModeratedObjectApiTests(OpenbookAPITestCase):
 
         community_post_comment_creator = make_user()
         community_post_comment_creator.join_community_with_name(community_name=community.name)
-        community_post = community_post_comment_creator.create_community_post(
+        community_post = community_post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_text()
         )
         community_post_comment = community_post_comment_creator.comment_post(

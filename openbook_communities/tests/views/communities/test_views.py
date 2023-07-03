@@ -1386,8 +1386,6 @@ class TrendingCommunitiesAPITests(OpenbookAPITestCase):
     TrendingCommunitiesAPITests
     """
 
-    fixtures = ["openbook_circles/fixtures/circles.json"]
-
     def test_displays_public_communities(self):
         """should display public communities and return 200"""
         user = make_user()

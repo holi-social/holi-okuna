@@ -49,7 +49,6 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
     """
 
     fixtures = [
-        "openbook_circles/fixtures/circles.json",
         "openbook_terms/fixtures/topics.json",
         "openbook_terms/fixtures/skills.json",
         "openbook_terms/fixtures/sdgs.json",
@@ -658,8 +657,6 @@ class AuthenticatedUserAPITests(OpenbookAPITestCase):
 
 
 class AuthenticatedUserDeleteTests(OpenbookAPITestCase):
-    fixtures = ["openbook_circles/fixtures/circles.json"]
-
     @unittest.skip("TODO HOLI-1722 most likely remove completely")
     def test_can_delete_user_with_password(self):
         """should be able to delete the authenticated user with his password and return 200"""

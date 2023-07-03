@@ -47,7 +47,6 @@ class PostCommentsAPITests(OpenbookAPITestCase):
     """
 
     fixtures = [
-        "openbook_circles/fixtures/circles.json",
         "openbook_common/fixtures/languages.json",
     ]
 
@@ -57,7 +56,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         post_creator = make_user()
         community = make_community(creator=post_creator)
-        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_creator.create_community_post_by_name(text=make_fake_post_text(), community_name=community.name)
 
         amount_of_comments = 5
         comments_ids = []
@@ -89,7 +88,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(post_creator)
         community = make_community(creator=admin)
         post_creator.join_community_with_name(community_name=community.name)
-        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_creator.create_community_post_by_name(text=make_fake_post_text(), community_name=community.name)
 
         amount_of_comments = 5
         comments_ids = []
@@ -125,7 +124,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(admin)
         community = make_community(creator=admin)
         post_creator.join_community_with_name(community_name=community.name)
-        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_creator.create_community_post_by_name(text=make_fake_post_text(), community_name=community.name)
 
         amount_of_comments = 5
         comments_ids = []
@@ -166,7 +165,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         )
 
         post_creator.join_community_with_name(community_name=community.name)
-        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_creator.create_community_post_by_name(text=make_fake_post_text(), community_name=community.name)
 
         amount_of_comments = 5
         comments_ids = []
@@ -198,7 +197,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         post_creator = make_user()
         community = make_private_community(creator=post_creator)
-        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_creator.create_community_post_by_name(text=make_fake_post_text(), community_name=community.name)
 
         amount_of_comments = 5
         comments_ids = []
@@ -224,7 +223,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         post_creator = make_user()
         community = make_private_community(creator=post_creator)
-        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_creator.create_community_post_by_name(text=make_fake_post_text(), community_name=community.name)
 
         post_creator.invite_user_with_username_to_community_with_name(
             username=user.username, community_name=community.name
@@ -262,7 +261,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         post_creator = make_user()
-        post = post_creator.create_public_post(text=make_fake_post_text())
+        post = post_creator.create_post(is_public=True, text=make_fake_post_text())
 
         amount_of_comments = 5
         comments_ids = []
@@ -289,7 +288,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         """should be able to retrieve the comments from an own public post and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         amount_of_comments = 5
         comments_ids = []
@@ -406,7 +405,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         post_creator = make_user()
         blocked_user = make_user()
 
-        post = post_creator.create_public_post(text=make_fake_post_text())
+        post = post_creator.create_post(is_public=True, text=make_fake_post_text())
 
         blocked_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -430,7 +429,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         post_creator = make_user()
         blocking_user = make_user()
 
-        post = post_creator.create_public_post(text=make_fake_post_text())
+        post = post_creator.create_post(is_public=True, text=make_fake_post_text())
 
         blocking_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -456,7 +455,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         blocked_user = make_user()
 
-        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_creator.create_community_post_by_name(text=make_fake_post_text(), community_name=community.name)
 
         blocked_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -482,7 +481,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         blocking_user = make_user()
 
-        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_creator.create_community_post_by_name(text=make_fake_post_text(), community_name=community.name)
 
         blocking_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -508,7 +507,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         post_creator.join_community_with_name(community_name=community.name)
 
-        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_creator.create_community_post_by_name(text=make_fake_post_text(), community_name=community.name)
 
         post_comment = blocked_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -536,7 +535,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         post_creator.join_community_with_name(community_name=community.name)
 
-        post = post_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_creator.create_community_post_by_name(text=make_fake_post_text(), community_name=community.name)
 
         post_comment = blocking_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -559,7 +558,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         """should be able to comment in own post and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         post_comment_text = make_fake_post_comment_text()
 
@@ -579,7 +578,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         test_usernames = get_test_usernames()
 
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         for test_username in test_usernames:
             test_user = make_user(name=test_username)
@@ -606,7 +605,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user=user)
 
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         fake_username = str(uuid.uuid4())
         post_comment_text = "Hello @" + fake_username
@@ -629,7 +628,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user=user)
 
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         post_comment_text = "Hello @" + user.username
 
@@ -651,7 +650,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         headers = make_authentication_headers_for_user(user=user)
 
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
         mentioned_user = make_user()
 
         mentioned_user.comment_post(post=post, text=make_fake_post_comment_text())
@@ -679,7 +678,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         test_user = make_user()
         post_comment_text = "Hello @" + test_user.username
 
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         data = {"text": post_comment_text}
 
@@ -714,7 +713,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         post_comment_text = "A hashtag #" + hashtag
 
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         data = {"text": post_comment_text}
 
@@ -741,7 +740,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         data = {"text": new_post_comment_text}
 
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         url = self._get_url(post)
 
@@ -767,7 +766,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         data = {"text": post_comment_text}
 
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         url = self._get_url(post)
 
@@ -785,7 +784,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         """should set comment language when user comments in a post and return 201"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         post_comment_text = make_fake_post_comment_text()
 
@@ -826,7 +825,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         user.connect_with_user_with_id(user_to_connect.pk)
 
-        connected_user_post = user_to_connect.create_public_post(text=make_fake_post_text())
+        connected_user_post = user_to_connect.create_post(is_public=True, text=make_fake_post_text())
 
         post_comment_text = make_fake_post_comment_text()
 
@@ -849,7 +848,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         user.follow_user_with_id(user_to_block.pk)
 
-        post = user_to_block.create_public_post(text=make_fake_post_text())
+        post = user_to_block.create_post(is_public=True, text=make_fake_post_text())
 
         user.block_user_with_id(user_id=user_to_block.pk)
 
@@ -872,7 +871,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         user.follow_user_with_id(user_to_block.pk)
 
-        post = user_to_block.create_public_post(text=make_fake_post_text())
+        post = user_to_block.create_post(is_public=True, text=make_fake_post_text())
 
         user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -900,7 +899,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         user_to_block.join_community_with_name(community_name=community.name)
 
-        post = user_to_block.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = user_to_block.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -928,7 +927,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         user_to_block.join_community_with_name(community_name=community.name)
 
-        post = user_to_block.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = user_to_block.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -952,7 +951,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         community_owner = make_user()
         community = make_community(creator=community_owner)
 
-        post = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = community_owner.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -976,7 +975,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         community_owner = make_user()
         community = make_community(creator=community_owner)
 
-        post = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = community_owner.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -1000,7 +999,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         community = make_community(admin)
         user.join_community_with_name(community_name=community.name)
-        post = user.create_community_post(community.name, text=make_fake_post_text())
+        post = user.create_community_post_by_name(community.name, text=make_fake_post_text())
         post.comments_enabled = False
         post.save()
         post_comment_text = make_fake_post_comment_text()
@@ -1022,7 +1021,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         community = make_community(admin)
         user.join_community_with_name(community_name=community.name)
         foreign_user.join_community_with_name(community_name=community.name)
-        post = user.create_community_post(community.name, text=make_fake_post_text())
+        post = user.create_community_post_by_name(community.name, text=make_fake_post_text())
         post.comments_enabled = False
         post.save()
         post_comment_text = make_fake_post_comment_text()
@@ -1042,7 +1041,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         community = make_community(admin)
         user.join_community_with_name(community_name=community.name)
-        post = user.create_community_post(community.name, text=make_fake_post_text())
+        post = user.create_community_post_by_name(community.name, text=make_fake_post_text())
         post.comments_enabled = False
         post.save()
         post_comment_text = make_fake_post_comment_text()
@@ -1070,7 +1069,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         admin.add_moderator_with_username_to_community_with_name(
             username=moderator.username, community_name=community.name
         )
-        post = user.create_community_post(community.name, text=make_fake_post_text())
+        post = user.create_community_post_by_name(community.name, text=make_fake_post_text())
         post.comments_enabled = False
         post.save()
         post_comment_text = make_fake_post_comment_text()
@@ -1095,7 +1094,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         community = make_community(admin)
         user.join_community_with_name(community_name=community.name)
-        post = user.create_community_post(community.name, text=make_fake_post_text())
+        post = user.create_community_post_by_name(community.name, text=make_fake_post_text())
         post.is_closed = True
         post.save()
         post_comment_text = make_fake_post_comment_text()
@@ -1117,7 +1116,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         community = make_community(admin)
         user.join_community_with_name(community_name=community.name)
         foreign_user.join_community_with_name(community_name=community.name)
-        post = user.create_community_post(community.name, text=make_fake_post_text())
+        post = user.create_community_post_by_name(community.name, text=make_fake_post_text())
         post.is_closed = True
         post.save()
         post_comment_text = make_fake_post_comment_text()
@@ -1141,7 +1140,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         admin.add_moderator_with_username_to_community_with_name(
             username=moderator.username, community_name=community.name
         )
-        post = user.create_community_post(community.name, text=make_fake_post_text())
+        post = user.create_community_post_by_name(community.name, text=make_fake_post_text())
         post.comments_enabled = False
         post.save()
         post_comment_text = make_fake_post_comment_text()
@@ -1166,7 +1165,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         community = make_community(admin)
         user.join_community_with_name(community_name=community.name)
-        post = user.create_community_post(community.name, text=make_fake_post_text())
+        post = user.create_community_post_by_name(community.name, text=make_fake_post_text())
         post.is_closed = True
         post.save()
         post_comment_text = make_fake_post_comment_text()
@@ -1244,7 +1243,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         foreign_user = make_user()
 
-        foreign_user_post = foreign_user.create_public_post(text=make_fake_post_text())
+        foreign_user_post = foreign_user.create_post(is_public=True, text=make_fake_post_text())
 
         post_comment_text = make_fake_post_comment_text()
 
@@ -1288,7 +1287,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         user.join_community_with_name(community_name=community.name)
 
-        post = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = community_owner.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         user.comment_post(post=post, text=make_fake_post_comment_text())
 
@@ -1313,7 +1312,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         foreign_user = make_user()
 
-        post = foreign_user.create_public_post(text=make_fake_post_text())
+        post = foreign_user.create_post(is_public=True, text=make_fake_post_text())
 
         post_comment_text = make_fake_post_comment_text()
 
@@ -1333,7 +1332,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         """should not create a notification when commenting on an own post"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         post_comment_text = make_fake_post_comment_text()
 
@@ -1354,7 +1353,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         user = make_user()
         blocked_user = make_user()
         headers = make_authentication_headers_for_user(blocked_user)
-        post = foreign_user.create_public_post(text=make_fake_post_text())
+        post = foreign_user.create_post(is_public=True, text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
         user.block_user_with_username(blocked_user.username)
         post_comment_text = make_fake_post_comment_text()
@@ -1379,7 +1378,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         user = make_user()
         blocked_user = make_user()
         headers = make_authentication_headers_for_user(blocked_user)
-        post = foreign_user.create_public_post(text=make_fake_post_text())
+        post = foreign_user.create_post(is_public=True, text=make_fake_post_text())
         post_comment = user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
         user.block_user_with_username(blocked_user.username)
         post_comment_text = make_fake_post_comment_text()
@@ -1409,7 +1408,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         foreign_user = make_user()
 
-        post = post_creator.create_public_post(text=make_fake_post_text())
+        post = post_creator.create_post(is_public=True, text=make_fake_post_text())
 
         foreign_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -1438,7 +1437,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         foreign_user = make_user()
 
-        post = post_creator.create_public_post(text=make_fake_post_text())
+        post = post_creator.create_post(is_public=True, text=make_fake_post_text())
 
         foreign_user.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
 
@@ -1510,7 +1509,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
 
         post_creator = make_user()
 
-        post = post_creator.create_public_post(text=make_fake_post_text())
+        post = post_creator.create_post(is_public=True, text=make_fake_post_text())
         post_comment = post_creator.comment_post_with_id(post_id=post.pk, text=make_fake_post_comment_text())
         user.reply_to_comment_with_id_for_post_with_id(
             post_comment_id=post_comment.pk,
@@ -1535,7 +1534,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         """should retrieve all comments on public post"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         amount_of_post_comments = 10
         post_comments = []
@@ -1559,7 +1558,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         """should retrieve all comments on public post with sort ascending"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         amount_of_post_comments = 10
         post_comments = []
@@ -1584,7 +1583,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         """should retrieve comments less than max id for post if param is present"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         amount_of_post_comments = 10
         post_comments = []
@@ -1610,7 +1609,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         """should retrieve comments greater than or equal to min_id for post if param is present"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         amount_of_post_comments = 10
         post_comments = []
@@ -1636,7 +1635,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         """should retrieve comments slice for post comments taking into account min_id and max_id"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         amount_of_post_comments = 20
         post_comments = []
@@ -1677,7 +1676,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         """should retrieve comments slice sorted ascending for post comments taking into account min_id and max_id"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         amount_of_post_comments = 20
         post_comments = []
@@ -1719,7 +1718,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         """should not be able to retrieve the comments of a soft deleted post"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         amount_of_post_comments = 10
 
@@ -1740,7 +1739,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         headers = make_authentication_headers_for_user(user)
 
         post_creator = make_user()
-        post = post_creator.create_public_post(text=make_fake_post_text())
+        post = post_creator.create_post(is_public=True, text=make_fake_post_text())
 
         amount_of_post_comments = 10
 
@@ -1771,7 +1770,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         post_reporter = make_user()
         report_category = make_moderation_category()
 
-        post = post_comment_creator.create_community_post(
+        post = post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_comment_text()
         )
 
@@ -1812,7 +1811,7 @@ class PostCommentsAPITests(OpenbookAPITestCase):
         number_of_post_comments = 5
         post_reporter = make_user()
         post_comments_ids = []
-        post = post_comment_creator.create_community_post(
+        post = post_comment_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_comment_text()
         )
         for i in range(0, number_of_post_comments):
@@ -1864,7 +1863,7 @@ class PostCommentsEnableAPITests(OpenbookAPITestCase):
 
         user.join_community_with_name(community_name=community.name)
         admin.add_moderator_with_username_to_community_with_name(username=user.username, community_name=community.name)
-        post = user.create_community_post(community.name, text=make_fake_post_text())
+        post = user.create_community_post_by_name(community.name, text=make_fake_post_text())
         post.comments_enabled = False
         post.save()
 
@@ -1886,7 +1885,7 @@ class PostCommentsEnableAPITests(OpenbookAPITestCase):
         community = make_community(admin)
 
         user.join_community_with_name(community_name=community.name)
-        post = user.create_community_post(community.name, text=make_fake_post_text())
+        post = user.create_community_post_by_name(community.name, text=make_fake_post_text())
         post.comments_enabled = False
         post.save()
 
@@ -1908,7 +1907,7 @@ class PostCommentsEnableAPITests(OpenbookAPITestCase):
         community = make_community(admin)
 
         community_post_creator.join_community_with_name(community_name=community.name)
-        post = community_post_creator.create_community_post(community.name, text=make_fake_post_text())
+        post = community_post_creator.create_community_post_by_name(community.name, text=make_fake_post_text())
         post.comments_enabled = False
         post.save()
 
@@ -1934,7 +1933,7 @@ class PostCommentsEnableAPITests(OpenbookAPITestCase):
         community = make_community(admin)
 
         user.join_community_with_name(community_name=community.name)
-        post = user.create_community_post(community.name, text=make_fake_post_text())
+        post = user.create_community_post_by_name(community.name, text=make_fake_post_text())
         post.comments_enabled = False
         post.save()
 
@@ -1963,7 +1962,7 @@ class PostCommentsDisableAPITests(OpenbookAPITestCase):
 
         user.join_community_with_name(community_name=community.name)
         admin.add_moderator_with_username_to_community_with_name(username=user.username, community_name=community.name)
-        post = user.create_community_post(community.name, text=make_fake_post_text())
+        post = user.create_community_post_by_name(community.name, text=make_fake_post_text())
 
         url = self._get_url(post)
         headers = make_authentication_headers_for_user(user)
@@ -1983,7 +1982,7 @@ class PostCommentsDisableAPITests(OpenbookAPITestCase):
         community = make_community(admin)
 
         user.join_community_with_name(community_name=community.name)
-        post = user.create_community_post(community.name, text=make_fake_post_text())
+        post = user.create_community_post_by_name(community.name, text=make_fake_post_text())
 
         url = self._get_url(post)
         headers = make_authentication_headers_for_user(admin)
@@ -2003,7 +2002,7 @@ class PostCommentsDisableAPITests(OpenbookAPITestCase):
         community = make_community(admin)
 
         community_post_creator.join_community_with_name(community_name=community.name)
-        post = community_post_creator.create_community_post(community.name, text=make_fake_post_text())
+        post = community_post_creator.create_community_post_by_name(community.name, text=make_fake_post_text())
 
         url = self._get_url(post)
         headers = make_authentication_headers_for_user(admin)
@@ -2027,7 +2026,7 @@ class PostCommentsDisableAPITests(OpenbookAPITestCase):
         community = make_community(admin)
 
         user.join_community_with_name(community_name=community.name)
-        post = user.create_community_post(community.name, text=make_fake_post_text())
+        post = user.create_community_post_by_name(community.name, text=make_fake_post_text())
 
         url = self._get_url(post)
         headers = make_authentication_headers_for_user(user)

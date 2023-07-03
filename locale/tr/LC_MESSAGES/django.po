@@ -365,10 +365,6 @@ msgstr "Kaldırılacak kullanıcı bir moderatör değil."
 msgid "Can't update a circle that does not belong to you."
 msgstr "Size ait olmayan bir çevreyi güncelleyemezsiniz."
 
-#: openbook_auth/checkers.py:657
-msgid "Can't update the world circle."
-msgstr "Dünya genelindeki çevre güncellenmiyor."
-
 #: openbook_auth/checkers.py:662
 msgid "Can't update the connections circle."
 msgstr "Bağlantılarımdaki çevre güncellenmiyor."
@@ -376,10 +372,6 @@ msgstr "Bağlantılarımdaki çevre güncellenmiyor."
 #: openbook_auth/checkers.py:669
 msgid "Can't delete a circle that does not belong to you."
 msgstr "Size ait olmayan bir çevreyi silemezsiniz."
-
-#: openbook_auth/checkers.py:674
-msgid "Can't delete the world circle."
-msgstr "Dünya genelindeki çevreyi silemezsiniz."
 
 #: openbook_auth/checkers.py:679
 msgid "Can't delete the connections circle."
@@ -554,10 +546,6 @@ msgstr "Geçersiz kupon"
 #: openbook_auth/checkers.py:1024
 msgid "Token email does not match"
 msgstr "Kupon e-postası eşleşmiyor"
-
-#: openbook_auth/checkers.py:1049
-msgid "Can't connect in the world circle."
-msgstr "Dünya genelindeki çevreye bağlanamıyorum."
 
 #: openbook_auth/checkers.py:1060
 msgid "The email is already taken."

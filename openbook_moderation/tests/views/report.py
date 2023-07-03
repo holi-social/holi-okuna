@@ -28,15 +28,11 @@ class ReportPostAPITests(OpenbookAPITestCase):
     ReportPostAPI
     """
 
-    fixtures = [
-        "openbook_circles/fixtures/circles.json",
-    ]
-
     def test_can_report_public_post(self):
         """should be able to report a post with a description and return 201"""
         post_creator = make_user()
         post_text = make_fake_post_text()
-        post = post_creator.create_public_post(text=post_text)
+        post = post_creator.create_post(is_public=True, text=post_text)
 
         post_reporter = make_user()
         report_category = make_moderation_category()
@@ -68,7 +64,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         """
         post_creator = make_user()
         post_text = make_fake_post_text()
-        post = post_creator.create_public_post(text=post_text)
+        post = post_creator.create_post(is_public=True, text=post_text)
 
         post_reporter = make_user()
         report_category = make_moderation_category()
@@ -95,7 +91,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         """should not be able to report an own post and return 400"""
         post_creator = make_user()
         post_text = make_fake_post_text()
-        post = post_creator.create_public_post(text=post_text)
+        post = post_creator.create_post(is_public=True, text=post_text)
 
         report_category = make_moderation_category()
         report_description = make_moderation_report_description()
@@ -200,7 +196,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         community = make_community(creator=post_creator)
 
         post_text = make_fake_post_text()
-        post = post_creator.create_community_post(text=post_text, community_name=community.name)
+        post = post_creator.create_community_post_by_name(text=post_text, community_name=community.name)
 
         url = self._get_url(post)
         headers = make_authentication_headers_for_user(post_reporter)
@@ -233,7 +229,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         community = make_community(creator=post_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         post_text = make_fake_post_text()
-        post = post_creator.create_community_post(text=post_text, community_name=community.name)
+        post = post_creator.create_community_post_by_name(text=post_text, community_name=community.name)
 
         post_creator.invite_user_with_username_to_community_with_name(
             username=post_reporter.username, community_name=community.name
@@ -271,7 +267,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         community = make_community(creator=post_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
 
         post_text = make_fake_post_text()
-        post = post_creator.create_community_post(text=post_text, community_name=community.name)
+        post = post_creator.create_community_post_by_name(text=post_text, community_name=community.name)
 
         url = self._get_url(post)
         headers = make_authentication_headers_for_user(post_reporter)
@@ -306,7 +302,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         community = make_community(creator=post_creator)
 
         post_text = make_fake_post_text()
-        post = post_creator.create_community_post(text=post_text, community_name=community.name)
+        post = post_creator.create_community_post_by_name(text=post_text, community_name=community.name)
 
         url = self._get_url(post)
         headers = make_authentication_headers_for_user(post_reporter)
@@ -326,7 +322,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         """should not be able to report a post without a category and return 400"""
         post_creator = make_user()
         post_text = make_fake_post_text()
-        post = post_creator.create_public_post(text=post_text)
+        post = post_creator.create_post(is_public=True, text=post_text)
 
         post_reporter = make_user()
         report_description = make_moderation_report_description()
@@ -352,7 +348,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         """should not be able to report a post twice and return 400"""
         post_creator = make_user()
         post_text = make_fake_post_text()
-        post = post_creator.create_public_post(text=post_text)
+        post = post_creator.create_post(is_public=True, text=post_text)
 
         report_category = make_moderation_category()
         post_reporter = make_user()
@@ -384,7 +380,7 @@ class ReportPostAPITests(OpenbookAPITestCase):
         """should be able to report a post without a description and return 201"""
         post_creator = make_user()
         post_text = make_fake_post_text()
-        post = post_creator.create_public_post(text=post_text)
+        post = post_creator.create_post(is_public=True, text=post_text)
 
         post_reporter = make_user()
         report_category = make_moderation_category()
@@ -421,14 +417,10 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
     ReportPostCommentAPI
     """
 
-    fixtures = [
-        "openbook_circles/fixtures/circles.json",
-    ]
-
     def test_can_report_public_post_comment(self):
         """should be able to report a post_comment with a description and return 201"""
         post_comment_creator = make_user()
-        post = post_comment_creator.create_public_post(text=make_fake_post_text())
+        post = post_comment_creator.create_post(is_public=True, text=make_fake_post_text())
 
         post_comment_text = make_fake_post_comment_text()
         post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
@@ -462,7 +454,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         reporting a post comment should not add a community to the moderated object
         """
         post_comment_creator = make_user()
-        post = post_comment_creator.create_public_post(text=make_fake_post_text())
+        post = post_comment_creator.create_post(is_public=True, text=make_fake_post_text())
 
         post_comment_text = make_fake_post_comment_text()
         post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
@@ -490,7 +482,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
     def test_cant_report_own_post_comment(self):
         """should not be able to report an own post_comment and return 400"""
         post_comment_creator = make_user()
-        post = post_comment_creator.create_public_post(text=make_fake_post_text())
+        post = post_comment_creator.create_post(is_public=True, text=make_fake_post_text())
 
         post_comment_text = make_fake_post_comment_text()
         post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
@@ -594,7 +586,9 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         """should be able to report a public community post_comment with a description and return 201"""
         post_comment_creator = make_user()
         community = make_community(creator=post_comment_creator)
-        post = post_comment_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_comment_creator.create_community_post_by_name(
+            text=make_fake_post_text(), community_name=community.name
+        )
 
         post_comment_text = make_fake_post_comment_text()
         post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
@@ -629,7 +623,9 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         post_comment_reporter = make_user()
 
         community = make_community(creator=post_comment_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
-        post = post_comment_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_comment_creator.create_community_post_by_name(
+            text=make_fake_post_text(), community_name=community.name
+        )
 
         post_comment_creator.invite_user_with_username_to_community_with_name(
             username=post_comment_reporter.username, community_name=community.name
@@ -668,7 +664,9 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         post_comment_reporter = make_user()
 
         community = make_community(creator=post_comment_creator, type=Community.COMMUNITY_TYPE_PRIVATE)
-        post = post_comment_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_comment_creator.create_community_post_by_name(
+            text=make_fake_post_text(), community_name=community.name
+        )
 
         post_comment_text = make_fake_post_comment_text()
         post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
@@ -702,7 +700,9 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
         """
         post_comment_creator = make_user()
         community = make_community(creator=post_comment_creator)
-        post = post_comment_creator.create_community_post(text=make_fake_post_text(), community_name=community.name)
+        post = post_comment_creator.create_community_post_by_name(
+            text=make_fake_post_text(), community_name=community.name
+        )
 
         post_comment_text = make_fake_post_comment_text()
         post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
@@ -731,7 +731,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
     def test_cant_report_post_comment_without_category(self):
         """should not be able to report a post_comment without a category and return 400"""
         post_comment_creator = make_user()
-        post = post_comment_creator.create_public_post(text=make_fake_post_text())
+        post = post_comment_creator.create_post(is_public=True, text=make_fake_post_text())
 
         post_comment_text = make_fake_post_comment_text()
         post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
@@ -759,7 +759,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
     def test_cant_report_post_comment_twice(self):
         """should not be able to report a post_comment twice and return 400"""
         post_comment_creator = make_user()
-        post = post_comment_creator.create_public_post(text=make_fake_post_text())
+        post = post_comment_creator.create_post(is_public=True, text=make_fake_post_text())
 
         post_comment_text = make_fake_post_comment_text()
         post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
@@ -793,7 +793,7 @@ class ReportPostCommentAPITests(OpenbookAPITestCase):
     def test_can_report_post_comment_without_description(self):
         """should be able to report a post_comment without a description and return 201"""
         post_comment_creator = make_user()
-        post = post_comment_creator.create_public_post(text=make_fake_post_text())
+        post = post_comment_creator.create_post(is_public=True, text=make_fake_post_text())
 
         post_comment_text = make_fake_post_comment_text()
         post_comment = post_comment_creator.comment_post_with_id(post_id=post.pk, text=post_comment_text)
@@ -835,10 +835,6 @@ class ReportUserAPITests(OpenbookAPITestCase):
     """
     ReportUserAPI
     """
-
-    fixtures = [
-        "openbook_circles/fixtures/circles.json",
-    ]
 
     def test_can_report_user(self):
         """should be able to report a user with a description and return 201"""
@@ -1015,10 +1011,6 @@ class ReportCommunityAPITests(OpenbookAPITestCase):
     """
     ReportCommunityAPI
     """
-
-    fixtures = [
-        "openbook_circles/fixtures/circles.json",
-    ]
 
     def test_can_report_community(self):
         """should be able to report a community with a description and return 201"""
@@ -1201,10 +1193,6 @@ class ReportHashtagAPITests(OpenbookAPITestCase):
     """
     ReportHashtagAPI
     """
-
-    fixtures = [
-        "openbook_circles/fixtures/circles.json",
-    ]
 
     def test_can_report_hashtag(self):
         """should be able to report a hashtag with a description and return 201"""

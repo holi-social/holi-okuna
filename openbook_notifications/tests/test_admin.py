@@ -11,7 +11,6 @@ from openbook_notifications.models.release_notification import ReleaseNotificati
 
 class MyAdminTestCase(TestAssertionsMixin, TestCase):
     fixtures = [
-        "openbook_circles/fixtures/circles.json",
         "openbook_common/fixtures/languages.json",
     ]
 

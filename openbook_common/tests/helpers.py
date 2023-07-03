@@ -179,7 +179,8 @@ def make_post_image():
 
 
 def make_post(user: Optional[User] = None, title: Optional[str] = None, text: Optional[str] = None) -> Post:
-    return (user or make_user()).create_public_post(
+    return (user or make_user()).create_post(
+        is_public=True,
         text=text or make_fake_post_text(),
         title=title or make_fake_post_title(),
     )

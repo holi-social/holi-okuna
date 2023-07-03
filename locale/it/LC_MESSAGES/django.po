@@ -367,10 +367,6 @@ msgstr "L'utente da rimuovere non è un moderatore."
 msgid "Can't update a circle that does not belong to you."
 msgstr "Impossibile aggiornare una cerchia che non ti appartiene."
 
-#: openbook_auth/checkers.py:657
-msgid "Can't update the world circle."
-msgstr "Impossibile aggiornare la cerchia mondiale."
-
 #: openbook_auth/checkers.py:662
 msgid "Can't update the connections circle."
 msgstr "Impossibile aggiornare la cerchia connessioni."
@@ -378,10 +374,6 @@ msgstr "Impossibile aggiornare la cerchia connessioni."
 #: openbook_auth/checkers.py:669
 msgid "Can't delete a circle that does not belong to you."
 msgstr "Impossibile eliminare una cerchia che non ti appartiene."
-
-#: openbook_auth/checkers.py:674
-msgid "Can't delete the world circle."
-msgstr "Impossibile eliminare la cerchia mondiale."
 
 #: openbook_auth/checkers.py:679
 msgid "Can't delete the connections circle."
@@ -556,10 +548,6 @@ msgstr "Token non valido"
 #: openbook_auth/checkers.py:1024
 msgid "Token email does not match"
 msgstr "L'email del token non corrisponde"
-
-#: openbook_auth/checkers.py:1049
-msgid "Can't connect in the world circle."
-msgstr "Impossibile connettersi con le cerchie mondiali."
 
 #: openbook_auth/checkers.py:1060
 msgid "The email is already taken."

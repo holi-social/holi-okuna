@@ -70,7 +70,6 @@ def client():
 @pytest.fixture(scope="session")
 def django_db_setup(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
-        call_command("loaddata", "openbook_circles/fixtures/circles.json")
         call_command("loaddata", "openbook_moderation/fixtures/moderation_categories.json")
 
 
@@ -331,10 +330,7 @@ class TestUsers:
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_public_post(
-            text=post_text,
-            title=post_title,
-        )
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
         post.comment(text=f"comment text 1 @{posting_user.username}", commenter=other_user)
         post.comment(
             text=f"comment text 2 @{mentioned_user.username} @{posting_user.username}",
@@ -366,10 +362,11 @@ class TestUsers:
         post_title = make_fake_post_title()
         image_name = "foo.jpg"
 
-        post = posting_user.create_public_post(
+        post = posting_user.create_post(
             text=post_text,
             title=post_title,
             image=SimpleUploadedFile(name=image_name, content=simple_jpeg_bytes),
+            is_public=True,
         )
 
         post_data = self.get_post_with_id_data(post)
@@ -388,7 +385,7 @@ class TestUsers:
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_public_post(text=post_text, title=post_title, is_draft=True)
+        post = posting_user.create_post(text=post_text, title=post_title, is_draft=True, is_public=True)
 
         response = self.get_post_with_id_raw(post)
 
@@ -403,10 +400,7 @@ class TestUsers:
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_public_post(
-            text=post_text,
-            title=post_title,
-        )
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
         comment = post.comment(text=f"comment text", commenter=comment_user)
         reaction = comment.react(posting_user, "HEART")
         post.comment(text=f"comment text 2", commenter=comment_user)
@@ -427,10 +421,7 @@ class TestUsers:
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_public_post(
-            text=post_text,
-            title=post_title,
-        )
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
         comment = post.comment(text=f"comment text", commenter=comment_user)
         reaction = comment.react(posting_user, "HEART")
         post.comment(text=f"comment text 2", commenter=comment_user)
@@ -451,10 +442,7 @@ class TestUsers:
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_public_post(
-            text=post_text,
-            title=post_title,
-        )
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
         comment = post.comment(text=f"comment text", commenter=comment_user)
         reaction = comment.react(posting_user, "HEART")
         post.comment(text=f"comment text 2", commenter=comment_user)
@@ -474,10 +462,7 @@ class TestUsers:
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_public_post(
-            text=post_text,
-            title=post_title,
-        )
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
 
         self.react_to_post(post, "SET", posting_user)
         executed = self.react_to_post(post, "SET", posting_user)  # setting twice is same as setting once
@@ -503,10 +488,7 @@ class TestUsers:
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_public_post(
-            text=post_text,
-            title=post_title,
-        )
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
         comment = post.comment(text=f"comment text", commenter=other_user)
 
         self.react_to_post_comment(comment, "SET", posting_user)
@@ -943,7 +925,7 @@ class TestUsers:
             image=SimpleUploadedFile(name="foo.jpg", content=simple_jpeg_bytes),
             text=make_fake_post_text(),
             title=make_fake_post_title(),
-            circles_ids=[],
+            is_public=False,
         )
 
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
@@ -1006,7 +988,7 @@ class TestUsers:
             image=SimpleUploadedFile(name="foo.jpg", content=simple_jpeg_bytes),
             text=post_text,
             title=post_title,
-            circles_ids=[],
+            is_public=False,
         )
 
         input_data = {
@@ -1044,7 +1026,7 @@ class TestUsers:
             image=SimpleUploadedFile(name="foo.jpg", content=simple_jpeg_bytes),
             text=post_text,
             title=post_title,
-            circles_ids=[],
+            is_public=False,
         )
 
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
@@ -1080,7 +1062,7 @@ class TestUsers:
             community=space, subscriber=subscriber_user
         )
 
-        post = posting_user.create_community_encircled_post(
+        post = posting_user.create_community_post(
             space.id,
             text=make_fake_post_text(),
             title=make_fake_post_title(),
@@ -1108,7 +1090,7 @@ class TestUsers:
         space = make_community(creator=space_admin)
         space.add_member(posting_user)
 
-        post = posting_user.create_community_encircled_post(
+        post = posting_user.create_community_post(
             space.id,
             text=make_fake_post_text(),
             title=make_fake_post_title(),
@@ -1299,17 +1281,14 @@ class TestUsers:
             date_published=now,
         )
 
-        post1 = posting_user.create_public_post(
-            text=post_text_public,
-            title=post_title_public,
-        )
-        post2 = posting_user.create_public_post(
-            text=post_text_public,
-            title=post_title_public,
-        )
-        post3 = posting_user.create_public_post(text=post_text_draft, title=post_title_draft, is_draft=True)
-        post_private = private_user.create_encircled_post(
-            circles_ids=[private_user.connections_circle_id], text="private post", title="private post"
+        post1 = posting_user.create_post(text=post_text_public, title=post_title_public, is_public=True)
+        post2 = posting_user.create_post(text=post_text_public, title=post_title_public, is_public=True)
+        post3 = posting_user.create_post(text=post_text_draft, title=post_title_draft, is_draft=True, is_public=True)
+        post_private = private_user.create_post(
+            circles_ids=[private_user.connections_circle_id],
+            text="private post",
+            title="private post",
+            is_public=False,
         )
         insight1.posts.add(post1, post2, post3, post_private)
 
@@ -1319,10 +1298,7 @@ class TestUsers:
             title="Insight 2",
             date_published=now - timezone.timedelta(days=1),
         )
-        post4 = posting_user.create_public_post(
-            text=post_text_public,
-            title=post_title_public,
-        )
+        post4 = posting_user.create_post(text=post_text_public, title=post_title_public, is_public=True)
         post4.comment(text=post_text_public, commenter=other_user)
         insight2.posts.add(post4)
 
@@ -1332,10 +1308,7 @@ class TestUsers:
             title="Insight 3",
             date_published=now - timezone.timedelta(days=1),
         )
-        post5 = posting_user.create_public_post(
-            text=post_text_public,
-            title=post_title_public,
-        )
+        post5 = posting_user.create_post(text=post_text_public, title=post_title_public, is_public=True)
         insight3.posts.add(post5)
 
         insight4 = Insight.objects.create(
@@ -1427,7 +1400,7 @@ class TestUsers:
             community=space, subscriber=subscriber_user
         )
 
-        post1 = post_user.create_community_encircled_post(
+        post1 = post_user.create_community_post(
             text=make_fake_post_text(),
             title=make_fake_post_title(),
             space_id=space.id,
@@ -1441,7 +1414,7 @@ class TestUsers:
         assert notification["options"]["post"]["title"] == post1.title
         assert notification["options"]["teaser"] == post1.title
 
-        post2 = post_user.create_community_encircled_post(
+        post2 = post_user.create_community_post(
             text=make_fake_post_text(),
             space_id=space.id,
             visibility=VisibilityType.MEMBERS.value,
@@ -2321,7 +2294,8 @@ class TestUsers:
         space = make_community(creator=user_member)
 
         public_posts = [
-            user_member.create_public_post(text=make_fake_post_text(), title=make_fake_post_title()) for _ in range(5)
+            user_member.create_post(text=make_fake_post_text(), title=make_fake_post_title(), is_public=True)
+            for _ in range(5)
         ]
         for post in public_posts:
             post.community = space
@@ -2329,10 +2303,11 @@ class TestUsers:
         public_ids = [str(post.id) for post in public_posts]
 
         private_posts = [
-            user_member.create_encircled_post(
-                circles_ids=[user_member.connections_circle_id],
+            user_member.create_community_post(
+                space.id,
                 text=make_fake_post_text(),
                 title=make_fake_post_title(),
+                visibility=VisibilityType.MEMBERS.value,
             )
             for _ in range(3)
         ]
@@ -2449,10 +2424,7 @@ class TestUsers:
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_public_post(
-            text=post_text,
-            title=post_title,
-        )
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
 
         response = schema.execute_sync(
             """
@@ -2499,10 +2471,7 @@ class TestUsers:
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_public_post(
-            text=post_text,
-            title=post_title,
-        )
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
         comment = post.comment(text=f"comment text 1 @{posting_user.username}", commenter=posting_user)
 
         response = schema.execute_sync(
@@ -2661,15 +2630,13 @@ class TestUsers:
         other_user = make_user(name="OtherUser", date_joined=two_hours_ago)
         other_user.save()
 
-        other_post = other_user.create_public_post(
-            text=(make_fake_post_text()),
-            title=(make_fake_post_title()),
+        other_post = other_user.create_post(
+            text=(make_fake_post_text()), title=(make_fake_post_title()), is_public=True
         )
         other_post.comment(text=f"comment text 1", commenter=blocked_user)
 
-        blocked_post = blocked_user.create_public_post(
-            text=(make_fake_post_text()),
-            title=(make_fake_post_title()),
+        blocked_post = blocked_user.create_post(
+            text=(make_fake_post_text()), title=(make_fake_post_title()), is_public=True
         )
         blocked_post.comment(text=f"comment text 1", commenter=other_user)
 

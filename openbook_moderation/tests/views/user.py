@@ -112,7 +112,9 @@ class UserPendingModeratedObjectsCommunitiesAPITests(OpenbookAPITestCase):
             for j in range(0, amount_of_pending_moderated_objects):
                 post_creator = make_user()
                 post_creator.join_community_with_name(community_name=community.name)
-                post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+                post = post_creator.create_community_post_by_name(
+                    community_name=community.name, text=make_fake_post_text()
+                )
                 post_reporter.report_post(post=post, category_id=make_moderation_category().pk)
 
             moderated_commmunities_ids.append(community.pk)
@@ -161,7 +163,9 @@ class UserPendingModeratedObjectsCommunitiesAPITests(OpenbookAPITestCase):
             for j in range(0, amount_of_pending_moderated_objects):
                 post_creator = make_user()
                 post_creator.join_community_with_name(community_name=community.name)
-                post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+                post = post_creator.create_community_post_by_name(
+                    community_name=community.name, text=make_fake_post_text()
+                )
                 post_reporter.report_post(post=post, category_id=make_moderation_category().pk)
 
         url = self._get_url()
@@ -201,7 +205,9 @@ class UserPendingModeratedObjectsCommunitiesAPITests(OpenbookAPITestCase):
             for j in range(0, amount_of_pending_moderated_objects):
                 post_creator = make_user()
                 post_creator.join_community_with_name(community_name=community.name)
-                post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+                post = post_creator.create_community_post_by_name(
+                    community_name=community.name, text=make_fake_post_text()
+                )
                 post_reporter.report_post(post=post, category_id=make_moderation_category().pk)
 
             moderated_commmunities_ids.append(community.pk)
@@ -250,7 +256,9 @@ class UserPendingModeratedObjectsCommunitiesAPITests(OpenbookAPITestCase):
             for j in range(0, amount_of_pending_moderated_objects):
                 post_creator = make_user()
                 post_creator.join_community_with_name(community_name=community.name)
-                post = post_creator.create_community_post(community_name=community.name, text=make_fake_post_text())
+                post = post_creator.create_community_post_by_name(
+                    community_name=community.name, text=make_fake_post_text()
+                )
                 post_reporter.report_post(post=post, category_id=make_moderation_category().pk)
 
         url = self._get_url()
