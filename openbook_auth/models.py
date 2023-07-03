@@ -410,8 +410,6 @@ class User(ModelWithUUID, AbstractUser):
 
         exclude_deleted_posts_query = Q(is_deleted=False, status=Post.STATUS_PUBLISHED)
 
-        # Get user world circle posts
-
         public_posts = (
             Post.objects.prefetch_related(*posts_prefetch_related)
             .only(*posts_only)

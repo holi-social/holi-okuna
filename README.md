@@ -241,8 +241,9 @@ _("Welcome holis")
 ```
 
 You must generate new translations whenever you update or include a new response message using translation strings,
-including `raise` messages. This can be done in your term
+including `raise` messages. This can be done in your terminal
 
 ```sh
    ./manage.py makemessages --all --no-wrap
+   ./manage.py compilemessages
 ```

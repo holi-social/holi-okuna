@@ -161,8 +161,8 @@ class HashtagPostsAPITests(OpenbookAPITestCase):
         retrieved_posts = parsed_response[0]
         self.assertEqual(retrieved_posts["text"], fake_post_text)
 
-    def test_retrieves_world_circle_post_with_hashtag(self):
-        """should retrieve world circle post with a given hashtag and return 200"""
+    def test_retrieves_public_post_with_hashtag(self):
+        """should retrieve public post with a given hashtag and return 200"""
         user = make_user()
         headers = make_authentication_headers_for_user(user)
 
