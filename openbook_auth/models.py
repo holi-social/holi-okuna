@@ -4647,12 +4647,19 @@ class User(ModelWithUUID, AbstractUser):
 
     @staticmethod
     def is_visible_query(user, prefix=None):
+        if user.is_anonymous:
+            return User.is_visible_ignore_blocked_query(user, prefix)
         pQ = PrefixedQ(prefix)
         # TODO find a solution for "& ModeratedObject.not_moderated_query(user, prefix))"
         if user.is_anonymous:
             return ~pQ(is_deleted=True) & ~pQ(profile__isnull=True)
 
         return ~pQ(is_deleted=True) & ~pQ(profile__isnull=True) & UserBlock.not_blocked_query(user, prefix)
+
+    @staticmethod
+    def is_visible_ignore_blocked_query(user, prefix=None):
+        pQ = PrefixedQ(prefix)
+        return ~pQ(is_deleted=True) & ~pQ(profile__isnull=True)
 
     def store_last_seen_notification(self, notification_id):
         Notification = get_notification_model()

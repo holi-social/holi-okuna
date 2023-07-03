@@ -6,7 +6,6 @@ from typing_extensions import Annotated
 
 import requests
 import structlog
-from cacheops import cached_as
 from django.conf import settings
 from django.core.cache import cache
 from django.contrib.gis import geos
@@ -280,16 +279,15 @@ class Query:
         )
 
     @gql.django.field
+    @cached_as(InsightModel, timeout=300)
     def last_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         current_user = info.context.request.user
-
-        visibility_filter = Q(creator__isnull=True) | UserModel.is_visible_query(current_user, "creator")
-        return Paged.of(
+        paged_insights = Paged.of(
             InsightModel.objects.filter(
-                visibility_filter,
+                Q(creator__isnull=True) | UserModel.is_visible_ignore_blocked_query(current_user, "creator"),
                 date_published__lte=datetime.now(),
             )
-            .select_related("creator", "creator__profile")
+            .select_related("creator", "creator__profile", "topic")
             .prefetch_related(
                 "posts",
                 "posts__creator",
@@ -299,6 +297,8 @@ class Query:
             offset,
             limit,
         )
+
+        return paged_insights
 
     @gql.django.field
     def insight_by_id(self, info, id: uuid.UUID) -> Optional[Insight]:
