@@ -281,9 +281,10 @@ class Query:
     @gql.django.field
     @cached_as(InsightModel, timeout=300)
     def last_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
+        current_user = info.context.request.user
         paged_insights = Paged.of(
             InsightModel.objects.filter(
-                Q(creator__isnull=True) | Q(creator__is_deleted=False),
+                Q(creator__isnull=True) | UserModel.is_visible_ignore_blocked_query(current_user, "creator"),
                 date_published__lte=datetime.now(),
             )
             .select_related("creator", "creator__profile", "topic")
