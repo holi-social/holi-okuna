@@ -12,7 +12,7 @@ if command -v pyenv &> /dev/null; then
   pyenv local "$project_python_version"
 fi
 
-current_python_interpreter=$(python -V | sed -e "s/^Python //")
+current_python_interpreter=$(python3 -V | sed -e "s/^Python //")
 
 if [[ "$project_python_version" != "$current_python_interpreter" ]]; then
   echo "❌ Current interpreter does not match project requirements, consider using pyenv"

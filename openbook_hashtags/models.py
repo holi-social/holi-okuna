@@ -10,7 +10,6 @@ from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFit
 
-from openbook.storage_backends import S3PrivateMediaStorage
 from openbook_common.helpers import ExifRotate
 from openbook_common.models import Emoji, ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field, get_random_pastel_color

@@ -75,10 +75,8 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "pytest_django",
     "ordered_model",
-    "storages",
     "video_encoding",
     "imagekit",
-    "django_media_fixtures",
     "cacheops",
     "django_rq",
     "django_extensions",
@@ -311,26 +309,7 @@ else:
 
     DATABASES = {
         "default": writer_db_config,
-        # 'Reader': {
-        #    'ENGINE': 'django.db.backends.mysql',
-        #    'NAME': RDS_DB_NAME,
-        #    'USER': RDS_USERNAME,
-        #    'PASSWORD': RDS_PASSWORD,
-        #    'HOST': RDS_HOSTNAME_READER,
-        #    'PORT': RDS_PORT,
-        #    'OPTIONS': db_options,
-        # }
     }
-
-    # DATABASE_ROUTERS = ['django_replicated.router.ReplicationRouter']
-
-    # REPLICATED_DATABASE_SLAVES = ['Reader', ]
-
-    # MIDDLEWARE.append('django_replicated.middleware.ReplicationMiddleware', )
-
-    # REPLICATED_VIEWS_OVERRIDES = {
-    #    '/admin/*': 'master',
-    # }
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -584,30 +563,6 @@ AWS_DEFAULT_ACL = None
 # TODO Think about what to do for storage backend
 
 DEFAULT_FILE_STORAGE = "openbook.storage_imagekit_io.ImagekitIoStorage"
-
-if False:  # IS_PRODUCTION:
-    AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
-    AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
-    AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME")
-    AWS_S3_ENCRYPTION = True
-    AWS_S3_SIGNATURE_VERSION = "s3v4"
-    AWS_S3_HOST = os.environ.get("AWS_S3_HOST", "s3.amazonaws.com")
-    AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.{AWS_S3_HOST}"
-
-    AWS_S3_OBJECT_PARAMETERS = {
-        "CacheControl": "max-age=86400",
-    }
-
-    STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_STATIC_LOCATION}/"
-
-    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_PUBLIC_MEDIA_LOCATION}/"
-
-    STATICFILES_STORAGE = "openbook.storage_backends.S3StaticStorage"
-
-    DEFAULT_FILE_STORAGE = "openbook.storage_backends.S3PublicMediaStorage"
-
-    PRIVATE_FILE_STORAGE = "openbook.storage_backends.S3PrivateMediaStorage"
 
 # ONE SIGNAL
 ONE_SIGNAL_APP_ID = os.environ.get("ONE_SIGNAL_APP_ID")
