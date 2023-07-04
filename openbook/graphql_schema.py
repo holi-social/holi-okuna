@@ -807,7 +807,7 @@ class Mutation:
                 save=True,
             )
             # Update user cache
-            cache.set(f"user_cache:{current_user.username}", current_user, timeout=300)
+            cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
         except Error:
             if remove_avatar:
                 delete_avatar(data["avatar"])
