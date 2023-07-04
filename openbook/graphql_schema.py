@@ -387,8 +387,9 @@ class Query:
 
         # Check whether the resolver result has already been cached and return it,
         # otherwise, query the database, create the result, and cache it.
-        if hash_key in cache:
-            return cache.get(hash_key)
+        cached_result = cache.get(hash_key)
+        if cached_result is not None:
+            return cached_result
         else:
             # get all spaces by geolocation (independent of other filters)
             if geolocation is not None:
