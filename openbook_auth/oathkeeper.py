@@ -28,46 +28,42 @@ class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
         if not user_id:
             return None
 
-        with transaction.atomic():
-            User = get_user_model()
-            try:
-                user = self.get_user(user_id)
-                if not user.is_active:
-                    msg = _("User account is disabled.")
-                    raise exceptions.AuthenticationFailed(msg)
-            except User.DoesNotExist:
-                if not user_email:
-                    return None
-                try:
-                    user = User.create_user(
-                        username=user_id,
-                        email=user_email,
-                        is_of_legal_age=True,
-                        are_guidelines_accepted=True,
-                    )
-                    cache.set(self.cache_key(user_id), user, timeout=300)
-                except Exception as ex:
-                    logger.warning("Could not create user with id %s. Retrying get.", user_id)
-                    try:
-                        user = self.get_user(user_id)
-                    except User.DoesNotExist:
-                        logger.exception("Could not create user with id %s. Failing.", user_id)
-                        # when we can't create the user, the app stays most functional if we just continue anonymously
-                        return AnonymousUser(), None
-                        # if isinstance(ex, ValidationError):
-                        #     raise exceptions.AuthenticationFailed(next(iter(ex.messages), "authentication failed"))
-                        # raise exceptions.AuthenticationFailed(str(ex))  # return AnonymousUser(), None
+        cache_key = self.CACHE_PREFIX + user_id
+        user = cache.get(cache_key)
 
+        if user is None:
+            with transaction.atomic():
+                User = get_user_model()
+                try:
+                    user = self.get_user(user_id)
+                except User.DoesNotExist:
+                    if not user_email:
+                        return None
+                    try:
+                        user = User.create_user(
+                            username=user_id,
+                            email=user_email,
+                            is_of_legal_age=True,
+                            are_guidelines_accepted=True,
+                        )
+                    except Exception as ex:
+                        logger.warning("Could not create user with id %s. Retrying get.", user_id)
+                        try:
+                            user = self.get_user(user_id)
+                        except User.DoesNotExist:
+                            logger.exception("Could not create user with id %s. Failing.", user_id)
+                            # when we can't create the user, the app stays most functional if we just continue anonymously
+                            return AnonymousUser(), None
+                            # if isinstance(ex, ValidationError):
+                            #     raise exceptions.AuthenticationFailed(next(iter(ex.messages), "authentication failed"))
+                            # raise exceptions.AuthenticationFailed(str(ex))  # return AnonymousUser(), None
+
+                cache.set(cache_key, user, timeout=300)
+
+        if not user.is_active:
+            raise exceptions.AuthenticationFailed(_("User account is disabled."))
         return user, None
 
     def get_user(self, user_id):
-        user = cache.get(self.cache_key(user_id))
-        if user:
-            return user
         User = get_user_model()
-        user = User.objects.get_by_natural_key(user_id)
-        cache.set(self.cache_key(user_id), user, timeout=300)
-        return user
-
-    def cache_key(self, user_id):
-        return self.CACHE_PREFIX + user_id
+        return User.objects.get_by_natural_key(user_id)
