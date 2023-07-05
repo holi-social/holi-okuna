@@ -47,7 +47,7 @@ class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
                             are_guidelines_accepted=True,
                         )
                     except Exception as ex:
-                        logger.warning("Could not create user with id %s. Retrying get.", user_id)
+                        logger.info("Could not create user with id %s. Parallel creation? Retrying get.", user_id)
                         try:
                             user = self.get_user(user_id)
                         except User.DoesNotExist:
