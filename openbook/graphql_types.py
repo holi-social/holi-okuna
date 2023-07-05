@@ -642,6 +642,7 @@ class NotificationOptions:
     post_comment: Optional[PostComment]
     space: Optional[Space]
     teaser: Optional[str]
+    message: Optional[str]
 
 
 @gql.django.type(NotificationModel)
@@ -661,6 +662,7 @@ class Notification:
             post_comment=options.get("post_comment"),
             space=options.get("space"),
             teaser=options.get("teaser"),
+            message=options.get("message"),
         )
 
 

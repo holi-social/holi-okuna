@@ -1813,6 +1813,7 @@ class TestUsers:
             staff_request_received_notification["options"]["user"]["fullName"]
             == membership_requestor.profile.full_name()
         )
+        assert staff_request_received_notification["options"]["message"] == None
 
         # Approve user
         space_after_approval = self.mutate_update_space_user_connection_data(
@@ -1852,6 +1853,89 @@ class TestUsers:
         )
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
+
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    @mock.patch("openbook.graphql_schema.publish_space_user_added_event")
+    def test_space_membership_request_with_message(
+        self, mock_publish_space_user_added_event, mock_invalidate_discover_spaces_query_cache
+    ):
+        membership_requestor = make_user()
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+        mock_publish_space_user_added_event.return_value = None
+        message = "I'd love to join!"
+
+        def member_result(user, is_admin):
+            return {
+                "user": {"id": user.username},
+                "isAdministrator": is_admin,
+            }
+
+        # Preconditions
+        pre_join_space = self.get_space_for_user(membership_requestor, space)
+        assert pre_join_space["connectionStatusToMyself"] == []
+        self.assert_paged_results_equal(pre_join_space["members"], [member_result(space_creator, is_admin=True)])
+
+        data = self.get_notifications(membership_requestor)
+        assert data["totalResults"] == 0
+        data = self.get_notifications(space_creator)
+        assert data["totalResults"] == 0
+
+        # Send Join Request
+        after_request_space = self.mutate_update_space_user_connection_data(
+            auth_user=membership_requestor,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
+            connect_action=UpdateConnectionAction.CONNECT,
+            message=message,
+        )
+
+        assert len(after_request_space["connectionStatusToMyself"]), len(
+            [SpaceUserConnectionType.MEMBERSHIP_REQUESTOR.value, SpaceUserConnectionType.FOLLOWER.value]
+        )
+
+        # Staff received MembershipRequest notification with message
+        staff_request_received_notification = self.get_notifications(space_creator)["data"][0]
+        assert staff_request_received_notification["notificationType"] == "CMR"
+        assert staff_request_received_notification["options"]["space"]["title"] == space.title
+        assert (
+            staff_request_received_notification["options"]["user"]["fullName"]
+            == membership_requestor.profile.full_name()
+        )
+        assert staff_request_received_notification["options"]["message"] == message
+
+    def test_validates_space_membership_request(self):
+        membership_requestor = make_user()
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+        message = "I'd love to join!"
+
+        invalid_uuid = str(uuid4())
+
+        expected_errors = [
+            {"field": "space_id", "value": None, "expected_error": "badly formed hexadecimal UUID string"},
+            {
+                "field": "space_id",
+                "value": invalid_uuid,
+                "expected_error": "No community with the provided id exists.",
+            },
+            {"field": "message", "value": "f" * 1001, "expected_code": "max_length"},
+        ]
+
+        for test_case in expected_errors:
+            response = self.mutate_update_space_user_connection_raw(
+                auth_user=membership_requestor,
+                space_id=test_case["value"] if test_case["field"] == "space_id" else space.id,
+                connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
+                connect_action=UpdateConnectionAction.CONNECT,
+                message=test_case["value"] if test_case["field"] == "message" else message,
+            )
+            if "expected_code" in test_case:
+                field_errors = json.loads(response.errors[0].extensions["errors"])
+                assert test_case["expected_code"] == field_errors[test_case["field"]][0]["code"]
+            else:
+                assert test_case["expected_error"] in str(response.errors[0].message)
+            assert (response.data["updateSpaceUserConnection"] if response.data else response.data) is None
 
     @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook.graphql_schema.publish_space_user_added_event")
@@ -2791,14 +2875,16 @@ class TestUsers:
         connection_type: SpaceUserConnectionType,
         connect_action: UpdateConnectionAction,
         user_id: Optional[UUID] = None,
+        message: Optional[str] = None,
     ):
         return schema.execute_sync(
             """
-            mutation ($spaceId: UUID!, $userId: UUID, $type: SpaceUserConnectionType!, $action: UpdateConnectionAction!){
+            mutation ($spaceId: UUID!, $userId: UUID, $type: SpaceUserConnectionType!, $action: UpdateConnectionAction!, $message: String){
                 updateSpaceUserConnection(spaceId: $spaceId,
                                             userId: $userId,
                                             connectionType: $type,
-                                            connectAction: $action) {
+                                            connectAction: $action,
+                                            message: $message) {
                     id
                     name
                     members {
@@ -2821,6 +2907,7 @@ class TestUsers:
                     "userId": str(user_id) if user_id else None,
                     "type": connection_type.value,
                     "action": connect_action.value,
+                    "message": message,
                 }
             ),
         )
@@ -2832,9 +2919,10 @@ class TestUsers:
         connection_type: SpaceUserConnectionType,
         connect_action: UpdateConnectionAction,
         user_id: Optional[UUID] = None,
+        message: Optional[str] = None,
     ):
         response = self.mutate_update_space_user_connection_raw(
-            auth_user, space_id, connection_type, connect_action, user_id
+            auth_user, space_id, connection_type, connect_action, user_id, message
         )
         assert response.errors is None
         return response.data["updateSpaceUserConnection"]
@@ -2922,6 +3010,7 @@ class TestUsers:
                                 title
                             }
                             teaser
+                            message
                         }
                     }
                 }

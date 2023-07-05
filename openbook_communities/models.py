@@ -594,8 +594,8 @@ class Community(ModelWithUUID):
 
         self.save()
 
-    def add_membership_request(self, user):
-        return CommunityMembershipRequest.create_membership_request(self, user)
+    def add_membership_request(self, user, message=None):
+        return CommunityMembershipRequest.create_membership_request(self, user, message)
 
     def remove_membership_request(self, user):
         CommunityMembershipRequest.delete_membership_request(self, user)
@@ -936,6 +936,12 @@ class CommunityMembershipRequest(ModelWithUUID):
         blank=False,
     )
 
+    message = models.TextField(
+        max_length=settings.COMMUNITY_MEMBERSHIP_REQUEST_MESSAGE_MAX_LENGTH,
+        blank=True,
+        null=True,
+    )
+
     class Meta:
         unique_together = ("community", "user")
         indexes = [
@@ -943,8 +949,8 @@ class CommunityMembershipRequest(ModelWithUUID):
         ]
 
     @classmethod
-    def create_membership_request(cls, community, user):
-        return cls.objects.create(community=community, user=user)
+    def create_membership_request(cls, community, user, message=None):
+        return cls.objects.create(community=community, user=user, message=message)
 
     @classmethod
     def delete_membership_request(cls, community, user):
