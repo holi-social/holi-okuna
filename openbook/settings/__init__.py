@@ -137,7 +137,7 @@ if DEBUG:
 MIDDLEWARE += [
     "openbook_common.middleware.TimezoneMiddleware",
     "openbook_common.middleware.ChunkedContentLengthMiddleware",
-    # "openbook.middleware.slow_log_middleware",
+    "openbook.middleware.slow_log_middleware",
 ]
 
 
