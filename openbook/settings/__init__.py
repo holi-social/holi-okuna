@@ -107,7 +107,6 @@ MODELTRANSLATION_FALLBACK_LANGUAGES = ("en",)
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -411,7 +410,7 @@ MEDIA_ROOT = os.environ.get("MEDIA_ROOT", "./media")
 
 MEDIA_URL = os.environ.get("MEDIA_URL", "/media/")
 
-STATICFILES_DIRS = (os.path.join(BASE_DIR, "openbook/static"),)
+# STATICFILES_DIRS = (os.path.join(BASE_DIR, "openbook/static"),) only needed for additions static files directories
 
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 

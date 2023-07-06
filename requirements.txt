@@ -1,5 +1,6 @@
 -i https://pypi.python.org/simple
 appdirs==1.4.4
+ASGIMiddlewareStaticFile==0.6.0
 bandit==1.7.5
 beautifulsoup4==4.12.2
 BeneDict~=0.3.2
@@ -82,5 +83,4 @@ urlextract==1.8.0
 urllib3==1.26.15; python_version != '3.4' # imagekit requires <1.27
 uvicorn==0.22.0
 watchdog==3.0.0
-whitenoise==6.5.0
 zipp==3.15.0; python_version >= '3.6'
