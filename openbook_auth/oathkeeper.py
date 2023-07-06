@@ -33,7 +33,7 @@ class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
             with transaction.atomic():
                 User = get_user_model()
                 try:
-                    user = self.get_user(user_id)
+                    user = self._get_user(user_id)
                 except User.DoesNotExist:
                     if not user_email:
                         return None
@@ -47,7 +47,7 @@ class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
                     except Exception as ex:
                         logger.info("Could not create user with id %s. Parallel creation? Retrying get.", user_id)
                         try:
-                            user = self.get_user(user_id)
+                            user = cache.get(cache_key) or self._get_user(user_id)
                         except User.DoesNotExist:
                             logger.exception("Could not create user with id %s. Failing.", user_id)
                             # when we can't create the user, the app stays most functional if we just continue anonymously
@@ -62,6 +62,6 @@ class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
             raise exceptions.AuthenticationFailed(_("User account is disabled."))
         return user, None
 
-    def get_user(self, user_id):
+    def _get_user(self, user_id):
         User = get_user_model()
         return User.objects.get_by_natural_key(user_id)
