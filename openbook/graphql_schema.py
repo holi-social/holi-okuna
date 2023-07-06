@@ -75,7 +75,7 @@ PUBLISHED_NOTIFICATION_TYPES = [
     NotificationModel.RELEASE_INFO,
 ]
 
-logger = structlog.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 def get_id_spaces_count_map(query):
@@ -86,8 +86,8 @@ def get_id_spaces_count_map(query):
     return id_to_num_spaces
 
 
-# @cached_as(CommunityModel, CommunityMembershipModel)
-def spaces_for_filter(
+
+async def spaces_for_filter(
     offset: int,
     limit: int,
     topic_id: Optional[uuid.UUID] = None,
@@ -116,7 +116,8 @@ def spaces_for_filter(
         CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
         .filter(query)
         .annotate(member_count=Count("memberships"))
-        .order_by("-member_count", "-created"),
+        .order_by("-member_count", "-created")
+        .cache(ops=["fetch", "count"], timeout=300),
         offset,
         limit,
     )
@@ -280,8 +281,7 @@ class Query:
         )
 
     @gql.django.field
-    # @cached_as(InsightModel, timeout=300)
-    def last_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
+    async def last_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         current_user = info.context.request.user
         paged_insights = Paged.of(
             InsightModel.objects.filter(
@@ -294,7 +294,8 @@ class Query:
                 "posts__creator",
                 "posts__comments__commenter",
             )
-            .order_by("-date_published", "id"),
+            .order_by("-date_published", "id")
+            .cache(ops=["fetch", "count"], timeout=300),
             offset,
             limit,
         )

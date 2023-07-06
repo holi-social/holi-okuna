@@ -6,7 +6,8 @@ import uvicorn
 
 # even though this import seams to be unused, it is needed for SQL logging to work for some reason.
 import openbook.asgi
-from openbook.logging import initialize_logging
+
+# from openbook.logging import initialize_logging
 
 logger = getLogger()
 
@@ -19,15 +20,15 @@ def main():
 
     args = parser.parse_args()
 
-    log_config = initialize_logging()
-    logger.info("Logging initialized, starting application")
+    # log_config = initialize_logging()
+    # logger.info("Logging initialized, starting application")
 
     uvicorn.run(
         "openbook.asgi:application",
         host=args.host,
         port=args.port,
         lifespan="off",
-        log_config=log_config,
+        # log_config=log_config,
         reload=args.reload,
         reload_dirs=[
             "./openbook",
