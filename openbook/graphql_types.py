@@ -6,7 +6,7 @@ import json
 import strawberry
 from typing import List, TypeVar, Optional
 
-from cacheops import cached_as
+from asgiref.sync import sync_to_async
 from django.db.models import Q
 from strawberry_django_plus import gql
 from django.db.models import QuerySet
@@ -384,7 +384,7 @@ class Insight:
     @gql.django.field(
         description="A list of all users involved. Curator of the insight, Authors of all the posts and all commenters of those posts"
     )
-    @cached_as(UserModel, timeout=300)
+    # @cached_as(UserModel, timeout=300)
     def involved_users(self, info, offset: int = 0, limit: int = 3) -> Paged[User]:
         current_user = info.context.request.user
         query = UserModel.objects.filter(
@@ -421,7 +421,7 @@ class Post:
     links: List[Optional[LinkPreview]]
     is_public: gql.auto
 
-    @gql.field
+    @gql.django.field
     def image(self) -> Optional[PostImage]:
         if hasattr(self, "image"):
             return self.image

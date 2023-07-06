@@ -86,7 +86,7 @@ def get_id_spaces_count_map(query):
     return id_to_num_spaces
 
 
-@cached_as(CommunityModel, CommunityMembershipModel)
+# @cached_as(CommunityModel, CommunityMembershipModel)
 def spaces_for_filter(
     offset: int,
     limit: int,
@@ -280,7 +280,7 @@ class Query:
         )
 
     @gql.django.field
-    @cached_as(InsightModel, timeout=300)
+    # @cached_as(InsightModel, timeout=300)
     def last_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         current_user = info.context.request.user
         paged_insights = Paged.of(
@@ -531,7 +531,7 @@ class Query:
                         info.context.request.user, ModeratedObject.OBJECT_TYPE_COMMUNITY
                     )
                 )
-                .get(query)
+                .aget(query)
             )
         except CommunityModel.DoesNotExist:
             raise GraphQLError("Space not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
