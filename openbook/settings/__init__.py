@@ -79,7 +79,7 @@ INSTALLED_APPS = [
     "video_encoding",
     "imagekit",
     "django_media_fixtures",
-    "cacheops",
+    # "cacheops",
     "django_rq",
     "django_extensions",
     "openbook_common",
@@ -109,7 +109,6 @@ MODELTRANSLATION_FALLBACK_LANGUAGES = ("en",)
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",

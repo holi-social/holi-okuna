@@ -1,5 +1,6 @@
 -i https://pypi.python.org/simple
 appdirs==1.4.4
+adrf==0.1.1
 bandit==1.7.5
 beautifulsoup4==4.12.2
 BeneDict~=0.3.2
