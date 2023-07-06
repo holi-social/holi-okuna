@@ -86,7 +86,6 @@ def get_id_spaces_count_map(query):
     return id_to_num_spaces
 
 
-
 async def spaces_for_filter(
     offset: int,
     limit: int,
