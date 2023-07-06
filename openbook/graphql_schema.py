@@ -115,7 +115,8 @@ async def spaces_for_filter(
         CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
         .filter(query)
         .annotate(member_count=Count("memberships"))
-        .order_by("-member_count", "-created").cache(ops=["fetch", "count"], timeout=300),
+        .order_by("-member_count", "-created")
+        .cache(ops=["fetch", "count"], timeout=300),
         offset,
         limit,
     )
@@ -292,7 +293,8 @@ class Query:
                 "posts__creator",
                 "posts__comments__commenter",
             )
-            .order_by("-date_published", "id").cache(ops=["fetch", "count"], timeout=300),
+            .order_by("-date_published", "id")
+            .cache(ops=["fetch", "count"], timeout=300),
             offset,
             limit,
         )

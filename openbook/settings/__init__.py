@@ -142,8 +142,6 @@ MIDDLEWARE += [
     # "openbook.middleware.slow_log_middleware",
 ]
 
-os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
-
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://localhost",
