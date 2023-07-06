@@ -227,12 +227,12 @@ from rest_framework.settings import api_settings
 from strawberry.django.views import AsyncGraphQLView, GraphQLView
 
 
-class AuthenticatedStrawberryGraphQLView(GraphQLView):
+class AuthenticatedStrawberryGraphQLView(AsyncGraphQLView):
     @classmethod
     def as_view(cls, *args, **kwargs):
         view = super(AuthenticatedStrawberryGraphQLView, cls).as_view(*args, **kwargs)
         view = authentication_classes(api_settings.DEFAULT_AUTHENTICATION_CLASSES)(view)
-        view = api_view(["GET", "POST"])(view)
+        # view = api_view(["GET", "POST"])(view)
         return view
 
 
