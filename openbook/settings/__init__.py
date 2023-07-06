@@ -227,6 +227,8 @@ CACHEOPS = {
     "*.*": {},
 }
 
+USER_CACHE_PREFIX = "user_cache:"
+
 RQ_QUEUES = {
     "default": {
         "USE_REDIS_CACHE": "rq-default-jobs",

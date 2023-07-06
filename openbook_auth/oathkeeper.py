@@ -1,11 +1,11 @@
 from django.core.cache import cache
+from django.conf import settings
 from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from rest_framework import authentication
 from rest_framework import exceptions
 from django.utils.translation import gettext_lazy as _
-
 import logging
 
 HEADER_USER_ID = "X-Holi-User-ID"
@@ -15,8 +15,6 @@ logger = logging.getLogger("openbook_auth/oathkeeper")
 
 
 class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
-    CACHE_PREFIX = "user_cache:"
-
     def authenticate(self, request):
         # in "production" request headers show up in `request.headers`, in unit testing they show up in `request.META`
         user_id = request.headers.get(HEADER_USER_ID, request.META.get(HEADER_USER_ID))
@@ -28,7 +26,7 @@ class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
         if not user_id:
             return None
 
-        cache_key = self.CACHE_PREFIX + user_id
+        cache_key = settings.USER_CACHE_PREFIX + user_id
         user = cache.get(cache_key)
 
         if user is None:
