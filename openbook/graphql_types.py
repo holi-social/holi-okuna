@@ -6,7 +6,6 @@ import json
 import strawberry
 from typing import List, TypeVar, Optional
 
-from cacheops import cached_as
 from django.db.models import Q
 from strawberry_django_plus import gql
 from django.db.models import QuerySet
@@ -55,7 +54,7 @@ class Paged(List[GenericType]):
     def of(query: QuerySet, offset: int, limit: int):
         return Paged(data=query[offset : offset + limit], total_results=query.count())
 
-    def __init__(self, data=[], total_results=0):
+    def __init__(self, data=None, total_results=0):
         if data is None:
             data = []
         self.data = data
@@ -384,8 +383,7 @@ class Insight:
     @gql.django.field(
         description="A list of all users involved. Curator of the insight, Authors of all the posts and all commenters of those posts"
     )
-    @cached_as(UserModel, timeout=300)
-    def involved_users(self, info, offset: int = 0, limit: int = 3) -> Paged[User]:
+    async def involved_users(self, info, offset: int = 0, limit: int = 3) -> Paged[User]:
         current_user = info.context.request.user
         query = UserModel.objects.filter(
             Q(
@@ -398,7 +396,7 @@ class Insight:
             ),
             is_deleted=False,
         ).distinct()
-        query = query.select_related("profile")
+        query = query.select_related("profile").cache(ops=["fetch", "count"], timeout=300)
         return Paged.of(query, offset, limit)
 
 

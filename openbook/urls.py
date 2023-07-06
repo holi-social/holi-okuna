@@ -227,12 +227,12 @@ from rest_framework.settings import api_settings
 from strawberry.django.views import AsyncGraphQLView, GraphQLView
 
 
-class AuthenticatedStrawberryGraphQLView(GraphQLView):
+class AuthenticatedStrawberryGraphQLView(AsyncGraphQLView):
     @classmethod
     def as_view(cls, *args, **kwargs):
         view = super(AuthenticatedStrawberryGraphQLView, cls).as_view(*args, **kwargs)
         view = authentication_classes(api_settings.DEFAULT_AUTHENTICATION_CLASSES)(view)
-        view = api_view(["GET", "POST"])(view)
+        # view = api_view(["GET", "POST"])(view)
         return view
 
 
@@ -738,7 +738,7 @@ urlpatterns = [
 
 # The static helper works only in debug mode
 # https://docs.djangoproject.com/en/2.1/howto/static-files/#serving-files-uploaded-by-a-user-during-development
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG:
     urlpatterns += [

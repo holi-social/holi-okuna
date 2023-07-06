@@ -109,7 +109,7 @@ MODELTRANSLATION_FALLBACK_LANGUAGES = ("en",)
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+    # "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -139,8 +139,11 @@ if DEBUG:
 MIDDLEWARE += [
     "openbook_common.middleware.TimezoneMiddleware",
     "openbook_common.middleware.ChunkedContentLengthMiddleware",
-    "openbook.middleware.slow_log_middleware",
+    # "openbook.middleware.slow_log_middleware",
 ]
+
+os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
+
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://localhost",
