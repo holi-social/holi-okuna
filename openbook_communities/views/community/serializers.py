@@ -15,7 +15,7 @@ from openbook_common.serializers_fields.user import (
     AreNewPostNotificationsEnabledForUserField,
 )
 from openbook_common.validators import hex_color_validator
-from openbook_communities.models import Community, CommunityMembership
+from openbook_communities.models import Community, CommunityMembership, CommunityMembershipRequest
 from openbook_communities.serializers_fields import (
     IsInvitedField,
     IsCreatorField,
@@ -29,6 +29,7 @@ from openbook_communities.serializers_fields import (
 from openbook_communities.validators import (
     community_name_characters_validator,
     community_name_exists,
+    community_id_exists,
 )
 
 
@@ -320,3 +321,19 @@ class SubscribeToCommunityNotificationsCommunitySerializer(serializers.ModelSeri
             "id",
             "are_new_post_notifications_enabled",
         )
+
+
+class CommunityUserConnectionSerializer(serializers.ModelSerializer):
+    community_id = serializers.UUIDField(
+        validators=[community_id_exists],
+        required=True,
+    )
+    message = serializers.CharField(
+        max_length=settings.COMMUNITY_MEMBERSHIP_REQUEST_MESSAGE_MAX_LENGTH,
+        required=False,
+        allow_null=True,
+    )
+
+    class Meta:
+        model = CommunityMembershipRequest
+        fields = ("community_id", "message")

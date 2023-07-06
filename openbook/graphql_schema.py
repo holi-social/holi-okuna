@@ -47,6 +47,7 @@ from openbook_communities.views.communities.serializers import (
     UpdateCommunitySerializer,
     ValidateCommunitySerializer,
 )
+from openbook_communities.views.community.serializers import CommunityUserConnectionSerializer
 from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_moderation.models import ModeratedObject
 from openbook_posts.views.post.serializers import EditCommunityPostSerializer
@@ -883,8 +884,13 @@ class Mutation:
         connection_type: SpaceUserConnectionType,
         connect_action: UpdateConnectionAction,
         user_id: Optional[uuid.UUID] = None,
+        message: Optional[str] = None,
     ) -> Space:
         current_user = verify_authorized_user(info)
+
+        serializer = CommunityUserConnectionSerializer(data={"community_id": space_id, "message": message})
+        serializer.is_valid(raise_exception=True)
+
         space = CommunityModel.objects.get(id=space_id)
 
         cT = SpaceUserConnectionType
@@ -896,7 +902,7 @@ class Mutation:
             # perform for current user
             match (connection_type, connect_action):
                 case (cT.MEMBERSHIP_REQUESTOR, a.CONNECT):
-                    return current_user.request_membership_to_community_with_name(space.name)
+                    return current_user.request_membership_to_community_with_name(space.name, message)
                 case (cT.MEMBERSHIP_REQUESTOR, a.DISCONNECT):
                     return current_user.revoke_membership_request_to_community_with_name(space.name)
                 case (cT.FOLLOWER, a.CONNECT):
