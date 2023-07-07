@@ -1446,3 +1446,43 @@ class CollaborationTool(ModelWithUUID):
 
         collaboration_tool.save()
         return collaboration_tool
+
+
+class VideoCallLink(ModelWithUUID):
+    community = models.ForeignKey(
+        Community,
+        on_delete=models.CASCADE,
+        related_name="video_call_links",
+        blank=False,
+        null=False,
+    )
+    url = models.URLField(blank=False, max_length=settings.VIDEO_CALL_LINK_URL_MAX_LENGTH)
+    room_name = models.CharField(
+        max_length=settings.VIDEO_CALL_LINK_ROOM_NAME_MAX_LENGTH,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @classmethod
+    def create(
+        cls,
+        community,
+        url,
+        room_name,
+    ):
+        return cls.objects.create(
+            community=community,
+            url=url,
+            room_name=room_name,
+        )
+
+    def update(
+        self,
+        url=None,
+        room_name=None,
+    ):
+        if url is not None:
+            self.url = url
+        if room_name is not None:
+            self.room_name = room_name
+
+        self.save()

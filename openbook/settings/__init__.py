@@ -620,6 +620,10 @@ GOOGLE_CLOUD_PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT_ID")
 EXTERNAL_LINK_NAME_MAX_LENGTH = 100
 EXTERNAL_LINK_URL_MAX_LENGTH = 500
 
+# Video call links
+VIDEO_CALL_LINK_ROOM_NAME_MAX_LENGTH = 50
+VIDEO_CALL_LINK_URL_MAX_LENGTH = 500
+
 # App store urls
 APPLE_APP_STORE_DEFAULT_URL = "itms-apps://apps.apple.com/app/id6446693757"
 GOOGLE_PLAY_STORE_DEFAULT_URL = "market://details?id=foundation.holistic.projectholi"

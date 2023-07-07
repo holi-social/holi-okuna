@@ -43,6 +43,7 @@ from openbook_common.tests.helpers import (
     make_skill,
     make_topic,
     make_user,
+    make_video_call_link,
     simple_jpeg_bytes,
 )
 from openbook_common.utils.model_loaders import (
@@ -5337,6 +5338,455 @@ class TestUsers:
         assert new_url == updated_external_link["url"]
         assert new_type == updated_external_link["type"]
         assert new_name == updated_external_link["name"]
+
+    def test_can_not_add_video_call_link_missing_required_fields(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        add_video_call_link_mutation = """
+            mutation test($input: AddVideoCallLinkInput!) {
+                addVideoCallLink(input: $input) {
+                    id
+                }
+            }
+            """
+
+        valid_space_id = str(community.id)
+        valid_url = "https://meet.holi.social/space-daily"
+        valid_room_name = "Daily"
+
+        expectedErrors = [
+            {
+                "input": {"url": valid_url, "spaceId": valid_space_id},
+                "expected_error": "was not provided",
+            },
+            {
+                "input": {"url": valid_url, "roomName": valid_room_name},
+                "expected_error": "was not provided",
+            },
+            {
+                "input": {"spaceId": valid_space_id, "roomName": valid_room_name},
+                "expected_error": "was not provided",
+            },
+        ]
+
+        for testCase in expectedErrors:
+            response = schema.execute_sync(
+                add_video_call_link_mutation,
+                context_value=BeneDict({"request": {"user": user}}),
+                variable_values={"input": testCase["input"]},
+            )
+
+            assert testCase["expected_error"] in str(response.errors[0].message)
+            assert (response.data["addVideoCallLink"] if response.data else response.data) is None
+
+    def test_validates_video_call_link_before_creation(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        add_video_call_link_mutation = """
+            mutation test($input: AddVideoCallLinkInput!) {
+                addVideoCallLink(input: $input) {
+                    id
+                }
+            }
+            """
+
+        valid_space_id = str(community.id)
+        valid_url = "https://meet.holi.social/space-daily"
+        valid_room_name = "Daily"
+
+        valid_input = {
+            "spaceId": valid_space_id,
+            "url": valid_url,
+            "roomName": valid_room_name,
+        }
+
+        expectedErrors = [
+            {"field": "url", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "url", "value": "", "expected_code": "blank"},
+            {"field": "url", "value": "holi.social", "expected_code": "invalid"},
+            {"field": "roomName", "value": None, "expected_error": "Expected non-nullable type"},
+            {"field": "roomName", "value": "f" * 51, "expected_code": "max_length"},
+        ]
+
+        for testCase in expectedErrors:
+            response = schema.execute_sync(
+                add_video_call_link_mutation,
+                context_value=BeneDict({"request": {"user": user}}),
+                variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
+            )
+
+            if "expected_code" in testCase:
+                field_errors = json.loads(response.errors[0].extensions["errors"])
+                assert (
+                    testCase["expected_code"] == field_errors[testCase["field"]][0]["code"]
+                ), f"{str(response.errors[0].extensions)} does not contain code: {testCase['expected_code']} from testCase: {testCase}"
+            else:
+                assert testCase["expected_error"] in str(response.errors[0].message)
+            assert (response.data["addVideoCalLink"] if response.data else response.data) is None
+
+    def test_can_add_video_call_link(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        add_video_call_link_mutation = """
+            mutation test($input: AddVideoCallLinkInput!) {
+                addVideoCallLink(input: $input) {
+                    id
+                    url
+                    roomName
+                }
+            }
+            """
+
+        valid_space_id = str(community.id)
+        valid_url = "https://meet.holi.social/space-daily"
+        valid_room_name = "Daily"
+
+        valid_input = {
+            "spaceId": valid_space_id,
+            "url": valid_url,
+            "roomName": valid_room_name,
+        }
+
+        response = schema.execute_sync(
+            add_video_call_link_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": valid_input},
+        )
+
+        assert response.errors is None
+
+        added_video_call_link = response.data["addVideoCallLink"]
+        assert "id" in added_video_call_link
+        assert valid_url == added_video_call_link["url"]
+        assert valid_room_name == added_video_call_link["roomName"]
+
+    def test_can_not_add_video_call_link_if_not_logged_in(self):
+        community = make_community()
+        add_video_call_link_mutation = """
+            mutation test($input: AddVideoCallLinkInput!) {
+                addVideoCallLink(input: $input) {
+                    id
+                }
+            }
+            """
+        valid_space_id = str(community.id)
+        valid_url = "https://meet.holi.social/space-daily"
+        valid_room_name = "Daily"
+
+        valid_input = {
+            "spaceId": valid_space_id,
+            "url": valid_url,
+            "roomName": valid_room_name,
+        }
+
+        response = schema.execute_sync(
+            add_video_call_link_mutation,
+            variable_values={"input": valid_input},
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+        )
+
+        self.assert_is_unauthorized(response)
+
+    def test_can_not_add_video_call_link_if_not_space_admin(self):
+        user = make_user()
+
+        community = make_community()
+        community.add_member(user)
+
+        add_video_call_link_mutation = """
+            mutation test($input: AddVideoCallLinkInput!) {
+                addVideoCallLink(input: $input) {
+                    id
+                }
+            }
+            """
+
+        valid_space_id = str(community.id)
+        valid_url = "https://meet.holi.social/space-daily"
+        valid_room_name = "Daily"
+
+        valid_input = {
+            "spaceId": valid_space_id,
+            "url": valid_url,
+            "roomName": valid_room_name,
+        }
+
+        response = schema.execute_sync(
+            add_video_call_link_mutation,
+            variable_values={"input": valid_input},
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        assert response.data is None
+        assert (
+            "You cannot add a video call link to a community that you do not administrate"
+            in response.errors[0].extensions["errors"]
+        )
+
+    def test_can_not_delete_video_call_link_if_not_logged_in(self):
+        video_call_link = make_video_call_link()
+
+        delete_video_call_link_mutation = """
+            mutation test($id: UUID!) {
+                deleteVideoCallLink(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            delete_video_call_link_mutation,
+            variable_values={"id": str(video_call_link.id)},
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+        )
+
+        self.assert_is_unauthorized(response)
+
+    def test_can_not_delete_video_call_link_if_not_space_admin(self):
+        user = make_user()
+
+        community = make_community()
+        community.add_member(user)
+
+        video_call_link = make_video_call_link(community=community)
+
+        delete_video_call_link_mutation = """
+            mutation test($id: UUID!) {
+                deleteVideoCallLink(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            delete_video_call_link_mutation,
+            variable_values={"id": str(video_call_link.id)},
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        assert response.data is None
+        assert (
+            "You cannot delete a video call link in a community that you do not administrate"
+            in response.errors[0].extensions["errors"]
+        )
+
+    def test_can_delete_video_call_link_if_admin(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        video_call_link = make_video_call_link(community=community)
+
+        delete_video_call_link_mutation = """
+            mutation test($id: UUID!) {
+                deleteVideoCallLink(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            delete_video_call_link_mutation,
+            variable_values={"id": str(video_call_link.id)},
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        assert response.data["deleteVideoCallLink"]["success"] is True
+        assert response.errors is None
+
+    def test_validates_video_call_link_before_update(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        video_call_link = make_video_call_link(community=community)
+
+        update_video_call_link_mutation = """
+            mutation test($input: UpdateVideoCallLinkInput!) {
+                updateVideoCallLink(input: $input) {
+                    id
+                }
+            }
+            """
+        base_input = {"id": str(video_call_link.id)}
+        invalid_uuid = str(uuid4())
+
+        expectedErrors = [
+            {"field": "id", "value": None, "expected_error": "Expected non-nullable type"},
+            {
+                "field": "id",
+                "value": invalid_uuid,
+                "expected_error": "No video call link with the provided id exists.",
+            },
+            {"field": "url", "value": None, "expected_code": "null"},
+            {"field": "url", "value": "", "expected_code": "blank"},
+            {"field": "url", "value": "holi.social", "expected_code": "invalid"},
+            {"field": "roomName", "value": None, "expected_code": "null"},
+        ]
+
+        for testCase in expectedErrors:
+            response = schema.execute_sync(
+                update_video_call_link_mutation,
+                context_value=BeneDict({"request": {"user": user}}),
+                variable_values={
+                    "input": base_input | {testCase["field"]: testCase["value"]},
+                },
+            )
+
+            if "expected_code" in testCase:
+                field_errors = json.loads(response.errors[0].extensions["errors"])
+                assert (
+                    testCase["expected_code"] == field_errors[testCase["field"]][0]["code"]
+                ), f"{str(response.errors[0].extensions)} does not contain code: {testCase['expected_code']} from testCase: {testCase}"
+            else:
+                assert testCase["expected_error"] in str(response.errors[0].message)
+            assert (response.data["updateVideoCallLink"] if response.data else response.data) is None
+
+    def test_can_not_update_video_call_link_without_passing_id(self):
+        user = make_user()
+        update_video_call_link_mutation = """
+            mutation test($input: UpdateVideoCallLinkInput!) {
+                updateVideoCallLink(input: $input) {
+                    id
+                }
+            }
+            """
+
+        response = schema.execute_sync(
+            update_video_call_link_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": {"url": "https://meet.holi.social/space-daily", "roomName": "Daily"}},
+        )
+
+        assert response.data is None
+        assert "Field 'id' of required type 'UUID!' was not provided" in response.errors[0].message
+
+    def test_can_not_update_video_call_link_if_not_space_admin(self):
+        user = make_user()
+
+        community = make_community()
+        community.add_member(user)
+
+        video_call_link = make_video_call_link(community=community)
+
+        update_video_call_link_mutation = """
+            mutation test($input: UpdateVideoCallLinkInput!) {
+                updateVideoCallLink(input: $input) {
+                    id
+                }
+            }
+            """
+
+        input = {
+            "id": str(video_call_link.id),
+            "url": "https://meet.holi.social/space-daily",
+            "roomName": "Daily",
+        }
+
+        response = schema.execute_sync(
+            update_video_call_link_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": input},
+        )
+
+        assert response.data is None
+        assert "You cannot update a video call link in a community that you do not administrate" in str(
+            response.errors[0].extensions["errors"]
+        )
+
+    def test_can_not_update_video_call_link_if_not_logged_in(self):
+        video_call_link = make_video_call_link()
+
+        update_video_call_link_mutation = """
+            mutation test($input: UpdateVideoCallLinkInput!) {
+                updateVideoCallLink(input: $input) {
+                    id
+                }
+            }
+            """
+
+        input = {
+            "id": str(video_call_link.id),
+            "url": "https://meet.holi.social/space-daily",
+            "roomName": "Daily",
+        }
+
+        response = schema.execute_sync(
+            update_video_call_link_mutation,
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            variable_values={"input": input},
+        )
+
+        self.assert_is_unauthorized(response)
+
+    def test_can_update_video_call_link(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        video_call_link = make_video_call_link(community=community)
+
+        update_video_call_link_mutation = """
+            mutation test($input: UpdateVideoCallLinkInput!) {
+                updateVideoCallLink(input: $input) {
+                    id
+                }
+            }
+            """
+
+        input = {
+            "id": str(video_call_link.id),
+            "url": "https://meet.holi.social/space-daily",
+            "roomName": "Daily",
+        }
+
+        response = schema.execute_sync(
+            update_video_call_link_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": input},
+        )
+
+        assert str(video_call_link.id) == response.data["updateVideoCallLink"]["id"]
+        assert response.errors is None
+
+    def test_updated_video_call_link_has_new_values(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        video_call_link = make_video_call_link(community=community)
+
+        update_video_call_link_mutation = """
+            mutation test($input: UpdateVideoCallLinkInput!) {
+                updateVideoCallLink(input: $input) {
+                    id
+                    url
+                    roomName
+                }
+            }
+            """
+        id = str(video_call_link.id)
+        new_url = "https://meet.holi.social/space-daily"
+        new_room_name = "Daily"
+
+        input = {
+            "id": id,
+            "url": new_url,
+            "roomName": new_room_name,
+        }
+
+        response = schema.execute_sync(
+            update_video_call_link_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"input": input},
+        )
+
+        assert response.errors is None
+
+        updated_video_call_link = response.data["updateVideoCallLink"]
+
+        assert id == updated_video_call_link["id"]
+        assert new_url == updated_video_call_link["url"]
+        assert new_room_name == updated_video_call_link["roomName"]
 
     def test_check_app_version(self):
         app_version = AppVersion.objects.create(version="2023.5.1000", need_update=NeedUpdateType.MANDATORY)

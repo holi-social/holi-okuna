@@ -26,6 +26,7 @@ from openbook_communities.validators import (
     sdg_with_id_exists,
     topic_with_id_exists,
     skill_with_id_exists,
+    video_call_link_id_exists,
 )
 
 
@@ -447,7 +448,7 @@ class AddExternalLinkSerializer(serializers.Serializer):
     url = serializers.URLField(
         max_length=settings.EXTERNAL_LINK_URL_MAX_LENGTH,
         validators=[url_safety_validator],
-        required=False,
+        required=True,
     )
     type = serializers.ChoiceField(required=False, choices=ExternalLinkType.choices)
     name = serializers.CharField(
@@ -470,6 +471,40 @@ class UpdateExternalLinkSerializer(serializers.Serializer):
     type = serializers.ChoiceField(required=False, choices=ExternalLinkType.choices)
     name = serializers.CharField(
         max_length=settings.EXTERNAL_LINK_NAME_MAX_LENGTH,
+        required=False,
+        allow_blank=False,
+    )
+
+
+class AddVideoCallLinkSerializer(serializers.Serializer):
+    space_id = serializers.UUIDField(
+        validators=[community_id_exists],
         required=True,
+    )
+    url = serializers.URLField(
+        max_length=settings.VIDEO_CALL_LINK_URL_MAX_LENGTH,
+        validators=[url_safety_validator],
+        required=False,
+    )
+    room_name = serializers.CharField(
+        max_length=settings.VIDEO_CALL_LINK_ROOM_NAME_MAX_LENGTH,
+        required=True,
+        allow_blank=False,
+    )
+
+
+class UpdateVideoCallLinkSerializer(serializers.Serializer):
+    id = serializers.UUIDField(
+        validators=[video_call_link_id_exists],
+        required=True,
+    )
+    url = serializers.URLField(
+        max_length=settings.VIDEO_CALL_LINK_URL_MAX_LENGTH,
+        validators=[url_safety_validator],
+        required=False,
+    )
+    room_name = serializers.CharField(
+        max_length=settings.VIDEO_CALL_LINK_ROOM_NAME_MAX_LENGTH,
+        required=False,
         allow_blank=False,
     )

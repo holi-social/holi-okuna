@@ -39,12 +39,14 @@ from openbook_common.models import AppVersion
 from openbook_communities.views.communities.serializers import (
     AddCollaborationToolSerializer,
     AddExternalLinkSerializer,
+    AddVideoCallLinkSerializer,
     CreateCommunitySerializer,
     CreateTaskSerializer,
     UpdateExternalLinkSerializer,
     UpdateTaskSerializer,
     UpdateCollaborationToolSerializer,
     UpdateCommunitySerializer,
+    UpdateVideoCallLinkSerializer,
     ValidateCommunitySerializer,
 )
 from openbook_communities.views.community.serializers import CommunityUserConnectionSerializer
@@ -766,6 +768,20 @@ class UpdateExternalLinkInput:
     name: Optional[str] = strawberry.UNSET
 
 
+@gql.input
+class AddVideoCallLinkInput:
+    space_id: uuid.UUID
+    url: str
+    room_name: str
+
+
+@gql.input
+class UpdateVideoCallLinkInput:
+    id: uuid.UUID
+    url: Optional[str] = strawberry.UNSET
+    room_name: Optional[str] = strawberry.UNSET
+
+
 @gql.type
 class Result:
     success: bool
@@ -1324,6 +1340,45 @@ class Mutation:
         with transaction.atomic():
             current_user.delete_external_link(
                 external_link_id=id,
+            )
+
+        return Result(success=True)
+
+    @gql.mutation
+    def add_video_call_link(self, info, input: AddVideoCallLinkInput) -> VideoCallLink:
+        current_user = verify_authorized_user(info)
+
+        serializer = AddVideoCallLinkSerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        return current_user.add_video_call_link(
+            space_id=data.get("space_id"),
+            url=data.get("url"),
+            room_name=data.get("room_name"),
+        )
+
+    @gql.mutation
+    def update_video_call_link(self, info, input: UpdateVideoCallLinkInput) -> VideoCallLink:
+        current_user = verify_authorized_user(info)
+
+        serializer = UpdateVideoCallLinkSerializer(data=to_input_dict(input))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        return current_user.update_video_call_link(
+            video_call_link_id=data.get("id"),
+            url=data.get("url"),
+            room_name=data.get("room_name"),
+        )
+
+    @gql.mutation
+    def delete_video_call_link(self, info, id: uuid.UUID) -> Result:
+        current_user = verify_authorized_user(info)
+
+        with transaction.atomic():
+            current_user.delete_video_call_link(
+                video_call_link_id=id,
             )
 
         return Result(success=True)

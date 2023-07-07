@@ -24,6 +24,7 @@ from openbook_communities.models import (
     ExternalLinkType,
     VisibilityType,
     CollaborationTool as CollaborationToolModel,
+    VideoCallLink as VideoCallLinkModel,
 )
 from openbook_notifications.models import Notification as NotificationModel
 from openbook_posts.models import (
@@ -208,6 +209,13 @@ class ExternalLink:
     url: gql.auto
     type: ExternalLinkType
     name: gql.auto
+
+
+@gql.django.type(VideoCallLinkModel)
+class VideoCallLink:
+    id: gql.auto
+    url: gql.auto
+    room_name: gql.auto
 
 
 @gql.django.type(PostImageModel)

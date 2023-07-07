@@ -10,6 +10,7 @@ from openbook_common.utils.model_loaders import (
     get_community_model,
     get_external_link_model,
     get_task_model,
+    get_video_call_link_model,
 )
 
 
@@ -80,4 +81,12 @@ def external_link_id_exists(external_link_id):
     if not external_link.objects.filter(id=external_link_id).exists():
         raise NotFound(
             _("No external link with the provided id exists."),
+        )
+
+
+def video_call_link_id_exists(video_call_link_id):
+    VideoCallLink = get_video_call_link_model()
+    if not VideoCallLink.objects.filter(id=video_call_link_id).exists():
+        raise NotFound(
+            _("No video call link with the provided id exists."),
         )

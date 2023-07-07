@@ -14,7 +14,7 @@ from openbook_categories.models import Category
 from openbook_circles.models import Circle
 from openbook_common.models import Emoji, EmojiGroup, Badge, Language
 from openbook_common.utils.helpers import get_random_pastel_color
-from openbook_communities.models import CollaborationTool, Community, ExternalLink, Task
+from openbook_communities.models import CollaborationTool, Community, ExternalLink, Task, VideoCallLink
 from openbook_devices.models import Device
 from openbook_hashtags.models import Hashtag
 from openbook_lists.models import List
@@ -478,7 +478,7 @@ def make_collaboration_tool(
     title=None,
     description=None,
     collection_type=None,
-) -> Community:
+) -> CollaborationTool:
     if not creator:
         creator = make_user()
 
@@ -513,7 +513,7 @@ def make_external_link(
     url=None,
     type=None,
     name=None,
-) -> Community:
+) -> ExternalLink:
     if not community:
         community = make_community()
 
@@ -532,4 +532,26 @@ def make_external_link(
         url=url,
         type=type,
         name=name,
+    )
+
+
+def make_video_call_link(
+    community=None,
+    url=None,
+    room_name=None,
+) -> VideoCallLink:
+    if not community:
+        community = make_community()
+
+    if not url:
+        url = fake.url()
+
+    if not room_name:
+        room_name = fake.text(max_nb_chars=settings.VIDEO_CALL_LINK_ROOM_NAME_MAX_LENGTH)
+
+    return mixer.blend(
+        VideoCallLink,
+        community=community,
+        url=url,
+        room_name=room_name,
     )

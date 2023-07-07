@@ -71,6 +71,7 @@ from openbook_common.utils.model_loaders import (
     get_user_notifications_subscription_model,
     get_notification_model,
     get_task_model,
+    get_video_call_link_model,
 )
 from openbook_common.validators import name_characters_validator
 from openbook_hashtags.queries import (
@@ -4866,6 +4867,53 @@ class User(ModelWithUUID, AbstractUser):
         check_can_delete_external_link_from_community(user=self, community=community)
 
         return external_link.delete()
+
+    def add_video_call_link(
+        self,
+        space_id,
+        url,
+        room_name,
+    ):
+        Community = get_community_model()
+        community = Community.objects.get(id=space_id)
+
+        check_can_add_video_call_link_to_community(user=self, community=community)
+
+        VideoCallLink = get_video_call_link_model()
+        return VideoCallLink.create(
+            community=community,
+            url=url,
+            room_name=room_name,
+        )
+
+    def update_video_call_link(
+        self,
+        video_call_link_id,
+        url=None,
+        room_name=None,
+    ):
+        VideoCallLink = get_video_call_link_model()
+        video_call_link = VideoCallLink.objects.get(id=video_call_link_id)
+
+        check_can_update_video_call_link_in_community(user=self, community=video_call_link.community)
+
+        video_call_link.update(
+            url=url,
+            room_name=room_name,
+        )
+
+        return video_call_link
+
+    def delete_video_call_link(self, video_call_link_id):
+        VideoCallLink = get_video_call_link_model()
+        video_call_link = VideoCallLink.objects.get(id=video_call_link_id)
+
+        Community = get_community_model()
+        community = Community.objects.get(id=video_call_link.community.id)
+
+        check_can_delete_video_call_link_from_community(user=self, community=community)
+
+        return video_call_link.delete()
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL, dispatch_uid="bootstrap_auth_token")
