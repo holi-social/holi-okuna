@@ -1498,22 +1498,21 @@ def check_can_delete_external_link_from_community(user, community=None):
 
 
 def check_can_add_video_call_link_to_community(user, community=None):
-    if not user.is_administrator_of_community_with_name(community_name=community.name):
-        # TOOD(SF) i18n
+    if not user.is_member_of_community_with_name(community_name=community.name):
         raise ValidationError(
-            _("You cannot add a video call link to a community that you do not administrate"),
+            _("You cannot add a video call link to a community you are not a member of"),
         )
 
 
 def check_can_update_video_call_link_in_community(user, community=None):
-    if not user.is_administrator_of_community_with_name(community_name=community.name):
+    if not user.is_member_of_community_with_name(community_name=community.name):
         raise ValidationError(
-            _("You cannot update a video call link in a community that you do not administrate"),
+            _("You cannot update a video call link in a community you are not a member of"),
         )
 
 
 def check_can_delete_video_call_link_from_community(user, community=None):
-    if not user.is_administrator_of_community_with_name(community_name=community.name):
+    if not user.is_member_of_community_with_name(community_name=community.name):
         raise ValidationError(
-            _("You cannot delete a video call link in a community that you do not administrate"),
+            _("You cannot delete a video call link in a community you are not a member of"),
         )

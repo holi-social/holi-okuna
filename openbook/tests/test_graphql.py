@@ -5586,11 +5586,10 @@ class TestUsers:
 
         self.assert_is_unauthorized(response)
 
-    def test_can_not_add_video_call_link_if_not_space_admin(self):
+    def test_can_not_add_video_call_link_if_not_space_collaborator(self):
         user = make_user()
 
         community = make_community()
-        community.add_member(user)
 
         add_video_call_link_mutation = """
             mutation test($input: AddVideoCallLinkInput!) {
@@ -5617,9 +5616,8 @@ class TestUsers:
         )
 
         assert response.data is None
-        assert (
-            "You cannot add a video call link to a community that you do not administrate"
-            in response.errors[0].extensions["errors"]
+        assert "You cannot add a video call link to a community you are not a member of" in str(
+            response.errors[0].extensions["errors"]
         )
 
     def test_can_not_delete_video_call_link_if_not_logged_in(self):
@@ -5641,11 +5639,10 @@ class TestUsers:
 
         self.assert_is_unauthorized(response)
 
-    def test_can_not_delete_video_call_link_if_not_space_admin(self):
+    def test_can_not_delete_video_call_link_if_not_space_collaborator(self):
         user = make_user()
 
         community = make_community()
-        community.add_member(user)
 
         video_call_link = make_video_call_link(community=community)
 
@@ -5664,12 +5661,11 @@ class TestUsers:
         )
 
         assert response.data is None
-        assert (
-            "You cannot delete a video call link in a community that you do not administrate"
-            in response.errors[0].extensions["errors"]
+        assert "You cannot delete a video call link in a community you are not a member of" in str(
+            response.errors[0].extensions["errors"]
         )
 
-    def test_can_delete_video_call_link_if_admin(self):
+    def test_can_delete_video_call_link_if_space_collaborator(self):
         user = make_user()
         community = make_community(creator=user)
 
@@ -5758,11 +5754,10 @@ class TestUsers:
         assert response.data is None
         assert "Field 'id' of required type 'UUID!' was not provided" in response.errors[0].message
 
-    def test_can_not_update_video_call_link_if_not_space_admin(self):
+    def test_can_not_update_video_call_link_if_not_space_collaborator(self):
         user = make_user()
 
         community = make_community()
-        community.add_member(user)
 
         video_call_link = make_video_call_link(community=community)
 
@@ -5787,7 +5782,7 @@ class TestUsers:
         )
 
         assert response.data is None
-        assert "You cannot update a video call link in a community that you do not administrate" in str(
+        assert "You cannot update a video call link in a community you are not a member of" in str(
             response.errors[0].extensions["errors"]
         )
 
