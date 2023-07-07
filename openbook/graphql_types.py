@@ -216,6 +216,7 @@ class VideoCallLink:
     id: gql.auto
     url: gql.auto
     room_name: gql.auto
+    created: gql.auto
 
 
 @gql.django.type(PostImageModel)
@@ -618,7 +619,7 @@ class Space:
         ):
             return Paged([], 0)
         return Paged(
-            self.video_call_links.all().order_by("-created_at")[offset : offset + limit],
+            self.video_call_links.all().order_by("-created")[offset : offset + limit],
             self.video_call_links.count(),
         )
 

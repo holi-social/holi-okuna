@@ -1460,7 +1460,7 @@ class VideoCallLink(ModelWithUUID):
     room_name = models.CharField(
         max_length=settings.VIDEO_CALL_LINK_ROOM_NAME_MAX_LENGTH,
     )
-    created_at = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True)
 
     @classmethod
     def create(
