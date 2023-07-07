@@ -1165,6 +1165,7 @@ class Mutation:
         return Result(success=True)
 
     @gql.mutation
+    @sync_to_async
     def create_task(self, info, input: CreateTaskInput) -> Task:
         current_user = verify_authorized_user(info)
 
