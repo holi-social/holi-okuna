@@ -4,7 +4,7 @@ import logging
 
 import pytest
 from asgiref.sync import sync_to_async, async_to_sync
-from django.test import Client
+from django.test import AsyncClient
 from typing import List, Optional
 from uuid import UUID, uuid4
 from datetime import datetime, timedelta
@@ -65,7 +65,7 @@ logger = logging.getLogger(__name__)
 
 @pytest.fixture(scope="session")
 def client():
-    return Client()
+    return AsyncClient()
 
 
 @pytest.fixture(scope="session")
@@ -76,10 +76,10 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 @pytest.mark.django_db
 class TestUsers:
-    def test_get_authenticated_user_returns_self_reference(self, client):
-        user = make_user()
-        headers = make_authentication_headers_for_user(user)
-
+    @pytest.mark.asyncio
+    async def test_get_authenticated_user_returns_self_reference(self, client):
+        user = await sync_to_async(make_user)()
+        headers = await sync_to_async(make_authentication_headers_for_user)(user)
         endpoint = reverse("graphql-endpoint")
         graphql_query = """
             query {
@@ -90,7 +90,7 @@ class TestUsers:
                 }
             }
         """
-        response = client.post(
+        response = await client.post(
             path=endpoint,
             data=json.dumps({"query": graphql_query}),
             content_type="application/json",

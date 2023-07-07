@@ -1,6 +1,5 @@
 from django.shortcuts import reverse
-from django.shortcuts import reverse
-from django.test import TestCase
+from django.test import TransactionTestCase
 
 from openbook_auth.models import User
 from openbook_common.tests.assertions import TestAssertionsMixin
@@ -9,7 +8,7 @@ from openbook_notifications.models import Notification
 from openbook_notifications.models.release_notification import ReleaseNotification
 
 
-class MyAdminTestCase(TestAssertionsMixin, TestCase):
+class MyAdminTestCase(TestAssertionsMixin, TransactionTestCase):
     fixtures = [
         "openbook_common/fixtures/languages.json",
     ]
