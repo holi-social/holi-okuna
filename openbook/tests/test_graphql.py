@@ -2492,6 +2492,102 @@ class TestUsers:
         assert members[3]["user"]["fullName"] == "Angela User"
         assert members[4]["user"]["fullName"] == "Another User"
 
+    def test_space_with_sorted_video_call_links(self):
+        admin = make_user()
+        community = make_community(creator=admin)
+        video_call_link1 = make_video_call_link(
+            community=community, room_name="test1", url="https://meet.holi.social/space-test1"
+        )
+        video_call_link2 = make_video_call_link(
+            community=community, room_name="test2", url="https://meet.holi.social/space-test2"
+        )
+
+        response = schema.execute_sync(
+            """
+            query($id:String!) {
+                spaceById(idOrName:$id) {
+                    videoCallLinks {
+                        totalResults
+                        data {
+                            id
+                            url
+                            roomName
+                        }
+                    }
+                }
+            }
+            """,
+            variable_values={"id": str(community.id)},
+            context_value=BeneDict({"request": {"user": admin}}),
+        )
+
+        assert response.errors is None
+        paged_video_call_links = response.data["spaceById"]["videoCallLinks"]
+        assert paged_video_call_links["totalResults"] == 2
+        video_call_links = paged_video_call_links["data"]
+        # Link created last should show up first
+        assert video_call_links[0]["id"] == str(video_call_link2.id)
+        assert video_call_links[0]["url"] == video_call_link2.url
+        assert video_call_links[0]["roomName"] == video_call_link2.room_name
+        assert video_call_links[1]["id"] == str(video_call_link1.id)
+        assert video_call_links[1]["url"] == video_call_link1.url
+        assert video_call_links[1]["roomName"] == video_call_link1.room_name
+
+    def test_space_empty_video_call_links_if_not_logged_in(self):
+        community = make_community()
+        video_call_link = make_video_call_link(community=community)
+
+        response = schema.execute_sync(
+            """
+            query($id:String!) {
+                spaceById(idOrName:$id) {
+                    videoCallLinks {
+                        totalResults
+                        data {
+                            id
+                            url
+                            roomName
+                        }
+                    }
+                }
+            }
+            """,
+            variable_values={"id": str(community.id)},
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+        )
+
+        assert response.errors is None
+        paged_video_call_links = response.data["spaceById"]["videoCallLinks"]
+        assert paged_video_call_links["totalResults"] == 0
+
+    def test_space_empty_video_call_links_if_not_a_member(self):
+        user = make_user()
+        community = make_community()
+        video_call_link = make_video_call_link(community=community)
+
+        response = schema.execute_sync(
+            """
+            query($id:String!) {
+                spaceById(idOrName:$id) {
+                    videoCallLinks {
+                        totalResults
+                        data {
+                            id
+                            url
+                            roomName
+                        }
+                    }
+                }
+            }
+            """,
+            variable_values={"id": str(community.id)},
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        assert response.errors is None
+        paged_video_call_links = response.data["spaceById"]["videoCallLinks"]
+        assert paged_video_call_links["totalResults"] == 0
+
     @staticmethod
     def public_post_ids(posts_data):
         return [post_data["id"] for post_data in posts_data if post_data["isPublic"]]

@@ -609,6 +609,19 @@ class Space:
         )
         return query.filter(is_public=False).exists()
 
+    @gql.django.field
+    def video_call_links(self, info, offset: int = 0, limit: int = 10) -> Paged[VideoCallLink]:
+        current_user: UserModel = info.context.request.user
+        if (
+            current_user.is_anonymous
+            or not CommunityMembershipModel.objects.filter(community=self, user=current_user).exists()
+        ):
+            return Paged([], 0)
+        return Paged(
+            self.video_call_links.all().order_by("-created_at")[offset : offset + limit],
+            self.video_call_links.count(),
+        )
+
 
 @gql.django.type(PostCommentModel)
 class PostComment:
