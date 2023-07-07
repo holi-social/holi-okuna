@@ -567,12 +567,26 @@ MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT = int(os.environ.get("MIN_UNIQUE_TRENDI
 
 # Email Config
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-AWS_SES_REGION = os.environ.get("AWS_SES_REGION")
-AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
-SERVICE_EMAIL_ADDRESS = os.environ.get("SERVICE_EMAIL_ADDRESS")
+# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# AWS_SES_REGION = os.environ.get("AWS_SES_REGION")
+# AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+# AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+# SERVICE_EMAIL_ADDRESS = os.environ.get("SERVICE_EMAIL_ADDRESS")
+# EMAIL_HOST = os.environ.get("EMAIL_HOST")
+
+EMAIL_PORT = 587
+EMAIL_TIMEOUT = 20  # seconds
+# EMAIL_USE_SSL = False
 EMAIL_HOST = os.environ.get("EMAIL_HOST")
+EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS")
+SERVER_EMAIL = os.environ.get("SERVER_EMAIL")
+SERVICE_EMAIL_ADDRESS = os.environ.get("SERVICE_EMAIL_ADDRESS")
+EMAIL_SSL_KEYFILE = ""  # a value is required for this variable
+EMAIL_SSL_CERTFILE = ""  # a value is required for this variable
 
 # AWS Storage config
 
