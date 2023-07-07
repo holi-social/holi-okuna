@@ -75,10 +75,8 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "pytest_django",
     "ordered_model",
-    "storages",
     "video_encoding",
     "imagekit",
-    "django_media_fixtures",
     "cacheops",
     "django_rq",
     "django_extensions",
@@ -109,7 +107,6 @@ MODELTRANSLATION_FALLBACK_LANGUAGES = ("en",)
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -227,6 +224,8 @@ CACHEOPS = {
     "*.*": {},
 }
 
+USER_CACHE_PREFIX = "user_cache:"
+
 RQ_QUEUES = {
     "default": {
         "USE_REDIS_CACHE": "rq-default-jobs",
@@ -311,26 +310,7 @@ else:
 
     DATABASES = {
         "default": writer_db_config,
-        # 'Reader': {
-        #    'ENGINE': 'django.db.backends.mysql',
-        #    'NAME': RDS_DB_NAME,
-        #    'USER': RDS_USERNAME,
-        #    'PASSWORD': RDS_PASSWORD,
-        #    'HOST': RDS_HOSTNAME_READER,
-        #    'PORT': RDS_PORT,
-        #    'OPTIONS': db_options,
-        # }
     }
-
-    # DATABASE_ROUTERS = ['django_replicated.router.ReplicationRouter']
-
-    # REPLICATED_DATABASE_SLAVES = ['Reader', ]
-
-    # MIDDLEWARE.append('django_replicated.middleware.ReplicationMiddleware', )
-
-    # REPLICATED_VIEWS_OVERRIDES = {
-    #    '/admin/*': 'master',
-    # }
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -387,10 +367,8 @@ UNICODE_JSON = True
 
 # The sentry DSN for error reporting
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
-if IS_PRODUCTION:
-    sentry_config.init(sentry_dsn=SENTRY_DSN, sample_rate=0.01, environment=ENVIRONMENT)  # trace 1% of requests
-elif IS_STAGING:
-    sentry_config.init(sentry_dsn=SENTRY_DSN, sample_rate=1, environment=ENVIRONMENT)  # trace all requests
+if IS_PRODUCTION or IS_STAGING:  # trace 1% of requests, not marked by the frontend
+    sentry_config.init(sentry_dsn=SENTRY_DSN, sample_rate=0.01, environment=ENVIRONMENT)
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
@@ -430,7 +408,7 @@ MEDIA_ROOT = os.environ.get("MEDIA_ROOT", "./media")
 
 MEDIA_URL = os.environ.get("MEDIA_URL", "/media/")
 
-STATICFILES_DIRS = (os.path.join(BASE_DIR, "openbook/static"),)
+# STATICFILES_DIRS = (os.path.join(BASE_DIR, "openbook/static"),) only needed for additions static files directories
 
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
@@ -522,6 +500,7 @@ COMMUNITY_TOPICS_MIN_AMOUNT = 1
 COMMUNITY_TOPICS_MAX_AMOUNT = 6
 COMMUNITY_CONTACT_DESCRIPTION_MAX_LENGTH = 100
 COMMUNITY_CONTACT_PHONE_MAX_LENGTH = 100
+COMMUNITY_MEMBERSHIP_REQUEST_MESSAGE_MAX_LENGTH = 1000
 HASHTAG_NAME_MAX_LENGTH = 32
 CATEGORY_NAME_MAX_LENGTH = 32
 CATEGORY_TITLE_MAX_LENGTH = 64
@@ -598,30 +577,6 @@ AWS_DEFAULT_ACL = None
 # TODO Think about what to do for storage backend
 
 DEFAULT_FILE_STORAGE = "openbook.storage_imagekit_io.ImagekitIoStorage"
-
-if False:  # IS_PRODUCTION:
-    AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
-    AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
-    AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME")
-    AWS_S3_ENCRYPTION = True
-    AWS_S3_SIGNATURE_VERSION = "s3v4"
-    AWS_S3_HOST = os.environ.get("AWS_S3_HOST", "s3.amazonaws.com")
-    AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.{AWS_S3_HOST}"
-
-    AWS_S3_OBJECT_PARAMETERS = {
-        "CacheControl": "max-age=86400",
-    }
-
-    STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_STATIC_LOCATION}/"
-
-    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_PUBLIC_MEDIA_LOCATION}/"
-
-    STATICFILES_STORAGE = "openbook.storage_backends.S3StaticStorage"
-
-    DEFAULT_FILE_STORAGE = "openbook.storage_backends.S3PublicMediaStorage"
-
-    PRIVATE_FILE_STORAGE = "openbook.storage_backends.S3PrivateMediaStorage"
 
 # ONE SIGNAL
 ONE_SIGNAL_APP_ID = os.environ.get("ONE_SIGNAL_APP_ID")

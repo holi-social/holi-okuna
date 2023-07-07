@@ -2034,14 +2034,14 @@ class User(ModelWithUUID, AbstractUser):
         # No need to delete community invite notifications as they are delete cascaded
         return community_to_join
 
-    def request_membership_to_community_with_name(self, community_name):
+    def request_membership_to_community_with_name(self, community_name, message=None):
         # "Autojoin" for spaces will be configurable per space in the future
         # use self.join_community_with_name(space.name) as a template
         check_can_request_membership_to_community_with_name(self, community_name)
 
         Community = get_community_model()
         community_to_join = Community.objects.get(name=community_name)
-        membership_request = community_to_join.add_membership_request(self)
+        membership_request = community_to_join.add_membership_request(self, message)
         get_community_notifications_subscription_model().enable_new_post_notification_for_community(
             community_to_join, self
         )

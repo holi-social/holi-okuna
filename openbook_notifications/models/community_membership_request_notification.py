@@ -21,4 +21,8 @@ class CommunityMembershipRequestNotification(ModelWithUUID):
         return membership_request_notification
 
     def get_options(self):
-        return {"user": self.membership_request.user, "space": self.membership_request.community}
+        return {
+            "user": self.membership_request.user,
+            "space": self.membership_request.community,
+            "message": self.membership_request.message,
+        }
