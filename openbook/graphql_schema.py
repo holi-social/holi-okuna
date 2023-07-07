@@ -16,7 +16,7 @@ from django.db.models.lookups import IContains
 from django.utils.translation import gettext_lazy as _
 from graphql import GraphQLError
 from strawberry.file_uploads import Upload
-from strawberry.types import Info
+from strawberry.types import Info, ExecutionContext
 from strawberry_django_plus.optimizer import DjangoOptimizerExtension
 
 from openbook.graphql_errors import GraphQLErrorCodes
@@ -1329,7 +1329,31 @@ class Mutation:
         return Result(success=True)
 
 
-schema = strawberry.Schema(
+class HoliSchema(strawberry.Schema):
+    def process_errors(
+        self,
+        errors: List[GraphQLError],
+        execution_context: Optional[ExecutionContext] = None,
+    ) -> None:
+        real_errors = [
+            error
+            for error in errors
+            if not (
+                error.extensions
+                and "code" in error.extensions
+                and error.extensions["code"]
+                in [
+                    GraphQLErrorCodes.BAD_USER_INPUT,
+                    GraphQLErrorCodes.NOT_FOUND,
+                    GraphQLErrorCodes.FORBIDDEN,
+                    GraphQLErrorCodes.UNAUTHORIZED,
+                ]
+            )
+        ]
+        super().process_errors(real_errors, execution_context)
+
+
+schema = HoliSchema(
     query=Query,
     mutation=Mutation,
     extensions=[
