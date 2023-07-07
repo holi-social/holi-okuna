@@ -384,7 +384,8 @@ class Insight:
     @gql.django.field(
         description="A list of all users involved. Curator of the insight, Authors of all the posts and all commenters of those posts"
     )
-    async def involved_users(self, info, offset: int = 0, limit: int = 3) -> Paged[User]:
+    @sync_to_async
+    def involved_users(self, info, offset: int = 0, limit: int = 3) -> Paged[User]:
         current_user = info.context.request.user
         query = UserModel.objects.filter(
             Q(
