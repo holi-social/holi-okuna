@@ -1351,6 +1351,13 @@ def check_can_create_invite(user, nickname):
         raise ValidationError("Nickname already in use")
 
 
+def check_can_create_invite_to_community(user, community=None):
+    if not user.is_member_of_community_with_name(community_name=community.name):
+        raise ValidationError(
+            _("You cannot create an invite to a community you are not a member of"),
+        )
+
+
 def check_can_update_invite(user, invite_id):
     check_is_creator_of_invite_with_id(user=user, invite_id=invite_id)
 

@@ -4230,6 +4230,116 @@ class TestUsers:
         assert new_description == updated_collaboration_tool["description"]
         assert new_collection_type == updated_collaboration_tool["collectionType"]
 
+    def test_can_not_invite_to_space_by_email_if_not_logged_in(self):
+        community = make_community()
+
+        invite_to_space_by_email_mutation = """
+            mutation InviteToSpaceByEmail($email: String!, $spaceId: UUID!) {
+                inviteToSpaceByEmail(email: $email, spaceId: $spaceId) {
+                    success
+                }
+            }
+            """
+
+        valid_input = {
+            "email": "test@test.com",
+            "spaceId": str(community.id),
+        }
+
+        response = schema.execute_sync(
+            invite_to_space_by_email_mutation,
+            variable_values=valid_input,
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+        )
+
+        self.assert_is_unauthorized(response)
+
+    def test_can_not_invite_to_space_by_email_if_not_a_space_member(self):
+        user = make_user()
+
+        community = make_community()
+
+        invite_to_space_by_email_mutation = """
+            mutation InviteToSpaceByEmail($email: String!, $spaceId: UUID!) {
+                inviteToSpaceByEmail(email: $email, spaceId: $spaceId) {
+                    success
+                }
+            }
+            """
+
+        valid_input = {
+            "email": "test@test.com",
+            "spaceId": str(community.id),
+        }
+
+        response = schema.execute_sync(
+            invite_to_space_by_email_mutation,
+            variable_values=valid_input,
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        field_errors = json.loads(response.errors[0].extensions["errors"])
+
+        assert field_errors[0]["message"] in "You cannot create an invite to a community you are not a member of"
+
+    def test_can_not_invite_to_space_by_email_missing_required_fields(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        invite_to_space_by_email_mutation = """
+            mutation InviteToSpaceByEmail($email: String!, $spaceId: UUID!) {
+                inviteToSpaceByEmail(email: $email, spaceId: $spaceId) {
+                    success
+                }
+            }
+            """
+
+        response_no_email = schema.execute_sync(
+            invite_to_space_by_email_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"spaceId": str(community.id)},
+        )
+
+        response_no_space_id = schema.execute_sync(
+            invite_to_space_by_email_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"email": "test@test.com"},
+        )
+
+        assert "Variable '$email' of required type 'String!' was not provided." in str(
+            response_no_email.errors[0].message
+        )
+        assert "Variable '$spaceId' of required type 'UUID!' was not provided." in str(
+            response_no_space_id.errors[0].message
+        )
+
+    def test_can_invite_to_space_by_email(self):
+        user = make_user()
+
+        community = make_community(creator=user)
+
+        invite_to_space_by_email_mutation = """
+            mutation InviteToSpaceByEmail($email: String!, $spaceId: UUID!) {
+                inviteToSpaceByEmail(email: $email, spaceId: $spaceId) {
+                    success
+                }
+            }
+            """
+
+        valid_input = {
+            "email": "joao.ramia@gmail.com",
+            "spaceId": str(community.id),
+        }
+
+        response = schema.execute_sync(
+            invite_to_space_by_email_mutation,
+            variable_values=valid_input,
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        assert response.data["inviteToSpaceByEmail"]["success"] is True
+        assert response.errors is None
+
     def test_can_not_create_task_missing_required_fields(self):
         user = make_user()
 

@@ -4665,6 +4665,8 @@ class User(ModelWithUUID, AbstractUser):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
 
+        check_can_create_invite_to_community(user=self, community=community)
+
         subject, from_email, to = "hello", "hi@holi.social", email
         text_content = f"{self.profile.name or 'A user'} has invited you to join the space {community.title} at holi!\nVisit https://app.holi.social/spaces/{community.name} to join this Space."
         html_content = f"<p>{self.profile.name or 'A user'} has invited you to join the Space <strong>{community.title}</strong> at <a href=\"https://app.holi.social\">holi</a>!<br/><br/><a href=\"https://app.holi.social/spaces/{community.name}\">Join this Space here</a></p>"
