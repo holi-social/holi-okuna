@@ -6,6 +6,7 @@ import time
 from django.db import connection
 
 import structlog
+from django.utils.decorators import async_only_middleware
 
 log = structlog.getLogger()
 
@@ -77,6 +78,7 @@ class MemoryStatus(object):
             return 0
 
 
+@async_only_middleware
 def slow_log_middleware(get_response):
     loadavg = LoadAverage()
     pid = os.getpid()
@@ -92,14 +94,14 @@ def slow_log_middleware(get_response):
     def _current_millis():
         return round(time.time() * 1000)
 
-    def middleware(request):
+    async def middleware(request):
         start_time = _current_millis()
         try:
             initial_http_body = request.body
         except Exception:
             initial_http_body = "Could not parse request body"
 
-        response = get_response(request)  # handle request
+        response = await get_response(request)  # handle request
 
         time_delta = _current_millis() - start_time
 

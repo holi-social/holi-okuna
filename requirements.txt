@@ -1,5 +1,6 @@
 -i https://pypi.python.org/simple
 appdirs==1.4.4
+adrf==0.1.1
 ASGIMiddlewareStaticFile==0.6.0
 bandit==1.7.5
 beautifulsoup4==4.12.2
@@ -53,6 +54,7 @@ psycopg2==2.9.6
 psycopg2-binary==2.9.6
 pyjwt==2.7.0
 pytest==7.3.2
+pytest-asyncio==0.21.0
 pytest-cov==4.1.0
 pytest-django==4.5.2
 pytest_xdist==3.3.1
