@@ -96,8 +96,8 @@ def get_reactions(model, reactions_query):
         .values("reaction_type")
         .annotate(count=Count("reaction_type"))
         .order_by("-count")
-        # .cache()
         .all()
+        .cache()
     )
     return {reaction["reaction_type"]: reaction["count"] for reaction in reactions}
 
