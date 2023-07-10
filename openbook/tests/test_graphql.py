@@ -4247,7 +4247,7 @@ class TestUsers:
             "spaceId": str(community.id),
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
             variable_values=valid_input,
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
@@ -4273,7 +4273,7 @@ class TestUsers:
             "spaceId": str(community.id),
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
             variable_values=valid_input,
             context_value=BeneDict({"request": {"user": user}}),
@@ -4295,13 +4295,13 @@ class TestUsers:
             }
             """
 
-        response_no_email = schema.execute_sync(
+        response_no_email = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"spaceId": str(community.id)},
         )
 
-        response_no_space_id = schema.execute_sync(
+        response_no_space_id = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"email": "test@test.com"},
@@ -4332,7 +4332,7 @@ class TestUsers:
             "spaceId": str(community.id),
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
             variable_values=valid_input,
             context_value=BeneDict({"request": {"user": user}}),
