@@ -6,7 +6,7 @@ from graphql import GraphQLError
 from sentry_sdk import configure_scope
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.scrubber import EventScrubber
-from strawberry.extensions.tracing import SentryTracingExtensionSync
+from strawberry.extensions.tracing import SentryTracingExtension
 
 from openbook.graphql_errors import GraphQLErrorCodes
 
@@ -41,7 +41,7 @@ class HoliSentryTracesSampler:
         return self.default_sample_rate
 
 
-class HoliSentryTracingExtension(SentryTracingExtensionSync):
+class HoliSentryTracingExtension(SentryTracingExtension):
     def on_operation(self) -> Generator[None, None, None]:
         yield from super().on_operation()
 
