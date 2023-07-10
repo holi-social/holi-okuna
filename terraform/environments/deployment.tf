@@ -166,6 +166,24 @@ resource "google_cloud_run_service" "okuna" {
           value = "development@holi.team"
         }
         env {
+          name = "EMAIL_HOST_USER"
+          value_from {
+            secret_key_ref {
+              key  = "latest"
+              name = "MAILBOX_USERNAME_DEVELOPMENT"
+            }
+          }
+        }
+        env {
+          name = "EMAIL_HOST_PASSWORD"
+          value_from {
+            secret_key_ref {
+              key  = "latest"
+              name = "MAILBOX_PASSWORD_DEVELOPMENT"
+            }
+          }
+        }
+        env {
           name  = "ORY_BASE_URL"
           value = local.environment == "production" ? "https://auth.holi.social" : "https://dev-auth.holi.social"
         }
