@@ -329,4 +329,3 @@ class ModeratedObjectSerializer(serializers.ModelSerializer):
             "category",
             "reports_count",
         )
-
