@@ -173,6 +173,17 @@ class UpdateCommunitySerializer(serializers.Serializer):
     )
 
 
+class InviteToCommunityByEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField(
+        required=False,
+        allow_blank=True,
+    )
+    space_id = serializers.UUIDField(
+        validators=[community_id_exists],
+        required=True,
+    )
+
+
 class CommunityNameCheckSerializer(serializers.Serializer):
     name = serializers.CharField(
         max_length=settings.COMMUNITY_NAME_MAX_LENGTH,

@@ -4660,6 +4660,21 @@ class User(ModelWithUUID, AbstractUser):
                 Notification.objects.filter(owner=self, created__lte=last_seen_timestamp).update(read=True)
                 self.save()
 
+    # TODO: extend this method to use Okuna's Invitation model (HOLI-4982) and use a localized email template (HOLI-4913)
+    def invite_to_community_by_email(self, email, space_id):
+        Community = get_community_model()
+        community = Community.objects.get(id=space_id)
+
+        check_can_create_invite_to_community(user=self, community=community)
+
+        subject, from_email = "You've been invited to a space at holi", settings.DEFAULT_FROM_EMAIL
+
+        text_content = f"{self.profile.name or 'A user'} has invited you to join the space {community.title} at holi!\nVisit https://app.holi.social/spaces/{community.name} to join this Space."
+        html_content = f"<p>{self.profile.name or 'A user'} has invited you to join the Space <strong>{community.title}</strong> at <a href=\"https://app.holi.social\">holi</a>!<br/><br/><a href=\"https://app.holi.social/spaces/{community.name}\">Join this Space here</a></p>"
+        msg = EmailMultiAlternatives(subject, text_content, from_email, [email])
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
+
     def create_task(
         self,
         space_id,

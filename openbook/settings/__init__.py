@@ -546,13 +546,19 @@ MIN_UNIQUE_TOP_POST_COMMENTS_COUNT = int(os.environ.get("MIN_UNIQUE_TOP_POST_COM
 MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT = int(os.environ.get("MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT", "5"))
 
 # Email Config
-
+EMAIL_PORT = 587
+EMAIL_TIMEOUT = 20
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-AWS_SES_REGION = os.environ.get("AWS_SES_REGION")
-AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
-SERVICE_EMAIL_ADDRESS = os.environ.get("SERVICE_EMAIL_ADDRESS")
+EMAIL_SSL_KEYFILE = ""  # a value is required for this variable
+EMAIL_SSL_CERTFILE = ""  # a value is required for this variable
 EMAIL_HOST = os.environ.get("EMAIL_HOST")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
+SERVER_EMAIL = os.environ.get("SERVER_EMAIL")
+SERVICE_EMAIL_ADDRESS = os.environ.get("SERVICE_EMAIL_ADDRESS")
 
 # AWS Storage config
 

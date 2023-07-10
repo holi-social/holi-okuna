@@ -45,6 +45,7 @@ from openbook_communities.views.communities.serializers import (
     UpdateTaskSerializer,
     UpdateCollaborationToolSerializer,
     UpdateCommunitySerializer,
+    InviteToCommunityByEmailSerializer,
     ValidateCommunitySerializer,
 )
 from openbook_communities.views.community.serializers import CommunityUserConnectionSerializer
@@ -1161,6 +1162,19 @@ class Mutation:
         publish_space_deleted_event(space)
 
         invalidate_discover_spaces_query_cache()
+
+        return Result(success=True)
+
+    @gql.mutation
+    @sync_to_async
+    def invite_to_space_by_email(self, info, email: str, space_id: uuid.UUID) -> Result:
+        current_user = verify_authorized_user(info)
+
+        serializer = InviteToCommunityByEmailSerializer(data={"email": email, "space_id": space_id})
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        current_user.invite_to_community_by_email(email=data.get("email"), space_id=data.get("space_id"))
 
         return Result(success=True)
 
