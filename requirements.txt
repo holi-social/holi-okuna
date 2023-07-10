@@ -1,6 +1,7 @@
 -i https://pypi.python.org/simple
 appdirs==1.4.4
 adrf==0.1.1
+ASGIMiddlewareStaticFile==0.6.0
 bandit==1.7.5
 beautifulsoup4==4.12.2
 BeneDict~=0.3.2
@@ -25,7 +26,7 @@ django-proxy==1.2.2
 django-redis==5.3.0
 django-rq==2.8.1
 django-structlog==5.1.0
-django==4.2.2
+django==4.2.3
 djangorestframework-camel-case==1.4.2
 djangorestframework==3.14.0
 dparse==0.6.2; python_version >= '3.5'
@@ -62,11 +63,13 @@ python-magic==0.4.27
 pytz==2023.3
 pyyaml==6.0
 redis==4.5.5
+requests==2.31.0
 requests-file==1.5.1
 rest-framework-generic-relations==2.1.0
 rq==1.15.1
 safety==2.3.5
 sentry-sdk==1.26.0
+setuptools==68.0.0
 shutilwhich==1.1.0
 six==1.16.0
 spinners==0.0.24
@@ -84,5 +87,4 @@ urlextract==1.8.0
 urllib3==1.26.15; python_version != '3.4' # imagekit requires <1.27
 uvicorn==0.22.0
 watchdog==3.0.0
-whitenoise==6.5.0
 zipp==3.15.0; python_version >= '3.6'

@@ -368,10 +368,8 @@ UNICODE_JSON = True
 
 # The sentry DSN for error reporting
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
-if IS_PRODUCTION:
-    sentry_config.init(sentry_dsn=SENTRY_DSN, sample_rate=0.01, environment=ENVIRONMENT)  # trace 1% of requests
-elif IS_STAGING:
-    sentry_config.init(sentry_dsn=SENTRY_DSN, sample_rate=1, environment=ENVIRONMENT)  # trace all requests
+if IS_PRODUCTION or IS_STAGING:  # trace 1% of requests, not marked by the frontend
+    sentry_config.init(sentry_dsn=SENTRY_DSN, sample_rate=0.01, environment=ENVIRONMENT)
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
@@ -411,7 +409,7 @@ MEDIA_ROOT = os.environ.get("MEDIA_ROOT", "./media")
 
 MEDIA_URL = os.environ.get("MEDIA_URL", "/media/")
 
-STATICFILES_DIRS = (os.path.join(BASE_DIR, "openbook/static"),)
+# STATICFILES_DIRS = (os.path.join(BASE_DIR, "openbook/static"),) only needed for additions static files directories
 
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
