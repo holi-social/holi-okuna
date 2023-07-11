@@ -239,6 +239,7 @@ class LinkPreview:
 @gql.django.type(UserModel)
 class User:
     id: uuid.UUID = gql.django.field(field_name="username")
+    identity: Optional[str]
     avatar_default_color: str
     avatar_label: str
 

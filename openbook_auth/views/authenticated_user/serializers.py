@@ -15,6 +15,7 @@ from openbook_auth.validators import (
     interest_with_id_exists,
     skill_with_id_exists,
     sdg_with_id_exists,
+    identity_characters_validator,
 )
 from django.contrib.auth.password_validation import validate_password
 
@@ -232,6 +233,13 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
         required=False,
         allow_empty=True,
         child=serializers.UUIDField(validators=[skill_with_id_exists]),
+    )
+    identity = serializers.CharField(
+        min_length=1,
+        max_length=settings.IDENTITY_MAX_LENGTH,
+        validators=[identity_characters_validator],
+        required=False,
+        allow_blank=True,
     )
 
 

@@ -9,7 +9,7 @@ from rq.job import Job
 
 from openbook import settings
 from openbook_auth.models import User
-from openbook_auth.tasks import update_ory_user
+from openbook_auth.tasks import update_ory_user_names
 from openbook_common.tests.helpers import make_user
 
 
@@ -54,7 +54,7 @@ class TestUpdateOryUser(TestCase):
         response._content = str.encode(response_content)
         mock_patch.return_value = response
 
-        job: Job = update_ory_user.delay(self.user.id)
+        job: Job = update_ory_user_names.delay(self.user.id)
 
         mock_patch.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{self.user.username}",
@@ -84,7 +84,7 @@ class TestUpdateOryUser(TestCase):
         response._content = str.encode(response_content)
         mock_patch.return_value = response
 
-        job: Job = update_ory_user.delay(self.user.id)
+        job: Job = update_ory_user_names.delay(self.user.id)
 
         mock_patch.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{self.user.username}",
@@ -112,7 +112,7 @@ class TestUpdateOryUser(TestCase):
         response._content = str.encode(response_content)
         mock_patch.return_value = response
 
-        job: Job = update_ory_user.delay(self.user.id)
+        job: Job = update_ory_user_names.delay(self.user.id)
 
         mock_patch.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{self.user.username}",
