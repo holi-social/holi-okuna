@@ -122,7 +122,9 @@ class UserWithProfileManager(UserManager):
 
 class IdentityValidator(validators.RegexValidator):
     regex = r"^[a-z][a-z0-9_.-]*\Z"
-    message = _("Enter a valid identity. This value has to start with a lowercase letter and may contain only lowercase letters, numbers, '_', '-' and '.' characters.")
+    message = _(
+        "Enter a valid identity. This value has to start with a lowercase letter and may contain only lowercase letters, numbers, '_', '-' and '.' characters."
+    )
     flags = 0
 
 
