@@ -2,7 +2,7 @@ from copy import deepcopy
 from collections import defaultdict
 from datetime import datetime, timedelta
 
-from django.core.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError
 from typing_extensions import Annotated
 
 import requests
@@ -10,7 +10,7 @@ import structlog
 from django.conf import settings
 from django.core.cache import cache
 from django.contrib.gis import geos
-from django.db import Error, transaction
+from django.db import transaction
 from django.db.models import Count, F, Value, Prefetch
 from django.db.models.functions import Concat
 from django.db.models.lookups import IContains

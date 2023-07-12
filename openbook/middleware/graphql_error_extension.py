@@ -2,6 +2,7 @@ import json
 
 from graphql import GraphQLError
 from rest_framework.exceptions import ValidationError
+from django.core.exceptions import ValidationError as CoreValidationError
 from djangorestframework_camel_case.util import camelize
 from strawberry.utils.await_maybe import await_maybe
 
@@ -21,5 +22,14 @@ class GraphQLErrorExtension(Extension):
                 extensions={
                     "code": GraphQLErrorCodes.BAD_USER_INPUT,
                     "errors": json.dumps(camelize(error.get_full_details())),
+                },
+            )
+        except CoreValidationError as error:
+            validationError = ValidationError(error.message_dict)
+            raise GraphQLError(
+                "Bad user input",
+                extensions={
+                    "code": GraphQLErrorCodes.BAD_USER_INPUT,
+                    "errors": json.dumps(camelize(validationError.get_full_details())),
                 },
             )
