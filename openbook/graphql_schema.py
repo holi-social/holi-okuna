@@ -31,12 +31,12 @@ from openbook.utils import generate_discover_spaces_hash_key, invalidate_discove
 from openbook_auth.images import delete_avatar
 from openbook_auth.tasks import update_ory_user
 from openbook_auth.validators import string_not_empty
-from openbook_auth.views.authenticated_user.serializers import (
+from openbook_auth.serializers.authenticated_user_serializers import (
     UpdateAuthenticatedUserSerializer,
 )
 from openbook_common.helpers import is_parameter_null
 from openbook_common.models import AppVersion
-from openbook_communities.views.communities.serializers import (
+from openbook_communities.serializers.communities_serializers import (
     AddCollaborationToolSerializer,
     AddExternalLinkSerializer,
     CreateCommunitySerializer,
@@ -48,13 +48,13 @@ from openbook_communities.views.communities.serializers import (
     InviteToCommunityByEmailSerializer,
     ValidateCommunitySerializer,
 )
-from openbook_communities.views.community.serializers import CommunityUserConnectionSerializer
+from openbook_communities.serializers.community_serializers import CommunityUserConnectionSerializer
 from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_moderation.models import ModeratedObject
-from openbook_posts.views.post.serializers import EditCommunityPostSerializer
-from openbook_posts.views.post_comments.serializers import CommentPostSerializer
+from openbook_posts.serializers.post_serializers import EditCommunityPostSerializer
+from openbook_posts.serializers.post_comments_serializers import CommentPostSerializer
 from openbook_common.utils.helpers import is_uuid
-from openbook_posts.views.posts.serializers import (
+from openbook_posts.serializers.posts_serializers import (
     CreateCommunityPostSerializer,
 )
 from openbook.middleware.graphql_error_extension import GraphQLErrorExtension
