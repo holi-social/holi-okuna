@@ -299,7 +299,8 @@ class TestUsers:
         mock_patch.assert_not_called()
         persisted_user = User.objects.get(username=user2.username)
         assert persisted_user.identity is None
-        assert executed.errors[0].message == "{'identity': ['A user with that identity already exists.']}"
+        assert executed.errors[0].extensions["code"] == "BAD_USER_INPUT"
+        assert "A user with that identity already exists" in executed.errors[0].extensions["errors"]
 
     def update_identity(self, user, identity):
         executed = async_to_sync(schema.execute)(
