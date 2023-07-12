@@ -783,11 +783,13 @@ class Mutation:
     @sync_to_async
     def update_authenticated_user(self, info, input: UpdateAuthenticatedUserInput) -> User:
         current_user = verify_authorized_user(info)
-        has_identity = current_user.identity is not None
 
         input_dict = to_input_dict(input)
+
+        # identity can only be set once and can never change thereafter
+        has_identity = current_user.identity is not None
         if has_identity:
-            input_dict["identity"] = "__ALREADY_SET__"
+            input_dict["identity"] = "__ALREADY_SET__"  # This value will lead to a validation error to handle this
         if input.first_name:
             input_dict["name"] = input.first_name
 
@@ -825,6 +827,9 @@ class Mutation:
             update_ory_user_names(current_user.id)
             publish_user_name_updated_event(user=current_user)
 
+        # The identity must be synced to Ory, so it can be used by the matrix server
+        # If that fails, the identity is also removed from Okuna again (manual Rollback)
+        # This implementation ensures, that both Okuna and Ory don't already know this identity
         if not has_identity and input.identity:
             try:
                 update_ory_user_identity(current_user.id)

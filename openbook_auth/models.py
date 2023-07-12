@@ -121,6 +121,10 @@ class UserWithProfileManager(UserManager):
 
 
 class IdentityValidator(validators.RegexValidator):
+    """
+    Matrix only allows lowercase characters, numbers, '_', '-' and '.' in identifiers. And they have to start with a character.
+    """
+
     regex = r"^[a-z][a-z0-9_.-]*\Z"
     message = _(
         "Enter a valid identity. This value has to start with a lowercase letter and may contain only lowercase letters, numbers, '_', '-' and '.' characters."
@@ -215,7 +219,8 @@ class User(ModelWithUUID, AbstractUser):
             "unique": _("A user with that username already exists."),
         },
     )
-
+    # a unique identifier chosen by the user that is also used as local part for the matrix identifier
+    # It's also stored in Ory as an identifier, because that is how it's transferred to the matrix server
     identity = models.CharField(
         blank=True,
         null=True,
