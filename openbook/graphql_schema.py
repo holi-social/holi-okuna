@@ -2,6 +2,7 @@ from copy import deepcopy
 from collections import defaultdict
 from datetime import datetime, timedelta
 
+from rest_framework.exceptions import ValidationError
 from typing_extensions import Annotated
 
 import requests
@@ -9,7 +10,7 @@ import structlog
 from django.conf import settings
 from django.core.cache import cache
 from django.contrib.gis import geos
-from django.db import Error, transaction
+from django.db import transaction
 from django.db.models import Count, F, Value, Prefetch
 from django.db.models.functions import Concat
 from django.db.models.lookups import IContains
@@ -28,8 +29,8 @@ from openbook.helpers import (
     publish_user_name_updated_event,
 )
 from openbook.utils import generate_discover_spaces_hash_key, invalidate_discover_spaces_query_cache
-from openbook_auth.images import delete_avatar
-from openbook_auth.tasks import update_ory_user
+from openbook_auth.errors import OryRequestError
+from openbook_auth.tasks import update_ory_user_names, update_ory_user_identity
 from openbook_auth.validators import string_not_empty
 from openbook_auth.serializers.authenticated_user_serializers import (
     UpdateAuthenticatedUserSerializer,
@@ -619,6 +620,7 @@ class UpdateAuthenticatedUserInput:
     avatar: Optional[Upload] = strawberry.UNSET
     first_name: Optional[str] = strawberry.UNSET
     last_name: Optional[str] = strawberry.UNSET
+    identity: Optional[str] = strawberry.UNSET
     about_me: Optional[str] = strawberry.UNSET
     pronouns: Optional[str] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
@@ -783,6 +785,11 @@ class Mutation:
         current_user = verify_authorized_user(info)
 
         input_dict = to_input_dict(input)
+
+        # identity can only be set once and can never change thereafter
+        has_identity = current_user.identity is not None
+        if has_identity:
+            input_dict["identity"] = "__ALREADY_SET__"  # This value will lead to a validation error to handle this
         if input.first_name:
             input_dict["name"] = input.first_name
 
@@ -796,33 +803,45 @@ class Mutation:
 
         remove_avatar = is_parameter_null(data, "avatar")
 
-        try:
-            current_user.update(
-                name=data.get("name"),
-                last_name=data.get("last_name"),
-                about_me=data.get("about_me"),
-                pronouns=data.get("pronouns"),
-                location=data.get("location"),
-                geolocation=data.get("geolocation"),
-                update_location=input.location is not strawberry.UNSET or input.geolocation is not strawberry.UNSET,
-                engagement_level=data.get("engagement_level"),
-                interests=data.get("interests"),
-                sdgs=data.get("sdgs"),
-                skills=data.get("skills"),
-                avatar=data.get("avatar"),
-                remove_avatar=remove_avatar,
-                save=True,
-            )
-            # Update user cache
-            cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
-        except Error:
-            if remove_avatar:
-                delete_avatar(data["avatar"])
-            raise
+        current_user.update(
+            name=data.get("name"),
+            last_name=data.get("last_name"),
+            identity=data.get("identity"),
+            about_me=data.get("about_me"),
+            pronouns=data.get("pronouns"),
+            location=data.get("location"),
+            geolocation=data.get("geolocation"),
+            update_location=input.location is not strawberry.UNSET or input.geolocation is not strawberry.UNSET,
+            engagement_level=data.get("engagement_level"),
+            interests=data.get("interests"),
+            sdgs=data.get("sdgs"),
+            skills=data.get("skills"),
+            avatar=data.get("avatar"),
+            remove_avatar=remove_avatar,
+            save=True,
+        )
+        # Update user cache
+        cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
 
         if input.first_name or input.last_name:
-            update_ory_user(current_user.id)
+            update_ory_user_names(current_user.id)
             publish_user_name_updated_event(user=current_user)
+
+        # The identity must be synced to Ory, so it can be used by the matrix server
+        # If that fails, the identity is also removed from Okuna again (manual Rollback)
+        # This implementation ensures, that both Okuna and Ory don't already know this identity
+        if not has_identity and input.identity:
+            try:
+                update_ory_user_identity(current_user.id)
+            except OryRequestError as error:
+                current_user.identity = None
+                current_user.save()
+                cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
+                if error.status_code == 409:
+                    raise ValidationError({"identity": _("A user with that identity already exists.")})
+                else:
+                    logger.error("Could not set identity for user %s. Ory response: %s", current_user.id, error.error)
+                    raise ValidationError({"identity": _("The identity could not be set.")})
 
         return current_user
 

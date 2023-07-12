@@ -13,6 +13,20 @@ def username_characters_validator(username):
         )
 
 
+def identity_characters_validator(identity):
+    """
+    Matrix only allows lowercase characters, numbers, '_', '-' and '.' in identifiers. And they have to start with a character.
+    """
+    if identity == "__ALREADY_SET__":
+        raise ValidationError(_("Identity can not be changed."))
+    if not re.match("^[a-z][a-z0-9_.-]*$", identity):
+        raise ValidationError(
+            _(
+                "Identity must start with a lowercase character and can only contain lowercase characters, numbers, periods, underscores and dashes."
+            ),
+        )
+
+
 def username_not_taken_validator(username):
     if User.is_username_taken(username):
         raise ValidationError(

@@ -231,6 +231,96 @@ class TestUsers:
 
         mock_publish_user_name_updated_event.assert_called_once_with(user=user)
 
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    def test_can_set_identity_for_authenticated_user_once(self, mock_patch):
+        response = Response()
+        response.status_code = 200
+        response._content = str.encode(json.dumps({}))
+        mock_patch.return_value = response
+        user = make_user(name="Fritz", last_name="Meier")
+        identity = "fritz.meier"
+
+        json_body = [
+            {"op": "add", "path": "/traits/identity", "value": f"{identity}"},
+        ]
+
+        executed = self.update_identity(user, identity)
+        mock_patch.assert_called_once_with(
+            f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
+            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+            json=json_body,
+        )
+        updated_user = executed.data["updateAuthenticatedUser"]
+        graphql_identity = updated_user["identity"]
+        persisted_user = User.objects.get(username=user.username)
+
+        assert graphql_identity == identity
+        assert persisted_user.identity == identity
+
+        executed = self.update_identity(user, "new-identity")
+        assert executed.errors[0].extensions["code"] == "BAD_USER_INPUT"
+        assert "Identity can not be changed" in executed.errors[0].extensions["errors"]
+
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    def test_when_ory_identity_fails_okuna_is_reset(self, mock_patch):
+        response = Response()
+        response.status_code = 409
+        response._content = str.encode(json.dumps({"error": {"message": "Error Message"}}))
+        mock_patch.return_value = response
+        user = make_user(name="Fritz", last_name="Meier")
+        identity = "fritz.meier"
+
+        json_body = [
+            {"op": "add", "path": "/traits/identity", "value": f"{identity}"},
+        ]
+
+        executed = self.update_identity(user, identity)
+        mock_patch.assert_called_once_with(
+            f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
+            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+            json=json_body,
+        )
+        persisted_user = User.objects.get(username=user.username)
+        assert persisted_user.identity is None
+        assert executed.errors[0].extensions["code"] == "BAD_USER_INPUT"
+        assert "A user with that identity already exists" in executed.errors[0].extensions["errors"]
+
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    def test_identity_must_be_unique(self, mock_patch):
+        response = Response()
+        response.status_code = 409
+        response._content = str.encode(json.dumps({"error": {"message": "Error Message"}}))
+        mock_patch.return_value = response
+        identity = "fritz.meier"
+        user = make_user(name="Fritz", last_name="Meier", identity=identity)
+        user2 = make_user(name="Fritz", last_name="Meier")
+
+        executed = self.update_identity(user2, identity)
+        mock_patch.assert_not_called()
+        persisted_user = User.objects.get(username=user2.username)
+        assert persisted_user.identity is None
+        assert executed.errors[0].extensions["code"] == "BAD_USER_INPUT"
+        assert "A user with that identity already exists" in executed.errors[0].extensions["errors"]
+
+    def update_identity(self, user, identity):
+        executed = async_to_sync(schema.execute)(
+            """
+            mutation test($input: UpdateAuthenticatedUserInput!) {
+                updateAuthenticatedUser(input: $input) {
+                    id
+                    identity
+                }
+            }
+            """,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={
+                "input": {
+                    "identity": identity,
+                }
+            },
+        )
+        return executed
+
     @mock.patch("openbook_auth.tasks.requests.delete")
     @mock.patch("openbook.graphql_schema.publish_user_deleted_event")
     @mock.patch("openbook.graphql_schema.publish_space_deleted_event")
