@@ -259,3 +259,7 @@ def get_task_model():
 
 def get_external_link_model():
     return apps.get_model("openbook_communities.ExternalLink")
+
+
+def get_onboarding_step_model():
+    return apps.get_model("openbook_communities.OnboardingStep")

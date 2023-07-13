@@ -616,6 +616,11 @@ class GeolocationPointInput:
 
 
 @gql.input
+class OnboardingStepInput:
+    text: str
+
+
+@gql.input
 class UpdateAuthenticatedUserInput:
     avatar: Optional[Upload] = strawberry.UNSET
     first_name: Optional[str] = strawberry.UNSET
@@ -681,6 +686,7 @@ class UpdateSpaceInput:
     contact_description: Optional[str] = strawberry.UNSET
     contact_email: Optional[str] = strawberry.UNSET
     contact_phone: Optional[str] = strawberry.UNSET
+    onboarding_steps: Optional[List[Optional[OnboardingStepInput]]] = strawberry.UNSET
 
 
 @gql.input
@@ -1161,6 +1167,7 @@ class Mutation:
             contact_description=data.get("contact_description"),
             contact_email=data.get("contact_email"),
             contact_phone=data.get("contact_phone"),
+            onboarding_steps=data.get("onboarding_steps"),
         )
 
         invalidate_discover_spaces_query_cache()

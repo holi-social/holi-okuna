@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from unittest import mock
 
 from django.conf import settings
-from benedict import BeneDict
+from benedict import benedict
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis import geos
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -124,7 +124,7 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
         )
         self.assert_paged_results_equal(
             results=executed.data["userByName"],
@@ -149,7 +149,7 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser}}),
         )
         assert executed.data["userByName"]["totalResults"] == 3
         assert executed.data["userByName"]["data"][0]["firstName"] == "Peter"
@@ -196,7 +196,7 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={
                 "input": {
                     "pronouns": pronouns,
@@ -312,7 +312,7 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={
                 "input": {
                     "identity": identity,
@@ -343,7 +343,7 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
         )
         mock_delete.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
@@ -381,7 +381,7 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
         )
         mock_delete.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
@@ -615,7 +615,7 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": posting_user}}),
+            context_value=benedict({"request": {"user": posting_user}}),
             variable_values={
                 "id": str(post.id),
                 "reactionType": "HEART",
@@ -637,7 +637,7 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": posting_user}}),
+            context_value=benedict({"request": {"user": posting_user}}),
             variable_values={
                 "id": str(post_comment.id),
                 "reactionType": "HEART",
@@ -654,7 +654,7 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={
                 "id": str(post_comment_id),
             },
@@ -679,7 +679,7 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": info},
         )
 
@@ -713,7 +713,7 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": info},
         )
 
@@ -740,7 +740,7 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": info},
         )
 
@@ -1218,7 +1218,7 @@ class TestUsers:
                     }
                 }
             """,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={
                 "id": str(post_id),
             },
@@ -1253,7 +1253,7 @@ class TestUsers:
                 }}
             }}
             """,
-            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser}}),
         )
 
         assert response.errors is None
@@ -1299,7 +1299,7 @@ class TestUsers:
                 }}
             }}
             """,
-            context_value=BeneDict({"request": {"user": insight_user_2}}),
+            context_value=benedict({"request": {"user": insight_user_2}}),
         )
 
         assert response.errors is None
@@ -1347,7 +1347,7 @@ class TestUsers:
                 }}
             }}
             """,
-            context_value=BeneDict({"request": {"user": insight_user_2}}),
+            context_value=benedict({"request": {"user": insight_user_2}}),
         )
 
         assert response.data is None
@@ -1429,7 +1429,7 @@ class TestUsers:
                 }}
             }}
             """,
-            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser}}),
         )
 
         insights = response.data["lastInsights"]["data"]
@@ -1578,7 +1578,7 @@ class TestUsers:
             }
             """,
             variable_values={"id": str(first_notification_id)},
-            context_value=BeneDict({"request": {"user": followed_user}}),
+            context_value=benedict({"request": {"user": followed_user}}),
         )
         assert response.data["lastSeenNotification"]["status"] is False
         assert self.has_new_notifications(followed_user)["status"] is False
@@ -1595,7 +1595,7 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": followed_user}}),
+            context_value=benedict({"request": {"user": followed_user}}),
         )
         assert response.errors is None
         data = response.data["hasNewNotifications"]
@@ -1623,7 +1623,7 @@ class TestUsers:
                     "action": action._value_,
                 }
             },
-            context_value=BeneDict({"request": {"user": following_user}}),
+            context_value=benedict({"request": {"user": following_user}}),
         )
         assert connection_request_response.errors is None
         return connection_request_response
@@ -1749,7 +1749,7 @@ class TestUsers:
             filter_response = async_to_sync(schema.execute)(
                 filter_query,
                 variable_values=filter_options,
-                context_value=BeneDict({"request": {"user": AnonymousUser}}),
+                context_value=benedict({"request": {"user": AnonymousUser}}),
             )
             expected_data = list(map(transform_space, expected_spaces))
             self.assert_paged_results_equal(
@@ -1770,7 +1770,7 @@ class TestUsers:
                 "skillIds": [str(skill3.id)],
                 "geolocation": geolocation,
             },
-            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser}}),
         )
         assert len(filter_response.data["discoverSpaces"]) == 4
         location, t1, t2, skill = (
@@ -1838,7 +1838,7 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": creator1}}),
+            context_value=benedict({"request": {"user": creator1}}),
         ).data["mySpaces"]
 
         assert len(response) == 3
@@ -2568,7 +2568,7 @@ class TestUsers:
             }
             """,
             variable_values={"id": str(space.id)},
-            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser}}),
         )
 
         # Check sort order of members: First by membership (admins before members), then by full name
@@ -2609,8 +2609,8 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": reporting_user}}),
-            variable_values=BeneDict(
+            context_value=benedict({"request": {"user": reporting_user}}),
+            variable_values=benedict(
                 {
                     "objectId": str(post.id),
                     "contentType": ContentType.POST.value,
@@ -2657,8 +2657,8 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": reporting_user}}),
-            variable_values=BeneDict(
+            context_value=benedict({"request": {"user": reporting_user}}),
+            variable_values=benedict(
                 {
                     "objectId": str(comment.id),
                     "contentType": ContentType.POST_COMMENT.value,
@@ -2699,8 +2699,8 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": reporting_user}}),
-            variable_values=BeneDict(
+            context_value=benedict({"request": {"user": reporting_user}}),
+            variable_values=benedict(
                 {
                     "objectId": str(user.username),
                     "contentType": ContentType.USER.value,
@@ -2743,8 +2743,8 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": reporting_user}}),
-            variable_values=BeneDict(
+            context_value=benedict({"request": {"user": reporting_user}}),
+            variable_values=benedict(
                 {
                     "objectId": str(space.id),
                     "contentType": ContentType.SPACE.value,
@@ -2764,7 +2764,7 @@ class TestUsers:
                 }}
             }}
             """,
-            context_value=BeneDict({"request": {"user": reporting_user}}),
+            context_value=benedict({"request": {"user": reporting_user}}),
         )
         assert response.errors is None
         assert len(response.data["spaceById"]) == 1
@@ -2778,7 +2778,7 @@ class TestUsers:
                 }}
             }}
             """,
-            context_value=BeneDict({"request": {"user": other_user}}),
+            context_value=benedict({"request": {"user": other_user}}),
         )
         assert response.errors is None
         assert len(response.data["spaceById"]) == 1
@@ -2794,7 +2794,7 @@ class TestUsers:
                 }}
             }}
             """,
-            context_value=BeneDict({"request": {"user": other_user}}),
+            context_value=benedict({"request": {"user": other_user}}),
         )
         assert response.data["spaceById"] is None
 
@@ -2826,7 +2826,7 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": blocking_user}}),
+            context_value=benedict({"request": {"user": blocking_user}}),
         )
         assert response.data["userSuggestions"]["totalResults"] == 2
 
@@ -2838,8 +2838,8 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": blocking_user}}),
-            variable_values=BeneDict(
+            context_value=benedict({"request": {"user": blocking_user}}),
+            variable_values=benedict(
                 {
                     "userId": blocked_user.username,
                 }
@@ -2873,7 +2873,7 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": blocking_user}}),
+            context_value=benedict({"request": {"user": blocking_user}}),
         )
         assert response.data["userSuggestions"]["totalResults"] == 1
         assert response.data["userSuggestions"]["data"][0]["fullName"] == "OtherUser"
@@ -2894,7 +2894,7 @@ class TestUsers:
                 }}
             }}
             """,
-            context_value=BeneDict({"request": {"user": calling_user or AnonymousUser}}),
+            context_value=benedict({"request": {"user": calling_user or AnonymousUser}}),
         )
 
     def get_post_with_id_data(self, post, user=None):
@@ -2956,7 +2956,7 @@ class TestUsers:
                 }}
             }}
             """,
-            context_value=BeneDict({"request": {"user": user or AnonymousUser}}),
+            context_value=benedict({"request": {"user": user or AnonymousUser}}),
         )
 
     def mutate_update_space_user_connection_raw(
@@ -2991,8 +2991,8 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": auth_user}}),
-            variable_values=BeneDict(
+            context_value=benedict({"request": {"user": auth_user}}),
+            variable_values=benedict(
                 {
                     "spaceId": str(space_id),
                     "userId": str(user_id) if user_id else None,
@@ -3039,7 +3039,7 @@ class TestUsers:
             }
             """,
             variable_values={"id": str(space.id)},
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
         )
 
         assert response.errors is None
@@ -3067,7 +3067,7 @@ class TestUsers:
             }
             """,
             variable_values={"id": str(id), "visibility": visibility.value},
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
         )
 
         assert response.errors is None
@@ -3107,7 +3107,7 @@ class TestUsers:
                 }
             }
             """,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
         )
         assert response.errors is None
         return response.data["notifications"]
@@ -3131,7 +3131,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             validate_space_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": {}},
         )
 
@@ -3184,7 +3184,7 @@ class TestUsers:
         for testCase in expectedErrors:
             response = async_to_sync(schema.execute)(
                 validate_space_mutation,
-                context_value=BeneDict({"request": {"user": user}}),
+                context_value=benedict({"request": {"user": user}}),
                 variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
             )
 
@@ -3224,7 +3224,7 @@ class TestUsers:
         for input in valid_inputs:
             response = async_to_sync(schema.execute)(
                 validate_space_mutation,
-                context_value=BeneDict({"request": {"user": user}}),
+                context_value=benedict({"request": {"user": user}}),
                 variable_values={"input": input},
             )
 
@@ -3244,7 +3244,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             validate_space_mutation,
             variable_values={"input": valid_input},
-            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser}}),
         )
 
         self.assert_is_unauthorized(response)
@@ -3294,7 +3294,7 @@ class TestUsers:
         for testCase in expectedErrors:
             response = async_to_sync(schema.execute)(
                 create_space_mutation,
-                context_value=BeneDict({"request": {"user": user}}),
+                context_value=benedict({"request": {"user": user}}),
                 variable_values={"input": testCase["input"]},
             )
 
@@ -3349,7 +3349,7 @@ class TestUsers:
         for testCase in expectedErrors:
             response = async_to_sync(schema.execute)(
                 create_space_mutation,
-                context_value=BeneDict({"request": {"user": user}}),
+                context_value=benedict({"request": {"user": user}}),
                 variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
             )
 
@@ -3389,7 +3389,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             create_space_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": valid_input},
         )
 
@@ -3436,7 +3436,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             create_space_mutation,
             variable_values={"input": valid_input},
-            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser}}),
         )
 
         self.assert_is_unauthorized(response)
@@ -3496,12 +3496,28 @@ class TestUsers:
             {"field": "contactDescription", "value": "f" * 101, "expected_code": "max_length"},
             {"field": "contactPhone", "value": "9" * 101, "expected_code": "max_length"},
             {"field": "contactEmail", "value": "invalid", "expected_code": "invalid"},
+            {
+                "field": "onboardingSteps",
+                "value": None,
+                "expected_code": "null",
+            },
+            {
+                "field": "onboardingSteps",
+                "value": [{"text": None}],
+                "expected_error": "Expected non-nullable type",
+            },
+            {
+                "field": "onboardingSteps",
+                "value": [{"text": "f" * 241}],
+                "expected_code": "max_length",
+                "error_path": "onboardingSteps.0.text",
+            },
         ]
 
         for testCase in expectedErrors:
             response = async_to_sync(schema.execute)(
                 update_space_mutation,
-                context_value=BeneDict({"request": {"user": user}}),
+                context_value=benedict({"request": {"user": user}}),
                 variable_values={
                     "input": base_input | {testCase["field"]: testCase["value"]},
                 },
@@ -3509,7 +3525,9 @@ class TestUsers:
 
             if "expected_code" in testCase:
                 field_errors = json.loads(response.errors[0].extensions["errors"])
-                assert testCase["expected_code"] == field_errors[testCase["field"]][0]["code"]
+                error_path = testCase["error_path"] if "error_path" in testCase else testCase["field"]
+                assert testCase["expected_code"] == benedict(field_errors)[error_path][0]["code"]
+
             else:
                 assert testCase["expected_error"] in str(response.errors[0].message)
             assert (response.data["updateSpace"] if response.data else response.data) is None
@@ -3527,7 +3545,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             update_space_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": {"title": "new title"}},
         )
 
@@ -3581,7 +3599,7 @@ class TestUsers:
         for input in valid_inputs:
             response = async_to_sync(schema.execute)(
                 update_space_mutation,
-                context_value=BeneDict({"request": {"user": user}}),
+                context_value=benedict({"request": {"user": user}}),
                 variable_values={"input": base_input | input},
             )
 
@@ -3639,7 +3657,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             update_space_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": input},
         )
 
@@ -3673,7 +3691,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             update_space_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": input},
         )
 
@@ -3685,6 +3703,85 @@ class TestUsers:
         assert "" == updated_space["avatar"]
         assert updated_space["coverBlurhash"] is None
         assert updated_space["avatarBlurhash"] is None
+
+    def update_and_assert_onboarding_steps(self, user, community_id, onboarding_steps):
+        update_space_mutation = """
+            mutation test($input: UpdateSpaceInput!) {
+                updateSpace(input: $input) {
+                    onboarding { steps { text } }
+                }
+            }
+            """
+
+        response = async_to_sync(schema.execute)(
+            update_space_mutation,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={
+                "input": {
+                    "id": str(community_id),
+                    "onboardingSteps": onboarding_steps,
+                }
+            },
+        )
+
+        assert response.errors is None
+        updated_space = response.data["updateSpace"]
+
+        assert "onboarding" in updated_space
+        assert "steps" in updated_space["onboarding"]
+        new_onboarding_steps = updated_space["onboarding"]["steps"]
+        assert updated_space["onboarding"]["steps"] == onboarding_steps
+
+    def test_correctly_updates_onboarding_steps(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        onboarding_steps = [
+            {"text": "Step 1"},
+            {"text": "Step 2"},
+        ]
+
+        self.update_and_assert_onboarding_steps(user, community.id, onboarding_steps)
+
+        onboarding_steps = [
+            {"text": "New step 1"},
+            {"text": ""},
+            {"text": "New step 3"},
+        ]
+
+        self.update_and_assert_onboarding_steps(user, community.id, onboarding_steps)
+
+        self.update_and_assert_onboarding_steps(user, community.id, [])
+
+    def assert_onboarding(self, community_id, user, expected):
+        response = async_to_sync(schema.execute)(
+            """
+            query($id:String!) {
+                spaceById(idOrName:$id) {
+                    onboarding { steps { text } }
+                }
+            }
+            """,
+            variable_values={"id": str(community_id)},
+            context_value=benedict({"request": {"user": user}}),
+        )
+
+        assert response.data["spaceById"]["onboarding"] == expected
+
+    def test_onboarding_only_visible_to_members(self):
+        user = make_user()
+        member = make_user()
+        community = make_community()
+        community.add_member(member)
+        onboarding_steps = [
+            {"text": "Step 1"},
+            {"text": "Step 2"},
+        ]
+        community.set_onboarding_steps(onboarding_steps)
+
+        self.assert_onboarding(community.id, AnonymousUser, None)
+        self.assert_onboarding(community.id, user, None)
+        self.assert_onboarding(community.id, member, {"steps": onboarding_steps})
 
     @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
     def test_can_not_update_space_if_not_admin(self, mock_invalidate_discover_spaces_query_cache):
@@ -3700,7 +3797,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             update_space_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": {"id": str(community.id), "title": "new title"}},
         )
 
@@ -3723,7 +3820,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             update_space_mutation,
             variable_values={"input": {"id": str(community.id), "title": "new title"}},
-            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser}}),
         )
 
         self.assert_is_unauthorized(response)
@@ -3746,7 +3843,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             delete_space_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"id": str(community.id)},
         )
 
@@ -3773,7 +3870,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             delete_space_mutation,
             variable_values={"id": str(community.id)},
-            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser}}),
         )
 
         self.assert_is_unauthorized(response)
@@ -3797,7 +3894,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             delete_space_mutation,
             variable_values={"id": str(community.id)},
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
         )
 
         assert response.data["deleteSpace"]["success"] is True
@@ -3843,7 +3940,7 @@ class TestUsers:
         for testCase in expectedErrors:
             response = async_to_sync(schema.execute)(
                 add_collaboration_tool_mutation,
-                context_value=BeneDict({"request": {"user": user}}),
+                context_value=benedict({"request": {"user": user}}),
                 variable_values={"input": testCase["input"]},
             )
 
@@ -3894,7 +3991,7 @@ class TestUsers:
         for testCase in expectedErrors:
             response = async_to_sync(schema.execute)(
                 add_collaboration_tool_mutation,
-                context_value=BeneDict({"request": {"user": user}}),
+                context_value=benedict({"request": {"user": user}}),
                 variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
             )
 
@@ -3941,7 +4038,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             add_collaboration_tool_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": valid_input},
         )
 
@@ -3981,7 +4078,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             add_collaboration_tool_mutation,
             variable_values={"input": valid_input},
-            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser}}),
         )
 
         self.assert_is_unauthorized(response)
@@ -4015,7 +4112,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             add_collaboration_tool_mutation,
             variable_values={"input": valid_input},
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
         )
 
         assert response.data is None
@@ -4038,7 +4135,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             delete_collaboration_tool_mutation,
             variable_values={"id": str(collaboration_tool.id)},
-            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser}}),
         )
 
         self.assert_is_unauthorized(response)
@@ -4058,7 +4155,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             delete_collaboration_tool_mutation,
             variable_values={"id": str(collaboration_tool.id)},
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
         )
 
         assert response.data is None
@@ -4084,7 +4181,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             delete_collaboration_tool_mutation,
             variable_values={"id": str(collaboration_tool.id)},
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
         )
 
         assert response.data["deleteCollaborationTool"]["success"] is True
@@ -4109,7 +4206,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             delete_collaboration_tool_mutation,
             variable_values={"id": str(collaboration_tool.id)},
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
         )
 
         assert response.data["deleteCollaborationTool"]["success"] is True
@@ -4153,7 +4250,7 @@ class TestUsers:
         for testCase in expectedErrors:
             response = async_to_sync(schema.execute)(
                 update_collaboration_tool_mutation,
-                context_value=BeneDict({"request": {"user": user}}),
+                context_value=benedict({"request": {"user": user}}),
                 variable_values={
                     "input": base_input | {testCase["field"]: testCase["value"]},
                 },
@@ -4178,7 +4275,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             update_collaboration_tool_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": {"url": "https://holi.social/"}},
         )
 
@@ -4201,7 +4298,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             update_collaboration_tool_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": input},
         )
 
@@ -4225,7 +4322,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             update_collaboration_tool_mutation,
-            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser}}),
             variable_values={"input": input},
         )
 
@@ -4267,7 +4364,7 @@ class TestUsers:
         for input in valid_inputs:
             response = async_to_sync(schema.execute)(
                 update_collaboration_tool_mutation,
-                context_value=BeneDict({"request": {"user": user}}),
+                context_value=benedict({"request": {"user": user}}),
                 variable_values={"input": base_input | input},
             )
 
@@ -4307,7 +4404,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             update_collaboration_tool_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": input},
         )
 
@@ -4340,7 +4437,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
             variable_values=valid_input,
-            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser}}),
         )
 
         self.assert_is_unauthorized(response)
@@ -4366,7 +4463,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
             variable_values=valid_input,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
         )
 
         field_errors = json.loads(response.errors[0].extensions["errors"])
@@ -4387,13 +4484,13 @@ class TestUsers:
 
         response_no_email = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"spaceId": str(community.id)},
         )
 
         response_no_space_id = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"email": "test@test.com"},
         )
 
@@ -4425,7 +4522,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
             variable_values=valid_input,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
         )
 
         assert response.data["inviteToSpaceByEmail"]["success"] is True
@@ -4469,7 +4566,7 @@ class TestUsers:
             test_input.pop(input_key)
             response = async_to_sync(schema.execute)(
                 create_task_mutation,
-                context_value=BeneDict({"request": {"user": user}}),
+                context_value=benedict({"request": {"user": user}}),
                 variable_values={"input": test_input},
             )
 
@@ -4525,7 +4622,7 @@ class TestUsers:
         for testCase in expectedErrors:
             response = async_to_sync(schema.execute)(
                 create_task_mutation,
-                context_value=BeneDict({"request": {"user": user}}),
+                context_value=benedict({"request": {"user": user}}),
                 variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
             )
 
@@ -4573,7 +4670,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             create_task_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": valid_input},
         )
 
@@ -4615,7 +4712,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             create_task_mutation,
             variable_values={"input": valid_input},
-            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser}}),
         )
 
         self.assert_is_unauthorized(response)
@@ -4652,7 +4749,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             create_task_mutation,
             variable_values={"input": valid_input},
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
         )
 
         field_errors = json.loads(response.errors[0].extensions["errors"])
@@ -4700,7 +4797,7 @@ class TestUsers:
             test_input.pop(input_key)
             response = async_to_sync(schema.execute)(
                 update_task_mutation,
-                context_value=BeneDict({"request": {"user": user}}),
+                context_value=benedict({"request": {"user": user}}),
                 variable_values={"input": test_input},
             )
 
@@ -4759,7 +4856,7 @@ class TestUsers:
         for testCase in expectedErrors:
             response = async_to_sync(schema.execute)(
                 update_task_mutation,
-                context_value=BeneDict({"request": {"user": user}}),
+                context_value=benedict({"request": {"user": user}}),
                 variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
             )
 
@@ -4813,7 +4910,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             update_task_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": valid_input},
         )
 
@@ -4845,7 +4942,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             update_task_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": valid_input},
         )
 
@@ -4891,7 +4988,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             update_task_mutation,
             variable_values={"input": valid_input},
-            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser}}),
         )
 
         self.assert_is_unauthorized(response)
@@ -4930,7 +5027,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             update_task_mutation,
             variable_values={"input": valid_input},
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
         )
 
         assert response.data is None
@@ -4954,7 +5051,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             delete_task_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"id": str(task.id)},
         )
 
@@ -4978,7 +5075,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             delete_task_mutation,
             variable_values={"id": str(task.id)},
-            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser}}),
         )
 
         self.assert_is_unauthorized(response)
@@ -4999,7 +5096,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             delete_task_mutation,
             variable_values={"id": str(task.id)},
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
         )
 
         assert response.data["deleteTask"]["success"] is True
@@ -5050,7 +5147,7 @@ class TestUsers:
         # member should get all tasks
         response_member = async_to_sync(schema.execute)(
             space_by_id_query,
-            context_value=BeneDict({"request": {"user": user_member}}),
+            context_value=benedict({"request": {"user": user_member}}),
         )
         assert response_member.errors is None
         tasks_member = response_member.data["spaceById"]["tasks"]
@@ -5059,7 +5156,7 @@ class TestUsers:
         # non member should only get the public task
         response_external = async_to_sync(schema.execute)(
             space_by_id_query,
-            context_value=BeneDict({"request": {"user": user_external}}),
+            context_value=benedict({"request": {"user": user_external}}),
         )
 
         assert response_external.errors is None
@@ -5106,7 +5203,7 @@ class TestUsers:
         for testCase in expectedErrors:
             response = async_to_sync(schema.execute)(
                 add_external_link_mutation,
-                context_value=BeneDict({"request": {"user": user}}),
+                context_value=benedict({"request": {"user": user}}),
                 variable_values={"input": testCase["input"]},
             )
 
@@ -5148,7 +5245,7 @@ class TestUsers:
         for testCase in expectedErrors:
             response = async_to_sync(schema.execute)(
                 add_external_link_mutation,
-                context_value=BeneDict({"request": {"user": user}}),
+                context_value=benedict({"request": {"user": user}}),
                 variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
             )
 
@@ -5190,7 +5287,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             add_external_link_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": valid_input},
         )
 
@@ -5226,7 +5323,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             add_external_link_mutation,
             variable_values={"input": valid_input},
-            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser}}),
         )
 
         self.assert_is_unauthorized(response)
@@ -5260,7 +5357,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             add_external_link_mutation,
             variable_values={"input": valid_input},
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
         )
 
         assert response.data is None
@@ -5283,7 +5380,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             delete_external_link_mutation,
             variable_values={"id": str(external_link.id)},
-            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser}}),
         )
 
         self.assert_is_unauthorized(response)
@@ -5307,7 +5404,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             delete_external_link_mutation,
             variable_values={"id": str(external_link.id)},
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
         )
 
         assert response.data is None
@@ -5333,7 +5430,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             delete_external_link_mutation,
             variable_values={"id": str(external_link.id)},
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
         )
 
         assert response.data["deleteExternalLink"]["success"] is True
@@ -5372,7 +5469,7 @@ class TestUsers:
         for testCase in expectedErrors:
             response = async_to_sync(schema.execute)(
                 update_external_link_mutation,
-                context_value=BeneDict({"request": {"user": user}}),
+                context_value=benedict({"request": {"user": user}}),
                 variable_values={
                     "input": base_input | {testCase["field"]: testCase["value"]},
                 },
@@ -5399,7 +5496,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             update_external_link_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": {"url": "https://www.instagram.com/", "type": "INSTAGRAM"}},
         )
 
@@ -5431,7 +5528,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             update_external_link_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": input},
         )
 
@@ -5460,7 +5557,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             update_external_link_mutation,
-            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser}}),
             variable_values={"input": input},
         )
 
@@ -5489,7 +5586,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             update_external_link_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": input},
         )
 
@@ -5526,7 +5623,7 @@ class TestUsers:
 
         response = async_to_sync(schema.execute)(
             update_external_link_mutation,
-            context_value=BeneDict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user}}),
             variable_values={"input": input},
         )
 
