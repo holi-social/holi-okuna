@@ -181,7 +181,7 @@ def resolve_post(current_user, post_id):
 
 
 def verify_authorized_user(info):
-    current_user: UserModel = info.context.request.user
+    current_user: UserModel = info.context["request"].user
     if not current_user or current_user.is_anonymous:
         raise GraphQLError("Unauthorized", extensions={"code": GraphQLErrorCodes.UNAUTHORIZED})
     return current_user
@@ -191,13 +191,13 @@ def verify_authorized_user(info):
 class Query:
     @gql.django.field
     def authenticated_user(self, info) -> Optional[User]:
-        current_user = info.context.request.user
+        current_user = info.context["request"].user
         return None if current_user.is_anonymous else current_user
 
     @gql.django.field
     def user_by_id(self, info, id: uuid.UUID) -> Optional[User]:
         try:
-            current_user = info.context.request.user
+            current_user = info.context["request"].user
             return UserModel.objects.filter(UserModel.is_visible_query(current_user)).get(username=id)
         except UserModel.DoesNotExist:
             raise GraphQLError("User not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
@@ -206,7 +206,7 @@ class Query:
     def user_by_name(self, info, substring: str, offset: int = 0, limit: int = 5) -> Paged[User]:
         string_not_empty(substring)
 
-        current_user = info.context.request.user
+        current_user = info.context["request"].user
         users_to_exclude_ids = [current_user.id] if not current_user.is_anonymous else []
         excludes_filter = ~Q(id__in=users_to_exclude_ids) & UserModel.is_visible_query(current_user)
         full_name_query = (
@@ -244,7 +244,7 @@ class Query:
 
     @gql.django.field
     def user_suggestions(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
-        current_user = info.context.request.user
+        current_user = info.context["request"].user
         query = (
             UserModel.objects.select_related("profile")
             .filter(UserModel.is_visible_query(current_user))
@@ -270,7 +270,7 @@ class Query:
 
     @gql.django.field
     def insights_by_user_id(self, info, id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Insight]:
-        current_user = info.context.request.user
+        current_user = info.context["request"].user
         try:
             user = UserModel.objects.filter(UserModel.is_visible_query(current_user)).get(username=id)
         except UserModel.DoesNotExist:
@@ -282,10 +282,9 @@ class Query:
         )
 
     @gql.django.field
-    @sync_to_async
-    def last_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
-        current_user = info.context.request.user
-        paged_insights = Paged.of(
+    async def last_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
+        current_user = info.context["request"].user
+        paged_insights = await Paged.aof(
             InsightModel.objects.filter(
                 Q(creator__isnull=True) | UserModel.is_visible_ignore_blocked_query(current_user, "creator"),
                 date_published__lte=datetime.now(),
@@ -306,7 +305,7 @@ class Query:
 
     @gql.django.field
     def insight_by_id(self, info, id: uuid.UUID) -> Optional[Insight]:
-        current_user = info.context.request.user
+        current_user = info.context["request"].user
         try:
             return (
                 InsightModel.objects.filter(
@@ -320,7 +319,7 @@ class Query:
 
     @gql.django.field
     def post_by_id(self, info, id: uuid.UUID) -> Optional[Post]:
-        return resolve_post(info.context.request.user, id)
+        return resolve_post(info.context["request"].user, id)
 
     @gql.django.field
     def topics(self, offset: int = 0, limit: int = 50) -> Paged[Topic]:
@@ -380,7 +379,7 @@ class Query:
         offset: int = 0,
         limit: int = 10,
     ) -> List[Optional[DiscoverSpaces]]:
-        current_user: UserModel = info.context.request.user
+        current_user: UserModel = info.context["request"].user
 
         if not geolocation:
             if not current_user.is_anonymous and current_user.geolocation is not None:
@@ -505,7 +504,7 @@ class Query:
             ),
         ],
     ) -> Optional[Space]:
-        user = info.context.request.user
+        user = info.context["request"].user
 
         # check if current user is member of the community to filter out members-only tasks
         is_member = False
@@ -532,7 +531,7 @@ class Query:
                 )
                 .filter(
                     ModeratedObject.not_moderated_query(
-                        info.context.request.user, ModeratedObject.OBJECT_TYPE_COMMUNITY
+                        info.context["request"].user, ModeratedObject.OBJECT_TYPE_COMMUNITY
                     )
                 )
                 .aget(query)
@@ -557,7 +556,7 @@ class Query:
 
     @gql.django.field
     def notifications(self, info, offset: int = 0, limit: int = 10) -> Paged[Notification]:
-        current_user = info.context.request.user
+        current_user = info.context["request"].user
         if current_user.is_anonymous:
             return Paged()
         return Paged.of(
@@ -571,7 +570,7 @@ class Query:
 
     @gql.django.field
     def has_new_notifications(self, info) -> NewNotificationsResponse:
-        current_user = info.context.request.user
+        current_user = info.context["request"].user
         if current_user.is_anonymous:
             return NewNotificationsResponse(id=None, status=False)
 

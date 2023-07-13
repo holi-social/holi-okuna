@@ -4,14 +4,16 @@ from uuid import UUID
 import json
 
 import strawberry
-from typing import List, TypeVar, Optional
+from typing import List, TypeVar, Optional, Any
 
-from asgiref.sync import sync_to_async
+from asgiref.sync import sync_to_async, async_to_sync
 from django.db.models import Q
+from strawberry.dataloader import DataLoader
 from strawberry_django_plus import gql
 from django.db.models import QuerySet
 
 import logging
+
 from openbook_common.models import LinkPreview as LinkPreviewModel
 from openbook_common.models import AppVersion as AppVersionModel
 from openbook_common.types import ReactionType, GeolocationFeature, NeedUpdateType
@@ -38,7 +40,7 @@ from openbook_terms.models import (
     SDG as SDGModel,
     Skill as SkillModel,
 )
-from openbook_auth.models import User as UserModel, UserConnectionStatus, UserBlock
+from openbook_auth.models import User as UserModel, UserConnectionStatus, UserBlock, User
 from openbook_insights.models import Insight as InsightModel
 
 logger = logging.getLogger(__name__)
@@ -52,14 +54,19 @@ class Paged(List[GenericType]):
     total_results: int = gql.django.field(description="Total number of items in the filtered dataset.")
 
     @staticmethod
+    @sync_to_async
     def of(query: QuerySet, offset: int, limit: int):
         return Paged(data=query[offset : offset + limit], total_results=query.count())
+
+    @staticmethod
+    async def aof(query: QuerySet, offset: int, limit: int):
+        return Paged(data=query[offset : offset + limit], total_results=await query.acount())
 
     def __init__(self, data=None, total_results=0):
         if data is None:
             data = []
         self.data = data
-        self.total_results = max(total_results, len(data))
+        self.total_results = total_results
 
 
 @gql.enum
@@ -305,9 +312,9 @@ class User:
 
     @gql.django.field
     def connection_status_to_myself(self, info) -> Optional[UserConnectionStatus]:
-        if info.context.request.user.is_anonymous:
+        if info.context["request"].user.is_anonymous:
             return None
-        return info.context.request.user.get_connection_status_with_user_id(user_id=self.id)
+        return info.context["request"].user.get_connection_status_with_user_id(user_id=self.id)
 
 
 @gql.django.type(CommunityMembershipModel)
@@ -368,38 +375,42 @@ class Insight:
     date_published: gql.auto
     header_image: Optional[str]
     header_image_blurhash: Optional[str]
-    topic: Optional[Topic]
+    topic: Optional[Topic] = gql.django.field(select_related=["topic"])
 
     @gql.django.field
-    def posts(self, info) -> List["Post"]:
-        current_user = info.context.request.user
-        return self.posts.filter(PostModel.is_visible_query(current_user)).order_by("created")
+    async def posts(self, info) -> List["Post"]:
+        current_user = info.context["request"].user
+        posts = await info.context["posts"].load2(self.id, context=current_user)
+
+        return posts.order_by("created")
 
     # this should be removed and be replaced by paged posts
     @gql.django.field
-    def number_of_posts(self, info) -> int:
-        current_user = info.context.request.user
-        return self.posts.filter(PostModel.is_visible_query(current_user)).count()
+    async def number_of_posts(self, info) -> int:
+        current_user = info.context["request"].user
+        posts = await info.context["posts"].load2(self.id, context=current_user)
+
+        return await posts.acount()
 
     @gql.django.field(
         description="A list of all users involved. Curator of the insight, Authors of all the posts and all commenters of those posts"
     )
-    @sync_to_async
-    def involved_users(self, info, offset: int = 0, limit: int = 3) -> Paged[User]:
-        current_user = info.context.request.user
+    async def involved_users(self, info, offset: int = 0, limit: int = 3) -> Paged[User]:
+        current_user = info.context["request"].user
+
+        posts = await info.context["posts"].load2(self.id, context=info.context["request"].user)
+        comments = await info.context["comments"].load2(self.id, context=info.context["request"].user)
+
         query = UserModel.objects.filter(
             Q(
                 Q(curated_insights=self)
-                | (Q(posts__insights=self) & PostModel.is_visible_query(current_user, "posts"))
-                | (
-                    Q(posts_comments__post__insights=self)
-                    & PostCommentModel.is_visible_query(current_user, "posts_comments")
-                )
+                | (Q(id__in=posts.values_list("creator")))
+                | (Q(id__in=comments.values_list("commenter")))
             ),
             is_deleted=False,
         ).distinct()
         query = query.select_related("profile").cache(ops=["fetch", "count"], timeout=300)
-        return Paged.of(query, offset, limit)
+        return await Paged.aof(query, offset, limit)
 
 
 @gql.type
@@ -429,7 +440,7 @@ class Post:
 
     @gql.django.field
     def comments(self, info) -> List[Optional["PostComment"]]:
-        current_user = info.context.request.user
+        current_user = info.context["request"].user
         return (
             PostCommentModel.objects.filter(post=self)
             .filter(PostCommentModel.is_visible_query(current_user))
@@ -440,7 +451,7 @@ class Post:
     # this should be removed, once comments are paged
     @gql.django.field
     def number_of_comments(self, info) -> int:
-        current_user = info.context.request.user
+        current_user = info.context["request"].user
         return (
             PostCommentModel.objects.filter(post=self)
             .filter(PostCommentModel.is_visible_query(current_user))
@@ -450,7 +461,7 @@ class Post:
 
     @gql.django.field(description="A list of all users involved. Author of the post plus all commenters")
     def involved_users(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
-        current_user = info.context.request.user
+        current_user = info.context["request"].user
         return Paged.of(
             UserModel.objects.select_related("profile")
             .filter(UserModel.is_visible_query(current_user))
@@ -465,7 +476,7 @@ class Post:
 
     @gql.django.field
     def commenters(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
-        current_user = info.context.request.user
+        current_user = info.context["request"].user
         return Paged.of(
             UserModel.objects.select_related("profile")
             .filter(UserModel.is_visible_query(current_user))
@@ -477,7 +488,7 @@ class Post:
 
     @gql.django.field
     def reactions(self, info) -> ReactionCounts:
-        current_user = info.context.request.user
+        current_user = info.context["request"].user
         if current_user.is_anonymous:
             reactions = PostModel.get_reaction_counts_for_post_with_id(self.pk)
         else:
@@ -486,7 +497,7 @@ class Post:
 
     @gql.django.field(description="Only present, when the current user reacted to this post")
     def my_reaction(self, info) -> ReactionCounts:
-        current_user = info.context.request.user
+        current_user = info.context["request"].user
         if not current_user.is_anonymous:
             try:
                 reaction = PostReactionModel.objects.filter(post=self, reactor=current_user).first()
@@ -537,7 +548,7 @@ class Space:
 
     @gql.django.field
     def connection_status_to_myself(self, info) -> List[Optional[SpaceUserConnectionType]]:
-        current_user: UserModel = info.context.request.user
+        current_user: UserModel = info.context["request"].user
         if current_user.is_anonymous:
             return []
 
@@ -567,7 +578,7 @@ class Space:
     def posts(
         self, info, offset: int = 0, limit: int = 10, visibility: VisibilityFilter = VisibilityFilter.ALL
     ) -> Paged[Post]:
-        current_user: UserModel = info.context.request.user
+        current_user: UserModel = info.context["request"].user
         query = PostModel.objects.filter(
             PostModel.is_visible_query(current_user), status=PostModel.STATUS_PUBLISHED, community=self
         )
@@ -587,7 +598,7 @@ class Space:
 
     @gql.django.field
     def has_public_posts(self, info) -> bool:
-        current_user: UserModel = info.context.request.user
+        current_user: UserModel = info.context["request"].user
         query = PostModel.objects.filter(
             PostModel.is_visible_query(current_user), status=PostModel.STATUS_PUBLISHED, community=self
         )
@@ -595,7 +606,7 @@ class Space:
 
     @gql.django.field
     def has_private_posts(self, info) -> bool:
-        current_user: UserModel = info.context.request.user
+        current_user: UserModel = info.context["request"].user
         query = PostModel.objects.filter(
             PostModel.is_visible_query(current_user), status=PostModel.STATUS_PUBLISHED, community=self
         )
@@ -615,7 +626,7 @@ class PostComment:
 
     @gql.django.field
     def reactions(self, info) -> ReactionCounts:
-        current_user = info.context.request.user
+        current_user = info.context["request"].user
         if current_user.is_anonymous:
             reactions = PostCommentModel.get_reaction_counts_for_post_comment_with_id(self.pk)
         else:
@@ -624,7 +635,7 @@ class PostComment:
 
     @gql.django.field(description="Only present, when the current user reacted to this post comment")
     def my_reaction(self, info) -> ReactionCounts:
-        current_user = info.context.request.user
+        current_user = info.context["request"].user
         if not current_user.is_anonymous:
             try:
                 reaction = PostCommentReactionModel.objects.filter(post_comment=self, reactor=current_user).first()

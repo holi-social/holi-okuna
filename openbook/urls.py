@@ -13,14 +13,20 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
+from typing import Union, Optional, Any
+
 import adrf.decorators as async_support
+from django.http import HttpRequest, HttpResponse
 from django.urls import re_path, path, include
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.decorators.csrf import csrf_exempt
 from proxy.views import proxy_view
+from strawberry.dataloader import DataLoader
+from strawberry.django.context import StrawberryDjangoContext
 
+from openbook.dataloaders import load_posts, load_comments, MyDataLoader
 from openbook.graphql_schema import schema
 from openbook_auth.views.auth.views import (
     Register,
@@ -234,6 +240,13 @@ class AuthenticatedStrawberryGraphQLView(AsyncGraphQLView):
         view = authentication_classes(api_settings.DEFAULT_AUTHENTICATION_CLASSES)(view)
         view = async_support.api_view(["GET", "POST"])(view)
         return view
+
+    async def get_context(self, request: HttpRequest, response: HttpResponse) -> Any:
+        return {
+            "request": request,
+            "posts": MyDataLoader(load_fn=load_posts),
+            "comments": MyDataLoader(load_fn=load_comments),
+        }
 
 
 auth_auth_patterns = [
