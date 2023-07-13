@@ -527,7 +527,6 @@ class Space:
     tasks: List[Optional["Task"]]
     topics: List[Optional[Topic]]
     sdgs: List[Optional[SDG]]
-    collaboration_tools: List[Optional[CollaborationTool]]
     contact_description: Optional[str]
     contact_email: Optional[str]
     contact_phone: Optional[str]
@@ -624,6 +623,14 @@ class Space:
         ).order_by("step_number")
 
         return Onboarding(steps=onboarding_steps)
+
+    @gql.django.field
+    def collaboration_tools(self, info) -> List[Optional[CollaborationTool]]:
+        current_user: UserModel = info.context.request.user
+        if current_user.is_anonymous or not current_user.is_member_of_community_with_id(self.id):
+            return []
+
+        return self.collaboration_tools
 
 
 @gql.django.type(PostCommentModel)

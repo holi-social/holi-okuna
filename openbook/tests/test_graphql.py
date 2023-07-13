@@ -4418,6 +4418,32 @@ class TestUsers:
         assert new_description == updated_collaboration_tool["description"]
         assert new_collection_type == updated_collaboration_tool["collectionType"]
 
+    def assert_collaboration_tools(self, community_id, user, expected):
+        response = async_to_sync(schema.execute)(
+            """
+            query($id:String!) {
+                spaceById(idOrName:$id) {
+                    collaborationTools { id }
+                }
+            }
+            """,
+            variable_values={"id": str(community_id)},
+            context_value=benedict({"request": {"user": user}}),
+        )
+
+        assert response.data["spaceById"]["collaborationTools"] == expected
+
+    def test_collaboration_tools_only_visible_to_members(self):
+        user = make_user()
+        member = make_user()
+        community = make_community()
+        community.add_member(member)
+        collaboration_tool = make_collaboration_tool(community=community)
+
+        self.assert_collaboration_tools(community.id, AnonymousUser, [])
+        self.assert_collaboration_tools(community.id, user, [])
+        self.assert_collaboration_tools(community.id, member, [{"id": str(collaboration_tool.id)}])
+
     def test_can_not_invite_to_space_by_email_if_not_logged_in(self):
         community = make_community()
 
