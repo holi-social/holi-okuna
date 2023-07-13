@@ -559,6 +559,7 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
 SERVER_EMAIL = os.environ.get("SERVER_EMAIL")
+SERVICE_EMAIL_ADDRESS = os.environ.get("SERVICE_EMAIL_ADDRESS")
 
 # AWS Storage config
 
