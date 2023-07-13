@@ -19,8 +19,6 @@ logger = logging.getLogger(__name__)
 
 
 class LinkedUsersAPITests(OpenbookAPITestCase):
-    fixtures = ["openbook_circles/fixtures/circles.json"]
-
     def test_can_retrieve_linked_users(self):
         """should be able to retrieve the authenticated user linked users"""
         user = make_user()

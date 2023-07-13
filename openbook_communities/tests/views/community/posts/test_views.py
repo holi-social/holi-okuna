@@ -46,7 +46,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         for i in range(0, amount_of_community_posts):
             community_member = make_user()
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(
+            community_member_post = community_member.create_community_post_by_name(
                 community_name=community.name, text=make_fake_post_text()
             )
             community_posts_ids.append(community_member_post.pk)
@@ -82,7 +82,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         for i in range(0, amount_of_community_posts):
             community_member = make_user()
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(
+            community_member_post = community_member.create_community_post_by_name(
                 community_name=community.name, text=make_fake_post_text()
             )
             community_posts_ids.append(community_member_post.pk)
@@ -123,7 +123,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
                 username=community_member.username, community_name=community_name
             )
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(
+            community_member_post = community_member.create_community_post_by_name(
                 community_name=community.name, text=make_fake_post_text()
             )
             community_posts_ids.append(community_member_post.pk)
@@ -149,7 +149,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         other_user = make_user()
         community = make_community(creator=other_user, type="T")
 
-        other_user.create_community_post(community_name=community.name, text=make_fake_post_text())
+        other_user.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         url = self._get_url(community_name=community.name)
         response = self.client.get(url, **headers)
@@ -170,7 +170,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         for i in range(0, amount_of_community_posts):
             community_member = make_user()
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(
+            community_member_post = community_member.create_community_post_by_name(
                 community_name=community.name, text=make_fake_post_text()
             )
             community_member_post.soft_delete()
@@ -205,7 +205,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         for i in range(0, amount_of_community_posts):
             community_member = make_user()
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(
+            community_member_post = community_member.create_community_post_by_name(
                 community_name=community.name, text=make_fake_post_text()
             )
             moderation_category = make_moderation_category()
@@ -248,7 +248,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         for i in range(0, amount_of_community_posts):
             community_member = make_user()
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(
+            community_member_post = community_member.create_community_post_by_name(
                 community_name=community.name, text=make_fake_post_text()
             )
             community_posts_ids.append(community_member_post.pk)
@@ -291,7 +291,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         for i in range(0, amount_of_community_posts):
             community_member = make_user()
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(
+            community_member_post = community_member.create_community_post_by_name(
                 community_name=community.name, text=make_fake_post_text()
             )
             community_posts_ids.append(community_member_post.pk)
@@ -319,7 +319,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         community_owner = make_user()
         community = make_community(creator=community_owner)
 
-        community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
+        community_owner.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         user.join_community_with_name(community_name=community.name)
 
@@ -344,7 +344,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
 
         user_to_block.join_community_with_name(community_name=community.name)
 
-        user_to_block.create_community_post(community_name=community.name, text=make_fake_post_text())
+        user_to_block.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         user.block_user_with_id(user_id=user_to_block.pk)
 
@@ -369,7 +369,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
 
         user_to_block.join_community_with_name(community_name=community.name)
 
-        user_to_block.create_community_post(community_name=community.name, text=make_fake_post_text())
+        user_to_block.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         user_to_block.block_user_with_id(user_id=user.pk)
 
@@ -390,7 +390,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         community_owner = make_user()
         community = make_community(creator=community_owner)
 
-        post = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = community_owner.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         user.block_user_with_id(user_id=community_owner.pk)
 
@@ -416,7 +416,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         community_owner = make_user()
         community = make_community(creator=community_owner)
 
-        post = community_owner.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = community_owner.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         community_owner.block_user_with_id(user_id=user.pk)
 
@@ -442,7 +442,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         community = make_community(creator=community_owner)
 
         user.join_community_with_name(community_name=community.name)
-        post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = user.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         user.block_user_with_id(user_id=community_owner.pk)
 
@@ -469,7 +469,7 @@ class CommunityPostsAPITest(OpenbookAPITestCase):
         community = make_community(creator=community_owner)
 
         user.join_community_with_name(community_name=community.name)
-        post = user.create_community_post(community_name=community.name, text=make_fake_post_text())
+        post = user.create_community_post_by_name(community_name=community.name, text=make_fake_post_text())
 
         community_owner.block_user_with_id(user_id=user.pk)
 
@@ -809,7 +809,7 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
         for i in range(0, amount_of_community_posts):
             community_member = make_user()
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(
+            community_member_post = community_member.create_community_post_by_name(
                 community_name=community.name, text=make_fake_post_text()
             )
             community_member_post.is_closed = True
@@ -850,7 +850,7 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
         for i in range(0, amount_of_community_posts):
             community_member = make_user()
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(
+            community_member_post = community_member.create_community_post_by_name(
                 community_name=community.name, text=make_fake_post_text()
             )
             community_member_post.is_closed = True
@@ -886,7 +886,7 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
         for i in range(0, amount_of_community_posts):
             community_member = make_user()
             community_member.join_community_with_name(community_name=community_name)
-            community_member_post = community_member.create_community_post(
+            community_member_post = community_member.create_community_post_by_name(
                 community_name=community.name, text=make_fake_post_text()
             )
             community_member_post.is_closed = True
@@ -922,7 +922,7 @@ class CommunityClosedPostsAPITest(OpenbookAPITestCase):
         community_posts_ids = []
 
         for i in range(0, amount_of_community_posts):
-            community_member_post = community_member.create_community_post(
+            community_member_post = community_member.create_community_post_by_name(
                 community_name=community.name, text=make_fake_post_text()
             )
             community_member_post.is_closed = True
@@ -952,7 +952,7 @@ class GetCommunityPostsCountAPITests(OpenbookAPITestCase):
         amount_of_posts = 5
 
         for i in range(0, amount_of_posts):
-            community_creator.create_community_post(text=make_fake_post_text(), community_name=community_name)
+            community_creator.create_community_post_by_name(text=make_fake_post_text(), community_name=community_name)
 
         url = self._get_url(community_name=community_name)
 

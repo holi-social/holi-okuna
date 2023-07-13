@@ -57,7 +57,7 @@ class CommunityPosts(APIView):
         user = request.user
 
         with transaction.atomic():
-            post = user.create_community_post(
+            post = user.create_community_post_by_name(
                 text=text,
                 community_name=community_name,
                 image=image,

@@ -1,11 +1,11 @@
 from copy import deepcopy
 from collections import defaultdict
 from datetime import datetime, timedelta
+
 from typing_extensions import Annotated
 
 import requests
 import structlog
-from cacheops import cached_as
 from django.conf import settings
 from django.core.cache import cache
 from django.contrib.gis import geos
@@ -16,7 +16,7 @@ from django.db.models.lookups import IContains
 from django.utils.translation import gettext_lazy as _
 from graphql import GraphQLError
 from strawberry.file_uploads import Upload
-from strawberry.types import Info
+from strawberry.types import Info, ExecutionContext
 from strawberry_django_plus.optimizer import DjangoOptimizerExtension
 
 from openbook.graphql_errors import GraphQLErrorCodes
@@ -45,8 +45,10 @@ from openbook_communities.views.communities.serializers import (
     UpdateTaskSerializer,
     UpdateCollaborationToolSerializer,
     UpdateCommunitySerializer,
+    InviteToCommunityByEmailSerializer,
     ValidateCommunitySerializer,
 )
+from openbook_communities.views.community.serializers import CommunityUserConnectionSerializer
 from openbook_connections.serializers import UpdateConnectionWithUserSerializer
 from openbook_moderation.models import ModeratedObject
 from openbook_posts.views.post.serializers import EditCommunityPostSerializer
@@ -58,6 +60,7 @@ from openbook_posts.views.posts.serializers import (
 from openbook.middleware.graphql_error_extension import GraphQLErrorExtension
 
 from .graphql_types import *
+from .settings.sentry_config import HoliSentryTracingExtension
 
 PUBLISHED_NOTIFICATION_TYPES = [
     NotificationModel.CONNECTION_REQUEST,
@@ -73,7 +76,7 @@ PUBLISHED_NOTIFICATION_TYPES = [
     NotificationModel.RELEASE_INFO,
 ]
 
-logger = structlog.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 def get_id_spaces_count_map(query):
@@ -84,7 +87,7 @@ def get_id_spaces_count_map(query):
     return id_to_num_spaces
 
 
-@cached_as(CommunityModel, CommunityMembershipModel)
+@sync_to_async
 def spaces_for_filter(
     offset: int,
     limit: int,
@@ -114,7 +117,8 @@ def spaces_for_filter(
         CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
         .filter(query)
         .annotate(member_count=Count("memberships"))
-        .order_by("-member_count", "-created"),
+        .order_by("-member_count", "-created")
+        .cache(ops=["fetch", "count"], timeout=300),
         offset,
         limit,
     )
@@ -278,15 +282,27 @@ class Query:
         )
 
     @gql.django.field
+    @sync_to_async
     def last_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         current_user = info.context.request.user
-        return Paged.of(
-            InsightModel.objects.filter(Q(creator__isnull=True) | UserModel.is_visible_query(current_user, "creator"))
-            .filter(date_published__lte=datetime.now())
-            .order_by("-date_published", "id"),
+        paged_insights = Paged.of(
+            InsightModel.objects.filter(
+                Q(creator__isnull=True) | UserModel.is_visible_ignore_blocked_query(current_user, "creator"),
+                date_published__lte=datetime.now(),
+            )
+            .select_related("creator", "creator__profile", "topic")
+            .prefetch_related(
+                "posts",
+                "posts__creator",
+                "posts__comments__commenter",
+            )
+            .order_by("-date_published", "id")
+            .cache(ops=["fetch", "count"], timeout=300),
             offset,
             limit,
         )
+
+        return paged_insights
 
     @gql.django.field
     def insight_by_id(self, info, id: uuid.UUID) -> Optional[Insight]:
@@ -349,6 +365,7 @@ class Query:
         )
 
     @gql.django.field
+    @sync_to_async
     def discover_spaces(
         self,
         info,
@@ -375,8 +392,9 @@ class Query:
 
         # Check whether the resolver result has already been cached and return it,
         # otherwise, query the database, create the result, and cache it.
-        if hash_key in cache:
-            return cache.get(hash_key)
+        cached_result = cache.get(hash_key)
+        if cached_result is not None:
+            return cached_result
         else:
             # get all spaces by geolocation (independent of other filters)
             if geolocation is not None:
@@ -436,7 +454,7 @@ class Query:
                         )
                     )
             # Set the result to be cached for future calls until the cache key expires after the default TTL.
-            cache.set(hash_key, result)
+            sync_to_async(cache.set)(hash_key, result)
             return result
 
     @gql.django.field
@@ -517,7 +535,7 @@ class Query:
                         info.context.request.user, ModeratedObject.OBJECT_TYPE_COMMUNITY
                     )
                 )
-                .get(query)
+                .aget(query)
             )
         except CommunityModel.DoesNotExist:
             raise GraphQLError("Space not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
@@ -760,6 +778,7 @@ class Result:
 @gql.type
 class Mutation:
     @gql.mutation
+    @sync_to_async
     def update_authenticated_user(self, info, input: UpdateAuthenticatedUserInput) -> User:
         current_user = verify_authorized_user(info)
 
@@ -794,6 +813,8 @@ class Mutation:
                 remove_avatar=remove_avatar,
                 save=True,
             )
+            # Update user cache
+            cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
         except Error:
             if remove_avatar:
                 delete_avatar(data["avatar"])
@@ -806,6 +827,7 @@ class Mutation:
         return current_user
 
     @gql.mutation
+    @sync_to_async
     def update_connection_with_user(self, info, input: UpdateConnectionWithUserInput) -> User:
         current_user = verify_authorized_user(info)
 
@@ -837,6 +859,7 @@ class Mutation:
         return user_to_connect_to
 
     @gql.mutation
+    @sync_to_async
     def update_post_comment(self, info, input: CreatePostCommentInput) -> CreatePostCommentOutput:
         current_user = verify_authorized_user(info)
 
@@ -853,6 +876,7 @@ class Mutation:
         return CreatePostCommentOutput(post_comment=post_comment, post_by_id=resolve_post(current_user, post_id))
 
     @gql.mutation
+    @sync_to_async
     def delete_post_comment(self, info, id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
 
@@ -861,6 +885,7 @@ class Mutation:
         return Result(success=True)
 
     @gql.mutation(description="When no userId is provided, the logged in user is used instead.")
+    @sync_to_async
     def update_space_user_connection(
         self,
         info,
@@ -868,8 +893,13 @@ class Mutation:
         connection_type: SpaceUserConnectionType,
         connect_action: UpdateConnectionAction,
         user_id: Optional[uuid.UUID] = None,
+        message: Optional[str] = None,
     ) -> Space:
         current_user = verify_authorized_user(info)
+
+        serializer = CommunityUserConnectionSerializer(data={"community_id": space_id, "message": message})
+        serializer.is_valid(raise_exception=True)
+
         space = CommunityModel.objects.get(id=space_id)
 
         cT = SpaceUserConnectionType
@@ -881,7 +911,7 @@ class Mutation:
             # perform for current user
             match (connection_type, connect_action):
                 case (cT.MEMBERSHIP_REQUESTOR, a.CONNECT):
-                    return current_user.request_membership_to_community_with_name(space.name)
+                    return current_user.request_membership_to_community_with_name(space.name, message)
                 case (cT.MEMBERSHIP_REQUESTOR, a.DISCONNECT):
                     return current_user.revoke_membership_request_to_community_with_name(space.name)
                 case (cT.FOLLOWER, a.CONNECT):
@@ -918,6 +948,7 @@ class Mutation:
     @gql.mutation(
         deprecation_reason="Changed return type to reflect created entity, use create_space_post_2. Deprecated since v1.1.0"
     )
+    @sync_to_async
     def create_space_post(self, info: Info, input: CreatePostInput) -> Space:
         current_user = verify_authorized_user(info)
 
@@ -925,11 +956,12 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        current_user.create_community_encircled_post(**data)
+        current_user.create_community_post(**data)
 
         return CommunityModel.objects.get(id=data.get("space_id"))
 
     @gql.mutation
+    @sync_to_async
     def create_space_post_2(self, info: Info, input: CreatePostInput) -> Post:
         current_user = verify_authorized_user(info)
 
@@ -937,9 +969,10 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        return current_user.create_community_encircled_post(**data)
+        return current_user.create_community_post(**data)
 
     @gql.mutation
+    @sync_to_async
     def update_space_post(self, info: Info, input: UpdatePostInput) -> Post:
         current_user = verify_authorized_user(info)
 
@@ -949,9 +982,10 @@ class Mutation:
 
         data["remove_image"] = is_parameter_null(data, "image")
 
-        return current_user.update_community_encircled_post(**data)
+        return current_user.update_community_post(**data)
 
     @gql.mutation
+    @sync_to_async
     def delete_space_post(self, info: Info, id: uuid.UUID) -> Space:
         current_user = verify_authorized_user(info)
 
@@ -961,6 +995,7 @@ class Mutation:
         return post.community
 
     @gql.mutation
+    @sync_to_async
     def delete_authenticated_user(self, info) -> Result:
         current_user = verify_authorized_user(info)
         headers = {"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"}
@@ -1012,6 +1047,7 @@ class Mutation:
                     )
 
     @gql.mutation
+    @sync_to_async
     def report_content(
         self,
         info,
@@ -1041,6 +1077,7 @@ class Mutation:
         return Result(success=True)
 
     @gql.mutation
+    @sync_to_async
     def block_user(self, info, user_id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
         username_of_user_to_block = str(user_id)
@@ -1050,6 +1087,7 @@ class Mutation:
         return Result(success=True)
 
     @gql.mutation
+    @sync_to_async
     def validate_space(self, info, input: ValidateSpaceInput) -> Result:
         verify_authorized_user(info)
 
@@ -1059,6 +1097,7 @@ class Mutation:
         return Result(success=True)
 
     @gql.mutation
+    @sync_to_async
     def create_space(self, info, input: CreateSpaceInput) -> Space:
         current_user = verify_authorized_user(info)
 
@@ -1080,6 +1119,7 @@ class Mutation:
         return community
 
     @gql.mutation
+    @sync_to_async
     def update_space(self, info, input: UpdateSpaceInput) -> Space:
         current_user = verify_authorized_user(info)
 
@@ -1109,6 +1149,7 @@ class Mutation:
         return space
 
     @gql.mutation
+    @sync_to_async
     def delete_space(self, info, id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
         space = CommunityModel.objects.get(id=id)
@@ -1125,6 +1166,20 @@ class Mutation:
         return Result(success=True)
 
     @gql.mutation
+    @sync_to_async
+    def invite_to_space_by_email(self, info, email: str, space_id: uuid.UUID) -> Result:
+        current_user = verify_authorized_user(info)
+
+        serializer = InviteToCommunityByEmailSerializer(data={"email": email, "space_id": space_id})
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        current_user.invite_to_community_by_email(email=data.get("email"), space_id=data.get("space_id"))
+
+        return Result(success=True)
+
+    @gql.mutation
+    @sync_to_async
     def create_task(self, info, input: CreateTaskInput) -> Task:
         current_user = verify_authorized_user(info)
 
@@ -1148,6 +1203,7 @@ class Mutation:
         )
 
     @gql.mutation
+    @sync_to_async
     def update_task(self, info, input: UpdateTaskInput) -> Task:
         current_user = verify_authorized_user(info)
 
@@ -1174,6 +1230,7 @@ class Mutation:
         )
 
     @gql.mutation
+    @sync_to_async
     def delete_task(self, info, id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
 
@@ -1183,6 +1240,7 @@ class Mutation:
         return Result(success=True)
 
     @gql.mutation
+    @sync_to_async
     def update_post_reaction(
         self,
         info,
@@ -1199,6 +1257,7 @@ class Mutation:
         return post
 
     @gql.mutation
+    @sync_to_async
     def update_post_comment_reaction(
         self,
         info,
@@ -1215,12 +1274,14 @@ class Mutation:
         return post_comment
 
     @gql.mutation
+    @sync_to_async
     def last_seen_notification(self, info, notification_id: uuid.UUID) -> NewNotificationsResponse:
         current_user = verify_authorized_user(info)
         current_user.store_last_seen_notification(notification_id)
         return NewNotificationsResponse(id=current_user.username, status=False)
 
     @gql.mutation
+    @sync_to_async
     def add_collaboration_tool(self, info, input: AddCollaborationToolInput) -> CollaborationTool:
         current_user = verify_authorized_user(info)
 
@@ -1238,6 +1299,7 @@ class Mutation:
         )
 
     @gql.mutation
+    @sync_to_async
     def update_collaboration_tool(self, info, input: UpdateCollaborationToolInput) -> CollaborationTool:
         current_user = verify_authorized_user(info)
 
@@ -1256,6 +1318,7 @@ class Mutation:
         )
 
     @gql.mutation
+    @sync_to_async
     def delete_collaboration_tool(self, info, id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
 
@@ -1267,6 +1330,7 @@ class Mutation:
         return Result(success=True)
 
     @gql.mutation
+    @sync_to_async
     def add_external_link(self, info, input: AddExternalLinkInput) -> ExternalLink:
         current_user = verify_authorized_user(info)
 
@@ -1282,6 +1346,7 @@ class Mutation:
         )
 
     @gql.mutation
+    @sync_to_async
     def update_external_link(self, info, input: UpdateExternalLinkInput) -> ExternalLink:
         current_user = verify_authorized_user(info)
 
@@ -1297,6 +1362,7 @@ class Mutation:
         )
 
     @gql.mutation
+    @sync_to_async
     def delete_external_link(self, info, id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
 
@@ -1308,11 +1374,36 @@ class Mutation:
         return Result(success=True)
 
 
-schema = strawberry.Schema(
+class HoliSchema(strawberry.Schema):
+    def process_errors(
+        self,
+        errors: List[GraphQLError],
+        execution_context: Optional[ExecutionContext] = None,
+    ) -> None:
+        real_errors = [
+            error
+            for error in errors
+            if not (
+                error.extensions
+                and "code" in error.extensions
+                and error.extensions["code"]
+                in [
+                    GraphQLErrorCodes.BAD_USER_INPUT,
+                    GraphQLErrorCodes.NOT_FOUND,
+                    GraphQLErrorCodes.FORBIDDEN,
+                    GraphQLErrorCodes.UNAUTHORIZED,
+                ]
+            )
+        ]
+        super().process_errors(real_errors, execution_context)
+
+
+schema = HoliSchema(
     query=Query,
     mutation=Mutation,
     extensions=[
         DjangoOptimizerExtension,
         GraphQLErrorExtension,
+        HoliSentryTracingExtension,
     ],
 )

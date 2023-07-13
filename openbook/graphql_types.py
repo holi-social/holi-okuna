@@ -4,8 +4,9 @@ from uuid import UUID
 import json
 
 import strawberry
-from typing import List, TypeVar, Optional, Tuple
+from typing import List, TypeVar, Optional
 
+from asgiref.sync import sync_to_async
 from django.db.models import Q
 from strawberry_django_plus import gql
 from django.db.models import QuerySet
@@ -14,7 +15,7 @@ import logging
 from openbook_common.models import LinkPreview as LinkPreviewModel
 from openbook_common.models import AppVersion as AppVersionModel
 from openbook_common.types import ReactionType, GeolocationFeature, NeedUpdateType
-from openbook_common.utils.model_loaders import get_circle_model
+from openbook_common.utils.model_loaders import get_circle_model, get_community_model
 from openbook_communities.models import (
     Community as CommunityModel,
     Task as TaskModel,
@@ -54,7 +55,7 @@ class Paged(List[GenericType]):
     def of(query: QuerySet, offset: int, limit: int):
         return Paged(data=query[offset : offset + limit], total_results=query.count())
 
-    def __init__(self, data=[], total_results=0):
+    def __init__(self, data=None, total_results=0):
         if data is None:
             data = []
         self.data = data
@@ -108,8 +109,12 @@ class GeolocationPoint:
 @gql.django.type(AppVersionModel)
 class AppVersionResponse:
     need_update: gql.auto
-    app_store_url: gql.auto
-    play_store_url: gql.auto
+    app_store_url: str = gql.django.field(
+        field_name="app_store_url", default=AppVersionModel._meta.get_field("app_store_url").get_default()
+    )
+    play_store_url: str = gql.django.field(
+        field_name="play_store_url", default=AppVersionModel._meta.get_field("app_store_url").get_default()
+    )
 
 
 # Custom scalars for GeoJSON containing geolocation geometries are necessary, as GraphQL schema parsing throws an error ("Decorated type deeper than introspection query") for 4-dimensional arrays (e.g. MultiPolygons)
@@ -211,6 +216,7 @@ class PostImage:
     width: int
     height: int
     url: str = gql.django.field(field_name="image")
+    blurhash: Optional[str] = gql.django.field(field_name="image_blurhash")
 
 
 @gql.django.type(LinkPreviewModel)
@@ -243,6 +249,10 @@ class User:
     @gql.django.field(select_related=["profile"])
     def avatar(self) -> Optional[str]:
         return self.profile.avatar
+
+    @gql.django.field(select_related=["profile"])
+    def avatar_blurhash(self) -> Optional[str]:
+        return self.profile.avatar_blurhash
 
     @gql.django.field(select_related=["profile"])
     def first_name(self) -> Optional[str]:
@@ -321,6 +331,7 @@ class CollaborationTool:
     collection_type: CollectionType
     domain: gql.auto
     thumbnail: Optional[str]
+    thumbnail_blurhash: Optional[str]
 
 
 @gql.django.type(TaskModel)
@@ -339,6 +350,7 @@ class Task:
     regularity: TaskModel.Regularity
     skills: List[Skill]
     thumbnail: Optional[str]
+    thumbnail_blurhash: Optional[str]
     contact_email: str
     contact_phone: Optional[str]
 
@@ -355,49 +367,39 @@ class Insight:
     creator: Optional[User] = gql.django.field(select_related=["creator__profile"])
     date_published: gql.auto
     header_image: Optional[str]
+    header_image_blurhash: Optional[str]
     topic: Optional[Topic]
 
-    @gql.django.field(prefetch_related="posts")
+    @gql.django.field
     def posts(self, info) -> List["Post"]:
         current_user = info.context.request.user
-        return (
-            PostModel.objects.filter(insights=self)
-            .filter(PostModel.is_visible_query(current_user))
-            .filter(UserBlock.not_blocked_query(current_user, "creator"))
-            .order_by("created")
-        )
+        return self.posts.filter(PostModel.is_visible_query(current_user)).order_by("created")
 
     # this should be removed and be replaced by paged posts
     @gql.django.field
     def number_of_posts(self, info) -> int:
         current_user = info.context.request.user
-        return (
-            PostModel.objects.filter(insights=self)
-            .filter(PostModel.is_visible_query(current_user))
-            .filter(UserBlock.not_blocked_query(current_user, "creator"))
-            .count()
-        )
+        return self.posts.filter(PostModel.is_visible_query(current_user)).count()
 
     @gql.django.field(
         description="A list of all users involved. Curator of the insight, Authors of all the posts and all commenters of those posts"
     )
-    def involved_users(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
+    @sync_to_async
+    def involved_users(self, info, offset: int = 0, limit: int = 3) -> Paged[User]:
         current_user = info.context.request.user
-        return Paged.of(
-            UserModel.objects.select_related("profile")
-            .filter(UserModel.is_visible_query(current_user))
-            .filter(
+        query = UserModel.objects.filter(
+            Q(
                 Q(curated_insights=self)
                 | (Q(posts__insights=self) & PostModel.is_visible_query(current_user, "posts"))
                 | (
                     Q(posts_comments__post__insights=self)
                     & PostCommentModel.is_visible_query(current_user, "posts_comments")
                 )
-            )
-            .distinct(),
-            offset,
-            limit,
-        )
+            ),
+            is_deleted=False,
+        ).distinct()
+        query = query.select_related("profile").cache(ops=["fetch", "count"], timeout=300)
+        return Paged.of(query, offset, limit)
 
 
 @gql.type
@@ -417,8 +419,9 @@ class Post:
     comments_enabled: gql.auto
     mentions: List[Optional[User]]
     links: List[Optional[LinkPreview]]
+    is_public: gql.auto
 
-    @gql.field
+    @gql.django.field
     def image(self) -> Optional[PostImage]:
         if hasattr(self, "image"):
             return self.image
@@ -493,10 +496,6 @@ class Post:
                 return ReactionCounts()
         return ReactionCounts()
 
-    @gql.django.field
-    def is_public(self) -> bool:
-        return self.is_public_post()
-
 
 @gql.django.type(CommunityModel)
 class Space:
@@ -507,8 +506,10 @@ class Space:
     creator: Optional[User]
     created: gql.auto
     avatar: str
+    avatar_blurhash: Optional[str]
     avatar_default_color: str
     cover: str
+    cover_blurhash: Optional[str]
     location: gql.auto
     links: List[Optional[ExternalLink]]
     tasks: List[Optional["Task"]]
@@ -574,13 +575,13 @@ class Space:
             current_user.is_anonymous
             or not CommunityMembershipModel.objects.filter(community=self, user=current_user).exists()
         ):
-            query = query.filter(circles__id=get_circle_model().get_world_circle_id())
+            query = query.filter(is_public=True)
         else:
             if visibility == VisibilityFilter.PUBLIC:
-                query = query.filter(circles__id=get_circle_model().get_world_circle_id())
+                query = query.filter(is_public=True)
 
             elif visibility == VisibilityFilter.MEMBERS:
-                query = query.exclude(circles__id=get_circle_model().get_world_circle_id())
+                query = query.filter(is_public=False)
 
         return Paged.of(query.order_by("-created"), offset, limit)
 
@@ -590,7 +591,7 @@ class Space:
         query = PostModel.objects.filter(
             PostModel.is_visible_query(current_user), status=PostModel.STATUS_PUBLISHED, community=self
         )
-        return query.filter(circles__id=get_circle_model().get_world_circle_id()).exists()
+        return query.filter(is_public=True).exists()
 
     @gql.django.field
     def has_private_posts(self, info) -> bool:
@@ -598,7 +599,7 @@ class Space:
         query = PostModel.objects.filter(
             PostModel.is_visible_query(current_user), status=PostModel.STATUS_PUBLISHED, community=self
         )
-        return query.exclude(circles__id=get_circle_model().get_world_circle_id()).exists()
+        return query.filter(is_public=False).exists()
 
 
 @gql.django.type(PostCommentModel)
@@ -641,6 +642,7 @@ class NotificationOptions:
     post_comment: Optional[PostComment]
     space: Optional[Space]
     teaser: Optional[str]
+    message: Optional[str]
 
 
 @gql.django.type(NotificationModel)
@@ -660,6 +662,7 @@ class Notification:
             post_comment=options.get("post_comment"),
             space=options.get("space"),
             teaser=options.get("teaser"),
+            message=options.get("message"),
         )
 
 

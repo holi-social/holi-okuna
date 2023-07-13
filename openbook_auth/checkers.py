@@ -42,7 +42,7 @@ def check_can_update_post(user, post):
 
 def check_can_post_to_circles_with_ids(user, circles_ids=None):
     for circle_id in circles_ids:
-        if not user.has_circle_with_id(circle_id) and not user.is_world_circle_id(circle_id):
+        if not user.has_circle_with_id(circle_id):
             raise ValidationError(
                 _("You cannot post to circle with id %(id)s") % {"id": circle_id},
             )
@@ -82,7 +82,7 @@ def check_comments_enabled_for_post_with_id(user, post_id):
 def check_can_translate_post_with_id(user, post_id):
     Post = get_post_model()
     post = Post.objects.get(id=post_id)
-    if post.is_encircled_post():
+    if not post.is_public:
         raise ValidationError(_("Only public posts can be translated"))
     if post.text is None:
         raise ValidationError(_("Post has no text to be translated"))
@@ -668,11 +668,6 @@ def check_can_update_circle_with_id(user, circle_id):
             _("Can't update a circle that does not belong to you."),
         )
 
-    if user.is_world_circle_id(circle_id):
-        raise ValidationError(
-            _("Can't update the world circle."),
-        )
-
     if user.is_connections_circle_id(circle_id):
         raise ValidationError(
             _("Can't update the connections circle."),
@@ -683,11 +678,6 @@ def check_can_delete_circle_with_id(user, circle_id):
     if not user.has_circle_with_id(circle_id):
         raise ValidationError(
             _("Can't delete a circle that does not belong to you."),
-        )
-
-    if user.is_world_circle_id(circle_id):
-        raise ValidationError(
-            _("Can't delete the world circle."),
         )
 
     if user.is_connections_circle_id(circle_id):
@@ -857,7 +847,7 @@ def check_has_muted_post_comment_with_id(user, post_comment_id):
 def check_can_translate_comment_with_id(user, post_comment_id):
     PostComment = get_post_comment_model()
     post_comment = PostComment.objects.get(pk=post_comment_id)
-    if post_comment.post.is_encircled_post():
+    if not post_comment.post.is_public:
         raise ValidationError(_("Only public post comments can be translated"))
     if post_comment.text is None:
         raise ValidationError(_("Post comment has no text to be translated"))
@@ -1026,7 +1016,7 @@ def check_email_verification_token_is_valid_for_email(user, email_verification_t
         token_contents = jwt.decode(
             email_verification_token,
             settings.SECRET_KEY,
-            algorithm=settings.JWT_ALGORITHM,
+            algorithms=[settings.JWT_ALGORITHM],
         )
         token_email = token_contents["email"]
         new_email = token_contents["new_email"]
@@ -1059,11 +1049,6 @@ def check_connection_circles_ids(user, circles_ids):
 
 def check_connection_circle_id(user, circle_id):
     check_has_circle_with_id(user=user, circle_id=circle_id)
-
-    if user.is_world_circle_id(circle_id):
-        raise ValidationError(
-            _("Can't connect in the world circle."),
-        )
 
 
 def check_email_not_taken(user, email):
@@ -1364,6 +1349,13 @@ def check_can_create_invite(user, nickname):
     UserInvite = get_user_invite_model()
     if UserInvite.objects.filter(invited_by=user, nickname=nickname).exists():
         raise ValidationError("Nickname already in use")
+
+
+def check_can_create_invite_to_community(user, community=None):
+    if not user.is_member_of_community_with_name(community_name=community.name):
+        raise ValidationError(
+            _("You cannot create an invite to a community you are not a member of"),
+        )
 
 
 def check_can_update_invite(user, invite_id):

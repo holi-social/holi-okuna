@@ -1,8 +1,7 @@
 from django.contrib import admin
 from modeltranslation.admin import TranslationAdmin
 
-# Register your models here.
-from openbook_common.models import Emoji, EmojiGroup, Badge, ProxyBlacklistedDomain, AppVersion
+from openbook_common.models import Emoji, EmojiGroup, Badge, ProxyBlacklistedDomain, AppVersion, FeatureToggle
 
 
 class EmojiGroupEmoji(admin.TabularInline):
@@ -35,3 +34,9 @@ class ProxyBlacklistDomainAdmin(admin.ModelAdmin):
 class AppVersionAdmin(admin.ModelAdmin):
     readonly_fields = ("created",)
     list_display = ("version", "need_update", "app_store_url", "play_store_url", "created")
+
+
+@admin.register(FeatureToggle)
+class FeatureToggleAdmin(admin.ModelAdmin):
+    readonly_fields = ("created",)
+    list_display = ("name", "status", "created")

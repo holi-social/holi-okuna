@@ -63,7 +63,9 @@ class Posts(APIView):
                     is_draft=is_draft,
                 )
             else:
-                post = user.create_public_post(title=title, text=text, image=image, video=video, is_draft=is_draft)
+                post = user.create_post(
+                    is_public=True, title=title, text=text, image=image, video=video, is_draft=is_draft
+                )
 
         post_serializer = AuthenticatedUserPostSerializer(post, context={"request": request})
 

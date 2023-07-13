@@ -13,7 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-import rest_framework
+import adrf.decorators as async_support
 from django.urls import re_path, path, include
 from django.contrib import admin
 from django.conf import settings
@@ -227,12 +227,12 @@ from rest_framework.settings import api_settings
 from strawberry.django.views import AsyncGraphQLView, GraphQLView
 
 
-class AuthenticatedStrawberryGraphQLView(GraphQLView):
+class AuthenticatedStrawberryGraphQLView(AsyncGraphQLView):
     @classmethod
     def as_view(cls, *args, **kwargs):
         view = super(AuthenticatedStrawberryGraphQLView, cls).as_view(*args, **kwargs)
         view = authentication_classes(api_settings.DEFAULT_AUTHENTICATION_CLASSES)(view)
-        view = api_view(["GET", "POST"])(view)
+        view = async_support.api_view(["GET", "POST"])(view)
         return view
 
 
@@ -738,8 +738,12 @@ urlpatterns = [
 
 # The static helper works only in debug mode
 # https://docs.djangoproject.com/en/2.1/howto/static-files/#serving-files-uploaded-by-a-user-during-development
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
+if settings.DEBUG:
+    urlpatterns += [
+        path("__debug__/", include("debug_toolbar.urls")),
+    ]
 # Link previews proxy their urls, use local proxy API on debug/test
 if settings.DEBUG or settings.TESTING:
     urlpatterns.append(

@@ -12,16 +12,10 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import collections
 import os
-import sys
 import structlog
-import sentry_sdk
-from django.utils.translation import gettext_lazy as _
 from dotenv import load_dotenv, find_dotenv
-from sentry_sdk.integrations.django import DjangoIntegration
 
-# Logging config
-from sentry_sdk.integrations.rq import RqIntegration
-
+from openbook.settings import sentry_config
 from openbook_common.utils.environment import EnvironmentChecker
 
 # Python 3.10 moved collections.Callable to collections.abc.Callable. This is a patch to make old libs work (in particular nose)
@@ -49,6 +43,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = environment_checker.is_debug()
 IS_PRODUCTION = environment_checker.is_production()
+IS_STAGING = environment_checker.is_staging()
 IS_BUILD = environment_checker.is_build()
 TESTING = False
 
@@ -80,13 +75,10 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "pytest_django",
     "ordered_model",
-    "storages",
     "video_encoding",
     "imagekit",
-    "django_media_fixtures",
     "cacheops",
     "django_rq",
-    "scheduler",
     "django_extensions",
     "openbook_common",
     "openbook_auth",
@@ -115,7 +107,6 @@ MODELTRANSLATION_FALLBACK_LANGUAGES = ("en",)
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -124,10 +115,30 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.RemoteUserMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+if DEBUG:
+    INSTALLED_APPS += ["debug_toolbar"]
+    MIDDLEWARE += [
+        "strawberry_django.middlewares.debug_toolbar.DebugToolbarMiddleware",
+    ]
+
+    import socket
+
+    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+    INTERNAL_IPS = [".".join(ip.split(".")[:-1] + ["1"]) for ip in ips]
+
+    DEBUG_TOOLBAR_CONFIG = {
+        "SHOW_TEMPLATE_CONTEXT": True,
+        "INTERCEPT_REDIRECTS": False,
+    }
+
+MIDDLEWARE += [
     "openbook_common.middleware.TimezoneMiddleware",
     "openbook_common.middleware.ChunkedContentLengthMiddleware",
     "openbook.middleware.slow_log_middleware",
 ]
+
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://localhost",
@@ -214,6 +225,8 @@ CACHEOPS = {
     "*.*": {},
 }
 
+USER_CACHE_PREFIX = "user_cache:"
+
 RQ_QUEUES = {
     "default": {
         "USE_REDIS_CACHE": "rq-default-jobs",
@@ -298,26 +311,7 @@ else:
 
     DATABASES = {
         "default": writer_db_config,
-        # 'Reader': {
-        #    'ENGINE': 'django.db.backends.mysql',
-        #    'NAME': RDS_DB_NAME,
-        #    'USER': RDS_USERNAME,
-        #    'PASSWORD': RDS_PASSWORD,
-        #    'HOST': RDS_HOSTNAME_READER,
-        #    'PORT': RDS_PORT,
-        #    'OPTIONS': db_options,
-        # }
     }
-
-    # DATABASE_ROUTERS = ['django_replicated.router.ReplicationRouter']
-
-    # REPLICATED_DATABASE_SLAVES = ['Reader', ]
-
-    # MIDDLEWARE.append('django_replicated.middleware.ReplicationMiddleware', )
-
-    # REPLICATED_VIEWS_OVERRIDES = {
-    #    '/admin/*': 'master',
-    # }
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -374,13 +368,8 @@ UNICODE_JSON = True
 
 # The sentry DSN for error reporting
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
-if IS_PRODUCTION:
-    if not SENTRY_DSN:
-        raise NameError("SENTRY_DSN environment variable is required when running on a production environment")
-    sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration(), RqIntegration()], environment="production")
-else:
-    if SENTRY_DSN:
-        logger.info("SENTRY_DSN environment variable ignored.")
+if IS_PRODUCTION or IS_STAGING:  # trace 1% of requests, not marked by the frontend
+    sentry_config.init(sentry_dsn=SENTRY_DSN, sample_rate=0.01, environment=ENVIRONMENT)
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
@@ -397,17 +386,17 @@ USE_TZ = True
 LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 
 LANGUAGES = [
-    ("en", _("English")),
-    ("de", _("German")),
-    ("es", _("Spanish")),
-    ("nl", _("Dutch")),
-    ("da", _("Danish")),
-    ("hu", _("Hungarian")),
-    ("sv", _("Swedish")),
-    ("fr", _("French")),
-    ("it", _("Italian")),
-    ("tr", _("Turkish")),
-    ("pt-br", _("Portuguese, Brazilian")),
+    ("en", "English"),
+    ("de", "German"),
+    ("es", "Spanish"),
+    ("nl", "Dutch"),
+    ("da", "Danish"),
+    ("hu", "Hungarian"),
+    ("sv", "Swedish"),
+    ("fr", "French"),
+    ("it", "Italian"),
+    ("tr", "Turkish"),
+    ("pt-br", "Portuguese, Brazilian"),
 ]
 
 LANGUAGE_CODE = "en"
@@ -420,7 +409,7 @@ MEDIA_ROOT = os.environ.get("MEDIA_ROOT", "./media")
 
 MEDIA_URL = os.environ.get("MEDIA_URL", "/media/")
 
-STATICFILES_DIRS = (os.path.join(BASE_DIR, "openbook/static"),)
+# STATICFILES_DIRS = (os.path.join(BASE_DIR, "openbook/static"),) only needed for additions static files directories
 
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
@@ -512,6 +501,7 @@ COMMUNITY_TOPICS_MIN_AMOUNT = 1
 COMMUNITY_TOPICS_MAX_AMOUNT = 6
 COMMUNITY_CONTACT_DESCRIPTION_MAX_LENGTH = 100
 COMMUNITY_CONTACT_PHONE_MAX_LENGTH = 100
+COMMUNITY_MEMBERSHIP_REQUEST_MESSAGE_MAX_LENGTH = 1000
 HASHTAG_NAME_MAX_LENGTH = 32
 CATEGORY_NAME_MAX_LENGTH = 32
 CATEGORY_TITLE_MAX_LENGTH = 64
@@ -556,13 +546,19 @@ MIN_UNIQUE_TOP_POST_COMMENTS_COUNT = int(os.environ.get("MIN_UNIQUE_TOP_POST_COM
 MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT = int(os.environ.get("MIN_UNIQUE_TRENDING_POST_REACTIONS_COUNT", "5"))
 
 # Email Config
-
+EMAIL_PORT = 587
+EMAIL_TIMEOUT = 20
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-AWS_SES_REGION = os.environ.get("AWS_SES_REGION")
-AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
-SERVICE_EMAIL_ADDRESS = os.environ.get("SERVICE_EMAIL_ADDRESS")
+EMAIL_SSL_KEYFILE = ""  # a value is required for this variable
+EMAIL_SSL_CERTFILE = ""  # a value is required for this variable
 EMAIL_HOST = os.environ.get("EMAIL_HOST")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
+SERVER_EMAIL = os.environ.get("SERVER_EMAIL")
+SERVICE_EMAIL_ADDRESS = os.environ.get("SERVICE_EMAIL_ADDRESS")
 
 # AWS Storage config
 
@@ -574,30 +570,6 @@ AWS_DEFAULT_ACL = None
 # TODO Think about what to do for storage backend
 
 DEFAULT_FILE_STORAGE = "openbook.storage_imagekit_io.ImagekitIoStorage"
-
-if False:  # IS_PRODUCTION:
-    AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
-    AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
-    AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME")
-    AWS_S3_ENCRYPTION = True
-    AWS_S3_SIGNATURE_VERSION = "s3v4"
-    AWS_S3_HOST = os.environ.get("AWS_S3_HOST", "s3.amazonaws.com")
-    AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.{AWS_S3_HOST}"
-
-    AWS_S3_OBJECT_PARAMETERS = {
-        "CacheControl": "max-age=86400",
-    }
-
-    STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_STATIC_LOCATION}/"
-
-    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_PUBLIC_MEDIA_LOCATION}/"
-
-    STATICFILES_STORAGE = "openbook.storage_backends.S3StaticStorage"
-
-    DEFAULT_FILE_STORAGE = "openbook.storage_backends.S3PublicMediaStorage"
-
-    PRIVATE_FILE_STORAGE = "openbook.storage_backends.S3PrivateMediaStorage"
 
 # ONE SIGNAL
 ONE_SIGNAL_APP_ID = os.environ.get("ONE_SIGNAL_APP_ID")

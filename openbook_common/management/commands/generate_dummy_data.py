@@ -75,7 +75,8 @@ class Command(BaseCommand):
             raise CommandError(NO_USERS_AVAILABLE)
         for _ in range(nr):
             with image_fetcher() as image_file:
-                random.choice(users).create_public_post(
+                random.choice(users).create_post(
+                    is_public=True,
                     title=make_fake_post_title(),
                     text=fake.text(max_nb_chars=300),
                     image=image_file,
@@ -88,8 +89,8 @@ class Command(BaseCommand):
             raise CommandError(NO_USERS_AVAILABLE)
         for _ in range(nr):
             with image_fetcher() as image_file:
-                post = random.choice(users).create_public_post(
-                    title=make_fake_post_title(), text=fake.text(max_nb_chars=300), image=image_file
+                post = random.choice(users).create_post(
+                    is_public=True, title=make_fake_post_title(), text=fake.text(max_nb_chars=300), image=image_file
                 )
                 comment_count = random.randint(1, 5)
                 for _ in range(comment_count):
@@ -108,8 +109,8 @@ class Command(BaseCommand):
             raise CommandError(NO_USERS_AVAILABLE)
         for _ in range(nr):
             with image_fetcher() as image_file:
-                post = random.choice(users).create_public_post(
-                    title=make_fake_post_title(), text=fake.text(max_nb_chars=300), image=image_file
+                post = random.choice(users).create_post(
+                    is_public=True, title=make_fake_post_title(), text=fake.text(max_nb_chars=300), image=image_file
                 )
                 self._generate_reactions(post, users)
                 comment_count = random.randint(1, 5)
@@ -123,7 +124,7 @@ class Command(BaseCommand):
         users = self._get_random_users(int(nr / 1.5))
         if not users:
             raise CommandError(NO_USERS_AVAILABLE)
-        posts = Post.objects.filter(circles__id=Circle.get_world_circle_id()).all()[: int(nr * 4)]
+        posts = Post.objects.filter(is_public=True).all()[: int(nr * 4)]
         if not posts:
             raise CommandError(NO_POSTS_AVAILABLE)
         for _ in range(nr):

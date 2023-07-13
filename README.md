@@ -73,21 +73,21 @@ PROJ_LIBRARY_PATH = "/opt/homebrew/lib/libproj.dylib"
 If you have installed pyenv, you can execute `./reset_environment.sh` to install the required python interpreter,
 set up the virtual environment and install the required dependencies.
 
-Start the required services using `python okuna-cli.py up-services-only`
+Start the required services using `python3 okuna-cli.py up-services-only`
 
-Start the dev server using `python manage.py runserver 0.0.0.0:8000`
+Start the dev server using `python3 start_server.py --reload`
 
 ### Reset
 
-Use `python okuna-cli.py clean` to reset all local state, including database and config files.
+Use `python3 okuna-cli.py clean` to reset all local state, including database and config files.
 
 ### Step by step
 
-1. Make sure you're actually running the correct Python version (see .python-version file) by running `python --version`, if you
+1. Make sure you're actually running the correct Python version (see .python-version file) by running `python3 --version`, if you
    are using pyenv, the version check will be executed implicitly for you.
 
    Use `pyenv install $PYENV_VERSION` to install the currently used interpreter and delete your `.venv` folder to remove
-   the deprecated environment.
+   the deprecated environment. `reset_environment.sh` does what you need.
 
 2. Install AND **set up** [`direnv`](http://direnv.net) and run `direnv allow .` in the current directory in order for
    `direnv` to initialise the development environment (variables). This should automatically create a Python 3 venv,
@@ -98,7 +98,7 @@ Use `python okuna-cli.py clean` to reset all local state, including database and
    ```sh
    pip install -r requirements.txt
    pip install -r requirements-cli-only.txt
-   python okuna-cli.py up-services-only
+   python3 okuna-cli.py up-services-only
    ```
 
    This starts up docker-compose with the following processes:
@@ -108,16 +108,21 @@ Use `python okuna-cli.py clean` to reset all local state, including database and
    - db
    - redis
 
+   \
+   You now need to fill some values in the created `.env` file.
+   In particular, you need to replace all values set to "unknown".\
+   If you are on an ARM Mac, you should also uncomment the POSTGRES_IMAGE entry.\
+   \
    Then, run all the database migrations
 
    ```sh
-   python manage.py migrate
+   python3 manage.py migrate
    ```
 
    And fill the DB with some fixture data:
 
    ```bash
-   python manage.py loaddata circles.json emoji-groups.json emojis.json badges.json categories.json languages.json topics.json skills.json sdgs.json moderation_categories.json
+   python3 manage.py loaddata emoji-groups.json emojis.json badges.json categories.json languages.json topics.json skills.json sdgs.json moderation_categories.json
    ```
 
    In addition, there is also a users.json you can load, if you want.
@@ -125,7 +130,7 @@ Use `python okuna-cli.py clean` to reset all local state, including database and
    You can generate more test data with a custom command:
 
    ```bash
-   manage.py generate_dummy_data --user 20 --post 10 --post_with_comment 20 --post_with_comment_and_reaction 20 --insight 10
+   python3 manage.py generate_dummy_data --user 20 --post 10 --post_with_comment 20 --post_with_comment_and_reaction 20 --insight 10
    ```
 
    All parameters are optional.
@@ -135,21 +140,21 @@ Use `python okuna-cli.py clean` to reset all local state, including database and
    Afterwards, you're ready to start the backend API service:
 
    ```sh
-   python start_server.py # this binds to http://127.0.0.1:8000
+   python3 start_server.py # this binds to http://127.0.0.1:8000
 
    #should you need more control you can also use:
    uvicorn openbook.asgi:application --reload [...more uvicorn options, like --host or --port...]
    ```
 
-   Alternatively you can also start the Django development server, but then file uploads don't work:
+   Alternatively you can also start the Django development server, but this is discouraged and then file uploads don't work:
 
    ```sh
-   python manage.py runserver localhost:8000
+   python3 manage.py runserver localhost:8000
    ```
 
-   (or use `python manage.py runserver 0.0.0.0:8000` to bind to all interfaces)
+   (or use `python3 manage.py runserver 0.0.0.0:8000` to bind to all interfaces)
 
-**Please always use python okuna-cli.py instead of docker-compose directly!**
+**Please always use python3 okuna-cli.py instead of docker-compose directly!**
 
 **Why?** okuna-cli.py creates a set of environment files (`.okuna-cli.json`, `.docker-compose.env` and `.env`). Those
 files contain randomly generated passwords for db and redis and the like to be used by the started processes. Also, it
@@ -217,7 +222,7 @@ psql -h localhost okuna -U <RDS_USERNAME>
 
 ## Admin Dashboard
 
-When using a local database, first execute `python manage.py createsuperuser` to create an admin account with your
+When using a local database, first execute `python3 manage.py createsuperuser` to create an admin account with your
 desired credentials.
 If you are connected to the staging database, use the credentials found
 in [Passbolt](https://cloud.passbolt.com/holi/app/passwords)
@@ -241,8 +246,9 @@ _("Welcome holis")
 ```
 
 You must generate new translations whenever you update or include a new response message using translation strings,
-including `raise` messages. This can be done in your term
+including `raise` messages. This can be done in your terminal
 
 ```sh
    ./manage.py makemessages --all --no-wrap
+   ./manage.py compilemessages
 ```

@@ -18,8 +18,10 @@ resource "google_project_service" "service" {
 
   service = each.key
 
-  project            = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
-  disable_on_destroy = false
+  project = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
+  # keep this property as false. Having it true caused https://holi.atlassian.net/wiki/spaces/HOLI/pages/348258312/2023-06-27+All+services+down
+  disable_dependent_services = false
+  disable_on_destroy         = false
 }
 
 resource "google_sql_database" "database" {
@@ -148,6 +150,40 @@ resource "google_cloud_run_service" "okuna" {
           }
         }
         env {
+          name  = "EMAIL_HOST"
+          value = "smtp.mailbox.org"
+        }
+        env {
+          name  = "DEFAULT_FROM_EMAIL"
+          value = local.environment == "production" ? "hi@holi.social" : "development@holi.team"
+        }
+        env {
+          name  = "SERVICE_EMAIL_ADDRESS"
+          value = "development@holi.team"
+        }
+        env {
+          name  = "SERVER_EMAIL"
+          value = "development@holi.team"
+        }
+        env {
+          name = "EMAIL_HOST_USER"
+          value_from {
+            secret_key_ref {
+              key  = "latest"
+              name = "MAILBOX_USERNAME_DEVELOPMENT"
+            }
+          }
+        }
+        env {
+          name = "EMAIL_HOST_PASSWORD"
+          value_from {
+            secret_key_ref {
+              key  = "latest"
+              name = "MAILBOX_PASSWORD_DEVELOPMENT"
+            }
+          }
+        }
+        env {
           name  = "ORY_BASE_URL"
           value = local.environment == "production" ? "https://auth.holi.social" : "https://dev-auth.holi.social"
         }
@@ -164,7 +200,7 @@ resource "google_cloud_run_service" "okuna" {
           limits = {
             # cpu can only be scaled down to 1000m as long as container_concurrency is set to != 1
             cpu    = local.environment == "production" ? "1000m" : "1000m"
-            memory = local.environment == "production" ? "1024Mi" : "768Mi"
+            memory = local.environment == "production" ? "1024Mi" : "1024Mi"
           }
           requests = {
             cpu    = local.environment == "production" ? "1000m" : "10m"

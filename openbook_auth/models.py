@@ -20,7 +20,7 @@ from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
 from strawberry_django_plus import gql
 
-from openbook_common.helpers import ExifRotate
+from openbook_common.helpers import ExifRotate, generate_blurhash
 from openbook_auth.checkers import *
 from openbook_auth.helpers import (
     upload_to_user_avatar_directory,
@@ -96,8 +96,8 @@ def get_reactions(model, reactions_query):
         .values("reaction_type")
         .annotate(count=Count("reaction_type"))
         .order_by("-count")
-        .cache()
         .all()
+        .cache()
     )
     return {reaction["reaction_type"]: reaction["count"] for reaction in reactions}
 
@@ -368,7 +368,6 @@ class User(ModelWithUUID, AbstractUser):
         check_can_get_unauthenticated_posts_for_user(user)
 
         Post = get_post_model()
-        Circle = get_circle_model()
         ModeratedObject = get_moderated_object_model()
 
         user_query = Q(creator__username=username)
@@ -411,16 +410,12 @@ class User(ModelWithUUID, AbstractUser):
 
         exclude_deleted_posts_query = Q(is_deleted=False, status=Post.STATUS_PUBLISHED)
 
-        # Get user world circle posts
-        world_circle_id = Circle.get_world_circle_id()
-        world_circle_posts_query = Q(circles__id=world_circle_id)
-
-        world_circle_posts = (
+        public_posts = (
             Post.objects.prefetch_related(*posts_prefetch_related)
             .only(*posts_only)
             .filter(
                 user_query
-                & world_circle_posts_query
+                & Q(is_public=True)
                 & exclude_deleted_posts_query
                 & exclude_reported_and_approved_posts_query
             )
@@ -446,9 +441,9 @@ class User(ModelWithUUID, AbstractUser):
         user = cls.objects.get(username=username)
 
         if user.has_profile_community_posts_visible():
-            results = world_circle_posts.union(community_posts)
+            results = public_posts.union(community_posts)
         else:
-            results = world_circle_posts
+            results = public_posts
 
         return results
 
@@ -466,7 +461,6 @@ class User(ModelWithUUID, AbstractUser):
         Returns count of public posts for not connected users
         """
         Post = get_post_model()
-        Circle = get_circle_model()
         ModeratedObject = get_moderated_object_model()
 
         user_query = Q(creator_id=user.pk)
@@ -479,18 +473,14 @@ class User(ModelWithUUID, AbstractUser):
 
         exclude_deleted_posts_query = Q(is_deleted=False, status=Post.STATUS_PUBLISHED)
 
-        # Get user world circle posts
-        world_circle_id = Circle.get_world_circle_id()
-        world_circle_posts_query = Q(creator__id=user.pk, circles__id=world_circle_id)
-
         posts_prefetch_related = "circles"
         posts_only = "id"
-        world_circle_posts = (
+        public_posts = (
             Post.objects.prefetch_related(posts_prefetch_related)
             .only(posts_only)
             .filter(
                 user_query
-                & world_circle_posts_query
+                & Q(is_public=True)
                 & exclude_deleted_posts_query
                 & exclude_blocked_posts_query
                 & exclude_reported_and_approved_posts_query
@@ -516,9 +506,9 @@ class User(ModelWithUUID, AbstractUser):
         )
 
         if user.has_profile_community_posts_visible():
-            results = world_circle_posts.union(community_posts)
+            results = public_posts.union(community_posts)
         else:
-            results = world_circle_posts
+            results = public_posts
 
         return results.count()
 
@@ -591,6 +581,7 @@ class User(ModelWithUUID, AbstractUser):
             self._delete_profile_cover(save=False)
         else:
             self.profile.cover = cover
+            self.profile.cover_blurhash = generate_blurhash(cover)
 
         if save:
             self.profile.save()
@@ -598,12 +589,14 @@ class User(ModelWithUUID, AbstractUser):
     def _delete_profile_cover(self, save=True):
         delete_file_field(self.profile.cover)
         self.profile.cover = None
+        self.profile.cover_blurhash = None
         self.profile.cover.delete(save=save)
 
     def _update_profile_avatar(self, avatar, save=True):
         if self.profile.avatar:
             self._delete_profile_avatar(save=False)
         self.profile.avatar = avatar
+        self.profile.avatar_blurhash = generate_blurhash(avatar)
 
         if save:
             self.profile.save()
@@ -611,6 +604,7 @@ class User(ModelWithUUID, AbstractUser):
     def _delete_profile_avatar(self, save=True):
         delete_file_field(self.profile.avatar)
         self.profile.avatar = None
+        self.profile.avatar_blurhash = None
         self.profile.avatar.delete(save=save)
 
     def update_username(self, username):
@@ -892,10 +886,6 @@ class User(ModelWithUUID, AbstractUser):
         return CommunityNotificationsSubscription.are_new_post_notifications_enabled_for_user_with_username_and_community_with_name(
             username=self.username, community_name=community.name
         )
-
-    def is_world_circle_id(self, id):
-        world_circle_id = self._get_world_circle_id()
-        return world_circle_id == id
 
     def is_connections_circle_id(self, circle_id):
         return self.connections_circle_id == circle_id
@@ -2044,14 +2034,14 @@ class User(ModelWithUUID, AbstractUser):
         # No need to delete community invite notifications as they are delete cascaded
         return community_to_join
 
-    def request_membership_to_community_with_name(self, community_name):
+    def request_membership_to_community_with_name(self, community_name, message=None):
         # "Autojoin" for spaces will be configurable per space in the future
         # use self.join_community_with_name(space.name) as a template
         check_can_request_membership_to_community_with_name(self, community_name)
 
         Community = get_community_model()
         community_to_join = Community.objects.get(name=community_name)
-        membership_request = community_to_join.add_membership_request(self)
+        membership_request = community_to_join.add_membership_request(self, message)
         get_community_notifications_subscription_model().enable_new_post_notification_for_community(
             community_to_join, self
         )
@@ -2683,7 +2673,7 @@ class User(ModelWithUUID, AbstractUser):
         Community = get_community_model()
         return Community.objects.filter(moderated_communities_query)
 
-    def create_public_post(
+    def create_post(
         self,
         text=None,
         image=None,
@@ -2691,16 +2681,20 @@ class User(ModelWithUUID, AbstractUser):
         created=None,
         is_draft=False,
         title=None,
+        is_public=None,
+        circles_ids=None,
     ):
-        world_circle_id = self._get_world_circle_id()
-        return self.create_encircled_post(
+        Post = get_post_model()
+        return Post.create_post(
             title=title,
             text=text,
+            creator=self,
+            is_public=is_public,
             image=image,
             video=video,
-            circles_ids=[world_circle_id],
             created=created,
             is_draft=is_draft,
+            circles_ids=circles_ids,
         )
 
     def create_encircled_post(
@@ -2738,26 +2732,36 @@ class User(ModelWithUUID, AbstractUser):
         post.update(text=text)
         return post
 
-    def create_community_encircled_post(
-        self, space_id, title=None, text=None, image=None, video=None, created=None, is_draft=False, visibility=None
+    def create_community_post(
+        self,
+        space_id=None,
+        community_name=None,
+        title=None,
+        text=None,
+        image=None,
+        video=None,
+        created=None,
+        is_draft=False,
+        visibility=None,
     ):
         check_can_post_to_community_with_id(user=self, community_id=space_id)
-        circles_ids = self._get_circles_ids_by_visibility_and_community_id(visibility, space_id)
+        is_public = self._get_post_visibility_by_community_id(visibility, space_id)
         Post = get_post_model()
         post = Post.create_post(
             text=text,
             title=title,
             creator=self,
             community_id=space_id,
+            community_name=community_name,
             image=image,
             created=created,
             is_draft=is_draft,
-            circles_ids=circles_ids,
+            is_public=is_public,
         )
 
         return post
 
-    def update_community_encircled_post(
+    def update_community_post(
         self,
         post_id,
         title=None,
@@ -2771,23 +2775,22 @@ class User(ModelWithUUID, AbstractUser):
         Post = get_post_model()
         post = Post.objects.get(id=post_id)
         check_can_update_post(user=self, post=post)
-        circles_ids = self._get_circles_ids_by_visibility_and_community_id(visibility, post.community.id)
+        is_public = self._get_post_visibility_by_community_id(visibility, post.community.id)
         post.update_post(
             text=text,
             title=title,
             image=image,
             is_draft=is_draft,
-            circles_ids=circles_ids,
+            is_public=is_public,
             remove_image=remove_image,
         )
 
         return post
 
-    def create_community_post(
+    def create_community_post_by_name(
         self, community_name, text=None, image=None, video=None, created=None, is_draft=False, visibility=None
     ):
         check_can_post_to_community_with_name(user=self, community_name=community_name)
-        world_circle_id = self._get_world_circle_id()
         Post = get_post_model()
         post = Post.create_post(
             text=text,
@@ -3187,8 +3190,6 @@ class User(ModelWithUUID, AbstractUser):
     def _get_timeline_posts_with_filters(self, max_id=None, min_id=None, circles_ids=None, lists_ids=None):
         Post = get_post_model()
 
-        world_circle_id = self._get_world_circle_id()
-
         if circles_ids:
             timeline_posts_query = Q(creator=self.pk, circles__id__in=circles_ids)
         else:
@@ -3212,7 +3213,7 @@ class User(ModelWithUUID, AbstractUser):
                     Q.AND,
                 )
 
-            followed_user_circles_query = Q(circles__id=world_circle_id)
+            followed_user_circles_query = Q(is_public=True)
 
             followed_user_circles_query.add(
                 Q(
@@ -3240,8 +3241,6 @@ class User(ModelWithUUID, AbstractUser):
         """
         Being the main action of the network, an optimised call of the get timeline posts call with no filtering.
         """
-        world_circle_id = self._get_world_circle_id()
-
         Post = get_post_model()
 
         posts_select_related = ("creator", "creator__profile", "community", "image")
@@ -3333,7 +3332,7 @@ class User(ModelWithUUID, AbstractUser):
             followed_users_query.add(Q(id__lt=max_id), Q.AND)
 
         followed_users_query.add(
-            Q(circles__id=world_circle_id)
+            Q(is_public=True)
             | Q(
                 circles__connections__target_connection__circles__isnull=False,
                 circles__connections__target_user=self.pk,
@@ -4316,11 +4315,8 @@ class User(ModelWithUUID, AbstractUser):
 
         posts_query = Q(is_deleted=False, status=Post.STATUS_PUBLISHED)
 
-        world_circle_id = self._get_world_circle_id()
-
-        posts_circles_query = Q(circles__id=world_circle_id)
-
-        posts_circles_query.add(
+        posts_visibility_query = Q(is_public=True)
+        posts_visibility_query.add(
             Q(
                 circles__connections__target_user_id=self.pk,
                 circles__connections__target_connection__circles__isnull=False,
@@ -4328,7 +4324,7 @@ class User(ModelWithUUID, AbstractUser):
             Q.OR,
         )
 
-        posts_query.add(posts_circles_query, Q.AND)
+        posts_query.add(posts_visibility_query, Q.AND)
         posts_query.add(
             ~Q(Q(creator__blocked_by_users__blocker_id=self.pk) | Q(creator__user_blocks__blocked_user_id=self.pk)),
             Q.AND,
@@ -4342,9 +4338,7 @@ class User(ModelWithUUID, AbstractUser):
 
         posts_query = Q(creator_id=user.pk, is_deleted=False, status=Post.STATUS_PUBLISHED)
 
-        world_circle_id = self._get_world_circle_id()
-
-        posts_circles_query = Q(circles__id=world_circle_id)
+        posts_circles_query = Q(is_public=True)
 
         posts_circles_query.add(
             Q(
@@ -4365,11 +4359,7 @@ class User(ModelWithUUID, AbstractUser):
 
         return posts_query
 
-    def _get_world_circle_id(self):
-        Circle = get_circle_model()
-        return Circle.get_world_circle_id()
-
-    def _get_circles_ids_by_visibility_and_community_id(self, visibility, community_id):
+    def _get_post_visibility_by_community_id(self, visibility, community_id) -> bool | None:
         membership = self.communities_memberships.get(community_id=community_id)
         if not membership.is_administrator and visibility == VisibilityType.PUBLIC:
             raise ValidationError(
@@ -4377,9 +4367,9 @@ class User(ModelWithUUID, AbstractUser):
             )
 
         if membership.is_administrator and visibility == VisibilityType.PUBLIC:
-            return [self._get_world_circle_id()]
+            return True
 
-        return []
+        return False
 
     def _get_default_connection_circles(self):
         """
@@ -4408,7 +4398,7 @@ class User(ModelWithUUID, AbstractUser):
             },
             settings.SECRET_KEY,
             algorithm=settings.JWT_ALGORITHM,
-        ).decode("utf-8")
+        )
 
     def _make_password_reset_verification_token(self):
         return jwt.encode(
@@ -4419,7 +4409,7 @@ class User(ModelWithUUID, AbstractUser):
             },
             settings.SECRET_KEY,
             algorithm=settings.JWT_ALGORITHM,
-        ).decode("utf-8")
+        )
 
     def _can_see_post(self, post):
         post_query = self._make_get_post_with_id_query(post_id=post.pk)
@@ -4643,12 +4633,19 @@ class User(ModelWithUUID, AbstractUser):
 
     @staticmethod
     def is_visible_query(user, prefix=None):
+        if user.is_anonymous:
+            return User.is_visible_ignore_blocked_query(user, prefix)
         pQ = PrefixedQ(prefix)
         # TODO find a solution for "& ModeratedObject.not_moderated_query(user, prefix))"
         if user.is_anonymous:
             return ~pQ(is_deleted=True) & ~pQ(profile__isnull=True)
 
         return ~pQ(is_deleted=True) & ~pQ(profile__isnull=True) & UserBlock.not_blocked_query(user, prefix)
+
+    @staticmethod
+    def is_visible_ignore_blocked_query(user, prefix=None):
+        pQ = PrefixedQ(prefix)
+        return ~pQ(is_deleted=True) & ~pQ(profile__isnull=True)
 
     def store_last_seen_notification(self, notification_id):
         Notification = get_notification_model()
@@ -4662,6 +4659,21 @@ class User(ModelWithUUID, AbstractUser):
                 self.last_seen_notification_timestamp = last_seen_timestamp
                 Notification.objects.filter(owner=self, created__lte=last_seen_timestamp).update(read=True)
                 self.save()
+
+    # TODO: extend this method to use Okuna's Invitation model (HOLI-4982) and use a localized email template (HOLI-4913)
+    def invite_to_community_by_email(self, email, space_id):
+        Community = get_community_model()
+        community = Community.objects.get(id=space_id)
+
+        check_can_create_invite_to_community(user=self, community=community)
+
+        subject, from_email = "You've been invited to a space at holi", settings.DEFAULT_FROM_EMAIL
+
+        text_content = f"{self.profile.name or 'A user'} has invited you to join the space {community.title} at holi!\nVisit https://app.holi.social/spaces/{community.name} to join this Space."
+        html_content = f"<p>{self.profile.name or 'A user'} has invited you to join the Space <strong>{community.title}</strong> at <a href=\"https://app.holi.social\">holi</a>!<br/><br/><a href=\"https://app.holi.social/spaces/{community.name}\">Join this Space here</a></p>"
+        msg = EmailMultiAlternatives(subject, text_content, from_email, [email])
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
 
     def create_task(
         self,
@@ -4955,6 +4967,7 @@ class UserProfile(ModelWithUUID):
         upload_to=upload_to_user_avatar_directory,
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
+    avatar_blurhash = models.CharField(max_length=50, blank=True, null=True)
     cover = ProcessedImageField(
         verbose_name=_("cover"),
         blank=False,
@@ -4970,6 +4983,7 @@ class UserProfile(ModelWithUUID):
         ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
+    cover_blurhash = models.CharField(max_length=50, blank=True, null=True)
     about_me = models.TextField(
         _("about me"),
         max_length=settings.PROFILE_ABOUT_ME_MAX_LENGTH,
@@ -5167,6 +5181,7 @@ def bootstrap_user_profile(
         name=name,
         user=user,
         avatar=avatar,
+        avatar_blurhash=generate_blurhash(avatar),
         is_of_legal_age=is_of_legal_age,
     )
 

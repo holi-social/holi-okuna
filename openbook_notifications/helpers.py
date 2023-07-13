@@ -1,4 +1,3 @@
-import django_rq
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 import onesignal as onesignal_sdk

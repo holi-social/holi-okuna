@@ -85,7 +85,7 @@ from video_encoding.backends import get_backend
 from video_encoding.fields import VideoField
 from video_encoding.models import Format
 
-from openbook_common.helpers import get_language_for_text, attr_filled, PQ, PrefixedQ, ExifRotate
+from openbook_common.helpers import get_language_for_text, attr_filled, PQ, PrefixedQ, ExifRotate, generate_blurhash
 
 magic = get_magic()
 post_image_storage = default_storage
@@ -128,15 +128,12 @@ class Post(ModelWithUUID):
     status = models.CharField(blank=False, null=False, choices=STATUSES, default=STATUS_DRAFT, max_length=2)
     links = models.ManyToManyField(LinkPreview, related_name="+", blank=True)
     mentions = models.ManyToManyField(User, related_name="mentioned_in_posts", blank=True, through="PostUserMention")
+    is_public = models.BooleanField(default=False, db_index=True)
 
     class Meta:
         index_together = [
             ("creator", "community"),
         ]
-
-    @property
-    def is_public(self):
-        return self.circles.filter(id=settings.WORLD_CIRCLE_ID).exists()
 
     @classmethod
     def post_with_id_has_public_reactions(cls, post_id):
@@ -159,10 +156,11 @@ class Post(ModelWithUUID):
         created=None,
         is_draft=False,
         title=None,
+        is_public=False,
     ) -> "Post":
 
-        if not community_name and not community_id and not circles_ids:
-            raise ValidationError(_("A post requires circles or a community to be posted to."))
+        if not community_name and not community_id and not circles_ids and not is_public:
+            raise ValidationError(_("A post requires circles or a community or to be public to be posted to."))
 
         # if not is_draft and not title:
         #     raise ValidationError("Non-draft posts must have a title")
@@ -170,7 +168,7 @@ class Post(ModelWithUUID):
         if image and video:
             raise ValidationError(_("A post must have an image or a video, not both."))
 
-        post = Post.objects.create(creator=creator, created=created, title=title)
+        post = Post.objects.create(creator=creator, created=created, title=title, is_public=is_public)
 
         Community = get_community_model()
         if community_id:
@@ -201,7 +199,7 @@ class Post(ModelWithUUID):
 
     def update_post(
         self,
-        circles_ids=None,
+        is_public=None,
         image=None,
         text=None,
         video=None,
@@ -216,6 +214,7 @@ class Post(ModelWithUUID):
             raise ValidationError(_("You cannot change the status of a published post to draft."))
 
         self.title = title
+        self.is_public = is_public
 
         if text:
             self.text = text
@@ -225,8 +224,6 @@ class Post(ModelWithUUID):
             self._delete_media_image()
         elif image:
             self._update_image(image)
-
-        self.circles.set(circles_ids)
 
         if self.is_draft() and not is_draft:
             self.publish()
@@ -532,22 +529,15 @@ class Post(ModelWithUUID):
     def clear_reaction(self, reactor, reaction_type):
         return PostReaction.remove_reaction(reactor=reactor, reaction_type=reaction_type, post=self)
 
-    def is_public_post(self):
-        Circle = get_circle_model()
-        world_circle_id = Circle.get_world_circle_id()
-        if self.circles.filter(id=world_circle_id).exists():
-            return True
-        return False
-
     def is_public_community_post(self):
         Community = get_community_model()
         return Community.objects.filter(posts__id=self.pk, type=Community.COMMUNITY_TYPE_PUBLIC).exists()
 
     def is_publicly_visible(self):
-        return self.is_public_post() or self.is_public_community_post()
+        return self.is_public or self.is_public_community_post()
 
     def is_encircled_post(self):
-        return not self.is_public_post() and not self.community
+        return not self.community and not self.is_public
 
     def update(self, text=None):
         check_can_be_updated(post=self, text=text)
@@ -922,7 +912,6 @@ class Post(ModelWithUUID):
         else:
             UserNewPostNotification = get_user_new_post_notification_model()
             user_subscriptions = Post.get_user_notification_target_subscriptions(post=self)
-
             for subscription in user_subscriptions:
                 UserNewPostNotification.create_user_new_post_notification(
                     post_id=self.pk,
@@ -947,10 +936,7 @@ class Post(ModelWithUUID):
         if user.is_anonymous:
             return (
                 pQ(is_deleted=False, status=Post.STATUS_PUBLISHED)
-                & (
-                    pQ(circles__id=get_circle_model().get_world_circle_id())
-                    | pQ(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC)
-                )
+                & (pQ(is_public=True) | pQ(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC))
                 & ModeratedObject.not_moderated_query(user, ModeratedObject.OBJECT_TYPE_POST, prefix)
             )
 
@@ -960,10 +946,7 @@ class Post(ModelWithUUID):
                 pQ(creator=user)
                 | (
                     pQ(status=Post.STATUS_PUBLISHED)
-                    & (
-                        pQ(circles__id=get_circle_model().get_world_circle_id())
-                        | pQ(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC)
-                    )
+                    & (pQ(is_public=True) | pQ(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC))
                 )
             )
             & ModeratedObject.not_moderated_query(user, ModeratedObject.OBJECT_TYPE_POST, prefix)
@@ -1050,7 +1033,6 @@ class ProfilePostsCommunityExclusion(ModelWithUUID):
 
 class PostMedia(OrderedModelWithUUID):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="media")
-    order_with_respect_to = "post"
 
     MEDIA_TYPE_VIDEO = "V"
     MEDIA_TYPE_IMAGE = "I"
@@ -1092,13 +1074,14 @@ class PostImage(ModelWithUUID):
         ],
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
+    image_blurhash = models.CharField(max_length=50, blank=True, null=True)
     width = models.PositiveIntegerField(editable=False, null=False, blank=False)
     height = models.PositiveIntegerField(editable=False, null=False, blank=False)
     media = GenericRelation(PostMedia)
 
     @classmethod
     def create_post_media_image(cls, image, post_id, order):
-        post_image = cls.objects.create(image=image, post_id=post_id)
+        post_image = cls.objects.create(image=image, post_id=post_id, image_blurhash=generate_blurhash(image))
         PostMedia.create_post_media(
             type=PostMedia.MEDIA_TYPE_IMAGE,
             content_object=post_image,

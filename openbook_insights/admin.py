@@ -1,15 +1,15 @@
 from django.contrib import admin
 
-# Register your models here.
 from openbook_insights.models import Insight
 
 
+@admin.register(Insight)
 class InsightAdmin(admin.ModelAdmin):
     model = Insight
     search_fields = ("title", "description")
     date_hierarchy = "date_published"
     filter_horizontal = ("posts",)
-    list_display = ("title", "description_preview", "creator")
+    list_display = ("title", "description_preview", "creator", "header_image", "header_image_blurhash")
     # This filter makes the admin UI slow when there is a lot of users
     # list_filter = ("creator",)
 
@@ -19,6 +19,3 @@ class InsightAdmin(admin.ModelAdmin):
             return obj.description[0:100] + "..."
         else:
             return obj.description
-
-
-admin.site.register(Insight, InsightAdmin)

@@ -27,15 +27,13 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
     PostReactionItemAPI
     """
 
-    fixtures = ["openbook_circles/fixtures/circles.json"]
-
     def test_can_delete_foreign_reaction_in_own_post(self):
         """should be able to delete a foreign reaction in own post and return 200"""
         user = make_user()
 
         reactor = make_user()
 
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         post_reaction = reactor.react_to_post_with_id(post.pk, reaction_type=ReactionType.HEART)
         url = self._get_url(post_reaction=post_reaction, post=post)
@@ -52,7 +50,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
 
         foreign_user = make_user()
 
-        post = foreign_user.create_public_post(text=make_fake_post_text())
+        post = foreign_user.create_post(is_public=True, text=make_fake_post_text())
 
         post_reaction = user.react_to_post_with_id(post.pk, reaction_type=ReactionType.HEART)
 
@@ -70,7 +68,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
 
         foreign_user = make_user()
 
-        post = foreign_user.create_public_post(text=make_fake_post_text())
+        post = foreign_user.create_post(is_public=True, text=make_fake_post_text())
 
         post_reaction = foreign_user.react_to_post_with_id(
             post.pk,
@@ -95,7 +93,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
         post_creator.join_community_with_name(community_name=community.name)
         user.join_community_with_name(community_name=community.name)
 
-        community_post = post_creator.create_community_post(
+        community_post = post_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_comment_text()
         )
 
@@ -125,7 +123,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
         post_creator.join_community_with_name(community_name=community.name)
         user.join_community_with_name(community_name=community.name)
 
-        community_post = post_creator.create_community_post(
+        community_post = post_creator.create_community_post_by_name(
             community_name=community.name, text=make_fake_post_comment_text()
         )
 
@@ -154,7 +152,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
         user.connect_with_user_with_id(user_to_connect.pk)
         user_to_connect.confirm_connection_with_user_with_id(user.pk)
 
-        post = user_to_connect.create_public_post(text=make_fake_post_text())
+        post = user_to_connect.create_post(is_public=True, text=make_fake_post_text())
 
         post_reaction = user.react_to_post_with_id(
             post.pk,
@@ -180,7 +178,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
 
         foreign_user = make_user()
 
-        post = user_to_connect.create_public_post(text=make_fake_post_text())
+        post = user_to_connect.create_post(is_public=True, text=make_fake_post_text())
 
         post_reaction = foreign_user.react_to_post_with_id(
             post.pk,
@@ -287,7 +285,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
 
         user.follow_user_with_id(user_to_follow.pk)
 
-        post = user_to_follow.create_public_post(text=make_fake_post_text())
+        post = user_to_follow.create_post(is_public=True, text=make_fake_post_text())
 
         post_reaction = user.react_to_post_with_id(
             post.pk,
@@ -312,7 +310,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
 
         foreign_user = make_user()
 
-        post = user_to_follow.create_public_post(text=make_fake_post_text())
+        post = user_to_follow.create_post(is_public=True, text=make_fake_post_text())
 
         post_reaction = foreign_user.react_to_post_with_id(
             post.pk,
@@ -361,7 +359,7 @@ class PostReactionItemAPITests(OpenbookAPITestCase):
 
         reactor = make_user()
 
-        post = user.create_public_post(text=make_fake_post_text())
+        post = user.create_post(is_public=True, text=make_fake_post_text())
 
         post_reaction = reactor.react_to_post_with_id(
             post.pk,

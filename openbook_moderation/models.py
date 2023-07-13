@@ -107,6 +107,9 @@ class ModeratedObject(ModelWithUUID):
                 fields=["object_type", "object_id"],
             )
         ]
+        indexes = [
+            models.Index(fields=["status", "object_type"]),
+        ]
 
     @classmethod
     def create_moderated_object(cls, object_type, content_object, category_id, community_id=None):

@@ -1,0 +1,74 @@
+from typing import Generator
+
+import sentry_sdk
+from django.core.exceptions import ValidationError
+from graphql import GraphQLError
+from sentry_sdk import configure_scope
+from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.scrubber import EventScrubber
+from strawberry.extensions.tracing import SentryTracingExtension
+
+from openbook.graphql_errors import GraphQLErrorCodes
+
+
+def sentry_event_processor(event, hint):
+    if "exc_info" not in hint:
+        return event
+
+    exception = hint["exc_info"][1]
+    if isinstance(exception, ValidationError):
+        return None
+    if isinstance(exception, GraphQLError) and exception.extensions["code"] in [
+        GraphQLErrorCodes.NOT_FOUND,
+        GraphQLErrorCodes.UNAUTHORIZED,
+        GraphQLErrorCodes.FORBIDDEN,
+        GraphQLErrorCodes.BAD_USER_INPUT,
+    ]:
+        return None
+
+    return event
+
+
+class HoliSentryTracesSampler:
+    def __init__(self, default_sample_rate: float):
+        self.default_sample_rate = default_sample_rate
+
+    def traces_sampler(self, sampling_context):
+        # always inherit
+        if sampling_context["parent_sampled"] is not None:
+            return sampling_context["parent_sampled"]
+
+        return self.default_sample_rate
+
+
+class HoliSentryTracingExtension(SentryTracingExtension):
+    def on_operation(self) -> Generator[None, None, None]:
+        yield from super().on_operation()
+
+        query = self.execution_context.query.strip()
+        operation_name = self.execution_context.operation_name
+        if query and operation_name:
+            operation_type = "Query"
+
+            if query.startswith("mutation"):
+                operation_type = "Mutation"
+            if query.startswith("subscription"):
+                operation_type = "Subscription"
+
+            with configure_scope() as scope:
+                scope.set_transaction_name(f"{operation_type}:{operation_name}")
+
+
+def init(sentry_dsn: str, sample_rate: float, environment: str) -> None:
+    if not sentry_dsn:
+        raise NameError(f"Sentry DSN is required for {environment}")
+
+    sampler = HoliSentryTracesSampler(sample_rate)
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+        event_scrubber=EventScrubber(),  # Remove PII
+        integrations=[DjangoIntegration()],
+        before_send=sentry_event_processor,
+        traces_sampler=sampler.traces_sampler,
+        environment=environment,
+    )

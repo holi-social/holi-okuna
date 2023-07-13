@@ -1,5 +1,5 @@
 from typing import Optional
-from unittest import TestCase
+from unittest import IsolatedAsyncioTestCase
 
 from openbook.graphql_types import Post
 from openbook_auth.models import User
@@ -7,7 +7,7 @@ from openbook_communities.models import Community
 from openbook_notifications.models import Notification
 
 
-class TestAssertionsMixin(TestCase):
+class TestAssertionsMixin(IsolatedAsyncioTestCase):
     def assertNotification(
         self,
         notification: Notification,

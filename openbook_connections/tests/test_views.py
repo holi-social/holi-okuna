@@ -35,8 +35,6 @@ class ConnectionsAPITests(OpenbookAPITestCase):
     ConnectionsAPI
     """
 
-    fixtures = ["openbook_circles/fixtures/circles.json"]
-
     def test_retrieve_own_connections(self):
         """should be able to retrieve own connections and return 200"""
         user = make_user()
@@ -72,8 +70,6 @@ class ConnectAPITests(OpenbookAPITestCase):
     """
     ConnectAPITests
     """
-
-    fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_connect(self):
         """should be able to connect with another user on an specific circle, add the connections circle and return 200"""
@@ -169,25 +165,6 @@ class ConnectAPITests(OpenbookAPITestCase):
         data = {
             "username": user_to_connect.username,
             "circles_ids": circle_to_connect.pk,
-        }
-
-        url = self._get_url()
-
-        response = self.client.post(url, data, **headers, format="multipart")
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, f"Response: {response.data}")
-
-    def test_cannot_connect_in_world_circle(self):
-        """should not be able to connect with a user in the world circle and return 400"""
-        user = make_user()
-
-        user_to_connect = make_user()
-
-        headers = make_authentication_headers_for_user(user)
-
-        data = {
-            "username": user_to_connect.username,
-            "circles_ids": Circle.get_world_circle(),
         }
 
         url = self._get_url()
@@ -297,8 +274,6 @@ class DisconnectAPITest(OpenbookAPITestCase):
     """
     DisconnectAPITest
     """
-
-    fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_disconnect(self):
         """should be able to disconnect from a user and return 200"""
@@ -459,8 +434,6 @@ class UpdateConnectionAPITest(OpenbookAPITestCase):
     UpdateConnectionAPITest
     """
 
-    fixtures = ["openbook_circles/fixtures/circles.json"]
-
     def test_update_connection(self):
         """should be able to update an own connection and return 200"""
         user = make_user()
@@ -558,8 +531,6 @@ class ConfirmConnectionAPITest(OpenbookAPITestCase):
     """
     ConfirmConnectionAPITest
     """
-
-    fixtures = ["openbook_circles/fixtures/circles.json"]
 
     def test_confirm_connection(self):
         """should be able to confirm a connection, have it automatically added to connections circle and return 200"""

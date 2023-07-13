@@ -2,7 +2,7 @@ from django.urls import reverse
 from faker import Faker
 
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APITransactionTestCase
 import logging
 
 from openbook_common.tests.helpers import (
@@ -16,7 +16,7 @@ fake = Faker()
 logger = logging.getLogger(__name__)
 
 
-class ProxyAuthAPITests(APITestCase):
+class ProxyAuthAPITests(APITransactionTestCase):
     """
     ProxyAuthAPI tests
     """

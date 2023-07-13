@@ -189,7 +189,7 @@ class UserInvite(ModelWithUUID):
             settings.SECRET_KEY,
             algorithm=settings.JWT_ALGORITHM,
             json_encoder=DjangoJSONEncoder,
-        ).decode("UTF-8")
+        )
 
     def _generate_one_time_link(self):
         return f"{settings.EMAIL_HOST}/api/auth/invite?token={self.token}"

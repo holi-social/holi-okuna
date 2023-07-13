@@ -1,8 +1,10 @@
 import copy
 import json
 import logging
+
 import pytest
-from django.test import Client
+from asgiref.sync import sync_to_async, async_to_sync
+from django.test import AsyncClient
 from typing import List, Optional
 from uuid import UUID, uuid4
 from datetime import datetime, timedelta
@@ -26,6 +28,7 @@ from openbook.graphql_schema import (
 )
 from openbook.graphql_types import VisibilityFilter
 from openbook_auth.models import User, UserConnectionStatus, EngagementLevelChoice
+from openbook_common.helpers import generate_blurhash
 from openbook_common.models import AppVersion
 from openbook_common.tests.helpers import (
     get_test_images,
@@ -62,22 +65,21 @@ logger = logging.getLogger(__name__)
 
 @pytest.fixture(scope="session")
 def client():
-    return Client()
+    return AsyncClient()
 
 
 @pytest.fixture(scope="session")
 def django_db_setup(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
-        call_command("loaddata", "openbook_circles/fixtures/circles.json")
         call_command("loaddata", "openbook_moderation/fixtures/moderation_categories.json")
 
 
 @pytest.mark.django_db
 class TestUsers:
-    def test_get_authenticated_user_returns_self_reference(self, client):
-        user = make_user()
-        headers = make_authentication_headers_for_user(user)
-
+    @pytest.mark.asyncio
+    async def test_get_authenticated_user_returns_self_reference(self, client):
+        user = await sync_to_async(make_user)()
+        headers = await sync_to_async(make_authentication_headers_for_user)(user)
         endpoint = reverse("graphql-endpoint")
         graphql_query = """
             query {
@@ -88,7 +90,7 @@ class TestUsers:
                 }
             }
         """
-        response = client.post(
+        response = await client.post(
             path=endpoint,
             data=json.dumps({"query": graphql_query}),
             content_type="application/json",
@@ -110,7 +112,7 @@ class TestUsers:
         make_user(name="Fritz", last_name="Meier")
         user = make_user(name="Peter", last_name="Moser")
 
-        executed = schema.execute_sync(
+        executed = async_to_sync(schema.execute)(
             """
             query {
                 userByName(substring: "er M") {
@@ -135,7 +137,7 @@ class TestUsers:
         make_user(name="Petra", last_name="Meier")
         make_user(name="Fritz", last_name="Meier")
 
-        executed = schema.execute_sync(
+        executed = async_to_sync(schema.execute)(
             """
             query {
                 userByName(substring: "Pet") {
@@ -178,7 +180,7 @@ class TestUsers:
             {"op": "add", "path": "/traits/name", "value": f"{first_name} {last_name}"},
         ]
 
-        executed = schema.execute_sync(
+        executed = async_to_sync(schema.execute)(
             """
             mutation test($input: UpdateAuthenticatedUserInput!) {
                 updateAuthenticatedUser(input: $input) {
@@ -243,7 +245,7 @@ class TestUsers:
         user = make_user(name="Fritz", last_name="Meier")
         space = make_community(creator=user)
 
-        mutation_response = schema.execute_sync(
+        mutation_response = async_to_sync(schema.execute)(
             """
             mutation test {
                 deleteAuthenticatedUser {
@@ -281,7 +283,7 @@ class TestUsers:
         space.add_member(admin)
         space.add_administrator(admin)
 
-        mutation_response = schema.execute_sync(
+        mutation_response = async_to_sync(schema.execute)(
             """
             mutation test {
                 deleteAuthenticatedUser {
@@ -329,10 +331,7 @@ class TestUsers:
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_public_post(
-            text=post_text,
-            title=post_title,
-        )
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
         post.comment(text=f"comment text 1 @{posting_user.username}", commenter=other_user)
         post.comment(
             text=f"comment text 2 @{mentioned_user.username} @{posting_user.username}",
@@ -364,10 +363,11 @@ class TestUsers:
         post_title = make_fake_post_title()
         image_name = "foo.jpg"
 
-        post = posting_user.create_public_post(
+        post = posting_user.create_post(
             text=post_text,
             title=post_title,
             image=SimpleUploadedFile(name=image_name, content=simple_jpeg_bytes),
+            is_public=True,
         )
 
         post_data = self.get_post_with_id_data(post)
@@ -386,7 +386,7 @@ class TestUsers:
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_public_post(text=post_text, title=post_title, is_draft=True)
+        post = posting_user.create_post(text=post_text, title=post_title, is_draft=True, is_public=True)
 
         response = self.get_post_with_id_raw(post)
 
@@ -401,10 +401,7 @@ class TestUsers:
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_public_post(
-            text=post_text,
-            title=post_title,
-        )
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
         comment = post.comment(text=f"comment text", commenter=comment_user)
         reaction = comment.react(posting_user, "HEART")
         post.comment(text=f"comment text 2", commenter=comment_user)
@@ -425,10 +422,7 @@ class TestUsers:
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_public_post(
-            text=post_text,
-            title=post_title,
-        )
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
         comment = post.comment(text=f"comment text", commenter=comment_user)
         reaction = comment.react(posting_user, "HEART")
         post.comment(text=f"comment text 2", commenter=comment_user)
@@ -449,10 +443,7 @@ class TestUsers:
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_public_post(
-            text=post_text,
-            title=post_title,
-        )
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
         comment = post.comment(text=f"comment text", commenter=comment_user)
         reaction = comment.react(posting_user, "HEART")
         post.comment(text=f"comment text 2", commenter=comment_user)
@@ -472,10 +463,7 @@ class TestUsers:
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_public_post(
-            text=post_text,
-            title=post_title,
-        )
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
 
         self.react_to_post(post, "SET", posting_user)
         executed = self.react_to_post(post, "SET", posting_user)  # setting twice is same as setting once
@@ -501,10 +489,7 @@ class TestUsers:
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_public_post(
-            text=post_text,
-            title=post_title,
-        )
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
         comment = post.comment(text=f"comment text", commenter=other_user)
 
         self.react_to_post_comment(comment, "SET", posting_user)
@@ -527,7 +512,7 @@ class TestUsers:
         assert updated_post_comment["reactions"]["HEART"] == 0
 
     def react_to_post(self, post, action, posting_user):
-        return schema.execute_sync(
+        return async_to_sync(schema.execute)(
             """
             mutation test($id: UUID!, $reactionType: ReactionType!, $reactionAction: ReactionAction!) {
                 updatePostReaction(id: $id, reactionType: $reactionType, reactionAction: $reactionAction) {
@@ -549,7 +534,7 @@ class TestUsers:
         )
 
     def react_to_post_comment(self, post_comment, action, posting_user):
-        return schema.execute_sync(
+        return async_to_sync(schema.execute)(
             """
             mutation test($id: UUID!, $reactionType: ReactionType!, $reactionAction: ReactionAction!) {
                 updatePostCommentReaction(id: $id, reactionType: $reactionType, reactionAction: $reactionAction) {
@@ -571,7 +556,7 @@ class TestUsers:
         )
 
     def delete_post_comment(self, post_comment_id, user):
-        return schema.execute_sync(
+        return async_to_sync(schema.execute)(
             """
             mutation test($id: UUID!) {
                 deletePostComment(id: $id) {
@@ -586,7 +571,7 @@ class TestUsers:
         )
 
     def create_space_post(self, user, info):
-        return schema.execute_sync(
+        return async_to_sync(schema.execute)(
             """
             mutation test($input: CreatePostInput!){
                 createSpacePost(input: $input) {
@@ -609,7 +594,7 @@ class TestUsers:
         )
 
     def create_space_post_2(self, user, info):
-        return schema.execute_sync(
+        return async_to_sync(schema.execute)(
             """
             mutation test($input: CreatePostInput!){
                 createSpacePost2(input: $input) {
@@ -619,6 +604,16 @@ class TestUsers:
                       id
                       posts {
                         totalResults
+                        data {
+                            title
+                            text
+                            isPublic
+                            created
+                            image {
+                                url
+                                blurhash
+                            }
+                        }
                       }
                     }
                     text
@@ -633,7 +628,7 @@ class TestUsers:
         )
 
     def update_space_post(self, user, info):
-        return schema.execute_sync(
+        return async_to_sync(schema.execute)(
             """
             mutation test($input: UpdatePostInput!){
                 updateSpacePost(input: $input) {
@@ -650,6 +645,7 @@ class TestUsers:
                     created
                     image {
                         url
+                        blurhash
                     }
                 }
             }
@@ -930,7 +926,7 @@ class TestUsers:
             image=SimpleUploadedFile(name="foo.jpg", content=simple_jpeg_bytes),
             text=make_fake_post_text(),
             title=make_fake_post_title(),
-            circles_ids=[],
+            is_public=False,
         )
 
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
@@ -951,10 +947,12 @@ class TestUsers:
         data = response.data["updateSpacePost"]
         assert data["id"] == str(space_post.id)
         assert data["space"]["posts"]["totalResults"] == 1
+
         assert data["title"] is None
         assert data["text"] == input_data["text"]
         assert data["isPublic"] is True
         assert "/cover.jpg/" in data["image"]["url"]
+        assert data["image"]["blurhash"] is not None
 
         # test post update with removal of the post image
         input_data = {
@@ -991,7 +989,7 @@ class TestUsers:
             image=SimpleUploadedFile(name="foo.jpg", content=simple_jpeg_bytes),
             text=post_text,
             title=post_title,
-            circles_ids=[],
+            is_public=False,
         )
 
         input_data = {
@@ -1029,7 +1027,7 @@ class TestUsers:
             image=SimpleUploadedFile(name="foo.jpg", content=simple_jpeg_bytes),
             text=post_text,
             title=post_title,
-            circles_ids=[],
+            is_public=False,
         )
 
         valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
@@ -1065,7 +1063,7 @@ class TestUsers:
             community=space, subscriber=subscriber_user
         )
 
-        post = posting_user.create_community_encircled_post(
+        post = posting_user.create_community_post(
             space.id,
             text=make_fake_post_text(),
             title=make_fake_post_title(),
@@ -1093,7 +1091,7 @@ class TestUsers:
         space = make_community(creator=space_admin)
         space.add_member(posting_user)
 
-        post = posting_user.create_community_encircled_post(
+        post = posting_user.create_community_post(
             space.id,
             text=make_fake_post_text(),
             title=make_fake_post_title(),
@@ -1118,7 +1116,7 @@ class TestUsers:
         assert PostImage.objects.filter(post=post).count() == 1
 
     def delete_space_post(self, post_id, user):
-        return schema.execute_sync(
+        return async_to_sync(schema.execute)(
             """
                 mutation Mutation($id: UUID!) {
                     deleteSpacePost(id: $id) {
@@ -1152,7 +1150,7 @@ class TestUsers:
         )
         insight3 = Insight.objects.create(creator=insight_user_2, title="Insight 3", date_published=now)
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             f"""
             query {{
                 insightsByUserId(id: "{insight_user.username}") {{
@@ -1197,7 +1195,7 @@ class TestUsers:
         )
         insight3 = Insight.objects.create(creator=insight_user_2, title="Insight 3", date_published=now)
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             f"""
             query {{
                 insightsByUserId(id: "{insight_user.username}") {{
@@ -1205,6 +1203,7 @@ class TestUsers:
                         id
                         title
                         headerImage
+                        headerImageBlurhash
                     }}
                     totalResults
                 }}
@@ -1220,6 +1219,7 @@ class TestUsers:
         insight1_result = insights[0]
         assert insight1_result["title"] == insight1.title
         assert insight1_result["headerImage"] == insight1.header_image
+        assert insight1_result["headerImageBlurhash"] is not None
 
         insight2_result = insights[1]
         assert insight2_result["title"] == insight2.title
@@ -1244,7 +1244,7 @@ class TestUsers:
         )
         insight3 = Insight.objects.create(creator=insight_user_2, title="Insight 3", date_published=now)
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             f"""
             query {{
                 insightsByUserId(id: "{insight_user.username}") {{
@@ -1282,17 +1282,14 @@ class TestUsers:
             date_published=now,
         )
 
-        post1 = posting_user.create_public_post(
-            text=post_text_public,
-            title=post_title_public,
-        )
-        post2 = posting_user.create_public_post(
-            text=post_text_public,
-            title=post_title_public,
-        )
-        post3 = posting_user.create_public_post(text=post_text_draft, title=post_title_draft, is_draft=True)
-        post_private = private_user.create_encircled_post(
-            circles_ids=[private_user.connections_circle_id], text="private post", title="private post"
+        post1 = posting_user.create_post(text=post_text_public, title=post_title_public, is_public=True)
+        post2 = posting_user.create_post(text=post_text_public, title=post_title_public, is_public=True)
+        post3 = posting_user.create_post(text=post_text_draft, title=post_title_draft, is_draft=True, is_public=True)
+        post_private = private_user.create_post(
+            circles_ids=[private_user.connections_circle_id],
+            text="private post",
+            title="private post",
+            is_public=False,
         )
         insight1.posts.add(post1, post2, post3, post_private)
 
@@ -1302,10 +1299,7 @@ class TestUsers:
             title="Insight 2",
             date_published=now - timezone.timedelta(days=1),
         )
-        post4 = posting_user.create_public_post(
-            text=post_text_public,
-            title=post_title_public,
-        )
+        post4 = posting_user.create_post(text=post_text_public, title=post_title_public, is_public=True)
         post4.comment(text=post_text_public, commenter=other_user)
         insight2.posts.add(post4)
 
@@ -1315,10 +1309,7 @@ class TestUsers:
             title="Insight 3",
             date_published=now - timezone.timedelta(days=1),
         )
-        post5 = posting_user.create_public_post(
-            text=post_text_public,
-            title=post_title_public,
-        )
+        post5 = posting_user.create_post(text=post_text_public, title=post_title_public, is_public=True)
         insight3.posts.add(post5)
 
         insight4 = Insight.objects.create(
@@ -1328,7 +1319,7 @@ class TestUsers:
             date_published=now - timezone.timedelta(days=2),
         )
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             f"""
             query {{
                 lastInsights {{
@@ -1410,7 +1401,7 @@ class TestUsers:
             community=space, subscriber=subscriber_user
         )
 
-        post1 = post_user.create_community_encircled_post(
+        post1 = post_user.create_community_post(
             text=make_fake_post_text(),
             title=make_fake_post_title(),
             space_id=space.id,
@@ -1424,7 +1415,7 @@ class TestUsers:
         assert notification["options"]["post"]["title"] == post1.title
         assert notification["options"]["teaser"] == post1.title
 
-        post2 = post_user.create_community_encircled_post(
+        post2 = post_user.create_community_post(
             text=make_fake_post_text(),
             space_id=space.id,
             visibility=VisibilityType.MEMBERS.value,
@@ -1488,7 +1479,7 @@ class TestUsers:
 
         data = self.get_notifications(followed_user)
         first_notification_id = data["data"][0]["id"]
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             """
             mutation LastSeenNotification($id: UUID!){
                 lastSeenNotification(notificationId: $id) {
@@ -1506,7 +1497,7 @@ class TestUsers:
         assert self.has_new_notifications(followed_user)["status"] is True
 
     def has_new_notifications(self, followed_user):
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             """
             query {
                 hasNewNotifications {
@@ -1528,7 +1519,7 @@ class TestUsers:
         return self.connect_user(following_user, followed_user, UpdateConnectionAction.CONNECT)
 
     def connect_user(self, following_user, followed_user, action):
-        connection_request_response = schema.execute_sync(
+        connection_request_response = async_to_sync(schema.execute)(
             """
             mutation UpdateConnectionWithUser($input: UpdateConnectionWithUserInput!) {
                 updateConnectionWithUser(input: $input) {
@@ -1583,7 +1574,7 @@ class TestUsers:
             return {"id": str(space.id)}
 
         def assert_filtered_spaces(filter_options, expected_spaces):
-            filter_response = schema.execute_sync(filter_query, variable_values=filter_options)
+            filter_response = async_to_sync(schema.execute)(filter_query, variable_values=filter_options)
             expected_data = list(map(transform_space, expected_spaces))
             self.assert_paged_results_equal(filter_response.data["spaces"], expected_data)
 
@@ -1665,7 +1656,7 @@ class TestUsers:
             return {"id": str(space.id)}
 
         def assert_filtered_spaces(filter_options, expected_spaces):
-            filter_response = schema.execute_sync(
+            filter_response = async_to_sync(schema.execute)(
                 filter_query,
                 variable_values=filter_options,
                 context_value=BeneDict({"request": {"user": AnonymousUser}}),
@@ -1682,7 +1673,7 @@ class TestUsers:
         # Filter by unique topic
         assert_filtered_spaces({"topicIds": [str(topic2.id)]}, [space1, space3])
 
-        filter_response = schema.execute_sync(
+        filter_response = async_to_sync(schema.execute)(
             filter_query,
             variable_values={
                 "topicIds": [str(topic1.id), str(topic2.id)],
@@ -1728,7 +1719,7 @@ class TestUsers:
                 }
             }
         """
-        response = schema.execute_sync(filter_query).data["spaces"]["data"]
+        response = async_to_sync(schema.execute)(filter_query).data["spaces"]["data"]
         assert response[0]["id"] == str(space1.id)
         assert response[1]["id"] == str(space2.id)
 
@@ -1742,7 +1733,7 @@ class TestUsers:
         creator1.join_community_with_name(space2.name)
         creator1.enable_new_post_notifications_for_community_with_name(space4.name)
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             """
             query {
                 mySpaces {
@@ -1823,6 +1814,7 @@ class TestUsers:
             staff_request_received_notification["options"]["user"]["fullName"]
             == membership_requestor.profile.full_name()
         )
+        assert staff_request_received_notification["options"]["message"] == None
 
         # Approve user
         space_after_approval = self.mutate_update_space_user_connection_data(
@@ -1862,6 +1854,89 @@ class TestUsers:
         )
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
+
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    @mock.patch("openbook.graphql_schema.publish_space_user_added_event")
+    def test_space_membership_request_with_message(
+        self, mock_publish_space_user_added_event, mock_invalidate_discover_spaces_query_cache
+    ):
+        membership_requestor = make_user()
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+        mock_publish_space_user_added_event.return_value = None
+        message = "I'd love to join!"
+
+        def member_result(user, is_admin):
+            return {
+                "user": {"id": user.username},
+                "isAdministrator": is_admin,
+            }
+
+        # Preconditions
+        pre_join_space = self.get_space_for_user(membership_requestor, space)
+        assert pre_join_space["connectionStatusToMyself"] == []
+        self.assert_paged_results_equal(pre_join_space["members"], [member_result(space_creator, is_admin=True)])
+
+        data = self.get_notifications(membership_requestor)
+        assert data["totalResults"] == 0
+        data = self.get_notifications(space_creator)
+        assert data["totalResults"] == 0
+
+        # Send Join Request
+        after_request_space = self.mutate_update_space_user_connection_data(
+            auth_user=membership_requestor,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
+            connect_action=UpdateConnectionAction.CONNECT,
+            message=message,
+        )
+
+        assert len(after_request_space["connectionStatusToMyself"]), len(
+            [SpaceUserConnectionType.MEMBERSHIP_REQUESTOR.value, SpaceUserConnectionType.FOLLOWER.value]
+        )
+
+        # Staff received MembershipRequest notification with message
+        staff_request_received_notification = self.get_notifications(space_creator)["data"][0]
+        assert staff_request_received_notification["notificationType"] == "CMR"
+        assert staff_request_received_notification["options"]["space"]["title"] == space.title
+        assert (
+            staff_request_received_notification["options"]["user"]["fullName"]
+            == membership_requestor.profile.full_name()
+        )
+        assert staff_request_received_notification["options"]["message"] == message
+
+    def test_validates_space_membership_request(self):
+        membership_requestor = make_user()
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+        message = "I'd love to join!"
+
+        invalid_uuid = str(uuid4())
+
+        expected_errors = [
+            {"field": "space_id", "value": None, "expected_error": "badly formed hexadecimal UUID string"},
+            {
+                "field": "space_id",
+                "value": invalid_uuid,
+                "expected_error": "No community with the provided id exists.",
+            },
+            {"field": "message", "value": "f" * 1001, "expected_code": "max_length"},
+        ]
+
+        for test_case in expected_errors:
+            response = self.mutate_update_space_user_connection_raw(
+                auth_user=membership_requestor,
+                space_id=test_case["value"] if test_case["field"] == "space_id" else space.id,
+                connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
+                connect_action=UpdateConnectionAction.CONNECT,
+                message=test_case["value"] if test_case["field"] == "message" else message,
+            )
+            if "expected_code" in test_case:
+                field_errors = json.loads(response.errors[0].extensions["errors"])
+                assert test_case["expected_code"] == field_errors[test_case["field"]][0]["code"]
+            else:
+                assert test_case["expected_error"] in str(response.errors[0].message)
+            assert (response.data["updateSpaceUserConnection"] if response.data else response.data) is None
 
     @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook.graphql_schema.publish_space_user_added_event")
@@ -2304,7 +2379,8 @@ class TestUsers:
         space = make_community(creator=user_member)
 
         public_posts = [
-            user_member.create_public_post(text=make_fake_post_text(), title=make_fake_post_title()) for _ in range(5)
+            user_member.create_post(text=make_fake_post_text(), title=make_fake_post_title(), is_public=True)
+            for _ in range(5)
         ]
         for post in public_posts:
             post.community = space
@@ -2312,10 +2388,11 @@ class TestUsers:
         public_ids = [str(post.id) for post in public_posts]
 
         private_posts = [
-            user_member.create_encircled_post(
-                circles_ids=[user_member.connections_circle_id],
+            user_member.create_community_post(
+                space.id,
                 text=make_fake_post_text(),
                 title=make_fake_post_title(),
+                visibility=VisibilityType.MEMBERS.value,
             )
             for _ in range(3)
         ]
@@ -2385,7 +2462,7 @@ class TestUsers:
         space.add_member(user2)
         space.add_member(user3)
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             """
             query($id:String!) {
                 spaceById(idOrName:$id) {
@@ -2432,12 +2509,9 @@ class TestUsers:
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_public_post(
-            text=post_text,
-            title=post_title,
-        )
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             """
             mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
                 reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
@@ -2482,13 +2556,10 @@ class TestUsers:
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
-        post = posting_user.create_public_post(
-            text=post_text,
-            title=post_title,
-        )
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
         comment = post.comment(text=f"comment text 1 @{posting_user.username}", commenter=posting_user)
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             """
             mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
                 reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
@@ -2530,7 +2601,7 @@ class TestUsers:
         user_before_report = self.get_user_with_id_data(user)
         assert user_before_report["id"] == user.username
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             """
             mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
                 reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
@@ -2574,7 +2645,7 @@ class TestUsers:
 
         space = make_community(creator=space_user)
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             """
             mutation ($objectId: UUID!, $contentType: ContentType!, $description: String) {
                 reportContent(objectId: $objectId, contentType: $contentType, description: $description) {
@@ -2595,7 +2666,7 @@ class TestUsers:
         assert response.errors is None
         assert response.data["reportContent"]["success"] is True
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             f"""
             query {{
                 spaceById(idOrName: "{space.id}") {{
@@ -2609,7 +2680,7 @@ class TestUsers:
         assert len(response.data["spaceById"]) == 1
         assert response.data["spaceById"]["id"] == str(space.id)
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             f"""
             query {{
                 spaceById(idOrName: "{space.name}") {{
@@ -2625,7 +2696,7 @@ class TestUsers:
 
         approve_verify_moderated_object(space.id, space_user)
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             f"""
             query {{
                 spaceById(idOrName: "{space.id}") {{
@@ -2644,19 +2715,17 @@ class TestUsers:
         other_user = make_user(name="OtherUser", date_joined=two_hours_ago)
         other_user.save()
 
-        other_post = other_user.create_public_post(
-            text=(make_fake_post_text()),
-            title=(make_fake_post_title()),
+        other_post = other_user.create_post(
+            text=(make_fake_post_text()), title=(make_fake_post_title()), is_public=True
         )
         other_post.comment(text=f"comment text 1", commenter=blocked_user)
 
-        blocked_post = blocked_user.create_public_post(
-            text=(make_fake_post_text()),
-            title=(make_fake_post_title()),
+        blocked_post = blocked_user.create_post(
+            text=(make_fake_post_text()), title=(make_fake_post_title()), is_public=True
         )
         blocked_post.comment(text=f"comment text 1", commenter=other_user)
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             """
             query {
                 userSuggestions(limit:100) {
@@ -2671,7 +2740,7 @@ class TestUsers:
         )
         assert response.data["userSuggestions"]["totalResults"] == 2
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             """
             mutation ($userId: UUID!) {
                 blockUser(userId: $userId) {
@@ -2703,7 +2772,7 @@ class TestUsers:
         response_after_blocking = self.get_user_with_id_raw(blocking_user, blocked_user)
         assert response_after_blocking.data["userById"] is None
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             """
             query {
                 userSuggestions(limit:100) {
@@ -2727,7 +2796,7 @@ class TestUsers:
         return response.data["userById"]
 
     def get_user_with_id_raw(self, user_to_get, calling_user=None):
-        return schema.execute_sync(
+        return async_to_sync(schema.execute)(
             f"""
             query {{
                 userById(id: "{user_to_get.username}") {{
@@ -2744,7 +2813,7 @@ class TestUsers:
         return response.data["postById"]
 
     def get_post_with_id_raw(self, post, user=None):
-        return schema.execute_sync(
+        return async_to_sync(schema.execute)(
             f"""
             query {{
                 postById(id: "{post.id}") {{
@@ -2807,14 +2876,16 @@ class TestUsers:
         connection_type: SpaceUserConnectionType,
         connect_action: UpdateConnectionAction,
         user_id: Optional[UUID] = None,
+        message: Optional[str] = None,
     ):
-        return schema.execute_sync(
+        return async_to_sync(schema.execute)(
             """
-            mutation ($spaceId: UUID!, $userId: UUID, $type: SpaceUserConnectionType!, $action: UpdateConnectionAction!){
+            mutation ($spaceId: UUID!, $userId: UUID, $type: SpaceUserConnectionType!, $action: UpdateConnectionAction!, $message: String){
                 updateSpaceUserConnection(spaceId: $spaceId,
                                             userId: $userId,
                                             connectionType: $type,
-                                            connectAction: $action) {
+                                            connectAction: $action,
+                                            message: $message) {
                     id
                     name
                     members {
@@ -2837,6 +2908,7 @@ class TestUsers:
                     "userId": str(user_id) if user_id else None,
                     "type": connection_type.value,
                     "action": connect_action.value,
+                    "message": message,
                 }
             ),
         )
@@ -2848,15 +2920,16 @@ class TestUsers:
         connection_type: SpaceUserConnectionType,
         connect_action: UpdateConnectionAction,
         user_id: Optional[UUID] = None,
+        message: Optional[str] = None,
     ):
         response = self.mutate_update_space_user_connection_raw(
-            auth_user, space_id, connection_type, connect_action, user_id
+            auth_user, space_id, connection_type, connect_action, user_id, message
         )
         assert response.errors is None
         return response.data["updateSpaceUserConnection"]
 
     def get_space_for_user(self, user: User, space: Community):
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             """
             query($id:String!) {
                 spaceById(idOrName:$id) {
@@ -2883,7 +2956,7 @@ class TestUsers:
         return response.data["spaceById"]
 
     def get_space_by_id_with_posts(self, user: User, id: UUID, visibility: VisibilityFilter = VisibilityFilter.ALL):
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             """
             query($id:String!, $visibility:VisibilityFilter!) {
                 spaceById(idOrName:$id) {
@@ -2911,7 +2984,7 @@ class TestUsers:
         return response.data["spaceById"]
 
     def get_notifications(self, user):
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             """
             query {
                 notifications {
@@ -2938,6 +3011,7 @@ class TestUsers:
                                 title
                             }
                             teaser
+                            message
                         }
                     }
                 }
@@ -2965,7 +3039,7 @@ class TestUsers:
             }
             """
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             validate_space_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": {}},
@@ -3018,7 +3092,7 @@ class TestUsers:
         ]
 
         for testCase in expectedErrors:
-            response = schema.execute_sync(
+            response = async_to_sync(schema.execute)(
                 validate_space_mutation,
                 context_value=BeneDict({"request": {"user": user}}),
                 variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
@@ -3058,7 +3132,7 @@ class TestUsers:
         ]
 
         for input in valid_inputs:
-            response = schema.execute_sync(
+            response = async_to_sync(schema.execute)(
                 validate_space_mutation,
                 context_value=BeneDict({"request": {"user": user}}),
                 variable_values={"input": input},
@@ -3077,7 +3151,7 @@ class TestUsers:
             """
         valid_input = {"title": "valid", "description": "valid"}
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             validate_space_mutation,
             variable_values={"input": valid_input},
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
@@ -3128,7 +3202,7 @@ class TestUsers:
         ]
 
         for testCase in expectedErrors:
-            response = schema.execute_sync(
+            response = async_to_sync(schema.execute)(
                 create_space_mutation,
                 context_value=BeneDict({"request": {"user": user}}),
                 variable_values={"input": testCase["input"]},
@@ -3183,7 +3257,7 @@ class TestUsers:
         ]
 
         for testCase in expectedErrors:
-            response = schema.execute_sync(
+            response = async_to_sync(schema.execute)(
                 create_space_mutation,
                 context_value=BeneDict({"request": {"user": user}}),
                 variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
@@ -3223,7 +3297,7 @@ class TestUsers:
             """
         valid_input = {"title": "valid", "description": "valid", "topics": topic_ids, "cover": valid_image}
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             create_space_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": valid_input},
@@ -3269,7 +3343,7 @@ class TestUsers:
             """
         valid_input = {"title": "valid", "description": "valid", "topics": valid_topics, "cover": valid_image}
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             create_space_mutation,
             variable_values={"input": valid_input},
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
@@ -3335,7 +3409,7 @@ class TestUsers:
         ]
 
         for testCase in expectedErrors:
-            response = schema.execute_sync(
+            response = async_to_sync(schema.execute)(
                 update_space_mutation,
                 context_value=BeneDict({"request": {"user": user}}),
                 variable_values={
@@ -3361,7 +3435,7 @@ class TestUsers:
             }
             """
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             update_space_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": {"title": "new title"}},
@@ -3415,7 +3489,7 @@ class TestUsers:
         ]
 
         for input in valid_inputs:
-            response = schema.execute_sync(
+            response = async_to_sync(schema.execute)(
                 update_space_mutation,
                 context_value=BeneDict({"request": {"user": user}}),
                 variable_values={"input": base_input | input},
@@ -3430,8 +3504,14 @@ class TestUsers:
         user = make_user()
         community = make_community(creator=user)
         topic_ids = [str(make_topic().id) for _ in range(2)]
-        cover = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
-        avatar = SimpleUploadedFile(name="avatar.jpg", content=simple_jpeg_bytes)
+
+        test_image = get_test_images()[0]
+        with open(test_image["path"], "rb") as file:
+            content = file.read()
+            cover = SimpleUploadedFile(name="cover.jpg", content=content)
+            avatar = SimpleUploadedFile(name="avatar.jpg", content=content)
+        blurhash = generate_blurhash(test_image["path"])
+
         sdg_ids = [str(make_sdg().id) for _ in range(2)]
         location = "Hamburg, Germany"
         update_space_mutation = """
@@ -3442,7 +3522,9 @@ class TestUsers:
                     description
                     topics { id }
                     cover
+                    coverBlurhash
                     avatar
+                    avatarBlurhash
                     sdgs { id }
                     location
                     contactDescription
@@ -3465,7 +3547,7 @@ class TestUsers:
             "contactEmail": "contact@space.com",
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             update_space_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": input},
@@ -3482,6 +3564,8 @@ class TestUsers:
             assert topic["id"] in topic_ids
         assert "cover.jpg" in updated_space["cover"]
         assert "avatar.jpg" in updated_space["avatar"]
+        assert blurhash == updated_space["coverBlurhash"]
+        assert blurhash == updated_space["avatarBlurhash"]
         assert len(sdg_ids) == len(updated_space["sdgs"])
         for sdg in updated_space["sdgs"]:
             assert sdg["id"] in sdg_ids
@@ -3497,7 +3581,7 @@ class TestUsers:
             "avatar": None,
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             update_space_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": input},
@@ -3509,6 +3593,8 @@ class TestUsers:
         assert str(community.id) == updated_space["id"]
         assert "" == updated_space["cover"]
         assert "" == updated_space["avatar"]
+        assert updated_space["coverBlurhash"] is None
+        assert updated_space["avatarBlurhash"] is None
 
     @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
     def test_can_not_update_space_if_not_admin(self, mock_invalidate_discover_spaces_query_cache):
@@ -3522,7 +3608,7 @@ class TestUsers:
             }
             """
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             update_space_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": {"id": str(community.id), "title": "new title"}},
@@ -3544,7 +3630,7 @@ class TestUsers:
             }
             """
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             update_space_mutation,
             variable_values={"input": {"id": str(community.id), "title": "new title"}},
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
@@ -3568,7 +3654,7 @@ class TestUsers:
             }
             """
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             delete_space_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"id": str(community.id)},
@@ -3594,7 +3680,7 @@ class TestUsers:
             }
             """
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             delete_space_mutation,
             variable_values={"id": str(community.id)},
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
@@ -3618,7 +3704,7 @@ class TestUsers:
             }
             """
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             delete_space_mutation,
             variable_values={"id": str(community.id)},
             context_value=BeneDict({"request": {"user": user}}),
@@ -3665,7 +3751,7 @@ class TestUsers:
         ]
 
         for testCase in expectedErrors:
-            response = schema.execute_sync(
+            response = async_to_sync(schema.execute)(
                 add_collaboration_tool_mutation,
                 context_value=BeneDict({"request": {"user": user}}),
                 variable_values={"input": testCase["input"]},
@@ -3716,7 +3802,7 @@ class TestUsers:
         ]
 
         for testCase in expectedErrors:
-            response = schema.execute_sync(
+            response = async_to_sync(schema.execute)(
                 add_collaboration_tool_mutation,
                 context_value=BeneDict({"request": {"user": user}}),
                 variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
@@ -3763,7 +3849,7 @@ class TestUsers:
             "collectionType": valid_collection_type,
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             add_collaboration_tool_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": valid_input},
@@ -3802,7 +3888,7 @@ class TestUsers:
             "collectionType": valid_collection_type,
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             add_collaboration_tool_mutation,
             variable_values={"input": valid_input},
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
@@ -3836,7 +3922,7 @@ class TestUsers:
             "collectionType": valid_collection_type,
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             add_collaboration_tool_mutation,
             variable_values={"input": valid_input},
             context_value=BeneDict({"request": {"user": user}}),
@@ -3859,7 +3945,7 @@ class TestUsers:
             }
             """
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             delete_collaboration_tool_mutation,
             variable_values={"id": str(collaboration_tool.id)},
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
@@ -3879,7 +3965,7 @@ class TestUsers:
             }
             """
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             delete_collaboration_tool_mutation,
             variable_values={"id": str(collaboration_tool.id)},
             context_value=BeneDict({"request": {"user": user}}),
@@ -3905,7 +3991,7 @@ class TestUsers:
             }
             """
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             delete_collaboration_tool_mutation,
             variable_values={"id": str(collaboration_tool.id)},
             context_value=BeneDict({"request": {"user": user}}),
@@ -3930,7 +4016,7 @@ class TestUsers:
             }
             """
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             delete_collaboration_tool_mutation,
             variable_values={"id": str(collaboration_tool.id)},
             context_value=BeneDict({"request": {"user": user}}),
@@ -3975,7 +4061,7 @@ class TestUsers:
         ]
 
         for testCase in expectedErrors:
-            response = schema.execute_sync(
+            response = async_to_sync(schema.execute)(
                 update_collaboration_tool_mutation,
                 context_value=BeneDict({"request": {"user": user}}),
                 variable_values={
@@ -4000,7 +4086,7 @@ class TestUsers:
             }
             """
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             update_collaboration_tool_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": {"url": "https://holi.social/"}},
@@ -4023,7 +4109,7 @@ class TestUsers:
 
         input = {"id": str(collaboration_tool.id), "url": "https://holi.social/"}
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             update_collaboration_tool_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": input},
@@ -4047,7 +4133,7 @@ class TestUsers:
 
         input = {"id": str(collaboration_tool.id), "url": "https://holi.social/"}
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             update_collaboration_tool_mutation,
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
             variable_values={"input": input},
@@ -4089,7 +4175,7 @@ class TestUsers:
         ]
 
         for input in valid_inputs:
-            response = schema.execute_sync(
+            response = async_to_sync(schema.execute)(
                 update_collaboration_tool_mutation,
                 context_value=BeneDict({"request": {"user": user}}),
                 variable_values={"input": base_input | input},
@@ -4129,7 +4215,7 @@ class TestUsers:
             "collectionType": new_collection_type,
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             update_collaboration_tool_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": input},
@@ -4144,6 +4230,116 @@ class TestUsers:
         assert new_title == updated_collaboration_tool["title"]
         assert new_description == updated_collaboration_tool["description"]
         assert new_collection_type == updated_collaboration_tool["collectionType"]
+
+    def test_can_not_invite_to_space_by_email_if_not_logged_in(self):
+        community = make_community()
+
+        invite_to_space_by_email_mutation = """
+            mutation InviteToSpaceByEmail($email: String!, $spaceId: UUID!) {
+                inviteToSpaceByEmail(email: $email, spaceId: $spaceId) {
+                    success
+                }
+            }
+            """
+
+        valid_input = {
+            "email": "test@test.com",
+            "spaceId": str(community.id),
+        }
+
+        response = async_to_sync(schema.execute)(
+            invite_to_space_by_email_mutation,
+            variable_values=valid_input,
+            context_value=BeneDict({"request": {"user": AnonymousUser}}),
+        )
+
+        self.assert_is_unauthorized(response)
+
+    def test_can_not_invite_to_space_by_email_if_not_a_space_member(self):
+        user = make_user()
+
+        community = make_community()
+
+        invite_to_space_by_email_mutation = """
+            mutation InviteToSpaceByEmail($email: String!, $spaceId: UUID!) {
+                inviteToSpaceByEmail(email: $email, spaceId: $spaceId) {
+                    success
+                }
+            }
+            """
+
+        valid_input = {
+            "email": "test@test.com",
+            "spaceId": str(community.id),
+        }
+
+        response = async_to_sync(schema.execute)(
+            invite_to_space_by_email_mutation,
+            variable_values=valid_input,
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        field_errors = json.loads(response.errors[0].extensions["errors"])
+
+        assert field_errors[0]["message"] in "You cannot create an invite to a community you are not a member of"
+
+    def test_can_not_invite_to_space_by_email_missing_required_fields(self):
+        user = make_user()
+        community = make_community(creator=user)
+
+        invite_to_space_by_email_mutation = """
+            mutation InviteToSpaceByEmail($email: String!, $spaceId: UUID!) {
+                inviteToSpaceByEmail(email: $email, spaceId: $spaceId) {
+                    success
+                }
+            }
+            """
+
+        response_no_email = async_to_sync(schema.execute)(
+            invite_to_space_by_email_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"spaceId": str(community.id)},
+        )
+
+        response_no_space_id = async_to_sync(schema.execute)(
+            invite_to_space_by_email_mutation,
+            context_value=BeneDict({"request": {"user": user}}),
+            variable_values={"email": "test@test.com"},
+        )
+
+        assert "Variable '$email' of required type 'String!' was not provided." in str(
+            response_no_email.errors[0].message
+        )
+        assert "Variable '$spaceId' of required type 'UUID!' was not provided." in str(
+            response_no_space_id.errors[0].message
+        )
+
+    def test_can_invite_to_space_by_email(self):
+        user = make_user()
+
+        community = make_community(creator=user)
+
+        invite_to_space_by_email_mutation = """
+            mutation InviteToSpaceByEmail($email: String!, $spaceId: UUID!) {
+                inviteToSpaceByEmail(email: $email, spaceId: $spaceId) {
+                    success
+                }
+            }
+            """
+
+        valid_input = {
+            "email": "joao.ramia@gmail.com",
+            "spaceId": str(community.id),
+        }
+
+        response = async_to_sync(schema.execute)(
+            invite_to_space_by_email_mutation,
+            variable_values=valid_input,
+            context_value=BeneDict({"request": {"user": user}}),
+        )
+
+        assert response.data["inviteToSpaceByEmail"]["success"] is True
+        assert response.errors is None
 
     def test_can_not_create_task_missing_required_fields(self):
         user = make_user()
@@ -4181,7 +4377,7 @@ class TestUsers:
         for input_key in valid_input_keys:
             test_input = copy.copy(valid_input)
             test_input.pop(input_key)
-            response = schema.execute_sync(
+            response = async_to_sync(schema.execute)(
                 create_task_mutation,
                 context_value=BeneDict({"request": {"user": user}}),
                 variable_values={"input": test_input},
@@ -4237,7 +4433,7 @@ class TestUsers:
         ]
 
         for testCase in expectedErrors:
-            response = schema.execute_sync(
+            response = async_to_sync(schema.execute)(
                 create_task_mutation,
                 context_value=BeneDict({"request": {"user": user}}),
                 variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
@@ -4285,7 +4481,7 @@ class TestUsers:
             "contactPhone": "+49176176176176",
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             create_task_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": valid_input},
@@ -4326,7 +4522,7 @@ class TestUsers:
             "contactPhone": "+49176176176176",
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             create_task_mutation,
             variable_values={"input": valid_input},
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
@@ -4363,7 +4559,7 @@ class TestUsers:
             "contactPhone": "+49176176176176",
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             create_task_mutation,
             variable_values={"input": valid_input},
             context_value=BeneDict({"request": {"user": user}}),
@@ -4412,7 +4608,7 @@ class TestUsers:
         for input_key in valid_input_keys:
             test_input = copy.copy(valid_input)
             test_input.pop(input_key)
-            response = schema.execute_sync(
+            response = async_to_sync(schema.execute)(
                 update_task_mutation,
                 context_value=BeneDict({"request": {"user": user}}),
                 variable_values={"input": test_input},
@@ -4471,7 +4667,7 @@ class TestUsers:
         ]
 
         for testCase in expectedErrors:
-            response = schema.execute_sync(
+            response = async_to_sync(schema.execute)(
                 update_task_mutation,
                 context_value=BeneDict({"request": {"user": user}}),
                 variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
@@ -4499,6 +4695,7 @@ class TestUsers:
                     description
                     visibility
                     thumbnail
+                    thumbnailBlurhash
                 }
             }
             """
@@ -4506,7 +4703,7 @@ class TestUsers:
         valid_name = "Valid name"
         valid_description = "Valid description"
         valid_visibility = "MEMBERS"
-        valid_thumbnail = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+        valid_thumbnail = SimpleUploadedFile(name="thumbnail.jpg", content=simple_jpeg_bytes)
 
         valid_input = {
             "taskId": str(task.id),
@@ -4524,7 +4721,7 @@ class TestUsers:
             "thumbnail": valid_thumbnail,
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             update_task_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": valid_input},
@@ -4537,7 +4734,8 @@ class TestUsers:
         assert valid_name == updateTask["name"]
         assert valid_description == updateTask["description"]
         assert valid_visibility == updateTask["visibility"]
-        assert "cover.jpg" in updateTask["thumbnail"]
+        assert "thumbnail.jpg" in updateTask["thumbnail"]
+        assert updateTask["thumbnailBlurhash"] is not None
 
         valid_name = "New valid name"
         valid_description = "New valid description"
@@ -4555,7 +4753,7 @@ class TestUsers:
             "thumbnail": None,
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             update_task_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": valid_input},
@@ -4569,6 +4767,7 @@ class TestUsers:
         assert valid_description == updateTask["description"]
         assert valid_visibility == updateTask["visibility"]
         assert "" == updateTask["thumbnail"]
+        assert updateTask["thumbnailBlurhash"] is None
 
     def test_can_not_update_task_if_not_logged_in(self):
         community = make_community()
@@ -4599,7 +4798,7 @@ class TestUsers:
             "contactPhone": "+49176176176176",
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             update_task_mutation,
             variable_values={"input": valid_input},
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
@@ -4638,7 +4837,7 @@ class TestUsers:
             "contactPhone": "+49176176176176",
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             update_task_mutation,
             variable_values={"input": valid_input},
             context_value=BeneDict({"request": {"user": user}}),
@@ -4663,7 +4862,7 @@ class TestUsers:
             }
             """
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             delete_task_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"id": str(task.id)},
@@ -4686,7 +4885,7 @@ class TestUsers:
             }
             """
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             delete_task_mutation,
             variable_values={"id": str(task.id)},
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
@@ -4707,7 +4906,7 @@ class TestUsers:
             }
             """
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             delete_task_mutation,
             variable_values={"id": str(task.id)},
             context_value=BeneDict({"request": {"user": user}}),
@@ -4759,7 +4958,7 @@ class TestUsers:
             """
 
         # member should get all tasks
-        response_member = schema.execute_sync(
+        response_member = async_to_sync(schema.execute)(
             space_by_id_query,
             context_value=BeneDict({"request": {"user": user_member}}),
         )
@@ -4768,7 +4967,7 @@ class TestUsers:
         assert len(tasks_member) == 2
 
         # non member should only get the public task
-        response_external = schema.execute_sync(
+        response_external = async_to_sync(schema.execute)(
             space_by_id_query,
             context_value=BeneDict({"request": {"user": user_external}}),
         )
@@ -4815,7 +5014,7 @@ class TestUsers:
         ]
 
         for testCase in expectedErrors:
-            response = schema.execute_sync(
+            response = async_to_sync(schema.execute)(
                 add_external_link_mutation,
                 context_value=BeneDict({"request": {"user": user}}),
                 variable_values={"input": testCase["input"]},
@@ -4857,7 +5056,7 @@ class TestUsers:
         ]
 
         for testCase in expectedErrors:
-            response = schema.execute_sync(
+            response = async_to_sync(schema.execute)(
                 add_external_link_mutation,
                 context_value=BeneDict({"request": {"user": user}}),
                 variable_values={"input": valid_input | {testCase["field"]: testCase["value"]}},
@@ -4899,7 +5098,7 @@ class TestUsers:
             "name": valid_name,
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             add_external_link_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": valid_input},
@@ -4934,7 +5133,7 @@ class TestUsers:
             "name": valid_name,
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             add_external_link_mutation,
             variable_values={"input": valid_input},
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
@@ -4968,7 +5167,7 @@ class TestUsers:
             "name": valid_name,
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             add_external_link_mutation,
             variable_values={"input": valid_input},
             context_value=BeneDict({"request": {"user": user}}),
@@ -4991,7 +5190,7 @@ class TestUsers:
             }
             """
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             delete_external_link_mutation,
             variable_values={"id": str(external_link.id)},
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
@@ -5015,7 +5214,7 @@ class TestUsers:
             }
             """
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             delete_external_link_mutation,
             variable_values={"id": str(external_link.id)},
             context_value=BeneDict({"request": {"user": user}}),
@@ -5041,7 +5240,7 @@ class TestUsers:
             }
             """
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             delete_external_link_mutation,
             variable_values={"id": str(external_link.id)},
             context_value=BeneDict({"request": {"user": user}}),
@@ -5081,7 +5280,7 @@ class TestUsers:
         ]
 
         for testCase in expectedErrors:
-            response = schema.execute_sync(
+            response = async_to_sync(schema.execute)(
                 update_external_link_mutation,
                 context_value=BeneDict({"request": {"user": user}}),
                 variable_values={
@@ -5108,7 +5307,7 @@ class TestUsers:
             }
             """
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             update_external_link_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": {"url": "https://www.instagram.com/", "type": "INSTAGRAM"}},
@@ -5140,7 +5339,7 @@ class TestUsers:
             "name": "Instagram",
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             update_external_link_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": input},
@@ -5169,7 +5368,7 @@ class TestUsers:
             "name": "Instagram",
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             update_external_link_mutation,
             context_value=BeneDict({"request": {"user": AnonymousUser}}),
             variable_values={"input": input},
@@ -5198,7 +5397,7 @@ class TestUsers:
             "name": "Instagram",
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             update_external_link_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": input},
@@ -5235,7 +5434,7 @@ class TestUsers:
             "name": new_name,
         }
 
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             update_external_link_mutation,
             context_value=BeneDict({"request": {"user": user}}),
             variable_values={"input": input},
@@ -5268,7 +5467,7 @@ class TestUsers:
         assert response.data["checkAppVersion"]["needUpdate"] == NeedUpdateType.NO
 
     def check_app_version(self, version: str, build_number: str):
-        response = schema.execute_sync(
+        response = async_to_sync(schema.execute)(
             f"""
             query {{
                 checkAppVersion(version: "{version}", buildNumber: "{build_number}") {{
