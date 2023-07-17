@@ -115,6 +115,14 @@ class ValidateCommunitySerializer(serializers.Serializer):
     )
 
 
+class UpdateOnboardingStepSerializer(serializers.Serializer):
+    text = serializers.CharField(
+        max_length=settings.ONBOARDING_STEP_TEXT_MAX_LENGTH,
+        required=False,
+        allow_blank=True,
+    )
+
+
 class UpdateCommunitySerializer(serializers.Serializer):
     id = serializers.UUIDField(
         validators=[community_id_exists],
@@ -170,6 +178,10 @@ class UpdateCommunitySerializer(serializers.Serializer):
         required=False,
         max_length=settings.COMMUNITY_CONTACT_PHONE_MAX_LENGTH,
         allow_blank=True,
+    )
+    onboarding_steps = serializers.ListField(
+        required=False,
+        child=UpdateOnboardingStepSerializer(),
     )
 
 

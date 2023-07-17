@@ -306,6 +306,7 @@ else:
         "PASSWORD": RDS_PASSWORD,
         "HOST": RDS_HOSTNAME_WRITER,
         "PORT": RDS_PORT,
+        "CONN_MAX_AGE": 3600,
         # 'OPTIONS': db_options,
     }
 
@@ -627,6 +628,9 @@ GOOGLE_CLOUD_PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT_ID")
 # External links
 EXTERNAL_LINK_NAME_MAX_LENGTH = 100
 EXTERNAL_LINK_URL_MAX_LENGTH = 500
+
+# Space onboarding steps
+ONBOARDING_STEP_TEXT_MAX_LENGTH = 240
 
 # App store urls
 APPLE_APP_STORE_DEFAULT_URL = "itms-apps://apps.apple.com/app/id6446693757"

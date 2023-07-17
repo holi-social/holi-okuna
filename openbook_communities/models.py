@@ -6,6 +6,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.core.files.storage import default_storage
 from django.contrib.gis.db import models
 from django.db.models import QuerySet
+from django.db import transaction
 
 from django.utils import timezone
 
@@ -31,6 +32,7 @@ from openbook_common.utils.model_loaders import (
     get_community_notifications_subscription_model,
     get_community_new_post_notification_model,
     get_community_invite_notification_model,
+    get_onboarding_step_model,
 )
 from openbook_common.validators import hex_color_validator
 from openbook_communities.helpers import (
@@ -533,6 +535,7 @@ class Community(ModelWithUUID):
         contact_description=None,
         contact_email=None,
         contact_phone=None,
+        onboarding_steps=None,
     ):
         if title:
             self.title = title
@@ -591,6 +594,9 @@ class Community(ModelWithUUID):
 
         if contact_phone is not None:
             self.contact_phone = contact_phone
+
+        if onboarding_steps is not None:
+            self.set_onboarding_steps(onboarding_steps=onboarding_steps)
 
         self.save()
 
@@ -658,6 +664,10 @@ class Community(ModelWithUUID):
 
     def clear_sdgs(self):
         self.sdgs.clear()
+
+    def set_onboarding_steps(self, onboarding_steps):
+        OnboardingStep = get_onboarding_step_model()
+        OnboardingStep.set_onboarding_steps(community=self, onboarding_steps=onboarding_steps)
 
     def create_invite(self, creator, invited_user):
         CommunityInvite = get_community_invite_model()
@@ -1446,3 +1456,72 @@ class CollaborationTool(ModelWithUUID):
 
         collaboration_tool.save()
         return collaboration_tool
+
+
+class OnboardingStep(ModelWithUUID):
+    community = models.ForeignKey(
+        Community,
+        on_delete=models.CASCADE,
+        related_name="onboarding_steps",
+        blank=False,
+        null=False,
+    )
+    text = models.CharField(max_length=settings.ONBOARDING_STEP_TEXT_MAX_LENGTH, null=True, blank=True)
+    step_number = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = (("community", "step_number"),)
+        indexes = [
+            models.Index(fields=["community", "step_number"]),
+        ]
+
+    def update(
+        self,
+        text=None,
+        step_number=None,
+    ):
+        if text is not None:
+            self.text = text
+
+        if step_number is not None:
+            self.step_number = step_number
+
+        self.save()
+
+    @classmethod
+    def set_onboarding_steps(
+        cls,
+        community,
+        onboarding_steps,
+    ):
+        with transaction.atomic():
+            # Not necessary to sort, we will just override everything
+            old_steps = cls.objects.filter(community=community)
+            new_step_count = len(onboarding_steps)
+            old_step_count = len(old_steps)
+            common_length = min(new_step_count, old_step_count)
+
+            # Overwrite old steps
+            for index in range(common_length):
+                new_step = onboarding_steps[index]
+                old_steps[index].update(
+                    text=new_step["text"],
+                    step_number=index,
+                )
+
+            # Create new steps if there are not enough
+            for index in range(common_length, new_step_count):
+                new_step = onboarding_steps[index]
+                step = cls.objects.create(
+                    community=community,
+                    text=new_step["text"],
+                    step_number=index,
+                )
+                step.save()
+
+            # Remove old steps if there are too many
+            for index in range(common_length, old_step_count):
+                old_steps[index].delete()
+
+        return community
