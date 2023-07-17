@@ -3768,7 +3768,7 @@ class TestUsers:
 
         assert response.data["spaceById"]["onboarding"] == expected
 
-    def test_onboarding_only_visible_to_members(self):
+    def test_onboarding_visible_to_all(self):
         user = make_user()
         member = make_user()
         community = make_community()
@@ -3779,8 +3779,8 @@ class TestUsers:
         ]
         community.set_onboarding_steps(onboarding_steps)
 
-        self.assert_onboarding(community.id, AnonymousUser, None)
-        self.assert_onboarding(community.id, user, None)
+        self.assert_onboarding(community.id, AnonymousUser, {"steps": onboarding_steps})
+        self.assert_onboarding(community.id, user, {"steps": onboarding_steps})
         self.assert_onboarding(community.id, member, {"steps": onboarding_steps})
 
     @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")

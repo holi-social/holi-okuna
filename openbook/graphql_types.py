@@ -614,10 +614,6 @@ class Space:
 
     @gql.django.field
     def onboarding(self, info) -> Optional[Onboarding]:
-        current_user: UserModel = info.context.request.user
-        if current_user.is_anonymous or not current_user.is_member_of_community_with_id(self.id):
-            return None
-
         onboarding_steps = OnboardingStepModel.objects.filter(
             community=self,
         ).order_by("step_number")
