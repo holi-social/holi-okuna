@@ -57,16 +57,18 @@ PROJ_LIBRARY_PATH = "/path/to/libproj.dylib"
 ```
 
 On Mac you can use
+
 ```
 brew install gdal proj geos
 ```
+
 and
+
 ```
 GDAL_LIBRARY_PATH = "/opt/homebrew/lib/libgdal.dylib"
 GEOS_LIBRARY_PATH = "/opt/homebrew/lib/libgeos_c.dylib"
 PROJ_LIBRARY_PATH = "/opt/homebrew/lib/libproj.dylib"
 ```
-
 
 ## Quickstart
 
@@ -251,4 +253,16 @@ including `raise` messages. This can be done in your terminal
 ```sh
    ./manage.py makemessages --all --no-wrap
    ./manage.py compilemessages
+```
+
+## Tests
+
+We are using `pytest` for test execution and can run the tests the following way:
+
+```sh
+pytest
+# Execute a single test file
+pytest openbook/tests/test_graphql.py
+# Execute a single test case
+pytest -k "test_correctly_updates_onboarding_steps"
 ```
