@@ -1,5 +1,7 @@
 import hashlib
-from django.core.cache import cache
+from django.core.cache import cache, caches
+
+from openbook.settings import UNIFIED_API_RESPONSE_CACHE
 
 DISCOVER_SPACES_CACHE_KEY_PREFIX = "discover_spaces"
 
@@ -43,3 +45,7 @@ def invalidate_discover_spaces_query_cache():
     all_keys = cache.keys("*")
     filtered_keys = [key for key in all_keys if key.startswith(DISCOVER_SPACES_CACHE_KEY_PREFIX)]
     cache.delete_many(filtered_keys)
+
+    # clean unified api response caching
+    unified_api_cache = caches[UNIFIED_API_RESPONSE_CACHE]
+    unified_api_cache.delete_many(unified_api_cache.keys("DiscoverSpaces-*"))

@@ -202,7 +202,7 @@ CACHES = {
         "LOCATION": REDIS_DEFAULT_CACHE_LOCATION,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "SERIALIZER": "django_redis.serializers.json.JSONSerializer"
+            "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
         },
         "KEY_PREFIX": "response-cache",
         "KEY_FUNCTION": "openbook.utils.unified_api_response_cache_key_function",

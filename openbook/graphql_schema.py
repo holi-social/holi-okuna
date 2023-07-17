@@ -1054,6 +1054,8 @@ class Mutation:
                         space.delete()
                         publish_space_deleted_event(space_to_delete)
 
+                    invalidate_discover_spaces_query_cache()
+
                 return Result(success=True)
             except (Exception,):
                 logger.warning(
@@ -1137,6 +1139,7 @@ class Mutation:
         )
 
         publish_space_created_event(community=community)
+        invalidate_discover_spaces_query_cache()
 
         return community
 
@@ -1167,6 +1170,8 @@ class Mutation:
             onboarding_steps=data.get("onboarding_steps"),
         )
 
+        invalidate_discover_spaces_query_cache()
+
         return space
 
     @gql.mutation
@@ -1181,6 +1186,8 @@ class Mutation:
             )
 
         publish_space_deleted_event(space)
+
+        invalidate_discover_spaces_query_cache()
 
         return Result(success=True)
 
