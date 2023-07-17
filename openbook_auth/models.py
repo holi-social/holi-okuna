@@ -2178,6 +2178,13 @@ class User(ModelWithUUID, AbstractUser):
         self.notify_membership_removal(community, user_to_remove)
 
         return community
+    
+    def invite_user_to_community(self, user, community):
+        community_invite = community.create_invite(creator=self, invited_user=user)
+
+        self._create_community_invite_notification(community_invite)
+
+        return community_invite
 
     def invite_user_with_username_to_community_with_name(self, username, community_name):
         check_can_invite_user_with_username_to_community_with_name(
@@ -4702,6 +4709,15 @@ class User(ModelWithUUID, AbstractUser):
         community = Community.objects.get(id=space_id)
 
         check_can_create_invite_to_community(user=self, community=community)
+
+        # check if a user with that email already exists
+        User = get_user_model()
+        user = User.objects.get(email=email)
+
+        if user is not None:
+            self.invite_user_to_community(user=user, community=community)
+            return
+        print("user doesnt exist")
 
         subject, from_email = "You've been invited to a space at holi", settings.DEFAULT_FROM_EMAIL
 
