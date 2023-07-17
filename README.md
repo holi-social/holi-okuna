@@ -4,23 +4,26 @@ The Okuna-based backend for HOLI.
 
 ## Table of contents
 
-- [holi-okuna](#holi-okuna)
-  - [Table of contents](#table-of-contents)
-  - [Introduction](#introduction)
-  - [Prerequisites](#prerequisites)
-  - [Quickstart](#quickstart)
-    - [Reset](#reset)
-    - [Step by step](#step-by-step)
-  - [Changes to reduce dependencies](#changes-to-reduce-dependencies)
-    - [spectra==0.0.11](#spectra0011)
-    - [colormath==3.0.0](#colormath300)
-  - [Known installation issues](#known-installation-issues)
-    - [MacOs](#macos)
-  - [CI/CD](#cicd)
-  - [Access local db](#access-local-db)
-  - [Admin Dashboard](#admin-dashboard)
-  - [Pycharm](#pycharm)
-  - [Translations](#translations)
+<!-- TOC -->
+- [Table of contents](#table-of-contents)
+- [Introduction](#introduction)
+- [Prerequisites](#prerequisites)
+  - [Geospatial libraries](#geospatial-libraries)
+- [Quickstart](#quickstart)
+  - [Reset](#reset)
+  - [Step by step](#step-by-step)
+- [Changes to reduce dependencies](#changes-to-reduce-dependencies)
+  - [spectra==0.0.11](#spectra0011)
+  - [colormath==3.0.0](#colormath300)
+- [Known installation issues](#known-installation-issues)
+  - [MacOs](#macos)
+- [CI/CD](#cicd)
+- [Access local db](#access-local-db)
+- [Admin Dashboard](#admin-dashboard)
+- [Pycharm](#pycharm)
+- [Translations](#translations)
+- [Tests](#tests)
+<!-- /TOC -->
 
 ## Introduction
 
