@@ -184,6 +184,11 @@ REDIS_RQ_DEFAULT_JOBS_CACHE_LOCATION = f"{REDIS_LOCATION}/{REDIS_DB_OFFSET + 1}"
 REDIS_RQ_HIGH_JOBS_CACHE_LOCATION = f"{REDIS_LOCATION}/{REDIS_DB_OFFSET + 2}"
 REDIS_RQ_LOW_JOBS_CACHE_LOCATION = f"{REDIS_LOCATION}/{REDIS_DB_OFFSET + 3}"
 
+UNIFIED_API_RESPONSE_CACHE = "unified-api-response-cache"
+RQ_DEFAULT_JOBS = "rq-default-jobs"
+RQ_HIGH_JOBS = "rq-high-jobs"
+RQ_LOW_JOBS = "rq-low-jobs"
+
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -192,19 +197,31 @@ CACHES = {
         "KEY_PREFIX": "ob-api-" + ENVIRONMENT_ID + "-",
         "TIMEOUT": 60 * 60,
     },
-    "rq-default-jobs": {
+    UNIFIED_API_RESPONSE_CACHE: {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_DEFAULT_CACHE_LOCATION,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
+        },
+        "KEY_PREFIX": "response-cache",
+        "KEY_FUNCTION": "openbook.utils.unified_api_response_cache_key_function",
+        "REVERSE_KEY_FUNCTION": "openbook.utils.unified_api_response_cache_reverse_key",
+        "TIMEOUT": 60 * 60,
+    },
+    RQ_DEFAULT_JOBS: {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_RQ_DEFAULT_JOBS_CACHE_LOCATION,
         "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
         "KEY_PREFIX": "ob-api-rq-default-job-" + ENVIRONMENT_ID + "-",
     },
-    "rq-high-jobs": {
+    RQ_HIGH_JOBS: {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_RQ_HIGH_JOBS_CACHE_LOCATION,
         "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
         "KEY_PREFIX": "ob-api-rq-high-job-" + ENVIRONMENT_ID + "-",
     },
-    "rq-low-jobs": {
+    RQ_LOW_JOBS: {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_RQ_LOW_JOBS_CACHE_LOCATION,
         "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
