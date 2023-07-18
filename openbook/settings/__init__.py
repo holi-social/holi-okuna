@@ -306,7 +306,6 @@ else:
         "PASSWORD": RDS_PASSWORD,
         "HOST": RDS_HOSTNAME_WRITER,
         "PORT": RDS_PORT,
-        "CONN_MAX_AGE": 3600,
         # 'OPTIONS': db_options,
     }
 
