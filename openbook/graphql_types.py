@@ -24,6 +24,7 @@ from openbook_communities.models import (
     ExternalLinkType,
     VisibilityType,
     CollaborationTool as CollaborationToolModel,
+    OnboardingStep as OnboardingStepModel,
 )
 from openbook_notifications.models import Notification as NotificationModel
 from openbook_posts.models import (
@@ -239,6 +240,7 @@ class LinkPreview:
 @gql.django.type(UserModel)
 class User:
     id: uuid.UUID = gql.django.field(field_name="username")
+    identity: Optional[str]
     avatar_default_color: str
     avatar_label: str
 
@@ -497,6 +499,16 @@ class Post:
         return ReactionCounts()
 
 
+@gql.django.type(OnboardingStepModel)
+class OnboardingStep:
+    text: Optional[str]
+
+
+@gql.type
+class Onboarding:
+    steps: List[Optional[OnboardingStep]]
+
+
 @gql.django.type(CommunityModel)
 class Space:
     id: gql.auto
@@ -515,7 +527,6 @@ class Space:
     tasks: List[Optional["Task"]]
     topics: List[Optional[Topic]]
     sdgs: List[Optional[SDG]]
-    collaboration_tools: List[Optional[CollaborationTool]]
     contact_description: Optional[str]
     contact_email: Optional[str]
     contact_phone: Optional[str]
@@ -600,6 +611,22 @@ class Space:
             PostModel.is_visible_query(current_user), status=PostModel.STATUS_PUBLISHED, community=self
         )
         return query.filter(is_public=False).exists()
+
+    @gql.django.field
+    def onboarding(self, info) -> Optional[Onboarding]:
+        onboarding_steps = OnboardingStepModel.objects.filter(
+            community=self,
+        ).order_by("step_number")
+
+        return Onboarding(steps=onboarding_steps)
+
+    @gql.django.field
+    def collaboration_tools(self, info) -> List[Optional[CollaborationTool]]:
+        current_user: UserModel = info.context.request.user
+        if current_user.is_anonymous or not current_user.is_member_of_community_with_id(self.id):
+            return []
+
+        return self.collaboration_tools
 
 
 @gql.django.type(PostCommentModel)

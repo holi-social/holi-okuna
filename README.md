@@ -4,23 +4,26 @@ The Okuna-based backend for HOLI.
 
 ## Table of contents
 
-- [holi-okuna](#holi-okuna)
-  - [Table of contents](#table-of-contents)
-  - [Introduction](#introduction)
-  - [Prerequisites](#prerequisites)
-  - [Quickstart](#quickstart)
-    - [Reset](#reset)
-    - [Step by step](#step-by-step)
-  - [Changes to reduce dependencies](#changes-to-reduce-dependencies)
-    - [spectra==0.0.11](#spectra0011)
-    - [colormath==3.0.0](#colormath300)
-  - [Known installation issues](#known-installation-issues)
-    - [MacOs](#macos)
-  - [CI/CD](#cicd)
-  - [Access local db](#access-local-db)
-  - [Admin Dashboard](#admin-dashboard)
-  - [Pycharm](#pycharm)
-  - [Translations](#translations)
+<!-- TOC -->
+- [Table of contents](#table-of-contents)
+- [Introduction](#introduction)
+- [Prerequisites](#prerequisites)
+  - [Geospatial libraries](#geospatial-libraries)
+- [Quickstart](#quickstart)
+  - [Reset](#reset)
+  - [Step by step](#step-by-step)
+- [Changes to reduce dependencies](#changes-to-reduce-dependencies)
+  - [spectra==0.0.11](#spectra0011)
+  - [colormath==3.0.0](#colormath300)
+- [Known installation issues](#known-installation-issues)
+  - [MacOs](#macos)
+- [CI/CD](#cicd)
+- [Access local db](#access-local-db)
+- [Admin Dashboard](#admin-dashboard)
+- [Pycharm](#pycharm)
+- [Translations](#translations)
+- [Tests](#tests)
+<!-- /TOC -->
 
 ## Introduction
 
@@ -57,16 +60,18 @@ PROJ_LIBRARY_PATH = "/path/to/libproj.dylib"
 ```
 
 On Mac you can use
+
 ```
 brew install gdal proj geos
 ```
+
 and
+
 ```
 GDAL_LIBRARY_PATH = "/opt/homebrew/lib/libgdal.dylib"
 GEOS_LIBRARY_PATH = "/opt/homebrew/lib/libgeos_c.dylib"
 PROJ_LIBRARY_PATH = "/opt/homebrew/lib/libproj.dylib"
 ```
-
 
 ## Quickstart
 
@@ -251,4 +256,16 @@ including `raise` messages. This can be done in your terminal
 ```sh
    ./manage.py makemessages --all --no-wrap
    ./manage.py compilemessages
+```
+
+## Tests
+
+We are using `pytest` for test execution and can run the tests the following way:
+
+```sh
+pytest
+# Execute a single test file
+pytest openbook/tests/test_graphql.py
+# Execute a single test case
+pytest -k "test_correctly_updates_onboarding_steps"
 ```

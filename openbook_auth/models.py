@@ -15,6 +15,7 @@ from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.utils import timezone, translation
 from django.utils.translation import gettext_lazy as _
+from django.core import validators
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
@@ -119,6 +120,21 @@ class UserWithProfileManager(UserManager):
         return super().get_queryset().select_related("profile")
 
 
+class IdentityValidator(validators.RegexValidator):
+    """
+    Matrix only allows lowercase characters, numbers, '_', '-' and '.' in identifiers. And they have to start with a character.
+    """
+
+    regex = r"^[a-z][a-z0-9_.-]*\Z"
+    message = _(
+        "Enter a valid identity. This value has to start with a lowercase letter and may contain only lowercase letters, numbers, '_', '-' and '.' characters."
+    )
+    flags = 0
+
+
+identity_validator = IdentityValidator()
+
+
 class User(ModelWithUUID, AbstractUser):
     """
     Custom user model to change behaviour of the default user model
@@ -201,6 +217,22 @@ class User(ModelWithUUID, AbstractUser):
         validators=[username_validator],
         error_messages={
             "unique": _("A user with that username already exists."),
+        },
+    )
+    # a unique identifier chosen by the user that is also used as local part for the matrix identifier
+    # It's also stored in Ory as an identifier, because that is how it's transferred to the matrix server
+    identity = models.CharField(
+        blank=True,
+        null=True,
+        max_length=settings.IDENTITY_MAX_LENGTH,
+        unique=True,
+        help_text=_(
+            "%(identity_max_length)d characters or fewer. Must start with a lowercase letter and contain lowercase letters, digits, '_', '-' and '.' only."
+        )
+        % {"identity_max_length": settings.IDENTITY_MAX_LENGTH},
+        validators=[IdentityValidator()],
+        error_messages={
+            "unique": _("A user with that identity already exists."),
         },
     )
 
@@ -678,11 +710,15 @@ class User(ModelWithUUID, AbstractUser):
         save=True,
         update_location=False,
         remove_avatar=False,
+        identity=None,
     ):
         profile = self.profile
 
         if username:
             self.update_username(username)
+
+        if identity and not self.identity:
+            self.identity = identity
 
         if url is not None:
             if len(url) == 0:
@@ -1865,6 +1901,7 @@ class User(ModelWithUUID, AbstractUser):
         contact_description=None,
         contact_email=None,
         contact_phone=None,
+        onboarding_steps=None,
     ):
         Community = get_community_model()
         community = Community.objects.get(id=community_id)
@@ -1891,6 +1928,7 @@ class User(ModelWithUUID, AbstractUser):
             contact_description=contact_description,
             contact_email=contact_email,
             contact_phone=contact_phone,
+            onboarding_steps=onboarding_steps,
         )
 
     def update_community_with_name(
@@ -1916,6 +1954,7 @@ class User(ModelWithUUID, AbstractUser):
         contact_description=None,
         contact_email=None,
         contact_phone=None,
+        onboarding_steps=None,
     ):
         check_can_update_community_with_name(user=self, community_name=community_name)
 
@@ -1945,6 +1984,7 @@ class User(ModelWithUUID, AbstractUser):
             contact_description=contact_description,
             contact_email=contact_email,
             contact_phone=contact_phone,
+            onboarding_steps=onboarding_steps,
         )
 
         return community_to_update

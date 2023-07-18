@@ -9,15 +9,30 @@ from openbook_auth.models import User
 
 
 @job("default")
-def update_ory_user(user_id: int) -> None:
+def update_ory_user_names(user_id: int) -> None:
     user = User.objects.get(pk=user_id)
 
-    headers = {"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"}
     data = [
         {"op": "add", "path": "/traits/given_name", "value": user.profile.name},
         {"op": "add", "path": "/traits/family_name", "value": user.profile.last_name},
         {"op": "add", "path": "/traits/name", "value": f"{user.profile.full_name()}"},
     ]
+
+    update_ory(user, data)
+
+
+def update_ory_user_identity(user_id: int) -> None:
+    user = User.objects.get(pk=user_id)
+
+    data = [
+        {"op": "add", "path": "/traits/identity", "value": user.identity},
+    ]
+
+    update_ory(user, data)
+
+
+def update_ory(user, data):
+    headers = {"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"}
     response = requests.patch(f"{settings.ORY_BASE_URL}/admin/identities/{user.username}", headers=headers, json=data)
     response_data = response.json()
     if response.status_code != http.HTTPStatus.OK:

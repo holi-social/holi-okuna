@@ -86,7 +86,7 @@ resource "google_cloud_run_service" "okuna" {
           value_from {
             secret_key_ref {
               key  = "latest"
-              name = local.environment_name == "production" ? "OKUNA_POSTGRES_USERNAME_PRODUCTION" : "OKUNA_POSTGRES_USERNAME_DEVELOPMENT"
+              name = local.environment_name == "production" ? "OKUNA_DB_USERNAME_PRODUCTION" : "OKUNA_DB_USERNAME_DEVELOPMENT"
             }
           }
         }
@@ -95,7 +95,7 @@ resource "google_cloud_run_service" "okuna" {
           value_from {
             secret_key_ref {
               key  = "latest"
-              name = local.environment_name == "production" ? "OKUNA_POSTGRES_PASSWORD_PRODUCTION" : "OKUNA_POSTGRES_PASSWORD_DEVELOPMENT"
+              name = local.environment_name == "production" ? "OKUNA_DB_PASSWORD_PRODUCTION" : "OKUNA_DB_PASSWORD_DEVELOPMENT"
             }
           }
         }
