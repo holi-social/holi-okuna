@@ -199,7 +199,7 @@ CACHES = {
     },
     UNIFIED_API_RESPONSE_CACHE: {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": REDIS_DEFAULT_CACHE_LOCATION,
+        "LOCATION": f"{REDIS_LOCATION}/0",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
