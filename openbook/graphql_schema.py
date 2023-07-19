@@ -28,6 +28,7 @@ from openbook.helpers import (
     publish_space_created_event,
     publish_user_deleted_event,
     publish_user_name_updated_event,
+    publish_space_user_left_event,
 )
 from openbook.utils import generate_discover_spaces_hash_key, invalidate_discover_spaces_query_cache
 from openbook_auth.errors import OryRequestError
@@ -940,7 +941,9 @@ class Mutation:
                 case (cT.FOLLOWER, a.DISCONNECT):
                     return current_user.disable_new_post_notifications_for_community_with_name(space.name)
                 case (cT.MEMBER | cT.ADMINISTRATOR, a.LEAVE_SPACE):
-                    return current_user.leave_community_with_name(space.name)
+                    community_to_leave = current_user.leave_community_with_name(space.name)
+                    publish_space_user_left_event(user=current_user, community=community_to_leave)
+                    return community_to_leave
                 case _:
                     raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
         else:

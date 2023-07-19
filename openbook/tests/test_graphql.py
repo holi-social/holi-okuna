@@ -2278,7 +2278,8 @@ class TestUsers:
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
-    def test_space_member_leaves_community_success(self):
+    @mock.patch("openbook.graphql_schema.publish_space_user_left_event")
+    def test_space_member_leaves_community_success(self, mock_publish_space_user_left_event):
         member_user = make_user()
         space_creator = make_user()
 
@@ -2303,8 +2304,10 @@ class TestUsers:
         assert len(memberships) == 1
         assert member_user not in memberships
         assert not CommunityNotificationsSubscription.objects.filter(community=space, subscriber=member_user).exists()
+        mock_publish_space_user_left_event.assert_called_once_with(user=member_user, community=space)
 
-    def test_space_admin_leaves_community_success(self):
+    @mock.patch("openbook.graphql_schema.publish_space_user_left_event")
+    def test_space_admin_leaves_community_success(self, mock_publish_space_user_left_event):
         space_creator = make_user()
         member_user_admin = make_user()
 
@@ -2333,7 +2336,10 @@ class TestUsers:
             community=space, subscriber=space_creator
         ).exists()
 
-    def test_space_member_leaves_community_error_only_member(self):
+        mock_publish_space_user_left_event.assert_called_once_with(user=space_creator, community=space)
+
+    @mock.patch("openbook.graphql_schema.publish_space_user_left_event")
+    def test_space_member_leaves_community_error_only_member(self, mock_publish_space_user_left_event):
         space_creator = make_user()
 
         space = make_community(creator=space_creator)
@@ -2359,7 +2365,10 @@ class TestUsers:
         assert len(memberships) == 1
         assert CommunityNotificationsSubscription.objects.filter(community=space, subscriber=space_creator).exists()
 
-    def test_space_admin_leaves_community_error_only_admin(self):
+        mock_publish_space_user_left_event.assert_not_called()
+
+    @mock.patch("openbook.graphql_schema.publish_space_user_left_event")
+    def test_space_admin_leaves_community_error_only_admin(self, mock_publish_space_user_left_event):
         space_creator = make_user()
         member_user_admin = make_user()
 
@@ -2387,6 +2396,8 @@ class TestUsers:
         assert len(memberships) == 2
 
         assert CommunityNotificationsSubscription.objects.filter(community=space, subscriber=space_creator).exists()
+
+        mock_publish_space_user_left_event.assert_not_called()
 
     def test_remove_member_from_community_success(self):
         space_creator = make_user()
