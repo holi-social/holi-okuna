@@ -2399,7 +2399,8 @@ class TestUsers:
 
         mock_publish_space_user_left_event.assert_not_called()
 
-    def test_remove_member_from_community_success(self):
+    @mock.patch("openbook.graphql_schema.publish_space_user_removed_event")
+    def test_remove_member_from_community_success(self, mock_publish_space_user_removed_event):
         space_creator = make_user()
         member_user = make_user()
 
@@ -2435,7 +2436,10 @@ class TestUsers:
         assert notification.community == space
         assert notification.notification.first().notification_type == "CMRE"
 
-    def test_remove_member_from_community_error_only_admin(self):
+        mock_publish_space_user_removed_event.assert_called_once_with(user=member_user, community=space)
+
+    @mock.patch("openbook.graphql_schema.publish_space_user_removed_event")
+    def test_remove_member_from_community_error_only_admin(self, mock_publish_space_user_removed_event):
         space_creator = make_user()
         member_user = make_user()
         request_user = make_user()
@@ -2473,6 +2477,8 @@ class TestUsers:
             revoked_user=member_user
         )
         assert len(community_membership_revoked_notifications) == 0
+
+        mock_publish_space_user_removed_event.assert_not_called()
 
     def test_space_with_posts(self):
         user_member = make_user()
