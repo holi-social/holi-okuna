@@ -4544,10 +4544,12 @@ class TestUsers:
             response_no_space_id.errors[0].message
         )
 
-    def test_can_invite_to_space_by_email(self):
-        user = make_user()
+    def test_can_invite_user_to_space_by_email(self):
+        community_creator = make_user()
+        invite_email = "test@test.com"
+        invited_user = make_user(email=invite_email)
 
-        community = make_community(creator=user)
+        community = make_community(creator=community_creator)
 
         invite_to_space_by_email_mutation = """
             mutation InviteToSpaceByEmail($email: String!, $spaceId: UUID!) {
@@ -4558,18 +4560,25 @@ class TestUsers:
             """
 
         valid_input = {
-            "email": "joao.ramia@gmail.com",
+            "email": invite_email,
             "spaceId": str(community.id),
         }
 
         response = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
             variable_values=valid_input,
-            context_value=benedict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": community_creator}}),
         )
 
         assert response.data["inviteToSpaceByEmail"]["success"] is True
         assert response.errors is None
+        
+        invited_user_notifications_response = self.get_notifications(invited_user)
+        assert invited_user_notifications_response["totalResults"] >= 1
+        notifications = invited_user_notifications_response["data"]
+        community_invite_notification = next(n for n in notifications if n["notificationType"] == "CI")
+        assert community_invite_notification["owner"]["fullName"] == invited_user.profile.full_name()
+        assert community_invite_notification["options"]["user"]["fullName"] == community_creator.profile.full_name()
 
     def test_can_not_create_task_missing_required_fields(self):
         user = make_user()
