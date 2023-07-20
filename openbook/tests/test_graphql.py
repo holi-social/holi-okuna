@@ -78,7 +78,7 @@ def django_db_setup(django_db_setup, django_db_blocker):
 class TestUsers:
     @pytest.mark.asyncio
     async def test_get_authenticated_user_returns_self_reference(self, client):
-        user = await sync_to_async(make_user)()
+        user = await sync_to_async(make_user)(name="John", last_name="Holi")
         headers = await sync_to_async(make_authentication_headers_for_user)(user)
         endpoint = reverse("graphql-endpoint")
         graphql_query = """
@@ -115,7 +115,7 @@ class TestUsers:
         executed = async_to_sync(schema.execute)(
             """
             query {
-                userByName(substring: "er M") {
+                userByName(substring: "ter M") {
                     totalResults
                     data {
                         firstName
