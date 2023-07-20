@@ -1,7 +1,18 @@
 import hashlib
-from django.core.cache import cache
+from django.core.cache import cache, caches
+
+from openbook.settings import UNIFIED_API_RESPONSE_CACHE
 
 DISCOVER_SPACES_CACHE_KEY_PREFIX = "discover_spaces"
+
+
+def unified_api_response_cache_key_function(key: str, key_prefix: str, version: int | None = None) -> str:
+    return ":".join([key_prefix, key])
+
+
+def unified_api_response_cache_reverse_key(key: str) -> str:
+    return key.split(":", 1)[1]
+
 
 # Generates a unique cache key consisting of DISCOVER_SPACES_CACHE_KEY_PREFIX and SHA-256 hash of the discover spaces filters
 # e.g discover_spaces:2cbce4f20876d36947b2db0d6b229c8b2b80741434ceca8e7e3f2258114c2511
@@ -34,3 +45,7 @@ def invalidate_discover_spaces_query_cache():
     all_keys = cache.keys("*")
     filtered_keys = [key for key in all_keys if key.startswith(DISCOVER_SPACES_CACHE_KEY_PREFIX)]
     cache.delete_many(filtered_keys)
+
+    # clean unified api response caching
+    unified_api_cache = caches[UNIFIED_API_RESPONSE_CACHE]
+    unified_api_cache.delete_many(unified_api_cache.keys("DiscoverSpaces-*"))

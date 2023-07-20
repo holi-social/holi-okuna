@@ -2,6 +2,7 @@ from copy import deepcopy
 from collections import defaultdict
 from datetime import datetime, timedelta
 
+from asgiref.sync import async_to_sync
 from rest_framework.exceptions import ValidationError
 from typing_extensions import Annotated
 
@@ -27,6 +28,7 @@ from openbook.helpers import (
     publish_space_created_event,
     publish_user_deleted_event,
     publish_user_name_updated_event,
+    publish_space_user_left_event,
 )
 from openbook.utils import generate_discover_spaces_hash_key, invalidate_discover_spaces_query_cache
 from openbook_auth.errors import OryRequestError
@@ -383,10 +385,6 @@ class Query:
     ) -> List[Optional[DiscoverSpaces]]:
         current_user: UserModel = info.context.request.user
 
-        if not geolocation:
-            if not current_user.is_anonymous and current_user.geolocation is not None:
-                geolocation = current_user.geolocation
-
         result = []
 
         hash_key = generate_discover_spaces_hash_key(topic_ids, geolocation, skill_ids, offset, limit)
@@ -402,7 +400,7 @@ class Query:
                 result.append(
                     DiscoverSpaces(
                         location_id=geolocation.id,
-                        spaces=spaces_for_filter(
+                        spaces=async_to_sync(spaces_for_filter)(
                             offset=offset,
                             limit=limit,
                             geolocation=geolocation,
@@ -435,7 +433,6 @@ class Query:
                 skill_id_to_num_spaces = get_id_spaces_count_map(
                     SkillModel.objects.filter(id__in=skill_ids).annotate(num_spaces=Count("tasks__community"))
                 )
-
                 spaces_from_db = filter_spaces_by_skill_ids(
                     geolocation=geolocation,
                     skill_ids=skill_ids,
@@ -455,7 +452,7 @@ class Query:
                         )
                     )
             # Set the result to be cached for future calls until the cache key expires after the default TTL.
-            sync_to_async(cache.set)(hash_key, result)
+            cache.set(hash_key, result)
             return result
 
     @gql.django.field
@@ -944,7 +941,9 @@ class Mutation:
                 case (cT.FOLLOWER, a.DISCONNECT):
                     return current_user.disable_new_post_notifications_for_community_with_name(space.name)
                 case (cT.MEMBER | cT.ADMINISTRATOR, a.LEAVE_SPACE):
-                    return current_user.leave_community_with_name(space.name)
+                    community_to_leave = current_user.leave_community_with_name(space.name)
+                    publish_space_user_left_event(user=current_user, community=community_to_leave)
+                    return community_to_leave
                 case _:
                     raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
         else:
