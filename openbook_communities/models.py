@@ -24,6 +24,7 @@ from openbook_common.types import VisibilityType
 from openbook_common.utils.helpers import delete_file_field, extract_and_capitalize_domain_name
 from openbook_common.utils.model_loaders import (
     get_community_invite_model,
+    get_community_pending_invite_model,
     get_community_log_model,
     get_category_model,
     get_sdg_model,
@@ -673,6 +674,12 @@ class Community(ModelWithUUID):
         CommunityInvite = get_community_invite_model()
         return CommunityInvite.create_community_invite(creator=creator, invited_user=invited_user, community=self)
 
+    def create_pending_invite(self, creator, invited_email_hash):
+        CommunityPendingInvite = get_community_pending_invite_model()
+        return CommunityPendingInvite.create_community_pending_invite(
+            creator=creator, invited_email_hash=invited_email_hash, community=self
+        )
+
     def create_user_ban_log(self, source_user, target_user):
         return self._create_log(action_type="B", source_user=source_user, target_user=target_user)
 
@@ -988,16 +995,15 @@ class CommunityPendingInvite(ModelWithUUID):
     )
 
     class Meta:
-        unique_together = (("invited_email_hash", "community", "creator"),)
+        unique_together = (("invited_email_hash", "community"),)
 
     @classmethod
-    def create_community_pending_invite(cls, creator, email, community):
-        return cls.objects.create(creator=creator, invited_email_hash=hash(email), community=community)
+    def create_community_pending_invite(cls, creator, invited_email_hash, community):
+        return cls.objects.create(creator=creator, invited_email_hash=invited_email_hash, community=community)
 
     @classmethod
-    def is_email_invited_to_community(cls, email, community):
-        return cls.objects.filter(community__name=community.name, invited_email_hash=hash(email)).exists()
-
+    def is_email_invited_to_community(cls, invited_email_hash, community):
+        return cls.objects.filter(community__name=community.name, invited_email_hash=invited_email_hash).exists()
 
 
 class CommunityInvite(ModelWithUUID):

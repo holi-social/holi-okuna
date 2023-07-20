@@ -155,7 +155,7 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "DEFAULT_FROM_EMAIL"
-          value = local.environment == "production" ? "hi@holi.social" : "development@holi.team"
+          value = "noreply@holi.social"
         }
         env {
           name  = "SERVICE_EMAIL_ADDRESS"
