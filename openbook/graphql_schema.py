@@ -26,6 +26,7 @@ from openbook.helpers import (
     publish_space_deleted_event,
     publish_space_user_added_event,
     publish_space_created_event,
+    publish_space_user_removed_event,
     publish_user_deleted_event,
     publish_user_name_updated_event,
     publish_space_user_left_event,
@@ -963,7 +964,10 @@ class Mutation:
                         user_id, space.name
                     )
                 case (cT.ADMINISTRATOR, a.REMOVE_MEMBER):
-                    return current_user.remove_member_from_community(user_id, space.name)
+                    community = current_user.remove_member_from_community(user_id, space.name)
+                    user_to_remove = UserModel.objects.get(username=user_id)
+                    publish_space_user_removed_event(user=user_to_remove, community=community)
+                    return community
                 case _:
                     raise GraphQLError(
                         "Operation not allowed",
