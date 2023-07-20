@@ -4572,7 +4572,7 @@ class TestUsers:
 
         assert response.data["inviteToSpaceByEmail"]["success"] is True
         assert response.errors is None
-        
+
         invited_user_notifications_response = self.get_notifications(invited_user)
         assert invited_user_notifications_response["totalResults"] >= 1
         notifications = invited_user_notifications_response["data"]
