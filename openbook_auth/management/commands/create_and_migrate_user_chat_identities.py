@@ -17,15 +17,15 @@ class Command(BaseCommand):
     error_users_patched = 0
 
     def handle(self, *args, **options):
-        self._get_okuna_users_to_update()
+        self._update_chat_identities()
         print(f"Job completed. {self.users_patched} users patched ({self.error_users_patched} failed)")
 
     @staticmethod
-    def _check_if_user_chat_identity_exists(identity: str) -> bool:
+    def _check_if_user_chat_identity_exists_in_okuna(identity: str) -> bool:
         print(f"Checking if {identity} already exists in Okuna")
         return User.objects.filter(identity=identity).exists()
 
-    def _update_ory_user_identity(self, user: User, identity: str) -> int:
+    def _update_ory_user_identity_and_save_in_okuna(self, user: User, identity: str) -> int:
         print(f"Updating Ory user {user_to_str(user)} with identity {identity}")
         body_data = [
             {"op": "add", "path": "/traits/identity", "value": identity},
@@ -50,19 +50,20 @@ class Command(BaseCommand):
 
         return response.status_code
 
-    def _create_unique_user_chat_identity(self, user: User) -> None:
+    def _create_and_store_unique_user_chat_identity(self, user: User) -> None:
         base_identity = user.profile.name
         if user.profile.last_name:
-            base_identity += f"_{user.profile.last_name}"
+            base_identity += f"{user.profile.last_name}"
 
-        identity = base_identity.replace(" ", "_").lower()
-        while self._check_if_user_chat_identity_exists(identity) is True:
-            identity = f"{base_identity}_{random.randint(1, 100)}"
+        identity = base_identity.replace(" ", "").lower()
 
-        while self._update_ory_user_identity(user, identity) == http.HTTPStatus.CONFLICT:
-            identity = f"{base_identity}_{random.randint(1, 100)}"
+        while self._check_if_user_chat_identity_exists_in_okuna(identity) is True:
+            identity = f"{base_identity}{random.randint(1, 100)}"
 
-    def _get_okuna_users_to_update(self) -> None:
+        while self._update_ory_user_identity_and_save_in_okuna(user, identity) == http.HTTPStatus.CONFLICT:
+            identity = f"{base_identity}{random.randint(1, 100)}"
+
+    def _update_chat_identities(self) -> None:
         print("Getting list of Okuna users without an identity and with a name")
 
         for user in (
@@ -71,4 +72,4 @@ class Command(BaseCommand):
             .iterator()
         ):
             print(f"User: {user_to_str(user)}")
-            self._create_unique_user_chat_identity(user)
+            self._create_and_store_unique_user_chat_identity(user)
