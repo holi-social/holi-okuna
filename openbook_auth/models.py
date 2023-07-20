@@ -4716,7 +4716,11 @@ class User(ModelWithUUID, AbstractUser):
 
         # check if a user with that email already exists
         User = get_user_model()
-        user = User.objects.get(email=email)
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            user = None
 
         if user is not None:
             self.invite_user_to_community(user=user, community=community)

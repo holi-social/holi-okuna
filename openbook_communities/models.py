@@ -967,6 +967,39 @@ class CommunityMembershipRequest(ModelWithUUID):
         cls.objects.filter(community=community, user=user).delete()
 
 
+class CommunityPendingInvite(ModelWithUUID):
+    creator = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="created_communities_pending_invites",
+        null=False,
+        blank=False,
+    )
+    invited_email_hash = models.TextField(
+        blank=False,
+        null=False,
+    )
+    community = models.ForeignKey(
+        Community,
+        on_delete=models.CASCADE,
+        related_name="pending_invites",
+        null=False,
+        blank=False,
+    )
+
+    class Meta:
+        unique_together = (("invited_email_hash", "community", "creator"),)
+
+    @classmethod
+    def create_community_pending_invite(cls, creator, email, community):
+        return cls.objects.create(creator=creator, invited_email_hash=hash(email), community=community)
+
+    @classmethod
+    def is_email_invited_to_community(cls, email, community):
+        return cls.objects.filter(community__name=community.name, invited_email_hash=hash(email)).exists()
+
+
+
 class CommunityInvite(ModelWithUUID):
     creator = models.ForeignKey(
         User,
