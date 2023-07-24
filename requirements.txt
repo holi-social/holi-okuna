@@ -49,8 +49,8 @@ pbr==5.11.1; python_version >= '2.6'
 pilkit==2.0
 pillow==9.5.0
 pinocchio==0.4.3
-psycopg2==2.9.6
-psycopg2-binary==2.9.6
+psycopg==3.1.9
+psycopg-binary==3.1.9
 pyjwt==2.7.0
 pytest==7.3.2
 pytest-asyncio==0.21.0
