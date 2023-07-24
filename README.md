@@ -21,6 +21,7 @@ The Okuna-based backend for HOLI.
 - [Access local db](#access-local-db)
 - [Admin Dashboard](#admin-dashboard)
 - [Pycharm](#pycharm)
+- [Services using email](#email-and-smtp-configuration)
 - [Translations](#translations)
 - [Tests](#tests)
 <!-- /TOC -->
@@ -238,6 +239,19 @@ After starting Okuna, you can access the admin ui at `http://localhost:8000/admi
 
 Shared run configurations can be found in the `.run` subfolder.
 You can use these to start your dev server or run tests.
+
+## Email and SMTP configuration
+
+For emails we use Django's django.core.mail.backends.smtp.EmailBackend library and in order to have it work you need to set the following env variables:
+
+```
+EMAIL_HOST
+EMAIL_HOST_PASSWORD
+EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL
+SERVER_EMAIL
+SERVICE_EMAIL_ADDRESS
+```
 
 ## Translations
 

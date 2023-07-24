@@ -81,6 +81,10 @@ def get_community_invite_model():
     return apps.get_model("openbook_communities.CommunityInvite")
 
 
+def get_community_pending_invite_model():
+    return apps.get_model("openbook_communities.CommunityPendingInvite")
+
+
 def get_community_log_model():
     return apps.get_model("openbook_communities.CommunityLog")
 

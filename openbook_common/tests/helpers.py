@@ -63,6 +63,7 @@ def make_user(
     visibility=User.VISIBILITY_TYPE_OKUNA,
     date_joined=None,
     identity=None,
+    email=None,
 ) -> User:
     defined_arguments = {k: v for k, v in locals().items() if v is not None}
     defined_arguments.setdefault("username", str(uuid.uuid4()))
