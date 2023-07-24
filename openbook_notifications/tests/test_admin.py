@@ -21,6 +21,9 @@ class MyAdminTestCase(TestAssertionsMixin, TransactionTestCase):
         )
         self.client.login(username=self.username, password=self.password)
 
+    def tearDown(self) -> None:
+        self.superuser.delete()
+
     def test_release_notification_send(self):
         users = make_users(3)
 
