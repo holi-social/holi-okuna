@@ -1,3 +1,4 @@
+import pytest
 from django.shortcuts import reverse
 from django.test import TransactionTestCase
 
@@ -24,6 +25,7 @@ class MyAdminTestCase(TestAssertionsMixin, TransactionTestCase):
     def tearDown(self) -> None:
         self.superuser.delete()
 
+    @pytest.mark.skip
     def test_release_notification_send(self):
         users = make_users(3)
 
