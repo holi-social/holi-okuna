@@ -64,7 +64,6 @@ from openbook_posts.models import PostCommentReaction, PostUserMention, PostComm
 logger = logging.getLogger(__name__)
 
 
-
 @pytest.fixture(scope="session")
 def client():
     return AsyncClient()
