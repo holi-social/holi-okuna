@@ -5690,9 +5690,20 @@ class TestUsers:
 
     def test_check_app_version(self):
         app_version = AppVersion.objects.create(version="2023.5.1000", need_update=NeedUpdateType.MANDATORY)
+        app_version_2 = AppVersion.objects.create(
+            version="2023.5.1000", build_number="1000", need_update=NeedUpdateType.RECOMMENDED
+        )
 
-        # Check success
+        # Check success with existing build_number
         response = self.check_app_version(version="2023.5.1000", build_number="1000")
+        assert response.errors is None
+        assert response.data is not None
+        assert response.data["checkAppVersion"]["needUpdate"] == app_version_2.need_update
+        assert response.data["checkAppVersion"]["appStoreUrl"] == settings.APPLE_APP_STORE_DEFAULT_URL
+        assert response.data["checkAppVersion"]["playStoreUrl"] == settings.GOOGLE_PLAY_STORE_DEFAULT_URL
+
+        # Check success with not existing build_number
+        response = self.check_app_version(version="2023.5.1000", build_number="1001")
         assert response.errors is None
         assert response.data is not None
         assert response.data["checkAppVersion"]["needUpdate"] == app_version.need_update

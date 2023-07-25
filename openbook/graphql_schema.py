@@ -267,7 +267,10 @@ class Query:
     @gql.django.field
     def check_app_version(self, version: str, build_number: str) -> AppVersionResponse:
         try:
-            app_version = AppVersion.objects.get(version=version)
+            app_version = AppVersion.objects.filter(version=version, build_number=build_number)
+            if app_version.exists():
+                return app_version.first()
+            app_version = AppVersion.objects.get(version=version, build_number__isnull=True)
         except AppVersion.DoesNotExist:
             logger.warning(f"App version {version} not found")
             return AppVersionResponse(need_update=NeedUpdateType.NO)
