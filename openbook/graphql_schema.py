@@ -1,70 +1,117 @@
-from copy import deepcopy
+import uuid
 from collections import defaultdict
+from copy import deepcopy
 from datetime import datetime, timedelta
-
-from asgiref.sync import async_to_sync
-from rest_framework.exceptions import ValidationError
-from typing_extensions import Annotated
+from typing import List, Optional
 
 import requests
+import strawberry
 import structlog
+from asgiref.sync import async_to_sync, sync_to_async
 from django.conf import settings
-from django.core.cache import cache
 from django.contrib.gis import geos
+from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Count, F, Value, Prefetch
+from django.db.models import Count, F, Prefetch, Q, Value
 from django.db.models.functions import Concat
 from django.db.models.lookups import IContains
 from django.utils.translation import gettext_lazy as _
 from graphql import GraphQLError
+from rest_framework.exceptions import ValidationError
 from strawberry.file_uploads import Upload
-from strawberry.types import Info, ExecutionContext
+from strawberry.types import ExecutionContext, Info
+from strawberry_django_plus import gql
 from strawberry_django_plus.optimizer import DjangoOptimizerExtension
+from typing_extensions import Annotated
 
 from openbook.graphql_errors import GraphQLErrorCodes
+from openbook.graphql_types import (
+    SDG,
+    AppVersionResponse,
+    CollaborationTool,
+    CollectionType,
+    ContentType,
+    DiscoverSpaces,
+    ExternalLink,
+    FeatureToggle,
+    GeoJSON,
+    GeoJSONInput,
+    Insight,
+    MySpaces,
+    Notification,
+    Paged,
+    Post,
+    PostComment,
+    ReactionAction,
+    Skill,
+    Space,
+    SpaceUserConnectionType,
+    Task,
+    Topic,
+    UpdateConnectionAction,
+    User,
+)
 from openbook.helpers import (
+    publish_space_created_event,
     publish_space_deleted_event,
     publish_space_user_added_event,
-    publish_space_created_event,
+    publish_space_user_left_event,
     publish_space_user_removed_event,
     publish_user_deleted_event,
     publish_user_name_updated_event,
-    publish_space_user_left_event,
 )
-from openbook.utils import generate_discover_spaces_hash_key, invalidate_discover_spaces_query_cache
+from openbook.middleware.graphql_error_extension import GraphQLErrorExtension
+from openbook.settings.sentry_config import HoliSentryTracingExtension
+from openbook.utils import (
+    generate_discover_spaces_hash_key,
+    invalidate_discover_spaces_query_cache,
+)
 from openbook_auth.errors import OryRequestError
-from openbook_auth.tasks import update_ory_user_names, update_ory_user_identity
-from openbook_auth.validators import string_not_empty
+from openbook_auth.models import User as UserModel
+from openbook_auth.models import UserBlock as UserBlockModel
+from openbook_auth.models import UserConnectionStatus
 from openbook_auth.serializers.authenticated_user_serializers import (
     UpdateAuthenticatedUserSerializer,
 )
+from openbook_auth.tasks import update_ory_user_identity, update_ory_user_names
+from openbook_auth.validators import string_not_empty
 from openbook_common.helpers import is_parameter_null
-from openbook_common.models import AppVersion
+from openbook_common.models import AppVersion as AppVersionModel
+from openbook_common.models import FeatureToggle as FeatureToggleModel
+from openbook_common.types import GeolocationFeature, NeedUpdateType, ReactionType
+from openbook_common.utils.helpers import is_uuid
+from openbook_communities.models import CollaborationTool as CollaborationToolModel
+from openbook_communities.models import Community as CommunityModel
+from openbook_communities.models import ExternalLinkType
+from openbook_communities.models import Task as TaskModel
+from openbook_communities.models import VisibilityType
 from openbook_communities.serializers.communities_serializers import (
     AddCollaborationToolSerializer,
     AddExternalLinkSerializer,
     CreateCommunitySerializer,
     CreateTaskSerializer,
-    UpdateExternalLinkSerializer,
-    UpdateTaskSerializer,
+    InviteToCommunityByEmailSerializer,
     UpdateCollaborationToolSerializer,
     UpdateCommunitySerializer,
-    InviteToCommunityByEmailSerializer,
+    UpdateExternalLinkSerializer,
+    UpdateTaskSerializer,
     ValidateCommunitySerializer,
 )
-from openbook_communities.serializers.community_serializers import CommunityUserConnectionSerializer
-from openbook_connections.serializers import UpdateConnectionWithUserSerializer
-from openbook_moderation.models import ModeratedObject
-from openbook_posts.serializers.post_serializers import EditCommunityPostSerializer
-from openbook_posts.serializers.post_comments_serializers import CommentPostSerializer
-from openbook_common.utils.helpers import is_uuid
-from openbook_posts.serializers.posts_serializers import (
-    CreateCommunityPostSerializer,
+from openbook_communities.serializers.community_serializers import (
+    CommunityUserConnectionSerializer,
 )
-from openbook.middleware.graphql_error_extension import GraphQLErrorExtension
-
-from .graphql_types import *
-from .settings.sentry_config import HoliSentryTracingExtension
+from openbook_connections.serializers import UpdateConnectionWithUserSerializer
+from openbook_insights.models import Insight as InsightModel
+from openbook_moderation.models import ModeratedObject as ModeratedObjectModel
+from openbook_notifications.models import Notification as NotificationModel
+from openbook_posts.models import Post as PostModel
+from openbook_posts.models import PostComment as PostCommentModel
+from openbook_posts.serializers.post_comments_serializers import CommentPostSerializer
+from openbook_posts.serializers.post_serializers import EditCommunityPostSerializer
+from openbook_posts.serializers.posts_serializers import CreateCommunityPostSerializer
+from openbook_terms.models import SDG as SDGModel
+from openbook_terms.models import Skill as SkillModel
+from openbook_terms.models import Topic as TopicModel
 
 PUBLISHED_NOTIFICATION_TYPES = [
     NotificationModel.CONNECTION_REQUEST,
@@ -131,7 +178,7 @@ def spaces_for_filter(
 
 @gql.type
 class NewNotificationsResponse:
-    id: Optional[UUID]
+    id: Optional[uuid.UUID]
     status: bool
 
 
@@ -178,7 +225,7 @@ def resolve_post(current_user, post_id):
     try:
         return (
             PostModel.objects.filter(PostModel.is_visible_query(current_user))
-            .filter(UserBlock.not_blocked_query(current_user, "creator"))
+            .filter(UserBlockModel.not_blocked_query(current_user, "creator"))
             .get(id=post_id)
         )
     except PostModel.DoesNotExist:
@@ -267,11 +314,15 @@ class Query:
     @gql.django.field
     def check_app_version(self, version: str, build_number: str) -> AppVersionResponse:
         try:
-            app_version = AppVersion.objects.get(version=version)
-        except AppVersion.DoesNotExist:
+            app_version = AppVersionModel.objects.get(version=version)
+        except AppVersionModel.DoesNotExist:
             logger.warning(f"App version {version} not found")
             return AppVersionResponse(need_update=NeedUpdateType.NO)
         return app_version
+
+    @gql.django.field
+    async def feature_toggles(self) -> List[FeatureToggle]:
+        return FeatureToggleModel.objects.all()
 
     @gql.django.field
     def insights_by_user_id(self, info, id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Insight]:
@@ -531,8 +582,8 @@ class Query:
                     Prefetch("tasks", queryset=TaskModel.objects.filter(tasks_query)),
                 )
                 .filter(
-                    ModeratedObject.not_moderated_query(
-                        info.context.request.user, ModeratedObject.OBJECT_TYPE_COMMUNITY
+                    ModeratedObjectModel.not_moderated_query(
+                        info.context.request.user, ModeratedObjectModel.OBJECT_TYPE_COMMUNITY
                     )
                 )
                 .aget(query)

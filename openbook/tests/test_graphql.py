@@ -29,7 +29,7 @@ from openbook.graphql_schema import (
 from openbook.graphql_types import VisibilityFilter
 from openbook_auth.models import User, UserConnectionStatus, EngagementLevelChoice
 from openbook_common.helpers import generate_blurhash
-from openbook_common.models import AppVersion
+from openbook_common.models import AppVersion, FeatureToggle
 from openbook_common.tests.helpers import (
     get_test_images,
     get_test_videos,
@@ -52,7 +52,7 @@ from openbook_common.utils.model_loaders import (
     get_community_membership_revoked_notification_model,
 )
 from openbook_communities.models import Community, CommunityNotificationsSubscription, CommunityMembership
-from openbook_common.types import VisibilityType, NeedUpdateType
+from openbook_common.types import VisibilityType, NeedUpdateType, FeatureToggleType
 from openbook_insights.models import Insight
 from openbook_moderation.models import ModeratedObject
 from django.core.management import call_command
@@ -5718,6 +5718,33 @@ class TestUsers:
             """,
         )
         return response
+
+    def test_feature_toggles(self):
+        feature_toggles = [
+            FeatureToggle.objects.create(name="TOGGLE_1_PRODUCTION", status=FeatureToggleType.PRODUCTION),
+            FeatureToggle.objects.create(name="TOGGLE_2_PRODUCTION", status=FeatureToggleType.PRODUCTION),
+            FeatureToggle.objects.create(name="TOGGLE_3_OFF", status=FeatureToggleType.OFF),
+            FeatureToggle.objects.create(name="TOGGLE_4_PREVIEW", status=FeatureToggleType.PREVIEW),
+            FeatureToggle.objects.create(name="TOGGLE_5_MAINTENANCE", status=FeatureToggleType.MAINTENANCE),
+        ]
+
+        response = async_to_sync(schema.execute)(
+            f"""
+            query {{
+                featureToggles {{
+                    id
+                    name
+                    status
+                }}
+            }}
+            """,
+        )
+        assert response.errors is None
+        assert response.data is not None
+        assert len(response.data["featureToggles"]) == len(feature_toggles)
+        assert response.data["featureToggles"][0]["id"] == str(feature_toggles[0].id)
+        assert response.data["featureToggles"][0]["name"] == feature_toggles[0].name
+        assert response.data["featureToggles"][0]["status"] == feature_toggles[0].status
 
 
 def approve_verify_moderated_object(object_id, user):
