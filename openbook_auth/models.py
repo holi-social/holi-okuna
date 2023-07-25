@@ -688,13 +688,11 @@ class User(ModelWithUUID, AbstractUser):
         return password_reset_token
 
     def register_identity(self, identity):
-        print("registering identity", identity)
         if identity and not self.identity:
             self.identity = identity
             self.save()
 
     def remove_identity(self):
-        print("remove identity", self.identity)
         self.identity = None
         self.save()
 
