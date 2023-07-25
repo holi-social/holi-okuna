@@ -828,13 +828,15 @@ class Mutation:
         if not current_user.identity and input.identity:
             identity = input.identity.strip().replace(" ", "_").lower()
 
-            # generate a random unique identity based on firstname
+            # ensure a unique identity
+            # base it on user input
+            # on conflict: add random integer suffix
             # limit the attempts
             for _ in range(0, 30):
                 try:
                     UserModel.objects.get(identity=identity)
                 except ObjectDoesNotExist:
-                    # identity is available
+                    # identity is available for registration
                     break
                 else:
                     identity = f"{input.identity}{random.randint(1, 100)}"
