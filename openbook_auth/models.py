@@ -687,6 +687,17 @@ class User(ModelWithUUID, AbstractUser):
         self._send_password_reset_email_with_token(password_reset_token)
         return password_reset_token
 
+    def register_identity(self, identity):
+        print("registering identity", identity)
+        if identity and not self.identity:
+            self.identity = identity
+            self.save()
+
+    def remove_identity(self):
+        print("remove identity", self.identity)
+        self.identity = None
+        self.save()
+
     def update(
         self,
         username=None,
@@ -710,15 +721,11 @@ class User(ModelWithUUID, AbstractUser):
         save=True,
         update_location=False,
         remove_avatar=False,
-        identity=None,
     ):
         profile = self.profile
 
         if username:
             self.update_username(username)
-
-        if identity and not self.identity:
-            self.identity = identity
 
         if url is not None:
             if len(url) == 0:

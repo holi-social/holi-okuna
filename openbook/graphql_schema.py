@@ -1,8 +1,10 @@
+import random
 from copy import deepcopy
 from collections import defaultdict
 from datetime import datetime, timedelta
 
 from asgiref.sync import async_to_sync
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import ValidationError
 from typing_extensions import Annotated
 
@@ -789,11 +791,6 @@ class Mutation:
         current_user = verify_authorized_user(info)
 
         input_dict = to_input_dict(input)
-
-        # identity can only be set once and can never change thereafter
-        has_identity = current_user.identity is not None
-        if has_identity:
-            input_dict["identity"] = "__ALREADY_SET__"  # This value will lead to a validation error to handle this
         if input.first_name:
             input_dict["name"] = input.first_name
 
@@ -810,7 +807,6 @@ class Mutation:
         current_user.update(
             name=data.get("name"),
             last_name=data.get("last_name"),
-            identity=data.get("identity"),
             about_me=data.get("about_me"),
             pronouns=data.get("pronouns"),
             location=data.get("location"),
@@ -824,28 +820,43 @@ class Mutation:
             remove_avatar=remove_avatar,
             save=True,
         )
-        # Update user cache
-        cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
 
         if input.first_name or input.last_name:
             update_ory_user_names(current_user.id)
             publish_user_name_updated_event(user=current_user)
 
-        # The identity must be synced to Ory, so it can be used by the matrix server
-        # If that fails, the identity is also removed from Okuna again (manual Rollback)
-        # This implementation ensures, that both Okuna and Ory don't already know this identity
-        if not has_identity and input.identity:
+        if not current_user.identity and input.identity:
+            identity = input.identity.strip().replace(" ", "_").lower()
+
+            # generate a random unique identity based on firstname
+            # limit the attempts
+            for _ in range(0, 30):
+                try:
+                    UserModel.objects.get(identity=identity)
+                except ObjectDoesNotExist:
+                    # identity is available
+                    break
+                else:
+                    identity = f"{input.identity}{random.randint(1, 100)}"
+                    continue
+
+            current_user.register_identity(identity)
+
+            # The identity must be synced to Ory, so it can be used by the matrix server
+            # If that fails, the identity is also removed from Okuna again (manual Rollback)
+            # This implementation ensures, that both Okuna and Ory have consistent data
             try:
                 update_ory_user_identity(current_user.id)
             except OryRequestError as error:
-                current_user.identity = None
-                current_user.save()
-                cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
+                current_user.remove_identity()
                 if error.status_code == 409:
                     raise ValidationError({"identity": _("A user with that identity already exists.")})
                 else:
                     logger.error("Could not set identity for user %s. Ory response: %s", current_user.id, error.error)
                     raise ValidationError({"identity": _("The identity could not be set.")})
+
+        # Update user cache
+        cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
 
         return current_user
 

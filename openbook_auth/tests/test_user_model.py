@@ -254,3 +254,15 @@ class UserModelTest(TestAssertionsMixin, TestCase):
 
         user.update_engagement_level(EngagementLevelChoice.INTERESTED)
         self.assertEqual(user.profile.engagement_level, EngagementLevelChoice.INTERESTED)
+
+    def test_identity_can_only_be_registered_once(self):
+        # given a user with an identity
+        user = make_user()
+        user.register_identity("alice")
+        self.assertEqual("alice", user.identity)
+
+        # when trying to register another identity
+        user.register_identity("chuck")
+
+        # then nothing changes
+        self.assertEqual("alice", user.identity)
