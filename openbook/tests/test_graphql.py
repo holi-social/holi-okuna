@@ -64,6 +64,7 @@ from openbook_posts.models import PostCommentReaction, PostUserMention, PostComm
 logger = logging.getLogger(__name__)
 
 
+
 @pytest.fixture(scope="session")
 def client():
     return AsyncClient()
@@ -353,7 +354,6 @@ class TestUsers:
         # and api responds successfully
         assert result.data
         assert result.errors is []
-
 
     def api_update_authenticated_user(self, user, identity):
         executed = async_to_sync(schema.execute)(
