@@ -101,11 +101,11 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "RDS_PORT"
-          value = "5432"
+          value = "6432"
         }
         env {
           name  = "RDS_HOSTNAME"
-          value = local.environment_name == "production" ? data.terraform_remote_state.holi_infra_state.outputs.database_ip_address_production : data.terraform_remote_state.holi_infra_state.outputs.database_ip_address_development
+          value = "10.166.0.20"
         }
         env {
           name  = "REDIS_HOST"
