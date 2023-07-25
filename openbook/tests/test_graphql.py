@@ -303,7 +303,7 @@ class TestUsers:
         )
 
     @mock.patch("openbook_auth.tasks.requests.patch")
-    def api_errors_for_registration_of_identity_already_known_to_ory(self, ory_patch_mock):
+    def api_errors_for_registration_of_new_identity_known_to_ory(self, ory_patch_mock):
         ory_update_conflict_response_stub = Response()
         ory_update_conflict_response_stub.status_code = 409
         ory_update_conflict_response_stub._content = str.encode(json.dumps({"error": {"message": "Error Message"}}))
@@ -333,6 +333,27 @@ class TestUsers:
         # and api responds with error
         assert result.errors[0].extensions["code"] == "BAD_USER_INPUT"
         assert "A user with that identity already exists" in result.errors[0].extensions["errors"]
+
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    def api_ignores_identity_in_update_for_user_with_existing_identity(self, ory_patch_mock):
+        # given a user
+        user = make_user(name="Fritz", last_name="Meier", identity="fritz1")
+
+        # when
+        updated_identity = "fritz"
+        result = self.api_update_authenticated_user(user, updated_identity)
+
+        # then update to ory was attempted
+        ory_patch_mock.assert_not_called()
+
+        # and okuna user identity is unchanged
+        persisted_user = User.objects.get(username=user.username)
+        assert persisted_user.identity is "fritz1"
+
+        # and api responds successfully
+        assert result.data
+        assert result.errors is []
+
 
     def api_update_authenticated_user(self, user, identity):
         executed = async_to_sync(schema.execute)(
