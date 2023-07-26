@@ -233,7 +233,7 @@ class TestUsers:
         mock_publish_user_name_updated_event.assert_called_once_with(user=user)
 
     @mock.patch("openbook_auth.tasks.requests.patch")
-    def api_registers_identity_for_a_user(self, ory_patch_mock):
+    def test_api_registers_identity_for_a_user(self, ory_patch_mock):
         ory_update_response_stub = Response()
         ory_update_response_stub.status_code = 200
         ory_update_response_stub._content = str.encode(json.dumps({}))
@@ -273,7 +273,7 @@ class TestUsers:
         assert "Identity can not be changed" in executed.errors[0].extensions["errors"]
 
     @mock.patch("openbook_auth.tasks.requests.patch")
-    def api_registers_conflicting_identity_for_a_user(self, ory_patch_mock):
+    def test_api_registers_conflicting_identity_for_a_user(self, ory_patch_mock):
         ory_update_response_stub = Response()
         ory_update_response_stub.status_code = 200
         ory_update_response_stub._content = str.encode(json.dumps({}))
@@ -303,7 +303,7 @@ class TestUsers:
         )
 
     @mock.patch("openbook_auth.tasks.requests.patch")
-    def api_errors_for_registration_of_new_identity_known_to_ory(self, ory_patch_mock):
+    def test_api_errors_for_registration_of_new_identity_known_to_ory(self, ory_patch_mock):
         ory_update_conflict_response_stub = Response()
         ory_update_conflict_response_stub.status_code = 409
         ory_update_conflict_response_stub._content = str.encode(json.dumps({"error": {"message": "Error Message"}}))
@@ -335,7 +335,7 @@ class TestUsers:
         assert "A user with that identity already exists" in result.errors[0].extensions["errors"]
 
     @mock.patch("openbook_auth.tasks.requests.patch")
-    def api_ignores_identity_in_update_for_user_with_existing_identity(self, ory_patch_mock):
+    def test_api_ignores_identity_in_update_for_user_with_existing_identity(self, ory_patch_mock):
         # given a user
         user = make_user(name="Fritz", last_name="Meier", identity="fritz1")
 
