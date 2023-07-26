@@ -832,7 +832,7 @@ class Mutation:
             # base it on user input
             # on conflict: add random integer suffix
             # limit the attempts
-            for _ in range(0, 30):
+            for i in range(0, 30):
                 try:
                     UserModel.objects.get(identity=identity)
                 except ObjectDoesNotExist:

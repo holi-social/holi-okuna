@@ -334,19 +334,18 @@ class TestUsers:
         user = make_user(name="Fritz", last_name="Meier", identity="fritz1")
 
         # when
-        updated_identity = "fritz"
-        result = self.api_update_authenticated_user(user, updated_identity)
+        result = self.api_update_authenticated_user(user, "fritz")
 
         # then update to ory was attempted
         ory_patch_mock.assert_not_called()
 
         # and okuna user identity is unchanged
         persisted_user = User.objects.get(username=user.username)
-        assert persisted_user.identity is "fritz1"
+        assert persisted_user.identity == "fritz1"
 
         # and api responds successfully
         assert result.data
-        assert result.errors is []
+        assert result.errors is None
 
     def api_update_authenticated_user(self, user, identity):
         executed = async_to_sync(schema.execute)(
