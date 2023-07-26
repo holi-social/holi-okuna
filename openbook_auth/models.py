@@ -2128,6 +2128,35 @@ class User(ModelWithUUID, AbstractUser):
 
         return community_to_join
 
+    def accept_membership_invite_to_community_for_username(self, community_name) -> "Community":
+        check_is_invited_to_community_with_name(self, community_name)
+
+        if self.is_banned_from_community_with_name(community_name):
+            raise ValidationError(_("User is banned from community"))
+
+        Community = get_community_model()
+        community_to_join = Community.objects.get(name=community_name)
+
+        community_to_join.remove_invite(self)
+        community_to_join.add_member(self)
+        get_community_notifications_subscription_model().enable_new_post_notification_for_community(
+            community_to_join, self
+        )
+
+        self.notify_membership_approval(community_to_join, self)
+
+        return community_to_join
+
+    def reject_membership_invite_to_community_for_username(self, community_name) -> "Community":
+        check_is_invited_to_community_with_name(self, community_name)
+
+        Community = get_community_model()
+        community_to_join = Community.objects.get(name=community_name)
+
+        community_to_join.remove_invite(self)
+
+        return community_to_join
+
     def notify_membership_approval(self, community_to_join, user_to_approve):
         CommunityMembershipApprovedNotification = get_community_membership_approved_notification_model()
         CommunityMembershipApprovedNotification.create_community_membership_approved_notification(
@@ -4752,7 +4781,11 @@ class User(ModelWithUUID, AbstractUser):
             user = None
 
         if user is not None:
-            self.invite_user_to_community(user=user, community=community)
+            # ignore invite to existing members with a success message to avoid finding out members' emails
+            if user.is_member_of_community_with_id(community.id):
+                return None
+            else:
+                self.invite_user_to_community(user=user, community=community)
         else:
             self.invite_email_to_community(email=email, community=community)
 

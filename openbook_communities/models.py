@@ -607,6 +607,9 @@ class Community(ModelWithUUID):
     def remove_membership_request(self, user):
         CommunityMembershipRequest.delete_membership_request(self, user)
 
+    def remove_invite(self, user):
+        CommunityInvite.delete_community_invite(user_name=user.username, community_name=self.name)
+
     def add_moderator(self, user):
         user_membership = self.memberships.get(user=user)
         user_membership.is_moderator = True
@@ -1035,6 +1038,10 @@ class CommunityInvite(ModelWithUUID):
     @classmethod
     def create_community_invite(cls, creator, invited_user, community):
         return cls.objects.create(creator=creator, invited_user=invited_user, community=community)
+
+    @classmethod
+    def delete_community_invite(cls, user_name, community_name):
+        return cls.objects.filter(community__name=community_name, invited_user__username=user_name).delete()
 
     @classmethod
     def is_user_with_username_invited_to_community_with_name(cls, username, community_name):

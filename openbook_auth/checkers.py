@@ -1326,6 +1326,11 @@ def check_is_staff_of_community_with_name(user, community_name):
         raise PermissionDenied(_("Not a community staff."))
 
 
+def check_is_invited_to_community_with_name(user, community_name):
+    if not user.is_invited_to_community_with_name(community_name=community_name):
+        raise PermissionDenied(_("Not invited to the community."))
+
+
 def check_is_membership_requestor_of_community_with_name(user, community_name):
     if not user.is_membership_requestor_of_community_with_name(community_name):
         raise ValidationError(_("Not requested to join community,"))

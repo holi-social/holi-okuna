@@ -2278,6 +2278,140 @@ class TestUsers:
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    @mock.patch("openbook.graphql_schema.publish_space_user_added_event")
+    def test_space_invite_approval_process(
+        self, mock_publish_space_user_added_event, mock_invalidate_discover_spaces_query_cache
+    ):
+        invitee_email = "test@test.com"
+        invitee = make_user(email=invitee_email)
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+        mock_publish_space_user_added_event.return_value = None
+
+        def member_result(user, is_admin):
+            return {
+                "user": {"id": user.username},
+                "isAdministrator": is_admin,
+            }
+
+        # Preconditions
+        pre_join_space = self.get_space_for_user(invitee, space)
+        assert pre_join_space["connectionStatusToMyself"] == []
+        self.assert_paged_results_equal(pre_join_space["members"], [member_result(space_creator, is_admin=True)])
+
+        data = self.get_notifications(invitee)
+        assert data["totalResults"] == 0
+        data = self.get_notifications(space_creator)
+        assert data["totalResults"] == 0
+
+        # Send Invite Request
+        self.mutate_invite_user_by_email(
+            auth_user=space_creator,
+            email=invitee_email,
+            space_id=space.id,
+        )
+
+        # Invitee received Invite notification
+        invite_received_notification = self.get_notifications(invitee)["data"][0]
+        assert invite_received_notification["notificationType"] == "CI"
+        assert invite_received_notification["options"]["space"]["title"] == space.title
+        assert invite_received_notification["options"]["user"]["fullName"] == space_creator.profile.full_name()
+
+        # Accept Invite
+        space_after_approval = self.mutate_update_space_user_connection_data(
+            auth_user=invitee,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+
+        self.assert_paged_results_equal(
+            space_after_approval["members"],
+            [member_result(space_creator, is_admin=True), member_result(invitee, is_admin=False)],
+        )
+
+        # User has correct connection status
+        assert len(self.get_space_for_user(invitee, space)["connectionStatusToMyself"]) == len(
+            [SpaceUserConnectionType.MEMBER.value, SpaceUserConnectionType.FOLLOWER.value]
+        )
+
+        # User has approval notification
+        invitee_notifications = self.get_notifications(invitee)
+        assert invitee_notifications["totalResults"] == 1
+        assert invitee_notifications["data"][0]["notificationType"] == "CMRA"
+
+        # Staff has approval notification
+        staff_notifications = self.get_notifications(space_creator)
+        assert staff_notifications["totalResults"] == 1
+        assert staff_notifications["data"][0]["notificationType"] == "CMRA"
+        assert staff_notifications["data"][0]["options"]["space"]["title"] == space.title
+        assert staff_notifications["data"][0]["options"]["user"]["fullName"] == invitee.profile.full_name()
+
+        mock_invalidate_discover_spaces_query_cache.assert_called()
+
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    @mock.patch("openbook.graphql_schema.publish_space_user_added_event")
+    def test_space_invite_rejection_process(
+        self, mock_publish_space_user_added_event, mock_invalidate_discover_spaces_query_cache
+    ):
+        invitee_email = "test@test.com"
+        invitee = make_user(email=invitee_email)
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+        mock_publish_space_user_added_event.return_value = None
+
+        def member_result(user, is_admin):
+            return {
+                "user": {"id": user.username},
+                "isAdministrator": is_admin,
+            }
+
+        # Preconditions
+        pre_join_space = self.get_space_for_user(invitee, space)
+        assert pre_join_space["connectionStatusToMyself"] == []
+        self.assert_paged_results_equal(pre_join_space["members"], [member_result(space_creator, is_admin=True)])
+
+        data = self.get_notifications(invitee)
+        assert data["totalResults"] == 0
+        data = self.get_notifications(space_creator)
+        assert data["totalResults"] == 0
+
+        # Send Invite Request
+        self.mutate_invite_user_by_email(
+            auth_user=space_creator,
+            email=invitee_email,
+            space_id=space.id,
+        )
+
+        # Invitee received Invite notification
+        invite_received_notification = self.get_notifications(invitee)["data"][0]
+        assert invite_received_notification["notificationType"] == "CI"
+        assert invite_received_notification["options"]["space"]["title"] == space.title
+        assert invite_received_notification["options"]["user"]["fullName"] == space_creator.profile.full_name()
+
+        # Accept Invite
+        space_after_approval = self.mutate_update_space_user_connection_data(
+            auth_user=invitee,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+            connect_action=UpdateConnectionAction.DISCONNECT,
+        )
+
+        self.assert_paged_results_equal(
+            space_after_approval["members"],
+            [member_result(space_creator, is_admin=True)],
+        )
+
+        # User has no connection status
+        assert len(self.get_space_for_user(invitee, space)["connectionStatusToMyself"]) == len([])
+
+        # User has no approval notification
+        invitee_notifications = self.get_notifications(invitee)
+        assert invitee_notifications["totalResults"] == 0
+
+        mock_invalidate_discover_spaces_query_cache.assert_called()
+
     @mock.patch("openbook.graphql_schema.publish_space_user_left_event")
     def test_space_member_leaves_community_success(self, mock_publish_space_user_left_event):
         member_user = make_user()
@@ -2974,6 +3108,29 @@ class TestUsers:
             }}
             """,
             context_value=benedict({"request": {"user": user or AnonymousUser}}),
+        )
+
+    def mutate_invite_user_by_email(
+        self,
+        auth_user: User,
+        space_id: UUID,
+        email: str,
+    ):
+        return async_to_sync(schema.execute)(
+            """
+            mutation InviteToSpaceByEmail($email: String!, $spaceId: UUID!) {
+                inviteToSpaceByEmail(email: $email, spaceId: $spaceId) {
+                    success
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": auth_user}}),
+            variable_values=benedict(
+                {
+                    "email": email,
+                    "spaceId": str(space_id),
+                }
+            ),
         )
 
     def mutate_update_space_user_connection_raw(
