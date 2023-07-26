@@ -1,10 +1,8 @@
-import random
 from copy import deepcopy
 from collections import defaultdict
 from datetime import datetime, timedelta
 
 from asgiref.sync import async_to_sync
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import ValidationError
 from typing_extensions import Annotated
 
@@ -826,23 +824,7 @@ class Mutation:
             publish_user_name_updated_event(user=current_user)
 
         if not current_user.identity and input.identity:
-            identity = input.identity.strip().replace(" ", "_").lower()
-
-            # ensure a unique identity
-            # base it on user input
-            # on conflict: add random integer suffix
-            # limit the attempts
-            for i in range(0, 30):
-                try:
-                    UserModel.objects.get(identity=identity)
-                except ObjectDoesNotExist:
-                    # identity is available for registration
-                    break
-                else:
-                    identity = f"{input.identity}{random.randint(1, 100)}"
-                    continue
-
-            current_user.register_identity(identity)
+            current_user.register_identity(input.identity)
 
             # The identity must be synced to Ory, so it can be used by the matrix server
             # If that fails, the identity is also removed from Okuna again (manual Rollback)

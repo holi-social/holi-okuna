@@ -1,4 +1,5 @@
 import logging
+import random
 import re
 import secrets
 from datetime import datetime, timedelta
@@ -687,9 +688,30 @@ class User(ModelWithUUID, AbstractUser):
         self._send_password_reset_email_with_token(password_reset_token)
         return password_reset_token
 
+    @classmethod
+    def ensure_unique_identity(cls, identity):
+        identity = identity.strip().replace(" ", "_").lower()
+
+        bad_numbers = [88, 69]
+
+        # ensure a unique identity
+        # base it on user input
+        # on conflict: add random integer suffix
+        # limit the attempts
+
+        # IF UserModel.objects.filter(identity=IDENTITY).EXISTS()
+        for i in range(0, 30):
+            if cls.objects.filter(identity=identity).exists():
+                identity = f"{identity}{random.randint(1, 100)}"
+            else:
+                # identity is available for registration
+                break
+
+        return identity
+
     def register_identity(self, identity):
         if identity and not self.identity:
-            self.identity = identity
+            self.identity = self.ensure_unique_identity(identity)
             self.save()
 
     def remove_identity(self):
