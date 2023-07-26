@@ -689,7 +689,7 @@ class User(ModelWithUUID, AbstractUser):
         return password_reset_token
 
     @classmethod
-    def _ensure_unique_identity(cls, input_identity):
+    def _unique_identity(cls, input_identity):
         identity = input_identity.strip().replace(" ", "_").lower()
 
         bad_numbers = [88, 69]
@@ -706,7 +706,7 @@ class User(ModelWithUUID, AbstractUser):
 
     def register_identity(self, identity):
         if identity and not self.identity:
-            self.identity = self._ensure_unique_identity(identity)
+            self.identity = self._unique_identity(identity)
             self.save()
 
     def remove_identity(self):
