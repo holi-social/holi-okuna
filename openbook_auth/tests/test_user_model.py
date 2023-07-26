@@ -1,11 +1,13 @@
+import random
 import uuid
+from unittest import mock
 
+import pytest
 from django.core.exceptions import PermissionDenied
 from django.test import TestCase
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from openbook_auth.models import EngagementLevelChoice
-from openbook_circles.models import Circle
 from openbook_common.tests.assertions import TestAssertionsMixin
 from openbook_common.tests.helpers import make_user, make_community, make_fake_post_text, make_fake_post_title
 from openbook_common.types import VisibilityType
@@ -256,13 +258,32 @@ class UserModelTest(TestAssertionsMixin, TestCase):
         self.assertEqual(user.profile.engagement_level, EngagementLevelChoice.INTERESTED)
 
     def test_identity_can_only_be_registered_once(self):
-        # given a user with an identity
         user = make_user()
         user.register_identity("alice")
         self.assertEqual("alice", user.identity)
 
-        # when trying to register another identity
         user.register_identity("chuck")
 
-        # then nothing changes
         self.assertEqual("alice", user.identity)
+
+    def test_user_class_generates_unique_identities(self):
+        make_user(identity="fritz")
+        make_user(identity="fritz1")
+        user = make_user()
+
+        random.seed(0)
+
+        user.register_identity("fritz")
+
+        assert user.identity == "fritz50"
+
+    def test_user_class_unique_identity_generation_attempts_are_limited(self):
+        user = make_user()
+
+        user.__class__.objects.filter = mock.Mock()
+        user.__class__.objects.filter.return_value.exists.return_value = True
+
+        with pytest.raises(Exception, match=r"Too many attempts"):
+            user.register_identity("fritz")
+
+        assert user.identity is None

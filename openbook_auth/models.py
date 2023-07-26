@@ -689,29 +689,24 @@ class User(ModelWithUUID, AbstractUser):
         return password_reset_token
 
     @classmethod
-    def ensure_unique_identity(cls, identity):
-        identity = identity.strip().replace(" ", "_").lower()
+    def _ensure_unique_identity(cls, input_identity):
+        identity = input_identity.strip().replace(" ", "_").lower()
 
         bad_numbers = [88, 69]
+        numbers_pool = list(set(range(1, 100)) - set(bad_numbers))
 
-        # ensure a unique identity
-        # base it on user input
-        # on conflict: add random integer suffix
-        # limit the attempts
-
-        # IF UserModel.objects.filter(identity=IDENTITY).EXISTS()
-        for i in range(0, 30):
-            if cls.objects.filter(identity=identity).exists():
-                identity = f"{identity}{random.randint(1, 100)}"
-            else:
-                # identity is available for registration
-                break
+        attempts = 30
+        while cls.objects.filter(identity=identity).exists():
+            attempts -= 1
+            identity = f"{input_identity}{random.sample(numbers_pool, 1).pop()}"
+            if attempts <= 0:
+                raise Exception("Too many attempts while generating a unique identity")
 
         return identity
 
     def register_identity(self, identity):
         if identity and not self.identity:
-            self.identity = self.ensure_unique_identity(identity)
+            self.identity = self._ensure_unique_identity(identity)
             self.save()
 
     def remove_identity(self):
