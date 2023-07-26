@@ -40,6 +40,7 @@ from openbook_common.utils.model_loaders import (
     get_follow_model,
     get_list_model,
     get_community_invite_model,
+    get_community_pending_invite_model,
     get_post_comment_notification_model,
     get_follow_notification_model,
     get_connection_confirmed_notification_model,
@@ -87,6 +88,7 @@ from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
 from openbook_posts.query_collections import get_posts_for_user_collection
 from openbook_terms.models import Topic, SDG, Skill
 from openbook_translation import translation_strategy
+from openbook.utils import generate_hash
 from enum import Enum
 
 logger = logging.getLogger(__name__)
@@ -311,7 +313,13 @@ class User(ModelWithUUID, AbstractUser):
             password=password,
             are_guidelines_accepted=are_guidelines_accepted,
         )
+
         user_profile = bootstrap_user_profile(name=name, user=new_user, avatar=avatar, is_of_legal_age=is_of_legal_age)
+
+        try:
+            new_user.send_pending_community_invites_to_new_user()
+        except:
+            pass  # don't block user creation on this error
 
         if badge:
             user_profile.badges.add(badge)
@@ -2204,6 +2212,35 @@ class User(ModelWithUUID, AbstractUser):
         self.notify_membership_removal(community, user_to_remove)
 
         return community
+
+    def send_pending_community_invites_to_new_user(self):
+        community_pending_invites = self.get_pending_community_invites_for_email(email=self.email)
+        for community_pending_invite in community_pending_invites:
+            community_invite = community_pending_invite.community.create_invite(
+                creator=community_pending_invite.creator, invited_user=self
+            )
+            self._create_community_invite_notification(community_invite)
+            community_pending_invite.delete()
+
+        return community_pending_invites
+
+    def invite_user_to_community(self, user, community):
+        community_invite = community.create_invite(creator=self, invited_user=user)
+
+        self._create_community_invite_notification(community_invite)
+
+        return community_invite
+
+    def invite_email_to_community(self, email, community):
+        hash = generate_hash(str(email).lower())
+        community_pending_invite = community.create_pending_invite(creator=self, invited_email_hash=hash)
+
+        return community_pending_invite
+
+    def get_pending_community_invites_for_email(self, email):
+        CommunityPendingInvite = get_community_pending_invite_model()
+        invited_email_hash = generate_hash(str(email).lower())
+        return CommunityPendingInvite.objects.filter(invited_email_hash=invited_email_hash)
 
     def invite_user_with_username_to_community_with_name(self, username, community_name):
         check_can_invite_user_with_username_to_community_with_name(
@@ -4722,15 +4759,27 @@ class User(ModelWithUUID, AbstractUser):
                 Notification.objects.filter(owner=self, created__lte=last_seen_timestamp).update(read=True)
                 self.save()
 
-    # TODO: extend this method to use Okuna's Invitation model (HOLI-4982) and use a localized email template (HOLI-4913)
     def invite_to_community_by_email(self, email, space_id):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
 
         check_can_create_invite_to_community(user=self, community=community)
 
-        subject, from_email = "You've been invited to a space at holi", settings.DEFAULT_FROM_EMAIL
+        # check if a user with that email already exists
+        User = get_user_model()
 
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            user = None
+
+        if user is not None:
+            self.invite_user_to_community(user=user, community=community)
+        else:
+            self.invite_email_to_community(email=email, community=community)
+
+        # TODO: send email will be changed to a localized email template in a separate method (HOLI-4913)
+        subject, from_email = "You've been invited to a space at holi", settings.DEFAULT_FROM_EMAIL
         text_content = f"{self.profile.name or 'A user'} has invited you to join the space {community.title} at holi!\nVisit https://app.holi.social/spaces/{community.name} to join this Space."
         html_content = f"<p>{self.profile.name or 'A user'} has invited you to join the Space <strong>{community.title}</strong> at <a href=\"https://app.holi.social\">holi</a>!<br/><br/><a href=\"https://app.holi.social/spaces/{community.name}\">Join this Space here</a></p>"
         msg = EmailMultiAlternatives(subject, text_content, from_email, [email])

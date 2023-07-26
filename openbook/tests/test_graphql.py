@@ -30,7 +30,7 @@ from openbook.graphql_schema import (
 from openbook.graphql_types import VisibilityFilter
 from openbook_auth.models import User, UserConnectionStatus, EngagementLevelChoice
 from openbook_common.helpers import generate_blurhash
-from openbook_common.models import AppVersion
+from openbook_common.models import AppVersion, FeatureToggle
 from openbook_common.tests.helpers import (
     get_test_images,
     get_test_videos,
@@ -53,7 +53,7 @@ from openbook_common.utils.model_loaders import (
     get_community_membership_revoked_notification_model,
 )
 from openbook_communities.models import Community, CommunityNotificationsSubscription, CommunityMembership
-from openbook_common.types import VisibilityType, NeedUpdateType
+from openbook_common.types import VisibilityType, NeedUpdateType, FeatureToggleType
 from openbook_insights.models import Insight
 from openbook_moderation.models import ModeratedObject
 from django.core.management import call_command
@@ -4567,10 +4567,12 @@ class TestUsers:
             response_no_space_id.errors[0].message
         )
 
-    def test_can_invite_to_space_by_email(self):
-        user = make_user()
+    def test_can_invite_user_to_space_by_email(self):
+        community_creator = make_user()
+        invite_email = "test@test.com"
+        invited_user = make_user(email=invite_email)
 
-        community = make_community(creator=user)
+        community = make_community(creator=community_creator)
 
         invite_to_space_by_email_mutation = """
             mutation InviteToSpaceByEmail($email: String!, $spaceId: UUID!) {
@@ -4581,18 +4583,25 @@ class TestUsers:
             """
 
         valid_input = {
-            "email": "joao.ramia@gmail.com",
+            "email": invite_email,
             "spaceId": str(community.id),
         }
 
         response = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
             variable_values=valid_input,
-            context_value=benedict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": community_creator}}),
         )
 
         assert response.data["inviteToSpaceByEmail"]["success"] is True
         assert response.errors is None
+
+        invited_user_notifications_response = self.get_notifications(invited_user)
+        assert invited_user_notifications_response["totalResults"] >= 1
+        notifications = invited_user_notifications_response["data"]
+        community_invite_notification = next(n for n in notifications if n["notificationType"] == "CI")
+        assert community_invite_notification["owner"]["fullName"] == invited_user.profile.full_name()
+        assert community_invite_notification["options"]["user"]["fullName"] == community_creator.profile.full_name()
 
     def test_can_not_create_task_missing_required_fields(self):
         user = make_user()
@@ -5732,6 +5741,33 @@ class TestUsers:
             """,
         )
         return response
+
+    def test_feature_toggles(self):
+        feature_toggles = [
+            FeatureToggle.objects.create(name="TOGGLE_1_PRODUCTION", status=FeatureToggleType.PRODUCTION),
+            FeatureToggle.objects.create(name="TOGGLE_2_PRODUCTION", status=FeatureToggleType.PRODUCTION),
+            FeatureToggle.objects.create(name="TOGGLE_3_OFF", status=FeatureToggleType.OFF),
+            FeatureToggle.objects.create(name="TOGGLE_4_PREVIEW", status=FeatureToggleType.PREVIEW),
+            FeatureToggle.objects.create(name="TOGGLE_5_MAINTENANCE", status=FeatureToggleType.MAINTENANCE),
+        ]
+
+        response = async_to_sync(schema.execute)(
+            f"""
+            query {{
+                featureToggles {{
+                    id
+                    name
+                    status
+                }}
+            }}
+            """,
+        )
+        assert response.errors is None
+        assert response.data is not None
+        assert len(response.data["featureToggles"]) == len(feature_toggles)
+        assert response.data["featureToggles"][0]["id"] == str(feature_toggles[0].id)
+        assert response.data["featureToggles"][0]["name"] == feature_toggles[0].name
+        assert response.data["featureToggles"][0]["status"] == feature_toggles[0].status
 
 
 def approve_verify_moderated_object(object_id, user):
