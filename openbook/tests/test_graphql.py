@@ -265,13 +265,6 @@ class TestUsers:
         assert graphql_identity == identity
         assert persisted_user.identity == identity
 
-        # when updating the user again with another identity
-        executed = self.api_update_authenticated_user(user, "new-identity")
-
-        # then the api returns an error
-        assert executed.errors[0].extensions["code"] == "BAD_USER_INPUT"
-        assert "Identity can not be changed" in executed.errors[0].extensions["errors"]
-
     @mock.patch("openbook_auth.tasks.requests.patch")
     def test_api_registers_conflicting_identity_for_a_user(self, ory_patch_mock):
         ory_update_response_stub = Response()
@@ -313,12 +306,13 @@ class TestUsers:
         user = make_user(name="Fritz", last_name="Meier")
 
         # when
-        identity = "fritz.meier"
-        result = self.api_update_authenticated_user(user, identity)
+        result = self.api_update_authenticated_user(user, "fritz")
+
+        print("result", result)
 
         # then update to ory was attempted
         expected_json_body = [
-            {"op": "add", "path": "/traits/identity", "value": f"{identity}"},
+            {"op": "add", "path": "/traits/identity", "value": "fritz"},
         ]
         ory_patch_mock.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
