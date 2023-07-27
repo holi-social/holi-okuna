@@ -651,4 +651,4 @@ ONBOARDING_STEP_TEXT_MAX_LENGTH = 240
 
 # App store urls
 APPLE_APP_STORE_DEFAULT_URL = "itms-apps://apps.apple.com/app/id6446693757"
-GOOGLE_PLAY_STORE_DEFAULT_URL = "market://details?id=foundation.holistic.projectholi"
+GOOGLE_PLAY_STORE_DEFAULT_URL = "market://details?id=social.holi.app"
