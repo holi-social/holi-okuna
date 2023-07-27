@@ -4,7 +4,7 @@ from unittest import mock
 
 import pytest
 from django.core.exceptions import PermissionDenied
-from django.test import TestCase
+from django.test import TransactionTestCase
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from openbook_auth.models import EngagementLevelChoice
@@ -15,7 +15,7 @@ from openbook_notifications.models import Notification
 from openbook_posts.models import PostComment
 
 
-class UserModelTest(TestAssertionsMixin, TestCase):
+class UserModelTest(TestAssertionsMixin, TransactionTestCase):
     fixtures = ["openbook_moderation/fixtures/moderation_categories.json"]
 
     def test_approve_membership_denied_for_non_staff_members(self):
@@ -260,30 +260,17 @@ class UserModelTest(TestAssertionsMixin, TestCase):
     def test_identity_can_only_be_registered_once(self):
         user = make_user()
         user.register_identity("alice")
-        self.assertEqual("alice", user.identity)
+        self.assertEqual(user.identity, "alice")
 
         user.register_identity("chuck")
 
-        self.assertEqual("alice", user.identity)
+        self.assertEqual(user.identity, "alice")
 
     def test_user_class_generates_unique_identities(self):
         make_user(identity="fritz")
         make_user(identity="fritz1")
         user = make_user()
 
-        random.seed(0)
-
         user.register_identity("fritz")
 
-        assert user.identity == "fritz50"
-
-    def test_user_class_unique_identity_generation_attempts_are_limited(self):
-        user = make_user()
-
-        user.__class__.objects.filter = mock.Mock()
-        user.__class__.objects.filter.return_value.exists.return_value = True
-
-        with pytest.raises(Exception, match=r"Too many attempts"):
-            user.register_identity("fritz")
-
-        assert user.identity is None
+        self.assertEqual(user.identity, "fritz2")

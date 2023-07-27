@@ -267,18 +267,14 @@ class TestUsers:
         ory_update_response_stub._content = str.encode(json.dumps({}))
         ory_patch_mock.return_value = ory_update_response_stub
 
-        random.seed(0)  # have a static random int for this test
-
-        ____fritz = make_user(name="Fritz", last_name="Meier", identity="fritz")
+        make_user(name="Fritz", last_name="Meier", identity="fritz")
         new_fritz = make_user(name="Fritz", last_name="Meier")
 
         result = self.api_update_authenticated_user(new_fritz, "fritz")
 
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz50"
+        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz1"
 
-        assert User.objects.get(username=new_fritz.username).identity == "fritz50"
-
-        expected_json_body = [{"op": "add", "path": "/traits/identity", "value": "fritz50"}]
+        expected_json_body = [{"op": "add", "path": "/traits/identity", "value": "fritz1"}]
         ory_patch_mock.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{new_fritz.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},

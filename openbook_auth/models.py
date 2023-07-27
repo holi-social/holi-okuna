@@ -700,15 +700,14 @@ class User(ModelWithUUID, AbstractUser):
     def _unique_identity(cls, input_identity):
         identity = input_identity.strip().replace(" ", "_").lower()
 
-        bad_numbers = [88, 69]
-        numbers_pool = list(set(range(1, 100)) - set(bad_numbers))
+        identities_taken = set(cls.objects.filter(identity__startswith=identity).values_list("identity", flat=True))
 
-        attempts = 30
-        while cls.objects.filter(identity=identity).exists():
-            attempts -= 1
-            identity = f"{input_identity}{random.sample(numbers_pool, 1).pop()}"
-            if attempts <= 0:
-                raise Exception("Too many attempts while generating a unique identity")
+        count = 0
+        while identity in identities_taken:
+            count += 1
+            if count in settings.IDENTITY_NUMBERS_TO_AVOID:
+                continue
+            identity = f"{input_identity}{count}"
 
         return identity
 
