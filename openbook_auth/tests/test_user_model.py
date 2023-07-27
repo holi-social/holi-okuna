@@ -1,11 +1,13 @@
+import random
 import uuid
+from unittest import mock
 
+import pytest
 from django.core.exceptions import PermissionDenied
-from django.test import TestCase
+from django.test import TransactionTestCase
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from openbook_auth.models import EngagementLevelChoice
-from openbook_circles.models import Circle
 from openbook_common.tests.assertions import TestAssertionsMixin
 from openbook_common.tests.helpers import make_user, make_community, make_fake_post_text, make_fake_post_title
 from openbook_common.types import VisibilityType
@@ -13,7 +15,7 @@ from openbook_notifications.models import Notification
 from openbook_posts.models import PostComment
 
 
-class UserModelTest(TestAssertionsMixin, TestCase):
+class UserModelTest(TestAssertionsMixin, TransactionTestCase):
     fixtures = ["openbook_moderation/fixtures/moderation_categories.json"]
 
     def test_approve_membership_denied_for_non_staff_members(self):
@@ -254,3 +256,31 @@ class UserModelTest(TestAssertionsMixin, TestCase):
 
         user.update_engagement_level(EngagementLevelChoice.INTERESTED)
         self.assertEqual(user.profile.engagement_level, EngagementLevelChoice.INTERESTED)
+
+    def test_identity_can_only_be_registered_once(self):
+        user = make_user()
+        user.register_identity("alice")
+        self.assertEqual(user.identity, "alice")
+
+        user.register_identity("chuck")
+
+        self.assertEqual(user.identity, "alice")
+
+    def test_user_class_generates_unique_identities(self):
+        make_user(identity="fritz")
+        make_user(identity="fritz1")
+        user = make_user()
+
+        user.register_identity("fritz")
+
+        self.assertEqual(user.identity, "fritz2")
+
+    def test_user_class_generates_identity_that_doesnt_ends_with_numbers_to_avoid(self):
+        make_user(identity="fritz6")
+        users = [make_user(identity=f"fritz6{i}") for i in range(1, 9)]
+        user = make_user()
+
+        user.register_identity("fritz6")
+
+        self.assertNotEqual(user.identity, "fritz69")
+        self.assertEqual(user.identity, "fritz610")
