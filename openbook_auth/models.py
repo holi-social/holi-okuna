@@ -4801,6 +4801,14 @@ class User(ModelWithUUID, AbstractUser):
 
         check_can_create_invite_to_community(user=self, community=community)
 
+        # TODO: send email will be changed to a localized email template in a separate method (HOLI-4913)
+        subject, from_email = "You've been invited to a space at holi", settings.DEFAULT_FROM_EMAIL
+        text_content = f"{self.profile.name or 'A user'} has invited you to join the space {community.title} at holi!\nVisit https://app.holi.social/spaces/{community.name} to join this Space."
+        html_content = f"<p>{self.profile.name or 'A user'} has invited you to join the Space <strong>{community.title}</strong> at <a href=\"https://app.holi.social\">holi</a>!<br/><br/><a href=\"https://app.holi.social/spaces/{community.name}\">Join this Space here</a></p>"
+        msg = EmailMultiAlternatives(subject, text_content, from_email, [email])
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
+
         # check if a user with that email already exists
         User = get_user_model()
 
@@ -4817,14 +4825,6 @@ class User(ModelWithUUID, AbstractUser):
                 self.invite_user_to_community(user=user, community=community)
         else:
             self.invite_email_to_community(email=email, community=community)
-
-        # TODO: send email will be changed to a localized email template in a separate method (HOLI-4913)
-        subject, from_email = "You've been invited to a space at holi", settings.DEFAULT_FROM_EMAIL
-        text_content = f"{self.profile.name or 'A user'} has invited you to join the space {community.title} at holi!\nVisit https://app.holi.social/spaces/{community.name} to join this Space."
-        html_content = f"<p>{self.profile.name or 'A user'} has invited you to join the Space <strong>{community.title}</strong> at <a href=\"https://app.holi.social\">holi</a>!<br/><br/><a href=\"https://app.holi.social/spaces/{community.name}\">Join this Space here</a></p>"
-        msg = EmailMultiAlternatives(subject, text_content, from_email, [email])
-        msg.attach_alternative(html_content, "text/html")
-        msg.send()
 
     def create_task(
         self,
