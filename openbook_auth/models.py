@@ -1,4 +1,5 @@
 import logging
+import random
 import re
 import secrets
 from datetime import datetime, timedelta
@@ -695,6 +696,41 @@ class User(ModelWithUUID, AbstractUser):
         self._send_password_reset_email_with_token(password_reset_token)
         return password_reset_token
 
+    @classmethod
+    def _is_valid_identity(cls, identity):
+        pattern = r"^[a-z][a-z0-9_.-]*$"
+        for i in settings.IDENTITY_NUMBERS_TO_AVOID:
+            pattern += f"(?<!{i})"
+        if re.match(pattern, identity):
+            return True
+        else:
+            return False
+
+    @classmethod
+    def unique_identity(cls, input_identity):
+        identity = input_identity.strip().replace(" ", "_").lower()
+
+        identities_taken = set(cls.objects.filter(identity__startswith=identity).values_list("identity", flat=True))
+
+        count = 0
+        while identity in identities_taken:
+            count += 1
+            temp_identity = f'{input_identity.strip().replace(" ", "_").lower()}{count}'
+
+            if cls._is_valid_identity(temp_identity):
+                identity = temp_identity
+
+        return identity
+
+    def register_identity(self, identity):
+        if identity and not self.identity:
+            self.identity = self.unique_identity(identity)
+            self.save()
+
+    def remove_identity(self):
+        self.identity = None
+        self.save()
+
     def update(
         self,
         username=None,
@@ -718,15 +754,11 @@ class User(ModelWithUUID, AbstractUser):
         save=True,
         update_location=False,
         remove_avatar=False,
-        identity=None,
     ):
         profile = self.profile
 
         if username:
             self.update_username(username)
-
-        if identity and not self.identity:
-            self.identity = identity
 
         if url is not None:
             if len(url) == 0:
