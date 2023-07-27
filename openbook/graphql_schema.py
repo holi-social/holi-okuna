@@ -990,11 +990,11 @@ class Mutation:
                 case (cT.MEMBERSHIP_REQUESTOR, a.DISCONNECT):
                     return current_user.revoke_membership_request_to_community_with_name(space.name)
                 case (cT.MEMBERSHIP_INVITEE, a.CONNECT):
-                    return current_user.accept_membership_invite_to_community_for_username(space.name)
+                    space = current_user.accept_membership_invite_to_community_for_username(space.name)
+                    publish_space_user_added_event(username=str(user_id), community=space)
+                    return space
                 case (cT.MEMBERSHIP_INVITEE, a.DISCONNECT):
                     return current_user.reject_membership_invite_to_community_for_username(space.name)
-                case (cT.MEMBERSHIP_INVITEE, a.DISCONNECT):
-                    return current_user.revoke_membership_request_to_community_with_name(space.name)
                 case (cT.FOLLOWER, a.CONNECT):
                     return current_user.enable_new_post_notifications_for_community_with_name(space.name)
                 case (cT.FOLLOWER, a.DISCONNECT):

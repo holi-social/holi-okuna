@@ -2131,9 +2131,6 @@ class User(ModelWithUUID, AbstractUser):
     def accept_membership_invite_to_community_for_username(self, community_name) -> "Community":
         check_is_invited_to_community_with_name(self, community_name)
 
-        if self.is_banned_from_community_with_name(community_name):
-            raise ValidationError(_("User is banned from community"))
-
         Community = get_community_model()
         community_to_join = Community.objects.get(name=community_name)
 
