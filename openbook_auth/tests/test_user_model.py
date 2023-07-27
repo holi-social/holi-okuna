@@ -274,3 +274,13 @@ class UserModelTest(TestAssertionsMixin, TransactionTestCase):
         user.register_identity("fritz")
 
         self.assertEqual(user.identity, "fritz2")
+
+    def test_user_class_generates_identity_that_doesnt_ends_with_numbers_to_avoid(self):
+        make_user(identity="fritz6")
+        users = [make_user(identity=f"fritz6{i}") for i in range(1, 9)]
+        user = make_user()
+
+        user.register_identity("fritz6")
+
+        self.assertNotEqual(user.identity, "fritz69")
+        self.assertEqual(user.identity, "fritz610")

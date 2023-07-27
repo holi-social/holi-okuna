@@ -697,7 +697,17 @@ class User(ModelWithUUID, AbstractUser):
         return password_reset_token
 
     @classmethod
-    def _unique_identity(cls, input_identity):
+    def _is_valid_identity(cls, identity):
+        pattern = r"^[a-z][a-z0-9_.-]*$"
+        for i in settings.IDENTITY_NUMBERS_TO_AVOID:
+            pattern += f"(?<!{i})"
+        if re.match(pattern, identity):
+            return True
+        else:
+            return False
+
+    @classmethod
+    def unique_identity(cls, input_identity):
         identity = input_identity.strip().replace(" ", "_").lower()
 
         identities_taken = set(cls.objects.filter(identity__startswith=identity).values_list("identity", flat=True))
@@ -705,15 +715,16 @@ class User(ModelWithUUID, AbstractUser):
         count = 0
         while identity in identities_taken:
             count += 1
-            if count in settings.IDENTITY_NUMBERS_TO_AVOID:
-                continue
-            identity = f"{input_identity}{count}"
+            temp_identity = f'{input_identity.strip().replace(" ", "_").lower()}{count}'
+
+            if cls._is_valid_identity(temp_identity):
+                identity = temp_identity
 
         return identity
 
     def register_identity(self, identity):
         if identity and not self.identity:
-            self.identity = self._unique_identity(identity)
+            self.identity = self.unique_identity(identity)
             self.save()
 
     def remove_identity(self):
