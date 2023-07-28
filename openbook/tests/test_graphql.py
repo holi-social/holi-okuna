@@ -157,6 +157,60 @@ class TestUsers:
         assert executed.data["userByName"]["data"][1]["firstName"] == "Petra"
         assert executed.data["userByName"]["data"][2]["firstName"] == "Thomas"
 
+    def test_get_users_by_chat_identities_success(self):
+        user = make_user()
+        chat_users = [make_user(identity=f"identity_{i}") for i in range(5)]
+
+        user.block_user_with_id(chat_users[0].id)
+        chat_users[1].block_user_with_id(user.id)
+
+        response = self.get_users_by_chat_identities(user, [chat_user.identity for chat_user in chat_users])
+
+        assert response.errors is None
+        assert response.data is not None
+
+        users_by_chat_identities = response.data["usersByChatIdentities"]
+        assert users_by_chat_identities["totalResults"] == 3
+
+        response_chat_user_ids = [user["id"] for user in users_by_chat_identities["data"]]
+        assert str(chat_users[0].id) not in response_chat_user_ids
+        assert str(chat_users[1].id) not in response_chat_user_ids
+        assert str(chat_users[2].id) in response_chat_user_ids
+        assert str(chat_users[3].id) in response_chat_user_ids
+        assert str(chat_users[4].id) in response_chat_user_ids
+
+    def test_get_users_by_chat_identities_error_user_not_logged_in(self):
+        chat_users = [make_user(identity=f"identity_{i}") for i in range(5)]
+
+        response = self.get_users_by_chat_identities(AnonymousUser, [chat_user.identity for chat_user in chat_users])
+
+        print(response.errors)
+        assert response.errors is not None
+        assert response.data is None
+
+    def get_users_by_chat_identities(self, user: User, identities: List[str]):
+        response = async_to_sync(schema.execute)(
+            """
+            query($identities: [String!]!) {
+                usersByChatIdentities(identities: $identities) {
+                    totalResults
+                    data {
+                        id
+                        firstName
+                        lastName
+                        avatar
+                    }
+                }
+            }
+            """,
+            variable_values={
+                "identities": identities,
+            },
+            context_value=benedict({"request": {"user": user}}),
+        )
+
+        return response
+
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("openbook.graphql_schema.publish_user_name_updated_event")
     def test_can_update_authenticated_user(self, mock_publish_user_name_updated_event, mock_patch):
