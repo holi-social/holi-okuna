@@ -4808,7 +4808,7 @@ class User(ModelWithUUID, AbstractUser):
             user = None
 
         # do not expose error messages in case user should not be invited (e.g. user is already member) in order to make it difficult to guess user emails
-        if check_should_user_with_email_be_invited_to_community(user=user, email=email, community=community):
+        if not check_should_user_with_email_be_invited_to_community(user=user, email=email, community=community):
             return None
 
         if user is not None:
