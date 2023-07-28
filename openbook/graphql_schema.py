@@ -255,6 +255,16 @@ class Query:
             raise GraphQLError("User not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
 
     @gql.django.field
+    async def users_by_chat_identities(
+        self, info, identities: List[str], offset: int = 0, limit: int = 10
+    ) -> Paged[User]:
+        current_user = verify_authorized_user(info)
+
+        users = UserModel.objects.filter(Q(identity__in=identities) & UserModel.is_visible_query(current_user))
+
+        return await Paged.aof(users, offset, limit)
+
+    @gql.django.field
     def user_by_name(self, info, substring: str, offset: int = 0, limit: int = 5) -> Paged[User]:
         string_not_empty(substring)
 
