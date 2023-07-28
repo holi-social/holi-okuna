@@ -49,6 +49,11 @@ class Paged(List[GenericType]):
     def of(query: QuerySet, offset: int, limit: int):
         return Paged(data=query[offset : offset + limit], total_results=query.count())
 
+    @staticmethod
+    async def aof(query: QuerySet, offset: int, limit: int):
+        total_results = await query.acount()
+        return sync_to_async(Paged)(data=query[offset : offset + limit], total_results=total_results)
+
     def __init__(self, data=None, total_results=0):
         if data is None:
             data = []
