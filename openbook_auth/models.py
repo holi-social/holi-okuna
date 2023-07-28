@@ -10,6 +10,7 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.gis.db import models
 from django.core.mail import EmailMultiAlternatives
+from django.db import IntegrityError, transaction
 from django.db.models import Q, F, Count, QuerySet
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -2160,6 +2161,32 @@ class User(ModelWithUUID, AbstractUser):
 
         return community_to_join
 
+    def accept_membership_invite_to_community_for_username(self, community_name) -> "Community":
+        check_is_invited_to_community_with_name(self, community_name)
+
+        Community = get_community_model()
+        community_to_join = Community.objects.get(name=community_name)
+
+        community_to_join.remove_invite(self)
+        community_to_join.add_member(self)
+        get_community_notifications_subscription_model().enable_new_post_notification_for_community(
+            community_to_join, self
+        )
+
+        self.notify_membership_approval(community_to_join, self)
+
+        return community_to_join
+
+    def reject_membership_invite_to_community_for_username(self, community_name) -> "Community":
+        check_is_invited_to_community_with_name(self, community_name)
+
+        Community = get_community_model()
+        community_to_join = Community.objects.get(name=community_name)
+
+        community_to_join.remove_invite(self)
+
+        return community_to_join
+
     def notify_membership_approval(self, community_to_join, user_to_approve):
         CommunityMembershipApprovedNotification = get_community_membership_approved_notification_model()
         CommunityMembershipApprovedNotification.create_community_membership_approved_notification(
@@ -2236,16 +2263,12 @@ class User(ModelWithUUID, AbstractUser):
 
     def invite_user_to_community(self, user, community):
         community_invite = community.create_invite(creator=self, invited_user=user)
-
         self._create_community_invite_notification(community_invite)
-
         return community_invite
 
     def invite_email_to_community(self, email, community):
         hash = generate_hash(str(email).lower())
-        community_pending_invite = community.create_pending_invite(creator=self, invited_email_hash=hash)
-
-        return community_pending_invite
+        return community.create_pending_invite(creator=self, invited_email_hash=hash)
 
     def get_pending_community_invites_for_email(self, email):
         CommunityPendingInvite = get_community_pending_invite_model()
@@ -4769,6 +4792,7 @@ class User(ModelWithUUID, AbstractUser):
                 Notification.objects.filter(owner=self, created__lte=last_seen_timestamp).update(read=True)
                 self.save()
 
+    @transaction.atomic
     def invite_to_community_by_email(self, email, space_id):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
@@ -4783,18 +4807,29 @@ class User(ModelWithUUID, AbstractUser):
         except User.DoesNotExist:
             user = None
 
+        # do not expose error messages in case user should not be invited (e.g. user is already member) in order to make it difficult to guess user emails
+        if not check_should_user_with_email_be_invited_to_community(user=user, email=email, community=community):
+            return None
+
         if user is not None:
             self.invite_user_to_community(user=user, community=community)
         else:
             self.invite_email_to_community(email=email, community=community)
 
-        # TODO: send email will be changed to a localized email template in a separate method (HOLI-4913)
-        subject, from_email = "You've been invited to a space at holi", settings.DEFAULT_FROM_EMAIL
-        text_content = f"{self.profile.name or 'A user'} has invited you to join the space {community.title} at holi!\nVisit https://app.holi.social/spaces/{community.name} to join this Space."
-        html_content = f"<p>{self.profile.name or 'A user'} has invited you to join the Space <strong>{community.title}</strong> at <a href=\"https://app.holi.social\">holi</a>!<br/><br/><a href=\"https://app.holi.social/spaces/{community.name}\">Join this Space here</a></p>"
-        msg = EmailMultiAlternatives(subject, text_content, from_email, [email])
-        msg.attach_alternative(html_content, "text/html")
-        msg.send()
+        try:
+            # TODO: send email will be changed to a localized email template in a separate method (HOLI-4913)
+            subject, from_email = "You've been invited to a space at holi", settings.DEFAULT_FROM_EMAIL
+            text_content = f"{self.profile.name or 'A user'} has invited you to join the space {community.title} at holi!\nVisit https://app.holi.social/spaces/{community.name} to join this Space."
+            # html_content = f"<p>{self.profile.name or 'A user'} has invited you to join the Space <strong>{community.title}</strong> at <a href=\"https://app.holi.social\">holi</a>!<br/><br/><a href=\"https://app.holi.social/spaces/{community.name}\">Join this Space here</a></p>"
+            html_content = render_to_string(
+                "openbook_invitations/email/backer_onboard.html",
+                {"name": self.profile.name, "invite_link": f"https://app.holi.social/spaces/{community.name}"},
+            )
+            msg = EmailMultiAlternatives(subject, text_content, from_email, [email])
+            msg.attach_alternative(html_content, "text/html")
+            msg.send()
+        except:
+            raise SystemError(_("Could not send email"))
 
     def create_task(
         self,

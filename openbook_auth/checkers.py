@@ -19,7 +19,9 @@ from openbook_common.utils.model_loaders import (
     get_user_invite_model,
     get_user_model,
     get_community_membership_model,
+    get_community_pending_invite_model,
 )
+from openbook.utils import generate_hash
 
 
 def check_follow_lists_ids(user, lists_ids):
@@ -1326,6 +1328,11 @@ def check_is_staff_of_community_with_name(user, community_name):
         raise PermissionDenied(_("Not a community staff."))
 
 
+def check_is_invited_to_community_with_name(user, community_name):
+    if not user.is_invited_to_community_with_name(community_name=community_name):
+        raise PermissionDenied(_("Not invited to the community."))
+
+
 def check_is_membership_requestor_of_community_with_name(user, community_name):
     if not user.is_membership_requestor_of_community_with_name(community_name):
         raise ValidationError(_("Not requested to join community,"))
@@ -1356,6 +1363,22 @@ def check_can_create_invite_to_community(user, community=None):
         raise ValidationError(
             _("You cannot create an invite to a community you are not a member of"),
         )
+
+
+def check_should_user_with_email_be_invited_to_community(user, email, community):
+    if user is None:
+        CommunityPendingInviteModel = get_community_pending_invite_model()
+        invited_email_hash = generate_hash(str(email).lower())
+        if CommunityPendingInviteModel.is_email_invited_to_community(invited_email_hash, community):
+            return False
+
+    if user is not None and user.is_member_of_community_with_id(community.id):
+        return False
+
+    if user is not None and user.is_invited_to_community_with_name(community_name=community.name):
+        return False
+
+    return True
 
 
 def check_can_update_invite(user, invite_id):
