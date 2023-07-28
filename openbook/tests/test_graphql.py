@@ -2391,6 +2391,11 @@ class TestUsers:
         assert invite_received_notification["options"]["space"]["title"] == space.title
         assert invite_received_notification["options"]["user"]["fullName"] == space_creator.profile.full_name()
 
+        # Invited user has invitee status
+        assert self.get_space_for_user(invitee, space)["connectionStatusToMyself"] == [
+            SpaceUserConnectionType.MEMBERSHIP_INVITEE.value
+        ]
+
         # Accept Invite
         space_after_approval = self.mutate_update_space_user_connection_data(
             auth_user=invitee,
@@ -2405,9 +2410,10 @@ class TestUsers:
         )
 
         # User has correct connection status
-        assert len(self.get_space_for_user(invitee, space)["connectionStatusToMyself"]) == len(
-            [SpaceUserConnectionType.MEMBER.value, SpaceUserConnectionType.FOLLOWER.value]
-        )
+        assert self.get_space_for_user(invitee, space)["connectionStatusToMyself"] == [
+            SpaceUserConnectionType.FOLLOWER.value,
+            SpaceUserConnectionType.MEMBER.value,
+        ]
 
         # User has approval notification
         invitee_notifications = self.get_notifications(invitee)
@@ -2463,7 +2469,12 @@ class TestUsers:
         assert invite_received_notification["options"]["space"]["title"] == space.title
         assert invite_received_notification["options"]["user"]["fullName"] == space_creator.profile.full_name()
 
-        # Accept Invite
+        # Invited user has invitee status
+        assert self.get_space_for_user(invitee, space)["connectionStatusToMyself"] == [
+            SpaceUserConnectionType.MEMBERSHIP_INVITEE.value
+        ]
+
+        # Decline invite
         space_after_approval = self.mutate_update_space_user_connection_data(
             auth_user=invitee,
             space_id=space.id,
@@ -2477,7 +2488,7 @@ class TestUsers:
         )
 
         # User has no connection status
-        assert len(self.get_space_for_user(invitee, space)["connectionStatusToMyself"]) == len([])
+        assert self.get_space_for_user(invitee, space)["connectionStatusToMyself"] == []
 
         # User has no approval notification
         invitee_notifications = self.get_notifications(invitee)
