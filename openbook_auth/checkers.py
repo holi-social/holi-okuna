@@ -19,7 +19,9 @@ from openbook_common.utils.model_loaders import (
     get_user_invite_model,
     get_user_model,
     get_community_membership_model,
+    get_community_pending_invite_model,
 )
+from openbook.utils import generate_hash
 
 
 def check_follow_lists_ids(user, lists_ids):
@@ -1361,6 +1363,22 @@ def check_can_create_invite_to_community(user, community=None):
         raise ValidationError(
             _("You cannot create an invite to a community you are not a member of"),
         )
+
+
+def check_can_user_with_email_be_invited_to_community(user, email, community):
+    already_invited_error = SystemError(_("This user is already invited to this space"))
+
+    if user is None:
+        CommunityPendingInviteModel = get_community_pending_invite_model()
+        invited_email_hash = generate_hash(str(email).lower())
+        if CommunityPendingInviteModel.is_email_invited_to_community(invited_email_hash, community):
+            raise already_invited_error
+
+    if user is not None and user.is_member_of_community_with_id(community.id):
+        raise already_invited_error
+
+    if user is not None and user.is_invited_to_community_with_name(community_name=community.name):
+        raise already_invited_error
 
 
 def check_can_update_invite(user, invite_id):
