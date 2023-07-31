@@ -69,6 +69,7 @@ from openbook_common.utils.model_loaders import (
     get_community_membership_request_notification_model,
     get_community_membership_approved_notification_model,
     get_community_membership_revoked_notification_model,
+    get_community_invite_declined_notification_model,
     get_community_admin_privileges_granted_notification_model,
     get_community_admin_privileges_revoked_notification_model,
     get_community_notifications_subscription_model,
@@ -2183,7 +2184,21 @@ class User(ModelWithUUID, AbstractUser):
         Community = get_community_model()
         community_to_join = Community.objects.get(name=community_name)
 
-        community_to_join.remove_invite(self)
+        CommunityInvite = get_community_invite_model()
+        community_invite = CommunityInvite.objects.filter(
+            community__name=community_name, invited_user__username=self.username
+        )
+
+        # Check if inviting admin is still staff of community
+        inviting_admin = community_invite.first().creator
+        try:
+            check_is_staff_of_community_with_name(inviting_admin, community_name)
+        except:
+            inviting_admin = None
+
+        community_invite.delete()
+
+        self.notify_invite_declined(community_to_join, inviting_admin, self)
 
         return community_to_join
 
@@ -2202,6 +2217,16 @@ class User(ModelWithUUID, AbstractUser):
         CommunityMembershipRevokedNotification.create_community_membership_revoked_notification(
             community.id, user_to_remove.id
         )
+
+    def notify_invite_declined(self, community, staff_member, invitee):
+        CommunityInviteDeclinedNotification = get_community_invite_declined_notification_model()
+        CommunityInviteDeclinedNotification.create_community_invite_declined_notification(
+            invitee.id, community.id, invitee.id
+        )
+        if staff_member is not None:
+            CommunityInviteDeclinedNotification.create_community_invite_declined_notification(
+                staff_member.id, community.id, invitee.id
+            )
 
     def revoke_membership_request_to_community_for_username(self, username, community_name):
         check_is_staff_of_community_with_name(self, community_name)

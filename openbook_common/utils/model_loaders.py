@@ -145,6 +145,10 @@ def get_community_membership_revoked_notification_model():
     return apps.get_model("openbook_notifications.CommunityMembershipRevokedNotification")
 
 
+def get_community_invite_declined_notification_model():
+    return apps.get_model("openbook_notifications.CommunityInviteDeclinedNotification")
+
+
 def get_community_admin_privileges_granted_notification_model():
     return apps.get_model("openbook_notifications.CommunityAdminPrivilegesGrantedNotification")
 
