@@ -1265,7 +1265,7 @@ class Mutation:
     def invite_to_space_by_email(self, info, email: str, space_id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
 
-        current_user_language = info.context.request.get('headers', {}).get('Accept-Language')
+        current_user_language = info.context.request.get("headers", {}).get("Accept-Language")
         # if info.context.request.get('headers', {}).get('Accept-Language') is not None:
         #     current_user_language = info.context.request.headers["Accept-Language"]
         # else:
