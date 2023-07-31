@@ -1264,8 +1264,7 @@ class Mutation:
     @sync_to_async
     def invite_to_space_by_email(self, info, email: str, space_id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
-
-        current_user_language = info.context.request.get("headers", {}).get("Accept-Language")
+        current_user_language = info.context.request.META.get("HTTP_ACCEPT_LANGUAGE")
 
         serializer = InviteToCommunityByEmailSerializer(data={"email": email, "space_id": space_id})
         serializer.is_valid(raise_exception=True)

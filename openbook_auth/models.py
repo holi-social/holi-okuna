@@ -4831,9 +4831,7 @@ class User(ModelWithUUID, AbstractUser):
 
         from_email = settings.DEFAULT_FROM_EMAIL
 
-        app_url = "https://staging.dev.holi.social"
-        if settings.IS_PRODUCTION:
-            app_url = "https://app.holi.social"
+        app_url = settings.APP_URL
 
         if self.profile.name is not None:
             inviter_name = self.profile.name
