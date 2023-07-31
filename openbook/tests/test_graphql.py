@@ -3219,7 +3219,7 @@ class TestUsers:
                 }
             }
             """,
-            context_value=benedict({"request": {"user": auth_user}}),
+            context_value=benedict({"request": {"user": auth_user, "headers": {"HTTP_ACCEPT_LANGUAGE": "de"}}}),
             variable_values=benedict(
                 {
                     "email": email,
@@ -4732,7 +4732,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
             variable_values=valid_input,
-            context_value=benedict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser, "headers": {"HTTP_ACCEPT_LANGUAGE": "de"}}}),
         )
 
         self.assert_is_unauthorized(response)
@@ -4758,7 +4758,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
             variable_values=valid_input,
-            context_value=benedict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user, "headers": {"HTTP_ACCEPT_LANGUAGE": "de"}}}),
         )
 
         field_errors = json.loads(response.errors[0].extensions["errors"])
@@ -4779,13 +4779,13 @@ class TestUsers:
 
         response_no_email = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
-            context_value=benedict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user, "headers": {"HTTP_ACCEPT_LANGUAGE": "de"}}}),
             variable_values={"spaceId": str(community.id)},
         )
 
         response_no_space_id = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
-            context_value=benedict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user, "headers": {"HTTP_ACCEPT_LANGUAGE": "de"}}}),
             variable_values={"email": "test@test.com"},
         )
 
@@ -4819,7 +4819,9 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
             variable_values=valid_input,
-            context_value=benedict({"request": {"user": community_creator}}),
+            context_value=benedict(
+                {"request": {"user": community_creator, "headers": {"HTTP_ACCEPT_LANGUAGE": "de"}}}
+            ),
         )
 
         assert response.data["inviteToSpaceByEmail"]["success"] is True
