@@ -194,6 +194,7 @@ class LinkPreview(ModelWithUUID):
         og = {}
         try:
             response = requests.get(url=url)
+            response.encoding = response.apparent_encoding
             soup = BeautifulSoup(response.text, "html.parser")
             for m in soup.find_all("meta"):
                 meta_property = m.get("property", None)
