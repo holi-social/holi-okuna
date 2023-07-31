@@ -90,7 +90,7 @@ from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
 from openbook_posts.query_collections import get_posts_for_user_collection
 from openbook_terms.models import Topic, SDG, Skill
 from openbook_translation import translation_strategy
-from openbook.utils import generate_hash
+from openbook.utils import DEFAULT_EMAIL_LANGUAGE, generate_hash, get_supported_language_for_email
 from enum import Enum
 
 logger = logging.getLogger(__name__)
@@ -4818,7 +4818,7 @@ class User(ModelWithUUID, AbstractUser):
                 self.save()
 
     @transaction.atomic
-    def invite_to_community_by_email(self, email, space_id):
+    def invite_to_community_by_email(self, email, space_id, language="de"):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
 
@@ -4842,19 +4842,54 @@ class User(ModelWithUUID, AbstractUser):
             self.invite_email_to_community(email=email, community=community)
 
         try:
-            # TODO: send email will be changed to a localized email template in a separate method (HOLI-4913)
-            subject, from_email = "You've been invited to a space at holi", settings.DEFAULT_FROM_EMAIL
-            text_content = f"{self.profile.name or 'A user'} has invited you to join the space {community.title} at holi!\nVisit https://app.holi.social/spaces/{community.name} to join this Space."
-            # html_content = f"<p>{self.profile.name or 'A user'} has invited you to join the Space <strong>{community.title}</strong> at <a href=\"https://app.holi.social\">holi</a>!<br/><br/><a href=\"https://app.holi.social/spaces/{community.name}\">Join this Space here</a></p>"
-            html_content = render_to_string(
-                "openbook_invitations/email/backer_onboard.html",
-                {"name": self.profile.name, "invite_link": f"https://app.holi.social/spaces/{community.name}"},
-            )
-            msg = EmailMultiAlternatives(subject, text_content, from_email, [email])
-            msg.attach_alternative(html_content, "text/html")
-            msg.send()
+            self.send_space_invite_email(invited_user=user, community=community, email=email, language=language)
         except:
             raise SystemError(_("Could not send email"))
+
+    def send_space_invite_email(self, invited_user, community, email, language):
+        email_language = get_supported_language_for_email(language)
+
+        if email_language is DEFAULT_EMAIL_LANGUAGE:
+            subject = "Du wurdest zu einem Space bei holi eingeladen"
+        else:
+            subject = "You've been invited to a space at holi"
+
+        from_email = settings.DEFAULT_FROM_EMAIL
+
+        app_url = settings.APP_URL
+
+        if self.profile.name is not None:
+            inviter_name = self.profile.name
+        elif email_language is DEFAULT_EMAIL_LANGUAGE:
+            inviter_name = "Jemand"
+        else:
+            inviter_name = "A Space collaborator"
+
+        if invited_user is None:
+            html_content = render_to_string(
+                f"openbook_invitations/email/new_user_invite_{email_language}.html",
+                {
+                    "invited_by_name": inviter_name,
+                    "space_name": community.title,
+                    "space_link": f"{app_url}/spaces/{community.name}",
+                    "registration_link": f"{app_url}/profile",
+                },
+            )
+        else:
+            invited_user_name = f" {invited_user.profile.name}"  # add a space before user name to avoid unnamed user with an empty space between exclamation mark "Hello !"
+            html_content = render_to_string(
+                f"openbook_invitations/email/user_invite_{email_language}.html",
+                {
+                    "invited_user_name": invited_user_name,
+                    "invited_by_name": inviter_name,
+                    "space_name": community.title,
+                    "space_link": f"{app_url}/spaces/{community.name}",
+                    "accept_link": f"{app_url}/notifications",
+                },
+            )
+        msg = EmailMultiAlternatives(subject, None, from_email, [email])
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
 
     def create_task(
         self,

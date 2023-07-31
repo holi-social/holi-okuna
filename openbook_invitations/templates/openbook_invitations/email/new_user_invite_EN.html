@@ -1,0 +1,153 @@
+{% load static %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:v="urn:schemas-microsoft-com:vml"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+>
+  <head>
+    <!--[if gte mso 9]>
+      <xml>
+        <o:OfficeDocumentSettings>
+          <o:AllowPNG />
+          <o:PixelsPerInch>96</o:PixelsPerInch>
+        </o:OfficeDocumentSettings>
+      </xml>
+    <![endif]-->
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1"
+    />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="format-detection" content="date=no" />
+    <meta name="format-detection" content="address=no" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="x-apple-disable-message-reformatting" />
+
+    <title>You've been invited to a Space at holi</title>
+    <!--[if gte mso 9]>
+      <style type="text/css" media="all">
+        sup {
+          font-size: 100% !important;
+        }
+      </style>
+    <![endif]-->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style type="text/css" media="screen"></style>
+  </head>
+  <body
+    class="body"
+    style="
+      padding: 0 !important;
+      margin: 0 !important;
+      display: block !important;
+      min-width: 100% !important;
+      width: 100% !important;
+      font-family: 'Poppins', Verdana;
+    "
+  >
+    <table
+      width="100%"
+      border="0"
+      cellspacing="0"
+      cellpadding="0"
+      bgcolor="#ffffff"
+    >
+      <tr>
+        <td align="center" valign="top">
+          <!-- Header -->
+          {% include 'openbook_common/email/header.html' %}
+          <!-- END Header -->
+
+          <!-- Body -->
+          <table
+            width="100%"
+            border="0"
+            cellspacing="0"
+            cellpadding="0"
+            bgcolor="#ffffff"
+            style="padding: 0px 24px 48px 24px"
+          >
+            <!-- EN Version -->
+            <tr>
+              <td style="padding-bottom: 20px">
+                <p style="font-size: 22px; font-weight: 400; padding-top: 48px">
+                  Hello!
+                </p>
+                <p style="font-size: 16px">
+                  {{invited_by_name}} invited to join the Space
+                  <strong>{{space_name}}</strong>
+                  on the app holi. It's a place where you can collaborate
+                  together and share ideas with the community.
+                </p>
+                <!-- buttons -->
+                <div style="padding-top: 24px; padding-bottom: 24px">
+                  <a
+                    href="{{registration_link}}"
+                    style="
+                      padding: 12px;
+                      border-radius: 32px;
+                      border: 1px solid #262424;
+                      background-color: #fdfd80;
+                      color: #262424;
+                      text-decoration: none;
+                    "
+                    >Create my account</a
+                  >
+                  <a
+                    href="{{space_link}}"
+                    style="
+                      padding: 12px;
+                      border-radius: 32px;
+                      border: 1px solid #262424;
+                      margin-left: 16px;
+                      color: #262424;
+                      text-decoration: none;
+                    "
+                    >Visit Space profile</a
+                  >
+                </div>
+                <p style="font-size: 16px">Download the holi app</p>
+                <div style="padding-bottom: 24px">
+                  <a
+                    href="https://apps.apple.com/app/id6446693757"
+                    style="margin-right: 16px; text-decoration: none"
+                  >
+                    <img
+                      height="40px"
+                      alt="App Store"
+                      src="https://ik.imagekit.io/holi/community_cover/6e585bbc-3007-45b4-8abe-a255f76cb354_3XsviPgRD.png"
+                    />
+                  </a>
+                  <a
+                    href="https://play.google.com/store/apps/details?id=social.holi.app&gl=DE"
+                    style="text-decoration: none"
+                  >
+                    <img
+                      height="40px"
+                      alt="Play Store"
+                      src="https://ik.imagekit.io/holi/community_cover/6e585bbc-3007-45b4-8abe-a255f76cb354__LovXDjAg.png"
+                    />
+                  </a>
+                </div>
+                <p style="font-size: 16px">Your holi Team</p>
+              </td>
+            </tr>
+          </table>
+          <!-- END Body -->
+
+          <!-- Footer -->
+          {% include 'openbook_common/email/footer.html' %}
+          <!-- END Footer -->
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
