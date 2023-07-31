@@ -566,6 +566,9 @@ class Space:
         if current_user.is_membership_requestor_of_community_with_name(self.name):
             roles.append(SpaceUserConnectionType.MEMBERSHIP_REQUESTOR)
 
+        if current_user.is_invited_to_community_with_name(self.name):
+            roles.append(SpaceUserConnectionType.MEMBERSHIP_INVITEE)
+
         if self.creator == current_user:
             roles.append(SpaceUserConnectionType.CREATOR)
 

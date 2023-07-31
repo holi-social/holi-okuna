@@ -324,7 +324,10 @@ class Query:
     @gql.django.field
     def check_app_version(self, version: str, build_number: str) -> AppVersionResponse:
         try:
-            app_version = AppVersionModel.objects.get(version=version)
+            app_version = AppVersionModel.objects.filter(version=version, build_number=build_number)
+            if app_version.exists():
+                return app_version.first()
+            app_version = AppVersionModel.objects.get(version=version, build_number__isnull=True)
         except AppVersionModel.DoesNotExist:
             logger.warning(f"App version {version} not found")
             return AppVersionResponse(need_update=NeedUpdateType.NO)
@@ -996,7 +999,7 @@ class Mutation:
                     return current_user.revoke_membership_request_to_community_with_name(space.name)
                 case (cT.MEMBERSHIP_INVITEE, a.CONNECT):
                     space = current_user.accept_membership_invite_to_community_for_username(space.name)
-                    publish_space_user_added_event(username=str(user_id), community=space)
+                    publish_space_user_added_event(username=str(current_user.username), community=space)
                     return space
                 case (cT.MEMBERSHIP_INVITEE, a.DISCONNECT):
                     return current_user.reject_membership_invite_to_community_for_username(space.name)
