@@ -1266,10 +1266,6 @@ class Mutation:
         current_user = verify_authorized_user(info)
 
         current_user_language = info.context.request.get("headers", {}).get("Accept-Language")
-        # if info.context.request.get('headers', {}).get('Accept-Language') is not None:
-        #     current_user_language = info.context.request.headers["Accept-Language"]
-        # else:
-        #     current_user_language = None
 
         serializer = InviteToCommunityByEmailSerializer(data={"email": email, "space_id": space_id})
         serializer.is_valid(raise_exception=True)
