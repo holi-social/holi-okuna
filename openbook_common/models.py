@@ -194,6 +194,10 @@ class LinkPreview(ModelWithUUID):
         og = {}
         try:
             response = requests.get(url=url)
+            if hasattr(response, "apparent_encoding") and response.apparent_encoding:
+                response.encoding = response.apparent_encoding
+            else:
+                response.encoding = "utf-8"  # Set to utf-8 by default if apparent_encoding is not found
             soup = BeautifulSoup(response.text, "html.parser")
             for m in soup.find_all("meta"):
                 meta_property = m.get("property", None)

@@ -2493,9 +2493,17 @@ class TestUsers:
         # User has no connection status
         assert self.get_space_for_user(invitee, space)["connectionStatusToMyself"] == []
 
-        # User has no approval notification
+        # User has notification that they declined their invitation
         invitee_notifications = self.get_notifications(invitee)
-        assert invitee_notifications["totalResults"] == 0
+        assert invitee_notifications["totalResults"] == 1
+        assert invitee_notifications["data"][0]["notificationType"] == "CID"
+
+        # Staff has notification that the invitee declined their invitation
+        staff_notifications = self.get_notifications(space_creator)
+        assert staff_notifications["totalResults"] == 1
+        assert staff_notifications["data"][0]["notificationType"] == "CID"
+        assert staff_notifications["data"][0]["options"]["space"]["title"] == space.title
+        assert staff_notifications["data"][0]["options"]["user"]["fullName"] == invitee.profile.full_name()
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
 

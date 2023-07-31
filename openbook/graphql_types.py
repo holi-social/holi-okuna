@@ -169,6 +169,7 @@ class NotificationType(Enum):
     CAPG = strawberry.enum_value("CAPG", description="COMMUNITY_ADMIN_PRIVILEGES_GRANTED")
     CAPR = strawberry.enum_value("CAPR", description="COMMUNITY_ADMIN_PRIVILEGES_REVOKED")
     CI = strawberry.enum_value("CI", description="COMMUNITY_INVITE")
+    CID = strawberry.enum_value("CID", description="COMMUNITY_INVITE_DECLINED")
     PUM = strawberry.enum_value("PUM", description="POST_USER_MENTION")
     PCUM = strawberry.enum_value("PCUM", description="POST_COMMENT_USER_MENTION")
     CNP = strawberry.enum_value("CNP", description="COMMUNITY_NEW_POST")

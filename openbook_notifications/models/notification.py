@@ -28,6 +28,7 @@ class Notification(ModelWithUUID):
     COMMUNITY_ADMIN_PRIVILEGES_GRANTED = "CAPG"
     COMMUNITY_ADMIN_PRIVILEGES_REVOKED = "CAPR"
     COMMUNITY_INVITE = "CI"
+    COMMUNITY_INVITE_DECLINED = "CID"
     POST_USER_MENTION = "PUM"
     POST_COMMENT_USER_MENTION = "PCUM"
     COMMUNITY_NEW_POST = "CNP"
@@ -51,6 +52,7 @@ class Notification(ModelWithUUID):
         (COMMUNITY_ADMIN_PRIVILEGES_GRANTED, "Community admin privileges granted"),
         (COMMUNITY_ADMIN_PRIVILEGES_REVOKED, "Community admin privileges revoked"),
         (COMMUNITY_INVITE, "Community Invite"),
+        (COMMUNITY_INVITE_DECLINED, "Community Invite declined"),
         (POST_USER_MENTION, "Post user mention"),
         (POST_COMMENT_USER_MENTION, "Post comment user mention"),
         (COMMUNITY_NEW_POST, "New post in community"),

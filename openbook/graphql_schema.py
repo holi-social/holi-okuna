@@ -124,6 +124,7 @@ PUBLISHED_NOTIFICATION_TYPES = [
     NotificationModel.COMMUNITY_ADMIN_PRIVILEGES_REVOKED,
     NotificationModel.COMMUNITY_NEW_POST,
     NotificationModel.COMMUNITY_INVITE,
+    NotificationModel.COMMUNITY_INVITE_DECLINED,
     NotificationModel.POST_COMMENT_USER_MENTION,
     NotificationModel.RELEASE_INFO,
 ]
