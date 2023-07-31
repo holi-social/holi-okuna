@@ -2427,6 +2427,9 @@ class TestUsers:
         assert staff_notifications["data"][0]["options"]["space"]["title"] == space.title
         assert staff_notifications["data"][0]["options"]["user"]["fullName"] == invitee.profile.full_name()
 
+        # User added event was sent
+        mock_publish_space_user_added_event.assert_called_once_with(username=invitee.username, community=space)
+
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
     @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
