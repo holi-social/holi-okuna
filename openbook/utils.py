@@ -61,7 +61,7 @@ def generate_hash(value: str):
 
 # Supported languages for emails are only German or English
 def get_supported_language_for_email(language: str):
-    lang = (language or DEFAULT_EMAIL_LANGUAGE).split("-")[0].capitalize()
+    lang = (language or DEFAULT_EMAIL_LANGUAGE).split("-")[0].upper()
     if lang in SUPPORTED_EMAIL_LANGUAGES:
         return lang
     return DEFAULT_EMAIL_LANGUAGE
