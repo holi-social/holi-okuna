@@ -22,6 +22,7 @@ from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
 from strawberry_django_plus import gql
+from unidecode import unidecode
 
 from openbook_common.helpers import ExifRotate, generate_blurhash
 from openbook_auth.checkers import *
@@ -709,7 +710,7 @@ class User(ModelWithUUID, AbstractUser):
 
     @classmethod
     def unique_identity(cls, input_identity):
-        identity = input_identity.strip().replace(" ", "_").lower()
+        identity = unidecode(input_identity).strip().replace(" ", "_").lower()
 
         identities_taken = set(cls.objects.filter(identity__startswith=identity).values_list("identity", flat=True))
 

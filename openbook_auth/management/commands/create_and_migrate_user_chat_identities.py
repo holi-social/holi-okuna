@@ -31,7 +31,8 @@ class Command(BaseCommand):
         match response.status_code:
             case http.HTTPStatus.OK:
                 self.users_patched += 1
-                user.save(identity=identity)
+                user.identity = identity
+                user.save()
                 print(f"User {user_to_str(user)} patched")
             case http.HTTPStatus.NOT_FOUND:
                 print(f"User {user_to_str(user)} not found in Ory")
@@ -51,10 +52,13 @@ class Command(BaseCommand):
             base_identity += f"{user.profile.last_name}"
 
         print(f"Generating an unique identity for user {user_to_str(user)}")
-        identity = User.unique_identity(base_identity.strip().lower())
+        while True:
+            identity = User.unique_identity(base_identity.replace("'", "").strip().lower())
 
-        while self._update_ory_user_identity_and_save_in_okuna(user, identity) == http.HTTPStatus.CONFLICT:
-            identity = f"{base_identity}{random.randint(1, 100)}"
+            if self._update_ory_user_identity_and_save_in_okuna(user, identity) == http.HTTPStatus.CONFLICT:
+                base_identity += "0"
+                continue
+            break
 
     def _update_chat_identities(self) -> None:
         print("Getting list of Okuna users without an identity and with a name")
