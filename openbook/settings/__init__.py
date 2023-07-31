@@ -47,11 +47,9 @@ IS_STAGING = environment_checker.is_staging()
 IS_BUILD = environment_checker.is_build()
 TESTING = False
 
-APP_URL = os.environ.get("APP_URL")
+APP_URL = os.environ.get("APP_URL", "https://staging.dev.holi.social")
 if IS_PRODUCTION:
     APP_URL = "https://app.holi.social"
-else:
-    APP_URL = "https://staging.dev.holi.social"
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS")
 if IS_PRODUCTION:
