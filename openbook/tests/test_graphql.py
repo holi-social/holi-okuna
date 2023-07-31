@@ -4819,9 +4819,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
             variable_values=valid_input,
-            context_value=benedict(
-                {"request": {"user": community_creator, "META": {"HTTP_ACCEPT_LANGUAGE": "de"}}}
-            ),
+            context_value=benedict({"request": {"user": community_creator, "META": {"HTTP_ACCEPT_LANGUAGE": "de"}}}),
         )
 
         assert response.data["inviteToSpaceByEmail"]["success"] is True
