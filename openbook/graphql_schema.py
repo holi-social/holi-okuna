@@ -530,14 +530,12 @@ class Query:
         created_spaces.query = (
             CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
             .filter(creator=current_user)
-            .annotate(member_count=Count("memberships"))
             .order_by("-created")
         )
         member_spaces = MySpaces(section=_("Joined"), type=SpaceUserConnectionType.MEMBER)
         member_spaces.query = (
             CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
             .filter(Q(memberships__user=current_user), ~Q(creator=current_user))
-            .annotate(member_count=Count("memberships"))
             .order_by("-created")
         )
         followed_spaces = MySpaces(section=_("Following"), type=SpaceUserConnectionType.FOLLOWER)
@@ -549,7 +547,6 @@ class Query:
                 ~Q(creator=current_user),
                 ~Q(memberships__user=current_user),
             )
-            .annotate(member_count=Count("memberships"))
             .order_by("-created")
         )
         return list(
