@@ -170,7 +170,7 @@ def spaces_for_filter(
         CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
         .filter(query)
         .annotate(member_count=Count("memberships"))
-        .order_by("-member_count", "-created")
+        .order_by("-created")
         .cache(ops=["fetch", "count"], timeout=300),
         offset,
         limit,
@@ -188,7 +188,7 @@ def filter_spaces_by_skill_ids(geolocation, skill_ids, limit):
     skipLocationFilter = "false" if geojson else "true"
     return CommunityModel.objects.raw(
         """
-            select s.id, s.skill_id, s.rn 
+            select s.id, s.skill_id, s.rn, s.created 
             from openbook_terms_skill skill, (
                 select octskill.skill_id, occ.*, row_number() OVER (partition by octskill.skill_id ORDER BY occ.id) AS rn
                 FROM   openbook_communities_community occ, openbook_communities_task octask, openbook_communities_task_skills octskill
@@ -198,7 +198,7 @@ def filter_spaces_by_skill_ids(geolocation, skill_ids, limit):
             and (%s or ST_Within(s.geolocation, ST_GeomFromGeoJSON(%s)))
             and s.rn <= %s
             and skill.id = ANY(%s)
-            order by skill.id
+            order by s.created DESC
             """,
         [skipLocationFilter, geojson, limit, skill_ids],
     ).prefetch_related("memberships__user__profile")
@@ -207,7 +207,7 @@ def filter_spaces_by_skill_ids(geolocation, skill_ids, limit):
 def filter_spaces_by_topic_ids(topic_ids, limit):
     return CommunityModel.objects.raw(
         """
-            select s.id, s.topic_id, s.rn
+            select s.id, s.topic_id, s.rn, s.created 
             from openbook_terms_topic t, (
                 select occtopics.topic_id, occ.*, row_number() OVER (partition by occtopics.topic_id ORDER BY occ.id) AS rn
                 FROM   openbook_communities_community occ, openbook_communities_community_topics occtopics
@@ -216,7 +216,7 @@ def filter_spaces_by_topic_ids(topic_ids, limit):
             where s.topic_id = t.id 
             and s.rn <= %s
             and t.id = ANY(%s)
-            order by t.id
+            order by s.created DESC
             """,
         [limit, topic_ids],
     ).prefetch_related("memberships__user__profile")
@@ -531,14 +531,14 @@ class Query:
             CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
             .filter(creator=current_user)
             .annotate(member_count=Count("memberships"))
-            .order_by("-member_count", "-created")
+            .order_by("-created")
         )
         member_spaces = MySpaces(section=_("Joined"), type=SpaceUserConnectionType.MEMBER)
         member_spaces.query = (
             CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
             .filter(Q(memberships__user=current_user), ~Q(creator=current_user))
             .annotate(member_count=Count("memberships"))
-            .order_by("-member_count", "-created")
+            .order_by("-created")
         )
         followed_spaces = MySpaces(section=_("Following"), type=SpaceUserConnectionType.FOLLOWER)
         followed_spaces.query = (
@@ -550,7 +550,7 @@ class Query:
                 ~Q(memberships__user=current_user),
             )
             .annotate(member_count=Count("memberships"))
-            .order_by("-member_count", "-created")
+            .order_by("-created")
         )
         return list(
             filter(
