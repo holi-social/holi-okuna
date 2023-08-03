@@ -35,7 +35,7 @@ class Command(BaseCommand):
             )
 
             if response.status_code != http.HTTPStatus.OK:
-                print(f"{get_ory_error_str(response.json())}, {ory_user_to_str(user)} update failed")
+                print(f"{get_ory_error_str(response)}, {ory_user_to_str(user)} update failed")
                 self.total_users_failed += 1
             else:
                 print(f"{ory_user_to_str(user)} updated")

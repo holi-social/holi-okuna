@@ -1,67 +1,117 @@
-from copy import deepcopy
+import uuid
 from collections import defaultdict
+from copy import deepcopy
 from datetime import datetime, timedelta
-
-from rest_framework.exceptions import ValidationError
-from typing_extensions import Annotated
+from typing import List, Optional
 
 import requests
+import strawberry
 import structlog
+from asgiref.sync import async_to_sync, sync_to_async
 from django.conf import settings
-from django.core.cache import cache
 from django.contrib.gis import geos
+from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Count, F, Value, Prefetch
+from django.db.models import Count, F, Prefetch, Q, Value
 from django.db.models.functions import Concat
 from django.db.models.lookups import IContains
 from django.utils.translation import gettext_lazy as _
 from graphql import GraphQLError
+from rest_framework.exceptions import ValidationError
 from strawberry.file_uploads import Upload
-from strawberry.types import Info, ExecutionContext
+from strawberry.types import ExecutionContext, Info
+from strawberry_django_plus import gql
 from strawberry_django_plus.optimizer import DjangoOptimizerExtension
+from typing_extensions import Annotated
 
 from openbook.graphql_errors import GraphQLErrorCodes
+from openbook.graphql_types import (
+    SDG,
+    AppVersionResponse,
+    CollaborationTool,
+    CollectionType,
+    ContentType,
+    DiscoverSpaces,
+    ExternalLink,
+    FeatureToggle,
+    GeoJSON,
+    GeoJSONInput,
+    Insight,
+    MySpaces,
+    Notification,
+    Paged,
+    Post,
+    PostComment,
+    ReactionAction,
+    Skill,
+    Space,
+    SpaceUserConnectionType,
+    Task,
+    Topic,
+    UpdateConnectionAction,
+    User,
+)
 from openbook.helpers import (
+    publish_space_created_event,
     publish_space_deleted_event,
     publish_space_user_added_event,
-    publish_space_created_event,
+    publish_space_user_left_event,
+    publish_space_user_removed_event,
     publish_user_deleted_event,
     publish_user_name_updated_event,
 )
-from openbook.utils import generate_discover_spaces_hash_key, invalidate_discover_spaces_query_cache
+from openbook.middleware.graphql_error_extension import GraphQLErrorExtension
+from openbook.settings.sentry_config import HoliSentryTracingExtension
+from openbook.utils import (
+    generate_discover_spaces_hash_key,
+    invalidate_discover_spaces_query_cache,
+)
 from openbook_auth.errors import OryRequestError
-from openbook_auth.tasks import update_ory_user_names, update_ory_user_identity
-from openbook_auth.validators import string_not_empty
+from openbook_auth.models import User as UserModel
+from openbook_auth.models import UserBlock as UserBlockModel
+from openbook_auth.models import UserConnectionStatus
 from openbook_auth.serializers.authenticated_user_serializers import (
     UpdateAuthenticatedUserSerializer,
 )
+from openbook_auth.tasks import update_ory_user_identity, update_ory_user_names
+from openbook_auth.validators import string_not_empty
 from openbook_common.helpers import is_parameter_null
-from openbook_common.models import AppVersion
+from openbook_common.models import AppVersion as AppVersionModel
+from openbook_common.models import FeatureToggle as FeatureToggleModel
+from openbook_common.types import GeolocationFeature, NeedUpdateType, ReactionType
+from openbook_common.utils.helpers import is_uuid
+from openbook_communities.models import CollaborationTool as CollaborationToolModel
+from openbook_communities.models import Community as CommunityModel
+from openbook_communities.models import ExternalLinkType
+from openbook_communities.models import Task as TaskModel
+from openbook_communities.models import VisibilityType
 from openbook_communities.serializers.communities_serializers import (
     AddCollaborationToolSerializer,
     AddExternalLinkSerializer,
     CreateCommunitySerializer,
     CreateTaskSerializer,
-    UpdateExternalLinkSerializer,
-    UpdateTaskSerializer,
+    InviteToCommunityByEmailSerializer,
     UpdateCollaborationToolSerializer,
     UpdateCommunitySerializer,
-    InviteToCommunityByEmailSerializer,
+    UpdateExternalLinkSerializer,
+    UpdateTaskSerializer,
     ValidateCommunitySerializer,
 )
-from openbook_communities.serializers.community_serializers import CommunityUserConnectionSerializer
-from openbook_connections.serializers import UpdateConnectionWithUserSerializer
-from openbook_moderation.models import ModeratedObject
-from openbook_posts.serializers.post_serializers import EditCommunityPostSerializer
-from openbook_posts.serializers.post_comments_serializers import CommentPostSerializer
-from openbook_common.utils.helpers import is_uuid
-from openbook_posts.serializers.posts_serializers import (
-    CreateCommunityPostSerializer,
+from openbook_communities.serializers.community_serializers import (
+    CommunityUserConnectionSerializer,
 )
-from openbook.middleware.graphql_error_extension import GraphQLErrorExtension
-
-from .graphql_types import *
-from .settings.sentry_config import HoliSentryTracingExtension
+from openbook_connections.serializers import UpdateConnectionWithUserSerializer
+from openbook_insights.models import Insight as InsightModel
+from openbook_moderation.models import ModeratedObject as ModeratedObjectModel
+from openbook_notifications.models import Notification as NotificationModel
+from openbook_posts.models import Post as PostModel
+from openbook_posts.models import PostComment as PostCommentModel
+from openbook_posts.serializers.post_comments_serializers import CommentPostSerializer
+from openbook_posts.serializers.post_serializers import EditCommunityPostSerializer
+from openbook_posts.serializers.posts_serializers import CreateCommunityPostSerializer
+from openbook_terms.models import SDG as SDGModel
+from openbook_terms.models import Skill as SkillModel
+from openbook_terms.models import Topic as TopicModel
 
 PUBLISHED_NOTIFICATION_TYPES = [
     NotificationModel.CONNECTION_REQUEST,
@@ -73,6 +123,8 @@ PUBLISHED_NOTIFICATION_TYPES = [
     NotificationModel.COMMUNITY_ADMIN_PRIVILEGES_GRANTED,
     NotificationModel.COMMUNITY_ADMIN_PRIVILEGES_REVOKED,
     NotificationModel.COMMUNITY_NEW_POST,
+    NotificationModel.COMMUNITY_INVITE,
+    NotificationModel.COMMUNITY_INVITE_DECLINED,
     NotificationModel.POST_COMMENT_USER_MENTION,
     NotificationModel.RELEASE_INFO,
 ]
@@ -118,7 +170,7 @@ def spaces_for_filter(
         CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
         .filter(query)
         .annotate(member_count=Count("memberships"))
-        .order_by("-member_count", "-created")
+        .order_by("-created")
         .cache(ops=["fetch", "count"], timeout=300),
         offset,
         limit,
@@ -127,7 +179,7 @@ def spaces_for_filter(
 
 @gql.type
 class NewNotificationsResponse:
-    id: Optional[UUID]
+    id: Optional[uuid.UUID]
     status: bool
 
 
@@ -136,7 +188,7 @@ def filter_spaces_by_skill_ids(geolocation, skill_ids, limit):
     skipLocationFilter = "false" if geojson else "true"
     return CommunityModel.objects.raw(
         """
-            select s.id, s.skill_id, s.rn 
+            select s.id, s.skill_id, s.rn, s.created 
             from openbook_terms_skill skill, (
                 select octskill.skill_id, occ.*, row_number() OVER (partition by octskill.skill_id ORDER BY occ.id) AS rn
                 FROM   openbook_communities_community occ, openbook_communities_task octask, openbook_communities_task_skills octskill
@@ -146,7 +198,7 @@ def filter_spaces_by_skill_ids(geolocation, skill_ids, limit):
             and (%s or ST_Within(s.geolocation, ST_GeomFromGeoJSON(%s)))
             and s.rn <= %s
             and skill.id = ANY(%s)
-            order by skill.id
+            order by s.created DESC
             """,
         [skipLocationFilter, geojson, limit, skill_ids],
     ).prefetch_related("memberships__user__profile")
@@ -155,7 +207,7 @@ def filter_spaces_by_skill_ids(geolocation, skill_ids, limit):
 def filter_spaces_by_topic_ids(topic_ids, limit):
     return CommunityModel.objects.raw(
         """
-            select s.id, s.topic_id, s.rn
+            select s.id, s.topic_id, s.rn, s.created 
             from openbook_terms_topic t, (
                 select occtopics.topic_id, occ.*, row_number() OVER (partition by occtopics.topic_id ORDER BY occ.id) AS rn
                 FROM   openbook_communities_community occ, openbook_communities_community_topics occtopics
@@ -164,7 +216,7 @@ def filter_spaces_by_topic_ids(topic_ids, limit):
             where s.topic_id = t.id 
             and s.rn <= %s
             and t.id = ANY(%s)
-            order by t.id
+            order by s.created DESC
             """,
         [limit, topic_ids],
     ).prefetch_related("memberships__user__profile")
@@ -174,7 +226,7 @@ def resolve_post(current_user, post_id):
     try:
         return (
             PostModel.objects.filter(PostModel.is_visible_query(current_user))
-            .filter(UserBlock.not_blocked_query(current_user, "creator"))
+            .filter(UserBlockModel.not_blocked_query(current_user, "creator"))
             .get(id=post_id)
         )
     except PostModel.DoesNotExist:
@@ -202,6 +254,16 @@ class Query:
             return UserModel.objects.filter(UserModel.is_visible_query(current_user)).get(username=id)
         except UserModel.DoesNotExist:
             raise GraphQLError("User not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
+
+    @gql.django.field
+    async def users_by_chat_identities(
+        self, info, identities: List[str], offset: int = 0, limit: int = 10
+    ) -> Paged[User]:
+        current_user = verify_authorized_user(info)
+
+        users = UserModel.objects.filter(Q(identity__in=identities) & UserModel.is_visible_query(current_user))
+
+        return await Paged.aof(users, offset, limit)
 
     @gql.django.field
     def user_by_name(self, info, substring: str, offset: int = 0, limit: int = 5) -> Paged[User]:
@@ -263,11 +325,18 @@ class Query:
     @gql.django.field
     def check_app_version(self, version: str, build_number: str) -> AppVersionResponse:
         try:
-            app_version = AppVersion.objects.get(version=version)
-        except AppVersion.DoesNotExist:
+            app_version = AppVersionModel.objects.filter(version=version, build_number=build_number)
+            if app_version.exists():
+                return app_version.first()
+            app_version = AppVersionModel.objects.get(version=version, build_number__isnull=True)
+        except AppVersionModel.DoesNotExist:
             logger.warning(f"App version {version} not found")
             return AppVersionResponse(need_update=NeedUpdateType.NO)
         return app_version
+
+    @gql.django.field
+    async def feature_toggles(self) -> List[FeatureToggle]:
+        return FeatureToggleModel.objects.all()
 
     @gql.django.field
     def insights_by_user_id(self, info, id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Insight]:
@@ -383,10 +452,6 @@ class Query:
     ) -> List[Optional[DiscoverSpaces]]:
         current_user: UserModel = info.context.request.user
 
-        if not geolocation:
-            if not current_user.is_anonymous and current_user.geolocation is not None:
-                geolocation = current_user.geolocation
-
         result = []
 
         hash_key = generate_discover_spaces_hash_key(topic_ids, geolocation, skill_ids, offset, limit)
@@ -402,7 +467,7 @@ class Query:
                 result.append(
                     DiscoverSpaces(
                         location_id=geolocation.id,
-                        spaces=spaces_for_filter(
+                        spaces=async_to_sync(spaces_for_filter)(
                             offset=offset,
                             limit=limit,
                             geolocation=geolocation,
@@ -435,7 +500,6 @@ class Query:
                 skill_id_to_num_spaces = get_id_spaces_count_map(
                     SkillModel.objects.filter(id__in=skill_ids).annotate(num_spaces=Count("tasks__community"))
                 )
-
                 spaces_from_db = filter_spaces_by_skill_ids(
                     geolocation=geolocation,
                     skill_ids=skill_ids,
@@ -455,7 +519,7 @@ class Query:
                         )
                     )
             # Set the result to be cached for future calls until the cache key expires after the default TTL.
-            sync_to_async(cache.set)(hash_key, result)
+            cache.set(hash_key, result)
             return result
 
     @gql.django.field
@@ -466,15 +530,13 @@ class Query:
         created_spaces.query = (
             CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
             .filter(creator=current_user)
-            .annotate(member_count=Count("memberships"))
-            .order_by("-member_count", "-created")
+            .order_by("-created")
         )
         member_spaces = MySpaces(section=_("Joined"), type=SpaceUserConnectionType.MEMBER)
         member_spaces.query = (
             CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
             .filter(Q(memberships__user=current_user), ~Q(creator=current_user))
-            .annotate(member_count=Count("memberships"))
-            .order_by("-member_count", "-created")
+            .order_by("-created")
         )
         followed_spaces = MySpaces(section=_("Following"), type=SpaceUserConnectionType.FOLLOWER)
         followed_spaces.query = (
@@ -485,8 +547,7 @@ class Query:
                 ~Q(creator=current_user),
                 ~Q(memberships__user=current_user),
             )
-            .annotate(member_count=Count("memberships"))
-            .order_by("-member_count", "-created")
+            .order_by("-created")
         )
         return list(
             filter(
@@ -532,8 +593,8 @@ class Query:
                     Prefetch("tasks", queryset=TaskModel.objects.filter(tasks_query)),
                 )
                 .filter(
-                    ModeratedObject.not_moderated_query(
-                        info.context.request.user, ModeratedObject.OBJECT_TYPE_COMMUNITY
+                    ModeratedObjectModel.not_moderated_query(
+                        info.context.request.user, ModeratedObjectModel.OBJECT_TYPE_COMMUNITY
                     )
                 )
                 .aget(query)
@@ -791,11 +852,6 @@ class Mutation:
         current_user = verify_authorized_user(info)
 
         input_dict = to_input_dict(input)
-
-        # identity can only be set once and can never change thereafter
-        has_identity = current_user.identity is not None
-        if has_identity:
-            input_dict["identity"] = "__ALREADY_SET__"  # This value will lead to a validation error to handle this
         if input.first_name:
             input_dict["name"] = input.first_name
 
@@ -812,7 +868,6 @@ class Mutation:
         current_user.update(
             name=data.get("name"),
             last_name=data.get("last_name"),
-            identity=data.get("identity"),
             about_me=data.get("about_me"),
             pronouns=data.get("pronouns"),
             location=data.get("location"),
@@ -826,28 +881,29 @@ class Mutation:
             remove_avatar=remove_avatar,
             save=True,
         )
-        # Update user cache
-        cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
 
         if input.first_name or input.last_name:
             update_ory_user_names(current_user.id)
             publish_user_name_updated_event(user=current_user)
 
-        # The identity must be synced to Ory, so it can be used by the matrix server
-        # If that fails, the identity is also removed from Okuna again (manual Rollback)
-        # This implementation ensures, that both Okuna and Ory don't already know this identity
-        if not has_identity and input.identity:
+        if not current_user.identity and input.identity:
+            current_user.register_identity(input.identity)
+
+            # The identity must be synced to Ory, so it can be used by the matrix server
+            # If that fails, the identity is also removed from Okuna again (manual Rollback)
+            # This implementation ensures, that both Okuna and Ory have consistent data
             try:
                 update_ory_user_identity(current_user.id)
             except OryRequestError as error:
-                current_user.identity = None
-                current_user.save()
-                cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
+                current_user.remove_identity()
                 if error.status_code == 409:
                     raise ValidationError({"identity": _("A user with that identity already exists.")})
                 else:
                     logger.error("Could not set identity for user %s. Ory response: %s", current_user.id, error.error)
                     raise ValidationError({"identity": _("The identity could not be set.")})
+
+        # Update user cache
+        cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
 
         return current_user
 
@@ -939,12 +995,20 @@ class Mutation:
                     return current_user.request_membership_to_community_with_name(space.name, message)
                 case (cT.MEMBERSHIP_REQUESTOR, a.DISCONNECT):
                     return current_user.revoke_membership_request_to_community_with_name(space.name)
+                case (cT.MEMBERSHIP_INVITEE, a.CONNECT):
+                    space = current_user.accept_membership_invite_to_community_for_username(space.name)
+                    publish_space_user_added_event(username=str(current_user.username), community=space)
+                    return space
+                case (cT.MEMBERSHIP_INVITEE, a.DISCONNECT):
+                    return current_user.reject_membership_invite_to_community_for_username(space.name)
                 case (cT.FOLLOWER, a.CONNECT):
                     return current_user.enable_new_post_notifications_for_community_with_name(space.name)
                 case (cT.FOLLOWER, a.DISCONNECT):
                     return current_user.disable_new_post_notifications_for_community_with_name(space.name)
                 case (cT.MEMBER | cT.ADMINISTRATOR, a.LEAVE_SPACE):
-                    return current_user.leave_community_with_name(space.name)
+                    community_to_leave = current_user.leave_community_with_name(space.name)
+                    publish_space_user_left_event(user=current_user, community=community_to_leave)
+                    return community_to_leave
                 case _:
                     raise GraphQLError("Operation not allowed", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
         else:
@@ -963,7 +1027,10 @@ class Mutation:
                         user_id, space.name
                     )
                 case (cT.ADMINISTRATOR, a.REMOVE_MEMBER):
-                    return current_user.remove_member_from_community(user_id, space.name)
+                    community = current_user.remove_member_from_community(user_id, space.name)
+                    user_to_remove = UserModel.objects.get(username=user_id)
+                    publish_space_user_removed_event(user=user_to_remove, community=community)
+                    return community
                 case _:
                     raise GraphQLError(
                         "Operation not allowed",
@@ -1195,12 +1262,15 @@ class Mutation:
     @sync_to_async
     def invite_to_space_by_email(self, info, email: str, space_id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
+        current_user_language = info.context.request.META.get("HTTP_ACCEPT_LANGUAGE")
 
         serializer = InviteToCommunityByEmailSerializer(data={"email": email, "space_id": space_id})
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        current_user.invite_to_community_by_email(email=data.get("email"), space_id=data.get("space_id"))
+        current_user.invite_to_community_by_email(
+            email=data.get("email"), space_id=data.get("space_id"), language=current_user_language
+        )
 
         return Result(success=True)
 

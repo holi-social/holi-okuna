@@ -1,6 +1,7 @@
 from django.contrib import admin
 from modeltranslation.admin import TranslationAdmin
 
+from openbook_common.forms import AppVersionForm
 from openbook_common.models import Emoji, EmojiGroup, Badge, ProxyBlacklistedDomain, AppVersion, FeatureToggle
 
 
@@ -32,8 +33,10 @@ class ProxyBlacklistDomainAdmin(admin.ModelAdmin):
 
 @admin.register(AppVersion)
 class AppVersionAdmin(admin.ModelAdmin):
+    form = AppVersionForm
     readonly_fields = ("created",)
-    list_display = ("version", "need_update", "app_store_url", "play_store_url", "created")
+    list_display = ("version", "build_number", "need_update", "app_store_url", "play_store_url", "created")
+    search_fields = ("version", "build_number")
 
 
 @admin.register(FeatureToggle)

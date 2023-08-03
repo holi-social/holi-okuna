@@ -5,14 +5,12 @@ from openbook_communities.events.events import (
     SpaceCreatedEvent,
     SpaceDeletedEvent,
     SpaceUserAddedEvent,
-    UserNameUpdatedEvent,
-)
-from openbook_communities.events.events import (
-    SpaceCreatedEvent,
-    SpaceUserAddedEvent,
+    SpaceUserLeftEvent,
+    SpaceUserRemovedEvent,
     UserDeletedEvent,
     UserNameUpdatedEvent,
 )
+
 from openbook_communities.events.payloads import SpacePayload, UserPayload
 from openbook_communities.events.topic import Topic as PubSubTopic
 from openbook_communities.models import Community
@@ -70,3 +68,23 @@ def publish_user_deleted_event(user: User):
         publish_event(event=event, topic=PubSubTopic.OKUNA.value)
     except Exception as e:
         logger.error(generate_publish_failure_message(UserDeletedEvent), str(e))
+
+
+def publish_space_user_left_event(user: User, community: Community):
+    try:
+        user = UserPayload.from_user(user)
+        space = SpacePayload.from_community(community)
+        event = SpaceUserLeftEvent(user, space)
+        publish_event(event=event, topic=PubSubTopic.OKUNA.value)
+    except Exception as e:
+        logger.error(generate_publish_failure_message(SpaceUserLeftEvent), str(e))
+
+
+def publish_space_user_removed_event(user: User, community: Community):
+    try:
+        user = UserPayload.from_user(user)
+        space = SpacePayload.from_community(community)
+        event = SpaceUserRemovedEvent(user, space)
+        publish_event(event=event, topic=PubSubTopic.OKUNA.value)
+    except Exception as e:
+        logger.error(generate_publish_failure_message(SpaceUserRemovedEvent), str(e))

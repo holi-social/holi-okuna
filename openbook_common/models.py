@@ -194,6 +194,10 @@ class LinkPreview(ModelWithUUID):
         og = {}
         try:
             response = requests.get(url=url)
+            if hasattr(response, "apparent_encoding") and response.apparent_encoding:
+                response.encoding = response.apparent_encoding
+            else:
+                response.encoding = "utf-8"  # Set to utf-8 by default if apparent_encoding is not found
             soup = BeautifulSoup(response.text, "html.parser")
             for m in soup.find_all("meta"):
                 meta_property = m.get("property", None)
@@ -223,7 +227,8 @@ class LinkPreview(ModelWithUUID):
 
 
 class AppVersion(ModelWithUUID):
-    version = models.CharField(max_length=16, unique=True, blank=False, null=False)
+    version = models.CharField(max_length=16, blank=False, null=False)
+    build_number = models.CharField(max_length=16, blank=True, null=True)
     need_update = models.CharField(
         max_length=12,
         choices=NeedUpdateType.choices,
@@ -234,6 +239,12 @@ class AppVersion(ModelWithUUID):
     created = models.DateTimeField(default=timezone.now, editable=False)
     app_store_url = models.CharField(max_length=100, default=settings.APPLE_APP_STORE_DEFAULT_URL)
     play_store_url = models.CharField(max_length=100, default=settings.GOOGLE_PLAY_STORE_DEFAULT_URL)
+
+    class Meta:
+        unique_together = (
+            "version",
+            "build_number",
+        )
 
 
 class FeatureToggle(ModelWithUUID):

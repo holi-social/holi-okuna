@@ -1,46 +1,39 @@
+import json
+import logging
 import uuid
 from enum import Enum
-from uuid import UUID
-import json
+from typing import List, Optional, TypeVar
 
 import strawberry
-from typing import List, TypeVar, Optional
-
 from asgiref.sync import sync_to_async
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from strawberry_django_plus import gql
-from django.db.models import QuerySet
 
-import logging
-from openbook_common.models import LinkPreview as LinkPreviewModel
+from openbook_auth.models import User as UserModel
+from openbook_auth.models import UserBlock as UserBlockModel
+from openbook_auth.models import UserConnectionStatus
 from openbook_common.models import AppVersion as AppVersionModel
-from openbook_common.types import ReactionType, GeolocationFeature, NeedUpdateType
-from openbook_common.utils.model_loaders import get_circle_model, get_community_model
-from openbook_communities.models import (
-    Community as CommunityModel,
-    Task as TaskModel,
-    CommunityMembership as CommunityMembershipModel,
-    ExternalLink as ExternalLinkModel,
-    ExternalLinkType,
-    VisibilityType,
-    CollaborationTool as CollaborationToolModel,
-    OnboardingStep as OnboardingStepModel,
-)
-from openbook_notifications.models import Notification as NotificationModel
-from openbook_posts.models import (
-    Post as PostModel,
-    PostComment as PostCommentModel,
-    PostImage as PostImageModel,
-    PostReaction as PostReactionModel,
-    PostCommentReaction as PostCommentReactionModel,
-)
-from openbook_terms.models import (
-    Topic as TopicModel,
-    SDG as SDGModel,
-    Skill as SkillModel,
-)
-from openbook_auth.models import User as UserModel, UserConnectionStatus, UserBlock
+from openbook_common.models import FeatureToggle as FeatureToggleModel
+from openbook_common.models import LinkPreview as LinkPreviewModel
+from openbook_common.types import GeolocationFeature, ReactionType
+from openbook_communities.models import CollaborationTool as CollaborationToolModel
+from openbook_communities.models import Community as CommunityModel
+from openbook_communities.models import CommunityMembership as CommunityMembershipModel
+from openbook_communities.models import ExternalLink as ExternalLinkModel
+from openbook_communities.models import ExternalLinkType
+from openbook_communities.models import OnboardingStep as OnboardingStepModel
+from openbook_communities.models import Task as TaskModel
+from openbook_communities.models import VisibilityType
 from openbook_insights.models import Insight as InsightModel
+from openbook_notifications.models import Notification as NotificationModel
+from openbook_posts.models import Post as PostModel
+from openbook_posts.models import PostComment as PostCommentModel
+from openbook_posts.models import PostCommentReaction as PostCommentReactionModel
+from openbook_posts.models import PostImage as PostImageModel
+from openbook_posts.models import PostReaction as PostReactionModel
+from openbook_terms.models import SDG as SDGModel
+from openbook_terms.models import Skill as SkillModel
+from openbook_terms.models import Topic as TopicModel
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +48,11 @@ class Paged(List[GenericType]):
     @staticmethod
     def of(query: QuerySet, offset: int, limit: int):
         return Paged(data=query[offset : offset + limit], total_results=query.count())
+
+    @staticmethod
+    async def aof(query: QuerySet, offset: int, limit: int):
+        total_results = await query.acount()
+        return sync_to_async(Paged)(data=query[offset : offset + limit], total_results=total_results)
 
     def __init__(self, data=None, total_results=0):
         if data is None:
@@ -118,6 +116,13 @@ class AppVersionResponse:
     )
 
 
+@gql.django.type(FeatureToggleModel)
+class FeatureToggle:
+    id: gql.auto
+    name: gql.auto
+    status: gql.auto
+
+
 # Custom scalars for GeoJSON containing geolocation geometries are necessary, as GraphQL schema parsing throws an error ("Decorated type deeper than introspection query") for 4-dimensional arrays (e.g. MultiPolygons)
 # See e.g. https://github.com/graphql/graphql-js/issues/2643
 GeoJSON = strawberry.scalar(
@@ -164,6 +169,7 @@ class NotificationType(Enum):
     CAPG = strawberry.enum_value("CAPG", description="COMMUNITY_ADMIN_PRIVILEGES_GRANTED")
     CAPR = strawberry.enum_value("CAPR", description="COMMUNITY_ADMIN_PRIVILEGES_REVOKED")
     CI = strawberry.enum_value("CI", description="COMMUNITY_INVITE")
+    CID = strawberry.enum_value("CID", description="COMMUNITY_INVITE_DECLINED")
     PUM = strawberry.enum_value("PUM", description="POST_USER_MENTION")
     PCUM = strawberry.enum_value("PCUM", description="POST_COMMENT_USER_MENTION")
     CNP = strawberry.enum_value("CNP", description="COMMUNITY_NEW_POST")
@@ -175,6 +181,7 @@ class NotificationType(Enum):
 class SpaceUserConnectionType(Enum):
     FOLLOWER = "FOLLOWER"
     MEMBERSHIP_REQUESTOR = "MEMBERSHIP_REQUESTOR"
+    MEMBERSHIP_INVITEE = "MEMBERSHIP_INVITEE"
     MEMBER = "MEMBER"
     CREATOR = "CREATOR"
     ADMINISTRATOR = "ADMINISTRATOR"
@@ -213,7 +220,7 @@ class ExternalLink:
 
 @gql.django.type(PostImageModel)
 class PostImage:
-    id: UUID
+    id: uuid.UUID
     width: int
     height: int
     url: str = gql.django.field(field_name="image")
@@ -435,7 +442,7 @@ class Post:
         return (
             PostCommentModel.objects.filter(post=self)
             .filter(PostCommentModel.is_visible_query(current_user))
-            .filter(UserBlock.not_blocked_query(current_user, "commenter"))
+            .filter(UserBlockModel.not_blocked_query(current_user, "commenter"))
             .order_by("created")
         )
 
@@ -446,7 +453,7 @@ class Post:
         return (
             PostCommentModel.objects.filter(post=self)
             .filter(PostCommentModel.is_visible_query(current_user))
-            .filter(UserBlock.not_blocked_query(current_user, "commenter"))
+            .filter(UserBlockModel.not_blocked_query(current_user, "commenter"))
             .count()
         )
 
@@ -559,6 +566,9 @@ class Space:
 
         if current_user.is_membership_requestor_of_community_with_name(self.name):
             roles.append(SpaceUserConnectionType.MEMBERSHIP_REQUESTOR)
+
+        if current_user.is_invited_to_community_with_name(self.name):
+            roles.append(SpaceUserConnectionType.MEMBERSHIP_INVITEE)
 
         if self.creator == current_user:
             roles.append(SpaceUserConnectionType.CREATOR)

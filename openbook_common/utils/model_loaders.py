@@ -81,6 +81,10 @@ def get_community_invite_model():
     return apps.get_model("openbook_communities.CommunityInvite")
 
 
+def get_community_pending_invite_model():
+    return apps.get_model("openbook_communities.CommunityPendingInvite")
+
+
 def get_community_log_model():
     return apps.get_model("openbook_communities.CommunityLog")
 
@@ -139,6 +143,10 @@ def get_community_membership_request_notification_model():
 
 def get_community_membership_revoked_notification_model():
     return apps.get_model("openbook_notifications.CommunityMembershipRevokedNotification")
+
+
+def get_community_invite_declined_notification_model():
+    return apps.get_model("openbook_notifications.CommunityInviteDeclinedNotification")
 
 
 def get_community_admin_privileges_granted_notification_model():

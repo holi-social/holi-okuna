@@ -17,8 +17,6 @@ def identity_characters_validator(identity):
     """
     Matrix only allows lowercase characters, numbers, '_', '-' and '.' in identifiers. And they have to start with a character.
     """
-    if identity == "__ALREADY_SET__":
-        raise ValidationError(_("Identity can not be changed."))
     if not re.match("^[a-z][a-z0-9_.-]*$", identity):
         raise ValidationError(
             _(

@@ -1,4 +1,5 @@
 import logging
+import random
 import re
 import secrets
 from datetime import datetime, timedelta
@@ -9,6 +10,7 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.gis.db import models
 from django.core.mail import EmailMultiAlternatives
+from django.db import IntegrityError, transaction
 from django.db.models import Q, F, Count, QuerySet
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -20,6 +22,7 @@ from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
 from strawberry_django_plus import gql
+from unidecode import unidecode
 
 from openbook_common.helpers import ExifRotate, generate_blurhash
 from openbook_auth.checkers import *
@@ -39,6 +42,7 @@ from openbook_common.utils.model_loaders import (
     get_follow_model,
     get_list_model,
     get_community_invite_model,
+    get_community_pending_invite_model,
     get_post_comment_notification_model,
     get_follow_notification_model,
     get_connection_confirmed_notification_model,
@@ -66,6 +70,7 @@ from openbook_common.utils.model_loaders import (
     get_community_membership_request_notification_model,
     get_community_membership_approved_notification_model,
     get_community_membership_revoked_notification_model,
+    get_community_invite_declined_notification_model,
     get_community_admin_privileges_granted_notification_model,
     get_community_admin_privileges_revoked_notification_model,
     get_community_notifications_subscription_model,
@@ -86,6 +91,7 @@ from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
 from openbook_posts.query_collections import get_posts_for_user_collection
 from openbook_terms.models import Topic, SDG, Skill
 from openbook_translation import translation_strategy
+from openbook.utils import DEFAULT_EMAIL_LANGUAGE, generate_hash, get_supported_language_for_email
 from enum import Enum
 
 logger = logging.getLogger(__name__)
@@ -310,7 +316,13 @@ class User(ModelWithUUID, AbstractUser):
             password=password,
             are_guidelines_accepted=are_guidelines_accepted,
         )
+
         user_profile = bootstrap_user_profile(name=name, user=new_user, avatar=avatar, is_of_legal_age=is_of_legal_age)
+
+        try:
+            new_user.send_pending_community_invites_to_new_user()
+        except:
+            pass  # don't block user creation on this error
 
         if badge:
             user_profile.badges.add(badge)
@@ -687,6 +699,41 @@ class User(ModelWithUUID, AbstractUser):
         self._send_password_reset_email_with_token(password_reset_token)
         return password_reset_token
 
+    @classmethod
+    def _is_valid_identity(cls, identity):
+        pattern = r"^[a-z][a-z0-9_.-]*$"
+        for i in settings.IDENTITY_NUMBERS_TO_AVOID:
+            pattern += f"(?<!{i})"
+        if re.match(pattern, identity):
+            return True
+        else:
+            return False
+
+    @classmethod
+    def unique_identity(cls, input_identity):
+        identity = unidecode(input_identity).strip().replace(" ", "_").lower()
+
+        identities_taken = set(cls.objects.filter(identity__startswith=identity).values_list("identity", flat=True))
+
+        count = 0
+        while identity in identities_taken:
+            count += 1
+            temp_identity = f'{input_identity.strip().replace(" ", "_").lower()}{count}'
+
+            if cls._is_valid_identity(temp_identity):
+                identity = temp_identity
+
+        return identity
+
+    def register_identity(self, identity):
+        if identity and not self.identity:
+            self.identity = self.unique_identity(identity)
+            self.save()
+
+    def remove_identity(self):
+        self.identity = None
+        self.save()
+
     def update(
         self,
         username=None,
@@ -710,15 +757,11 @@ class User(ModelWithUUID, AbstractUser):
         save=True,
         update_location=False,
         remove_avatar=False,
-        identity=None,
     ):
         profile = self.profile
 
         if username:
             self.update_username(username)
-
-        if identity and not self.identity:
-            self.identity = identity
 
         if url is not None:
             if len(url) == 0:
@@ -2120,6 +2163,46 @@ class User(ModelWithUUID, AbstractUser):
 
         return community_to_join
 
+    def accept_membership_invite_to_community_for_username(self, community_name) -> "Community":
+        check_is_invited_to_community_with_name(self, community_name)
+
+        Community = get_community_model()
+        community_to_join = Community.objects.get(name=community_name)
+
+        community_to_join.remove_invite(self)
+        community_to_join.add_member(self)
+        get_community_notifications_subscription_model().enable_new_post_notification_for_community(
+            community_to_join, self
+        )
+
+        self.notify_membership_approval(community_to_join, self)
+
+        return community_to_join
+
+    def reject_membership_invite_to_community_for_username(self, community_name) -> "Community":
+        check_is_invited_to_community_with_name(self, community_name)
+
+        Community = get_community_model()
+        community_to_join = Community.objects.get(name=community_name)
+
+        CommunityInvite = get_community_invite_model()
+        community_invite = CommunityInvite.objects.filter(
+            community__name=community_name, invited_user__username=self.username
+        )
+
+        # Check if inviting admin is still staff of community
+        inviting_admin = community_invite.first().creator
+        try:
+            check_is_staff_of_community_with_name(inviting_admin, community_name)
+        except:
+            inviting_admin = None
+
+        community_invite.delete()
+
+        self.notify_invite_declined(community_to_join, inviting_admin, self)
+
+        return community_to_join
+
     def notify_membership_approval(self, community_to_join, user_to_approve):
         CommunityMembershipApprovedNotification = get_community_membership_approved_notification_model()
         CommunityMembershipApprovedNotification.create_community_membership_approved_notification(
@@ -2135,6 +2218,16 @@ class User(ModelWithUUID, AbstractUser):
         CommunityMembershipRevokedNotification.create_community_membership_revoked_notification(
             community.id, user_to_remove.id
         )
+
+    def notify_invite_declined(self, community, staff_member, invitee):
+        CommunityInviteDeclinedNotification = get_community_invite_declined_notification_model()
+        CommunityInviteDeclinedNotification.create_community_invite_declined_notification(
+            invitee.id, community.id, invitee.id
+        )
+        if staff_member is not None:
+            CommunityInviteDeclinedNotification.create_community_invite_declined_notification(
+                staff_member.id, community.id, invitee.id
+            )
 
     def revoke_membership_request_to_community_for_username(self, username, community_name):
         check_is_staff_of_community_with_name(self, community_name)
@@ -2182,6 +2275,31 @@ class User(ModelWithUUID, AbstractUser):
         self.notify_membership_removal(community, user_to_remove)
 
         return community
+
+    def send_pending_community_invites_to_new_user(self):
+        community_pending_invites = self.get_pending_community_invites_for_email(email=self.email)
+        for community_pending_invite in community_pending_invites:
+            community_invite = community_pending_invite.community.create_invite(
+                creator=community_pending_invite.creator, invited_user=self
+            )
+            self._create_community_invite_notification(community_invite)
+            community_pending_invite.delete()
+
+        return community_pending_invites
+
+    def invite_user_to_community(self, user, community):
+        community_invite = community.create_invite(creator=self, invited_user=user)
+        self._create_community_invite_notification(community_invite)
+        return community_invite
+
+    def invite_email_to_community(self, email, community):
+        hash = generate_hash(str(email).lower())
+        return community.create_pending_invite(creator=self, invited_email_hash=hash)
+
+    def get_pending_community_invites_for_email(self, email):
+        CommunityPendingInvite = get_community_pending_invite_model()
+        invited_email_hash = generate_hash(str(email).lower())
+        return CommunityPendingInvite.objects.filter(invited_email_hash=invited_email_hash)
 
     def invite_user_with_username_to_community_with_name(self, username, community_name):
         check_can_invite_user_with_username_to_community_with_name(
@@ -4700,18 +4818,80 @@ class User(ModelWithUUID, AbstractUser):
                 Notification.objects.filter(owner=self, created__lte=last_seen_timestamp).update(read=True)
                 self.save()
 
-    # TODO: extend this method to use Okuna's Invitation model (HOLI-4982) and use a localized email template (HOLI-4913)
-    def invite_to_community_by_email(self, email, space_id):
+    @transaction.atomic
+    def invite_to_community_by_email(self, email, space_id, language="de"):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
 
         check_can_create_invite_to_community(user=self, community=community)
 
-        subject, from_email = "You've been invited to a space at holi", settings.DEFAULT_FROM_EMAIL
+        # check if a user with that email already exists
+        User = get_user_model()
 
-        text_content = f"{self.profile.name or 'A user'} has invited you to join the space {community.title} at holi!\nVisit https://app.holi.social/spaces/{community.name} to join this Space."
-        html_content = f"<p>{self.profile.name or 'A user'} has invited you to join the Space <strong>{community.title}</strong> at <a href=\"https://app.holi.social\">holi</a>!<br/><br/><a href=\"https://app.holi.social/spaces/{community.name}\">Join this Space here</a></p>"
-        msg = EmailMultiAlternatives(subject, text_content, from_email, [email])
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            user = None
+
+        # do not expose error messages in case user should not be invited (e.g. user is already member) in order to make it difficult to guess user emails
+        if not check_should_user_with_email_be_invited_to_community(user=user, email=email, community=community):
+            return None
+
+        if user is not None:
+            self.invite_user_to_community(user=user, community=community)
+        else:
+            self.invite_email_to_community(email=email, community=community)
+
+        try:
+            self.send_space_invite_email(invited_user=user, community=community, email=email, language=language)
+        except:
+            raise SystemError(_("Could not send email"))
+
+    def send_space_invite_email(self, invited_user, community, email, language):
+        email_language = get_supported_language_for_email(language)
+
+        if email_language is DEFAULT_EMAIL_LANGUAGE:
+            subject = "Du wurdest zu einem Space bei holi eingeladen"
+        else:
+            subject = "You've been invited to a space at holi"
+
+        from_email = settings.DEFAULT_FROM_EMAIL
+
+        app_url = settings.APP_URL
+
+        if self.profile.name is not None:
+            inviter_name = self.profile.name
+        elif email_language is DEFAULT_EMAIL_LANGUAGE:
+            inviter_name = "Jemand"
+        else:
+            inviter_name = "A Space collaborator"
+
+        if invited_user is None:
+            html_content = render_to_string(
+                f"openbook_invitations/email/new_user_invite_{email_language}.html",
+                {
+                    "invited_by_name": inviter_name,
+                    "space_name": community.title,
+                    "space_link": f"{app_url}/spaces/{community.name}",
+                    "registration_link": f"{app_url}/profile",
+                },
+            )
+        else:
+            if invited_user.profile.name is not None:
+                invited_user_name = f" {invited_user.profile.name}"  # add a space before user name to avoid unnamed user with an empty space between exclamation mark "Hello !"
+            else:
+                invited_user_name = ""
+            html_content = render_to_string(
+                f"openbook_invitations/email/user_invite_{email_language}.html",
+                {
+                    "invited_user_name": invited_user_name,
+                    "invited_by_name": inviter_name,
+                    "space_name": community.title,
+                    "space_link": f"{app_url}/spaces/{community.name}",
+                    "accept_link": f"{app_url}/notifications",
+                },
+            )
+        msg = EmailMultiAlternatives(subject, None, from_email, [email])
         msg.attach_alternative(html_content, "text/html")
         msg.send()
 

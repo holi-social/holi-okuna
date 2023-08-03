@@ -1,5 +1,4 @@
 from typing import Optional
-from unittest import IsolatedAsyncioTestCase
 
 from openbook.graphql_types import Post
 from openbook_auth.models import User
@@ -7,7 +6,7 @@ from openbook_communities.models import Community
 from openbook_notifications.models import Notification
 
 
-class TestAssertionsMixin(IsolatedAsyncioTestCase):
+class TestAssertionsMixin:
     def assertNotification(
         self,
         notification: Notification,
@@ -16,11 +15,11 @@ class TestAssertionsMixin(IsolatedAsyncioTestCase):
         space: Optional[Community] = None,
         post: Optional[Post] = None,
     ):
-        self.assertEquals(notification.notification_type, type)
+        assert notification.notification_type == type
         options = notification.get_options()
         if user:
-            self.assertEquals(options["user"], user)
+            assert options["user"] == user
         if space:
-            self.assertEquals(options["space"], space)
+            assert options["space"] == space
         if post:
-            self.assertEquals(options["post"], post)
+            assert options["post"] == post

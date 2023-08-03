@@ -5,6 +5,8 @@ from openbook_communities.events.events import (
     SpaceCreatedEvent,
     SpaceDeletedEvent,
     SpaceUserAddedEvent,
+    SpaceUserLeftEvent,
+    SpaceUserRemovedEvent,
     UserDeletedEvent,
     UserNameUpdatedEvent,
 )
@@ -108,5 +110,47 @@ class UserDeletedEventTestCase(testcases.TestCase):
         event_dict = event.to_dict()
 
         eventPayload = {"eventType": "UserDeleted", "eventVersion": "1.0.0", "data": encoded_data}
+
+        self.assertEqual(eventPayload, event_dict)
+
+
+class SpaceUserLeftEventTestCase(testcases.TestCase):
+    def test_should_create_space_user_left_event(self):
+        user = make_user()
+        community = make_community()
+
+        user = UserPayload.from_user(user)
+        space = SpacePayload.from_community(community)
+
+        data = {"user": user.to_dict(), "space": space.to_dict()}
+
+        encoded_data = json.dumps(data).encode("utf-8")
+
+        event = SpaceUserLeftEvent(user, space)
+
+        event_dict = event.to_dict()
+
+        eventPayload = {"eventType": "SpaceUserLeft", "eventVersion": "1.0.0", "data": encoded_data}
+
+        self.assertEqual(eventPayload, event_dict)
+
+
+class SpaceUserRemovedEventTestCase(testcases.TestCase):
+    def test_should_create_space_user_removed_event(self):
+        user = make_user()
+        community = make_community()
+
+        user = UserPayload.from_user(user)
+        space = SpacePayload.from_community(community)
+
+        data = {"user": user.to_dict(), "space": space.to_dict()}
+
+        encoded_data = json.dumps(data).encode("utf-8")
+
+        event = SpaceUserRemovedEvent(user, space)
+
+        event_dict = event.to_dict()
+
+        eventPayload = {"eventType": "SpaceUserRemoved", "eventVersion": "1.0.0", "data": encoded_data}
 
         self.assertEqual(eventPayload, event_dict)

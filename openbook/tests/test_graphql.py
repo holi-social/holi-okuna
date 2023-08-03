@@ -1,6 +1,7 @@
 import copy
 import json
 import logging
+import random
 
 import pytest
 from asgiref.sync import sync_to_async, async_to_sync
@@ -29,7 +30,7 @@ from openbook.graphql_schema import (
 from openbook.graphql_types import VisibilityFilter
 from openbook_auth.models import User, UserConnectionStatus, EngagementLevelChoice
 from openbook_common.helpers import generate_blurhash
-from openbook_common.models import AppVersion
+from openbook_common.models import AppVersion, FeatureToggle
 from openbook_common.tests.helpers import (
     get_test_images,
     get_test_videos,
@@ -52,7 +53,7 @@ from openbook_common.utils.model_loaders import (
     get_community_membership_revoked_notification_model,
 )
 from openbook_communities.models import Community, CommunityNotificationsSubscription, CommunityMembership
-from openbook_common.types import VisibilityType, NeedUpdateType
+from openbook_common.types import VisibilityType, NeedUpdateType, FeatureToggleType
 from openbook_insights.models import Insight
 from openbook_moderation.models import ModeratedObject
 from django.core.management import call_command
@@ -78,7 +79,7 @@ def django_db_setup(django_db_setup, django_db_blocker):
 class TestUsers:
     @pytest.mark.asyncio
     async def test_get_authenticated_user_returns_self_reference(self, client):
-        user = await sync_to_async(make_user)()
+        user = await sync_to_async(make_user)(name="John", last_name="Holi")
         headers = await sync_to_async(make_authentication_headers_for_user)(user)
         endpoint = reverse("graphql-endpoint")
         graphql_query = """
@@ -115,7 +116,7 @@ class TestUsers:
         executed = async_to_sync(schema.execute)(
             """
             query {
-                userByName(substring: "er M") {
+                userByName(substring: "ter M") {
                     totalResults
                     data {
                         firstName
@@ -155,6 +156,60 @@ class TestUsers:
         assert executed.data["userByName"]["data"][0]["firstName"] == "Peter"
         assert executed.data["userByName"]["data"][1]["firstName"] == "Petra"
         assert executed.data["userByName"]["data"][2]["firstName"] == "Thomas"
+
+    def test_get_users_by_chat_identities_success(self):
+        user = make_user()
+        chat_users = [make_user(identity=f"identity_{i}") for i in range(5)]
+
+        user.block_user_with_id(chat_users[0].id)
+        chat_users[1].block_user_with_id(user.id)
+
+        response = self.get_users_by_chat_identities(user, [chat_user.identity for chat_user in chat_users])
+
+        assert response.errors is None
+        assert response.data is not None
+
+        users_by_chat_identities = response.data["usersByChatIdentities"]
+        assert users_by_chat_identities["totalResults"] == 3
+
+        response_chat_user_ids = [user["id"] for user in users_by_chat_identities["data"]]
+        assert str(chat_users[0].id) not in response_chat_user_ids
+        assert str(chat_users[1].id) not in response_chat_user_ids
+        assert str(chat_users[2].id) in response_chat_user_ids
+        assert str(chat_users[3].id) in response_chat_user_ids
+        assert str(chat_users[4].id) in response_chat_user_ids
+
+    def test_get_users_by_chat_identities_error_user_not_logged_in(self):
+        chat_users = [make_user(identity=f"identity_{i}") for i in range(5)]
+
+        response = self.get_users_by_chat_identities(AnonymousUser, [chat_user.identity for chat_user in chat_users])
+
+        print(response.errors)
+        assert response.errors is not None
+        assert response.data is None
+
+    def get_users_by_chat_identities(self, user: User, identities: List[str]):
+        response = async_to_sync(schema.execute)(
+            """
+            query($identities: [String!]!) {
+                usersByChatIdentities(identities: $identities) {
+                    totalResults
+                    data {
+                        id
+                        firstName
+                        lastName
+                        avatar
+                    }
+                }
+            }
+            """,
+            variable_values={
+                "identities": identities,
+            },
+            context_value=benedict({"request": {"user": user}}),
+        )
+
+        return response
 
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("openbook.graphql_schema.publish_user_name_updated_event")
@@ -232,24 +287,26 @@ class TestUsers:
         mock_publish_user_name_updated_event.assert_called_once_with(user=user)
 
     @mock.patch("openbook_auth.tasks.requests.patch")
-    def test_can_set_identity_for_authenticated_user_once(self, mock_patch):
-        response = Response()
-        response.status_code = 200
-        response._content = str.encode(json.dumps({}))
-        mock_patch.return_value = response
+    def test_api_registers_identity_for_a_user(self, ory_patch_mock):
+        ory_update_response_stub = Response()
+        ory_update_response_stub.status_code = 200
+        ory_update_response_stub._content = str.encode(json.dumps({}))
+        ory_patch_mock.return_value = ory_update_response_stub
+
         user = make_user(name="Fritz", last_name="Meier")
         identity = "fritz.meier"
 
-        json_body = [
+        executed = self.api_update_authenticated_user(user, identity)
+
+        expected_json_body = [
             {"op": "add", "path": "/traits/identity", "value": f"{identity}"},
         ]
-
-        executed = self.update_identity(user, identity)
-        mock_patch.assert_called_once_with(
+        ory_patch_mock.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
-            json=json_body,
+            json=expected_json_body,
         )
+
         updated_user = executed.data["updateAuthenticatedUser"]
         graphql_identity = updated_user["identity"]
         persisted_user = User.objects.get(username=user.username)
@@ -257,52 +314,68 @@ class TestUsers:
         assert graphql_identity == identity
         assert persisted_user.identity == identity
 
-        executed = self.update_identity(user, "new-identity")
-        assert executed.errors[0].extensions["code"] == "BAD_USER_INPUT"
-        assert "Identity can not be changed" in executed.errors[0].extensions["errors"]
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    def test_api_registers_conflicting_identity_for_a_user(self, ory_patch_mock):
+        ory_update_response_stub = Response()
+        ory_update_response_stub.status_code = 200
+        ory_update_response_stub._content = str.encode(json.dumps({}))
+        ory_patch_mock.return_value = ory_update_response_stub
+
+        make_user(name="Fritz", last_name="Meier", identity="fritz")
+        new_fritz = make_user(name="Fritz", last_name="Meier")
+
+        result = self.api_update_authenticated_user(new_fritz, "fritz")
+
+        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz1"
+
+        expected_json_body = [{"op": "add", "path": "/traits/identity", "value": "fritz1"}]
+        ory_patch_mock.assert_called_once_with(
+            f"{settings.ORY_BASE_URL}/admin/identities/{new_fritz.username}",
+            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+            json=expected_json_body,
+        )
 
     @mock.patch("openbook_auth.tasks.requests.patch")
-    def test_when_ory_identity_fails_okuna_is_reset(self, mock_patch):
-        response = Response()
-        response.status_code = 409
-        response._content = str.encode(json.dumps({"error": {"message": "Error Message"}}))
-        mock_patch.return_value = response
+    def test_api_errors_for_registration_of_new_identity_known_to_ory(self, ory_patch_mock):
+        ory_update_conflict_response_stub = Response()
+        ory_update_conflict_response_stub.status_code = 409
+        ory_update_conflict_response_stub._content = str.encode(json.dumps({"error": {"message": "Error Message"}}))
+        ory_patch_mock.return_value = ory_update_conflict_response_stub
+
         user = make_user(name="Fritz", last_name="Meier")
-        identity = "fritz.meier"
 
-        json_body = [
-            {"op": "add", "path": "/traits/identity", "value": f"{identity}"},
+        result = self.api_update_authenticated_user(user, "fritz")
+
+        expected_json_body = [
+            {"op": "add", "path": "/traits/identity", "value": "fritz"},
         ]
-
-        executed = self.update_identity(user, identity)
-        mock_patch.assert_called_once_with(
+        ory_patch_mock.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
-            json=json_body,
+            json=expected_json_body,
         )
+
         persisted_user = User.objects.get(username=user.username)
         assert persisted_user.identity is None
-        assert executed.errors[0].extensions["code"] == "BAD_USER_INPUT"
-        assert "A user with that identity already exists" in executed.errors[0].extensions["errors"]
+
+        assert result.errors[0].extensions["code"] == "BAD_USER_INPUT"
+        assert "A user with that identity already exists" in result.errors[0].extensions["errors"]
 
     @mock.patch("openbook_auth.tasks.requests.patch")
-    def test_identity_must_be_unique(self, mock_patch):
-        response = Response()
-        response.status_code = 409
-        response._content = str.encode(json.dumps({"error": {"message": "Error Message"}}))
-        mock_patch.return_value = response
-        identity = "fritz.meier"
-        user = make_user(name="Fritz", last_name="Meier", identity=identity)
-        user2 = make_user(name="Fritz", last_name="Meier")
+    def test_api_ignores_identity_in_update_for_user_with_existing_identity(self, ory_patch_mock):
+        user = make_user(name="Fritz", last_name="Meier", identity="fritz1")
 
-        executed = self.update_identity(user2, identity)
-        mock_patch.assert_not_called()
-        persisted_user = User.objects.get(username=user2.username)
-        assert persisted_user.identity is None
-        assert executed.errors[0].extensions["code"] == "BAD_USER_INPUT"
-        assert "A user with that identity already exists" in executed.errors[0].extensions["errors"]
+        result = self.api_update_authenticated_user(user, "fritz")
 
-    def update_identity(self, user, identity):
+        ory_patch_mock.assert_not_called()
+
+        persisted_user = User.objects.get(username=user.username)
+        assert persisted_user.identity == "fritz1"
+
+        assert result.data
+        assert result.errors is None
+
+    def api_update_authenticated_user(self, user, identity):
         executed = async_to_sync(schema.execute)(
             """
             mutation test($input: UpdateAuthenticatedUserInput!) {
@@ -1794,25 +1867,6 @@ class TestUsers:
             list(map(transform_space, [space2])),
         )
 
-    def test_sort_spaces_by_member_count(self):
-        space1 = make_community()
-        space2 = make_community()
-        member = make_user()
-        space1.add_member(member)
-
-        filter_query = """
-            query {
-                spaces {
-                    data {
-                        id
-                    }
-                }
-            }
-        """
-        response = async_to_sync(schema.execute)(filter_query).data["spaces"]["data"]
-        assert response[0]["id"] == str(space1.id)
-        assert response[1]["id"] == str(space2.id)
-
     def test_my_spaces(self):
         creator1 = make_user()
         creator2 = make_user()
@@ -2278,7 +2332,164 @@ class TestUsers:
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
-    def test_space_member_leaves_community_success(self):
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    @mock.patch("openbook.graphql_schema.publish_space_user_added_event")
+    def test_space_invite_approval_process(
+        self, mock_publish_space_user_added_event, mock_invalidate_discover_spaces_query_cache
+    ):
+        invitee_email = "test@test.com"
+        invitee = make_user(email=invitee_email)
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+        mock_publish_space_user_added_event.return_value = None
+
+        def member_result(user, is_admin):
+            return {
+                "user": {"id": user.username},
+                "isAdministrator": is_admin,
+            }
+
+        # Preconditions
+        pre_join_space = self.get_space_for_user(invitee, space)
+        assert pre_join_space["connectionStatusToMyself"] == []
+        self.assert_paged_results_equal(pre_join_space["members"], [member_result(space_creator, is_admin=True)])
+
+        data = self.get_notifications(invitee)
+        assert data["totalResults"] == 0
+        data = self.get_notifications(space_creator)
+        assert data["totalResults"] == 0
+
+        # Send Invite Request
+        self.mutate_invite_user_by_email(
+            auth_user=space_creator,
+            email=invitee_email,
+            space_id=space.id,
+        )
+
+        # Invitee received Invite notification
+        invite_received_notification = self.get_notifications(invitee)["data"][0]
+        assert invite_received_notification["notificationType"] == "CI"
+        assert invite_received_notification["options"]["space"]["title"] == space.title
+        assert invite_received_notification["options"]["user"]["fullName"] == space_creator.profile.full_name()
+
+        # Invited user has invitee status
+        assert self.get_space_for_user(invitee, space)["connectionStatusToMyself"] == [
+            SpaceUserConnectionType.MEMBERSHIP_INVITEE.value
+        ]
+
+        # Accept Invite
+        space_after_approval = self.mutate_update_space_user_connection_data(
+            auth_user=invitee,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+
+        self.assert_paged_results_equal(
+            space_after_approval["members"],
+            [member_result(space_creator, is_admin=True), member_result(invitee, is_admin=False)],
+        )
+
+        # User has correct connection status
+        assert self.get_space_for_user(invitee, space)["connectionStatusToMyself"] == [
+            SpaceUserConnectionType.FOLLOWER.value,
+            SpaceUserConnectionType.MEMBER.value,
+        ]
+
+        # User has approval notification
+        invitee_notifications = self.get_notifications(invitee)
+        assert invitee_notifications["totalResults"] == 1
+        assert invitee_notifications["data"][0]["notificationType"] == "CMRA"
+
+        # Staff has approval notification
+        staff_notifications = self.get_notifications(space_creator)
+        assert staff_notifications["totalResults"] == 1
+        assert staff_notifications["data"][0]["notificationType"] == "CMRA"
+        assert staff_notifications["data"][0]["options"]["space"]["title"] == space.title
+        assert staff_notifications["data"][0]["options"]["user"]["fullName"] == invitee.profile.full_name()
+
+        # User added event was sent
+        mock_publish_space_user_added_event.assert_called_once_with(username=invitee.username, community=space)
+
+        mock_invalidate_discover_spaces_query_cache.assert_called()
+
+    @mock.patch("openbook.graphql_schema.invalidate_discover_spaces_query_cache")
+    @mock.patch("openbook.graphql_schema.publish_space_user_added_event")
+    def test_space_invite_rejection_process(
+        self, mock_publish_space_user_added_event, mock_invalidate_discover_spaces_query_cache
+    ):
+        invitee_email = "test@test.com"
+        invitee = make_user(email=invitee_email)
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+        mock_publish_space_user_added_event.return_value = None
+
+        def member_result(user, is_admin):
+            return {
+                "user": {"id": user.username},
+                "isAdministrator": is_admin,
+            }
+
+        # Preconditions
+        pre_join_space = self.get_space_for_user(invitee, space)
+        assert pre_join_space["connectionStatusToMyself"] == []
+        self.assert_paged_results_equal(pre_join_space["members"], [member_result(space_creator, is_admin=True)])
+
+        data = self.get_notifications(invitee)
+        assert data["totalResults"] == 0
+        data = self.get_notifications(space_creator)
+        assert data["totalResults"] == 0
+
+        # Send Invite Request
+        self.mutate_invite_user_by_email(
+            auth_user=space_creator,
+            email=invitee_email,
+            space_id=space.id,
+        )
+
+        # Invitee received Invite notification
+        invite_received_notification = self.get_notifications(invitee)["data"][0]
+        assert invite_received_notification["notificationType"] == "CI"
+        assert invite_received_notification["options"]["space"]["title"] == space.title
+        assert invite_received_notification["options"]["user"]["fullName"] == space_creator.profile.full_name()
+
+        # Invited user has invitee status
+        assert self.get_space_for_user(invitee, space)["connectionStatusToMyself"] == [
+            SpaceUserConnectionType.MEMBERSHIP_INVITEE.value
+        ]
+
+        # Decline invite
+        space_after_approval = self.mutate_update_space_user_connection_data(
+            auth_user=invitee,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+            connect_action=UpdateConnectionAction.DISCONNECT,
+        )
+
+        self.assert_paged_results_equal(
+            space_after_approval["members"],
+            [member_result(space_creator, is_admin=True)],
+        )
+
+        # User has no connection status
+        assert self.get_space_for_user(invitee, space)["connectionStatusToMyself"] == []
+
+        # User has notification that they declined their invitation
+        invitee_notifications = self.get_notifications(invitee)
+        assert invitee_notifications["totalResults"] == 1
+        assert invitee_notifications["data"][0]["notificationType"] == "CID"
+
+        # Staff has notification that the invitee declined their invitation
+        staff_notifications = self.get_notifications(space_creator)
+        assert staff_notifications["totalResults"] == 1
+        assert staff_notifications["data"][0]["notificationType"] == "CID"
+        assert staff_notifications["data"][0]["options"]["space"]["title"] == space.title
+        assert staff_notifications["data"][0]["options"]["user"]["fullName"] == invitee.profile.full_name()
+
+        mock_invalidate_discover_spaces_query_cache.assert_called()
+
+    @mock.patch("openbook.graphql_schema.publish_space_user_left_event")
+    def test_space_member_leaves_community_success(self, mock_publish_space_user_left_event):
         member_user = make_user()
         space_creator = make_user()
 
@@ -2303,8 +2514,10 @@ class TestUsers:
         assert len(memberships) == 1
         assert member_user not in memberships
         assert not CommunityNotificationsSubscription.objects.filter(community=space, subscriber=member_user).exists()
+        mock_publish_space_user_left_event.assert_called_once_with(user=member_user, community=space)
 
-    def test_space_admin_leaves_community_success(self):
+    @mock.patch("openbook.graphql_schema.publish_space_user_left_event")
+    def test_space_admin_leaves_community_success(self, mock_publish_space_user_left_event):
         space_creator = make_user()
         member_user_admin = make_user()
 
@@ -2333,7 +2546,10 @@ class TestUsers:
             community=space, subscriber=space_creator
         ).exists()
 
-    def test_space_member_leaves_community_error_only_member(self):
+        mock_publish_space_user_left_event.assert_called_once_with(user=space_creator, community=space)
+
+    @mock.patch("openbook.graphql_schema.publish_space_user_left_event")
+    def test_space_member_leaves_community_error_only_member(self, mock_publish_space_user_left_event):
         space_creator = make_user()
 
         space = make_community(creator=space_creator)
@@ -2359,7 +2575,10 @@ class TestUsers:
         assert len(memberships) == 1
         assert CommunityNotificationsSubscription.objects.filter(community=space, subscriber=space_creator).exists()
 
-    def test_space_admin_leaves_community_error_only_admin(self):
+        mock_publish_space_user_left_event.assert_not_called()
+
+    @mock.patch("openbook.graphql_schema.publish_space_user_left_event")
+    def test_space_admin_leaves_community_error_only_admin(self, mock_publish_space_user_left_event):
         space_creator = make_user()
         member_user_admin = make_user()
 
@@ -2388,7 +2607,10 @@ class TestUsers:
 
         assert CommunityNotificationsSubscription.objects.filter(community=space, subscriber=space_creator).exists()
 
-    def test_remove_member_from_community_success(self):
+        mock_publish_space_user_left_event.assert_not_called()
+
+    @mock.patch("openbook.graphql_schema.publish_space_user_removed_event")
+    def test_remove_member_from_community_success(self, mock_publish_space_user_removed_event):
         space_creator = make_user()
         member_user = make_user()
 
@@ -2424,7 +2646,10 @@ class TestUsers:
         assert notification.community == space
         assert notification.notification.first().notification_type == "CMRE"
 
-    def test_remove_member_from_community_error_only_admin(self):
+        mock_publish_space_user_removed_event.assert_called_once_with(user=member_user, community=space)
+
+    @mock.patch("openbook.graphql_schema.publish_space_user_removed_event")
+    def test_remove_member_from_community_error_only_admin(self, mock_publish_space_user_removed_event):
         space_creator = make_user()
         member_user = make_user()
         request_user = make_user()
@@ -2462,6 +2687,8 @@ class TestUsers:
             revoked_user=member_user
         )
         assert len(community_membership_revoked_notifications) == 0
+
+        mock_publish_space_user_removed_event.assert_not_called()
 
     def test_space_with_posts(self):
         user_member = make_user()
@@ -2957,6 +3184,29 @@ class TestUsers:
             }}
             """,
             context_value=benedict({"request": {"user": user or AnonymousUser}}),
+        )
+
+    def mutate_invite_user_by_email(
+        self,
+        auth_user: User,
+        space_id: UUID,
+        email: str,
+    ):
+        return async_to_sync(schema.execute)(
+            """
+            mutation InviteToSpaceByEmail($email: String!, $spaceId: UUID!) {
+                inviteToSpaceByEmail(email: $email, spaceId: $spaceId) {
+                    success
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": auth_user, "META": {"HTTP_ACCEPT_LANGUAGE": "de"}}}),
+            variable_values=benedict(
+                {
+                    "email": email,
+                    "spaceId": str(space_id),
+                }
+            ),
         )
 
     def mutate_update_space_user_connection_raw(
@@ -4463,7 +4713,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
             variable_values=valid_input,
-            context_value=benedict({"request": {"user": AnonymousUser}}),
+            context_value=benedict({"request": {"user": AnonymousUser, "META": {"HTTP_ACCEPT_LANGUAGE": "de"}}}),
         )
 
         self.assert_is_unauthorized(response)
@@ -4489,7 +4739,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
             variable_values=valid_input,
-            context_value=benedict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user, "META": {"HTTP_ACCEPT_LANGUAGE": "de"}}}),
         )
 
         field_errors = json.loads(response.errors[0].extensions["errors"])
@@ -4510,13 +4760,13 @@ class TestUsers:
 
         response_no_email = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
-            context_value=benedict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user, "META": {"HTTP_ACCEPT_LANGUAGE": "de"}}}),
             variable_values={"spaceId": str(community.id)},
         )
 
         response_no_space_id = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
-            context_value=benedict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": user, "META": {"HTTP_ACCEPT_LANGUAGE": "de"}}}),
             variable_values={"email": "test@test.com"},
         )
 
@@ -4527,10 +4777,12 @@ class TestUsers:
             response_no_space_id.errors[0].message
         )
 
-    def test_can_invite_to_space_by_email(self):
-        user = make_user()
+    def test_can_invite_user_to_space_by_email(self):
+        community_creator = make_user()
+        invite_email = "test@test.com"
+        invited_user = make_user(email=invite_email)
 
-        community = make_community(creator=user)
+        community = make_community(creator=community_creator)
 
         invite_to_space_by_email_mutation = """
             mutation InviteToSpaceByEmail($email: String!, $spaceId: UUID!) {
@@ -4541,18 +4793,25 @@ class TestUsers:
             """
 
         valid_input = {
-            "email": "joao.ramia@gmail.com",
+            "email": invite_email,
             "spaceId": str(community.id),
         }
 
         response = async_to_sync(schema.execute)(
             invite_to_space_by_email_mutation,
             variable_values=valid_input,
-            context_value=benedict({"request": {"user": user}}),
+            context_value=benedict({"request": {"user": community_creator, "META": {"HTTP_ACCEPT_LANGUAGE": "de"}}}),
         )
 
         assert response.data["inviteToSpaceByEmail"]["success"] is True
         assert response.errors is None
+
+        invited_user_notifications_response = self.get_notifications(invited_user)
+        assert invited_user_notifications_response["totalResults"] >= 1
+        notifications = invited_user_notifications_response["data"]
+        community_invite_notification = next(n for n in notifications if n["notificationType"] == "CI")
+        assert community_invite_notification["owner"]["fullName"] == invited_user.profile.full_name()
+        assert community_invite_notification["options"]["user"]["fullName"] == community_creator.profile.full_name()
 
     def test_can_not_create_task_missing_required_fields(self):
         user = make_user()
@@ -5664,9 +5923,20 @@ class TestUsers:
 
     def test_check_app_version(self):
         app_version = AppVersion.objects.create(version="2023.5.1000", need_update=NeedUpdateType.MANDATORY)
+        app_version_2 = AppVersion.objects.create(
+            version="2023.5.1000", build_number="1000", need_update=NeedUpdateType.RECOMMENDED
+        )
 
-        # Check success
+        # Check success with existing build_number
         response = self.check_app_version(version="2023.5.1000", build_number="1000")
+        assert response.errors is None
+        assert response.data is not None
+        assert response.data["checkAppVersion"]["needUpdate"] == app_version_2.need_update
+        assert response.data["checkAppVersion"]["appStoreUrl"] == settings.APPLE_APP_STORE_DEFAULT_URL
+        assert response.data["checkAppVersion"]["playStoreUrl"] == settings.GOOGLE_PLAY_STORE_DEFAULT_URL
+
+        # Check success with not existing build_number
+        response = self.check_app_version(version="2023.5.1000", build_number="1001")
         assert response.errors is None
         assert response.data is not None
         assert response.data["checkAppVersion"]["needUpdate"] == app_version.need_update
@@ -5692,6 +5962,33 @@ class TestUsers:
             """,
         )
         return response
+
+    def test_feature_toggles(self):
+        feature_toggles = [
+            FeatureToggle.objects.create(name="TOGGLE_1_PRODUCTION", status=FeatureToggleType.PRODUCTION),
+            FeatureToggle.objects.create(name="TOGGLE_2_PRODUCTION", status=FeatureToggleType.PRODUCTION),
+            FeatureToggle.objects.create(name="TOGGLE_3_OFF", status=FeatureToggleType.OFF),
+            FeatureToggle.objects.create(name="TOGGLE_4_PREVIEW", status=FeatureToggleType.PREVIEW),
+            FeatureToggle.objects.create(name="TOGGLE_5_MAINTENANCE", status=FeatureToggleType.MAINTENANCE),
+        ]
+
+        response = async_to_sync(schema.execute)(
+            f"""
+            query {{
+                featureToggles {{
+                    id
+                    name
+                    status
+                }}
+            }}
+            """,
+        )
+        assert response.errors is None
+        assert response.data is not None
+        assert len(response.data["featureToggles"]) == len(feature_toggles)
+        assert response.data["featureToggles"][0]["id"] == str(feature_toggles[0].id)
+        assert response.data["featureToggles"][0]["name"] == feature_toggles[0].name
+        assert response.data["featureToggles"][0]["status"] == feature_toggles[0].status
 
 
 def approve_verify_moderated_object(object_id, user):

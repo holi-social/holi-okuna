@@ -10,6 +10,8 @@ class EventType(Enum):
     USER_NAME_UPDATED = "UserNameUpdated"
     SPACE_DELETED = "SpaceDeleted"
     USER_DELETED = "UserDeleted"
+    SPACE_USER_LEFT = "SpaceUserLeft"
+    SPACE_USER_REMOVED = "SpaceUserRemoved"
 
 
 class SpaceCreatedEvent(Event):
@@ -64,4 +66,26 @@ class UserDeletedEvent(Event):
             data={"user": user.to_dict()},
             event_type=EventType.USER_DELETED.value,
             event_version=UserDeletedEvent.EVENT_VERSION,
+        )
+
+
+class SpaceUserLeftEvent(Event):
+    EVENT_VERSION = "1.0.0"
+
+    def __init__(self, user: UserPayload, space: SpacePayload):
+        super().__init__(
+            data={"user": user.to_dict(), "space": space.to_dict()},
+            event_type=EventType.SPACE_USER_LEFT.value,
+            event_version=SpaceUserLeftEvent.EVENT_VERSION,
+        )
+
+
+class SpaceUserRemovedEvent(Event):
+    EVENT_VERSION = "1.0.0"
+
+    def __init__(self, user: UserPayload, space: SpacePayload):
+        super().__init__(
+            data={"user": user.to_dict(), "space": space.to_dict()},
+            event_type=EventType.SPACE_USER_REMOVED.value,
+            event_version=SpaceUserRemovedEvent.EVENT_VERSION,
         )

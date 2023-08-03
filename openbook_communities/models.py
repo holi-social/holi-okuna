@@ -24,6 +24,7 @@ from openbook_common.types import VisibilityType
 from openbook_common.utils.helpers import delete_file_field, extract_and_capitalize_domain_name
 from openbook_common.utils.model_loaders import (
     get_community_invite_model,
+    get_community_pending_invite_model,
     get_community_log_model,
     get_category_model,
     get_sdg_model,
@@ -606,6 +607,9 @@ class Community(ModelWithUUID):
     def remove_membership_request(self, user):
         CommunityMembershipRequest.delete_membership_request(self, user)
 
+    def remove_invite(self, user):
+        CommunityInvite.delete_community_invite(user_name=user.username, community_name=self.name)
+
     def add_moderator(self, user):
         user_membership = self.memberships.get(user=user)
         user_membership.is_moderator = True
@@ -672,6 +676,12 @@ class Community(ModelWithUUID):
     def create_invite(self, creator, invited_user):
         CommunityInvite = get_community_invite_model()
         return CommunityInvite.create_community_invite(creator=creator, invited_user=invited_user, community=self)
+
+    def create_pending_invite(self, creator, invited_email_hash):
+        CommunityPendingInvite = get_community_pending_invite_model()
+        return CommunityPendingInvite.create_community_pending_invite(
+            creator=creator, invited_email_hash=invited_email_hash, community=self
+        )
 
     def create_user_ban_log(self, source_user, target_user):
         return self._create_log(action_type="B", source_user=source_user, target_user=target_user)
@@ -967,6 +977,38 @@ class CommunityMembershipRequest(ModelWithUUID):
         cls.objects.filter(community=community, user=user).delete()
 
 
+class CommunityPendingInvite(ModelWithUUID):
+    creator = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="created_communities_pending_invites",
+        null=False,
+        blank=False,
+    )
+    invited_email_hash = models.TextField(
+        blank=False,
+        null=False,
+    )
+    community = models.ForeignKey(
+        Community,
+        on_delete=models.CASCADE,
+        related_name="pending_invites",
+        null=False,
+        blank=False,
+    )
+
+    class Meta:
+        unique_together = (("invited_email_hash", "community"),)
+
+    @classmethod
+    def create_community_pending_invite(cls, creator, invited_email_hash, community):
+        return cls.objects.create(creator=creator, invited_email_hash=invited_email_hash, community=community)
+
+    @classmethod
+    def is_email_invited_to_community(cls, invited_email_hash, community):
+        return cls.objects.filter(community__name=community.name, invited_email_hash=invited_email_hash).exists()
+
+
 class CommunityInvite(ModelWithUUID):
     creator = models.ForeignKey(
         User,
@@ -996,6 +1038,10 @@ class CommunityInvite(ModelWithUUID):
     @classmethod
     def create_community_invite(cls, creator, invited_user, community):
         return cls.objects.create(creator=creator, invited_user=invited_user, community=community)
+
+    @classmethod
+    def delete_community_invite(cls, user_name, community_name):
+        return cls.objects.filter(community__name=community_name, invited_user__username=user_name).delete()
 
     @classmethod
     def is_user_with_username_invited_to_community_with_name(cls, username, community_name):

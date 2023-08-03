@@ -47,6 +47,10 @@ IS_STAGING = environment_checker.is_staging()
 IS_BUILD = environment_checker.is_build()
 TESTING = False
 
+APP_URL = os.environ.get("APP_URL", "https://staging.dev.holi.social")
+if IS_PRODUCTION:
+    APP_URL = "https://app.holi.social"
+
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS")
 if IS_PRODUCTION:
     if not ALLOWED_HOSTS:
@@ -651,4 +655,6 @@ ONBOARDING_STEP_TEXT_MAX_LENGTH = 240
 
 # App store urls
 APPLE_APP_STORE_DEFAULT_URL = "itms-apps://apps.apple.com/app/id6446693757"
-GOOGLE_PLAY_STORE_DEFAULT_URL = "market://details?id=foundation.holistic.projectholi"
+GOOGLE_PLAY_STORE_DEFAULT_URL = "market://details?id=social.holi.app"
+
+IDENTITY_NUMBERS_TO_AVOID = {88, 69}
