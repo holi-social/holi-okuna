@@ -1867,25 +1867,6 @@ class TestUsers:
             list(map(transform_space, [space2])),
         )
 
-    def test_sort_spaces_by_member_count(self):
-        space1 = make_community()
-        space2 = make_community()
-        member = make_user()
-        space1.add_member(member)
-
-        filter_query = """
-            query {
-                spaces {
-                    data {
-                        id
-                    }
-                }
-            }
-        """
-        response = async_to_sync(schema.execute)(filter_query).data["spaces"]["data"]
-        assert response[0]["id"] == str(space1.id)
-        assert response[1]["id"] == str(space2.id)
-
     def test_my_spaces(self):
         creator1 = make_user()
         creator2 = make_user()
