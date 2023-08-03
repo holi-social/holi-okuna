@@ -1,5 +1,4 @@
 import logging
-import random
 import re
 import secrets
 from datetime import datetime, timedelta
@@ -10,7 +9,7 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.gis.db import models
 from django.core.mail import EmailMultiAlternatives
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from django.db.models import Q, F, Count, QuerySet
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -710,24 +709,33 @@ class User(ModelWithUUID, AbstractUser):
             return False
 
     @classmethod
-    def unique_identity(cls, input_identity):
-        identity = unidecode(input_identity).strip().replace(" ", "_").lower()
+    def is_identity_taken(cls, identity):
+        identities_taken = set(cls.objects.filter(identity__startswith=identity).values_list("identity", flat=True))
+        return identity in identities_taken
 
+    @classmethod
+    def generate_unique_identity(cls, base_identity):
+        clean_base_identity = unidecode(base_identity).strip().replace(" ", "").lower()
+
+        identity = clean_base_identity
         identities_taken = set(cls.objects.filter(identity__startswith=identity).values_list("identity", flat=True))
 
         count = 0
         while identity in identities_taken:
             count += 1
-            temp_identity = f'{input_identity.strip().replace(" ", "_").lower()}{count}'
+            temp_identity = f"{clean_base_identity}{count}"
 
             if cls._is_valid_identity(temp_identity):
                 identity = temp_identity
 
         return identity
 
-    def register_identity(self, identity):
-        if identity and not self.identity:
-            self.identity = self.unique_identity(identity)
+    def register_identity(self, identity_wish):
+        if not self.identity:
+            if self.is_identity_taken(identity_wish):
+                self.identity = self.generate_unique_identity(self.profile.full_name())
+            else:
+                self.identity = self.generate_unique_identity(identity_wish)
             self.save()
 
     def remove_identity(self):
