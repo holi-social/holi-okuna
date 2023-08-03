@@ -4877,7 +4877,10 @@ class User(ModelWithUUID, AbstractUser):
                 },
             )
         else:
-            invited_user_name = f" {invited_user.profile.name}"  # add a space before user name to avoid unnamed user with an empty space between exclamation mark "Hello !"
+            if invited_user.profile.name is not None:
+                invited_user_name = f" {invited_user.profile.name}"  # add a space before user name to avoid unnamed user with an empty space between exclamation mark "Hello !"
+            else:
+                invited_user_name = ""
             html_content = render_to_string(
                 f"openbook_invitations/email/user_invite_{email_language}.html",
                 {
