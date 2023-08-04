@@ -1771,7 +1771,7 @@ class User(ModelWithUUID, AbstractUser):
             circle_to_update.color = color
 
         if isinstance(usernames, list):
-            # TODO This is a goddamn expensive operation. Improve.
+            # TODO This is a very expensive operation. Improve.
             new_circle_users = []
 
             circle_users = circle_to_update.users
@@ -2525,7 +2525,7 @@ class User(ModelWithUUID, AbstractUser):
             list_to_update.emoji_id = emoji_id
 
         if isinstance(usernames, list):
-            # TODO This is a goddamn expensive operation. Improve.
+            # TODO This is a very expensive operation. Improve.
             new_list_users = []
 
             list_users = list_to_update.users
