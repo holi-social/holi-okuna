@@ -63,7 +63,6 @@ from openbook.helpers import (
 from openbook.middleware.graphql_error_extension import GraphQLErrorExtension
 from openbook.settings.sentry_config import HoliSentryTracingExtension
 from openbook.utils import (
-    generate_discover_spaces_hash_key,
     invalidate_discover_spaces_query_cache,
 )
 from openbook_auth.errors import OryRequestError
@@ -181,45 +180,6 @@ def spaces_for_filter(
 class NewNotificationsResponse:
     id: Optional[uuid.UUID]
     status: bool
-
-
-def filter_spaces_by_skill_ids(geolocation, skill_ids, limit):
-    geojson = geolocation.geometry.geojson if geolocation and geolocation.geometry else None
-    skipLocationFilter = "false" if geojson else "true"
-    return CommunityModel.objects.raw(
-        """
-            select s.id, s.skill_id, s.rn, s.created 
-            from openbook_terms_skill skill, (
-                select octskill.skill_id, occ.*, row_number() OVER (partition by octskill.skill_id ORDER BY occ.id) AS rn
-                FROM   openbook_communities_community occ, openbook_communities_task octask, openbook_communities_task_skills octskill
-                where occ.id = octask.community_id and octask.id = octskill.task_id  
-            ) s
-            where s.skill_id = skill.id 
-            and (%s or ST_Within(s.geolocation, ST_GeomFromGeoJSON(%s)))
-            and s.rn <= %s
-            and skill.id = ANY(%s)
-            order by s.created DESC
-            """,
-        [skipLocationFilter, geojson, limit, skill_ids],
-    ).prefetch_related("memberships__user__profile")
-
-
-def filter_spaces_by_topic_ids(topic_ids, limit):
-    return CommunityModel.objects.raw(
-        """
-            select s.id, s.topic_id, s.rn, s.created 
-            from openbook_terms_topic t, (
-                select occtopics.topic_id, occ.*, row_number() OVER (partition by occtopics.topic_id ORDER BY occ.id) AS rn
-                FROM   openbook_communities_community occ, openbook_communities_community_topics occtopics
-                where occtopics.community_id = occ.id 
-            ) s
-            where s.topic_id = t.id 
-            and s.rn <= %s
-            and t.id = ANY(%s)
-            order by s.created DESC
-            """,
-        [limit, topic_ids],
-    ).prefetch_related("memberships__user__profile")
 
 
 def resolve_post(current_user, post_id):
@@ -450,77 +410,51 @@ class Query:
         offset: int = 0,
         limit: int = 10,
     ) -> List[Optional[DiscoverSpaces]]:
-        current_user: UserModel = info.context.request.user
-
         result = []
 
-        hash_key = generate_discover_spaces_hash_key(topic_ids, geolocation, skill_ids, offset, limit)
+        # get all spaces by geolocation (independent of other filters)
+        if geolocation is not None:
+            result.append(
+                DiscoverSpaces(
+                    location_id=geolocation.id,
+                    spaces=async_to_sync(spaces_for_filter)(
+                        geolocation=geolocation,
+                        offset=offset,
+                        limit=limit,
+                    ),
+                )
+            )
 
-        # Check whether the resolver result has already been cached and return it,
-        # otherwise, query the database, create the result, and cache it.
-        cached_result = cache.get(hash_key)
-        if cached_result is not None:
-            return cached_result
-        else:
-            # get all spaces by geolocation (independent of other filters)
-            if geolocation is not None:
+        # get all spaces by topic (independent of other filters)
+        if topic_ids is not None:
+            for topic_id in topic_ids:
                 result.append(
                     DiscoverSpaces(
-                        location_id=geolocation.id,
+                        topic_id=topic_id,
                         spaces=async_to_sync(spaces_for_filter)(
+                            topic_id=topic_id,
                             offset=offset,
                             limit=limit,
-                            geolocation=geolocation,
                         ),
                     )
                 )
 
-            # get all spaces by topic (independent of other filters)
-            if topic_ids is not None:
-                topic_id_to_num_spaces = get_id_spaces_count_map(
-                    TopicModel.objects.filter(id__in=topic_ids).annotate(num_spaces=Count("communities"))
-                )
-
-                spaces_from_db = filter_spaces_by_topic_ids(topic_ids, limit)
-
-                spaces_map = defaultdict(list)
-
-                for sp in spaces_from_db:
-                    spaces_map[sp.topic_id].append(sp)
-                for topic_id, spaces in spaces_map.items():
-                    result.append(
-                        DiscoverSpaces(
-                            topic_id=topic_id,
-                            spaces=Paged(spaces, topic_id_to_num_spaces[topic_id]),
-                        )
+        # get all spaces by skill_id (including geolocation filter)
+        if skill_ids is not None:
+            for skill_id in skill_ids:
+                result.append(
+                    DiscoverSpaces(
+                        skill_id=skill_id,
+                        location_id=geolocation.id if geolocation else None,
+                        spaces=async_to_sync(spaces_for_filter)(
+                            skill_ids=skill_ids,
+                            geolocation=geolocation,
+                            offset=offset,
+                            limit=limit,
+                        ),
                     )
-
-            # get all spaces by skill_id (including geolocation filter)
-            if skill_ids is not None:
-                skill_id_to_num_spaces = get_id_spaces_count_map(
-                    SkillModel.objects.filter(id__in=skill_ids).annotate(num_spaces=Count("tasks__community"))
                 )
-                spaces_from_db = filter_spaces_by_skill_ids(
-                    geolocation=geolocation,
-                    skill_ids=skill_ids,
-                    limit=limit,
-                )
-
-                spaces_map = defaultdict(list)
-
-                for sp in spaces_from_db:
-                    spaces_map[sp.skill_id].append(sp)
-                for skill_id, spaces in spaces_map.items():
-                    result.append(
-                        DiscoverSpaces(
-                            skill_id=skill_id,
-                            location_id=geolocation.id if geolocation else None,
-                            spaces=Paged(spaces, skill_id_to_num_spaces[skill_id]),
-                        )
-                    )
-            # Set the result to be cached for future calls until the cache key expires after the default TTL.
-            cache.set(hash_key, result)
-            return result
+        return result
 
     @gql.django.field
     def my_spaces(self, info) -> List[Optional[MySpaces]]:
