@@ -1,5 +1,4 @@
 import uuid
-from collections import defaultdict
 from copy import deepcopy
 from datetime import datetime, timedelta
 from typing import List, Optional
