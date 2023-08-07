@@ -7,7 +7,8 @@ from typing import List, Optional, TypeVar
 import strawberry
 from asgiref.sync import sync_to_async
 from django.db.models import Q, QuerySet
-from django.utils.translation import get_language_from_request, activate
+from django.utils import translation
+from django.utils.translation import get_language_from_request
 from strawberry_django_plus import gql
 
 from openbook_auth.models import User as UserModel
@@ -196,8 +197,8 @@ class Topic:
 
     @gql.django.field(only=["title"])
     def title(self, info) -> str:
-        activate(get_language_from_request(info.context.request))
-        return self.title
+        with translation.override(get_language_from_request(info.context.request)):
+            return self.title
 
 
 @gql.django.type(SDGModel)
@@ -208,8 +209,8 @@ class SDG:
 
     @gql.django.field(only=["title"])
     def title(self, info) -> str:
-        activate(get_language_from_request(info.context.request))
-        return self.title
+        with translation.override(get_language_from_request(info.context.request)):
+            return self.title
 
 
 @gql.django.type(SkillModel)
@@ -219,8 +220,8 @@ class Skill:
 
     @gql.django.field(only=["title"])
     def title(self, info) -> str:
-        activate(get_language_from_request(info.context.request))
-        return self.title
+        with translation.override(get_language_from_request(info.context.request)):
+            return self.title
 
 
 @gql.django.type(ExternalLinkModel)
