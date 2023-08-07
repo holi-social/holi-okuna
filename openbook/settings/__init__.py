@@ -14,6 +14,7 @@ import collections
 import os
 import structlog
 from dotenv import load_dotenv, find_dotenv
+from django.utils.translation import gettext_lazy as _
 
 from openbook.settings import sentry_config
 from openbook_common.utils.environment import EnvironmentChecker
@@ -129,7 +130,7 @@ if DEBUG:
 
     import socket
 
-    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+    hostname, aliases, ips = socket.gethostbyname_ex(socket.gethostname())
     INTERNAL_IPS = [".".join(ip.split(".")[:-1] + ["1"]) for ip in ips]
 
     DEBUG_TOOLBAR_CONFIG = {
@@ -408,17 +409,17 @@ USE_TZ = True
 LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 
 LANGUAGES = [
-    ("en", "English"),
-    ("de", "German"),
-    ("es", "Spanish"),
-    ("nl", "Dutch"),
-    ("da", "Danish"),
-    ("hu", "Hungarian"),
-    ("sv", "Swedish"),
-    ("fr", "French"),
-    ("it", "Italian"),
-    ("tr", "Turkish"),
-    ("pt-br", "Portuguese, Brazilian"),
+    ("en", _("English")),
+    ("de", _("German")),
+    ("es", _("Spanish")),
+    ("nl", _("Dutch")),
+    ("da", _("Danish")),
+    ("hu", _("Hungarian")),
+    ("sv", _("Swedish")),
+    ("fr", _("French")),
+    ("it", _("Italian")),
+    ("tr", _("Turkish")),
+    ("pt-br", _("Portuguese, Brazilian")),
 ]
 
 LANGUAGE_CODE = "en"
