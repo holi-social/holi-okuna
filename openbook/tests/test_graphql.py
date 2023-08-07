@@ -4002,7 +4002,7 @@ class TestUsers:
 
         self.update_and_assert_onboarding_steps(user, community.id, [])
 
-    def test_can_not_updates_onboarding_steps_if_empty(self):
+    def test_can_not_update_onboarding_steps_if_empty(self):
         user = make_user()
         community = make_community(creator=user)
 
