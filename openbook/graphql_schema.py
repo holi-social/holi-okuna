@@ -1307,6 +1307,10 @@ class Mutation:
     def last_seen_notification(self, info, notification_id: uuid.UUID) -> NewNotificationsResponse:
         current_user = verify_authorized_user(info)
         current_user.store_last_seen_notification(notification_id)
+
+        # Update user cache in order to update the value of last_seen_notification_timestamp
+        cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
+
         return NewNotificationsResponse(id=current_user.username, status=False)
 
     @gql.mutation
