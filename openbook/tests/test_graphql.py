@@ -4000,15 +4000,40 @@ class TestUsers:
 
         self.update_and_assert_onboarding_steps(user, community.id, onboarding_steps)
 
+        self.update_and_assert_onboarding_steps(user, community.id, [])
+
+    def test_can_not_update_onboarding_steps_if_empty(self):
+        user = make_user()
+        community = make_community(creator=user)
+
         onboarding_steps = [
             {"text": "New step 1"},
             {"text": ""},
             {"text": "New step 3"},
         ]
 
-        self.update_and_assert_onboarding_steps(user, community.id, onboarding_steps)
+        update_space_mutation = """
+            mutation test($input: UpdateSpaceInput!) {
+                updateSpace(input: $input) {
+                    onboarding { steps { text } }
+                }
+            }
+            """
 
-        self.update_and_assert_onboarding_steps(user, community.id, [])
+        response = async_to_sync(schema.execute)(
+            update_space_mutation,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={
+                "input": {
+                    "id": str(community.id),
+                    "onboardingSteps": onboarding_steps,
+                }
+            },
+        )
+
+        assert response.errors is not None
+        assert response.data is None
+        assert "This field may not be blank." in response.errors[0].extensions["errors"]
 
     def assert_onboarding(self, community_id, user, expected):
         response = async_to_sync(schema.execute)(
