@@ -716,6 +716,7 @@ class User(ModelWithUUID, AbstractUser):
     @classmethod
     def generate_unique_identity(cls, base_identity):
         clean_base_identity = unidecode(base_identity).strip().replace(" ", "").lower()
+        clean_base_identity = re.sub(r"[^a-zA-Z0-9\-_.]+", "", clean_base_identity)
 
         identity = clean_base_identity
         identities_taken = set(cls.objects.filter(identity__startswith=identity).values_list("identity", flat=True))
