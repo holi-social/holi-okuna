@@ -119,7 +119,7 @@ class UpdateOnboardingStepSerializer(serializers.Serializer):
     text = serializers.CharField(
         max_length=settings.ONBOARDING_STEP_TEXT_MAX_LENGTH,
         required=False,
-        allow_blank=True,
+        allow_blank=False,
     )
 
 

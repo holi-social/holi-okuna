@@ -15,13 +15,17 @@ def for_every_ory_user(function: Callable[[dict], None]):
     passing a dict with the data from the rest response from Ory.
     See: https://www.ory.sh/docs/reference/api#tag/identity/operation/listIdentities
     """
-    page = 1
     per_page = 1000
     retry_count = 0
-    response_data = []
-    while page == 1 or len(response_data) >= per_page:
-        params = {"page": page, "per_page": per_page}
-        response = requests.get(f"{settings.ORY_BASE_URL}/admin/identities/", params=params, headers=ORY_HEADER)
+    next_page_url = None
+    first = True
+    while first or next_page_url:
+        first = False
+        if next_page_url:
+            response = requests.get(next_page_url, headers=ORY_HEADER)
+        else:
+            params = {"per_page": per_page}
+            response = requests.get(f"{settings.ORY_BASE_URL}/admin/identities/", params=params, headers=ORY_HEADER)
 
         if response.status_code != http.HTTPStatus.OK:
             message = get_ory_error_str(response)
@@ -34,15 +38,24 @@ def for_every_ory_user(function: Callable[[dict], None]):
             return
 
         else:
+            # total = response.headers.get("x-total-count")
             retry_count = 0
             response_data = response.json()
             for user in response_data:
                 function(user)
-            page += 1
+            next_page = response.links.get("next")
+            if next_page:
+                next_page_url = f"{settings.ORY_BASE_URL}/admin/identities/?{get_next_page_parameters(next_page)}"
+            else:
+                next_page_url = None
+
+
+def get_next_page_parameters(next_page):
+    return next_page.get("url").split("?")[1]
 
 
 def get_ory_user(email):
-    params = {"page": 1, "per_page": 1, "credentials_identifier": email}
+    params = {"per_page": 1, "credentials_identifier": email}
     response = requests.get(f"{settings.ORY_BASE_URL}/admin/identities/", params=params, headers=ORY_HEADER)
 
     if response.status_code == http.HTTPStatus.OK:

@@ -218,7 +218,7 @@ class TestUsers:
         response.status_code = 200
         response._content = str.encode(json.dumps({}))
         mock_patch.return_value = response
-        user = make_user(name="Fritz", last_name="Meier")
+        user = make_user(name="Fritz", last_name="Meier", identity="fritz")
         community = make_community()
         community.add_member(user)
         pronouns = "She/her"
@@ -287,112 +287,119 @@ class TestUsers:
         mock_publish_user_name_updated_event.assert_called_once_with(user=user)
 
     @mock.patch("openbook_auth.tasks.requests.patch")
-    def test_api_registers_identity_for_a_user(self, ory_patch_mock):
-        ory_update_response_stub = Response()
-        ory_update_response_stub.status_code = 200
-        ory_update_response_stub._content = str.encode(json.dumps({}))
-        ory_patch_mock.return_value = ory_update_response_stub
+    def test_can_update_authenticated_user_generates_an_identity(self, ory_patch_mock):
+        ory_patch_mock_response = Response()
+        ory_patch_mock_response.status_code = 200
+        ory_patch_mock_response._content = str.encode(json.dumps({}))
+        ory_patch_mock.return_value = ory_patch_mock_response
+        user = make_user()
 
-        user = make_user(name="Fritz", last_name="Meier")
-        identity = "fritz.meier"
-
-        executed = self.api_update_authenticated_user(user, identity)
-
-        expected_json_body = [
-            {"op": "add", "path": "/traits/identity", "value": f"{identity}"},
-        ]
-        ory_patch_mock.assert_called_once_with(
-            f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
-            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
-            json=expected_json_body,
-        )
-
-        updated_user = executed.data["updateAuthenticatedUser"]
-        graphql_identity = updated_user["identity"]
-        persisted_user = User.objects.get(username=user.username)
-
-        assert graphql_identity == identity
-        assert persisted_user.identity == identity
-
-    @mock.patch("openbook_auth.tasks.requests.patch")
-    def test_api_registers_conflicting_identity_for_a_user(self, ory_patch_mock):
-        ory_update_response_stub = Response()
-        ory_update_response_stub.status_code = 200
-        ory_update_response_stub._content = str.encode(json.dumps({}))
-        ory_patch_mock.return_value = ory_update_response_stub
-
-        make_user(name="Fritz", last_name="Meier", identity="fritz")
-        new_fritz = make_user(name="Fritz", last_name="Meier")
-
-        result = self.api_update_authenticated_user(new_fritz, "fritz")
-
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz1"
-
-        expected_json_body = [{"op": "add", "path": "/traits/identity", "value": "fritz1"}]
-        ory_patch_mock.assert_called_once_with(
-            f"{settings.ORY_BASE_URL}/admin/identities/{new_fritz.username}",
-            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
-            json=expected_json_body,
-        )
-
-    @mock.patch("openbook_auth.tasks.requests.patch")
-    def test_api_errors_for_registration_of_new_identity_known_to_ory(self, ory_patch_mock):
-        ory_update_conflict_response_stub = Response()
-        ory_update_conflict_response_stub.status_code = 409
-        ory_update_conflict_response_stub._content = str.encode(json.dumps({"error": {"message": "Error Message"}}))
-        ory_patch_mock.return_value = ory_update_conflict_response_stub
-
-        user = make_user(name="Fritz", last_name="Meier")
-
-        result = self.api_update_authenticated_user(user, "fritz")
-
-        expected_json_body = [
-            {"op": "add", "path": "/traits/identity", "value": "fritz"},
-        ]
-        ory_patch_mock.assert_called_once_with(
-            f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
-            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
-            json=expected_json_body,
-        )
-
-        persisted_user = User.objects.get(username=user.username)
-        assert persisted_user.identity is None
-
-        assert result.errors[0].extensions["code"] == "BAD_USER_INPUT"
-        assert "A user with that identity already exists" in result.errors[0].extensions["errors"]
-
-    @mock.patch("openbook_auth.tasks.requests.patch")
-    def test_api_ignores_identity_in_update_for_user_with_existing_identity(self, ory_patch_mock):
-        user = make_user(name="Fritz", last_name="Meier", identity="fritz1")
-
-        result = self.api_update_authenticated_user(user, "fritz")
-
-        ory_patch_mock.assert_not_called()
-
-        persisted_user = User.objects.get(username=user.username)
-        assert persisted_user.identity == "fritz1"
-
-        assert result.data
-        assert result.errors is None
-
-    def api_update_authenticated_user(self, user, identity):
-        executed = async_to_sync(schema.execute)(
+        result = async_to_sync(schema.execute)(
             """
             mutation test($input: UpdateAuthenticatedUserInput!) {
                 updateAuthenticatedUser(input: $input) {
                     id
                     identity
+                    fullName
                 }
             }
             """,
             context_value=benedict({"request": {"user": user}}),
             variable_values={
                 "input": {
-                    "identity": identity,
+                    "firstName": "Fritz",
+                    "lastName": "Meier",
                 }
             },
         )
-        return executed
+
+        assert result.errors is None
+
+        expected_ory_call_body = [
+            {"op": "add", "path": "/traits/identity", "value": "fritz"},
+        ]
+
+        ory_patch_mock.assert_called_with(
+            f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
+            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+            json=expected_ory_call_body,
+        )
+
+        result = result.data["updateAuthenticatedUser"]
+        persisted_user = User.objects.get(username=user.username)
+
+        assert "fritz" == persisted_user.identity
+        assert "fritz" == result["identity"]
+
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    def test_api_registers_new_user_with_already_taken_identity_for_a_user(self, ory_patch_mock):
+        ory_update_response_stub = Response()
+        ory_update_response_stub.status_code = 200
+        ory_update_response_stub._content = str.encode(json.dumps({}))
+        ory_patch_mock.return_value = ory_update_response_stub
+
+        make_user(name="Fritz", last_name="Meier", identity="fritz")
+        new_fritz = make_user(name="Fritz", last_name="Hansen")
+
+        result = self.api_update_authenticated_user_names(new_fritz, "Fritz", "Hansen")
+
+        assert result.errors is None
+        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz1"
+
+        expected_json_body = [{"op": "add", "path": "/traits/identity", "value": "fritz1"}]
+
+        ory_patch_mock.assert_called_with(
+            f"{settings.ORY_BASE_URL}/admin/identities/{new_fritz.username}",
+            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+            json=expected_json_body,
+        )
+
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    def test_api_errors_updating_user_with_identity_known_to_ory(self, ory_patch_mock):
+        ory_update_response_stub = Response()
+        ory_update_response_stub.status_code = 200
+        ory_update_response_stub._content = str.encode(json.dumps({}))
+
+        ory_update_conflict_response_stub = Response()
+        ory_update_conflict_response_stub.status_code = 409
+        ory_update_conflict_response_stub._content = str.encode(json.dumps({"error": {"message": "Error Message"}}))
+
+        ory_patch_mock.side_effect = [ory_update_response_stub, ory_update_conflict_response_stub]
+
+        user_without_identity = make_user()
+
+        result = self.api_update_authenticated_user_names(user_without_identity, "Fritz", "Hansen")
+
+        assert result.errors[0].extensions["code"] == "BAD_USER_INPUT"
+        assert "A user with that identity already exists" in result.errors[0].extensions["errors"]
+
+        persisted_user = User.objects.get(username=user_without_identity.username)
+        assert persisted_user.identity is None
+
+        expected_json_body = [
+            {"op": "add", "path": "/traits/identity", "value": "fritz"},
+        ]
+        ory_patch_mock.assert_called_with(
+            f"{settings.ORY_BASE_URL}/admin/identities/{user_without_identity.username}",
+            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+            json=expected_json_body,
+        )
+
+    def api_update_authenticated_user_names(self, user, first_name, last_name):
+        return async_to_sync(schema.execute)(
+            """
+            mutation test($input: UpdateAuthenticatedUserInput!) {
+                updateAuthenticatedUser(input: $input) {
+                    id
+                    firstName
+                    lastName
+                    identity
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"input": {"firstName": first_name, "lastName": last_name}},
+        )
 
     @mock.patch("openbook_auth.tasks.requests.delete")
     @mock.patch("openbook.graphql_schema.publish_user_deleted_event")
@@ -3993,15 +4000,40 @@ class TestUsers:
 
         self.update_and_assert_onboarding_steps(user, community.id, onboarding_steps)
 
+        self.update_and_assert_onboarding_steps(user, community.id, [])
+
+    def test_can_not_update_onboarding_steps_if_empty(self):
+        user = make_user()
+        community = make_community(creator=user)
+
         onboarding_steps = [
             {"text": "New step 1"},
             {"text": ""},
             {"text": "New step 3"},
         ]
 
-        self.update_and_assert_onboarding_steps(user, community.id, onboarding_steps)
+        update_space_mutation = """
+            mutation test($input: UpdateSpaceInput!) {
+                updateSpace(input: $input) {
+                    onboarding { steps { text } }
+                }
+            }
+            """
 
-        self.update_and_assert_onboarding_steps(user, community.id, [])
+        response = async_to_sync(schema.execute)(
+            update_space_mutation,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={
+                "input": {
+                    "id": str(community.id),
+                    "onboardingSteps": onboarding_steps,
+                }
+            },
+        )
+
+        assert response.errors is not None
+        assert response.data is None
+        assert "This field may not be blank." in response.errors[0].extensions["errors"]
 
     def assert_onboarding(self, community_id, user, expected):
         response = async_to_sync(schema.execute)(

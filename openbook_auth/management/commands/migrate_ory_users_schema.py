@@ -13,6 +13,7 @@ class Command(BaseCommand):
     schema_id = ""
     total_users_updated = 0
     total_users_failed = 0
+    no_update_needed = 0
 
     def add_arguments(self, parser):
         parser.add_argument("schema_id", type=str)
@@ -22,21 +23,25 @@ class Command(BaseCommand):
         for_every_ory_user(self._patch_ory_user)
         print(f"{self.total_users_updated} users updated")
         print(f"{self.total_users_failed} user updates failed")
+        print(f"{self.no_update_needed} users already had the schema")
 
     def _patch_ory_user(self, user: dict):
         if user["schema_id"] != self.schema_id:
+            count = self.total_users_updated + self.total_users_failed + 1
             body_data = [
                 {"op": "replace", "path": "/schema_id", "value": self.schema_id},
             ]
-            print(f"Updating {ory_user_to_str(user)}")
+            print(f"{count} Updating {ory_user_to_str(user)}")
 
             response = requests.patch(
                 f"{ORY_BASE_URL}/admin/identities/{user['id']}", headers=ORY_HEADER, json=body_data
             )
 
             if response.status_code != http.HTTPStatus.OK:
-                print(f"{get_ory_error_str(response)}, {ory_user_to_str(user)} update failed")
+                print(f"{count} {get_ory_error_str(response)}, {ory_user_to_str(user)} update failed")
                 self.total_users_failed += 1
             else:
-                print(f"{ory_user_to_str(user)} updated")
+                print(f"{count} {ory_user_to_str(user)} updated")
                 self.total_users_updated += 1
+        else:
+            self.no_update_needed += 1

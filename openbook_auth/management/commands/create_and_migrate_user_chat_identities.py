@@ -53,7 +53,7 @@ class Command(BaseCommand):
 
         print(f"Generating an unique identity for user {user_to_str(user)}")
         while True:
-            identity = User.unique_identity(base_identity.replace("'", "").strip().lower())
+            identity = User.generate_unique_identity(base_identity.replace("'", "").strip().lower())
 
             if self._update_ory_user_identity_and_save_in_okuna(user, identity) == http.HTTPStatus.CONFLICT:
                 base_identity += "0"

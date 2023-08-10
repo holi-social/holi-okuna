@@ -619,7 +619,6 @@ class UpdateAuthenticatedUserInput:
     avatar: Optional[Upload] = strawberry.UNSET
     first_name: Optional[str] = strawberry.UNSET
     last_name: Optional[str] = strawberry.UNSET
-    identity: Optional[str] = strawberry.UNSET
     about_me: Optional[str] = strawberry.UNSET
     pronouns: Optional[str] = strawberry.UNSET
     location: Optional[str] = strawberry.UNSET
@@ -819,8 +818,8 @@ class Mutation:
             update_ory_user_names(current_user.id)
             publish_user_name_updated_event(user=current_user)
 
-        if not current_user.identity and input.identity:
-            current_user.register_identity(input.identity)
+        if not current_user.identity and input.first_name:
+            current_user.register_identity(input.first_name)
 
             # The identity must be synced to Ory, so it can be used by the matrix server
             # If that fails, the identity is also removed from Okuna again (manual Rollback)
