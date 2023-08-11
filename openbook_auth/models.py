@@ -22,6 +22,7 @@ from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
 from strawberry_django_plus import gql
 from unidecode import unidecode
+from openbook_auth.utils import normalize_spaces
 
 from openbook_common.helpers import ExifRotate, generate_blurhash
 from openbook_auth.checkers import *
@@ -779,7 +780,7 @@ class User(ModelWithUUID, AbstractUser):
                 profile.url = url
 
         if name:
-            profile.name = name
+            profile.name = normalize_spaces(name)
 
         if update_location:
             if geolocation:
@@ -815,7 +816,7 @@ class User(ModelWithUUID, AbstractUser):
             self.visibility = visibility
 
         if last_name is not None:
-            profile.last_name = last_name
+            profile.last_name = normalize_spaces(last_name)
         if pronouns is not None:
             profile.pronouns = pronouns
         if engagement_level:
