@@ -64,7 +64,6 @@ from openbook.settings.sentry_config import HoliSentryTracingExtension
 from openbook.utils import (
     invalidate_discover_spaces_query_cache,
 )
-from openbook_auth.errors import OryRequestError
 from openbook_auth.models import User as UserModel
 from openbook_auth.models import UserBlock as UserBlockModel
 from openbook_auth.models import UserConnectionStatus
@@ -818,23 +817,32 @@ class Mutation:
             update_ory_user_names(current_user.id)
             publish_user_name_updated_event(user=current_user)
 
+        # set identity when needed
         if not current_user.identity and input.first_name:
-            current_user.register_identity(input.first_name)
+            current_user.identity = UserModel.sanitize_identity_input(input.first_name)
 
-            # The identity must be synced to Ory, so it can be used by the matrix server
-            # If that fails, the identity is also removed from Okuna again (manual Rollback)
-            # This implementation ensures, that both Okuna and Ory have consistent data
-            try:
-                update_ory_user_identity(current_user.id)
-            except OryRequestError as error:
-                current_user.remove_identity()
-                if error.status_code == 409:
-                    raise ValidationError({"identity": _("A user with that identity already exists.")})
-                else:
-                    logger.error("Could not set identity for user %s. Ory response: %s", current_user.id, error.error)
-                    raise ValidationError({"identity": _("The identity could not be set.")})
+            if (
+                UserModel.is_invalid_identity(current_user.identity)
+                or UserModel.is_identity_taken(current_user.identity)
+                or not update_ory_user_identity(current_user)
+            ):
+                identity_wish = UserModel.sanitize_identity_input(current_user.profile.full_name())
+                counter = None if identity_wish != current_user.identity else 0
+                tries = 0
+                taken_identities = UserModel.get_taken_identities(identity_wish)
+                while True:
+                    current_user.identity, counter = UserModel.next_unique_identity(
+                        identity_wish, taken_identities, counter
+                    )
+                    if update_ory_user_identity(current_user):
+                        break
+                    tries += 1
+                    if tries > 10:
+                        logger.error("Could not generate identity from user name after %s attempts.", tries)
+                        raise ValidationError({"identity": _("Could not generate identity from user names.")})
 
-        # Update user cache
+            current_user.save()
+
         cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
 
         return current_user

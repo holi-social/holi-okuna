@@ -1,7 +1,7 @@
 import copy
 import json
 import logging
-import random
+from unittest.mock import call
 
 import pytest
 from asgiref.sync import sync_to_async, async_to_sync
@@ -294,24 +294,7 @@ class TestUsers:
         ory_patch_mock.return_value = ory_patch_mock_response
         user = make_user()
 
-        result = async_to_sync(schema.execute)(
-            """
-            mutation test($input: UpdateAuthenticatedUserInput!) {
-                updateAuthenticatedUser(input: $input) {
-                    id
-                    identity
-                    fullName
-                }
-            }
-            """,
-            context_value=benedict({"request": {"user": user}}),
-            variable_values={
-                "input": {
-                    "firstName": "Fritz",
-                    "lastName": "Meier",
-                }
-            },
-        )
+        result = self.api_update_authenticated_user_names(user, "Fritz", "Meier")
 
         assert result.errors is None
 
@@ -331,6 +314,16 @@ class TestUsers:
         assert "fritz" == persisted_user.identity
         assert "fritz" == result["identity"]
 
+        # test it only registers identity once
+        result = self.api_update_authenticated_user_names(user, "Hans", "Meier")
+
+        assert result.errors is None
+
+        result = result.data["updateAuthenticatedUser"]
+        persisted_user = User.objects.get(username=user.username)
+        assert "fritz" == persisted_user.identity
+        assert "fritz" == result["identity"]
+
     @mock.patch("openbook_auth.tasks.requests.patch")
     def test_api_registers_new_user_with_already_taken_identity_for_a_user(self, ory_patch_mock):
         ory_update_response_stub = Response()
@@ -344,9 +337,9 @@ class TestUsers:
         result = self.api_update_authenticated_user_names(new_fritz, "Fritz", "Hansen")
 
         assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz1"
+        assert result.data["updateAuthenticatedUser"]["identity"] == "fritzhansen"
 
-        expected_json_body = [{"op": "add", "path": "/traits/identity", "value": "fritz1"}]
+        expected_json_body = [{"op": "add", "path": "/traits/identity", "value": "fritzhansen"}]
 
         ory_patch_mock.assert_called_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{new_fritz.username}",
@@ -355,34 +348,150 @@ class TestUsers:
         )
 
     @mock.patch("openbook_auth.tasks.requests.patch")
-    def test_api_errors_updating_user_with_identity_known_to_ory(self, ory_patch_mock):
-        ory_update_response_stub = Response()
-        ory_update_response_stub.status_code = 200
-        ory_update_response_stub._content = str.encode(json.dumps({}))
+    def test_api_registers_new_user_with_ory_identity_collision(self, ory_patch_mock):
+        ory_update_user_name_success = Response()
+        ory_update_user_name_success.status_code = 200
+        ory_update_user_name_success._content = str.encode(json.dumps({}))
 
-        ory_update_conflict_response_stub = Response()
-        ory_update_conflict_response_stub.status_code = 409
-        ory_update_conflict_response_stub._content = str.encode(json.dumps({"error": {"message": "Error Message"}}))
+        ory_update_identity_conflict = Response()
+        ory_update_identity_conflict.status_code = 409
+        ory_update_identity_conflict._content = str.encode(json.dumps({"error": {"message": "Error Message"}}))
 
-        ory_patch_mock.side_effect = [ory_update_response_stub, ory_update_conflict_response_stub]
+        ory_update_identity_success = Response()
+        ory_update_identity_success.status_code = 200
+        ory_update_identity_success._content = str.encode(json.dumps({}))
 
-        user_without_identity = make_user()
-
-        result = self.api_update_authenticated_user_names(user_without_identity, "Fritz", "Hansen")
-
-        assert result.errors[0].extensions["code"] == "BAD_USER_INPUT"
-        assert "A user with that identity already exists" in result.errors[0].extensions["errors"]
-
-        persisted_user = User.objects.get(username=user_without_identity.username)
-        assert persisted_user.identity is None
-
-        expected_json_body = [
-            {"op": "add", "path": "/traits/identity", "value": "fritz"},
+        ory_patch_mock.side_effect = [
+            ory_update_user_name_success,
+            ory_update_identity_conflict,
+            ory_update_identity_success,
         ]
-        ory_patch_mock.assert_called_with(
-            f"{settings.ORY_BASE_URL}/admin/identities/{user_without_identity.username}",
-            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
-            json=expected_json_body,
+
+        new_user = make_user()
+
+        result = self.api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
+
+        assert result.errors is None
+        assert result.data["updateAuthenticatedUser"]["identity"] == "fritzhansen"
+
+        ory_patch_mock.assert_has_calls(
+            [
+                call(
+                    f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
+                    headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+                    json=[
+                        {"op": "add", "path": "/traits/identity", "value": "fritz"},
+                    ],
+                ),
+                call(
+                    f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
+                    headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+                    json=[
+                        {"op": "add", "path": "/traits/identity", "value": "fritzhansen"},
+                    ],
+                ),
+            ]
+        )
+
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    def test_api_registers_new_user_with_ory_identity_collision_only_first_name(self, ory_patch_mock):
+        ory_update_user_name_success = Response()
+        ory_update_user_name_success.status_code = 200
+        ory_update_user_name_success._content = str.encode(json.dumps({}))
+
+        ory_update_identity_conflict = Response()
+        ory_update_identity_conflict.status_code = 409
+        ory_update_identity_conflict._content = str.encode(json.dumps({"error": {"message": "Error Message"}}))
+
+        ory_update_identity_success = Response()
+        ory_update_identity_success.status_code = 200
+        ory_update_identity_success._content = str.encode(json.dumps({}))
+
+        ory_patch_mock.side_effect = [
+            ory_update_user_name_success,
+            ory_update_identity_conflict,
+            ory_update_identity_success,
+        ]
+
+        new_user = make_user()
+
+        result = self.api_update_authenticated_user_names(new_user, "Fritz", "")
+
+        assert result.errors is None
+        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz1"
+
+        ory_patch_mock.assert_has_calls(
+            [
+                call(
+                    f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
+                    headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+                    json=[
+                        {"op": "add", "path": "/traits/identity", "value": "fritz"},
+                    ],
+                ),
+                call(
+                    f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
+                    headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+                    json=[
+                        {"op": "add", "path": "/traits/identity", "value": "fritz1"},
+                    ],
+                ),
+            ]
+        )
+
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    def test_api_registers_new_user_with_ory_identity_multiple_collision(self, ory_patch_mock):
+        ory_update_user_name_success = Response()
+        ory_update_user_name_success.status_code = 200
+        ory_update_user_name_success._content = str.encode(json.dumps({}))
+
+        ory_update_identity_conflict = Response()
+        ory_update_identity_conflict.status_code = 409
+        ory_update_identity_conflict._content = str.encode(json.dumps({"error": {"message": "Error Message"}}))
+
+        ory_update_identity_success = Response()
+        ory_update_identity_success.status_code = 200
+        ory_update_identity_success._content = str.encode(json.dumps({}))
+
+        ory_patch_mock.side_effect = [
+            ory_update_user_name_success,
+            ory_update_identity_conflict,
+            ory_update_identity_conflict,
+            ory_update_identity_conflict,
+            ory_update_identity_success,
+        ]
+
+        new_user = make_user()
+
+        result = self.api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
+
+        assert result.errors is None
+        assert result.data["updateAuthenticatedUser"]["identity"] == "fritzhansen2"
+
+        ory_patch_mock.assert_has_calls(
+            [
+                call(
+                    f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
+                    headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+                    json=[
+                        {"op": "add", "path": "/traits/identity", "value": "fritz"},
+                    ],
+                ),
+                call(
+                    f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
+                    headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+                    json=[
+                        {"op": "add", "path": "/traits/identity", "value": "fritzhansen"},
+                    ],
+                ),
+                call(
+                    f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
+                    headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+                    json=[
+                        {"op": "add", "path": "/traits/identity", "value": "fritzhansen1"},
+                    ],
+                ),
+            ]
         )
 
     def api_update_authenticated_user_names(self, user, first_name, last_name):

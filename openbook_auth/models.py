@@ -699,24 +699,43 @@ class User(ModelWithUUID, AbstractUser):
         return password_reset_token
 
     @classmethod
-    def _is_valid_identity(cls, identity):
+    def sanitize_identity_input(cls, identity):
+        return re.sub(r"[^a-zA-Z0-9_.-]+", "", unidecode(identity).strip().lower())
+
+    @classmethod
+    def is_valid_identity(cls, identity):
         pattern = r"^[a-z][a-z0-9_.-]*$"
         for i in settings.IDENTITY_NUMBERS_TO_AVOID:
             pattern += f"(?<!{i})"
-        if re.match(pattern, identity):
-            return True
-        else:
-            return False
+        return bool(re.match(pattern, identity))
+
+    @classmethod
+    def is_invalid_identity(cls, identity):
+        return not cls.is_valid_identity(identity)
 
     @classmethod
     def is_identity_taken(cls, identity):
-        identities_taken = set(cls.objects.filter(identity__startswith=identity).values_list("identity", flat=True))
-        return identity in identities_taken
+        return cls.objects.filter(identity=identity).exists()
+
+    @classmethod
+    def get_taken_identities(cls, identity_wish):
+        return set(cls.objects.filter(identity__startswith=identity_wish).values_list("identity", flat=True))
+
+    @classmethod
+    def next_unique_identity(cls, identity_wish, taken_identities, counter=None):
+        count = 0 if counter is None else counter + 1
+        while True:
+            new_identity = identity_wish if count == 0 else f"{identity_wish}{count}"
+            if not (cls.is_invalid_identity(new_identity) or new_identity in taken_identities):
+                break
+            count += 1
+
+        return new_identity, count
 
     @classmethod
     def generate_unique_identity(cls, base_identity):
         clean_base_identity = unidecode(base_identity).strip().replace(" ", "").lower()
-        clean_base_identity = re.sub(r"[^a-zA-Z0-9\-_.]+", "", clean_base_identity)
+        clean_base_identity = re.sub(r"[^a-zA-Z0-9_.-]+", "", clean_base_identity)
 
         identity = clean_base_identity
         identities_taken = set(cls.objects.filter(identity__startswith=identity).values_list("identity", flat=True))
@@ -726,22 +745,10 @@ class User(ModelWithUUID, AbstractUser):
             count += 1
             temp_identity = f"{clean_base_identity}{count}"
 
-            if cls._is_valid_identity(temp_identity):
+            if cls.is_valid_identity(temp_identity):
                 identity = temp_identity
 
         return identity
-
-    def register_identity(self, identity_wish):
-        if not self.identity:
-            if self.is_identity_taken(identity_wish):
-                self.identity = self.generate_unique_identity(self.profile.full_name())
-            else:
-                self.identity = self.generate_unique_identity(identity_wish)
-            self.save()
-
-    def remove_identity(self):
-        self.identity = None
-        self.save()
 
     def update(
         self,
