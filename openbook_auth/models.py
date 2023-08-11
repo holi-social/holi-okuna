@@ -724,6 +724,11 @@ class User(ModelWithUUID, AbstractUser):
 
     @classmethod
     def next_unique_identity(cls, identity_wish, taken_identities, counter=None):
+        """
+        Generate the next identity, that is not yet in taken_identities, by possibly appending a number.
+        When counter is None, we start without a number. When counter is a number, we start with the next integer.
+        Returns a count that can be used for the next call to this method to continue in the sequence.
+        """
         count = 0 if counter is None else counter + 1
         while True:
             new_identity = identity_wish if count == 0 else f"{identity_wish}{count}"
