@@ -4,7 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.test import TransactionTestCase, override_settings
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
-from openbook_auth.models import EngagementLevelChoice
+from openbook_auth.models import EngagementLevelChoice, User
 from openbook_common.tests.assertions import TestAssertionsMixin
 from openbook_common.tests.helpers import make_user, make_community, make_fake_post_text, make_fake_post_title
 from openbook_common.types import VisibilityType
@@ -254,51 +254,10 @@ class UserModelTest(TestAssertionsMixin, TransactionTestCase):
         user.update_engagement_level(EngagementLevelChoice.INTERESTED)
         self.assertEqual(user.profile.engagement_level, EngagementLevelChoice.INTERESTED)
 
-    def test_identity_can_only_be_registered_once(self):
-        user = make_user(name="Alice")
-        user.register_identity("alice")
-        self.assertEqual(user.identity, "alice")
+    def test_bad_numbers_are_considered_invalid_identities(self):
+        self.assertTrue(User.is_invalid_identity("fritz88"))
+        self.assertTrue(User.is_invalid_identity("fritz69"))
 
-        user.name = "Eve"
-        user.register_identity("eve")
-        self.assertEqual(user.identity, "alice")
-
-    def test_user_class_registers_nonconflicting_identity(self):
-        user = make_user(name="Fritz", last_name="Meier")
-        user.register_identity("fritz")
-
-        self.assertEqual(user.identity, "fritz")
-
-    def test_user_class_registers_unique_identity(self):
-        make_user(identity="fritz", name="Fritz")
-        make_user(identity="fritz1", name="Fritz")
-        user = make_user(name="Fritz", last_name="Walter")
-
-        user.register_identity("fritz")
-
-        self.assertEqual(user.identity, "fritzwalter")
-
-    def test_user_class_registers_conflicting_identity_for_user_without_lastname(self):
-        make_user(name="Fritz", last_name="Meier", identity="fritz")
-
-        user = make_user(name="Fritz", last_name=None)
-        user.register_identity("fritz")
-
-        self.assertEqual(user.identity, "fritz1")
-
-    @override_settings(IDENTITY_NUMBERS_TO_AVOID=[2, 3])
-    def test_user_class_registers_conflicting_identity_that_doesnt_end_with_bad_numbers(self):
-        make_user(name="Fritz", last_name="Meier", identity="fritz")
-        users = [make_user(name="Fritz", last_name="Meier") for _ in range(1, 5)]
-        for user in users:
-            user.register_identity("fritz")
-
-        self.assertEqual(
-            [user.identity for user in users],
-            [
-                "fritzmeier",
-                "fritzmeier1",
-                "fritzmeier4",
-                "fritzmeier5",
-            ],
-        )
+        # good numbers are valid
+        self.assertFalse(User.is_invalid_identity("fritz1"))
+        self.assertFalse(User.is_invalid_identity("fritz99"))
