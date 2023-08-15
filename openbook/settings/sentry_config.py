@@ -34,6 +34,10 @@ class HoliSentryTracesSampler:
         self.default_sample_rate = default_sample_rate
 
     def traces_sampler(self, sampling_context):
+        for key, value in sampling_context["asgi_scope"]["headers"]:
+            if key == b"x-disable-sentry" and value == b"true":
+                return 0
+
         # always inherit
         if sampling_context["parent_sampled"] is not None:
             return sampling_context["parent_sampled"]
@@ -44,6 +48,10 @@ class HoliSentryTracesSampler:
 class HoliSentryTracingExtension(SentryTracingExtension):
     def on_operation(self) -> Generator[None, None, None]:
         yield from super().on_operation()
+
+        headers = self.execution_context.context.request.headers
+        if "x-disable-sentry" in headers and headers["x-disable-sentry"] == "true":
+            return
 
         query = self.execution_context.query.strip()
         operation_name = self.execution_context.operation_name
