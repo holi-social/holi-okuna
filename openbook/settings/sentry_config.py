@@ -49,9 +49,11 @@ class HoliSentryTracingExtension(SentryTracingExtension):
     def on_operation(self) -> Generator[None, None, None]:
         yield from super().on_operation()
 
-        headers = self.execution_context.context.request.headers
-        if "x-disable-sentry" in headers and headers["x-disable-sentry"] == "true":
-            return
+        context = self.execution_context.context
+        if hasattr(context, "request") and hasattr(context.request, "headers"):
+            headers = context.request.headers
+            if "x-disable-sentry" in headers and headers["x-disable-sentry"] == "true":
+                return
 
         query = self.execution_context.query.strip()
         operation_name = self.execution_context.operation_name
