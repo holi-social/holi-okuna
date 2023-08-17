@@ -963,6 +963,8 @@ class Mutation:
                     space = current_user.approve_membership_request_to_community_for_username(user_id, space.name)
                     publish_space_user_added_event(username=str(user_id), community=space)
                     return space
+                case (cT.MEMBERSHIP_INVITEE, a.CONNECT):
+                    return current_user.invite_to_community(username=str(user_id), community=space)
                 case (cT.ADMINISTRATOR, a.GRANT_ADMIN_ACCESS):
                     return current_user.add_administrator_with_username_to_community_with_name(user_id, space.name)
                 case (cT.ADMINISTRATOR, a.REVOKE_ADMIN_ACCESS):
