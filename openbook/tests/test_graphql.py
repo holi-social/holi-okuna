@@ -3221,6 +3221,36 @@ class TestUsers:
         assert response.data["userSuggestions"]["totalResults"] == 1
         assert response.data["userSuggestions"]["data"][0]["fullName"] == "OtherUser"
 
+    def test_user_connection_status_to_space(self):
+        user = make_user()
+        creator = make_user()
+        member = make_user()
+        invitee = make_user()
+        follower = make_user()
+        membership_requestor = make_user()
+        space = make_community(creator=creator)
+        space.add_member(member)
+        space.create_invite(creator, invitee)
+        space.add_membership_request(membership_requestor)
+        follower.enable_new_post_notifications_for_community_with_name(space.name)
+
+        assert self.get_user_connection_status_to_space_data(user, space) == []
+        assert self.get_user_connection_status_to_space_data(creator, space) == [
+            SpaceUserConnectionType.CREATOR.value,
+            SpaceUserConnectionType.MEMBER.value,
+            SpaceUserConnectionType.ADMINISTRATOR.value,
+        ]
+        assert self.get_user_connection_status_to_space_data(member, space) == [SpaceUserConnectionType.MEMBER.value]
+        assert self.get_user_connection_status_to_space_data(invitee, space) == [
+            SpaceUserConnectionType.MEMBERSHIP_INVITEE.value
+        ]
+        assert self.get_user_connection_status_to_space_data(follower, space) == [
+            SpaceUserConnectionType.FOLLOWER.value
+        ]
+        assert self.get_user_connection_status_to_space_data(membership_requestor, space) == [
+            SpaceUserConnectionType.MEMBERSHIP_REQUESTOR.value
+        ]
+
     # Utility methods
 
     def get_user_with_id_data(self, user_to_get, calling_user=None):
@@ -3234,6 +3264,23 @@ class TestUsers:
             query {{
                 userById(id: "{user_to_get.username}") {{
                     id
+                }}
+            }}
+            """,
+            context_value=benedict({"request": {"user": calling_user or AnonymousUser}}),
+        )
+
+    def get_user_connection_status_to_space_data(self, user_to_get, space, calling_user=None):
+        response = self.get_user_connection_status_to_space_raw(user_to_get, space, calling_user)
+        assert response.errors is None
+        return response.data["userById"]["connectionStatusToSpace"]
+
+    def get_user_connection_status_to_space_raw(self, user_to_get, space, calling_user=None):
+        return async_to_sync(schema.execute)(
+            f"""
+            query {{
+                userById(id: "{user_to_get.username}") {{
+                    connectionStatusToSpace(spaceId: "{space.id}")
                 }}
             }}
             """,
