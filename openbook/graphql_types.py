@@ -24,6 +24,7 @@ from openbook_communities.models import CommunityMembership as CommunityMembersh
 from openbook_communities.models import ExternalLink as ExternalLinkModel
 from openbook_communities.models import ExternalLinkType
 from openbook_communities.models import OnboardingStep as OnboardingStepModel
+from openbook_communities.models import SpaceUserConnectionType
 from openbook_communities.models import Task as TaskModel
 from openbook_communities.models import VisibilityType
 from openbook_insights.models import Insight as InsightModel
@@ -179,16 +180,6 @@ class NotificationType(Enum):
     REL = strawberry.enum_value("REL", description="RELEASE_INFO")
 
 
-@gql.enum
-class SpaceUserConnectionType(Enum):
-    FOLLOWER = "FOLLOWER"
-    MEMBERSHIP_REQUESTOR = "MEMBERSHIP_REQUESTOR"
-    MEMBERSHIP_INVITEE = "MEMBERSHIP_INVITEE"
-    MEMBER = "MEMBER"
-    CREATOR = "CREATOR"
-    ADMINISTRATOR = "ADMINISTRATOR"
-
-
 @gql.django.type(TopicModel)
 class Topic:
     id: gql.auto
@@ -331,6 +322,11 @@ class User:
         if info.context.request.user.is_anonymous:
             return None
         return info.context.request.user.get_connection_status_with_user_id(user_id=self.id)
+
+    @gql.django.field
+    def connection_status_to_space(self, info, space_id: uuid.UUID) -> List[Optional[SpaceUserConnectionType]]:
+        space = CommunityModel.objects.get(id=space_id)
+        return space.connection_status_to_user(self)
 
 
 @gql.django.type(CommunityMembershipModel)
@@ -569,34 +565,7 @@ class Space:
 
     @gql.django.field
     def connection_status_to_myself(self, info) -> List[Optional[SpaceUserConnectionType]]:
-        current_user: UserModel = info.context.request.user
-        if current_user.is_anonymous:
-            return []
-
-        roles = []
-
-        if current_user.are_new_post_notifications_enabled_for_community(self):
-            roles.append(SpaceUserConnectionType.FOLLOWER)
-
-        if current_user.is_membership_requestor_of_community_with_name(self.name):
-            roles.append(SpaceUserConnectionType.MEMBERSHIP_REQUESTOR)
-
-        if current_user.is_invited_to_community_with_name(self.name):
-            roles.append(SpaceUserConnectionType.MEMBERSHIP_INVITEE)
-
-        if self.creator == current_user:
-            roles.append(SpaceUserConnectionType.CREATOR)
-
-        if membership := CommunityMembershipModel.objects.filter(community=self, user=current_user).first():
-            roles.append(SpaceUserConnectionType.MEMBER)
-
-            if membership.is_administrator:
-                roles.append(SpaceUserConnectionType.ADMINISTRATOR)
-
-            # if membership.is_moderator:
-            #     roles.append(SpaceUserConnectionType.MODERATOR)
-
-        return roles
+        return self.connection_status_to_user(info.context.request.user)
 
     @gql.django.field
     def posts(

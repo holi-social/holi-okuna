@@ -3221,6 +3221,36 @@ class TestUsers:
         assert response.data["userSuggestions"]["totalResults"] == 1
         assert response.data["userSuggestions"]["data"][0]["fullName"] == "OtherUser"
 
+    def test_user_connection_status_to_space(self):
+        user = make_user()
+        creator = make_user()
+        member = make_user()
+        invitee = make_user()
+        follower = make_user()
+        membership_requestor = make_user()
+        space = make_community(creator=creator)
+        space.add_member(member)
+        space.create_invite(creator, invitee)
+        space.add_membership_request(membership_requestor)
+        follower.enable_new_post_notifications_for_community_with_name(space.name)
+
+        assert self.get_user_connection_status_to_space_data(user, space) == []
+        assert self.get_user_connection_status_to_space_data(creator, space) == [
+            SpaceUserConnectionType.CREATOR.value,
+            SpaceUserConnectionType.MEMBER.value,
+            SpaceUserConnectionType.ADMINISTRATOR.value,
+        ]
+        assert self.get_user_connection_status_to_space_data(member, space) == [SpaceUserConnectionType.MEMBER.value]
+        assert self.get_user_connection_status_to_space_data(invitee, space) == [
+            SpaceUserConnectionType.MEMBERSHIP_INVITEE.value
+        ]
+        assert self.get_user_connection_status_to_space_data(follower, space) == [
+            SpaceUserConnectionType.FOLLOWER.value
+        ]
+        assert self.get_user_connection_status_to_space_data(membership_requestor, space) == [
+            SpaceUserConnectionType.MEMBERSHIP_REQUESTOR.value
+        ]
+
     # Utility methods
 
     def get_user_with_id_data(self, user_to_get, calling_user=None):
@@ -3234,6 +3264,23 @@ class TestUsers:
             query {{
                 userById(id: "{user_to_get.username}") {{
                     id
+                }}
+            }}
+            """,
+            context_value=benedict({"request": {"user": calling_user or AnonymousUser}}),
+        )
+
+    def get_user_connection_status_to_space_data(self, user_to_get, space, calling_user=None):
+        response = self.get_user_connection_status_to_space_raw(user_to_get, space, calling_user)
+        assert response.errors is None
+        return response.data["userById"]["connectionStatusToSpace"]
+
+    def get_user_connection_status_to_space_raw(self, user_to_get, space, calling_user=None):
+        return async_to_sync(schema.execute)(
+            f"""
+            query {{
+                userById(id: "{user_to_get.username}") {{
+                    connectionStatusToSpace(spaceId: "{space.id}")
                 }}
             }}
             """,
@@ -4953,6 +5000,98 @@ class TestUsers:
         community_invite_notification = next(n for n in notifications if n["notificationType"] == "CI")
         assert community_invite_notification["owner"]["fullName"] == invited_user.profile.full_name()
         assert community_invite_notification["options"]["user"]["fullName"] == community_creator.profile.full_name()
+
+    def test_validates_invite_user_to_space(self):
+        user = make_user()
+        admin = make_user()
+        member = make_user()
+        invitee = make_user()
+        space = make_community(creator=admin)
+        space.add_member(member)
+        space.create_invite(admin, invitee)
+        invalid_uuid = str(uuid4())
+
+        expected_errors = [
+            {
+                "field": "space_id",
+                "value": None,
+                "expected_error": "badly formed hexadecimal UUID string",
+            },
+            {
+                "field": "space_id",
+                "value": invalid_uuid,
+                "expected_error": "No community with the provided id exists.",
+            },
+            {
+                "field": "user_id",
+                "value": invalid_uuid,
+                "expected_error": "User matching query does not exist.",
+            },
+            {
+                "field": "user_id",
+                "value": member.id,
+                "expected_input_error": "User is already a member",
+            },
+            {
+                "field": "user_id",
+                "value": invitee.id,
+                "expected_input_error": "User is already invited",
+            },
+            {
+                "field": "auth_user",
+                "value": AnonymousUser,
+                "expected_error": "Unauthorized",
+            },
+            {
+                "field": "auth_user",
+                "value": user,
+                "expected_input_error": "You cannot create an invite to a community you are not a member of",
+            },
+        ]
+
+        for test_case in expected_errors:
+            response = self.mutate_update_space_user_connection_raw(
+                auth_user=test_case["value"] if test_case["field"] == "auth_user" else admin,
+                space_id=test_case["value"] if test_case["field"] == "space_id" else space.id,
+                user_id=test_case["value"] if test_case["field"] == "user_id" else user.id,
+                connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+                connect_action=UpdateConnectionAction.CONNECT,
+            )
+            if "expected_input_error" in test_case:
+                field_errors = json.loads(response.errors[0].extensions["errors"])
+                assert test_case["expected_input_error"] == field_errors[0]["message"]
+            else:
+                assert test_case["expected_error"] in str(response.errors[0].message)
+            assert (response.data["updateSpaceUserConnection"] if response.data else response.data) is None
+
+    def test_can_invite_user_to_space(self):
+        invitee = make_user()
+        admin = make_user()
+        space = make_community(creator=admin)
+
+        # Preconditions
+        pre_invite_space = self.get_space_for_user(invitee, space)
+        assert pre_invite_space["connectionStatusToMyself"] == []
+
+        # Send invite
+        self.mutate_update_space_user_connection_data(
+            auth_user=admin,
+            space_id=space.id,
+            user_id=invitee.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+
+        post_invite_space = self.get_space_for_user(invitee, space)
+        assert post_invite_space["connectionStatusToMyself"] == [SpaceUserConnectionType.MEMBERSHIP_INVITEE.value]
+
+        # User received notification
+        invitee_notifications_response = self.get_notifications(invitee)
+        assert invitee_notifications_response["totalResults"] >= 1
+        notifications = invitee_notifications_response["data"]
+        space_invite_notification = next(n for n in notifications if n["notificationType"] == "CI")
+        assert space_invite_notification["owner"]["fullName"] == invitee.profile.full_name()
+        assert space_invite_notification["options"]["user"]["fullName"] == admin.profile.full_name()
 
     def test_can_not_create_task_missing_required_fields(self):
         user = make_user()

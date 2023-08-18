@@ -4841,6 +4841,18 @@ class User(ModelWithUUID, AbstractUser):
             Notification.objects.filter(owner=self, created__lte=last_seen_timestamp).update(read=True)
             self.save()
 
+    def invite_to_community(self, username, community, language="de"):
+        check_can_create_invite_to_community(user=self, community=community)
+
+        User = get_user_model()
+        user = User.objects.get(username=username)
+
+        check_should_user_or_email_be_invited_to_community(user=user, community=community, email=None)
+
+        self.invite_user_to_community(user=user, community=community)
+
+        return community
+
     @transaction.atomic
     def invite_to_community_by_email(self, email, space_id, language="de"):
         Community = get_community_model()
@@ -4857,7 +4869,9 @@ class User(ModelWithUUID, AbstractUser):
             user = None
 
         # do not expose error messages in case user should not be invited (e.g. user is already member) in order to make it difficult to guess user emails
-        if not check_should_user_with_email_be_invited_to_community(user=user, email=email, community=community):
+        try:
+            check_should_user_or_email_be_invited_to_community(user=user, email=email, community=community)
+        except:
             return None
 
         if user is not None:
