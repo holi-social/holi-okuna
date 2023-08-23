@@ -106,12 +106,11 @@ class TestUsers:
         assert authenticated_user["engagementLevel"] == user.profile.engagement_level
 
     def test_get_user_by_name_returns_only_matching_users_without_logged_in_user(self):
-        expected_users = [
-            make_user(name="Peter", last_name="Muster"),
-            make_user(name="Peter", last_name="Mudtke"),
-        ]
-        make_user(name="Fritz", last_name="Meier")
         user = make_user(name="Peter", last_name="Moser")
+        user2 = make_user(name="Peter", last_name="Muster")
+        user3 = make_user(name="Peter", last_name="Marker")
+        expected_users = [user3, user2]
+        make_user(name="Fritz", last_name="Meier")
 
         executed = async_to_sync(schema.execute)(
             """
@@ -134,6 +133,7 @@ class TestUsers:
 
     def test_get_user_by_name_first_name_matches_first(self):
         make_user(name="Thomas", last_name="Petersen")
+        make_user(name="Angelika", last_name="Petersen")
         make_user(name="Peter", last_name="Muster")
         make_user(name="Petra", last_name="Meier")
         make_user(name="Fritz", last_name="Meier")
@@ -152,10 +152,11 @@ class TestUsers:
             """,
             context_value=benedict({"request": {"user": AnonymousUser}}),
         )
-        assert executed.data["userByName"]["totalResults"] == 3
+        assert executed.data["userByName"]["totalResults"] == 4
         assert executed.data["userByName"]["data"][0]["firstName"] == "Peter"
         assert executed.data["userByName"]["data"][1]["firstName"] == "Petra"
-        assert executed.data["userByName"]["data"][2]["firstName"] == "Thomas"
+        assert executed.data["userByName"]["data"][2]["firstName"] == "Angelika"
+        assert executed.data["userByName"]["data"][3]["firstName"] == "Thomas"
 
     def test_get_users_by_chat_identities_success(self):
         user = make_user()

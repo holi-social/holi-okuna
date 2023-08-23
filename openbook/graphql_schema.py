@@ -240,8 +240,10 @@ class Query:
 
         total_results = UserModel.objects.filter(full_name_query).count()
 
-        by_first_name_query = UserModel.objects.select_related("profile").filter(
-            Q(profile__name__icontains=substring) & excludes_filter
+        by_first_name_query = (
+            UserModel.objects.select_related("profile")
+            .filter(Q(profile__name__icontains=substring) & excludes_filter)
+            .order_by("profile__name", "profile__last_name")
         )
         by_first_name = list(by_first_name_query[offset : offset + limit])
         by_first_name_len = len(by_first_name)
@@ -257,9 +259,9 @@ class Query:
             new_limit = limit
 
         by_full_name = list(
-            UserModel.objects.select_related("profile").filter(
-                full_name_query & ~Q(profile__name__icontains=substring)
-            )[new_offset : new_offset + new_limit]
+            UserModel.objects.select_related("profile")
+            .filter(full_name_query & ~Q(profile__name__icontains=substring))
+            .order_by("profile__name", "profile__last_name")[new_offset : new_offset + new_limit]
         )
         return Paged(by_first_name + by_full_name, total_results)
 
