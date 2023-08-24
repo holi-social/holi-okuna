@@ -1,5 +1,6 @@
 from hashlib import sha256
 import uuid
+from typing import List, Optional
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
@@ -53,9 +54,20 @@ from openbook_auth.models import User
 from openbook_moderation.models import ModeratedObject
 from openbook_posts.models import Post
 from openbook_terms.models import SDG, Topic, Skill
+from enum import Enum
 
 community_image_storage = default_storage
 community_task_image_storage = default_storage
+
+
+@gql.enum
+class SpaceUserConnectionType(Enum):
+    FOLLOWER = "FOLLOWER"
+    MEMBERSHIP_REQUESTOR = "MEMBERSHIP_REQUESTOR"
+    MEMBERSHIP_INVITEE = "MEMBERSHIP_INVITEE"
+    MEMBER = "MEMBER"
+    CREATOR = "CREATOR"
+    ADMINISTRATOR = "ADMINISTRATOR"
 
 
 class Community(ModelWithUUID):
@@ -794,6 +806,35 @@ class Community(ModelWithUUID):
 
     def count_pending_moderated_objects(self):
         return self.moderated_objects.filter(status=ModeratedObject.STATUS_PENDING).count()
+
+    def connection_status_to_user(self, user) -> List[Optional[SpaceUserConnectionType]]:
+        if user.is_anonymous:
+            return []
+
+        roles = []
+
+        if user.are_new_post_notifications_enabled_for_community(self):
+            roles.append(SpaceUserConnectionType.FOLLOWER)
+
+        if user.is_membership_requestor_of_community_with_name(self.name):
+            roles.append(SpaceUserConnectionType.MEMBERSHIP_REQUESTOR)
+
+        if user.is_invited_to_community_with_name(self.name):
+            roles.append(SpaceUserConnectionType.MEMBERSHIP_INVITEE)
+
+        if self.creator == user:
+            roles.append(SpaceUserConnectionType.CREATOR)
+
+        if membership := self.memberships.filter(user=user).first():
+            roles.append(SpaceUserConnectionType.MEMBER)
+
+            if membership.is_administrator:
+                roles.append(SpaceUserConnectionType.ADMINISTRATOR)
+
+            # if membership.is_moderator:
+            #     roles.append(SpaceUserConnectionType.MODERATOR)
+
+        return roles
 
     def _update_cover(self, cover, save=True):
         if cover is None:

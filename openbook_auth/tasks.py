@@ -1,11 +1,14 @@
 import http
 
 import requests
+import structlog
 from django.conf import settings
 from django_rq import job
 
 from openbook_auth.errors import OryRequestError
 from openbook_auth.models import User
+
+logger = structlog.get_logger(__name__)
 
 
 @job("default")
@@ -21,14 +24,19 @@ def update_ory_user_names(user_id: int) -> None:
     update_ory(user, data)
 
 
-def update_ory_user_identity(user_id: int) -> None:
-    user = User.objects.get(pk=user_id)
-
+def update_ory_user_identity(user: User) -> bool:
     data = [
         {"op": "add", "path": "/traits/identity", "value": user.identity},
     ]
-
-    update_ory(user, data)
+    try:
+        update_ory(user, data)
+        return True
+    except OryRequestError as error:
+        if error.status_code == 409:
+            logger.error("Could not set identity for user %s. Identity already exists: %s", user.id, error.error)
+        else:
+            logger.error("Could not set identity for user %s. Ory response: %s", user.id, error.error)
+    return False
 
 
 def update_ory(user, data):
