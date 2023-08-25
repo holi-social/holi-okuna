@@ -65,7 +65,8 @@ def make_user(
     identity="__NOT_PASSED__",
     email=None,
 ) -> User:
-    # Ensure an identity is set, if none was passed. None can be passed, which leads to an identity of None. That's why we use the __NOT_PASSED__ default value.
+    # Ensure an identity is set, if none was passed. None can be passed, which leads to an identity of None.
+    # That's why we use the __NOT_PASSED__ default value.
     _identity_passed = identity != "__NOT_PASSED__"
     if not _identity_passed:
         identity = None
