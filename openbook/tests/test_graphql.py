@@ -293,7 +293,7 @@ class TestUsers:
         ory_patch_mock_response.status_code = 200
         ory_patch_mock_response._content = str.encode(json.dumps({}))
         ory_patch_mock.return_value = ory_patch_mock_response
-        user = make_user()
+        user = make_user(identity=None)
 
         result = self.api_update_authenticated_user_names(user, "Fritz", "Meier")
 
@@ -333,7 +333,7 @@ class TestUsers:
         ory_patch_mock.return_value = ory_update_response_stub
 
         make_user(name="Fritz", last_name="Meier", identity="fritz")
-        new_fritz = make_user(name="Fritz", last_name="Hansen")
+        new_fritz = make_user(name="Fritz", last_name="Hansen", identity=None)
 
         result = self.api_update_authenticated_user_names(new_fritz, "Fritz", "Hansen")
 
@@ -368,7 +368,7 @@ class TestUsers:
             ory_update_identity_success,
         ]
 
-        new_user = make_user()
+        new_user = make_user(identity=None)
 
         result = self.api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
 
@@ -414,7 +414,7 @@ class TestUsers:
             ory_update_identity_success,
         ]
 
-        new_user = make_user()
+        new_user = make_user(identity=None)
 
         result = self.api_update_authenticated_user_names(new_user, "Fritz", "")
 
@@ -462,7 +462,7 @@ class TestUsers:
             ory_update_identity_success,
         ]
 
-        new_user = make_user()
+        new_user = make_user(identity=None)
 
         result = self.api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
 

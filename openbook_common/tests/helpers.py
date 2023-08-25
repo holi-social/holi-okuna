@@ -62,15 +62,22 @@ def make_user(
     last_name: Optional[str] = None,
     visibility=User.VISIBILITY_TYPE_OKUNA,
     date_joined=None,
-    identity=None,
+    identity="__NOT_PASSED__",
     email=None,
 ) -> User:
+    _identity_passed = identity != "__NOT_PASSED__"
+    if not _identity_passed:
+        identity = None
+
     defined_arguments = {k: v for k, v in locals().items() if v is not None}
     defined_arguments.setdefault("username", str(uuid.uuid4()))
     defined_arguments["id"] = defined_arguments["username"]
 
     user = mixer.blend(User, **defined_arguments)
     profile = make_profile(user, **defined_arguments)
+    if not _identity_passed and user.profile.full_name() and not user.identity:
+        user.identity = User.sanitize_identity_input(user.profile.full_name())
+        user.save()
 
     return user
 
