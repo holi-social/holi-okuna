@@ -71,6 +71,9 @@ def make_user(
 
     user = mixer.blend(User, **defined_arguments)
     profile = make_profile(user, **defined_arguments)
+    if user.profile.full_name() and not user.identity:
+        user.identity = User.sanitize_identity_input(user.profile.full_name())
+        user.save()
 
     return user
 
