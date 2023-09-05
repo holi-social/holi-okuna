@@ -64,7 +64,6 @@ from openbook.settings.sentry_config import HoliSentryTracingExtension
 from openbook.utils import (
     invalidate_discover_spaces_query_cache,
 )
-from openbook_auth.errors import OryRequestError
 from openbook_auth.models import User as UserModel
 from openbook_auth.models import UserBlock as UserBlockModel
 from openbook_auth.models import UserConnectionStatus
@@ -241,8 +240,10 @@ class Query:
 
         total_results = UserModel.objects.filter(full_name_query).count()
 
-        by_first_name_query = UserModel.objects.select_related("profile").filter(
-            Q(profile__name__icontains=substring) & excludes_filter
+        by_first_name_query = (
+            UserModel.objects.select_related("profile")
+            .filter(Q(profile__name__icontains=substring) & excludes_filter)
+            .order_by("profile__name", "profile__last_name")
         )
         by_first_name = list(by_first_name_query[offset : offset + limit])
         by_first_name_len = len(by_first_name)
@@ -258,9 +259,9 @@ class Query:
             new_limit = limit
 
         by_full_name = list(
-            UserModel.objects.select_related("profile").filter(
-                full_name_query & ~Q(profile__name__icontains=substring)
-            )[new_offset : new_offset + new_limit]
+            UserModel.objects.select_related("profile")
+            .filter(full_name_query & ~Q(profile__name__icontains=substring))
+            .order_by("profile__name", "profile__last_name")[new_offset : new_offset + new_limit]
         )
         return Paged(by_first_name + by_full_name, total_results)
 
@@ -818,23 +819,35 @@ class Mutation:
             update_ory_user_names(current_user.id)
             publish_user_name_updated_event(user=current_user)
 
+        # set identity when needed
         if not current_user.identity and input.first_name:
-            current_user.register_identity(input.first_name)
+            current_user.identity = UserModel.sanitize_identity_input(input.first_name)
 
-            # The identity must be synced to Ory, so it can be used by the matrix server
-            # If that fails, the identity is also removed from Okuna again (manual Rollback)
-            # This implementation ensures, that both Okuna and Ory have consistent data
-            try:
-                update_ory_user_identity(current_user.id)
-            except OryRequestError as error:
-                current_user.remove_identity()
-                if error.status_code == 409:
-                    raise ValidationError({"identity": _("A user with that identity already exists.")})
-                else:
-                    logger.error("Could not set identity for user %s. Ory response: %s", current_user.id, error.error)
-                    raise ValidationError({"identity": _("The identity could not be set.")})
+            if (
+                UserModel.is_invalid_identity(current_user.identity)
+                or UserModel.is_identity_taken(current_user.identity)
+                or not update_ory_user_identity(current_user)
+            ):
+                identity_wish = UserModel.sanitize_identity_input(current_user.profile.full_name())
+                # when the user has no last name, full_name is identical to first_name, so init the counter with 0
+                # to already start adding a number on the call to next_unique_identity.
+                # Otherwise init with None, to not add a number on the first call to next_unique_identity
+                counter = None if identity_wish != current_user.identity else 0
+                tries = 0
+                taken_identities = UserModel.get_taken_identities(identity_wish)
+                while True:
+                    current_user.identity, counter = UserModel.next_unique_identity(
+                        identity_wish, taken_identities, counter
+                    )
+                    if update_ory_user_identity(current_user):
+                        break  # Ory update was successful, and there was no collision. We are done.
+                    tries += 1
+                    if tries > 10:
+                        logger.error("Could not generate identity from user name after %s attempts.", tries)
+                        raise ValidationError({"identity": _("Could not generate identity from user names.")})
 
-        # Update user cache
+            current_user.save()
+
         cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
 
         return current_user
@@ -952,6 +965,8 @@ class Mutation:
                     space = current_user.approve_membership_request_to_community_for_username(user_id, space.name)
                     publish_space_user_added_event(username=str(user_id), community=space)
                     return space
+                case (cT.MEMBERSHIP_INVITEE, a.CONNECT):
+                    return current_user.invite_to_community(username=str(user_id), community=space)
                 case (cT.ADMINISTRATOR, a.GRANT_ADMIN_ACCESS):
                     return current_user.add_administrator_with_username_to_community_with_name(user_id, space.name)
                 case (cT.ADMINISTRATOR, a.REVOKE_ADMIN_ACCESS):

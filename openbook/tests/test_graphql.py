@@ -1,7 +1,7 @@
 import copy
 import json
 import logging
-import random
+from unittest.mock import call
 
 import pytest
 from asgiref.sync import sync_to_async, async_to_sync
@@ -106,12 +106,11 @@ class TestUsers:
         assert authenticated_user["engagementLevel"] == user.profile.engagement_level
 
     def test_get_user_by_name_returns_only_matching_users_without_logged_in_user(self):
-        expected_users = [
-            make_user(name="Peter", last_name="Muster"),
-            make_user(name="Peter", last_name="Mudtke"),
-        ]
-        make_user(name="Fritz", last_name="Meier")
         user = make_user(name="Peter", last_name="Moser")
+        user2 = make_user(name="Peter", last_name="Muster")
+        user3 = make_user(name="Peter", last_name="Marker")
+        expected_users = [user3, user2]
+        make_user(name="Fritz", last_name="Meier")
 
         executed = async_to_sync(schema.execute)(
             """
@@ -134,6 +133,7 @@ class TestUsers:
 
     def test_get_user_by_name_first_name_matches_first(self):
         make_user(name="Thomas", last_name="Petersen")
+        make_user(name="Angelika", last_name="Petersen")
         make_user(name="Peter", last_name="Muster")
         make_user(name="Petra", last_name="Meier")
         make_user(name="Fritz", last_name="Meier")
@@ -152,10 +152,11 @@ class TestUsers:
             """,
             context_value=benedict({"request": {"user": AnonymousUser}}),
         )
-        assert executed.data["userByName"]["totalResults"] == 3
+        assert executed.data["userByName"]["totalResults"] == 4
         assert executed.data["userByName"]["data"][0]["firstName"] == "Peter"
         assert executed.data["userByName"]["data"][1]["firstName"] == "Petra"
-        assert executed.data["userByName"]["data"][2]["firstName"] == "Thomas"
+        assert executed.data["userByName"]["data"][2]["firstName"] == "Angelika"
+        assert executed.data["userByName"]["data"][3]["firstName"] == "Thomas"
 
     def test_get_users_by_chat_identities_success(self):
         user = make_user()
@@ -294,24 +295,7 @@ class TestUsers:
         ory_patch_mock.return_value = ory_patch_mock_response
         user = make_user()
 
-        result = async_to_sync(schema.execute)(
-            """
-            mutation test($input: UpdateAuthenticatedUserInput!) {
-                updateAuthenticatedUser(input: $input) {
-                    id
-                    identity
-                    fullName
-                }
-            }
-            """,
-            context_value=benedict({"request": {"user": user}}),
-            variable_values={
-                "input": {
-                    "firstName": "Fritz",
-                    "lastName": "Meier",
-                }
-            },
-        )
+        result = self.api_update_authenticated_user_names(user, "Fritz", "Meier")
 
         assert result.errors is None
 
@@ -331,6 +315,16 @@ class TestUsers:
         assert "fritz" == persisted_user.identity
         assert "fritz" == result["identity"]
 
+        # test it only registers identity once
+        result = self.api_update_authenticated_user_names(user, "Hans", "Meier")
+
+        assert result.errors is None
+
+        result = result.data["updateAuthenticatedUser"]
+        persisted_user = User.objects.get(username=user.username)
+        assert "fritz" == persisted_user.identity
+        assert "fritz" == result["identity"]
+
     @mock.patch("openbook_auth.tasks.requests.patch")
     def test_api_registers_new_user_with_already_taken_identity_for_a_user(self, ory_patch_mock):
         ory_update_response_stub = Response()
@@ -344,9 +338,9 @@ class TestUsers:
         result = self.api_update_authenticated_user_names(new_fritz, "Fritz", "Hansen")
 
         assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz1"
+        assert result.data["updateAuthenticatedUser"]["identity"] == "fritzhansen"
 
-        expected_json_body = [{"op": "add", "path": "/traits/identity", "value": "fritz1"}]
+        expected_json_body = [{"op": "add", "path": "/traits/identity", "value": "fritzhansen"}]
 
         ory_patch_mock.assert_called_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{new_fritz.username}",
@@ -355,34 +349,150 @@ class TestUsers:
         )
 
     @mock.patch("openbook_auth.tasks.requests.patch")
-    def test_api_errors_updating_user_with_identity_known_to_ory(self, ory_patch_mock):
-        ory_update_response_stub = Response()
-        ory_update_response_stub.status_code = 200
-        ory_update_response_stub._content = str.encode(json.dumps({}))
+    def test_api_registers_new_user_with_ory_identity_collision(self, ory_patch_mock):
+        ory_update_user_name_success = Response()
+        ory_update_user_name_success.status_code = 200
+        ory_update_user_name_success._content = str.encode(json.dumps({}))
 
-        ory_update_conflict_response_stub = Response()
-        ory_update_conflict_response_stub.status_code = 409
-        ory_update_conflict_response_stub._content = str.encode(json.dumps({"error": {"message": "Error Message"}}))
+        ory_update_identity_conflict = Response()
+        ory_update_identity_conflict.status_code = 409
+        ory_update_identity_conflict._content = str.encode(json.dumps({"error": {"message": "Error Message"}}))
 
-        ory_patch_mock.side_effect = [ory_update_response_stub, ory_update_conflict_response_stub]
+        ory_update_identity_success = Response()
+        ory_update_identity_success.status_code = 200
+        ory_update_identity_success._content = str.encode(json.dumps({}))
 
-        user_without_identity = make_user()
-
-        result = self.api_update_authenticated_user_names(user_without_identity, "Fritz", "Hansen")
-
-        assert result.errors[0].extensions["code"] == "BAD_USER_INPUT"
-        assert "A user with that identity already exists" in result.errors[0].extensions["errors"]
-
-        persisted_user = User.objects.get(username=user_without_identity.username)
-        assert persisted_user.identity is None
-
-        expected_json_body = [
-            {"op": "add", "path": "/traits/identity", "value": "fritz"},
+        ory_patch_mock.side_effect = [
+            ory_update_user_name_success,
+            ory_update_identity_conflict,
+            ory_update_identity_success,
         ]
-        ory_patch_mock.assert_called_with(
-            f"{settings.ORY_BASE_URL}/admin/identities/{user_without_identity.username}",
-            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
-            json=expected_json_body,
+
+        new_user = make_user()
+
+        result = self.api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
+
+        assert result.errors is None
+        assert result.data["updateAuthenticatedUser"]["identity"] == "fritzhansen"
+
+        ory_patch_mock.assert_has_calls(
+            [
+                call(
+                    f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
+                    headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+                    json=[
+                        {"op": "add", "path": "/traits/identity", "value": "fritz"},
+                    ],
+                ),
+                call(
+                    f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
+                    headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+                    json=[
+                        {"op": "add", "path": "/traits/identity", "value": "fritzhansen"},
+                    ],
+                ),
+            ]
+        )
+
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    def test_api_registers_new_user_with_ory_identity_collision_only_first_name(self, ory_patch_mock):
+        ory_update_user_name_success = Response()
+        ory_update_user_name_success.status_code = 200
+        ory_update_user_name_success._content = str.encode(json.dumps({}))
+
+        ory_update_identity_conflict = Response()
+        ory_update_identity_conflict.status_code = 409
+        ory_update_identity_conflict._content = str.encode(json.dumps({"error": {"message": "Error Message"}}))
+
+        ory_update_identity_success = Response()
+        ory_update_identity_success.status_code = 200
+        ory_update_identity_success._content = str.encode(json.dumps({}))
+
+        ory_patch_mock.side_effect = [
+            ory_update_user_name_success,
+            ory_update_identity_conflict,
+            ory_update_identity_success,
+        ]
+
+        new_user = make_user()
+
+        result = self.api_update_authenticated_user_names(new_user, "Fritz", "")
+
+        assert result.errors is None
+        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz1"
+
+        ory_patch_mock.assert_has_calls(
+            [
+                call(
+                    f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
+                    headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+                    json=[
+                        {"op": "add", "path": "/traits/identity", "value": "fritz"},
+                    ],
+                ),
+                call(
+                    f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
+                    headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+                    json=[
+                        {"op": "add", "path": "/traits/identity", "value": "fritz1"},
+                    ],
+                ),
+            ]
+        )
+
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    def test_api_registers_new_user_with_ory_identity_multiple_collision(self, ory_patch_mock):
+        ory_update_user_name_success = Response()
+        ory_update_user_name_success.status_code = 200
+        ory_update_user_name_success._content = str.encode(json.dumps({}))
+
+        ory_update_identity_conflict = Response()
+        ory_update_identity_conflict.status_code = 409
+        ory_update_identity_conflict._content = str.encode(json.dumps({"error": {"message": "Error Message"}}))
+
+        ory_update_identity_success = Response()
+        ory_update_identity_success.status_code = 200
+        ory_update_identity_success._content = str.encode(json.dumps({}))
+
+        ory_patch_mock.side_effect = [
+            ory_update_user_name_success,
+            ory_update_identity_conflict,
+            ory_update_identity_conflict,
+            ory_update_identity_conflict,
+            ory_update_identity_success,
+        ]
+
+        new_user = make_user()
+
+        result = self.api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
+
+        assert result.errors is None
+        assert result.data["updateAuthenticatedUser"]["identity"] == "fritzhansen2"
+
+        ory_patch_mock.assert_has_calls(
+            [
+                call(
+                    f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
+                    headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+                    json=[
+                        {"op": "add", "path": "/traits/identity", "value": "fritz"},
+                    ],
+                ),
+                call(
+                    f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
+                    headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+                    json=[
+                        {"op": "add", "path": "/traits/identity", "value": "fritzhansen"},
+                    ],
+                ),
+                call(
+                    f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
+                    headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+                    json=[
+                        {"op": "add", "path": "/traits/identity", "value": "fritzhansen1"},
+                    ],
+                ),
+            ]
         )
 
     def api_update_authenticated_user_names(self, user, first_name, last_name):
@@ -3112,6 +3222,36 @@ class TestUsers:
         assert response.data["userSuggestions"]["totalResults"] == 1
         assert response.data["userSuggestions"]["data"][0]["fullName"] == "OtherUser"
 
+    def test_user_connection_status_to_space(self):
+        user = make_user()
+        creator = make_user()
+        member = make_user()
+        invitee = make_user()
+        follower = make_user()
+        membership_requestor = make_user()
+        space = make_community(creator=creator)
+        space.add_member(member)
+        space.create_invite(creator, invitee)
+        space.add_membership_request(membership_requestor)
+        follower.enable_new_post_notifications_for_community_with_name(space.name)
+
+        assert self.get_user_connection_status_to_space_data(user, space) == []
+        assert self.get_user_connection_status_to_space_data(creator, space) == [
+            SpaceUserConnectionType.CREATOR.value,
+            SpaceUserConnectionType.MEMBER.value,
+            SpaceUserConnectionType.ADMINISTRATOR.value,
+        ]
+        assert self.get_user_connection_status_to_space_data(member, space) == [SpaceUserConnectionType.MEMBER.value]
+        assert self.get_user_connection_status_to_space_data(invitee, space) == [
+            SpaceUserConnectionType.MEMBERSHIP_INVITEE.value
+        ]
+        assert self.get_user_connection_status_to_space_data(follower, space) == [
+            SpaceUserConnectionType.FOLLOWER.value
+        ]
+        assert self.get_user_connection_status_to_space_data(membership_requestor, space) == [
+            SpaceUserConnectionType.MEMBERSHIP_REQUESTOR.value
+        ]
+
     # Utility methods
 
     def get_user_with_id_data(self, user_to_get, calling_user=None):
@@ -3125,6 +3265,23 @@ class TestUsers:
             query {{
                 userById(id: "{user_to_get.username}") {{
                     id
+                }}
+            }}
+            """,
+            context_value=benedict({"request": {"user": calling_user or AnonymousUser}}),
+        )
+
+    def get_user_connection_status_to_space_data(self, user_to_get, space, calling_user=None):
+        response = self.get_user_connection_status_to_space_raw(user_to_get, space, calling_user)
+        assert response.errors is None
+        return response.data["userById"]["connectionStatusToSpace"]
+
+    def get_user_connection_status_to_space_raw(self, user_to_get, space, calling_user=None):
+        return async_to_sync(schema.execute)(
+            f"""
+            query {{
+                userById(id: "{user_to_get.username}") {{
+                    connectionStatusToSpace(spaceId: "{space.id}")
                 }}
             }}
             """,
@@ -4844,6 +5001,98 @@ class TestUsers:
         community_invite_notification = next(n for n in notifications if n["notificationType"] == "CI")
         assert community_invite_notification["owner"]["fullName"] == invited_user.profile.full_name()
         assert community_invite_notification["options"]["user"]["fullName"] == community_creator.profile.full_name()
+
+    def test_validates_invite_user_to_space(self):
+        user = make_user()
+        admin = make_user()
+        member = make_user()
+        invitee = make_user()
+        space = make_community(creator=admin)
+        space.add_member(member)
+        space.create_invite(admin, invitee)
+        invalid_uuid = str(uuid4())
+
+        expected_errors = [
+            {
+                "field": "space_id",
+                "value": None,
+                "expected_error": "badly formed hexadecimal UUID string",
+            },
+            {
+                "field": "space_id",
+                "value": invalid_uuid,
+                "expected_error": "No community with the provided id exists.",
+            },
+            {
+                "field": "user_id",
+                "value": invalid_uuid,
+                "expected_error": "User matching query does not exist.",
+            },
+            {
+                "field": "user_id",
+                "value": member.id,
+                "expected_input_error": "User is already a member",
+            },
+            {
+                "field": "user_id",
+                "value": invitee.id,
+                "expected_input_error": "User is already invited",
+            },
+            {
+                "field": "auth_user",
+                "value": AnonymousUser,
+                "expected_error": "Unauthorized",
+            },
+            {
+                "field": "auth_user",
+                "value": user,
+                "expected_input_error": "You cannot create an invite to a community you are not a member of",
+            },
+        ]
+
+        for test_case in expected_errors:
+            response = self.mutate_update_space_user_connection_raw(
+                auth_user=test_case["value"] if test_case["field"] == "auth_user" else admin,
+                space_id=test_case["value"] if test_case["field"] == "space_id" else space.id,
+                user_id=test_case["value"] if test_case["field"] == "user_id" else user.id,
+                connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+                connect_action=UpdateConnectionAction.CONNECT,
+            )
+            if "expected_input_error" in test_case:
+                field_errors = json.loads(response.errors[0].extensions["errors"])
+                assert test_case["expected_input_error"] == field_errors[0]["message"]
+            else:
+                assert test_case["expected_error"] in str(response.errors[0].message)
+            assert (response.data["updateSpaceUserConnection"] if response.data else response.data) is None
+
+    def test_can_invite_user_to_space(self):
+        invitee = make_user()
+        admin = make_user()
+        space = make_community(creator=admin)
+
+        # Preconditions
+        pre_invite_space = self.get_space_for_user(invitee, space)
+        assert pre_invite_space["connectionStatusToMyself"] == []
+
+        # Send invite
+        self.mutate_update_space_user_connection_data(
+            auth_user=admin,
+            space_id=space.id,
+            user_id=invitee.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+
+        post_invite_space = self.get_space_for_user(invitee, space)
+        assert post_invite_space["connectionStatusToMyself"] == [SpaceUserConnectionType.MEMBERSHIP_INVITEE.value]
+
+        # User received notification
+        invitee_notifications_response = self.get_notifications(invitee)
+        assert invitee_notifications_response["totalResults"] >= 1
+        notifications = invitee_notifications_response["data"]
+        space_invite_notification = next(n for n in notifications if n["notificationType"] == "CI")
+        assert space_invite_notification["owner"]["fullName"] == invitee.profile.full_name()
+        assert space_invite_notification["options"]["user"]["fullName"] == admin.profile.full_name()
 
     def test_can_not_create_task_missing_required_fields(self):
         user = make_user()

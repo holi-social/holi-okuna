@@ -16,6 +16,8 @@ from openbook_auth.management.common import (
 )
 from openbook_auth.models import User
 
+EMAIL_SUFFIX = "@e2etest.com"
+
 
 class Command(BaseCommand):
     help = "Delete old e2e users on Ory and Okuna"
@@ -52,7 +54,7 @@ class Command(BaseCommand):
         creation_date = parser.isoparse(user["created_at"])
         email = user["traits"]["email"]
         if (self.email and self.email == email) or (
-            email.endswith("@e2etest.com") and creation_date <= self.now - timedelta(days=1)
+            email.endswith(EMAIL_SUFFIX) and creation_date <= self.now - timedelta(days=1)
         ):
             print(f"Deleting {ory_user_to_str(user)}")
 
@@ -72,7 +74,7 @@ class Command(BaseCommand):
         if self.email:
             query = User.objects.filter(email=self.email)
         else:
-            query = User.objects.filter(email__endswith="@e2etest.com", date_joined__lte=self.now - timedelta(days=1))
+            query = User.objects.filter(email__endswith=EMAIL_SUFFIX, date_joined__lte=self.now - timedelta(days=1))
         print(f"{query.count()} e2e users to delete")
         (deleted_count, details) = query.delete()
         if "openbook_auth.User" in details:

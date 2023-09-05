@@ -22,6 +22,7 @@ from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
 from strawberry_django_plus import gql
 from unidecode import unidecode
+from openbook_auth.utils import normalize_spaces
 
 from openbook_common.helpers import ExifRotate, generate_blurhash
 from openbook_auth.checkers import *
@@ -699,24 +700,48 @@ class User(ModelWithUUID, AbstractUser):
         return password_reset_token
 
     @classmethod
-    def _is_valid_identity(cls, identity):
+    def sanitize_identity_input(cls, identity):
+        return re.sub(r"[^a-zA-Z0-9_.-]+", "", unidecode(identity).strip().lower())
+
+    @classmethod
+    def is_valid_identity(cls, identity):
         pattern = r"^[a-z][a-z0-9_.-]*$"
         for i in settings.IDENTITY_NUMBERS_TO_AVOID:
             pattern += f"(?<!{i})"
-        if re.match(pattern, identity):
-            return True
-        else:
-            return False
+        return bool(re.match(pattern, identity))
+
+    @classmethod
+    def is_invalid_identity(cls, identity):
+        return not cls.is_valid_identity(identity)
 
     @classmethod
     def is_identity_taken(cls, identity):
-        identities_taken = set(cls.objects.filter(identity__startswith=identity).values_list("identity", flat=True))
-        return identity in identities_taken
+        return cls.objects.filter(identity=identity).exists()
+
+    @classmethod
+    def get_taken_identities(cls, identity_wish):
+        return set(cls.objects.filter(identity__startswith=identity_wish).values_list("identity", flat=True))
+
+    @classmethod
+    def next_unique_identity(cls, identity_wish, taken_identities, counter=None):
+        """
+        Generate the next identity, that is not yet in taken_identities, by possibly appending a number.
+        When counter is None, we start without a number. When counter is a number, we start with the next integer.
+        Returns a count that can be used for the next call to this method to continue in the sequence.
+        """
+        count = 0 if counter is None else counter + 1
+        while True:
+            new_identity = identity_wish if count == 0 else f"{identity_wish}{count}"
+            if not (cls.is_invalid_identity(new_identity) or new_identity in taken_identities):
+                break
+            count += 1
+
+        return new_identity, count
 
     @classmethod
     def generate_unique_identity(cls, base_identity):
         clean_base_identity = unidecode(base_identity).strip().replace(" ", "").lower()
-        clean_base_identity = re.sub(r"[^a-zA-Z0-9\-_.]+", "", clean_base_identity)
+        clean_base_identity = re.sub(r"[^a-zA-Z0-9_.-]+", "", clean_base_identity)
 
         identity = clean_base_identity
         identities_taken = set(cls.objects.filter(identity__startswith=identity).values_list("identity", flat=True))
@@ -726,22 +751,10 @@ class User(ModelWithUUID, AbstractUser):
             count += 1
             temp_identity = f"{clean_base_identity}{count}"
 
-            if cls._is_valid_identity(temp_identity):
+            if cls.is_valid_identity(temp_identity):
                 identity = temp_identity
 
         return identity
-
-    def register_identity(self, identity_wish):
-        if not self.identity:
-            if self.is_identity_taken(identity_wish):
-                self.identity = self.generate_unique_identity(self.profile.full_name())
-            else:
-                self.identity = self.generate_unique_identity(identity_wish)
-            self.save()
-
-    def remove_identity(self):
-        self.identity = None
-        self.save()
 
     def update(
         self,
@@ -779,7 +792,7 @@ class User(ModelWithUUID, AbstractUser):
                 profile.url = url
 
         if name:
-            profile.name = name
+            profile.name = normalize_spaces(name)
 
         if update_location:
             if geolocation:
@@ -815,7 +828,7 @@ class User(ModelWithUUID, AbstractUser):
             self.visibility = visibility
 
         if last_name is not None:
-            profile.last_name = last_name
+            profile.last_name = normalize_spaces(last_name)
         if pronouns is not None:
             profile.pronouns = pronouns
         if engagement_level:
@@ -4828,6 +4841,18 @@ class User(ModelWithUUID, AbstractUser):
             Notification.objects.filter(owner=self, created__lte=last_seen_timestamp).update(read=True)
             self.save()
 
+    def invite_to_community(self, username, community, language="de"):
+        check_can_create_invite_to_community(user=self, community=community)
+
+        User = get_user_model()
+        user = User.objects.get(username=username)
+
+        check_should_user_or_email_be_invited_to_community(user=user, community=community, email=None)
+
+        self.invite_user_to_community(user=user, community=community)
+
+        return community
+
     @transaction.atomic
     def invite_to_community_by_email(self, email, space_id, language="de"):
         Community = get_community_model()
@@ -4844,7 +4869,9 @@ class User(ModelWithUUID, AbstractUser):
             user = None
 
         # do not expose error messages in case user should not be invited (e.g. user is already member) in order to make it difficult to guess user emails
-        if not check_should_user_with_email_be_invited_to_community(user=user, email=email, community=community):
+        try:
+            check_should_user_or_email_be_invited_to_community(user=user, email=email, community=community)
+        except:
             return None
 
         if user is not None:
