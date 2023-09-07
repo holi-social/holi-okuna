@@ -4035,7 +4035,9 @@ class TestUsers:
 
         cover = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
         avatar = SimpleUploadedFile(name="avatar.jpg", content=simple_jpeg_bytes)
-        blurhash_img = blurhash.encode(SimpleUploadedFile(name="blur.jpg", content=simple_jpeg_bytes), x_components=4, y_components=3)
+        blurhash_img = blurhash.encode(
+            SimpleUploadedFile(name="blur.jpg", content=simple_jpeg_bytes), x_components=4, y_components=3
+        )
 
         sdg_ids = [str(make_sdg().id) for _ in range(2)]
         location = "Hamburg, Germany"
