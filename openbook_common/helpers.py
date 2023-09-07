@@ -1,7 +1,8 @@
+import os
 import tempfile
 from json import dumps
 
-from PIL import ExifTags
+from PIL import ExifTags, Image
 from PIL.Image import Transpose
 import requests
 import blurhash
@@ -158,7 +159,8 @@ class ExifRotate:
 
 
 def generate_blurhash(obj) -> str | None:
-    try:
+    with Image.open(obj) as img:
+        img.rotate(0)
+        obj.seek(0, os.SEEK_SET)
+        img.save(obj, "jpeg")
         return blurhash.encode(obj, x_components=4, y_components=3) if obj is not None else None
-    except FileNotFoundError:
-        return None
