@@ -161,8 +161,7 @@ class ExifRotate:
 def generate_blurhash(obj) -> str | None:
     if obj is None:
         return None
-    with Image.open(obj) as img:
-        img.rotate(0)
+    with Image.open(obj).convert("RGB") as img:
         obj.seek(0, os.SEEK_SET)
-        img.save(obj, "jpeg")
+        img.save(obj, "JPEG")
         return blurhash.encode(obj, x_components=4, y_components=3)
