@@ -1,16 +1,16 @@
 import os
 import tempfile
 from json import dumps
+from urllib.parse import urlparse
 
-from PIL import ExifTags, Image
-from PIL.Image import Transpose
-import requests
 import blurhash
+import requests
+from django.conf import settings
 from django.db.models import Q
 from langdetect import DetectorFactory
 from langdetect.lang_detect_exception import LangDetectException
-from django.conf import settings
-from urllib.parse import urlparse
+from PIL import ExifTags, Image
+from PIL.Image import Transpose
 from urlextract import URLExtract
 
 from openbook.settings import ALERT_HOOK_URL
@@ -159,8 +159,10 @@ class ExifRotate:
 
 
 def generate_blurhash(obj) -> str | None:
+    if obj is None:
+        return None
     with Image.open(obj) as img:
         img.rotate(0)
         obj.seek(0, os.SEEK_SET)
         img.save(obj, "jpeg")
-        return blurhash.encode(obj, x_components=4, y_components=3) if obj is not None else None
+        return blurhash.encode(obj, x_components=4, y_components=3)
