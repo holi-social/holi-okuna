@@ -1438,7 +1438,7 @@ class PostReaction(ModelWithUUID):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="reactions")
     created = models.DateTimeField(editable=False)
     reactor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="post_reactions")
-    reaction_type = models.CharField(max_length=20, choices=[(tag, tag.value) for tag in ReactionType])
+    reaction_type = models.CharField(max_length=20, choices=ReactionType.choices)
 
     class Meta:
         unique_together = (
@@ -1478,7 +1478,7 @@ class PostCommentReaction(ModelWithUUID):
     post_comment = models.ForeignKey(PostComment, on_delete=models.CASCADE, related_name="reactions")
     created = models.DateTimeField(editable=False)
     reactor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="post_comment_reactions")
-    reaction_type = models.CharField(max_length=20, choices=[(tag, tag.value) for tag in ReactionType])
+    reaction_type = models.CharField(max_length=20, choices=ReactionType.choices)
 
     class Meta:
         unique_together = (
