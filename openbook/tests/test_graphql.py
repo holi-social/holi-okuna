@@ -3,6 +3,7 @@ import json
 import logging
 from unittest.mock import call
 
+import blurhash
 import pytest
 from asgiref.sync import sync_to_async, async_to_sync
 from django.test import AsyncClient
@@ -4032,12 +4033,11 @@ class TestUsers:
         community = make_community(creator=user)
         topic_ids = [str(make_topic().id) for _ in range(2)]
 
-        test_image = get_test_images()[0]
-        with open(test_image["path"], "rb") as file:
-            content = file.read()
-            cover = SimpleUploadedFile(name="cover.jpg", content=content)
-            avatar = SimpleUploadedFile(name="avatar.jpg", content=content)
-        blurhash = generate_blurhash(test_image["path"])
+        cover = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+        avatar = SimpleUploadedFile(name="avatar.jpg", content=simple_jpeg_bytes)
+        blurhash_img = blurhash.encode(
+            SimpleUploadedFile(name="blur.jpg", content=simple_jpeg_bytes), x_components=4, y_components=3
+        )
 
         sdg_ids = [str(make_sdg().id) for _ in range(2)]
         location = "Hamburg, Germany"
@@ -4091,8 +4091,8 @@ class TestUsers:
             assert topic["id"] in topic_ids
         assert "cover.jpg" in updated_space["cover"]
         assert "avatar.jpg" in updated_space["avatar"]
-        assert blurhash == updated_space["coverBlurhash"]
-        assert blurhash == updated_space["avatarBlurhash"]
+        assert blurhash_img == updated_space["coverBlurhash"]
+        assert blurhash_img == updated_space["avatarBlurhash"]
         assert len(sdg_ids) == len(updated_space["sdgs"])
         for sdg in updated_space["sdgs"]:
             assert sdg["id"] in sdg_ids

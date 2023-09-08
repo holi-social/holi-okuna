@@ -1,4 +1,5 @@
 import structlog
+
 from openbook_auth.models import User
 from openbook_common.pubsub.publisher import publish_event
 from openbook_communities.events.events import (
@@ -10,7 +11,6 @@ from openbook_communities.events.events import (
     UserDeletedEvent,
     UserNameUpdatedEvent,
 )
-
 from openbook_communities.events.payloads import SpacePayload, UserPayload
 from openbook_communities.events.topic import Topic as PubSubTopic
 from openbook_communities.models import Community
