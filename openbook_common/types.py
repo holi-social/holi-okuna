@@ -8,8 +8,8 @@ from django.contrib.gis import geos
 
 
 @gql.enum
-class ReactionType(str, Enum):
-    HEART = "HEART"
+class ReactionType(TextChoices):
+    HEART = ("HEART",)
 
 
 @gql.enum
