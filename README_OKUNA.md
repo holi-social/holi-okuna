@@ -329,7 +329,7 @@ If running the API with the Okuna CLI full mode, you can execute them by connect
 machine by running
 
 ```bash
-docker-compose -f docker-compose-full.yml exec webserver "/bin/bash"
+docker compose -f docker-compose-full.yml exec webserver "/bin/bash"
 ```
 
 Inside the machine you can then execute the commands as 

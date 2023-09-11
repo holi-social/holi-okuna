@@ -8,19 +8,19 @@ compilemessages_es:
 	django-admin compilemessages --locale=es
 
 build_openbook_api:
-	docker-compose build
+	docker compose build
 
 start_openbook_api:
-	docker-compose up
+	docker compose up
 
 stop_openbook_api:
-	docker-compose stop
+	docker compose stop
 
 clean_openbook-api:
-	docker-compose down -v --rmi local
+	docker compose down -v --rmi local
 
 logs_openbook-api:
-	docker-compose logs -f
+	docker compose logs -f
 
 runserver:
 	python manage.py runserver
