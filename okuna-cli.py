@@ -248,7 +248,8 @@ def _bootstrap(is_local_api):
     else:
         subprocess.run(
             [
-                "docker","compose",
+                "docker",
+                "compose",
                 "-f",
                 "docker-compose-full.yml",
                 "exec",
@@ -292,19 +293,19 @@ def cli():
 def _down_test():
     """Bring Okuna down"""
     logger.error("⬇️  Bringing the Okuna test services down...")
-    subprocess.run(["docker","compose", "-f", "docker-compose-test-services-only.yml", "down"])
+    subprocess.run(["docker", "compose", "-f", "docker-compose-test-services-only.yml", "down"])
 
 
 def _down_full():
     """Bring Okuna down"""
     logger.error("⬇️  Bringing the whole of Okuna down...")
-    subprocess.run(["docker","compose", "-f", "docker-compose-full.yml", "down"])
+    subprocess.run(["docker", "compose", "-f", "docker-compose-full.yml", "down"])
 
 
 def _down_services_only():
     """Bring Okuna down"""
     logger.error("⬇️  Bringing the Okuna services down...")
-    subprocess.run(["docker","compose", "-f", "docker-compose-services-only.yml", "down"])
+    subprocess.run(["docker", "compose", "-f", "docker-compose-services-only.yml", "down"])
 
 
 @click.command()
@@ -327,7 +328,7 @@ def up_full():
     logger.info("⬆️  Bringing the whole of Okuna up...")
 
     atexit.register(_down_full)
-    subprocess.run(["docker","compose", "-f", "docker-compose-full.yml", "up", "-d", "-V"])
+    subprocess.run(["docker", "compose", "-f", "docker-compose-full.yml", "up", "-d", "-V"])
 
     okuna_api_address = "127.0.0.1"
     okuna_api_port = 8000
@@ -340,7 +341,8 @@ def up_full():
 
     subprocess.run(
         [
-            "docker","compose",
+            "docker",
+            "compose",
             "-f",
             "docker-compose-full.yml",
             "logs",
@@ -363,13 +365,13 @@ def up_services_only():
     logger.info("⬆️  Bringing only the Okuna services up...")
 
     atexit.register(_down_services_only)
-    subprocess.run(["docker","compose", "-f", "docker-compose-services-only.yml", "up", "-d", "-V"])
+    subprocess.run(["docker", "compose", "-f", "docker-compose-services-only.yml", "up", "-d", "-V"])
 
     _ensure_was_bootstrapped(is_local_api=True)
 
     logger.info("🥳  Okuna services are up")
 
-    subprocess.run(["docker","compose", "-f", "docker-compose-services-only.yml", "logs", "--follow"])
+    subprocess.run(["docker", "compose", "-f", "docker-compose-services-only.yml", "logs", "--follow"])
 
     input()
 
@@ -390,7 +392,8 @@ def up_test():
     atexit.register(_down_test)
     subprocess.run(
         [
-            "docker","compose",
+            "docker",
+            "compose",
             "-f",
             "docker-compose-test-services-only.yml",
             "up",
@@ -403,7 +406,8 @@ def up_test():
 
     subprocess.run(
         [
-            "docker","compose",
+            "docker",
+            "compose",
             "-f",
             "docker-compose-test-services-only.yml",
             "logs",
@@ -421,7 +425,7 @@ def build_full():
     _ensure_has_required_cli_config_files()
     logger.info("👷‍♀️  Rebuilding Okuna full services...")
     _copy_requirements_txt_to_docker_images_dir()
-    subprocess.run(["docker","compose", "-f", "docker-compose-full.yml", "build"])
+    subprocess.run(["docker", "compose", "-f", "docker-compose-full.yml", "build"])
 
 
 @click.command()
@@ -430,14 +434,14 @@ def build_services_only():
     _ensure_has_required_cli_config_files()
     logger.info("👷‍♀️  Rebuilding only Okuna services...")
     _copy_requirements_txt_to_docker_images_dir()
-    subprocess.run(["docker","compose", "-f", "docker-compose-services-only.yml", "build"])
+    subprocess.run(["docker", "compose", "-f", "docker-compose-services-only.yml", "build"])
 
 
 @click.command()
 def status():
     """Get Okuna status"""
     logger.info("🕵️‍♂️  Retrieving services status...")
-    subprocess.run(["docker","compose", "ps"])
+    subprocess.run(["docker", "compose", "ps"])
 
 
 @click.command()
