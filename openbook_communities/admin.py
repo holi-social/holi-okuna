@@ -36,8 +36,9 @@ class CommunityAdmin(admin.ModelAdmin):
 
 @admin.register(CommunityMembership)
 class CommunityMembershipAdmin(admin.ModelAdmin):
-    list_display = ("community", "user")
-    search_fields = ("community__title", "community__creator__email")
+    list_display = ("id", "community", "user", "is_administrator")
+    list_filter = ("is_administrator",)
+    search_fields = ("community__title", "community__creator__email", "user__email")
 
 
 @admin.register(Task)

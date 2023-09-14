@@ -1226,6 +1226,15 @@ class PostComment(ModelWithUUID):
     def count_replies(self):
         return self.replies.count()
 
+    def count_reactions(self):
+        return self.reactions.count()
+
+    def count_mentions(self):
+        return self.mentions.count()
+
+    def count_links(self):
+        return self.links.count()
+
     def count_replies_with_user(self, user):
         # Count replies excluding users blocked by authenticated user
         count_query = ~Q(

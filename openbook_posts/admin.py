@@ -88,3 +88,17 @@ class PostAdmin(admin.ModelAdmin):
 @admin.register(PostComment)
 class PostCommentAdmin(admin.ModelAdmin):
     model = PostComment
+
+    list_display = (
+        "id",
+        "text",
+        "created",
+        "commenter",
+        "post",
+        "count_replies",
+        "count_reactions",
+        "count_mentions",
+        "count_links",
+    )
+    list_filter = (("created", DateRangeQuickSelectListFilterBuilder(title="Created")),)
+    search_fields = ("text", "commenter")
