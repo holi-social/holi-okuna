@@ -784,9 +784,6 @@ class Mutation:
     def update_authenticated_user(self, info, input: UpdateAuthenticatedUserInput) -> User:
         current_user = verify_authorized_user(info)
 
-        l = [1, 2, 3]
-        l[5]
-
         input_dict = to_input_dict(input)
         if input.first_name:
             input_dict["name"] = input.first_name
