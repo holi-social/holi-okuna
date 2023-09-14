@@ -290,8 +290,8 @@ class Query:
                 return app_version.first()
             app_version = AppVersionModel.objects.get(version=version, build_number__isnull=True)
         except AppVersionModel.DoesNotExist:
-            logger.warning(f"App version {version} not found")
-            return AppVersionResponse(need_update=NeedUpdateType.NO)
+            logger.info(f"App version {version} not found. Creating a new App Version.")
+            return AppVersionModel.objects.create(version=version)
         return app_version
 
     @gql.django.field
@@ -783,6 +783,9 @@ class Mutation:
     @sync_to_async
     def update_authenticated_user(self, info, input: UpdateAuthenticatedUserInput) -> User:
         current_user = verify_authorized_user(info)
+
+        l = [1, 2, 3]
+        l[5]
 
         input_dict = to_input_dict(input)
         if input.first_name:
