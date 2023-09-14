@@ -284,15 +284,18 @@ class Query:
 
     @gql.django.field
     def check_app_version(self, version: str, build_number: str) -> AppVersionResponse:
-        try:
-            app_version = AppVersionModel.objects.filter(version=version, build_number=build_number)
-            if app_version.exists():
-                return app_version.first()
-            app_version = AppVersionModel.objects.get(version=version, build_number__isnull=True)
-        except AppVersionModel.DoesNotExist:
-            logger.info(f"App version {version} not found. Creating a new App Version.")
-            return AppVersionModel.objects.create(version=version)
-        return app_version
+        app_version = (
+            AppVersionModel.objects.filter(
+                Q(version=version), Q(build_number=build_number) | Q(build_number__isnull=True)
+            )
+            .order_by("build_number")
+            .first()
+        )
+        if app_version:
+            return app_version
+
+        logger.info(f"App version {version} not found. Creating a new App Version.")
+        return AppVersionModel.objects.create(version=version)
 
     @gql.django.field
     async def feature_toggles(self) -> List[FeatureToggle]:
@@ -783,9 +786,6 @@ class Mutation:
     @sync_to_async
     def update_authenticated_user(self, info, input: UpdateAuthenticatedUserInput) -> User:
         current_user = verify_authorized_user(info)
-
-        l = [1, 2, 3]
-        l[5]
 
         input_dict = to_input_dict(input)
         if input.first_name:
