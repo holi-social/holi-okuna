@@ -5288,10 +5288,10 @@ class TestUsers:
 
         self.assert_is_unauthorized(response)
 
-    def test_can_not_create_task_if_not_admin(self):
+    def test_can_not_create_task_if_not_admin_or_member(self):
         user = make_user()
         community = make_community()
-        community.add_member(user)
+        community.add_moderator(user)
         skill = make_skill()
 
         create_task_mutation = """
@@ -5564,10 +5564,10 @@ class TestUsers:
 
         self.assert_is_unauthorized(response)
 
-    def test_can_not_update_task_if_not_admin(self):
+    def test_can_not_update_task_if_not_admin_or_member(self):
         user = make_user()
         community = make_community()
-        community.add_member(user)
+        community.add_moderator(user)
         skill = make_skill()
         task = make_community_task(community)
 
