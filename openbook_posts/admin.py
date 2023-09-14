@@ -1,8 +1,8 @@
 from django.contrib import admin
+from rangefilter.filters import DateRangeQuickSelectListFilterBuilder
 
-# RegisterView your models here.
 from openbook_circles.models import Circle
-from openbook_posts.models import Post, PostImage, PostComment, PostReaction
+from openbook_posts.models import Post, PostComment, PostImage, PostReaction
 
 
 class PostImageInline(admin.TabularInline):
@@ -60,6 +60,12 @@ class PostAdmin(admin.ModelAdmin):
         "has_text",
         "has_image",
     )
+    list_filter = (
+        "is_public",
+        "status",
+        ("created", DateRangeQuickSelectListFilterBuilder(title="Created")),
+    )
+    search_fields = ("title", "text")
 
     def has_add_permission(self, request, obj=None):
         return True  # needs to be true for creating posts via /admin

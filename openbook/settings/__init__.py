@@ -83,6 +83,7 @@ INSTALLED_APPS = [
     "video_encoding",
     "imagekit",
     "cacheops",
+    "rangefilter",
     "django_rq",
     "django_extensions",
     "openbook_common",
