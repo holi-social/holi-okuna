@@ -4,16 +4,24 @@ from openbook_communities.models import (
     CollaborationTool,
     Community,
     CommunityMembership,
-    Task,
     ExternalLink,
+    Task,
 )
 
 
 @admin.register(Community)
 class CommunityAdmin(admin.ModelAdmin):
     readonly_fields = ["name"]
-    list_display = ("title", "creator", "created")
-    search_fields = ("title", "creator__email")
+    list_display = ("name", "title", "creator", "created", "get_num_posts", "get_num_members")
+    search_fields = ("title", "creator__email", "creator__profile__name", "creator__profile__last_name")
+
+    @admin.display(description="Num posts")
+    def get_num_posts(self, obj):
+        return obj.posts.count()
+
+    @admin.display(description="Num members")
+    def get_num_members(self, obj):
+        return obj.memberships.count()
 
     def has_add_permission(self, request, obj=None):
         return True  # needs to be true for adding communities via /admin (needed for creating posts)
@@ -28,8 +36,9 @@ class CommunityAdmin(admin.ModelAdmin):
 
 @admin.register(CommunityMembership)
 class CommunityMembershipAdmin(admin.ModelAdmin):
-    list_display = ("community", "user")
-    search_fields = ("community__title", "community__creator__email")
+    list_display = ("id", "community", "user", "is_administrator")
+    list_filter = ("is_administrator",)
+    search_fields = ("community__title", "community__creator__email", "user__email")
 
 
 @admin.register(Task)
