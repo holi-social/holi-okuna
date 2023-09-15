@@ -5253,6 +5253,57 @@ class TestUsers:
         assert valid_description == added_collaboration_tool["description"]
         assert valid_visibility == added_collaboration_tool["visibility"]
 
+    def test_can_create_members_only_task_if_collaborator(self):
+        user = make_user()
+
+        community = make_community()
+        community.add_member(user=user)
+
+        skill = make_skill()
+
+        create_task_mutation = """
+            mutation test($input: CreateTaskInput!) {
+                createTask(input: $input) {
+                    id
+                    name
+                    description
+                    visibility
+                }
+            }
+            """
+
+        valid_name = "Valid name"
+        valid_description = "Valid description"
+        valid_visibility = "MEMBERS"
+
+        valid_input = {
+            "spaceId": str(community.id),
+            "name": valid_name,
+            "description": valid_description,
+            "visibility": valid_visibility,
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
+        }
+
+        response = async_to_sync(schema.execute)(
+            create_task_mutation,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"input": valid_input},
+        )
+
+        assert response.errors is None
+
+        added_collaboration_tool = response.data["createTask"]
+        assert "id" in added_collaboration_tool
+        assert valid_name == added_collaboration_tool["name"]
+        assert valid_description == added_collaboration_tool["description"]
+        assert valid_visibility == added_collaboration_tool["visibility"]
+
     def test_can_not_create_task_if_not_logged_in(self):
         community = make_community()
         skill = make_skill()
@@ -5288,10 +5339,10 @@ class TestUsers:
 
         self.assert_is_unauthorized(response)
 
-    def test_can_not_create_task_if_not_admin(self):
+    def test_can_not_create_task_if_not_admin_or_member(self):
         user = make_user()
         community = make_community()
-        community.add_member(user)
+
         skill = make_skill()
 
         create_task_mutation = """
@@ -5325,7 +5376,47 @@ class TestUsers:
 
         field_errors = json.loads(response.errors[0].extensions["errors"])
 
-        assert field_errors[0]["message"] in "You cannot add a task to a community you are not an administrator of"
+        assert field_errors[0]["message"] in "You cannot add a task to a community you are not a member of"
+
+    def test_can_not_create_public_task_if_not_admin(self):
+        user = make_user()
+        community = make_community()
+        community.add_member(user)
+
+        skill = make_skill()
+
+        create_task_mutation = """
+                mutation test($input: CreateTaskInput!) {
+                    createTask(input: $input) {
+                        id
+                        name
+                    }
+                }
+                """
+
+        valid_input = {
+            "spaceId": str(community.id),
+            "name": "Valid name",
+            "description": "Valid description",
+            "visibility": "PUBLIC",
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
+        }
+
+        response = async_to_sync(schema.execute)(
+            create_task_mutation,
+            variable_values={"input": valid_input},
+            context_value=benedict({"request": {"user": user}}),
+        )
+
+        field_errors = json.loads(response.errors[0].extensions["errors"])
+
+        assert field_errors[0]["message"] in "Only administrators can add public tasks"
 
     def test_can_not_update_task_missing_required_fields(self):
         user = make_user()
@@ -5527,6 +5618,96 @@ class TestUsers:
         assert "" == updateTask["thumbnail"]
         assert updateTask["thumbnailBlurhash"] is None
 
+    def test_can_update_members_only_task_if_collaborator(self):
+        user = make_user()
+
+        community = make_community()
+        community.add_member(user=user)
+        task = make_community_task(community)
+        skill = make_skill()
+
+        update_task_mutation = """
+            mutation test($input: UpdateTaskInput!) {
+                updateTask(input: $input) {
+                    id
+                    name
+                    description
+                    visibility
+                    thumbnail
+                    thumbnailBlurhash
+                }
+            }
+            """
+
+        valid_name = "Valid name"
+        valid_description = "Valid description"
+        valid_visibility = "MEMBERS"
+        valid_thumbnail = SimpleUploadedFile(name="thumbnail.jpg", content=simple_jpeg_bytes)
+
+        valid_input = {
+            "taskId": str(task.id),
+            "spaceId": str(community.id),
+            "name": valid_name,
+            "description": valid_description,
+            "visibility": valid_visibility,
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
+            "thumbnail": valid_thumbnail,
+        }
+
+        response = async_to_sync(schema.execute)(
+            update_task_mutation,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"input": valid_input},
+        )
+
+        assert response.errors is None
+
+        updateTask = response.data["updateTask"]
+        assert "id" in updateTask
+        assert valid_name == updateTask["name"]
+        assert valid_description == updateTask["description"]
+        assert valid_visibility == updateTask["visibility"]
+        assert "thumbnail.jpg" in updateTask["thumbnail"]
+        assert updateTask["thumbnailBlurhash"] is not None
+
+        valid_name = "New valid name"
+        valid_description = "New valid description"
+        valid_visibility = "PUBLIC"
+
+        valid_input = {
+            "taskId": str(task.id),
+            "spaceId": str(community.id),
+            "name": valid_name,
+            "description": valid_description,
+            "visibility": valid_visibility,
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "thumbnail": None,
+        }
+
+        response = async_to_sync(schema.execute)(
+            update_task_mutation,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"input": valid_input},
+        )
+
+        assert response.errors is None
+
+        updateTask = response.data["updateTask"]
+        assert "id" in updateTask
+        assert valid_name == updateTask["name"]
+        assert valid_description == updateTask["description"]
+        assert valid_visibility == updateTask["visibility"]
+        assert "" == updateTask["thumbnail"]
+        assert updateTask["thumbnailBlurhash"] is None
+
     def test_can_not_update_task_if_not_logged_in(self):
         community = make_community()
         task = make_community_task(community)
@@ -5564,10 +5745,9 @@ class TestUsers:
 
         self.assert_is_unauthorized(response)
 
-    def test_can_not_update_task_if_not_admin(self):
+    def test_can_not_update_task_if_not_admin_or_member(self):
         user = make_user()
         community = make_community()
-        community.add_member(user)
         skill = make_skill()
         task = make_community_task(community)
 
@@ -5605,9 +5785,52 @@ class TestUsers:
 
         field_errors = json.loads(response.errors[0].extensions["errors"])
 
-        assert field_errors[0]["message"] in "You cannot update a task of a community you are not an administrator of"
+        assert field_errors[0]["message"] in "You cannot update a task of a community you are not a member of"
 
-    def test_can_not_delete_task_if_not_space_admin(self):
+    def test_can_not_update_public_task_if_not_admin(self):
+        user = make_user()
+        community = make_community()
+        community.add_member(user=user)
+        skill = make_skill()
+        task = make_community_task(community, visibility=VisibilityType.PUBLIC)
+
+        update_task_mutation = """
+                mutation test($input: UpdateTaskInput!) {
+                    updateTask(input: $input) {
+                        id
+                        name
+                    }
+                }
+                """
+
+        valid_input = {
+            "taskId": str(task.id),
+            "spaceId": str(community.id),
+            "name": "Valid name",
+            "description": "Valid description",
+            "visibility": "MEMBERS",
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
+        }
+
+        response = async_to_sync(schema.execute)(
+            update_task_mutation,
+            variable_values={"input": valid_input},
+            context_value=benedict({"request": {"user": user}}),
+        )
+
+        assert response.data is None
+
+        field_errors = json.loads(response.errors[0].extensions["errors"])
+
+        assert field_errors[0]["message"] in "Only administrators can update public tasks"
+
+    def test_can_not_delete_task_if_member(self):
         user = make_user()
         community = make_community()
         task = make_community_task(community)
@@ -5627,9 +5850,32 @@ class TestUsers:
         )
 
         assert response.data is None
-        assert "Can't delete a task within a community that you do not administrate." in str(
+        assert "You cannot delete a task of a community you are not a member of" in str(
             response.errors[0].extensions["errors"]
         )
+
+    def test_can_not_delete_public_task_if_not_admin(self):
+        user = make_user()
+        community = make_community()
+        community.add_member(user=user)
+        task = make_community_task(community, visibility=VisibilityType.PUBLIC)
+
+        delete_task_mutation = """
+                mutation test($id: UUID!) {
+                    deleteTask(id: $id) {
+                        success
+                    }
+                }
+                """
+
+        response = async_to_sync(schema.execute)(
+            delete_task_mutation,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"id": str(task.id)},
+        )
+
+        assert response.data is None
+        assert "Only administrators can delete public tasks" in str(response.errors[0].extensions["errors"])
 
     def test_can_not_delete_task_if_not_logged_in(self):
         community = make_community()
@@ -5654,6 +5900,29 @@ class TestUsers:
     def test_can_delete_task(self):
         user = make_user()
         community = make_community(creator=user)
+        task = make_community_task(community)
+
+        delete_task_mutation = """
+            mutation test($id: UUID!) {
+                deleteTask(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = async_to_sync(schema.execute)(
+            delete_task_mutation,
+            variable_values={"id": str(task.id)},
+            context_value=benedict({"request": {"user": user}}),
+        )
+
+        assert response.data["deleteTask"]["success"] is True
+        assert response.errors is None
+
+    def test_can_delete_members_only_task_if_collaborator(self):
+        user = make_user()
+        community = make_community()
+        community.add_member(user=user)
         task = make_community_task(community)
 
         delete_task_mutation = """

@@ -4951,7 +4951,7 @@ class User(ModelWithUUID, AbstractUser):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
 
-        check_can_create_task_to_community(user=self, community=community)
+        check_can_create_task_to_community(user=self, visibility=visibility, community=community)
 
         Task = get_task_model()
 
@@ -4992,11 +4992,10 @@ class User(ModelWithUUID, AbstractUser):
     ):
         Community = get_community_model()
         community = Community.objects.get(id=space_id)
-
-        check_can_update_task_in_community(user=self, community=community)
-
         Task = get_task_model()
         task = Task.objects.get(id=task_id)
+
+        check_can_update_task_in_community(user=self, task=task, community=community)
 
         return task.update(
             name=name,
@@ -5018,7 +5017,7 @@ class User(ModelWithUUID, AbstractUser):
         Task = get_task_model()
         task = Task.objects.get(id=task_id)
 
-        check_can_delete_task_within_community_with_id(user=self, community_id=task.community_id)
+        check_can_delete_task_within_community_with_id(user=self, task=task, community_id=task.community_id)
 
         task.delete()
 
