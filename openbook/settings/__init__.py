@@ -131,7 +131,16 @@ if DEBUG:
 
     import socket
 
-    hostname, aliases, ips = socket.gethostbyname_ex(socket.gethostname())
+    def get_ips_fallback_localhost():
+        try:
+            hostname, aliases, ips = socket.gethostbyname_ex(socket.gethostname())
+            return ips
+        except socket.gaierror as e:
+            if e.errno == 8:
+                return ["127.0.0.1"]
+            raise
+
+    ips = get_ips_fallback_localhost()
     INTERNAL_IPS = [".".join(ip.split(".")[:-1] + ["1"]) for ip in ips]
 
     DEBUG_TOOLBAR_CONFIG = {
