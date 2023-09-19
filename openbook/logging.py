@@ -44,6 +44,8 @@ def holi_gcloud_serializer(event_dict, **kwargs):
         event_dict["traceback"] = "".join(
             traceback.format_exception(event_dict["exc_info"][0], event_dict["exc_info"][1], event_dict["exc_info"][2])
         )
+    # stack_info is always filled with the stack of the method call to process_errors and useless, so we remove it when present
+    event_dict.pop("stack_info", None)
     event_dict["message"] = event_dict.pop("event")
     event_dict["severity"] = normalize_severity_from_loglevel(event_dict.pop("level"))
     event_dict["logging.googleapis.com/labels"] = LABELS
