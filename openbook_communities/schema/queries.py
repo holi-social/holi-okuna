@@ -1,20 +1,15 @@
 import uuid
-from datetime import datetime, timedelta
 from typing import Annotated, List, Optional
 
-import gql
 import strawberry
 import strawberry_django
 from asgiref.sync import async_to_sync, sync_to_async
-from django.db.models import Count, F, Prefetch, Q, Value
-from django.db.models.functions import Concat
-from django.db.models.lookups import IContains
+from django.db.models import Count, Prefetch, Q
 from django.utils.translation import gettext_lazy as _
 from graphql import GraphQLError
 
 from openbook_auth.models import User as UserModel
 from openbook_auth.utils import verify_authorized_user
-from openbook_auth.validators import string_not_empty
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.schema.types import GeoJSON, Paged
 from openbook_common.types import GeolocationFeature

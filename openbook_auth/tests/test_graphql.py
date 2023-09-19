@@ -31,6 +31,7 @@ from openbook_common.tests.helpers import (
     make_fake_post_text,
     make_fake_post_title,
     make_user,
+    assert_paged_results_equal,
 )
 from openbook_communities.models import SpaceUserConnectionType
 from openbook_posts.tests.helpers import get_post_with_id_data, get_post_with_id_raw
@@ -79,58 +80,58 @@ class TestUsers:
         assert authenticated_user["fullName"] == user.profile.full_name()
         assert authenticated_user["engagementLevel"] == user.profile.engagement_level
 
-    # def test_get_user_by_name_returns_only_matching_users_without_logged_in_user(self):
-    #     user = make_user(name="Peter", last_name="Moser")
-    #     user2 = make_user(name="Peter", last_name="Muster")
-    #     user3 = make_user(name="Peter", last_name="Marker")
-    #     expected_users = [user3, user2]
-    #     make_user(name="Fritz", last_name="Meier")
-    #
-    #     executed = async_to_sync(schema.execute)(
-    #         """
-    #         query {
-    #             userByName(substring: "ter M") {
-    #                 totalResults
-    #                 data {
-    #                     firstName
-    #                     lastName
-    #                 }
-    #             }
-    #         }
-    #         """,
-    #         context_value=benedict({"request": {"user": user}}),
-    #     )
-    #     assert_paged_results_equal(
-    #         results=executed.data["userByName"],
-    #         expected_data=[{"firstName": u.name, "lastName": u.last_name} for u in expected_users],
-    #     )
+    def test_get_user_by_name_returns_only_matching_users_without_logged_in_user(self):
+        user = make_user(name="Peter", last_name="Moser")
+        user2 = make_user(name="Peter", last_name="Muster")
+        user3 = make_user(name="Peter", last_name="Marker")
+        expected_users = [user3, user2]
+        make_user(name="Fritz", last_name="Meier")
 
-    # def test_get_user_by_name_first_name_matches_first(self):
-    #     make_user(name="Thomas", last_name="Petersen")
-    #     make_user(name="Angelika", last_name="Petersen")
-    #     make_user(name="Peter", last_name="Muster")
-    #     make_user(name="Petra", last_name="Meier")
-    #     make_user(name="Fritz", last_name="Meier")
-    #
-    #     executed = async_to_sync(schema.execute)(
-    #         """
-    #         query {
-    #             userByName(substring: "Pet") {
-    #                 totalResults
-    #                 data {
-    #                     firstName
-    #                     lastName
-    #                 }
-    #             }
-    #         }
-    #         """,
-    #         context_value=benedict({"request": {"user": AnonymousUser}}),
-    #     )
-    #     assert executed.data["userByName"]["totalResults"] == 4
-    #     assert executed.data["userByName"]["data"][0]["firstName"] == "Peter"
-    #     assert executed.data["userByName"]["data"][1]["firstName"] == "Petra"
-    #     assert executed.data["userByName"]["data"][2]["firstName"] == "Angelika"
-    #     assert executed.data["userByName"]["data"][3]["firstName"] == "Thomas"
+        executed = async_to_sync(schema.execute)(
+            """
+            query {
+                userByName(substring: "ter M") {
+                    totalResults
+                    data {
+                        firstName
+                        lastName
+                    }
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": user}}),
+        )
+        assert_paged_results_equal(
+            results=executed.data["userByName"],
+            expected_data=[{"firstName": u.name, "lastName": u.last_name} for u in expected_users],
+        )
+
+    def test_get_user_by_name_first_name_matches_first(self):
+        make_user(name="Thomas", last_name="Petersen")
+        make_user(name="Angelika", last_name="Petersen")
+        make_user(name="Peter", last_name="Muster")
+        make_user(name="Petra", last_name="Meier")
+        make_user(name="Fritz", last_name="Meier")
+
+        executed = async_to_sync(schema.execute)(
+            """
+            query {
+                userByName(substring: "Pet") {
+                    totalResults
+                    data {
+                        firstName
+                        lastName
+                    }
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": AnonymousUser}}),
+        )
+        assert executed.data["userByName"]["totalResults"] == 4
+        assert executed.data["userByName"]["data"][0]["firstName"] == "Peter"
+        assert executed.data["userByName"]["data"][1]["firstName"] == "Petra"
+        assert executed.data["userByName"]["data"][2]["firstName"] == "Angelika"
+        assert executed.data["userByName"]["data"][3]["firstName"] == "Thomas"
 
     def test_get_users_by_chat_identities_success(self):
         user = make_user()

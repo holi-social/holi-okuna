@@ -1,18 +1,12 @@
 import uuid
-from copy import deepcopy
 from typing import Optional
 
 import requests
 import strawberry
 import structlog
 from asgiref.sync import sync_to_async
-from django.conf import settings
-from django.core.cache import cache
 from django.db import transaction
-from django.utils.translation import gettext_lazy as _
 from graphql import GraphQLError
-from rest_framework.exceptions import ValidationError
-from strawberry.types import Info
 
 from openbook.helpers import (
     publish_space_created_event,
@@ -20,21 +14,10 @@ from openbook.helpers import (
     publish_space_user_added_event,
     publish_space_user_left_event,
     publish_space_user_removed_event,
-    publish_user_deleted_event,
-    publish_user_name_updated_event,
 )
 from openbook.utils import invalidate_discover_spaces_query_cache
 from openbook_auth.models import User as UserModel
-from openbook_auth.models import UserConnectionStatus
-from openbook_auth.schema.types import (
-    UpdateAuthenticatedUserInput,
-    UpdateConnectionAction,
-    UpdateConnectionWithUserInput,
-)
-from openbook_auth.serializers.authenticated_user_serializers import (
-    UpdateAuthenticatedUserSerializer,
-)
-from openbook_auth.tasks import update_ory_user_identity, update_ory_user_names
+from openbook_auth.schema.types import UpdateConnectionAction
 from openbook_auth.utils import verify_authorized_user
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.helpers import is_parameter_null, to_input_dict
@@ -71,13 +54,6 @@ from openbook_communities.serializers.communities_serializers import (
 from openbook_communities.serializers.community_serializers import (
     CommunityUserConnectionSerializer,
 )
-from openbook_connections.serializers import UpdateConnectionWithUserSerializer
-from openbook_notifications.models import Notification as NotificationModel
-from openbook_posts.models import Post as PostModel
-from openbook_posts.models import PostComment as PostCommentModel
-from openbook_posts.serializers.post_comments_serializers import CommentPostSerializer
-from openbook_posts.serializers.post_serializers import EditCommunityPostSerializer
-from openbook_posts.serializers.posts_serializers import CreateCommunityPostSerializer
 
 logger = structlog.get_logger(__name__)
 

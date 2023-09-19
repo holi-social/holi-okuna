@@ -207,7 +207,5 @@ def assert_collaboration_tools(community_id, user, expected):
         variable_values={"id": str(community_id)},
         context_value=benedict({"request": {"user": user}}),
     )
-    print(response.errors)
-    print(response.data)
 
     assert response.data["spaceById"]["collaborationTools"] == expected
