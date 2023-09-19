@@ -3,7 +3,12 @@ from rest_framework.exceptions import ValidationError
 
 from openbook_circles.models import Circle
 from openbook_common.tests.assertions import TestAssertionsMixin
-from openbook_common.tests.helpers import make_user, make_community, make_fake_post_text, make_fake_post_title
+from openbook_common.tests.helpers import (
+    make_community,
+    make_fake_post_text,
+    make_fake_post_title,
+    make_user,
+)
 from openbook_common.utils.model_loaders import get_post_model
 
 

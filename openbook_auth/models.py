@@ -20,7 +20,7 @@ from django.core import validators
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
-from strawberry_django_plus import gql
+import strawberry
 from unidecode import unidecode
 from openbook_auth.utils import normalize_spaces
 
@@ -32,7 +32,8 @@ from openbook_auth.helpers import (
 )
 from openbook_common.helpers import get_supported_translation_language, PQ, PrefixedQ
 from openbook_common.models import Badge, ModelWithUUID
-from openbook_common.types import VisibilityType, GeolocationFeature
+from openbook_common.types import GeolocationFeature
+from openbook_common.enums import VisibilityType
 from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import (
     get_collaboration_tool_model,
@@ -113,7 +114,7 @@ def to_list_of_dicts(in_dict: dict, key_str: str, value_str: str):
     return [{key_str: key, value_str: value} for key, value in in_dict.items()]
 
 
-@gql.enum
+@strawberry.enum
 class UserConnectionStatus(Enum):
     NOT_CONNECTED = "NOT_CONNECTED"
     CONNECTED = "CONNECTED"

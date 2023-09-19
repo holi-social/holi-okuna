@@ -1,10 +1,10 @@
 from django.db.models import Q
 
 from openbook_common.utils.model_loaders import (
-    get_post_model,
-    get_moderated_object_model,
-    get_community_model,
     get_circle_model,
+    get_community_model,
+    get_moderated_object_model,
+    get_post_model,
 )
 
 

@@ -1,13 +1,12 @@
-from rest_framework.exceptions import ValidationError, NotFound
+from django.conf import settings
 from django.utils.translation import gettext_lazy as _
+from rest_framework.exceptions import NotFound, ValidationError
 
 from openbook_common.utils.helpers import extract_hashtags_from_string
-from django.conf import settings
-
 from openbook_common.utils.model_loaders import (
-    get_post_model,
     get_post_comment_model,
     get_post_comment_reaction_model,
+    get_post_model,
     get_post_reaction_model,
 )
 

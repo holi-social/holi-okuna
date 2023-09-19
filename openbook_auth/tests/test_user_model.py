@@ -1,13 +1,18 @@
 import uuid
 
 from django.core.exceptions import PermissionDenied
-from django.test import TransactionTestCase, override_settings
+from django.test import TransactionTestCase
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from openbook_auth.models import EngagementLevelChoice, User
+from openbook_common.enums import VisibilityType
 from openbook_common.tests.assertions import TestAssertionsMixin
-from openbook_common.tests.helpers import make_user, make_community, make_fake_post_text, make_fake_post_title
-from openbook_common.types import VisibilityType
+from openbook_common.tests.helpers import (
+    make_community,
+    make_fake_post_text,
+    make_fake_post_title,
+    make_user,
+)
 from openbook_notifications.models import Notification
 from openbook_posts.models import PostComment
 

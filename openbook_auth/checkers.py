@@ -9,7 +9,7 @@ from rest_framework.exceptions import (
     PermissionDenied,
     ValidationError,
 )
-from openbook_common.types import VisibilityType
+from openbook_common.enums import VisibilityType
 
 from openbook_common.utils.model_loaders import (
     get_community_model,

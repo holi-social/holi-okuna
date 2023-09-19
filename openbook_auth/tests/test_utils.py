@@ -1,5 +1,6 @@
-from openbook_auth.utils import normalize_spaces
 from django.test.testcases import TestCase
+
+from openbook_auth.utils import normalize_spaces
 
 
 class NormalizeSpacesTestCase(TestCase):
