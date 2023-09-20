@@ -14,7 +14,7 @@ logger = structlog.get_logger(__name__)
 
 @strawberry.type
 class Query:
-    @strawberry_django.field
+    @strawberry_django.field()
     def check_app_version(self, version: str, build_number: str) -> AppVersionResponse:
         app_version = (
             AppVersionModel.objects.filter(
@@ -29,6 +29,6 @@ class Query:
         logger.info(f"App version {version} not found. Creating a new App Version.")
         return AppVersionModel.objects.create(version=version)
 
-    @strawberry_django.field
+    @strawberry_django.field()
     async def feature_toggles(self) -> List[FeatureToggle]:
         return FeatureToggleModel.objects.all()

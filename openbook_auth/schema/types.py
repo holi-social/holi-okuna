@@ -1,6 +1,6 @@
 import logging
 import uuid
-from typing import List, Optional, TypeVar
+from typing import List, Optional
 
 import strawberry
 import strawberry_django
@@ -38,7 +38,7 @@ class UpdateConnectionWithUserInput:
     action: UpdateConnectionAction
 
 
-@strawberry.django.type(UserModel)
+@strawberry_django.type(UserModel)
 class User:
     id: uuid.UUID = strawberry_django.field(field_name="username")
     identity: Optional[str]
@@ -96,15 +96,15 @@ class User:
 
     @strawberry_django.field(select_related=["profile__interests"])
     def interests(self) -> List[Optional[Topic]]:
-        return self.profile.interests
+        return self.profile.interests.all()
 
     @strawberry_django.field(select_related=["profile__sdgs"])
     def sdgs(self) -> List[Optional[SDG]]:
-        return self.profile.sdgs.order_by("number")
+        return self.profile.sdgs.all().order_by("number")
 
     @strawberry_django.field(select_related=["profile__skills"])
     def skills(self) -> List[Optional[Skill]]:
-        return self.profile.skills
+        return self.profile.skills.all()
 
     @strawberry_django.field()
     def connection_status_to_myself(self, info) -> Optional[UserConnectionStatus]:

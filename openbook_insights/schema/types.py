@@ -22,19 +22,19 @@ class Insight:
     id: strawberry.auto
     title: strawberry.auto
     description: strawberry.auto
-    creator: Optional[User] = strawberry.django.field(select_related=["creator__profile"])
+    creator: Optional[User] = strawberry_django.field(select_related=["creator__profile"])
     date_published: strawberry.auto
     header_image: Optional[str]
     header_image_blurhash: Optional[str]
     topic: Optional[Topic]
 
-    @strawberry_django.field
+    @strawberry_django.field()
     def posts(self, info) -> List[Annotated["Post", strawberry.lazy("openbook_posts.schema.types")]]:
         current_user = info.context.request.user
         return self.posts.filter(PostModel.is_visible_query(current_user)).order_by("created")
 
     # this should be removed and be replaced by paged posts
-    @strawberry_django.field
+    @strawberry_django.field()
     def number_of_posts(self, info) -> int:
         current_user = info.context.request.user
         return self.posts.filter(PostModel.is_visible_query(current_user)).count()
@@ -42,7 +42,6 @@ class Insight:
     @strawberry_django.field(
         description="A list of all users involved. Curator of the insight, Authors of all the posts and all commenters of those posts"
     )
-    @sync_to_async
     def involved_users(self, info, offset: int = 0, limit: int = 3) -> Paged[User]:
         current_user = info.context.request.user
         query = UserModel.objects.filter(

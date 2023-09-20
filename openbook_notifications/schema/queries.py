@@ -24,7 +24,7 @@ PUBLISHED_NOTIFICATION_TYPES = [
 
 @strawberry.type
 class Query:
-    @strawberry_django.field
+    @strawberry_django.field()
     def notifications(self, info, offset: int = 0, limit: int = 10) -> Paged[Notification]:
         current_user = info.context.request.user
         if current_user.is_anonymous:
@@ -38,7 +38,7 @@ class Query:
             limit,
         )
 
-    @strawberry_django.field
+    @strawberry_django.field()
     def has_new_notifications(self, info) -> NewNotificationsResponse:
         current_user = info.context.request.user
         if current_user.is_anonymous:

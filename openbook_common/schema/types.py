@@ -73,10 +73,10 @@ class GeolocationPoint:
 @strawberry_django.type(AppVersionModel)
 class AppVersionResponse:
     need_update: strawberry.auto
-    app_store_url: str = strawberry.django.field(
+    app_store_url: str = strawberry_django.field(
         field_name="app_store_url", default=AppVersionModel._meta.get_field("app_store_url").get_default()
     )
-    play_store_url: str = strawberry.django.field(
+    play_store_url: str = strawberry_django.field(
         field_name="play_store_url", default=AppVersionModel._meta.get_field("app_store_url").get_default()
     )
 
@@ -90,8 +90,8 @@ class FeatureToggle:
 
 @strawberry.type
 class Paged(Generic[T]):
-    data: List[Optional[T]] = strawberry.django.field(description="The list of items in this pagination window.")
-    total_results: int = strawberry.django.field(description="Total number of items in the filtered dataset.")
+    data: List[Optional[T]] = strawberry_django.field(description="The list of items in this pagination window.")
+    total_results: int = strawberry_django.field(description="Total number of items in the filtered dataset.")
 
     @staticmethod
     def of(query: QuerySet, offset: int, limit: int):

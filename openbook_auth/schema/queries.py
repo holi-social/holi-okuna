@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from typing import Generic, List, Optional, TypeVar
 
 import strawberry
+import strawberry_django
 from django.db.models import F, Q, Value
 from django.db.models.functions import Concat
 from django.db.models.lookups import IContains
@@ -18,12 +19,12 @@ from openbook_common.schema.types import Paged
 
 @strawberry.type
 class Query:
-    @strawberry.django.field()
+    @strawberry_django.field()
     def authenticated_user(self, info) -> Optional[User]:
         current_user = info.context.request.user
         return None if current_user.is_anonymous else current_user
 
-    @strawberry.django.field()
+    @strawberry_django.field()
     def user_by_id(self, info, id: uuid.UUID) -> Optional[User]:
         try:
             current_user = info.context.request.user
@@ -31,14 +32,14 @@ class Query:
         except UserModel.DoesNotExist:
             raise GraphQLError("User not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
 
-    @strawberry.django.field
+    @strawberry_django.field()
     def users_by_chat_identities(self, info, identities: List[str], offset: int = 0, limit: int = 10) -> Paged[User]:
         current_user = verify_authorized_user(info)
         users = UserModel.objects.filter(Q(identity__in=identities) & UserModel.is_visible_query(current_user))
 
         return Paged.of(users, offset, limit)
 
-    @strawberry.django.field()
+    @strawberry_django.field()
     def user_by_name(self, info, substring: str, offset: int = 0, limit: int = 5) -> Paged[User]:
         string_not_empty(substring)
 
@@ -80,7 +81,7 @@ class Query:
         )
         return Paged(by_first_name + by_full_name, total_results)
 
-    @strawberry.django.field()
+    @strawberry_django.field()
     def user_suggestions(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
         current_user = info.context.request.user
         query = (

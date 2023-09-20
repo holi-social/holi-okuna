@@ -17,7 +17,7 @@ from openbook_insights.schema.types import Insight
 
 @strawberry.type
 class Query:
-    @strawberry_django.field
+    @strawberry_django.field()
     def insights_by_user_id(self, info, id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         current_user = info.context.request.user
         try:
@@ -30,8 +30,7 @@ class Query:
             limit,
         )
 
-    @strawberry_django.field
-    @sync_to_async
+    @strawberry_django.field()
     def last_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         current_user = info.context.request.user
         paged_insights = Paged.of(
@@ -53,7 +52,7 @@ class Query:
 
         return paged_insights
 
-    @strawberry_django.field
+    @strawberry_django.field()
     def insight_by_id(self, info, id: uuid.UUID) -> Optional[Insight]:
         current_user = info.context.request.user
         try:

@@ -97,7 +97,7 @@ class Query:
             member_id,
         )
 
-    @strawberry_django.field
+    @strawberry_django.field()
     def discover_spaces(
         self,
         info,
@@ -238,7 +238,7 @@ class Query:
         except CommunityModel.DoesNotExist:
             raise GraphQLError("Space not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
 
-    @strawberry_django.field
+    @strawberry_django.field()
     def tasks_by_space_id(self, space_id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Task]:
         return Paged.of(
             TaskModel.objects.filter(community__id=space_id).order_by("-created"),
@@ -246,14 +246,14 @@ class Query:
             limit,
         )
 
-    @strawberry_django.field
+    @strawberry_django.field()
     def task_by_id(self, id: uuid.UUID) -> Optional[Task]:
         try:
             return TaskModel.objects.get(id=id)
         except TaskModel.DoesNotExist:
             raise GraphQLError("Task not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
 
-    @strawberry_django.field
+    @strawberry_django.field()
     def collaboration_tools(self, space_id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[CollaborationTool]:
         return Paged.of(
             CollaborationToolModel.objects.filter(community__id=space_id).order_by("-created_at"),

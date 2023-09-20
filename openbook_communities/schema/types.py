@@ -181,7 +181,7 @@ class Task:
     contact_email: str
     contact_phone: Optional[str]
 
-    @strawberry_django.field
+    @strawberry_django.field()
     def geolocation(self) -> Optional[GeolocationPoint]:
         return GeolocationPoint.from_point(self.geolocation)
 
@@ -318,7 +318,7 @@ class MySpaces:
     section: str
     type: SpaceUserConnectionType
 
-    @strawberry_django.field
+    @strawberry_django.field()
     def spaces(self, offset: int = 0, limit: int = 10) -> Paged[Space]:
         """
         When spaces are already resolved, they are returned.

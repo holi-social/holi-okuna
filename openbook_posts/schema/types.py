@@ -74,7 +74,7 @@ class LinkPreview:
     site_name: strawberry.auto
     fetched_at: strawberry.auto
 
-    @strawberry_django.field
+    @strawberry_django.field()
     def origin(self) -> str:
         return self.get_origin()
 
@@ -104,13 +104,13 @@ class Post:
     ] = strawberry_django.field(field_name="community")
     creator: User = strawberry_django.field(select_related="creator__profile")
 
-    @strawberry_django.field
+    @strawberry_django.field()
     def image(self) -> Optional[PostImage]:
         if hasattr(self, "image"):
             return self.image
         return None
 
-    @strawberry_django.field
+    @strawberry_django.field()
     def comments(self, info) -> List[Optional["PostComment"]]:
         current_user = info.context.request.user
         return (
@@ -121,7 +121,7 @@ class Post:
         )
 
     # this should be removed, once comments are paged
-    @strawberry_django.field
+    @strawberry_django.field()
     def number_of_comments(self, info) -> int:
         current_user = info.context.request.user
         return (
@@ -146,7 +146,7 @@ class Post:
             limit,
         )
 
-    @strawberry_django.field
+    @strawberry_django.field()
     def commenters(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
         current_user = info.context.request.user
         return Paged.of(
@@ -158,7 +158,7 @@ class Post:
             limit,
         )
 
-    @strawberry_django.field
+    @strawberry_django.field()
     def reactions(self, info) -> ReactionCounts:
         current_user = info.context.request.user
         if current_user.is_anonymous:
@@ -191,7 +191,7 @@ class PostComment:
     post: Post
     creator: User = strawberry_django.field(field_name="commenter", select_related="commenter__profile")
 
-    @strawberry_django.field
+    @strawberry_django.field()
     def reactions(self, info) -> ReactionCounts:
         current_user = info.context.request.user
         if current_user.is_anonymous:
