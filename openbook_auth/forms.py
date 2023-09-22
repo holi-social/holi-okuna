@@ -10,3 +10,4 @@ class UserProfileFormSet(BaseInlineFormSet):
             form.fields["badges"].required = False
             form.fields["url"].required = False
             form.fields["engagement_level"].required = False
+            form.fields["about_me"].required = False

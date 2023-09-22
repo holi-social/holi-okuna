@@ -9,6 +9,7 @@ from rest_framework.exceptions import (
     PermissionDenied,
     ValidationError,
 )
+from openbook_common.types import VisibilityType
 
 from openbook_common.utils.model_loaders import (
     get_community_model,
@@ -1483,24 +1484,45 @@ def check_can_delete_collaboration_tool_from_community(user, community=None):
         )
 
 
-def check_can_create_task_to_community(user, community=None):
-    if not user.is_administrator_of_community_with_name(community_name=community.name):
+def check_can_create_task_to_community(user, visibility, community=None):
+    if not user.is_member_of_community_with_name(community_name=community.name):
         raise ValidationError(
-            _("You cannot add a task to a community you are not an administrator of"),
+            _("You cannot add a task to a community you are not a member of"),
+        )
+    if (
+        not user.is_administrator_of_community_with_name(community_name=community.name)
+        and visibility == VisibilityType.PUBLIC
+    ):
+        raise ValidationError(
+            _("Only administrators can add public tasks"),
         )
 
 
-def check_can_update_task_in_community(user, community=None):
-    if not user.is_administrator_of_community_with_name(community_name=community.name):
+def check_can_update_task_in_community(user, task, community=None):
+    if not user.is_member_of_community_with_name(community_name=community.name):
         raise ValidationError(
-            _("You cannot update a task of a community you are not an administrator of"),
+            _("You cannot update a task of a community you are not a member of"),
+        )
+    if (
+        not user.is_administrator_of_community_with_name(community_name=community.name)
+        and task.visibility == VisibilityType.PUBLIC
+    ):
+        raise ValidationError(
+            _("Only administrators can update public tasks"),
         )
 
 
-def check_can_delete_task_within_community_with_id(user, community_id):
-    if not user.is_administrator_of_community_with_id(community_id):
+def check_can_delete_task_within_community_with_id(user, task, community_id):
+    if not user.is_member_of_community_with_id(community_id=community_id):
         raise ValidationError(
-            _("Can't delete a task within a community that you do not administrate."),
+            _("You cannot delete a task of a community you are not a member of"),
+        )
+    if (
+        not user.is_administrator_of_community_with_id(community_id=community_id)
+        and task.visibility == VisibilityType.PUBLIC
+    ):
+        raise ValidationError(
+            _("Only administrators can delete public tasks"),
         )
 
 

@@ -1226,6 +1226,15 @@ class PostComment(ModelWithUUID):
     def count_replies(self):
         return self.replies.count()
 
+    def count_reactions(self):
+        return self.reactions.count()
+
+    def count_mentions(self):
+        return self.mentions.count()
+
+    def count_links(self):
+        return self.links.count()
+
     def count_replies_with_user(self, user):
         # Count replies excluding users blocked by authenticated user
         count_query = ~Q(
@@ -1438,7 +1447,7 @@ class PostReaction(ModelWithUUID):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="reactions")
     created = models.DateTimeField(editable=False)
     reactor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="post_reactions")
-    reaction_type = models.CharField(max_length=20, choices=[(tag, tag.value) for tag in ReactionType])
+    reaction_type = models.CharField(max_length=20, choices=ReactionType.choices)
 
     class Meta:
         unique_together = (
@@ -1478,7 +1487,7 @@ class PostCommentReaction(ModelWithUUID):
     post_comment = models.ForeignKey(PostComment, on_delete=models.CASCADE, related_name="reactions")
     created = models.DateTimeField(editable=False)
     reactor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="post_comment_reactions")
-    reaction_type = models.CharField(max_length=20, choices=[(tag, tag.value) for tag in ReactionType])
+    reaction_type = models.CharField(max_length=20, choices=ReactionType.choices)
 
     class Meta:
         unique_together = (

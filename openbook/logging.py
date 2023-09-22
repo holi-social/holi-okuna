@@ -5,6 +5,7 @@ import sys
 from logging import config as logging_config
 
 import structlog
+import traceback
 
 ENVIRONMENT_ID = os.environ.get("ENVIRONMENT_ID", "local")  # staging, production, set by gitlab ci
 SERVICE_NAME = "holi-okuna"
@@ -12,12 +13,20 @@ SQL_LOGGING = os.environ.get("SQL_LOGGING", "DO_NOT_LOG")
 
 LABELS = {"environment": ENVIRONMENT_ID, "service": SERVICE_NAME}
 
+
+def remove_stack_info(logger, method_name, event_dict):
+    # stack_info is always filled with the stack of the method call to process_errors and useless, so we remove it when present
+    event_dict.pop("stack_info", None)
+    return event_dict
+
+
 _shared_processors = [
     structlog.contextvars.merge_contextvars,
     structlog.stdlib.add_logger_name,
     structlog.stdlib.add_log_level,
     structlog.stdlib.PositionalArgumentsFormatter(),
     structlog.processors.UnicodeDecoder(),
+    remove_stack_info,
 ]
 
 
@@ -36,14 +45,17 @@ def normalize_severity_from_loglevel(level: str) -> int:
     return gcloud_severities.get(level, 0)
 
 
-def holi_gcloud_serializer(event_dict, *args, **kwargs):
+def holi_gcloud_serializer(event_dict, **kwargs):
     # - Use Google fields for severity & other
     # - Add static applicationlevel fields (service & environment)
-
+    if "exc_info" in event_dict:
+        event_dict["traceback"] = "".join(
+            traceback.format_exception(event_dict["exc_info"][0], event_dict["exc_info"][1], event_dict["exc_info"][2])
+        )
     event_dict["message"] = event_dict.pop("event")
     event_dict["severity"] = normalize_severity_from_loglevel(event_dict.pop("level"))
     event_dict["logging.googleapis.com/labels"] = LABELS
-    return json.dumps(event_dict, *args, **kwargs)
+    return json.dumps(event_dict, **kwargs)
 
 
 class GraphQLLogFilter(logging.Filter):

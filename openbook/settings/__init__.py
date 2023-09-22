@@ -83,6 +83,7 @@ INSTALLED_APPS = [
     "video_encoding",
     "imagekit",
     "cacheops",
+    "rangefilter",
     "django_rq",
     "django_extensions",
     "openbook_common",
@@ -130,7 +131,16 @@ if DEBUG:
 
     import socket
 
-    hostname, aliases, ips = socket.gethostbyname_ex(socket.gethostname())
+    def get_ips_fallback_localhost():
+        try:
+            hostname, aliases, ips = socket.gethostbyname_ex(socket.gethostname())
+            return ips
+        except socket.gaierror as e:
+            if e.errno == 8:
+                return ["127.0.0.1"]
+            raise
+
+    ips = get_ips_fallback_localhost()
     INTERNAL_IPS = [".".join(ip.split(".")[:-1] + ["1"]) for ip in ips]
 
     DEBUG_TOOLBAR_CONFIG = {
@@ -481,8 +491,8 @@ PROFILE_IMAGE_MAX_DIMENSION = 1920
 TITLE_MAX_LENGTH = 128
 USERNAME_MAX_LENGTH = 36
 IDENTITY_MAX_LENGTH = 255
-IMAGE_SIZE_8_MB = 8388608
-FILE_UPLOAD_MAX_MEMORY_SIZE = IMAGE_SIZE_8_MB
+IMAGE_SIZE_10_MB = 10485760
+FILE_UPLOAD_MAX_MEMORY_SIZE = IMAGE_SIZE_10_MB
 USER_MAX_FOLLOWS = int(os.environ.get("USER_MAX_FOLLOWS", "1500"))
 USER_MAX_CONNECTIONS = int(os.environ.get("USER_MAX_CONNECTIONS", "1500"))
 USER_MAX_COMMUNITIES = 200
@@ -519,8 +529,8 @@ COMMUNITY_USERS_ADJECTIVE_MAX_LENGTH = 16
 COMMUNITY_RULES_MAX_LENGTH = int(os.environ.get("COMMUNITY_RULES_MAX_LENGTH", "5000"))
 COMMUNITY_CATEGORIES_MAX_AMOUNT = 3
 COMMUNITY_CATEGORIES_MIN_AMOUNT = 1
-COMMUNITY_AVATAR_MAX_SIZE = int(os.environ.get("COMMUNITY_AVATAR_MAX_SIZE", IMAGE_SIZE_8_MB))
-COMMUNITY_COVER_MAX_SIZE = int(os.environ.get("COMMUNITY_COVER_MAX_SIZE", IMAGE_SIZE_8_MB))
+COMMUNITY_AVATAR_MAX_SIZE = int(os.environ.get("COMMUNITY_AVATAR_MAX_SIZE", IMAGE_SIZE_10_MB))
+COMMUNITY_COVER_MAX_SIZE = int(os.environ.get("COMMUNITY_COVER_MAX_SIZE", IMAGE_SIZE_10_MB))
 COMMUNITY_TOPICS_MIN_AMOUNT = 1
 COMMUNITY_TOPICS_MAX_AMOUNT = 6
 COMMUNITY_CONTACT_DESCRIPTION_MAX_LENGTH = 100

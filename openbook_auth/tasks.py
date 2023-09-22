@@ -40,6 +40,9 @@ def update_ory_user_identity(user: User) -> bool:
 
 
 def update_ory(user, data):
+    if settings.ORY_ACCESS_TOKEN == "unknown":  # default in templates/.env
+        logger.error("ory access token is unknown, can't update ory. Will skip call to ory API!")
+        return
     headers = {"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"}
     response = requests.patch(f"{settings.ORY_BASE_URL}/admin/identities/{user.username}", headers=headers, json=data)
     response_data = response.json()

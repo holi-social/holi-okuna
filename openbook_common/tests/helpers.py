@@ -269,11 +269,11 @@ def make_community_invites_enabled():
     return fake.boolean()
 
 
-def make_community_task(community, skills=None):
+def make_community_task(community, skills=None, visibility=VisibilityType.MEMBERS):
     if not skills:
         skills = [make_skill()]
 
-    return mixer.blend(Task, community=community, skills=skills)
+    return mixer.blend(Task, community=community, skills=skills, visibility=visibility)
 
 
 def make_community(
