@@ -3,7 +3,7 @@
 # This file contains any project specific shell commands that are needed to set up a working local dev environment
 # for this project. It is used by the overall init.sh script in https://gitlab.holi.team/app/holi-meta 
 
-brewInstall() {
+brewInstall() { # only install, when not present, so it's not accidentally updated
   brew list "$1" &>/dev/null || brew install "$1"
 }
 
@@ -41,5 +41,4 @@ else
   fail "Could not determine how to include the libraries necessary for PostGIS. Please investigate in init.sh."
 fi
 # now, reinitialize via direnv (first run in checkoutAndPrepare did not succeed due to missing python interpreter)
-direnv reload
 eval "$(direnv export bash)"
