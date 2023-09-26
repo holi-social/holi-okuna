@@ -1,6 +1,8 @@
 import json
 
 from django.test import testcases
+
+from openbook_common.tests.helpers import make_community, make_user
 from openbook_communities.events.events import (
     SpaceCreatedEvent,
     SpaceDeletedEvent,
@@ -10,9 +12,7 @@ from openbook_communities.events.events import (
     UserDeletedEvent,
     UserNameUpdatedEvent,
 )
-
 from openbook_communities.events.payloads import SpacePayload, UserPayload
-from openbook_common.tests.helpers import make_community, make_user
 
 
 class SpaceCreatedEventTestCase(testcases.TestCase):

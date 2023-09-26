@@ -1,4 +1,5 @@
 import adrf.decorators as async_support
+from django.http import HttpRequest
 from django.urls import re_path, path, include
 from django.contrib import admin
 from django.conf import settings

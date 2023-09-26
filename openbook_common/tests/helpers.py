@@ -1,35 +1,43 @@
-import tempfile
-
 import random
+import tempfile
 import uuid
-from typing import Optional
+from typing import List, Optional
 
-from PIL import Image
-from django.contrib.contenttypes.models import ContentType
-from faker import Faker
+from asgiref.sync import async_to_sync
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
+from django.core.files.uploadedfile import SimpleUploadedFile
+from faker import Faker
 from mixer.backend.django import mixer
-from openbook_auth.models import User, UserProfile, EngagementLevelChoice
+from PIL import Image
+
+from openbook.graphql_schema import schema
+from openbook_auth.models import EngagementLevelChoice, User, UserProfile
 from openbook_categories.models import Category
 from openbook_circles.models import Circle
-from openbook_common.models import Emoji, EmojiGroup, Badge, Language
+from openbook_common.enums import VisibilityType
+from openbook_common.models import (
+    Badge,
+    Emoji,
+    EmojiGroup,
+    Language,
+    ProxyBlacklistedDomain,
+)
 from openbook_common.utils.helpers import get_random_pastel_color
 from openbook_communities.models import CollaborationTool, Community, ExternalLink, Task
 from openbook_devices.models import Device
 from openbook_hashtags.models import Hashtag
-from openbook_lists.models import List
+from openbook_lists.models import List as ListModel
 from openbook_moderation.models import (
-    ModerationCategory,
-    ModeratedObjectLog,
     ModeratedObject,
-    ModerationReport,
+    ModeratedObjectLog,
+    ModerationCategory,
     ModerationPenalty,
+    ModerationReport,
 )
 from openbook_notifications.models import Notification
-from openbook_common.models import ProxyBlacklistedDomain
 from openbook_posts.models import Post
-from openbook_terms.models import SDG, Topic, Skill
-from openbook_common.types import VisibilityType
+from openbook_terms.models import SDG, Skill, Topic
 
 fake = Faker()
 
@@ -350,7 +358,7 @@ def make_moderated_object_description():
 
 
 def make_list(creator):
-    return mixer.blend(List, creator=creator)
+    return mixer.blend(ListModel, creator=creator)
 
 
 def make_moderated_object(
@@ -538,3 +546,47 @@ def make_external_link(
         type=type,
         name=name,
     )
+
+
+def assert_paged_results_equal(results: dict, expected_data: List[dict[str, any]]):
+    assert results["totalResults"] == len(expected_data)
+
+    for el in expected_data:
+        assert el in results["data"]
+
+
+def assert_is_unauthorized(response):
+    assert response.data is None
+    assert "Unauthorized" in str(response.errors[0].message)
+    assert "UNAUTHORIZED" == str(response.errors[0].extensions["code"])
+
+
+def create_large_image_file():
+    test_image = get_test_images()[-1]
+
+    with open(test_image["path"], "rb") as file:
+        content = file.read()
+        return SimpleUploadedFile(name="image.jpg", content=content)
+
+
+def create_video_file():
+    test_video = get_test_videos()[0]
+
+    with open(test_video["path"], "rb") as file:
+        content = file.read()
+        return SimpleUploadedFile(name="video.mp4", content=content)
+
+
+def check_app_version(version: str, build_number: str):
+    response = async_to_sync(schema.execute)(
+        f"""
+        query {{
+            checkAppVersion(version: "{version}", buildNumber: "{build_number}") {{
+                needUpdate
+                appStoreUrl
+                playStoreUrl
+            }}
+        }}
+        """,
+    )
+    return response

@@ -14,14 +14,14 @@ from django.utils import timezone
 from django.contrib.gis.db.models import Q
 from django.contrib.gis.db.models import Count
 from pilkit.processors import ResizeToFill, ResizeToFit
-from strawberry_django_plus import gql
+import strawberry
 
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
 from django.utils.translation import gettext_lazy as _
 
 from openbook_common.helpers import ExifRotate, generate_blurhash
 from openbook_common.models import ModelWithUUID
-from openbook_common.types import VisibilityType
+from openbook_common.enums import VisibilityType
 from openbook_common.utils.helpers import delete_file_field, extract_and_capitalize_domain_name
 from openbook_common.utils.model_loaders import (
     get_community_invite_model,
@@ -60,7 +60,7 @@ community_image_storage = default_storage
 community_task_image_storage = default_storage
 
 
-@gql.enum
+@strawberry.enum
 class SpaceUserConnectionType(Enum):
     FOLLOWER = "FOLLOWER"
     MEMBERSHIP_REQUESTOR = "MEMBERSHIP_REQUESTOR"
@@ -1171,13 +1171,13 @@ class CommunityNotificationsSubscription(ModelWithUUID):
 
 
 class Task(ModelWithUUID):
-    @gql.enum
+    @strawberry.enum
     class LocationType(models.TextChoices):
         HYBRID = ("HYBRID",)
         REMOTE = ("REMOTE",)
         ONSITE = "ONSITE"
 
-    @gql.enum
+    @strawberry.enum
     class Regularity(models.TextChoices):
         REGULARLY = ("REGULARLY",)
         PROJECT_BASED = ("PROJECT_BASED",)
@@ -1358,7 +1358,7 @@ class Task(ModelWithUUID):
         self.thumbnail.delete(save=save)
 
 
-@gql.enum
+@strawberry.enum
 class ExternalLinkType(models.TextChoices):
     INSTAGRAM = "instagram", _("instagram")
     FACEBOOK = "facebook", _("facebook")
@@ -1420,7 +1420,7 @@ class ExternalLink(ModelWithUUID):
 
 
 class CollaborationTool(ModelWithUUID):
-    @gql.enum
+    @strawberry.enum
     class CollectionType(models.TextChoices):
         COLLABORATION = "COLLABORATION"
         COMMUNICATION = "COMMUNICATION"

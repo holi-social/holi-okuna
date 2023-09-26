@@ -1,14 +1,14 @@
 from django.db.models import Q
 
 from openbook_common.utils.model_loaders import (
-    get_post_model,
     get_moderated_object_model,
+    get_post_model,
 )
 from openbook_posts.queries import (
+    make_circles_posts_query_for_user,
     make_community_posts_query_for_user,
     make_only_posts_with_max_id,
     make_only_posts_with_min_id,
-    make_circles_posts_query_for_user,
 )
 
 

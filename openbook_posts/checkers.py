@@ -1,6 +1,6 @@
 from django.conf import settings
-from rest_framework.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+from rest_framework.exceptions import ValidationError
 
 from openbook_common.utils.model_loaders import get_post_model
 

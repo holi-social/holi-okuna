@@ -2,16 +2,14 @@ import re
 
 from rest_framework.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from openbook.graphql_errors import GraphQLErrorCodes
 
-from openbook_common.types import ReactionType
+from openbook_common.enums import ReactionType
 from openbook_common.utils.model_loaders import (
     get_emoji_model,
     get_emoji_group_model,
     get_language_model,
 )
 
-from graphql import GraphQLError
 from openbook import settings
 
 from google.cloud.webrisk_v1 import WebRiskServiceClient, SearchUrisRequest, ThreatType
