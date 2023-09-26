@@ -21,7 +21,7 @@ def update_ory_user_names(user_id: int) -> None:
         {"op": "add", "path": "/traits/name", "value": f"{user.profile.full_name()}"},
     ]
 
-    update_ory(user, data)
+    update_ory(user.username, data)
 
 
 def update_ory_user_identity(user: User) -> bool:
@@ -29,7 +29,7 @@ def update_ory_user_identity(user: User) -> bool:
         {"op": "add", "path": "/traits/identity", "value": user.identity},
     ]
     try:
-        update_ory(user, data)
+        update_ory(user.username, data)
         return True
     except OryRequestError as error:
         if error.status_code == 409:
@@ -39,17 +39,17 @@ def update_ory_user_identity(user: User) -> bool:
     return False
 
 
-def update_ory(user, data):
+def update_ory(user_id, data):
     if settings.ORY_ACCESS_TOKEN == "unknown":  # default in templates/.env
         logger.error("ory access token is unknown, can't update ory. Will skip call to ory API!")
         return
     headers = {"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"}
-    response = requests.patch(f"{settings.ORY_BASE_URL}/admin/identities/{user.username}", headers=headers, json=data)
+    response = requests.patch(f"{settings.ORY_BASE_URL}/admin/identities/{user_id}", headers=headers, json=data)
     response_data = response.json()
     if response.status_code != http.HTTPStatus.OK:
         error = response_data.get("error")
         raise OryRequestError(
-            message=f"Updating user {user.username} in ory failed: {error['message']}",
+            message=f"Updating user {user_id} in ory failed: {error['message']}",
             error=error["message"],
             status_code=response.status_code,
         )
