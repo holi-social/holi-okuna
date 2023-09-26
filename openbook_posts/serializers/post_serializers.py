@@ -19,7 +19,7 @@ from openbook_common.serializers_fields.post import (
     IsEncircledField,
 )
 from openbook_common.serializers_fields.request import RestrictedFileSizeField, RestrictedImageFileSizeField
-from openbook_common.types import VisibilityType
+from openbook_common.enums import VisibilityType
 from openbook_communities.models import CommunityMembership, Community
 from openbook_communities.serializers_fields import CommunityMembershipsField
 from openbook_posts.models import PostImage, Post

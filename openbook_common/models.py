@@ -11,7 +11,7 @@ from requests import RequestException
 
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
 from openbook_common.helpers import extract_urls_from_string, attr_filled
-from openbook_common.types import NeedUpdateType, FeatureToggleType
+from openbook_common.enums import NeedUpdateType, FeatureToggleType
 from openbook_common.utils.helpers import normalize_url
 from openbook_common.validators import hex_color_validator
 import tldextract

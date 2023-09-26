@@ -1,10 +1,10 @@
 import uuid
 from datetime import timedelta
-from django.utils import timezone
 
 from django.test import testcases
+from django.utils import timezone
 
-from openbook_common.tests.helpers import make_user, make_notification
+from openbook_common.tests.helpers import make_notification, make_user
 from openbook_notifications.models import Notification
 
 

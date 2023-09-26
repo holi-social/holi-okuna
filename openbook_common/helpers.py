@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 
 import blurhash
 import requests
+import strawberry
 from django.conf import settings
 from django.db.models import Q
 from langdetect import DetectorFactory
@@ -163,3 +164,10 @@ def generate_blurhash(obj) -> str | None:
         return None
     with Image.open(obj).convert("RGB") as img:
         return blurhash.encode(img, x_components=4, y_components=3)
+
+
+def to_input_dict(input):
+    """
+    converts a strawberry input object to a dict without null values, so it can be validated
+    """
+    return {k: v for k, v in strawberry.asdict(input).items() if v != strawberry.UNSET}

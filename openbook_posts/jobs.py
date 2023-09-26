@@ -1,21 +1,22 @@
+import logging
+from datetime import timedelta
+
+from cursor_pagination import CursorPaginator
+from django.conf import settings
+from django.db.models import Count, Q
 from django.utils import timezone
 from django_rq import job
-from video_encoding import tasks
-from datetime import timedelta
-from django.db.models import Q, Count
-from django.conf import settings
-from cursor_pagination import CursorPaginator
 
 from openbook_common.utils.model_loaders import (
-    get_post_model,
-    get_post_media_model,
     get_community_model,
-    get_top_post_model,
-    get_post_comment_model,
     get_moderated_object_model,
+    get_post_comment_model,
+    get_post_media_model,
+    get_post_model,
+    get_top_post_model,
     get_trending_post_model,
 )
-import logging
+from video_encoding import tasks
 
 logger = logging.getLogger(__name__)
 

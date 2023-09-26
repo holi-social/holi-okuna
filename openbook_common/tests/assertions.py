@@ -1,9 +1,9 @@
 from typing import Optional
 
-from openbook.graphql_types import Post
 from openbook_auth.models import User
 from openbook_communities.models import Community
 from openbook_notifications.models import Notification
+from openbook_posts.schema.types import Post
 
 
 class TestAssertionsMixin:

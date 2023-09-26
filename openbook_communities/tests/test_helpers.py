@@ -1,8 +1,7 @@
 from rest_framework.exceptions import ValidationError
 
-from openbook_common.tests.models import OpenbookAPITestCase
 from openbook_common.tests.helpers import make_community
-
+from openbook_common.tests.models import OpenbookAPITestCase
 from openbook_communities.helpers import create_community_name_from_title_and_hash
 
 
