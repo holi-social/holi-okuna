@@ -58,13 +58,19 @@ def get_ory_user(email):
     params = {"per_page": 1, "credentials_identifier": email}
     response = requests.get(f"{settings.ORY_BASE_URL}/admin/identities/", params=params, headers=ORY_HEADER)
 
-    if response.status_code == http.HTTPStatus.OK:
+    if no_ory_errors(response, "Error getting users from Ory"):
         response_json = response.json()
         if response_json:
             return response_json[0]
-        return None
+    return None
+
+
+def no_ory_errors(response, msg="Error from Ory"):
+    if response.status_code == http.HTTPStatus.OK:
+        return True
     message = get_ory_error_str(response)
-    print(f"Error getting users from Ory: {message}")
+    print(f"{msg}: {message}")
+    return False
 
 
 def get_ory_error_str(response):
