@@ -20,7 +20,7 @@ EMAIL_SUFFIX = "@e2etest.com"
 
 
 class Command(BaseCommand):
-    help = "Delete old e2e users on Ory and Okuna"
+    help = "Delete old e2e users on Ory and/or Okuna"
 
     base_url = f"{ORY_BASE_URL}/admin/identities/"
     headers = {"Authorization": f"Bearer {ORY_ACCESS_TOKEN}"}
