@@ -210,15 +210,6 @@ resource "google_cloud_run_service" "okuna" {
           }
         }
         env {
-          name = "NOVU_APPLICATION_IDENTIFIER"
-          value_from {
-            secret_key_ref {
-              key  = "latest"
-              name = local.environment_name == "production" ? "NOVU_APPLICATION_IDENTIFIER_PRODUCTION" : "NOVU_APPLICATION_IDENTIFIER_DEVELOPMENT"
-            }
-          }
-        }
-        env {
           name = "NOVU_ENVIRONMENT_ID"
           value_from {
             secret_key_ref {
