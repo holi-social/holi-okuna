@@ -196,6 +196,37 @@ resource "google_cloud_run_service" "okuna" {
             }
           }
         }
+        env {
+          name  = "NOVU_API_URL"
+          value = "https://api.novu.co"
+        }
+        env {
+          name = "NOVU_API_KEY"
+          value_from {
+            secret_key_ref {
+              key  = "latest"
+              name = local.environment_name == "production" ? "NOVU_API_KEY_PRODUCTION" : "NOVU_API_KEY_DEVELOPMENT"
+            }
+          }
+        }
+        env {
+          name = "NOVU_APPLICATION_IDENTIFIER"
+          value_from {
+            secret_key_ref {
+              key  = "latest"
+              name = local.environment_name == "production" ? "NOVU_APPLICATION_IDENTIFIER_PRODUCTION" : "NOVU_APPLICATION_IDENTIFIER_DEVELOPMENT"
+            }
+          }
+        }
+        env {
+          name = "NOVU_ENVIRONMENT_ID"
+          value_from {
+            secret_key_ref {
+              key  = "latest"
+              name = local.environment_name == "production" ? "NOVU_ENVIRONMENT_ID_PRODUCTION" : "NOVU_ENVIRONMENT_ID_DEVELOPMENT"
+            }
+          }
+        }
         resources {
           limits = {
             # cpu can only be scaled down to 1000m as long as container_concurrency is set to != 1
