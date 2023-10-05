@@ -682,4 +682,3 @@ IDENTITY_NUMBERS_TO_AVOID = {88, 69}
 # Novu
 NOVU_API_KEY = os.environ.get("NOVU_API_KEY")
 NOVU_API_URL = os.environ.get("NOVU_API_URL", "https://api.novu.co")
-NOVU_ENVIRONMENT_ID = os.environ.get("NOVU_ENVIRONMENT_ID")

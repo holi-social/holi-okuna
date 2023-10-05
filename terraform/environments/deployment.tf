@@ -209,15 +209,6 @@ resource "google_cloud_run_service" "okuna" {
             }
           }
         }
-        env {
-          name = "NOVU_ENVIRONMENT_ID"
-          value_from {
-            secret_key_ref {
-              key  = "latest"
-              name = local.environment_name == "production" ? "NOVU_ENVIRONMENT_ID_PRODUCTION" : "NOVU_ENVIRONMENT_ID_DEVELOPMENT"
-            }
-          }
-        }
         resources {
           limits = {
             # cpu can only be scaled down to 1000m as long as container_concurrency is set to != 1
