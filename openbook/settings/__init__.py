@@ -678,3 +678,7 @@ APPLE_APP_STORE_DEFAULT_URL = "itms-apps://apps.apple.com/app/id6446693757"
 GOOGLE_PLAY_STORE_DEFAULT_URL = "market://details?id=social.holi.app"
 
 IDENTITY_NUMBERS_TO_AVOID = {88, 69}
+
+# Novu
+NOVU_API_KEY = os.environ.get("NOVU_API_KEY")
+NOVU_API_URL = os.environ.get("NOVU_API_URL", "https://api.novu.co")
