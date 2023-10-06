@@ -201,16 +201,20 @@ class Mutation:
     @sync_to_async
     def delete_space(self, info, id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
-        space = CommunityModel.objects.get(id=id)
+        try:
+            space = CommunityModel.objects.get(id=id)
 
-        with transaction.atomic():
-            current_user.delete_community_with_id(
-                community_id=id,
-            )
+            with transaction.atomic():
+                current_user.delete_community_with_id(
+                    community_id=id,
+                )
 
-        publish_space_deleted_event(space)
+            publish_space_deleted_event(space)
 
-        invalidate_discover_spaces_query_cache()
+            invalidate_discover_spaces_query_cache()
+        except CommunityModel.DoesNotExist:
+            # the space does not exist in the first place, which is just as good as deleting it
+            Result(success=True)
 
         return Result(success=True)
 
