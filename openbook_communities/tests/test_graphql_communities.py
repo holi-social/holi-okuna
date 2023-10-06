@@ -1296,11 +1296,38 @@ class TestCommunities:
             context_value=benedict({"request": {"user": user}}),
         )
 
-        assert response.data["deleteSpace"]["success"] is True
         assert response.errors is None
+        assert response.data["deleteSpace"]["success"] is True
 
         mock_invalidate_discover_spaces_query_cache.assert_called_once()
         mock_publish_space_deleted_event.assert_called_once_with(community)
+
+    @mock.patch("openbook_communities.schema.mutations.publish_space_deleted_event")
+    @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
+    def test_delete_space_that_does_not_exist_passes(
+        self, mock_invalidate_discover_spaces_query_cache, mock_publish_space_deleted_event
+    ):
+        user = make_user()
+
+        delete_space_mutation = """
+            mutation test($id: UUID!) {
+                deleteSpace(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = async_to_sync(schema.execute)(
+            delete_space_mutation,
+            variable_values={"id": "00000000-0000-0000-0000-ffffffffffff"},
+            context_value=benedict({"request": {"user": user}}),
+        )
+
+        assert response.errors is None
+        assert response.data["deleteSpace"]["success"] is True
+
+        mock_invalidate_discover_spaces_query_cache.assert_not_called()
+        mock_publish_space_deleted_event.assert_not_called()
 
     def test_spaces_missing_required_fields_do_not_pass_validation(self):
         user = make_user()
