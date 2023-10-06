@@ -23,6 +23,7 @@ from openbook_posts.schema.types import (
     PostComment,
     UpdatePostInput,
 )
+from openbook_posts.schema.utils import resolve_post
 from openbook_posts.serializers.post_comments_serializers import CommentPostSerializer
 from openbook_posts.serializers.post_serializers import EditCommunityPostSerializer
 from openbook_posts.serializers.posts_serializers import CreateCommunityPostSerializer
