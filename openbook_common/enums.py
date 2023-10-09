@@ -34,3 +34,7 @@ class FeatureToggleType(TextChoices):
     PREVIEW = ("PREVIEW",)
     PRODUCTION = ("PRODUCTION",)
     MAINTENANCE = ("MAINTENANCE",)
+
+
+class FeatureToggleName(Enum):
+    NOTIFICATIONS = "NOTIFICATIONS"
