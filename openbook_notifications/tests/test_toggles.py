@@ -6,12 +6,12 @@ from openbook_common.enums import FeatureToggleName, FeatureToggleType
 from openbook_common.models import FeatureToggle as FeatureToggleModel
 from openbook_notifications.toggles import notifications_toggle
 
+
 @pytest.mark.django_db
 class NotificationsToggleTestCase(TestCase):
     def setUp(self):
         self.notifications_toggle = FeatureToggleModel.objects.create(
-            name=FeatureToggleName.NOTIFICATIONS.value,
-            status=FeatureToggleType.PRODUCTION
+            name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
         )
 
     def test_notifications_toggle_enabled(self):
