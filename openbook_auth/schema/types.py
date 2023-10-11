@@ -13,6 +13,7 @@ from openbook_communities.enums import UpdateConnectionAction
 from openbook_communities.models import Community as CommunityModel
 from openbook_communities.models import SpaceUserConnectionType
 from openbook_terms.schema.types import SDG, Skill, Topic
+from openbook_devices.models import Device
 
 logger = logging.getLogger(__name__)
 
@@ -116,3 +117,9 @@ class User:
     def connection_status_to_space(self, info, space_id: uuid.UUID) -> List[Optional[SpaceUserConnectionType]]:
         space = CommunityModel.objects.get(id=space_id)
         return space.connection_status_to_user(self)
+
+
+@strawberry.input
+class RegisterDeviceInput:
+    token: str
+    device_type: Device.DeviceType

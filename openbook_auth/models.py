@@ -1127,9 +1127,6 @@ class User(ModelWithUUID, AbstractUser):
     def has_notification_with_id(self, notification_id):
         return self.notifications.filter(pk=notification_id).exists()
 
-    def has_device_with_uuid(self, device_uuid):
-        return self.devices.filter(uuid=device_uuid).exists()
-
     def has_follow_notifications_enabled(self):
         return self.notifications_settings.follow_notifications
 
@@ -3935,35 +3932,18 @@ class User(ModelWithUUID, AbstractUser):
         self.delete_own_notifications()
         self.delete_outgoing_notifications()
 
-    def create_device(self, uuid, name=None):
-        check_device_with_uuid_does_not_exist(user=self, device_uuid=uuid)
+    def has_device_with_token_and_type(self, token, device_type):
+        return self.devices.filter(token=token, device_type=device_type).exists()
+
+    def create_device(self, token, device_type):
+        check_device_with_token_and_type_does_not_exist(user=self, device_token=token, device_type=device_type)
         Device = get_device_model()
-        return Device.create_device(owner=self, uuid=uuid, name=name)
+        return Device.create_device(owner=self, token=token, device_type=device_type)
 
-    def update_device_with_uuid(self, device_uuid, name=None):
-        check_can_update_device_with_uuid(user=self, device_uuid=device_uuid)
-        device = self.devices.get(uuid=device_uuid)
-        device.update(name=name)
-
-    def delete_device_with_uuid(self, device_uuid):
-        check_can_delete_device_with_uuid(user=self, device_uuid=device_uuid)
-        device = self.devices.get(uuid=device_uuid)
+    def delete_device_with_token_and_type(self, device_token, device_type):
+        check_can_delete_device_with_token_and_type(user=self, device_token=device_token, device_type=device_type)
+        device = self.devices.get(token=device_token, device_type=device_type)
         device.delete()
-
-    def get_devices(self, max_id=None):
-        devices_query = Q()
-
-        if max_id:
-            devices_query.add(Q(id__lt=max_id), Q.AND)
-
-        return self.devices.filter(devices_query)
-
-    def get_device_with_uuid(self, device_uuid):
-        check_can_get_device_with_uuid(user=self, device_uuid=device_uuid)
-        return self.devices.get(uuid=device_uuid)
-
-    def delete_devices(self):
-        self.devices.all().delete()
 
     def mute_post_with_id(self, post_id):
         Post = get_post_model()

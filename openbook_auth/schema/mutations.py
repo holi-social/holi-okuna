@@ -18,7 +18,7 @@ from openbook.helpers import (
 )
 from openbook.utils import invalidate_discover_spaces_query_cache
 from openbook_auth.models import User as UserModel
-from openbook_auth.schema.types import UpdateAuthenticatedUserInput, User
+from openbook_auth.schema.types import UpdateAuthenticatedUserInput, User, RegisterDeviceInput
 from openbook_auth.serializers.authenticated_user_serializers import (
     UpdateAuthenticatedUserSerializer,
 )
@@ -27,6 +27,7 @@ from openbook_auth.utils import verify_authorized_user
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.helpers import is_parameter_null, to_input_dict
 from openbook_common.schema.types import Result
+from openbook_devices.serializers import RegisterDeviceSerializer
 
 logger = structlog.get_logger(__name__)
 
@@ -165,5 +166,23 @@ class Mutation:
         username_of_user_to_block = str(user_id)
 
         current_user.block_user_with_username(username_of_user_to_block)
+
+        return Result(success=True)
+
+    @strawberry.mutation
+    @sync_to_async
+    def register_device(self, info, input: RegisterDeviceInput) -> Result:
+        current_user = verify_authorized_user(info)
+
+        input_dict = to_input_dict(input)
+        serializer = RegisterDeviceSerializer(data=input_dict)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        if not current_user.has_device_with_token_and_type(
+            token=data.get("token"), device_type=data.get("device_type")
+        ):
+            current_user.create_device(token=data.get("token"), device_type=data.get("device_type"))
+            # TODO: update novu subscriber
 
         return Result(success=True)
