@@ -19,6 +19,8 @@ from django.utils.translation import gettext_lazy as _
 from openbook.settings import sentry_config
 from openbook_common.utils.environment import EnvironmentChecker
 
+from novu.config import NovuConfig
+
 # Python 3.10 moved collections.Callable to collections.abc.Callable. This is a patch to make old libs work (in particular nose)
 collections.Callable = collections.abc.Callable
 
@@ -678,3 +680,9 @@ APPLE_APP_STORE_DEFAULT_URL = "itms-apps://apps.apple.com/app/id6446693757"
 GOOGLE_PLAY_STORE_DEFAULT_URL = "market://details?id=social.holi.app"
 
 IDENTITY_NUMBERS_TO_AVOID = {88, 69}
+
+# Novu
+NOVU_API_KEY = os.environ.get("NOVU_API_KEY")
+NOVU_API_URL = os.environ.get("NOVU_API_URL", "https://api.novu.co")
+
+NovuConfig().configure(NOVU_API_URL, NOVU_API_KEY)
