@@ -4,22 +4,36 @@ from openbook.settings import ORY_BASE_URL
 from openbook_auth.management.common import (
     ORY_HEADER,
     no_ory_errors,
+    get_ory_user,
 )
 
 from openbook_auth.tasks import update_ory
 
 
 class Command(BaseCommand):
-    help = "Can be used to set an Ory user to verified and/or set a new password or a new identity for a user"
+    help = (
+        "Can be used to set an Ory user to verified and/or set a new password or a new identity for a user. "
+        "The user is identified via --email or --id, never both."
+    )
 
     def add_arguments(self, parser):
-        parser.add_argument("ory_user_id")
+        parser.add_argument("--id", required=False)
+        parser.add_argument("--email", required=False)
         parser.add_argument("--password", required=False)
         parser.add_argument("--identity", required=False)
         parser.add_argument("--verified", action="store_true", required=False)
 
     def handle(self, *args, **options):
-        ory_user_id = options["ory_user_id"]
+        email = options["email"]
+        ory_user_id = options["id"]
+        if email and ory_user_id:
+            print("Only pass --id OR --email, not both")
+            return
+        if not email and not ory_user_id:
+            print("Pass --id OR --email")
+            return
+        if email:
+            ory_user_id = get_ory_user(email)["id"]
         if options["verified"]:
             self.set_verified(ory_user_id)
         if options["password"]:

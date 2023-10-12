@@ -29,6 +29,7 @@ from openbook_auth.tests.helpers import (
 from openbook_common.enums import FeatureToggleName, FeatureToggleType
 from openbook_common.models import FeatureToggle
 from openbook_common.tests.helpers import (
+    assert_is_unauthorized,
     make_authentication_headers_for_user,
     make_community,
     make_fake_post_text,
@@ -662,3 +663,103 @@ class TestUsers:
         assert get_user_connection_status_to_space_data(membership_requestor, space) == [
             SpaceUserConnectionType.MEMBERSHIP_REQUESTOR.value
         ]
+
+    def mutate_register_device(self, user, token="some_token", device_type="ANDROID"):
+        register_device_mutation = """
+          mutation registerDevice($input: RegisterDeviceInput!) {
+            registerDevice(input: $input) {
+              success
+            }
+          }
+        """
+        return async_to_sync(schema.execute)(
+            register_device_mutation,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"input": {"token": token, "deviceType": device_type}},
+        )
+
+    def test_can_register_device(self):
+        user = make_user()
+
+        assert len(user.devices.all()) == 0
+
+        response = self.mutate_register_device(user)
+
+        assert response.errors is None
+        assert response.data["registerDevice"]["success"] is True
+
+        devices = user.devices.all()
+        assert len(devices) == 1
+        assert devices[0].token == "some_token"
+        assert devices[0].device_type == "ANDROID"
+
+    def test_can_register_the_same_device_twice(self):
+        user = make_user()
+
+        response = self.mutate_register_device(user)
+
+        assert response.errors is None
+        assert response.data["registerDevice"]["success"] is True
+
+        assert len(user.devices.all()) == 1
+
+        response = self.mutate_register_device(user)
+
+        assert response.errors is None
+        assert response.data["registerDevice"]["success"] is True
+
+        assert len(user.devices.all()) == 1
+
+    def test_can_not_register_device_if_not_logged_in(self):
+        response = self.mutate_register_device(AnonymousUser)
+
+        assert_is_unauthorized(response)
+
+    def test_validates_device_registration(self):
+        user = make_user()
+
+        expected_errors = [
+            {
+                "field": "token",
+                "value": None,
+                "expected_error": "Expected non-nullable type",
+            },
+            {
+                "field": "token",
+                "value": "",
+                "expected_code": "blank",
+            },
+            {
+                "field": "token",
+                "value": "f" * 300,
+                "expected_code": "max_length",
+            },
+            {
+                "field": "device_type",
+                "value": None,
+                "expected_error": "Expected non-nullable type",
+            },
+            {
+                "field": "device_type",
+                "value": "",
+                "expected_error": "invalid value",
+            },
+            {
+                "field": "device_type",
+                "value": "FOOBAR",
+                "expected_error": "invalid value",
+            },
+        ]
+
+        for test_case in expected_errors:
+            response = self.mutate_register_device(
+                user,
+                token=test_case["value"] if test_case["field"] == "token" else "some_token",
+                device_type=test_case["value"] if test_case["field"] == "device_type" else "ANDROID",
+            )
+            if "expected_code" in test_case:
+                field_errors = json.loads(response.errors[0].extensions["errors"])
+                assert test_case["expected_code"] == field_errors[test_case["field"]][0]["code"]
+            else:
+                assert test_case["expected_error"] in str(response.errors[0].message)
+            assert (response.data["registerDevice"] if response.data else response.data) is None

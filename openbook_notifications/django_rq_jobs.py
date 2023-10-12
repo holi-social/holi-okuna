@@ -9,7 +9,7 @@ from openbook_common.utils.model_loaders import get_user_model
 #    app_auth_key=settings.ONE_SIGNAL_API_KEY
 # )
 
-
+# TODO(SF) this currently does nothing and can be removed
 @job("default")
 def send_notification_to_user_with_id(user_id, notification):
     User = get_user_model()
@@ -30,7 +30,7 @@ def send_notification_to_user_with_id(user_id, notification):
                     "field": "tag",
                     "key": "device_uuid",
                     "relation": "=",
-                    "value": device.uuid,
+                    "value": device.token,
                 },
             ]
         )
