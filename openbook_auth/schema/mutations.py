@@ -25,11 +25,9 @@ from openbook_auth.serializers.authenticated_user_serializers import (
 from openbook_auth.tasks import update_ory_user_identity, update_ory_user_names
 from openbook_auth.utils import verify_authorized_user
 from openbook.graphql_errors import GraphQLErrorCodes
-from openbook_common.enums import FeatureToggleName, FeatureToggleType
 from openbook_common.helpers import is_parameter_null, to_input_dict
 from openbook_common.schema.types import Result
 from openbook_notifications.api import NotificationApi
-from openbook_common.models import FeatureToggle as FeatureToggleModel
 
 logger = structlog.get_logger(__name__)
 
@@ -105,9 +103,9 @@ class Mutation:
 
             current_user.save()
 
-            NotificationApi.update_subscriber(
-                user=current_user, locale=get_language_from_request(info.context.request)
-            )
+        locale = get_language_from_request(info.context.request)
+        NotificationApi.update_subscriber(user=current_user, locale=locale)
+
         cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
 
         return current_user
@@ -136,6 +134,7 @@ class Mutation:
 
                 current_user.delete()
                 publish_user_deleted_event(user=current_user)
+                NotificationApi.delete_subscriber(user_id=current_user.username)
                 logger.info(f"Successfully deleted user {current_user.username}")
 
                 logger.warning(f"All spaces exclusively administered by {current_user.username} will be deleted")
@@ -148,7 +147,6 @@ class Mutation:
                         publish_space_deleted_event(space_to_delete)
 
                     invalidate_discover_spaces_query_cache()
-
                 return Result(success=True)
             except (Exception,):
                 logger.warning(
