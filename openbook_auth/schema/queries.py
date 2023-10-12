@@ -26,9 +26,8 @@ class Query:
         current_user = info.context.request.user
         if current_user.is_anonymous:
             return None
-        NotificationApi.find_or_create_subscriber(
-            user=current_user, locale=get_language_from_request(info.context.request)
-        )
+        locale = get_language_from_request(info.context.request)
+        NotificationApi.find_or_create_subscriber(user=current_user, locale=locale)
         return current_user
 
     @strawberry_django.field()
