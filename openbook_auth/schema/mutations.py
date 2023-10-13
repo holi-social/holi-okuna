@@ -27,6 +27,9 @@ from openbook_auth.utils import verify_authorized_user
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.helpers import is_parameter_null, to_input_dict
 from openbook_common.schema.types import Result
+from openbook_devices.enums import DeviceType
+from openbook_notifications.api import NotificationApi
+from openbook_notifications.enums import NotificationProvider
 from openbook_devices.serializers import RegisterDeviceSerializer
 
 logger = structlog.get_logger(__name__)
@@ -179,10 +182,18 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        if not current_user.has_device_with_token_and_type(
-            token=data.get("token"), device_type=data.get("device_type")
-        ):
-            current_user.create_device(token=data.get("token"), device_type=data.get("device_type"))
-            # TODO: update novu subscriber
+        token = data.get("token")
+        device_type = data.get("device_type")
+        user_id = str(current_user.username)
+
+        if not current_user.has_device_with_token_and_type(token=token, device_type=device_type):
+            current_user.create_device(token=token, device_type=device_type)
+            provider_id = (
+                NotificationProvider.APNS.value
+                if device_type == DeviceType.IOS.value
+                else NotificationProvider.FCM.value
+            )
+            # Register device token
+            NotificationApi.set_subscriber_credentials(user_id=user_id, provider_id=provider_id, device_tokens=[token])
 
         return Result(success=True)
