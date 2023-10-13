@@ -15,12 +15,6 @@ class Notification:
         recipients: str | List[str],
         payload: dict,
     ):
-        self.workflow = workflow
-        self.recipients = recipients
-        self.payload = payload
-        self.session = self.create_session()
-
-    def create_session(self):
         session = Session()
         retries = Retry(
             total=5,  # Number of retries
@@ -29,7 +23,11 @@ class Notification:
         )
         adapter = HTTPAdapter(max_retries=retries)
         session.mount("https://", adapter)
-        return session
+
+        self.workflow = workflow
+        self.recipients = recipients
+        self.payload = payload
+        self.session = session
 
     @notifications_toggle
     def send(self):
