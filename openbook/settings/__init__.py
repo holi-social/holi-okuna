@@ -682,6 +682,6 @@ IDENTITY_NUMBERS_TO_AVOID = {88, 69}
 
 # Novu
 NOVU_API_KEY = os.environ.get("NOVU_API_KEY")
-NOVU_API_URL = os.environ.get("NOVU_API_URL", "https://api.novu.co")
+NOVU_API_URL = os.environ.get("NOVU_API_URL", "https://eu.api.novu.co")
 
 NovuConfig().configure(NOVU_API_URL, NOVU_API_KEY)
