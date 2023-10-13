@@ -38,6 +38,7 @@ from openbook_common.tests.helpers import (
     assert_paged_results_equal,
 )
 from openbook_communities.models import SpaceUserConnectionType
+from openbook_notifications.enums import NotificationProvider
 from openbook_posts.tests.helpers import get_post_with_id_data, get_post_with_id_raw
 
 logger = logging.getLogger(__name__)
@@ -682,7 +683,8 @@ class TestUsers:
             variable_values={"input": {"token": token, "deviceType": device_type}},
         )
 
-    def test_can_register_device(self):
+    @mock.patch("openbook_notifications.api.NotificationApi.set_subscriber_credentials")
+    def test_can_register_device(self, mock_set_subscriber_credentials):
         user = make_user()
 
         assert len(user.devices.all()) == 0
@@ -696,8 +698,12 @@ class TestUsers:
         assert len(devices) == 1
         assert devices[0].token == "some_token"
         assert devices[0].device_type == "ANDROID"
+        mock_set_subscriber_credentials.assert_called_once_with(
+            user_id=str(user.username), provider_id=NotificationProvider.FCM.value, device_tokens=["some_token"]
+        )
 
-    def test_can_register_the_same_device_twice(self):
+    @mock.patch("openbook_notifications.api.NotificationApi.set_subscriber_credentials")
+    def test_can_register_the_same_device_twice(self, mock_set_subscriber_credentials):
         user = make_user()
 
         response = self.mutate_register_device(user)
@@ -714,10 +720,16 @@ class TestUsers:
 
         assert len(user.devices.all()) == 1
 
-    def test_can_not_register_device_if_not_logged_in(self):
+        mock_set_subscriber_credentials.assert_called_once_with(
+            user_id=str(user.username), provider_id=NotificationProvider.FCM.value, device_tokens=["some_token"]
+        )
+
+    @mock.patch("openbook_notifications.api.NotificationApi.set_subscriber_credentials")
+    def test_can_not_register_device_if_not_logged_in(self, mock_set_subscriber_credentials):
         response = self.mutate_register_device(AnonymousUser)
 
         assert_is_unauthorized(response)
+        mock_set_subscriber_credentials.assert_not_called()
 
     def test_validates_device_registration(self):
         user = make_user()
