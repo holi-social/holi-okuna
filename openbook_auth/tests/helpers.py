@@ -3,6 +3,7 @@ from typing import List
 from asgiref.sync import async_to_sync
 from benedict import benedict
 from django.contrib.auth.models import AnonymousUser, User
+from django.http import HttpRequest
 
 from openbook.graphql_schema import schema
 
@@ -51,6 +52,9 @@ def get_users_by_chat_identities(user: User, identities: List[str]):
 
 
 def api_update_authenticated_user_names(user, first_name, last_name):
+    request = HttpRequest()
+    request.COOKIES = {}
+    request.user = user
     return async_to_sync(schema.execute)(
         """
         mutation test($input: UpdateAuthenticatedUserInput!) {
@@ -62,7 +66,7 @@ def api_update_authenticated_user_names(user, first_name, last_name):
             }
         }
         """,
-        context_value=benedict({"request": {"user": user}}),
+        context_value=benedict({"request": request}),
         variable_values={"input": {"firstName": first_name, "lastName": last_name}},
     )
 
