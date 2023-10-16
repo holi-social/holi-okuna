@@ -1,6 +1,6 @@
 from enum import Enum
-
 import strawberry
+from novu.enums import PushProviderIdEnum, EmailProviderIdEnum
 
 
 @strawberry.enum
@@ -27,3 +27,9 @@ class NotificationType(Enum):
     CNP = strawberry.enum_value("CNP", description="COMMUNITY_NEW_POST")
     UNP = strawberry.enum_value("UNP", description="USER_NEW_POST")
     REL = strawberry.enum_value("REL", description="RELEASE_INFO")
+
+
+class NotificationProvider(Enum):
+    APNS = PushProviderIdEnum.APNS
+    FCM = PushProviderIdEnum.FCM
+    EMAIL = EmailProviderIdEnum.CUSTOM_SMTP

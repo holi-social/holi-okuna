@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime, timedelta
 from typing import Generic, List, Optional, TypeVar
+from django.utils.translation import get_language_from_request
 
 import strawberry
 import strawberry_django
@@ -15,6 +16,7 @@ from openbook_auth.utils import verify_authorized_user
 from openbook_auth.validators import string_not_empty
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.schema.types import Paged
+from openbook_notifications.api import NotificationApi
 
 
 @strawberry.type
@@ -22,7 +24,16 @@ class Query:
     @strawberry_django.field()
     def authenticated_user(self, info) -> Optional[User]:
         current_user = info.context.request.user
-        return None if current_user.is_anonymous else current_user
+        if current_user.is_anonymous:
+            return None
+        locale = get_language_from_request(info.context.request)
+        NotificationApi.find_or_create_subscriber(user=current_user, locale=locale)
+
+        # TODO: This is a hack to make sure that the subscriber is updated with the correct locale.
+        # Remove this when we add a language picker to the user profile.
+        NotificationApi.set_subscriber_locale(user_id=current_user.username, locale=locale)
+
+        return current_user
 
     @strawberry_django.field()
     def user_by_id(self, info, id: uuid.UUID) -> Optional[User]:

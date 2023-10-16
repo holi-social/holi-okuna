@@ -787,20 +787,12 @@ def check_has_notification_with_id(user, notification_id):
         )
 
 
-def check_can_update_device_with_uuid(user, device_uuid):
-    check_has_device_with_uuid(user=user, device_uuid=device_uuid)
+def check_can_delete_device_with_token_and_type(user, device_token, device_type):
+    check_has_device_with_token_and_type(user=user, device_token=device_token, device_type=device_type)
 
 
-def check_can_delete_device_with_uuid(user, device_uuid):
-    check_has_device_with_uuid(user=user, device_uuid=device_uuid)
-
-
-def check_can_get_device_with_uuid(user, device_uuid):
-    check_has_device_with_uuid(user=user, device_uuid=device_uuid)
-
-
-def check_has_device_with_uuid(user, device_uuid):
-    if not user.has_device_with_uuid(device_uuid=device_uuid):
+def check_has_device_with_token_and_type(user, device_token, device_type):
+    if not user.has_device_with_token_and_type(device_token=device_token, device_type=device_type):
         raise NotFound(
             _("Device not found"),
         )
@@ -874,8 +866,8 @@ def check_password_matches(user, password):
         )
 
 
-def check_device_with_uuid_does_not_exist(user, device_uuid):
-    if user.devices.filter(uuid=device_uuid).exists():
+def check_device_with_token_and_type_does_not_exist(user, device_token, device_type):
+    if user.devices.filter(token=device_token, device_type=device_type).exists():
         raise ValidationError("Device already exists")
 
 

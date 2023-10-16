@@ -135,3 +135,16 @@ class NotificationApiTestCase(TestCase):
         response = NotificationApi.set_subscriber_credentials(user_id, provider_id, webhook_url, device_tokens)
 
         self.assertEqual(response, subscriber_data)
+
+    @patch.object(SubscriberApi, "put")
+    @notifications_toggle
+    def test_set_subscriber_locale(self, mock_subscriber_api_put):
+        subscriber_data = {
+            "subscriber_id": str(self.user.username),
+            "locale": self.locale,
+        }
+        mock_subscriber_api_put.return_value = subscriber_data
+
+        subscriber = NotificationApi.update_subscriber(self.user, self.locale)
+
+        self.assertEqual(subscriber, subscriber_data)

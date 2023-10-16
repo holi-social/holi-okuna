@@ -7,7 +7,7 @@ import structlog
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.core.cache import cache
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, get_language_from_request
 from graphql import GraphQLError
 from rest_framework.exceptions import ValidationError
 
@@ -18,7 +18,7 @@ from openbook.helpers import (
 )
 from openbook.utils import invalidate_discover_spaces_query_cache
 from openbook_auth.models import User as UserModel
-from openbook_auth.schema.types import UpdateAuthenticatedUserInput, User
+from openbook_auth.schema.types import UpdateAuthenticatedUserInput, User, RegisterDeviceInput
 from openbook_auth.serializers.authenticated_user_serializers import (
     UpdateAuthenticatedUserSerializer,
 )
@@ -27,6 +27,10 @@ from openbook_auth.utils import verify_authorized_user
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.helpers import is_parameter_null, to_input_dict
 from openbook_common.schema.types import Result
+from openbook_devices.enums import DeviceType
+from openbook_notifications.api import NotificationApi
+from openbook_notifications.enums import NotificationProvider
+from openbook_devices.serializers import RegisterDeviceSerializer
 
 logger = structlog.get_logger(__name__)
 
@@ -102,6 +106,9 @@ class Mutation:
 
             current_user.save()
 
+        locale = get_language_from_request(info.context.request)
+        NotificationApi.update_subscriber(user=current_user, locale=locale)
+
         cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
 
         return current_user
@@ -130,6 +137,7 @@ class Mutation:
 
                 current_user.delete()
                 publish_user_deleted_event(user=current_user)
+                NotificationApi.delete_subscriber(user_id=current_user.username)
                 logger.info(f"Successfully deleted user {current_user.username}")
 
                 logger.warning(f"All spaces exclusively administered by {current_user.username} will be deleted")
@@ -142,7 +150,6 @@ class Mutation:
                         publish_space_deleted_event(space_to_delete)
 
                     invalidate_discover_spaces_query_cache()
-
                 return Result(success=True)
             except (Exception,):
                 logger.warning(
@@ -165,5 +172,31 @@ class Mutation:
         username_of_user_to_block = str(user_id)
 
         current_user.block_user_with_username(username_of_user_to_block)
+
+        return Result(success=True)
+
+    @strawberry.mutation
+    @sync_to_async
+    def register_device(self, info, input: RegisterDeviceInput) -> Result:
+        current_user = verify_authorized_user(info)
+
+        input_dict = to_input_dict(input)
+        serializer = RegisterDeviceSerializer(data=input_dict)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        token = data.get("token")
+        device_type = data.get("device_type")
+        user_id = str(current_user.username)
+
+        if not current_user.has_device_with_token_and_type(token=token, device_type=device_type):
+            current_user.create_device(token=token, device_type=device_type)
+            provider_id = (
+                NotificationProvider.APNS.value
+                if device_type == DeviceType.IOS.value
+                else NotificationProvider.FCM.value
+            )
+            # Register device token
+            NotificationApi.set_subscriber_credentials(user_id=user_id, provider_id=provider_id, device_tokens=[token])
 
         return Result(success=True)
