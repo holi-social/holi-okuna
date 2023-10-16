@@ -532,16 +532,13 @@ class TestCommunities:
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
-    @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
-    @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
-    def test_space_memebership_request_only_visible_to_admins(self, mock_publish_space_user_added_event):
+    def test_space_memebership_request_only_visible_to_admins(self):
         user = make_user()
         member = make_user()
         admin = make_user()
         membership_requestor = make_user()
         community = make_community(creator=admin)
         community.add_member(member)
-        mock_publish_space_user_added_event.return_value = None
 
         # Send Join Request
         mutate_update_space_user_connection_data(
