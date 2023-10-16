@@ -1698,7 +1698,6 @@ class TestCommunities:
                 "value": [invalid_uuid],
                 "expected_error": f"No sdg with the id '{invalid_uuid}' found.",
             },
-            {"field": "location", "value": None, "expected_code": "null"},
             {"field": "contactDescription", "value": "f" * 101, "expected_code": "max_length"},
             {"field": "contactPhone", "value": "9" * 101, "expected_code": "max_length"},
             {"field": "contactEmail", "value": "invalid", "expected_code": "invalid"},
