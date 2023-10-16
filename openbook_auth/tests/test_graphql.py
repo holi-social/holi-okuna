@@ -3,6 +3,7 @@ import logging
 from datetime import datetime, timedelta
 from unittest import mock
 from unittest.mock import call
+from django.http import HttpRequest
 
 import pytest
 from asgiref.sync import async_to_sync, sync_to_async
@@ -25,7 +26,10 @@ from openbook_auth.tests.helpers import (
     get_user_with_id_raw,
     get_users_by_chat_identities,
 )
+from openbook_common.enums import FeatureToggleName, FeatureToggleType
+from openbook_common.models import FeatureToggle
 from openbook_common.tests.helpers import (
+    assert_is_unauthorized,
     make_authentication_headers_for_user,
     make_community,
     make_fake_post_text,
@@ -34,6 +38,7 @@ from openbook_common.tests.helpers import (
     assert_paged_results_equal,
 )
 from openbook_communities.models import SpaceUserConnectionType
+from openbook_notifications.enums import NotificationProvider
 from openbook_posts.tests.helpers import get_post_with_id_data, get_post_with_id_raw
 
 logger = logging.getLogger(__name__)
@@ -52,8 +57,22 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 @pytest.mark.django_db
 class TestUsers:
+    def setUp(self):
+        self.notifications_toggle = FeatureToggle.objects.create(
+            name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
+        )
+
+    def tearDown(self):
+        if self.notifications_toggle.id is not None:
+            self.notifications_toggle.delete()
+
     @pytest.mark.asyncio
-    async def test_get_authenticated_user_returns_self_reference(self, client):
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.find_or_create_subscriber")
+    @mock.patch("openbook_notifications.api.NotificationApi.set_subscriber_locale")
+    async def test_get_authenticated_user_returns_self_reference(
+        self, mock_set_subscriber_locale, mock_find_or_create_subscriber, mock_get_language_from_request, client
+    ):
         user = await sync_to_async(make_user)(name="John", last_name="Holi")
         headers = await sync_to_async(make_authentication_headers_for_user)(user)
         endpoint = reverse("graphql-endpoint")
@@ -79,6 +98,13 @@ class TestUsers:
         assert authenticated_user["id"] == str(user.uuid)
         assert authenticated_user["fullName"] == user.profile.full_name()
         assert authenticated_user["engagementLevel"] == user.profile.engagement_level
+
+        mock_find_or_create_subscriber.assert_called_once_with(
+            user=user, locale=mock_get_language_from_request.return_value
+        )
+        mock_set_subscriber_locale.assert_called_once_with(
+            user_id=user.username, locale=mock_get_language_from_request.return_value
+        )
 
     def test_get_user_by_name_returns_only_matching_users_without_logged_in_user(self):
         user = make_user(name="Peter", last_name="Moser")
@@ -166,7 +192,11 @@ class TestUsers:
 
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
-    def test_can_update_authenticated_user(self, mock_publish_user_name_updated_event, mock_patch):
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
+    def test_can_update_authenticated_user(
+        self, mock_update_subscriber, mock_get_language_from_request, mock_publish_user_name_updated_event, mock_patch
+    ):
         response = Response()
         response.status_code = 200
         response._content = str.encode(json.dumps({}))
@@ -188,6 +218,10 @@ class TestUsers:
             {"op": "add", "path": "/traits/name", "value": f"{first_name} {last_name}"},
         ]
 
+        request = HttpRequest()
+        request.COOKIES = {}
+        request.user = user
+
         executed = async_to_sync(schema.execute)(
             """
             mutation test($input: UpdateAuthenticatedUserInput!) {
@@ -204,7 +238,7 @@ class TestUsers:
                 }
             }
             """,
-            context_value=benedict({"request": {"user": user}}),
+            context_value=benedict({"request": request}),
             variable_values={
                 "input": {
                     "pronouns": pronouns,
@@ -238,9 +272,14 @@ class TestUsers:
         assert geos.GEOSGeometry(json.dumps(geolocation_geometry)) == persisted_profile.geolocation
 
         mock_publish_user_name_updated_event.assert_called_once_with(user=user)
+        mock_update_subscriber.assert_called_once_with(user=user, locale=mock_get_language_from_request.return_value)
 
     @mock.patch("openbook_auth.tasks.requests.patch")
-    def test_can_update_authenticated_user_generates_an_identity(self, ory_patch_mock):
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
+    def test_can_update_authenticated_user_generates_an_identity(
+        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
+    ):
         ory_patch_mock_response = Response()
         ory_patch_mock_response.status_code = 200
         ory_patch_mock_response._content = str.encode(json.dumps({}))
@@ -278,8 +317,14 @@ class TestUsers:
         assert "fritz" == persisted_user.identity
         assert "fritz" == result["identity"]
 
+        assert mock_update_subscriber.call_count == 2
+
     @mock.patch("openbook_auth.tasks.requests.patch")
-    def test_api_registers_new_user_with_already_taken_identity_for_a_user(self, ory_patch_mock):
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
+    def test_api_registers_new_user_with_already_taken_identity_for_a_user(
+        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
+    ):
         ory_update_response_stub = Response()
         ory_update_response_stub.status_code = 200
         ory_update_response_stub._content = str.encode(json.dumps({}))
@@ -302,8 +347,16 @@ class TestUsers:
             json=expected_json_body,
         )
 
+        mock_update_subscriber.assert_called_once_with(
+            user=new_fritz, locale=mock_get_language_from_request.return_value
+        )
+
     @mock.patch("openbook_auth.tasks.requests.patch")
-    def test_api_registers_new_user_with_ory_identity_collision(self, ory_patch_mock):
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
+    def test_api_registers_new_user_with_ory_identity_collision(
+        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
+    ):
         ory_update_user_name_success = Response()
         ory_update_user_name_success.status_code = 200
         ory_update_user_name_success._content = str.encode(json.dumps({}))
@@ -349,8 +402,16 @@ class TestUsers:
             ]
         )
 
+        mock_update_subscriber.assert_called_once_with(
+            user=new_user, locale=mock_get_language_from_request.return_value
+        )
+
     @mock.patch("openbook_auth.tasks.requests.patch")
-    def test_api_registers_new_user_with_ory_identity_collision_only_first_name(self, ory_patch_mock):
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
+    def test_api_registers_new_user_with_ory_identity_collision_only_first_name(
+        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
+    ):
         ory_update_user_name_success = Response()
         ory_update_user_name_success.status_code = 200
         ory_update_user_name_success._content = str.encode(json.dumps({}))
@@ -396,8 +457,16 @@ class TestUsers:
             ]
         )
 
+        mock_update_subscriber.assert_called_once_with(
+            user=new_user, locale=mock_get_language_from_request.return_value
+        )
+
     @mock.patch("openbook_auth.tasks.requests.patch")
-    def test_api_registers_new_user_with_ory_identity_multiple_collision(self, ory_patch_mock):
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
+    def test_api_registers_new_user_with_ory_identity_multiple_collision(
+        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
+    ):
         ory_update_user_name_success = Response()
         ory_update_user_name_success.status_code = 200
         ory_update_user_name_success._content = str.encode(json.dumps({}))
@@ -452,11 +521,16 @@ class TestUsers:
             ]
         )
 
+        mock_update_subscriber.assert_called_once_with(
+            user=new_user, locale=mock_get_language_from_request.return_value
+        )
+
     @mock.patch("openbook_auth.tasks.requests.delete")
     @mock.patch("openbook_auth.schema.mutations.publish_user_deleted_event")
     @mock.patch("openbook_auth.schema.mutations.publish_space_deleted_event")
+    @mock.patch("openbook_notifications.api.NotificationApi.delete_subscriber")
     def test_can_delete_authenticated_user(
-        self, mock_publish_space_deleted_event, mock_publish_user_deleted_event, mock_delete
+        self, mock_delete_subscriber, mock_publish_space_deleted_event, mock_publish_user_deleted_event, mock_delete
     ):
         response = Response()
         response.status_code = 204
@@ -485,6 +559,7 @@ class TestUsers:
 
         mock_publish_user_deleted_event.assert_called_once_with(user=user)
         mock_publish_space_deleted_event.assert_called_once_with(space)
+        mock_delete_subscriber.assert_called_once_with(user_id=str(user.username))
 
     def test_block_user(self):
         blocking_user = make_user(name="BlockingUser")
@@ -593,3 +668,114 @@ class TestUsers:
         assert get_user_connection_status_to_space_data(membership_requestor, space) == [
             SpaceUserConnectionType.MEMBERSHIP_REQUESTOR.value
         ]
+
+    def mutate_register_device(self, user, token="some_token", device_type="ANDROID"):
+        register_device_mutation = """
+          mutation registerDevice($input: RegisterDeviceInput!) {
+            registerDevice(input: $input) {
+              success
+            }
+          }
+        """
+        return async_to_sync(schema.execute)(
+            register_device_mutation,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"input": {"token": token, "deviceType": device_type}},
+        )
+
+    @mock.patch("openbook_notifications.api.NotificationApi.set_subscriber_credentials")
+    def test_can_register_device(self, mock_set_subscriber_credentials):
+        user = make_user()
+
+        assert len(user.devices.all()) == 0
+
+        response = self.mutate_register_device(user)
+
+        assert response.errors is None
+        assert response.data["registerDevice"]["success"] is True
+
+        devices = user.devices.all()
+        assert len(devices) == 1
+        assert devices[0].token == "some_token"
+        assert devices[0].device_type == "ANDROID"
+        mock_set_subscriber_credentials.assert_called_once_with(
+            user_id=str(user.username), provider_id=NotificationProvider.FCM.value, device_tokens=["some_token"]
+        )
+
+    @mock.patch("openbook_notifications.api.NotificationApi.set_subscriber_credentials")
+    def test_can_register_the_same_device_twice(self, mock_set_subscriber_credentials):
+        user = make_user()
+
+        response = self.mutate_register_device(user)
+
+        assert response.errors is None
+        assert response.data["registerDevice"]["success"] is True
+
+        assert len(user.devices.all()) == 1
+
+        response = self.mutate_register_device(user)
+
+        assert response.errors is None
+        assert response.data["registerDevice"]["success"] is True
+
+        assert len(user.devices.all()) == 1
+
+        mock_set_subscriber_credentials.assert_called_once_with(
+            user_id=str(user.username), provider_id=NotificationProvider.FCM.value, device_tokens=["some_token"]
+        )
+
+    @mock.patch("openbook_notifications.api.NotificationApi.set_subscriber_credentials")
+    def test_can_not_register_device_if_not_logged_in(self, mock_set_subscriber_credentials):
+        response = self.mutate_register_device(AnonymousUser)
+
+        assert_is_unauthorized(response)
+        mock_set_subscriber_credentials.assert_not_called()
+
+    def test_validates_device_registration(self):
+        user = make_user()
+
+        expected_errors = [
+            {
+                "field": "token",
+                "value": None,
+                "expected_error": "Expected non-nullable type",
+            },
+            {
+                "field": "token",
+                "value": "",
+                "expected_code": "blank",
+            },
+            {
+                "field": "token",
+                "value": "f" * 300,
+                "expected_code": "max_length",
+            },
+            {
+                "field": "device_type",
+                "value": None,
+                "expected_error": "Expected non-nullable type",
+            },
+            {
+                "field": "device_type",
+                "value": "",
+                "expected_error": "invalid value",
+            },
+            {
+                "field": "device_type",
+                "value": "FOOBAR",
+                "expected_error": "invalid value",
+            },
+        ]
+
+        for test_case in expected_errors:
+            response = self.mutate_register_device(
+                user,
+                token=test_case["value"] if test_case["field"] == "token" else "some_token",
+                device_type=test_case["value"] if test_case["field"] == "device_type" else "ANDROID",
+            )
+            if "expected_code" in test_case:
+                field_errors = json.loads(response.errors[0].extensions["errors"])
+                assert test_case["expected_code"] == field_errors[test_case["field"]][0]["code"]
+            else:
+                assert test_case["expected_error"] in str(response.errors[0].message)
+            assert (response.data["registerDevice"] if response.data else response.data) is None
