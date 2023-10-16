@@ -533,6 +533,72 @@ class TestCommunities:
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
+    @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
+    def test_space_memebership_request_only_visible_to_admins(self, mock_publish_space_user_added_event):
+        user = make_user()
+        member = make_user()
+        admin = make_user()
+        membership_requestor = make_user()
+        community = make_community(creator=admin)
+        community.add_member(member)
+        mock_publish_space_user_added_event.return_value = None
+
+        # Send Join Request
+        mutate_update_space_user_connection_data(
+            auth_user=membership_requestor,
+            space_id=community.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+
+        space_by_id_query = f"""
+            query {{
+                spaceById(idOrName: "{community.name}") {{
+                    id
+                    name
+                    membershipRequests {{
+                        totalResults
+                    }}
+                }}
+            }}
+            """
+
+        # admin should get the membershipRequests
+        response_admin = async_to_sync(schema.execute)(
+            space_by_id_query,
+            context_value=benedict({"request": {"user": admin}}),
+        )
+        assert response_admin.errors is None
+        paged_members = response_admin.data["spaceById"]["membershipRequests"]
+        assert paged_members["totalResults"] == 1
+
+        # non-admin member should get zero membershipRequests
+        response_member = async_to_sync(schema.execute)(
+            space_by_id_query,
+            context_value=benedict({"request": {"user": member}}),
+        )
+        assert response_member.errors is None
+        paged_members = response_member.data["spaceById"]["membershipRequests"]
+        assert paged_members["totalResults"] == 0
+
+        # non-member should get zero membershipRequests
+        response_non_member = async_to_sync(schema.execute)(
+            space_by_id_query,
+            context_value=benedict({"request": {"user": user}}),
+        )
+        assert response_non_member.errors is None
+        paged_members = response_non_member.data["spaceById"]["membershipRequests"]
+        assert paged_members["totalResults"] == 0
+
+        # anonymous user should get zero membershipRequests
+        response_non_member = async_to_sync(schema.execute)(
+            space_by_id_query,
+        )
+        assert response_non_member.errors is None
+        paged_members = response_non_member.data["spaceById"]["membershipRequests"]
+        assert paged_members["totalResults"] == 0
+
+    @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     def test_space_admin_grant_and_revoke_admin_access_success(self, mock_invalidate_discover_spaces_query_cache):
         space_member = make_user()
         space_creator = make_user()
