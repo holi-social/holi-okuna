@@ -262,7 +262,7 @@ class Space:
 
         return Paged(
             self.membership_requests.all()[offset : offset + limit],
-            self.memberships.count(),
+            self.membership_requests.count(),
         )
 
     @strawberry_django.field()

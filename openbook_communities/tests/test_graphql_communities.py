@@ -540,7 +540,7 @@ class TestCommunities:
         community = make_community(creator=admin)
         community.add_member(member)
 
-        # Send Join Request
+        # send join request
         mutate_update_space_user_connection_data(
             auth_user=membership_requestor,
             space_id=community.id,
@@ -551,10 +551,20 @@ class TestCommunities:
         space_by_id_query = f"""
             query {{
                 spaceById(idOrName: "{community.name}") {{
-                    id
-                    name
                     membershipRequests {{
                         totalResults
+                        data {{
+                            id
+                            user {{
+                                id
+                            }}
+                        }}
+                    }}
+                    members {{
+                        totalResults
+                        data {{
+                            id
+                        }}
                     }}
                 }}
             }}
@@ -566,8 +576,8 @@ class TestCommunities:
             context_value=benedict({"request": {"user": admin}}),
         )
         assert response_admin.errors is None
-        paged_members = response_admin.data["spaceById"]["membershipRequests"]
-        assert paged_members["totalResults"] == 1
+        paged_membership_requests = response_admin.data["spaceById"]["membershipRequests"]
+        assert paged_membership_requests["totalResults"] == 1
 
         # non-admin member should get zero membershipRequests
         response_member = async_to_sync(schema.execute)(
@@ -575,8 +585,8 @@ class TestCommunities:
             context_value=benedict({"request": {"user": member}}),
         )
         assert response_member.errors is None
-        paged_members = response_member.data["spaceById"]["membershipRequests"]
-        assert paged_members["totalResults"] == 0
+        paged_membership_requests = response_member.data["spaceById"]["membershipRequests"]
+        assert paged_membership_requests["totalResults"] == 0
 
         # non-member should get zero membershipRequests
         response_non_member = async_to_sync(schema.execute)(
@@ -584,12 +594,13 @@ class TestCommunities:
             context_value=benedict({"request": {"user": user}}),
         )
         assert response_non_member.errors is None
-        paged_members = response_non_member.data["spaceById"]["membershipRequests"]
-        assert paged_members["totalResults"] == 0
+        paged_membership_requests = response_non_member.data["spaceById"]["membershipRequests"]
+        assert paged_membership_requests["totalResults"] == 0
 
         # anonymous user should get zero membershipRequests
         response_non_member = async_to_sync(schema.execute)(
             space_by_id_query,
+            context_value=benedict({"request": {"user": AnonymousUser}}),
         )
         assert response_non_member.errors is None
         paged_members = response_non_member.data["spaceById"]["membershipRequests"]
