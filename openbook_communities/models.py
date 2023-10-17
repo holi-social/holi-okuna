@@ -611,6 +611,11 @@ class Community(ModelWithUUID):
         if onboarding_steps is not None:
             self.set_onboarding_steps(onboarding_steps=onboarding_steps)
 
+        # if the sent location is an empty string we should consider it as deleting the location and geolocation
+        if location == "":
+            self.location = None
+            self.geolocation = None
+
         self.save()
 
     def add_membership_request(self, user, message=None):

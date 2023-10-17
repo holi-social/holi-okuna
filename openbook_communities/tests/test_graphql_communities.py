@@ -1961,11 +1961,12 @@ class TestCommunities:
         assert "+49 123 12345" == updated_space["contactPhone"]
         assert "contact@space.com" == updated_space["contactEmail"]
 
-        # test space avatar and cover deletion
+        # test space avatar, cover and location deletion
         input = {
             "id": str(community.id),
             "cover": None,
             "avatar": None,
+            "location": "",
         }
 
         response = async_to_sync(schema.execute)(
@@ -1980,6 +1981,7 @@ class TestCommunities:
         assert str(community.id) == updated_space["id"]
         assert "" == updated_space["cover"]
         assert "" == updated_space["avatar"]
+        assert updated_space["location"] is None
         assert updated_space["coverBlurhash"] is None
         assert updated_space["avatarBlurhash"] is None
 
