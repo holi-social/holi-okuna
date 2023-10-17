@@ -187,7 +187,6 @@ class Mutation:
             sdg_ids=data.get("sdgs"),
             location=data.get("location"),
             geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
-            remove_location=is_parameter_null(data, "location"),
             contact_description=data.get("contact_description"),
             contact_email=data.get("contact_email"),
             contact_phone=data.get("contact_phone"),

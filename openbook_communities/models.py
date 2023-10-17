@@ -545,7 +545,6 @@ class Community(ModelWithUUID):
         remove_avatar=False,
         location=None,
         geolocation=None,
-        remove_location=False,
         contact_description=None,
         contact_email=None,
         contact_phone=None,
@@ -612,7 +611,8 @@ class Community(ModelWithUUID):
         if onboarding_steps is not None:
             self.set_onboarding_steps(onboarding_steps=onboarding_steps)
 
-        if remove_location:
+        # if the sent location is an empty string we should consider it as deleting the location and geolocation
+        if location == "":
             self.location = None
             self.geolocation = None
 

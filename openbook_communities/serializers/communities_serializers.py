@@ -162,11 +162,10 @@ class UpdateCommunitySerializer(serializers.Serializer):
     location = serializers.CharField(
         max_length=settings.COMMUNITY_LOCATION_MAX_LENGTH,
         required=False,
-        allow_null=True,
+        allow_blank=True,
     )
     geolocation = GeolocationPointSerializer(
         required=False,
-        allow_null=True,
     )
     contact_description = serializers.CharField(
         required=False,
