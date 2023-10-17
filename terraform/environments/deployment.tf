@@ -198,7 +198,7 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "NOVU_API_URL"
-          value = "https://api.novu.co"
+          value = "https://eu.api.novu.co"
         }
         env {
           name = "NOVU_API_KEY"
