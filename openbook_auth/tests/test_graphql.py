@@ -69,9 +69,8 @@ class TestUsers:
     @pytest.mark.asyncio
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.find_or_create_subscriber")
-    @mock.patch("openbook_notifications.api.NotificationApi.set_subscriber_locale")
     async def test_get_authenticated_user_returns_self_reference(
-        self, mock_set_subscriber_locale, mock_find_or_create_subscriber, mock_get_language_from_request, client
+        self, mock_find_or_create_subscriber, mock_get_language_from_request, client
     ):
         user = await sync_to_async(make_user)(name="John", last_name="Holi")
         headers = await sync_to_async(make_authentication_headers_for_user)(user)
@@ -101,9 +100,6 @@ class TestUsers:
 
         mock_find_or_create_subscriber.assert_called_once_with(
             user=user, locale=mock_get_language_from_request.return_value
-        )
-        mock_set_subscriber_locale.assert_called_once_with(
-            user_id=user.username, locale=mock_get_language_from_request.return_value
         )
 
     def test_get_user_by_name_returns_only_matching_users_without_logged_in_user(self):
