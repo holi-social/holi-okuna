@@ -57,12 +57,12 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 @pytest.mark.django_db
 class TestUsers:
-    def setUp(self):
+    def setup(self):
         self.notifications_toggle = FeatureToggle.objects.create(
             name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
         )
 
-    def tearDown(self):
+    def teardown(self):
         if self.notifications_toggle.id is not None:
             self.notifications_toggle.delete()
 
