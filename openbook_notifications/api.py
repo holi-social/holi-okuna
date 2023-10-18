@@ -57,15 +57,6 @@ class NotificationApi:
 
     @staticmethod
     @notifications_toggle
-    def set_subscriber_locale(user_id: str, locale: str):
-        subscriber = SubscriberDto(
-            subscriber_id=str(user_id),
-            locale=locale,
-        )
-        return SubscriberApi().put(subscriber)
-
-    @staticmethod
-    @notifications_toggle
     def set_subscriber_credentials(
         user_id: str, provider_id: str, webhook_url: str | None = None, device_tokens: List[str] | None = None
     ):
