@@ -88,6 +88,7 @@ from openbook_notifications import helpers
 from openbook_notifications.helpers import (
     get_notification_language_code_for_target_user,
 )
+from openbook_notifications.toggles import notifications_toggle
 from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
 from openbook_posts.query_collections import get_posts_for_user_collection
 from openbook_terms.models import Topic, SDG, Skill
@@ -3935,11 +3936,13 @@ class User(ModelWithUUID, AbstractUser):
     def has_device_with_token_and_type(self, token, device_type):
         return self.devices.filter(token=token, device_type=device_type).exists()
 
+    @notifications_toggle
     def create_device(self, token, device_type):
         check_device_with_token_and_type_does_not_exist(user=self, device_token=token, device_type=device_type)
         Device = get_device_model()
         return Device.create_device(owner=self, token=token, device_type=device_type)
 
+    @notifications_toggle
     def delete_device_with_token_and_type(self, device_token, device_type):
         check_can_delete_device_with_token_and_type(user=self, device_token=device_token, device_type=device_type)
         device = self.devices.get(token=device_token, device_type=device_type)
