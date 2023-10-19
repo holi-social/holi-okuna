@@ -112,4 +112,4 @@ class TestPayloads(TestCase):
         self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
         self.assertEqual(data_dict["data"]["space"]["id"], str(self.community.id))
         self.assertEqual(data_dict["data"]["request_message"], "I'm interested in becoming a member of your space")
-        self.assertIsNotNone(data_dict["data"]["request_date"])
+        self.assertIsNotNone(data_dict["data"]["request_datetime"])
