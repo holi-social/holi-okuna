@@ -71,8 +71,7 @@ class Payload:
 
 class SpaceMembershipRequestPayload(Payload):
     NOTIFICATION_VERSION = "1.0.0"
-    current_date = datetime.now().date()
-    request_date = current_date.strftime("%Y-%m-%d")
+    request_datetime = datetime.now().isoformat()
 
     def __init__(self, user: User, space: Community, message: Optional[str] = None):
         super().__init__(
@@ -80,7 +79,7 @@ class SpaceMembershipRequestPayload(Payload):
                 "user": UserData.from_user(user).to_dict(),
                 "space": SpaceData.from_community(space).to_dict(),
                 "request_message": message,
-                "request_date": self.request_date,
+                "request_datetime": self.request_datetime,
             },
             notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST.value,
             notification_version=SpaceMembershipRequestPayload.NOTIFICATION_VERSION,
