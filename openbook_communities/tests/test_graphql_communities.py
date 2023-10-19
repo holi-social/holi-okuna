@@ -54,6 +54,7 @@ from openbook_communities.tests.helpers import (
     mutate_update_space_user_connection_raw,
     update_and_assert_onboarding_steps,
 )
+from openbook_notifications.payloads import SpaceMembershipRequestPayload
 from openbook_notifications.tests.helpers import get_notifications
 from openbook_posts.enums import VisibilityFilter
 from openbook_posts.tests.helpers import private_post_ids, public_post_ids
@@ -374,8 +375,12 @@ class TestCommunities:
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
+    @mock.patch("openbook_notifications.notifications.SpaceMembershipRequestNotification.send")
     def test_space_membership_request_with_message(
-        self, mock_publish_space_user_added_event, mock_invalidate_discover_spaces_query_cache
+        self,
+        mock_send_space_membership_request_notification,
+        mock_publish_space_user_added_event,
+        mock_invalidate_discover_spaces_query_cache,
     ):
         membership_requestor = make_user()
         space_creator = make_user()
@@ -422,6 +427,11 @@ class TestCommunities:
         )
         assert staff_request_received_notification["options"]["message"] == message
 
+        payload = SpaceMembershipRequestPayload(space=space, user=membership_requestor, message=message)
+        mock_send_space_membership_request_notification.asser_called_with(
+            recepients=[str(space_creator.username)], payload=payload
+        )
+
     def test_validates_space_membership_request(self):
         membership_requestor = make_user()
         space_creator = make_user()
@@ -457,8 +467,12 @@ class TestCommunities:
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
+    @mock.patch("openbook_notifications.notifications.SpaceMembershipRequestNotification.send")
     def test_space_membership_request_rejection_process(
-        self, mock_publish_space_user_added_event, mock_invalidate_discover_spaces_query_cache
+        self,
+        mock_send_space_membership_request_notification,
+        mock_publish_space_user_added_event,
+        mock_invalidate_discover_spaces_query_cache,
     ):
         membership_requestor = make_user()
         space_creator = make_user()
@@ -501,6 +515,11 @@ class TestCommunities:
             == membership_requestor.profile.full_name()
         )
 
+        payload = SpaceMembershipRequestPayload(space=space, user=membership_requestor)
+        mock_send_space_membership_request_notification.asser_called_with(
+            recepients=[str(space_creator.username)], payload=payload
+        )
+
         # Approve user
         space_after_rejection = mutate_update_space_user_connection_data(
             auth_user=space_creator,
@@ -532,7 +551,8 @@ class TestCommunities:
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
-    def test_space_memebership_request_only_visible_to_admins(self):
+    @mock.patch("openbook_notifications.notifications.SpaceMembershipRequestNotification.send")
+    def test_space_memebership_request_only_visible_to_admins(self, mock_send_space_membership_request_notification):
         user = make_user()
         member = make_user()
         admin = make_user()
@@ -605,6 +625,11 @@ class TestCommunities:
         assert response_non_member.errors is None
         paged_members = response_non_member.data["spaceById"]["membershipRequests"]
         assert paged_members["totalResults"] == 0
+
+        payload = SpaceMembershipRequestPayload(space=community, user=membership_requestor)
+        mock_send_space_membership_request_notification.asser_called_with(
+            recepients=[str(admin.username)], payload=payload
+        )
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     def test_space_admin_grant_and_revoke_admin_access_success(self, mock_invalidate_discover_spaces_query_cache):
