@@ -54,6 +54,8 @@ from openbook_communities.serializers.communities_serializers import (
 from openbook_communities.serializers.community_serializers import (
     CommunityUserConnectionSerializer,
 )
+from openbook_notifications.notifications import SpaceMembershipRequestNotification
+from openbook_notifications.payloads import SpaceMembershipRequestPayload
 
 logger = structlog.get_logger(__name__)
 
@@ -87,7 +89,13 @@ class Mutation:
             # perform for current user
             match (connection_type, connect_action):
                 case (cT.MEMBERSHIP_REQUESTOR, a.CONNECT):
-                    return current_user.request_membership_to_community_with_name(space.name, message)
+                    space = current_user.request_membership_to_community_with_name(space.name, message)
+                    space_admins = CommunityModel.get_community_with_name_administrators(community_name=space.name)
+                    recipients = [str(admin.username) for admin in space_admins]
+                    payload = SpaceMembershipRequestPayload(space=space, user=current_user, message=message)
+                    notification = SpaceMembershipRequestNotification(recipients=recipients, payload=payload)
+                    notification.send()
+                    return space
                 case (cT.MEMBERSHIP_REQUESTOR, a.DISCONNECT):
                     return current_user.revoke_membership_request_to_community_with_name(space.name)
                 case (cT.MEMBERSHIP_INVITEE, a.CONNECT):
