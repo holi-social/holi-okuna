@@ -15,6 +15,8 @@ class Workflow(Enum):
 
 
 class Notification:
+    overrides = {"type": "data"}  # data notification
+
     def __init__(
         self,
         workflow: str,
@@ -38,7 +40,7 @@ class Notification:
     @notifications_toggle
     def send(self):
         return EventApi(session=self.session).trigger(
-            name=self.workflow, recipients=self.recipients, payload=self.payload
+            name=self.workflow, recipients=self.recipients, payload=self.payload, overrides=self.overrides
         )
 
 
