@@ -11,7 +11,7 @@ class NotificationType(Enum):
 
 
 class UserData:
-    def __init__(self, id: str, full_name: str, email: str, avatar: Optional[str]):
+    def __init__(self, id: str, full_name: str, email: str, avatar: Optional[str] = ""):
         self.id = id
         self.full_name = full_name
         self.email = email
@@ -36,22 +36,22 @@ class UserData:
 
 
 class SpaceData:
-    def __init__(self, id: str, name: str, slug: str, cover: str, avatar: Optional[str]):
+    def __init__(self, id: str, title: str, name: str, cover: str, avatar: Optional[str] = ""):
         self.id = id
         self.name = name
-        self.slug = slug
+        self.title = title
         self.cover = cover
         self.avatar = avatar
 
     def to_dict(self):
-        return {"id": self.id, "name": self.name, "cover": self.cover, "avatar": self.avatar}
+        return {"id": self.id, "name": self.name, "title": self.title, "cover": self.cover, "avatar": self.avatar}
 
     @classmethod
     def from_community(cls, community: Community):
         return cls(
             id=str(community.id),
-            name=community.title,
-            slug=community.name,
+            name=community.name,
+            title=community.title,
             cover=community.cover.url if community.cover else "",
             avatar=community.avatar.url if community.avatar else "",
         )
@@ -75,7 +75,7 @@ class SpaceMembershipRequestPayload(Payload):
     NOTIFICATION_VERSION = "1.0.0"
     request_datetime = datetime.now().isoformat()
 
-    def __init__(self, user: User, space: Community, message: Optional[str] = None):
+    def __init__(self, user: User, space: Community, message: Optional[str] = ""):
         super().__init__(
             data={
                 "user": UserData.from_user(user).to_dict(),
