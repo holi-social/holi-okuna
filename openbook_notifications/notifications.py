@@ -3,6 +3,7 @@ from requests import Session
 from requests.adapters import HTTPAdapter, Retry
 
 from typing import List
+from openbook_notifications.helpers import flatten_payload
 from openbook_notifications.payloads import SpaceMembershipRequestPayload
 
 from openbook_notifications.toggles import notifications_toggle
@@ -36,6 +37,12 @@ class Notification:
         self.recipients = recipients
         self.payload = payload
         self.session = session
+
+        self.overrides = {
+            "type": "data",
+            "fcm": {"data": flatten_payload(payload["data"])},
+            "apns": {"payload": {"data": flatten_payload(payload["data"])}},
+        }
 
     @notifications_toggle
     def send(self):
