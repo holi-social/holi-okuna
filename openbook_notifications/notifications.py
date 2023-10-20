@@ -39,9 +39,8 @@ class Notification:
         self.session = session
 
         self.overrides = {
-            "type": "data",
-            "fcm": {"data": flatten_payload(payload["data"])},
-            "apns": {"payload": {"data": flatten_payload(payload["data"])}},
+            "fcm": {"data": flatten_payload(payload)},
+            "apns": {"payload": {"data": flatten_payload(payload)}},
         }
 
     @notifications_toggle
