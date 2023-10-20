@@ -18,7 +18,7 @@ from openbook_notifications.payloads import (
 class TestPayloads(TestCase):
     def setUp(self):
         self.user = make_user(name="Test", last_name="User", email="test.user@holi.social")
-        self.community = make_community(title="Test Community")
+        self.space = make_community(title="Test Space")
         self.notification_type = "TEST_NOTIFICATION_TYPE"
 
     def test_user_data_to_dict(self):
@@ -56,8 +56,9 @@ class TestPayloads(TestCase):
 
     def test_space_data_to_dict(self):
         space_data = SpaceData(
-            id="test-community-id",
-            name="Test Community",
+            id="test-space-id",
+            name="test-space",
+            title="Test Space",
             cover="cover.jpg",
             avatar="avatar.jpg",
         )
@@ -66,20 +67,21 @@ class TestPayloads(TestCase):
         self.assertEqual(
             data_dict,
             {
-                "id": "test-community-id",
-                "name": "Test Community",
+                "id": "test-space-id",
+                "name": "test-space",
+                "title": "Test Space",
                 "cover": "cover.jpg",
                 "avatar": "avatar.jpg",
             },
         )
 
     def test_space_data_from_community(self):
-        space_data = SpaceData.from_community(self.community)
+        space_data = SpaceData.from_community(self.space)
         data_dict = space_data.to_dict()
 
         self.assertEqual(
             data_dict,
-            {"id": str(self.community.id), "name": "Test Community", "cover": None, "avatar": None},
+            {"id": str(self.space.id), "name": "test-space", "title": "Test Space", "cover": "", "avatar": ""},
         )
 
     def test_payload_to_dict(self):
@@ -101,7 +103,7 @@ class TestPayloads(TestCase):
     def test_space_membership_request_payload(self):
         payload = SpaceMembershipRequestPayload(
             user=self.user,
-            space=self.community,
+            space=self.space,
             message="I'm interested in becoming a member of your space",
         )
 
@@ -110,6 +112,6 @@ class TestPayloads(TestCase):
         self.assertEqual(data_dict["notification_type"], "SPACE_MEMBERSHIP_REQUEST")
         self.assertEqual(data_dict["notification_version"], "1.0.0")
         self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
-        self.assertEqual(data_dict["data"]["space"]["id"], str(self.community.id))
+        self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
         self.assertEqual(data_dict["data"]["request_message"], "I'm interested in becoming a member of your space")
         self.assertIsNotNone(data_dict["data"]["request_datetime"])

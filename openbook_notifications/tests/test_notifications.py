@@ -22,7 +22,7 @@ class NotificationTestCase(TestCase):
         cls.notification_instance = Notification(
             workflow="test-workflow",
             recipients=["user-id"],
-            payload={"key": "value"},
+            payload={"data": {"key": "value"}},
         )
 
     @patch("novu.api.EventApi")
@@ -38,7 +38,7 @@ class NotificationTestCase(TestCase):
         mock_event_instance.trigger.assert_called_with(
             name="test-workflow",
             recipients=["user-id"],
-            payload={"key": "value"},
+            payload={"data": {"key": "value"}},
         )
 
         self.assertEqual(result, mock_event_instance.trigger.return_value)
@@ -71,8 +71,8 @@ class NotificationTestCase(TestCase):
         # Assert that the EventApi trigger was called twice with the expected arguments
         mock_event_instance.trigger.assert_has_calls(
             [
-                call(name="test-workflow", recipients=["user-id"], payload={"key": "value"}),
-                call(name="test-workflow", recipients=["user-id"], payload={"key": "value"}),
+                call(name="test-workflow", recipients=["user-id"], payload={"data": {"key": "value"}}),
+                call(name="test-workflow", recipients=["user-id"], payload={"data": {"key": "value"}}),
             ]
         )
 
