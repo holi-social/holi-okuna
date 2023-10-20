@@ -31,14 +31,15 @@ class UserData:
             id=str(user.username),
             full_name=user.profile.full_name(),
             email=user.email,
-            avatar=user.profile.avatar.url if user.profile.avatar else None,
+            avatar=user.profile.avatar.url if user.profile.avatar else "",
         )
 
 
 class SpaceData:
-    def __init__(self, id: str, name: str, cover: str, avatar: Optional[str]):
+    def __init__(self, id: str, name: str, slug: str, cover: str, avatar: Optional[str]):
         self.id = id
         self.name = name
+        self.slug = slug
         self.cover = cover
         self.avatar = avatar
 
@@ -50,8 +51,9 @@ class SpaceData:
         return cls(
             id=str(community.id),
             name=community.title,
-            cover=community.cover.url if community.cover else None,
-            avatar=community.avatar.url if community.avatar else None,
+            slug=community.name,
+            cover=community.cover.url if community.cover else "",
+            avatar=community.avatar.url if community.avatar else "",
         )
 
 

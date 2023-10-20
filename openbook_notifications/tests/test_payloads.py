@@ -58,6 +58,7 @@ class TestPayloads(TestCase):
         space_data = SpaceData(
             id="test-community-id",
             name="Test Community",
+            slug="test-community",
             cover="cover.jpg",
             avatar="avatar.jpg",
         )
