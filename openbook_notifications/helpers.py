@@ -410,3 +410,14 @@ def get_notification_language_code_for_target_user(target_user):
 
 def _send_notification_to_user(user, notification):
     send_notification_to_user_with_id.delay(user_id=user.pk, notification=notification)
+
+
+def flatten_payload(d, parent_key=""):
+    flat_dict = {}
+    for key, value in d.items():
+        new_key = f"{parent_key}_{key}" if parent_key else key
+        if isinstance(value, dict):
+            flat_dict.update(flatten_payload(value, new_key))
+        else:
+            flat_dict[new_key] = value
+    return flat_dict
