@@ -80,7 +80,7 @@ class TestPayloads(TestCase):
 
         self.assertEqual(
             data_dict,
-            {"id": str(self.community.id), "name": "Test Community", "cover": None, "avatar": None},
+            {"id": str(self.community.id), "name": "Test Community", "cover": "", "avatar": ""},
         )
 
     def test_payload_to_dict(self):
