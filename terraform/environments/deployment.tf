@@ -209,6 +209,10 @@ resource "google_cloud_run_service" "okuna" {
             }
           }
         }
+        env {
+          name  = "INSPIRATION_SPACE_ID"
+          value = local.environment == "production" ? "12ed0bc1-722d-4ba6-9d07-c0a7b303edea" : "c12944a8-578f-496f-bd7b-200ad8243561"
+        }
         resources {
           limits = {
             # cpu can only be scaled down to 1000m as long as container_concurrency is set to != 1
