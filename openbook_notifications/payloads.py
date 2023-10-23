@@ -80,7 +80,7 @@ class SpaceMembershipRequestPayload(Payload):
             data={
                 "user": UserData.from_user(user).to_dict(),
                 "space": SpaceData.from_community(space).to_dict(),
-                "request_message": message,
+                "request_message": message if message else "",
                 "request_datetime": self.request_datetime,
             },
             notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST.value,
