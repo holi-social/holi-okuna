@@ -39,6 +39,11 @@ class NotificationTestCase(TestCase):
             name="test-workflow",
             recipients=["user-id"],
             payload={"data": {"key": "value"}},
+            overrides={
+                "type": "data",
+                "fcm": {"type": "data", "data": {"key: value"}},
+                "apns": {"payload": {"data": {"key: value"}}},
+            },
         )
 
         self.assertEqual(result, mock_event_instance.trigger.return_value)

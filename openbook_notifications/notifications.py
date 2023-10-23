@@ -16,8 +16,6 @@ class Workflow(Enum):
 
 
 class Notification:
-    overrides = {"type": "data"}  # data notification
-
     def __init__(
         self,
         workflow: str,
@@ -39,7 +37,8 @@ class Notification:
         self.session = session
 
         self.overrides = {
-            "fcm": {"data": flatten_payload(payload)},
+            "type": "data",  # data notification
+            "fcm": {"type": "data", "data": flatten_payload(payload)},
             "apns": {"payload": {"data": flatten_payload(payload)}},
         }
 
