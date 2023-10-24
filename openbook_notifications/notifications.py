@@ -39,7 +39,7 @@ class Notification:
         self.overrides = {
             "type": "data",  # data notification
             "fcm": {"type": "data", "data": flatten_payload(payload)},
-            "apns": {"payload": {"data": flatten_payload(payload)}},
+            "apns": {"payload": payload},
         }
 
     @notifications_toggle
