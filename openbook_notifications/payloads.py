@@ -1,6 +1,7 @@
 from enum import Enum
 from datetime import datetime
 from typing import Optional
+from django.conf import settings
 
 from openbook_auth.models import User
 from openbook_communities.models import Community
@@ -82,6 +83,7 @@ class SpaceMembershipRequestPayload(Payload):
                 "space": SpaceData.from_community(space).to_dict(),
                 "request_message": message if message else "",
                 "request_datetime": self.request_datetime,
+                "collaborators_link": f"{settings.APP_URL}/spaces/{space.name}/collaborators/manage?tab=pending&userId={user.id}",
             },
             notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST.value,
             notification_version=SpaceMembershipRequestPayload.NOTIFICATION_VERSION,
