@@ -115,3 +115,8 @@ class TestPayloads(TestCase):
         self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
         self.assertEqual(data_dict["data"]["request_message"], "I'm interested in becoming a member of your space")
         self.assertIsNotNone(data_dict["data"]["request_datetime"])
+        self.assertEqual(
+            data_dict["data"]["collaborators_link"],
+            "https://staging.dev.holi.social/spaces/test-space/collaborators/manage?tab=pending&userId="
+            + str(self.user.username),
+        )
