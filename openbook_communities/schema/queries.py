@@ -174,21 +174,45 @@ class Query:
             .filter(Q(memberships__user=current_user), ~Q(creator=current_user))
             .order_by("-created")
         )
+        invited_spaces = MySpaces(section=_("Invited"), type=SpaceUserConnectionType.MEMBERSHIP_INVITEE)
+        invited_spaces.query = (
+            CommunityModel.objects.prefetch_related("links", "invites__invited_user__profile")
+            .filter(Q(invites__invited_user=current_user))
+            .order_by("-created")
+        )
+        requested_spaces = MySpaces(section=_("Requested"), type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR)
+        requested_spaces.query = (
+            CommunityModel.objects.prefetch_related(
+                "links", "invites__invited_user__profile", "membership_requests__user__profile"
+            )
+            .filter(
+                Q(membership_requests__user=current_user),
+                ~Q(invites__invited_user=current_user),
+            )
+            .order_by("-created")
+        )
         followed_spaces = MySpaces(section=_("Following"), type=SpaceUserConnectionType.FOLLOWER)
         followed_spaces.query = (
-            CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
+            CommunityModel.objects.prefetch_related(
+                "links",
+                "memberships__user__profile",
+                "membership_requests__user__profile",
+                "invites__invited_user__profile",
+            )
             .filter(
                 Q(notifications_subscriptions__subscriber=current_user),
                 Q(notifications_subscriptions__new_post_notifications=True),
                 ~Q(creator=current_user),
                 ~Q(memberships__user=current_user),
+                ~Q(invites__invited_user=current_user),
+                ~Q(membership_requests__user=current_user),
             )
             .order_by("-created")
         )
         return list(
             filter(
                 lambda x: x.query.count() > 0,
-                [created_spaces, member_spaces, followed_spaces],
+                [created_spaces, member_spaces, requested_spaces, invited_spaces, followed_spaces],
             )
         )
 
