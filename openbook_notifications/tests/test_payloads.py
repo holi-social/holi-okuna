@@ -118,5 +118,5 @@ class TestPayloads(TestCase):
         self.assertEqual(
             data_dict["data"]["collaborators_link"],
             "https://staging.dev.holi.social/spaces/test-space/collaborators/manage?tab=pending&userId="
-            + str(self.user.id),
+            + str(self.user.username),
         )

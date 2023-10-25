@@ -83,7 +83,7 @@ class SpaceMembershipRequestPayload(Payload):
                 "space": SpaceData.from_community(space).to_dict(),
                 "request_message": message if message else "",
                 "request_datetime": self.request_datetime,
-                "collaborators_link": f"{settings.APP_URL}/spaces/{space.name}/collaborators/manage?tab=pending&userId={user.id}",
+                "collaborators_link": f"{settings.APP_URL}/spaces/{space.name}/collaborators/manage?tab=pending&userId={user.username}",
             },
             notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST.value,
             notification_version=SpaceMembershipRequestPayload.NOTIFICATION_VERSION,
