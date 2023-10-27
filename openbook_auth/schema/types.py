@@ -45,6 +45,7 @@ class User:
     identity: Optional[str]
     avatar_default_color: str
     avatar_label: str
+    email: str
 
     @strawberry_django.field(description="Can be an empty string", select_related=["profile"])
     def full_name(self) -> str:
