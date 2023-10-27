@@ -11,7 +11,7 @@ from strawberry.django.views import AsyncGraphQLView
 from proxy.views import proxy_view
 
 from openbook.graphql_schema import schema
-from openbook.webhook import Webhook
+from openbook.webhooks import NotificationWebhook
 
 
 class AuthenticatedStrawberryGraphQLView(AsyncGraphQLView):
@@ -28,7 +28,7 @@ urlpatterns = [
     path("admin/", admin.site.urls, name="admin-endpoint"),
     path("django-rq/", include("django_rq.urls")),
     path("graphql", csrf_exempt(AuthenticatedStrawberryGraphQLView.as_view(schema=schema)), name="graphql-endpoint"),
-    path("webhook", csrf_exempt(Webhook.as_view()), name="webhook"),
+    path("notification-webhook", csrf_exempt(NotificationWebhook.as_view()), name="notification-webhook-endpoint"),
 ]
 
 # The static helper works only in debug mode

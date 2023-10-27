@@ -6,14 +6,14 @@ from django.views import View
 from openbook_notifications.payloads import NotificationType
 
 
-class Webhook(View):
+class NotificationWebhook(View):
     def post(self, request):
         print(request)
         data = json.loads(request.body)
         notification_type = data["payload"]["notification_type"]
 
         if notification_type:
-            handler = WebhookHandlerFactory.create_handler(notification_type)
+            handler = NotificationWebhookHandlerFactory.create_handler(notification_type)
             if handler:
                 return handler.handle(data)
             else:
@@ -22,7 +22,7 @@ class Webhook(View):
             return JsonResponse({"message": "notification_type is missing"}, status=400)
 
 
-class WebhookHandlerFactory:
+class NotificationWebhookHandlerFactory:
     @staticmethod
     def create_handler(notification_type):
         if notification_type == NotificationType.SPACE_MEMBERSHIP_REQUEST.value:
