@@ -54,8 +54,7 @@ from openbook_communities.serializers.communities_serializers import (
 from openbook_communities.serializers.community_serializers import (
     CommunityUserConnectionSerializer,
 )
-from openbook_notifications.notifications import SpaceMembershipRequestNotification
-from openbook_notifications.payloads import SpaceMembershipRequestPayload
+from openbook_communities.schema.notifications import Notifications
 
 logger = structlog.get_logger(__name__)
 
@@ -80,35 +79,38 @@ class Mutation:
 
         space = CommunityModel.objects.get(id=space_id)
 
-        cT = SpaceUserConnectionType
-        a = UpdateConnectionAction
+        ConnectionType = SpaceUserConnectionType
+        Action = UpdateConnectionAction
 
         invalidate_discover_spaces_query_cache()
 
         if not user_id or current_user.username == user_id:
             # perform for current user
             match (connection_type, connect_action):
-                case (cT.MEMBERSHIP_REQUESTOR, a.CONNECT):
+                # user requests membership in space
+                case (ConnectionType.MEMBERSHIP_REQUESTOR, Action.CONNECT):
                     space = current_user.request_membership_to_community_with_name(space.name, message)
-                    space_admins = CommunityModel.get_community_with_name_administrators(community_name=space.name)
-                    recipients = [str(admin.username) for admin in space_admins]
-                    payload = SpaceMembershipRequestPayload(space=space, user=current_user, message=message)
-                    notification = SpaceMembershipRequestNotification(recipients=recipients, payload=payload)
-                    notification.send()
+                    Notifications.notify_space_admins_of_membership_request(current_user, message, space)
                     return space
-                case (cT.MEMBERSHIP_REQUESTOR, a.DISCONNECT):
+                # user leaves space
+                case (ConnectionType.MEMBERSHIP_REQUESTOR, Action.DISCONNECT):
                     return current_user.revoke_membership_request_to_community_with_name(space.name)
-                case (cT.MEMBERSHIP_INVITEE, a.CONNECT):
+                # user accepts invitation to space
+                case (ConnectionType.MEMBERSHIP_INVITEE, Action.CONNECT):
                     space = current_user.accept_membership_invite_to_community_for_username(space.name)
                     publish_space_user_added_event(username=str(current_user.username), community=space)
                     return space
-                case (cT.MEMBERSHIP_INVITEE, a.DISCONNECT):
+                # user rejects invitation to space
+                case (ConnectionType.MEMBERSHIP_INVITEE, Action.DISCONNECT):
                     return current_user.reject_membership_invite_to_community_for_username(space.name)
-                case (cT.FOLLOWER, a.CONNECT):
+                # user follows a space
+                case (ConnectionType.FOLLOWER, Action.CONNECT):
                     return current_user.enable_new_post_notifications_for_community_with_name(space.name)
-                case (cT.FOLLOWER, a.DISCONNECT):
+                # user unfollows a space
+                case (ConnectionType.FOLLOWER, Action.DISCONNECT):
                     return current_user.disable_new_post_notifications_for_community_with_name(space.name)
-                case (cT.MEMBER | cT.ADMINISTRATOR, a.LEAVE_SPACE):
+                # user leaves space or is removed by space admin
+                case (ConnectionType.MEMBER | ConnectionType.ADMINISTRATOR, Action.LEAVE_SPACE):
                     community_to_leave = current_user.leave_community_with_name(space.name)
                     publish_space_user_left_event(user=current_user, community=community_to_leave)
                     return community_to_leave
@@ -117,21 +119,22 @@ class Mutation:
         else:
             # perform for other user
             match (connection_type, connect_action):
-                case (cT.MEMBERSHIP_REQUESTOR, a.DISCONNECT):
+                case (ConnectionType.MEMBERSHIP_REQUESTOR, Action.DISCONNECT):
                     return current_user.revoke_membership_request_to_community_for_username(user_id, space.name)
-                case (cT.MEMBER, a.CONNECT):
+                # space admin accepted membership request
+                case (ConnectionType.MEMBER, Action.CONNECT):
                     space = current_user.approve_membership_request_to_community_for_username(user_id, space.name)
                     publish_space_user_added_event(username=str(user_id), community=space)
                     return space
-                case (cT.MEMBERSHIP_INVITEE, a.CONNECT):
+                case (ConnectionType.MEMBERSHIP_INVITEE, Action.CONNECT):
                     return current_user.invite_to_community(username=str(user_id), community=space)
-                case (cT.ADMINISTRATOR, a.GRANT_ADMIN_ACCESS):
+                case (ConnectionType.ADMINISTRATOR, Action.GRANT_ADMIN_ACCESS):
                     return current_user.add_administrator_with_username_to_community_with_name(user_id, space.name)
-                case (cT.ADMINISTRATOR, a.REVOKE_ADMIN_ACCESS):
+                case (ConnectionType.ADMINISTRATOR, Action.REVOKE_ADMIN_ACCESS):
                     return current_user.remove_administrator_with_username_from_community_with_name(
                         user_id, space.name
                     )
-                case (cT.ADMINISTRATOR, a.REMOVE_MEMBER):
+                case (ConnectionType.ADMINISTRATOR, Action.REMOVE_MEMBER):
                     community = current_user.remove_member_from_community(user_id, space.name)
                     user_to_remove = UserModel.objects.get(username=user_id)
                     publish_space_user_removed_event(user=user_to_remove, community=community)
