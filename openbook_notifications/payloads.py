@@ -9,6 +9,7 @@ from openbook_communities.models import Community
 
 class NotificationType(Enum):
     SPACE_MEMBERSHIP_REQUEST = "SPACE_MEMBERSHIP_REQUEST"
+    SPACE_MEMBERSHIP_REQUEST_APPROVAL = "SPACE_MEMBERSHIP_REQUEST_APPROVAL"
 
 
 class UserData:
@@ -109,7 +110,6 @@ class Payload:
 
 class SpaceMembershipRequestPayload(Payload):
     NOTIFICATION_VERSION = "1.0.0"
-    request_datetime = datetime.now().isoformat()
 
     def __init__(self, user: User, space: Community, message: Optional[str] = ""):
         super().__init__(
@@ -117,9 +117,24 @@ class SpaceMembershipRequestPayload(Payload):
                 "user": UserData.from_user(user).to_dict(),
                 "space": SpaceData.from_community(space).to_dict(),
                 "requestMessage": message if message else "",
-                "requestDatetime": self.request_datetime,
+                "requestDatetime": datetime.now().isoformat(),
                 "collaboratorsLink": f"{settings.APP_URL}/spaces/{space.name}/collaborators/manage?tab=pending&userId={user.username}",
             },
             notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST.value,
+            notification_version=SpaceMembershipRequestPayload.NOTIFICATION_VERSION,
+        )
+
+
+class SpaceMembershipRequestApprovalPayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, user: User, space: Community):
+        super().__init__(
+            data={
+                "user": UserData.from_user(user).to_dict(),
+                "space": SpaceData.from_community(space).to_dict(),
+                "approvalDatetime": datetime.now().isoformat(),
+            },
+            notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST_APPROVAL.value,
             notification_version=SpaceMembershipRequestPayload.NOTIFICATION_VERSION,
         )

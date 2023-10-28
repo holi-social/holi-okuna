@@ -54,7 +54,10 @@ from openbook_communities.serializers.communities_serializers import (
 from openbook_communities.serializers.community_serializers import (
     CommunityUserConnectionSerializer,
 )
-from openbook_communities.schema.notifications import Notifications
+from openbook_communities.schema.notifications import (
+    notify_space_admins_of_membership_request,
+    notify_space_membership_request_approved,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -90,7 +93,7 @@ class Mutation:
                 # user requests membership in space
                 case (ConnectionType.MEMBERSHIP_REQUESTOR, Action.CONNECT):
                     space = current_user.request_membership_to_community_with_name(space.name, message)
-                    Notifications.notify_space_admins_of_membership_request(current_user, message, space)
+                    notify_space_admins_of_membership_request(current_user, message, space)
                     return space
                 # user leaves space
                 case (ConnectionType.MEMBERSHIP_REQUESTOR, Action.DISCONNECT):
@@ -99,6 +102,7 @@ class Mutation:
                 case (ConnectionType.MEMBERSHIP_INVITEE, Action.CONNECT):
                     space = current_user.accept_membership_invite_to_community_for_username(space.name)
                     publish_space_user_added_event(username=str(current_user.username), community=space)
+                    notify_space_membership_request_approved(current_user, space)
                     return space
                 # user rejects invitation to space
                 case (ConnectionType.MEMBERSHIP_INVITEE, Action.DISCONNECT):
