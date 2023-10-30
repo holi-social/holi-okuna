@@ -16,12 +16,7 @@ class Workflow(Enum):
 
 
 class Notification:
-    def __init__(
-        self,
-        workflow: str,
-        recipients: str | List[str],
-        payload: dict,
-    ):
+    def __init__(self, workflow: str, recipients: str | List[str], payload: dict, transaction_id: str):
         session = Session()
         retries = Retry(
             total=5,  # Number of retries
@@ -35,6 +30,7 @@ class Notification:
         self.recipients = recipients
         self.payload = payload
         self.session = session
+        self.transaction_id = transaction_id
 
         self.overrides = {
             "type": "data",  # data notification
@@ -45,12 +41,19 @@ class Notification:
     @notifications_toggle
     def send(self):
         return EventApi(session=self.session).trigger(
-            name=self.workflow, recipients=self.recipients, payload=self.payload, overrides=self.overrides
+            name=self.workflow,
+            recipients=self.recipients,
+            payload=self.payload,
+            overrides=self.overrides,
+            transaction_id=self.transaction_id,
         )
 
 
 class SpaceMembershipRequestNotification(Notification):
-    def __init__(self, recipients: str | List[str], payload: SpaceMembershipRequestPayload):
+    def __init__(self, recipients: str | List[str], payload: SpaceMembershipRequestPayload, transaction_id: str):
         super().__init__(
-            workflow=Workflow.SPACE_MEMBERSHIP_REQUEST.value, recipients=recipients, payload=payload.to_dict()
+            workflow=Workflow.SPACE_MEMBERSHIP_REQUEST.value,
+            recipients=recipients,
+            payload=payload.to_dict(),
+            transaction_id=transaction_id,
         )
