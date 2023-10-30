@@ -1,3 +1,4 @@
+import uuid
 import pytest
 
 from unittest.mock import Mock, call, patch
@@ -23,6 +24,7 @@ class NotificationTestCase(TestCase):
             workflow="test-workflow",
             recipients=["user-id"],
             payload={"data": {"key": "value"}},
+            transaction_id="test-transaction-id",
         )
 
     @patch("novu.api.EventApi")
@@ -44,6 +46,7 @@ class NotificationTestCase(TestCase):
                 "fcm": {"type": "data", "data": {"key: value"}},
                 "apns": {"payload": {"data": {"key: value"}}},
             },
+            transaction_id="test-transaction-id",
         )
 
         self.assertEqual(result, mock_event_instance.trigger.return_value)
@@ -90,10 +93,12 @@ class SpaceMembershipRequestNotificationTestCase(TestCase):
     def setUpTestData(cls):
         user = make_user()
         space = make_community()
+        transaction_id = str(uuid.uuid4())
         payload = SpaceMembershipRequestPayload(user=user, space=space)
         cls.notification_instance = SpaceMembershipRequestNotification(
             recipients=str(user.username),
             payload=payload,
+            transaction_id=transaction_id,
         )
 
     def test_space_membership_request_notification_workflow(self):

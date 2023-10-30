@@ -1,10 +1,13 @@
+from __future__ import annotations
+from typing import Optional, TYPE_CHECKING
+
 from enum import Enum
 from datetime import datetime
-from typing import Optional
 from django.conf import settings
 
-from openbook_auth.models import User
-from openbook_communities.models import Community
+if TYPE_CHECKING:
+    from openbook_auth.models import User
+    from openbook_communities.models import Community
 
 
 class NotificationType(Enum):

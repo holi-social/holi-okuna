@@ -92,9 +92,7 @@ class Mutation:
             match (connection_type, connect_action):
                 # user requests membership in space
                 case (ConnectionType.MEMBERSHIP_REQUESTOR, Action.CONNECT):
-                    space = current_user.request_membership_to_community_with_name(space.name, message)
-                    notify_space_admins_of_membership_request(current_user, message, space)
-                    return space
+                    return current_user.request_membership_to_community_with_name(space.name, message)
                 # user leaves space
                 case (ConnectionType.MEMBERSHIP_REQUESTOR, Action.DISCONNECT):
                     return current_user.revoke_membership_request_to_community_with_name(space.name)

@@ -3,6 +3,7 @@ import re
 import secrets
 from datetime import datetime, timedelta
 from typing import Iterable
+from enum import Enum
 
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -94,7 +95,9 @@ from openbook_posts.query_collections import get_posts_for_user_collection
 from openbook_terms.models import Topic, SDG, Skill
 from openbook_translation import translation_strategy
 from openbook.utils import DEFAULT_EMAIL_LANGUAGE, generate_hash, get_supported_language_for_email
-from enum import Enum
+
+from openbook_notifications.notifications import SpaceMembershipRequestNotification
+from openbook_notifications.payloads import SpaceMembershipRequestPayload
 
 logger = logging.getLogger(__name__)
 
@@ -2150,11 +2153,21 @@ class User(ModelWithUUID, AbstractUser):
             community_to_join, self
         )
 
-        for staff_member in community_to_join.get_staff_members():
+        staff_members = community_to_join.get_staff_members()
+
+        for staff_member in staff_members:
             CommunityMembershipRequestNotification = get_community_membership_request_notification_model()
             CommunityMembershipRequestNotification.create_community_membership_request_notification(
                 membership_request.id, staff_member.id
             )
+
+        recipients = [str(staff_member.username) for staff_member in staff_members]
+        payload = SpaceMembershipRequestPayload(space=community_to_join, user=self, message=message)
+        transaction_id = str(membership_request.id)
+        notification = SpaceMembershipRequestNotification(
+            recipients=recipients, payload=payload, transaction_id=transaction_id
+        )
+        notification.send()
 
         return community_to_join
 
