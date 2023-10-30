@@ -21,7 +21,7 @@ def notifications_toggle(func):
     return wrapper
 
 
-def notifications_toggle_inactive(func):
+def mute_notifications(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:

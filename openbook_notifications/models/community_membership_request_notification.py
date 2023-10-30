@@ -4,7 +4,7 @@ from django.db import models
 from openbook_common.models import ModelWithUUID
 from openbook_communities.models import CommunityMembershipRequest
 from openbook_notifications.models.notification import Notification
-from openbook_notifications.toggles import notifications_toggle_inactive
+from openbook_notifications.toggles import mute_notifications
 
 
 class CommunityMembershipRequestNotification(ModelWithUUID):
@@ -12,7 +12,7 @@ class CommunityMembershipRequestNotification(ModelWithUUID):
     membership_request = models.ForeignKey(CommunityMembershipRequest, on_delete=models.CASCADE, related_name="+")
 
     @classmethod
-    @notifications_toggle_inactive
+    @mute_notifications
     def create_community_membership_request_notification(cls, membership_request_id, owner_id):
         membership_request_notification = cls.objects.create(membership_request_id=membership_request_id)
         Notification.create_notification(
