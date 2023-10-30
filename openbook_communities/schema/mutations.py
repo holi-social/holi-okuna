@@ -89,13 +89,7 @@ class Mutation:
             # perform for current user
             match (connection_type, connect_action):
                 case (cT.MEMBERSHIP_REQUESTOR, a.CONNECT):
-                    space = current_user.request_membership_to_community_with_name(space.name, message)
-                    space_admins = CommunityModel.get_community_with_name_administrators(community_name=space.name)
-                    recipients = [str(admin.username) for admin in space_admins]
-                    payload = SpaceMembershipRequestPayload(space=space, user=current_user, message=message)
-                    notification = SpaceMembershipRequestNotification(recipients=recipients, payload=payload)
-                    notification.send()
-                    return space
+                    return current_user.request_membership_to_community_with_name(space.name, message)
                 case (cT.MEMBERSHIP_REQUESTOR, a.DISCONNECT):
                     return current_user.revoke_membership_request_to_community_with_name(space.name)
                 case (cT.MEMBERSHIP_INVITEE, a.CONNECT):
