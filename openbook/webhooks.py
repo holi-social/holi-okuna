@@ -1,9 +1,12 @@
 import json
+import structlog
 
 from django.http import JsonResponse
 from django.views import View
 
 from openbook_notifications.payloads import NotificationType
+
+logger = structlog.get_logger(__name__)
 
 
 class NotificationWebhook(View):
@@ -38,7 +41,6 @@ class SpaceMembershipRequestNotificationHandler:
 
 class OryWebhook(View):
     def post(self, request):
-        print(request)
         data = json.loads(request.body)
-        print(data)
+        logger.info(f"Ory Webhook: {data}")
         return JsonResponse({}, status=200)
