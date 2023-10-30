@@ -34,3 +34,11 @@ class NotificationWebhookHandlerFactory:
 class SpaceMembershipRequestNotificationHandler:
     def handle(self, data):
         pass
+
+
+class OryWebhook(View):
+    def post(self, request):
+        print(request)
+        data = json.loads(request.body)
+        print(data)
+        return JsonResponse({}, status=200)

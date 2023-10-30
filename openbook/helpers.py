@@ -10,6 +10,7 @@ from openbook_communities.events.events import (
     SpaceUserRemovedEvent,
     UserDeletedEvent,
     UserNameUpdatedEvent,
+    UserEmailUpdatedEvent,
 )
 from openbook_communities.events.payloads import SpacePayload, UserPayload
 from openbook_communities.events.topic import Topic as PubSubTopic
@@ -50,6 +51,15 @@ def publish_user_name_updated_event(user: User):
         publish_event(event=event, topic=PubSubTopic.OKUNA.value)
     except Exception as e:
         logger.error(generate_publish_failure_message(UserNameUpdatedEvent), str(e))
+
+
+def publish_user_email_updated_event(user: User):
+    try:
+        updated_user = UserPayload.from_user(user)
+        event = UserEmailUpdatedEvent(updated_user)
+        publish_event(event=event, topic=PubSubTopic.OKUNA.value)
+    except Exception as e:
+        logger.error(generate_publish_failure_message(UserEmailUpdatedEvent), str(e))
 
 
 def publish_space_deleted_event(community: Community):
