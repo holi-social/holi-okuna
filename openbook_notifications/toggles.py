@@ -19,3 +19,17 @@ def notifications_toggle(func):
             pass
 
     return wrapper
+
+
+def notifications_toggle_inactive(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            notifications_feature_toggle = FeatureToggleModel.objects.get(name=FeatureToggleName.NOTIFICATIONS.value)
+            if notifications_feature_toggle.status == FeatureToggleType.PRODUCTION:
+                return
+        except FeatureToggleModel.DoesNotExist:
+            logger.warning(f"Feature toggle {FeatureToggleName.NOTIFICATIONS.value} does not exist")
+        return func(*args, **kwargs)
+
+    return wrapper

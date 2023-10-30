@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.db import IntegrityError
 from openbook_common.enums import FeatureToggleName, FeatureToggleType
 from openbook_common.models import FeatureToggle as FeatureToggleModel
-from openbook_notifications.toggles import notifications_toggle
+from openbook_notifications.toggles import notifications_toggle, notifications_toggle_inactive
 
 
 @pytest.mark.django_db
@@ -42,6 +42,35 @@ class NotificationsToggleTestCase(TestCase):
 
         result = test_send_notification()
         self.assertIsNone(result)
+
+    def test_notifications_toggle_inactive_with_enabled_toggle(self):
+        @notifications_toggle_inactive
+        def test_send_notification():
+            return True
+
+        result = test_send_notification()
+        self.assertIsNone(result)
+
+    def test_notifications_toggle_inactive_with_disabled_toggle(self):
+        self.notifications_toggle.status = FeatureToggleType.OFF
+        self.notifications_toggle.save()
+
+        @notifications_toggle_inactive
+        def test_send_notification():
+            return True
+
+        result = test_send_notification()
+        self.assertTrue(result)
+
+    def test_notifications_toggle_inactive_without_toggle(self):
+        self.notifications_toggle.delete()
+
+        @notifications_toggle_inactive
+        def test_send_notification():
+            return True
+
+        result = test_send_notification()
+        self.assertTrue(result)
 
     def tearDown(self):
         if self.notifications_toggle.id is not None:
