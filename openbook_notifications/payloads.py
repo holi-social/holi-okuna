@@ -131,11 +131,12 @@ class SpaceMembershipRequestPayload(Payload):
 class SpaceMembershipRequestApprovalPayload(Payload):
     NOTIFICATION_VERSION = "1.0.0"
 
-    def __init__(self, user: User, space: Community):
+    def __init__(self, user: User, space: Community, approver: User):
         super().__init__(
             data={
                 "user": UserData.from_user(user).to_dict(),
                 "space": SpaceData.from_community(space).to_dict(),
+                "approver": UserData.from_user(approver).to_dict(),
                 "approvalDatetime": datetime.now().isoformat(),
             },
             notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST_APPROVAL.value,

@@ -44,7 +44,7 @@ log-symbols==0.0.14
 mixer==7.2.2
 nose-exclude==0.5.0
 nose==1.3.7
-novu==1.4.0
+novu==1.9.1
 onesignal-sdk==1.1.0 # internally used by okuna, not worth the update
 pathtools==0.1.2
 pbr==5.11.1; python_version >= '2.6'

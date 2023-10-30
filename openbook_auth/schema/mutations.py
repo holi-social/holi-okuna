@@ -187,16 +187,24 @@ class Mutation:
 
         token = data.get("token")
         device_type = data.get("device_type")
-        user_id = str(current_user.username)
+        subscriber_id = str(current_user.username)
+
+        logger.info(
+            "register_device %s %s",
+            input,
+            current_user.has_device_with_token_and_type(token=token, device_type=device_type),
+        )
 
         if not current_user.has_device_with_token_and_type(token=token, device_type=device_type):
             current_user.create_device(token=token, device_type=device_type)
-            provider_id = (
-                NotificationProvider.APNS.value
-                if device_type == DeviceType.IOS.value
-                else NotificationProvider.FCM.value
-            )
-            # Register device token
-            NotificationApi.set_subscriber_credentials(user_id=user_id, provider_id=provider_id, device_tokens=[token])
+
+        # if, for whatever reason, adding the device token succeeded within Okuna but not within Novu, the user would
+        # never be able to register their device token (happened already during development). therefore we always run
+        # this method to be sure it eventually succeeds.
+        # a more robust implementation should probably be thought of that does not reduce responsiveness for the user.
+        provider_id = NotificationProvider.APNS if device_type == DeviceType.IOS.value else NotificationProvider.FCM
+        NotificationApi.set_subscriber_credentials(
+            subscriber_id=subscriber_id, provider_id=provider_id, device_tokens=[token]
+        )
 
         return Result(success=True)

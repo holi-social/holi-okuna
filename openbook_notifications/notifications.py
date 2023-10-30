@@ -1,3 +1,4 @@
+import uuid
 from enum import Enum
 from requests import Session
 from requests.adapters import HTTPAdapter, Retry
@@ -61,9 +62,12 @@ class SpaceMembershipRequestNotification(Notification):
 
 
 class SpaceMembershipRequestApprovalNotification(Notification):
-    def __init__(self, recipient: str, payload: SpaceMembershipRequestApprovalPayload):
+    def __init__(
+        self, recipient: str, payload: SpaceMembershipRequestApprovalPayload, transaction_id: str | None = None
+    ):
         super().__init__(
             workflow=Workflow.SPACE_MEMBERSHIP_REQUEST_APPROVAL.value,
             recipients=recipient,
             payload=payload.to_dict(),
+            transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
         )

@@ -5,6 +5,7 @@ from django.utils.translation import get_language_from_request
 
 import strawberry
 import strawberry_django
+import structlog
 from django.db.models import F, Q, Value
 from django.db.models.functions import Concat
 from django.db.models.lookups import IContains
@@ -17,6 +18,8 @@ from openbook_auth.validators import string_not_empty
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.schema.types import Paged
 from openbook_notifications.api import NotificationApi
+
+logger = structlog.get_logger(__name__)
 
 
 @strawberry.type

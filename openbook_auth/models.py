@@ -96,8 +96,12 @@ from openbook_terms.models import Topic, SDG, Skill
 from openbook_translation import translation_strategy
 from openbook.utils import DEFAULT_EMAIL_LANGUAGE, generate_hash, get_supported_language_for_email
 
-from openbook_notifications.notifications import SpaceMembershipRequestNotification
-from openbook_notifications.payloads import SpaceMembershipRequestPayload
+from openbook_notifications.notifications import (
+    SpaceMembershipRequestNotification,
+    SpaceMembershipRequestApprovalNotification,
+)
+from openbook_notifications.payloads import SpaceMembershipRequestPayload, SpaceMembershipRequestApprovalPayload
+from novu.api.subscriber import SubscriberApi
 
 logger = logging.getLogger(__name__)
 
@@ -2189,12 +2193,15 @@ class User(ModelWithUUID, AbstractUser):
 
         Community = get_community_model()
         community_to_join = Community.objects.get(name=community_name)
-
         community_to_join.remove_membership_request(user_to_approve)
         community_to_join.add_member(user_to_approve)
 
         self.notify_membership_approval(community_to_join, user_to_approve)
 
+        payload = SpaceMembershipRequestApprovalPayload(user=user_to_approve, space=community_to_join, approver=self)
+        notification = SpaceMembershipRequestApprovalNotification(recipient=user_to_approve.username, payload=payload)
+        notification.send()
+        
         return community_to_join
 
     def accept_membership_invite_to_community_for_username(self, community_name) -> "Community":

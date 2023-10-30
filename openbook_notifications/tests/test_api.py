@@ -9,6 +9,7 @@ from novu.api.subscriber import SubscriberApi
 from openbook_common.tests.helpers import make_user
 from openbook_notifications.toggles import notifications_toggle
 from openbook_notifications.api import NotificationApi  # Replace 'your_app_name' with your actual app name
+from openbook_notifications.enums import NotificationProvider
 
 
 @pytest.mark.django_db
@@ -117,7 +118,7 @@ class NotificationApiTestCase(TestCase):
     @notifications_toggle
     def test_set_subscriber_credentials(self, mock_subscriber_api_credentials):
         user_id = str(self.user.username)
-        provider_id = "test_provider_id"
+        provider_id = NotificationProvider.APNS
         webhook_url = "https://example.com/webhook"
         device_tokens = ["test_device_token1", "test_device_token2"]
 

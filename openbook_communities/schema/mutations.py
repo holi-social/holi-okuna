@@ -54,10 +54,6 @@ from openbook_communities.serializers.communities_serializers import (
 from openbook_communities.serializers.community_serializers import (
     CommunityUserConnectionSerializer,
 )
-from openbook_communities.schema.notifications import (
-    notify_space_admins_of_membership_request,
-    notify_space_membership_request_approved,
-)
 
 logger = structlog.get_logger(__name__)
 
