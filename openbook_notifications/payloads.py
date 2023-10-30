@@ -23,6 +23,7 @@ class UserData:
         avatar_blurhash: Optional[str] = "",
         avatar_default_color: Optional[str] = "",
         avatar: Optional[str] = "",
+        avatar_label: str = "",
     ):
         self.id = id
         self.full_name = full_name
@@ -30,6 +31,7 @@ class UserData:
         self.avatar = avatar
         self.avatar_blurhash = avatar_blurhash
         self.avatar_default_color = avatar_default_color
+        self.avatar_label = avatar_label
 
     def to_dict(self):
         return {
@@ -39,6 +41,7 @@ class UserData:
             "avatar": self.avatar,
             "avatarBlurhash": self.avatar_blurhash,
             "avatarDefaultColor": self.avatar_default_color,
+            "avatarLabel": self.avatar_label,
         }
 
     @classmethod
@@ -50,6 +53,7 @@ class UserData:
             avatar=user.profile.avatar.url if user.profile.avatar else "",
             avatar_blurhash=user.profile.avatar_blurhash if user.profile.avatar_blurhash else "",
             avatar_default_color=str(user.avatar_default_color) if user.avatar_default_color else "",
+            avatar_label=user.avatar_label,
         )
 
 
