@@ -695,7 +695,7 @@ class TestUsers:
         assert devices[0].token == "some_token"
         assert devices[0].device_type == "ANDROID"
         mock_set_subscriber_credentials.assert_called_once_with(
-            user_id=str(user.username), provider_id=NotificationProvider.FCM.value, device_tokens=["some_token"]
+            subscriber_id=str(user.username), provider_id=NotificationProvider.FCM, device_tokens=["some_token"]
         )
 
     @mock.patch("openbook_notifications.api.NotificationApi.set_subscriber_credentials")
@@ -716,8 +716,20 @@ class TestUsers:
 
         assert len(user.devices.all()) == 1
 
-        mock_set_subscriber_credentials.assert_called_once_with(
-            user_id=str(user.username), provider_id=NotificationProvider.FCM.value, device_tokens=["some_token"]
+        assert mock_set_subscriber_credentials.call_count == 2
+        mock_set_subscriber_credentials.assert_has_calls(
+            [
+                call(
+                    subscriber_id=str(user.username),
+                    provider_id=NotificationProvider.FCM,
+                    device_tokens=["some_token"],
+                ),
+                call(
+                    subscriber_id=str(user.username),
+                    provider_id=NotificationProvider.FCM,
+                    device_tokens=["some_token"],
+                ),
+            ]
         )
 
     @mock.patch("openbook_notifications.api.NotificationApi.set_subscriber_credentials")
