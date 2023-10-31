@@ -20,7 +20,6 @@ class UserData:
         self,
         id: str,
         full_name: str,
-        email: str,
         avatar_blurhash: Optional[str] = "",
         avatar_default_color: Optional[str] = "",
         avatar: Optional[str] = "",
@@ -28,7 +27,6 @@ class UserData:
     ):
         self.id = id
         self.full_name = full_name
-        self.email = email
         self.avatar = avatar
         self.avatar_blurhash = avatar_blurhash
         self.avatar_default_color = avatar_default_color
@@ -38,7 +36,6 @@ class UserData:
         return {
             "id": self.id,
             "fullName": self.full_name,
-            "email": self.email,
             "avatar": self.avatar,
             "avatarBlurhash": self.avatar_blurhash,
             "avatarDefaultColor": self.avatar_default_color,
@@ -50,7 +47,6 @@ class UserData:
         return cls(
             id=str(user.username),
             full_name=user.profile.full_name(),
-            email=user.email,
             avatar=user.profile.avatar.url if user.profile.avatar else "",
             avatar_blurhash=user.profile.avatar_blurhash if user.profile.avatar_blurhash else "",
             avatar_default_color=str(user.avatar_default_color) if user.avatar_default_color else "",
