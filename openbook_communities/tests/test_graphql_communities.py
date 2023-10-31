@@ -41,7 +41,6 @@ from openbook_common.utils.model_loaders import (
 from openbook_communities.enums import UpdateConnectionAction
 from openbook_communities.models import (
     Community,
-    CommunityMembership,
     CommunityNotificationsSubscription,
     SpaceUserConnectionType,
 )
@@ -54,6 +53,8 @@ from openbook_communities.tests.helpers import (
     mutate_update_space_user_connection_raw,
     update_and_assert_onboarding_steps,
 )
+from openbook_common.enums import FeatureToggleName, FeatureToggleType
+from openbook_common.models import FeatureToggle as FeatureToggleModel
 from openbook_notifications.payloads import SpaceMembershipRequestPayload
 from openbook_notifications.tests.helpers import get_notifications
 from openbook_posts.enums import VisibilityFilter
@@ -75,6 +76,11 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 @pytest.mark.django_db
 class TestCommunities:
+    def setUp(self):
+        self.notifications_toggle = FeatureToggleModel.objects.create(
+            name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
+        )
+
     def test_filters_for_spaces(self):
         creator = make_user()
         topic1 = make_topic()
@@ -308,8 +314,12 @@ class TestCommunities:
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
+    @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
     def test_space_membership_request_approval_process(
-        self, mock_publish_space_user_added_event, mock_invalidate_discover_spaces_query_cache
+        self,
+        mock_notification_api_cancel_workflow,
+        mock_publish_space_user_added_event,
+        mock_invalidate_discover_spaces_query_cache,
     ):
         membership_requestor = make_user()
         space_creator = make_user()
@@ -354,6 +364,8 @@ class TestCommunities:
         )
         assert staff_request_received_notification["options"]["message"] == None
 
+        membership_request = space.get_membership_request(membership_requestor)
+
         # Approve user
         space_after_approval = mutate_update_space_user_connection_data(
             auth_user=space_creator,
@@ -390,7 +402,7 @@ class TestCommunities:
         assert (
             staff_notifications["data"][0]["options"]["user"]["fullName"] == membership_requestor.profile.full_name()
         )
-
+        mock_notification_api_cancel_workflow.assert_called_once_with(transaction_id=str(membership_request.id))
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
@@ -448,9 +460,7 @@ class TestCommunities:
         assert staff_request_received_notification["options"]["message"] == message
 
         payload = SpaceMembershipRequestPayload(space=space, user=membership_requestor, message=message)
-        mock_send_space_membership_request_notification.asser_called_with(
-            recepients=[str(space_creator.username)], payload=payload
-        )
+        mock_send_space_membership_request_notification.assert_called()
 
     def test_validates_space_membership_request(self):
         membership_requestor = make_user()
@@ -488,8 +498,10 @@ class TestCommunities:
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
     @mock.patch("openbook_notifications.notifications.SpaceMembershipRequestNotification.send")
+    @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
     def test_space_membership_request_rejection_process(
         self,
+        mock_notification_api_cancel_workflow,
         mock_send_space_membership_request_notification,
         mock_publish_space_user_added_event,
         mock_invalidate_discover_spaces_query_cache,
@@ -536,11 +548,9 @@ class TestCommunities:
         )
 
         payload = SpaceMembershipRequestPayload(space=space, user=membership_requestor)
-        mock_send_space_membership_request_notification.asser_called_with(
-            recepients=[str(space_creator.username)], payload=payload
-        )
-
-        # Approve user
+        mock_send_space_membership_request_notification.assert_called()
+        membership_request = space.get_membership_request(membership_requestor)
+        # Reject user
         space_after_rejection = mutate_update_space_user_connection_data(
             auth_user=space_creator,
             user_id=membership_requestor.username,
@@ -559,6 +569,81 @@ class TestCommunities:
             [SpaceUserConnectionType.FOLLOWER.value]
         )
 
+    @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
+    @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
+    @mock.patch("openbook_notifications.notifications.SpaceMembershipRequestNotification.send")
+    @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
+    def test_space_membership_request_withdrawal_process(
+        self,
+        mock_notification_api_cancel_workflow,
+        mock_send_space_membership_request_notification,
+        mock_publish_space_user_added_event,
+        mock_invalidate_discover_spaces_query_cache,
+    ):
+        membership_requestor = make_user()
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+
+        def member_result(user, is_admin):
+            return {
+                "user": {"id": user.username},
+                "isAdministrator": is_admin,
+            }
+
+        # Preconditions
+        pre_join_space = get_space_for_user(membership_requestor, space)
+        assert pre_join_space["connectionStatusToMyself"] == []
+        assert_paged_results_equal(pre_join_space["members"], [member_result(space_creator, is_admin=True)])
+
+        data = get_notifications(membership_requestor)
+        assert data["totalResults"] == 0
+        data = get_notifications(space_creator)
+        assert data["totalResults"] == 0
+
+        # Send Join Request
+        after_request_space = mutate_update_space_user_connection_data(
+            auth_user=membership_requestor,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+
+        assert len(after_request_space["connectionStatusToMyself"]) == len(
+            [SpaceUserConnectionType.MEMBERSHIP_REQUESTOR.value, SpaceUserConnectionType.FOLLOWER.value]
+        )
+
+        # Staff received MembershipRequest notification
+        staff_request_received_notification = get_notifications(space_creator)["data"][0]
+        assert staff_request_received_notification["notificationType"] == "CMR"
+        assert staff_request_received_notification["options"]["space"]["title"] == space.title
+        assert (
+            staff_request_received_notification["options"]["user"]["fullName"]
+            == membership_requestor.profile.full_name()
+        )
+
+        payload = SpaceMembershipRequestPayload(space=space, user=membership_requestor)
+        mock_send_space_membership_request_notification.assert_called()
+        membership_request = space.get_membership_request(membership_requestor)
+
+        # revoke membership request
+        space_after_withdrawal = mutate_update_space_user_connection_data(
+            auth_user=space_creator,
+            user_id=membership_requestor.username,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
+            connect_action=UpdateConnectionAction.DISCONNECT,
+        )
+
+        assert_paged_results_equal(
+            space_after_withdrawal["members"],
+            [member_result(space_creator, is_admin=True)],
+        )
+
+        # User has correct connection status
+        assert len(get_space_for_user(membership_requestor, space)["connectionStatusToMyself"]) == len(
+            [SpaceUserConnectionType.FOLLOWER.value]
+        )
+
         # User has no notification
         membership_requestor_notifications = get_notifications(membership_requestor)
         assert membership_requestor_notifications["totalResults"] == 0
@@ -567,6 +652,7 @@ class TestCommunities:
         staff_notifications = get_notifications(space_creator)
         assert staff_notifications["totalResults"] == 0
 
+        mock_notification_api_cancel_workflow.assert_called_once_with(transaction_id=str(membership_request.id))
         mock_publish_space_user_added_event.assert_not_called()
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
@@ -647,9 +733,7 @@ class TestCommunities:
         assert paged_members["totalResults"] == 0
 
         payload = SpaceMembershipRequestPayload(space=community, user=membership_requestor)
-        mock_send_space_membership_request_notification.asser_called_with(
-            recepients=[str(admin.username)], payload=payload
-        )
+        mock_send_space_membership_request_notification.assert_called()
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     def test_space_admin_grant_and_revoke_admin_access_success(self, mock_invalidate_discover_spaces_query_cache):
