@@ -21,6 +21,38 @@ class Workflow(Enum):
     SPACE_MEMBERSHIP_REQUEST_APPROVAL = "space-membership-request-approval"
 
 
+# Use this classes static methods to trigger notifications via the Notifications system (novu)
+# To avoid circular import issues (due to usage of domain classes here such as User) import deferred in method bodies
+class Notifications:
+    @staticmethod
+    def send_space_membership_request_notification(
+        membership_request: CommunityMembershipRequest,
+        recipients: User | List[User],
+        requester: User,
+        space: Community,
+        message: Optional[str] = "",
+    ):
+        notification = SpaceMembershipRequestNotification(
+            recipients=[str(recipient.username) for recipient in recipients],
+            payload=SpaceMembershipRequestPayload(space=space, user=requester, message=message),
+            transaction_id=str(membership_request.id),
+        )
+        notification.send()
+
+    @staticmethod
+    def send_space_membership_request_approval_notification(
+        requester: User,
+        space: Community,
+        approver: User,
+    ):
+        notification = SpaceMembershipRequestApprovalNotification(
+            recipient=requester.username,
+            payload=SpaceMembershipRequestApprovalPayload(user=requester, space=space, approver=approver),
+        )
+        notification.send()
+
+
+# INTERNAL USE ONLY, use Notifications instead to trigger notifications
 class Notification:
     def __init__(self, workflow: str, recipients: str | List[str], payload: dict, transaction_id: str):
         session = Session()
@@ -55,35 +87,7 @@ class Notification:
         )
 
 
-class Notifications:
-    @staticmethod
-    def send_space_membership_request_notification(
-        membership_request: CommunityMembershipRequest,
-        recipients: User | List[User],
-        requester: User,
-        space: Community,
-        message: Optional[str] = "",
-    ):
-        notification = SpaceMembershipRequestNotification(
-            recipients=[str(recipient.username) for recipient in recipients],
-            payload=SpaceMembershipRequestPayload(space=space, user=requester, message=message),
-            transaction_id=str(membership_request.id),
-        )
-        notification.send()
-
-    @staticmethod
-    def send_space_membership_request_approval_notification(
-        requester: User,
-        space: Community,
-        approver: User,
-    ):
-        notification = SpaceMembershipRequestApprovalNotification(
-            recipient=requester.username,
-            payload=SpaceMembershipRequestApprovalPayload(user=requester, space=space, approver=approver),
-        )
-        notification.send()
-
-
+# INTERNAL USE ONLY, use Notifications instead to trigger notifications
 class SpaceMembershipRequestNotification(Notification):
     def __init__(self, recipients: str | List[str], payload: SpaceMembershipRequestPayload, transaction_id: str):
         super().__init__(
@@ -94,6 +98,7 @@ class SpaceMembershipRequestNotification(Notification):
         )
 
 
+# INTERNAL USE ONLY, use Notifications instead to trigger notifications
 class SpaceMembershipRequestApprovalNotification(Notification):
     def __init__(
         self, recipient: str, payload: SpaceMembershipRequestApprovalPayload, transaction_id: str | None = None
