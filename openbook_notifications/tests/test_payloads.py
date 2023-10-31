@@ -29,6 +29,7 @@ class TestPayloads(TestCase):
             avatar="avatar.jpg",
             avatar_blurhash="test_blurhash",
             avatar_default_color="#FFF000",
+            avatar_label="TU",
         )
         data_dict = user_data.to_dict()
 
@@ -41,6 +42,7 @@ class TestPayloads(TestCase):
                 "avatar": "avatar.jpg",
                 "avatarBlurhash": "test_blurhash",
                 "avatarDefaultColor": "#FFF000",
+                "avatarLabel": "TU",
             },
         )
 
@@ -57,6 +59,7 @@ class TestPayloads(TestCase):
                 "avatar": self.user.profile.avatar.url,
                 "avatarBlurhash": "",
                 "avatarDefaultColor": self.user.avatar_default_color,
+                "avatarLabel": self.user.avatar_label,
             },
         )
 
