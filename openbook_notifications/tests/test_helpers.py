@@ -26,7 +26,6 @@ class TestFlattenPayload(TestCase):
         expected_result = {
             "userId": str(user.id),
             "userFullName": "Test User",
-            "userEmail": "test.user@holi.social",
             "userAvatar": user.profile.avatar.url,
             "userAvatarBlurhash": "",
             "userAvatarDefaultColor": user.avatar_default_color,
