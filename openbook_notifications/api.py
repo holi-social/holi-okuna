@@ -1,11 +1,15 @@
-from typing import List, Optional
+from __future__ import annotations
+from typing import List, Optional, TYPE_CHECKING
 from requests.exceptions import HTTPError
 
+from novu.api.event import EventApi
 from novu.api.subscriber import SubscriberApi
 from novu.dto.subscriber import SubscriberDto
 
-from openbook_auth.models import User
 from openbook_notifications.toggles import notifications_toggle
+
+if TYPE_CHECKING:
+    from openbook_auth.models import User
 
 
 class NotificationApi:
@@ -66,3 +70,8 @@ class NotificationApi:
     @notifications_toggle
     def delete_subscriber(user_id: str):
         return SubscriberApi().delete(subscriber_id=str(user_id))
+
+    @staticmethod
+    @notifications_toggle
+    def cancel_workflow(transaction_id: str):
+        EventApi().delete(transaction_id=transaction_id)

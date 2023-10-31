@@ -4,11 +4,13 @@ from django.test import TestCase
 from requests.exceptions import HTTPError
 from unittest.mock import patch
 
+from novu.api.event import EventApi
 from novu.api.subscriber import SubscriberApi
 
 from openbook_common.tests.helpers import make_user
-from openbook_notifications.toggles import notifications_toggle
-from openbook_notifications.api import NotificationApi  # Replace 'your_app_name' with your actual app name
+from openbook_notifications.api import NotificationApi
+from openbook_common.enums import FeatureToggleName, FeatureToggleType
+from openbook_common.models import FeatureToggle as FeatureToggleModel
 
 
 @pytest.mark.django_db
@@ -16,12 +18,14 @@ class NotificationApiTestCase(TestCase):
     def setUp(self):
         self.user = make_user(name="John", last_name="Doe")
         self.locale = "en"
+        self.notifications_toggle = FeatureToggleModel.objects.create(
+            name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
+        )
 
     def tearDown(self):
         self.user.delete()
 
     @patch.object(SubscriberApi, "create")
-    @notifications_toggle
     def test_create_subscriber(self, mock_subscriber_api_create):
         subscriber_data = {
             "first_name": self.user.profile.name,
@@ -38,7 +42,6 @@ class NotificationApiTestCase(TestCase):
         self.assertEqual(subscriber, subscriber_data)
 
     @patch.object(SubscriberApi, "get")
-    @notifications_toggle
     def test_find_subscriber(self, mock_subscriber_api_get):
         subscriber_data = {
             "first_name": self.user.profile.name,
@@ -56,7 +59,6 @@ class NotificationApiTestCase(TestCase):
 
     @patch.object(SubscriberApi, "get")
     @patch.object(SubscriberApi, "create")
-    @notifications_toggle
     def test_find_or_create_subscriber_existing(self, mock_subscriber_api_create, mock_subscriber_api_get):
         subscriber_data = {
             "first_name": self.user.profile.name,
@@ -77,7 +79,6 @@ class NotificationApiTestCase(TestCase):
         SubscriberApi, "get", side_effect=HTTPError(response=type("Response", (object,), {"status_code": 404}))
     )
     @patch.object(SubscriberApi, "create")
-    @notifications_toggle
     def test_find_or_create_subscriber_not_existing(self, mock_subscriber_api_create, mock_subscriber_api_get):
         subscriber_data = {
             "first_name": self.user.profile.name,
@@ -97,7 +98,6 @@ class NotificationApiTestCase(TestCase):
         mock_subscriber_api_create.assert_called_once()
 
     @patch.object(SubscriberApi, "put")
-    @notifications_toggle
     def test_update_subscriber(self, mock_subscriber_api_put):
         subscriber_data = {
             "subscriber_id": str(self.user.username),
@@ -114,7 +114,6 @@ class NotificationApiTestCase(TestCase):
         self.assertEqual(subscriber, subscriber_data)
 
     @patch.object(SubscriberApi, "credentials")
-    @notifications_toggle
     def test_set_subscriber_credentials(self, mock_subscriber_api_credentials):
         user_id = str(self.user.username)
         provider_id = "test_provider_id"
@@ -135,3 +134,11 @@ class NotificationApiTestCase(TestCase):
         response = NotificationApi.set_subscriber_credentials(user_id, provider_id, webhook_url, device_tokens)
 
         self.assertEqual(response, subscriber_data)
+
+    @patch.object(EventApi, "delete")
+    def test_cancel_workflow(self, mock_event_api_delete):
+        mock_event_api_delete.return_value = None
+
+        NotificationApi.cancel_workflow(transaction_id="transaction-id")
+
+        mock_event_api_delete.assert_called_once_with(transaction_id="transaction-id")
