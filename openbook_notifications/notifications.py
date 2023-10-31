@@ -4,9 +4,13 @@ from requests import Session
 from requests.adapters import HTTPAdapter, Retry
 
 from typing import List
+from typing import Optional
+
+from openbook_auth.models import User
+from openbook_communities.models import Community, CommunityMembershipRequest
+
 from openbook_notifications.helpers import flatten_payload
 from openbook_notifications.payloads import SpaceMembershipRequestPayload, SpaceMembershipRequestApprovalPayload
-
 from openbook_notifications.toggles import notifications_toggle
 
 from novu.api import EventApi
@@ -49,6 +53,35 @@ class Notification:
             overrides=self.overrides,
             transaction_id=self.transaction_id,
         )
+
+
+class Notifications:
+    @staticmethod
+    def send_space_membership_request_notification(
+        membership_request: CommunityMembershipRequest,
+        recipients: User | List[User],
+        requester: User,
+        space: Community,
+        message: Optional[str] = "",
+    ):
+        notification = SpaceMembershipRequestNotification(
+            recipients=[str(recipient.username) for recipient in recipients],
+            payload=SpaceMembershipRequestPayload(space=space, user=requester, message=message),
+            transaction_id=str(membership_request.id),
+        )
+        notification.send()
+
+    @staticmethod
+    def send_space_membership_request_approval_notification(
+        requester: User,
+        space: Community,
+        approver: User,
+    ):
+        notification = SpaceMembershipRequestApprovalNotification(
+            recipient=requester.username,
+            payload=SpaceMembershipRequestApprovalPayload(user=requester, space=space, approver=approver),
+        )
+        notification.send()
 
 
 class SpaceMembershipRequestNotification(Notification):

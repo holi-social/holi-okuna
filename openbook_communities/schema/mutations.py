@@ -96,7 +96,6 @@ class Mutation:
                 case (ConnectionType.MEMBERSHIP_INVITEE, Action.CONNECT):
                     space = current_user.accept_membership_invite_to_community_for_username(space.name)
                     publish_space_user_added_event(username=str(current_user.username), community=space)
-                    notify_space_membership_request_approved(current_user, space)
                     return space
                 # user rejects invitation to space
                 case (ConnectionType.MEMBERSHIP_INVITEE, Action.DISCONNECT):

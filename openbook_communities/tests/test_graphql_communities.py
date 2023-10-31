@@ -2,6 +2,7 @@ import json
 import logging
 from unittest import mock
 from uuid import uuid4
+from unittest import TestCase
 
 import blurhash
 import pytest
@@ -74,7 +75,7 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 
 @pytest.mark.django_db
-class TestCommunities:
+class TestCommunities(TestCase):
     def test_filters_for_spaces(self):
         creator = make_user()
         topic1 = make_topic()
@@ -352,7 +353,9 @@ class TestCommunities:
             staff_request_received_notification["options"]["user"]["fullName"]
             == membership_requestor.profile.full_name()
         )
-        assert staff_request_received_notification["options"]["message"] == None
+        assert staff_request_received_notification["options"]["message"] is None
+
+        # TODO add test assertions about Novu notifications
 
         # Approve user
         space_after_approval = mutate_update_space_user_connection_data(
@@ -395,7 +398,7 @@ class TestCommunities:
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
-    @mock.patch("openbook_notifications.notifications.SpaceMembershipRequestNotification.send")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
     def test_space_membership_request_with_message(
         self,
         mock_send_space_membership_request_notification,
@@ -404,7 +407,9 @@ class TestCommunities:
     ):
         membership_requestor = make_user()
         space_creator = make_user()
-        space = make_community(creator=space_creator)
+        admin = make_user()
+        moderator = make_user()
+        space = make_community(creator=space_creator, admins=[admin], moderators=[moderator])
         mock_publish_space_user_added_event.return_value = None
         message = "I'd love to join!"
 
@@ -414,17 +419,24 @@ class TestCommunities:
                 "isAdministrator": is_admin,
             }
 
-        # Preconditions
+        # GIVEN a space with a creator, an additional admin and a moderator
         pre_join_space = get_space_for_user(membership_requestor, space)
         assert pre_join_space["connectionStatusToMyself"] == []
-        assert_paged_results_equal(pre_join_space["members"], [member_result(space_creator, is_admin=True)])
+        assert_paged_results_equal(
+            pre_join_space["members"],
+            [
+                member_result(space_creator, is_admin=True),
+                member_result(admin, is_admin=True),
+                member_result(moderator, is_admin=False),
+            ],
+        )
 
         data = get_notifications(membership_requestor)
         assert data["totalResults"] == 0
         data = get_notifications(space_creator)
         assert data["totalResults"] == 0
 
-        # Send Join Request
+        # WHEN sending a join request
         after_request_space = mutate_update_space_user_connection_data(
             auth_user=membership_requestor,
             space_id=space.id,
@@ -437,7 +449,7 @@ class TestCommunities:
             [SpaceUserConnectionType.MEMBERSHIP_REQUESTOR.value, SpaceUserConnectionType.FOLLOWER.value]
         )
 
-        # Staff received MembershipRequest notification with message
+        # THEN staff received MembershipRequest notification with message
         staff_request_received_notification = get_notifications(space_creator)["data"][0]
         assert staff_request_received_notification["notificationType"] == "CMR"
         assert staff_request_received_notification["options"]["space"]["title"] == space.title
@@ -447,10 +459,15 @@ class TestCommunities:
         )
         assert staff_request_received_notification["options"]["message"] == message
 
-        payload = SpaceMembershipRequestPayload(space=space, user=membership_requestor, message=message)
-        mock_send_space_membership_request_notification.asser_called_with(
-            recepients=[str(space_creator.username)], payload=payload
-        )
+        # THEN staff received notification via Notifications system
+        mock_send_space_membership_request_notification.assert_called_once()
+        kwargs = mock_send_space_membership_request_notification.call_args.kwargs
+        expected_recipients = [space_creator.username, admin.username, moderator.username]
+
+        self.assertEquals([r.username for r in kwargs["recipients"]], expected_recipients)
+        self.assertEquals(kwargs["requester"], membership_requestor)
+        self.assertEquals(kwargs["space"], space)
+        self.assertEquals(kwargs["message"], message)
 
     def test_validates_space_membership_request(self):
         membership_requestor = make_user()
@@ -487,13 +504,14 @@ class TestCommunities:
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
-    @mock.patch("openbook_notifications.notifications.SpaceMembershipRequestNotification.send")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
     def test_space_membership_request_rejection_process(
         self,
         mock_send_space_membership_request_notification,
         mock_publish_space_user_added_event,
         mock_invalidate_discover_spaces_query_cache,
     ):
+        # GIVEN a space with a creator
         membership_requestor = make_user()
         space_creator = make_user()
         space = make_community(creator=space_creator)
@@ -504,7 +522,7 @@ class TestCommunities:
                 "isAdministrator": is_admin,
             }
 
-        # Preconditions
+        # GIVEN preconditions
         pre_join_space = get_space_for_user(membership_requestor, space)
         assert pre_join_space["connectionStatusToMyself"] == []
         assert_paged_results_equal(pre_join_space["members"], [member_result(space_creator, is_admin=True)])
@@ -514,19 +532,21 @@ class TestCommunities:
         data = get_notifications(space_creator)
         assert data["totalResults"] == 0
 
-        # Send Join Request
+        # WHEN sending a join request
+        message = "helløj"
         after_request_space = mutate_update_space_user_connection_data(
             auth_user=membership_requestor,
             space_id=space.id,
             connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
             connect_action=UpdateConnectionAction.CONNECT,
+            message=message,
         )
 
         assert len(after_request_space["connectionStatusToMyself"]) == len(
             [SpaceUserConnectionType.MEMBERSHIP_REQUESTOR.value, SpaceUserConnectionType.FOLLOWER.value]
         )
 
-        # Staff received MembershipRequest notification
+        # THEN staff should receive a MembershipRequest notification
         staff_request_received_notification = get_notifications(space_creator)["data"][0]
         assert staff_request_received_notification["notificationType"] == "CMR"
         assert staff_request_received_notification["options"]["space"]["title"] == space.title
@@ -535,12 +555,17 @@ class TestCommunities:
             == membership_requestor.profile.full_name()
         )
 
-        payload = SpaceMembershipRequestPayload(space=space, user=membership_requestor)
-        mock_send_space_membership_request_notification.asser_called_with(
-            recepients=[str(space_creator.username)], payload=payload
-        )
+        # THEN admin should receive notification via Notifications system
+        mock_send_space_membership_request_notification.assert_called_once()
+        kwargs = mock_send_space_membership_request_notification.call_args.kwargs
+        expected_recipients = [space_creator.username]
 
-        # Approve user
+        self.assertEquals([r.username for r in kwargs["recipients"]], expected_recipients)
+        self.assertEquals(kwargs["requester"], membership_requestor)
+        self.assertEquals(kwargs["space"], space)
+        self.assertEquals(kwargs["message"], message)
+
+        # WHEN admin approves user membership request
         space_after_rejection = mutate_update_space_user_connection_data(
             auth_user=space_creator,
             user_id=membership_requestor.username,
@@ -554,38 +579,40 @@ class TestCommunities:
             [member_result(space_creator, is_admin=True)],
         )
 
-        # User has correct connection status
+        # THEN user has correct connection status
         assert len(get_space_for_user(membership_requestor, space)["connectionStatusToMyself"]) == len(
             [SpaceUserConnectionType.FOLLOWER.value]
         )
 
-        # User has no notification
+        # THEN user has no notification
         membership_requestor_notifications = get_notifications(membership_requestor)
         assert membership_requestor_notifications["totalResults"] == 0
 
-        # Staff has no notification
+        # THEN staff has no notification
         staff_notifications = get_notifications(space_creator)
         assert staff_notifications["totalResults"] == 0
 
         mock_publish_space_user_added_event.assert_not_called()
-
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
-    @mock.patch("openbook_notifications.notifications.SpaceMembershipRequestNotification.send")
-    def test_space_memebership_request_only_visible_to_admins(self, mock_send_space_membership_request_notification):
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
+    def test_space_membership_request_only_visible_to_admins(self, mock_send_space_membership_request_notification):
+        # GIVEN a space with an admin and other users
         user = make_user()
         member = make_user()
         admin = make_user()
         membership_requestor = make_user()
         community = make_community(creator=admin)
         community.add_member(member)
+        message = "helløj"
 
-        # send join request
+        # WHEN sending a join request
         mutate_update_space_user_connection_data(
             auth_user=membership_requestor,
             space_id=community.id,
             connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
             connect_action=UpdateConnectionAction.CONNECT,
+            message=message,
         )
 
         space_by_id_query = f"""
@@ -610,7 +637,7 @@ class TestCommunities:
             }}
             """
 
-        # admin should get the membershipRequests
+        # THEN admin should get the membershipRequests
         response_admin = async_to_sync(schema.execute)(
             space_by_id_query,
             context_value=benedict({"request": {"user": admin}}),
@@ -619,7 +646,7 @@ class TestCommunities:
         paged_membership_requests = response_admin.data["spaceById"]["membershipRequests"]
         assert paged_membership_requests["totalResults"] == 1
 
-        # non-admin member should get zero membershipRequests
+        # THEN non-admin member should get zero membershipRequests
         response_member = async_to_sync(schema.execute)(
             space_by_id_query,
             context_value=benedict({"request": {"user": member}}),
@@ -628,7 +655,7 @@ class TestCommunities:
         paged_membership_requests = response_member.data["spaceById"]["membershipRequests"]
         assert paged_membership_requests["totalResults"] == 0
 
-        # non-member should get zero membershipRequests
+        # THEN non-member should get zero membershipRequests
         response_non_member = async_to_sync(schema.execute)(
             space_by_id_query,
             context_value=benedict({"request": {"user": user}}),
@@ -637,7 +664,7 @@ class TestCommunities:
         paged_membership_requests = response_non_member.data["spaceById"]["membershipRequests"]
         assert paged_membership_requests["totalResults"] == 0
 
-        # anonymous user should get zero membershipRequests
+        # THEN anonymous user should get zero membershipRequests
         response_non_member = async_to_sync(schema.execute)(
             space_by_id_query,
             context_value=benedict({"request": {"user": AnonymousUser}}),
@@ -647,9 +674,16 @@ class TestCommunities:
         assert paged_members["totalResults"] == 0
 
         payload = SpaceMembershipRequestPayload(space=community, user=membership_requestor)
-        mock_send_space_membership_request_notification.asser_called_with(
-            recepients=[str(admin.username)], payload=payload
-        )
+
+        # THEN admin should receive notification via Notifications system
+        mock_send_space_membership_request_notification.assert_called_once()
+        kwargs = mock_send_space_membership_request_notification.call_args.kwargs
+        expected_recipients = [admin.username]
+
+        self.assertEquals([r.username for r in kwargs["recipients"]], expected_recipients)
+        self.assertEquals(kwargs["requester"], membership_requestor)
+        self.assertEquals(kwargs["space"], community)
+        self.assertEquals(kwargs["message"], message)
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     def test_space_admin_grant_and_revoke_admin_access_success(self, mock_invalidate_discover_spaces_query_cache):
