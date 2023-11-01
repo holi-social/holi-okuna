@@ -434,7 +434,7 @@ class TestCommunities:
             [member_result(space_creator, is_admin=True), member_result(invitee, is_admin=False)],
         )
 
-        # User has correct connection status
+        # User has correct connection status length (there should be more if invitation was still present)
         assert len(get_space_for_user(invitee, space)["connectionStatusToMyself"]) == len(
             [SpaceUserConnectionType.MEMBER.value, SpaceUserConnectionType.FOLLOWER.value]
         )
