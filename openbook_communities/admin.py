@@ -6,6 +6,7 @@ from openbook_communities.models import (
     CommunityMembership,
     ExternalLink,
     Task,
+    OnboardingStep,
 )
 
 
@@ -60,6 +61,17 @@ class CommunityTaskAdmin(admin.ModelAdmin):
         "regularity",
         "slots_taken",
         "slots_available",
+    )
+
+
+@admin.register(OnboardingStep)
+class CommunityTaskAdmin(admin.ModelAdmin):
+    model = OnboardingStep
+    list_display = (
+        "community",
+        "id",
+        "step_number",
+        "text",
     )
 
 
