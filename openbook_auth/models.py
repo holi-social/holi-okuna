@@ -2193,6 +2193,9 @@ class User(ModelWithUUID, AbstractUser):
         community_to_join.remove_membership_request(user_to_approve)
         community_to_join.add_member(user_to_approve)
 
+        if user_to_approve.is_invited_to_community_with_name(community_name):
+            community_to_join.remove_invite(user_to_approve)
+
         self.notify_membership_approval(community_to_join, user_to_approve)
 
         return community_to_join
