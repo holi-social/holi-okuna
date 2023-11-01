@@ -393,6 +393,52 @@ class TestCommunities:
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
+    def test_space_membership_request_approval_process_with_invite_to_same_user(self):
+        invitee_email = "test@test.com"
+        invitee = make_user(email=invitee_email)
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+
+        def member_result(user, is_admin):
+            return {
+                "user": {"id": user.username},
+                "isAdministrator": is_admin,
+            }
+
+        # Create a Membership Request
+        mutate_update_space_user_connection_data(
+            auth_user=invitee,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+
+        # Send Invite Request
+        mutate_invite_user_by_email(
+            auth_user=space_creator,
+            email=invitee_email,
+            space_id=space.id,
+        )
+
+        # Approve user Membership Request
+        space_after_approval = mutate_update_space_user_connection_data(
+            auth_user=space_creator,
+            user_id=invitee.username,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBER,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+
+        assert_paged_results_equal(
+            space_after_approval["members"],
+            [member_result(space_creator, is_admin=True), member_result(invitee, is_admin=False)],
+        )
+
+        # User has correct connection status
+        assert len(get_space_for_user(invitee, space)["connectionStatusToMyself"]) == len(
+            [SpaceUserConnectionType.MEMBER.value, SpaceUserConnectionType.FOLLOWER.value]
+        )
+
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
     @mock.patch("openbook_notifications.notifications.SpaceMembershipRequestNotification.send")
@@ -955,52 +1001,6 @@ class TestCommunities:
             SpaceUserConnectionType.FOLLOWER.value,
             SpaceUserConnectionType.MEMBER.value,
         ]
-
-    def test_space_membership_request_approval_process_with_invite_to_same_invited_user(self):
-        invitee_email = "test@test.com"
-        invitee = make_user(email=invitee_email)
-        space_creator = make_user()
-        space = make_community(creator=space_creator)
-
-        def member_result(user, is_admin):
-            return {
-                "user": {"id": user.username},
-                "isAdministrator": is_admin,
-            }
-
-        # Create a Membership Request
-        mutate_update_space_user_connection_data(
-            auth_user=invitee,
-            space_id=space.id,
-            connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
-            connect_action=UpdateConnectionAction.CONNECT,
-        )
-
-        # Send Invite Request
-        mutate_invite_user_by_email(
-            auth_user=space_creator,
-            email=invitee_email,
-            space_id=space.id,
-        )
-
-        # Approve user Membership Request
-        space_after_approval = mutate_update_space_user_connection_data(
-            auth_user=space_creator,
-            user_id=invitee.username,
-            space_id=space.id,
-            connection_type=SpaceUserConnectionType.MEMBER,
-            connect_action=UpdateConnectionAction.CONNECT,
-        )
-
-        assert_paged_results_equal(
-            space_after_approval["members"],
-            [member_result(space_creator, is_admin=True), member_result(invitee, is_admin=False)],
-        )
-
-        # User has correct connection status
-        assert len(get_space_for_user(invitee, space)["connectionStatusToMyself"]) == len(
-            [SpaceUserConnectionType.MEMBER.value, SpaceUserConnectionType.FOLLOWER.value]
-        )
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
