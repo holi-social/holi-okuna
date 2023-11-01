@@ -434,10 +434,14 @@ class TestCommunities:
             [member_result(space_creator, is_admin=True), member_result(invitee, is_admin=False)],
         )
 
-        # User has correct connection status length (there should be more if invitation was still present)
-        assert len(get_space_for_user(invitee, space)["connectionStatusToMyself"]) == len(
+        user_space = get_space_for_user(invitee, space)
+
+        # User has correct connection statuses (there should be more if invitation was still present)
+        assert len(user_space["connectionStatusToMyself"]) == len(
             [SpaceUserConnectionType.MEMBER.value, SpaceUserConnectionType.FOLLOWER.value]
         )
+        assert SpaceUserConnectionType.MEMBER.value in user_space["connectionStatusToMyself"]
+        assert SpaceUserConnectionType.FOLLOWER.value in user_space["connectionStatusToMyself"]
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
