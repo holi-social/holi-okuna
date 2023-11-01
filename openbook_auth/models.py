@@ -2205,6 +2205,10 @@ class User(ModelWithUUID, AbstractUser):
 
         community_to_join.remove_invite(self)
         community_to_join.add_member(self)
+
+        if self.is_membership_requestor_of_community_with_name(community_name):
+            community_to_join.remove_membership_request(self)
+
         get_community_notifications_subscription_model().enable_new_post_notification_for_community(
             community_to_join, self
         )
