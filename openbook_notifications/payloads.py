@@ -140,5 +140,5 @@ class SpaceMembershipRequestApprovalPayload(Payload):
                 "approvalDatetime": datetime.now().isoformat(),
             },
             notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST_APPROVAL.value,
-            notification_version=SpaceMembershipRequestPayload.NOTIFICATION_VERSION,
+            notification_version=SpaceMembershipRequestApprovalPayload.NOTIFICATION_VERSION,
         )
