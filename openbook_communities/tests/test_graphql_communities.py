@@ -251,7 +251,8 @@ class TestCommunities(TestCase):
         space_with_invites = make_community(creator=creator3)
 
         creator3.invite_user_to_community(user=creator1, community=space_with_invites)
-        creator1.join_community_with_name(space2.name)
+        creator2.invite_user_to_community(user=creator1, community=space2)
+        creator1.accept_membership_invite_to_community_for_username(space2.name)
         creator1.enable_new_post_notifications_for_community_with_name(space3.name)
         creator1.request_membership_to_community_with_name(community_name=space4.name)
 
