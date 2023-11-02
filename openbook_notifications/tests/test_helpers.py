@@ -32,7 +32,6 @@ class TestFlattenPayload(TestCase):
             "spaceId": str(space.id),
             "spaceName": "test-space",
             "spaceTitle": "Test Space",
-            "spaceCover": "",
             "spaceAvatar": "",
             "spaceAvatarBlurhash": "",
             "spaceAvatarDefaultColor": space.avatar_default_color,
