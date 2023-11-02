@@ -4,10 +4,11 @@ from django.test import TestCase
 from requests.exceptions import HTTPError
 from unittest.mock import patch
 
+from novu.api.event import EventApi
 from novu.api.subscriber import SubscriberApi
 
 from openbook_common.tests.helpers import make_user
-from openbook_notifications.api import NotificationApi  # Replace 'your_app_name' with your actual app name
+from openbook_notifications.api import NotificationApi
 from openbook_notifications.enums import NotificationProvider
 
 from openbook_common.enums import FeatureToggleName, FeatureToggleType
@@ -139,3 +140,11 @@ class NotificationApiTestCase(TestCase):
         mock_subscriber_api_credentials.assert_called_once_with(
             user_id, provider_id.value.value, webhook_url, device_tokens
         )
+
+    @patch.object(EventApi, "delete")
+    def test_cancel_workflow(self, mock_event_api_delete):
+        mock_event_api_delete.return_value = None
+
+        NotificationApi.cancel_workflow(transaction_id="transaction-id")
+
+        mock_event_api_delete.assert_called_once_with(transaction_id="transaction-id")
