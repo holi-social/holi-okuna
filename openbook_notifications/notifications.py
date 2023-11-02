@@ -1,11 +1,16 @@
+import uuid
 from enum import Enum
 from requests import Session
 from requests.adapters import HTTPAdapter, Retry
 
 from typing import List
-from openbook_notifications.helpers import flatten_payload
-from openbook_notifications.payloads import SpaceMembershipRequestPayload
+from typing import Optional
 
+from openbook_auth.models import User
+from openbook_communities.models import Community, CommunityMembershipRequest
+
+from openbook_notifications.helpers import flatten_payload
+from openbook_notifications.payloads import SpaceMembershipRequestPayload, SpaceMembershipRequestApprovalPayload
 from openbook_notifications.toggles import notifications_toggle
 
 from novu.api import EventApi
@@ -13,15 +18,43 @@ from novu.api import EventApi
 
 class Workflow(Enum):
     SPACE_MEMBERSHIP_REQUEST = "space-membership-request"
+    SPACE_MEMBERSHIP_REQUEST_APPROVAL = "space-membership-request-approval"
 
 
-class Notification:
-    def __init__(
-        self,
-        workflow: str,
-        recipients: str | List[str],
-        payload: dict,
+# Use this classes static methods to trigger notifications via the Notifications system (novu)
+# To avoid circular import issues (due to usage of domain classes here such as User) import deferred in method bodies
+class Notifications:
+    @staticmethod
+    def send_space_membership_request_notification(
+        membership_request: CommunityMembershipRequest,
+        recipients: User | List[User],
+        requester: User,
+        space: Community,
+        message: Optional[str] = "",
     ):
+        notification = SpaceMembershipRequestNotification(
+            recipients=[str(recipient.username) for recipient in recipients],
+            payload=SpaceMembershipRequestPayload(space=space, user=requester, message=message),
+            transaction_id=str(membership_request.id),
+        )
+        notification.send()
+
+    @staticmethod
+    def send_space_membership_request_approval_notification(
+        requester: User,
+        space: Community,
+        approver: User,
+    ):
+        notification = SpaceMembershipRequestApprovalNotification(
+            recipient=requester.username,
+            payload=SpaceMembershipRequestApprovalPayload(user=requester, space=space, approver=approver),
+        )
+        notification.send()
+
+
+# INTERNAL USE ONLY, use Notifications instead to trigger notifications
+class Notification:
+    def __init__(self, workflow: str, recipients: str | List[str], payload: dict, transaction_id: str):
         session = Session()
         retries = Retry(
             total=5,  # Number of retries
@@ -35,6 +68,7 @@ class Notification:
         self.recipients = recipients
         self.payload = payload
         self.session = session
+        self.transaction_id = transaction_id
 
         self.overrides = {
             "type": "data",  # data notification
@@ -45,12 +79,33 @@ class Notification:
     @notifications_toggle
     def send(self):
         return EventApi(session=self.session).trigger(
-            name=self.workflow, recipients=self.recipients, payload=self.payload, overrides=self.overrides
+            name=self.workflow,
+            recipients=self.recipients,
+            payload=self.payload,
+            overrides=self.overrides,
+            transaction_id=self.transaction_id,
         )
 
 
+# INTERNAL USE ONLY, use Notifications instead to trigger notifications
 class SpaceMembershipRequestNotification(Notification):
-    def __init__(self, recipients: str | List[str], payload: SpaceMembershipRequestPayload):
+    def __init__(self, recipients: str | List[str], payload: SpaceMembershipRequestPayload, transaction_id: str):
         super().__init__(
-            workflow=Workflow.SPACE_MEMBERSHIP_REQUEST.value, recipients=recipients, payload=payload.to_dict()
+            workflow=Workflow.SPACE_MEMBERSHIP_REQUEST.value,
+            recipients=recipients,
+            payload=payload.to_dict(),
+            transaction_id=transaction_id,
+        )
+
+
+# INTERNAL USE ONLY, use Notifications instead to trigger notifications
+class SpaceMembershipRequestApprovalNotification(Notification):
+    def __init__(
+        self, recipient: str, payload: SpaceMembershipRequestApprovalPayload, transaction_id: str | None = None
+    ):
+        super().__init__(
+            workflow=Workflow.SPACE_MEMBERSHIP_REQUEST_APPROVAL.value,
+            recipients=recipient,
+            payload=payload.to_dict(),
+            transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
         )

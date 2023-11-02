@@ -17,7 +17,7 @@ from openbook_notifications.payloads import (
 @pytest.mark.django_db
 class TestPayloads(TestCase):
     def setUp(self):
-        self.user = make_user(name="Test", last_name="User", email="test.user@holi.social")
+        self.user = make_user(name="Test", last_name="User")
         self.space = make_community(title="Test Space")
         self.notification_type = "TEST_NOTIFICATION_TYPE"
 
@@ -25,8 +25,10 @@ class TestPayloads(TestCase):
         user_data = UserData(
             id="test-user-id",
             full_name="Test User",
-            email="test.user@holi.social",
             avatar="avatar.jpg",
+            avatar_blurhash="test_blurhash",
+            avatar_default_color="#FFF000",
+            avatar_label="TU",
         )
         data_dict = user_data.to_dict()
 
@@ -34,9 +36,11 @@ class TestPayloads(TestCase):
             data_dict,
             {
                 "id": "test-user-id",
-                "full_name": "Test User",
-                "email": "test.user@holi.social",
+                "fullName": "Test User",
                 "avatar": "avatar.jpg",
+                "avatarBlurhash": "test_blurhash",
+                "avatarDefaultColor": "#FFF000",
+                "avatarLabel": "TU",
             },
         )
 
@@ -48,9 +52,11 @@ class TestPayloads(TestCase):
             data_dict,
             {
                 "id": str(self.user.username),
-                "full_name": "Test User",
-                "email": "test.user@holi.social",
+                "fullName": "Test User",
                 "avatar": self.user.profile.avatar.url,
+                "avatarBlurhash": "",
+                "avatarDefaultColor": self.user.avatar_default_color,
+                "avatarLabel": self.user.avatar_label,
             },
         )
 
@@ -59,8 +65,9 @@ class TestPayloads(TestCase):
             id="test-space-id",
             name="test-space",
             title="Test Space",
-            cover="cover.jpg",
             avatar="avatar.jpg",
+            avatar_blurhash="test-blurhash",
+            avatar_default_color="#FFF000",
         )
         data_dict = space_data.to_dict()
 
@@ -70,8 +77,9 @@ class TestPayloads(TestCase):
                 "id": "test-space-id",
                 "name": "test-space",
                 "title": "Test Space",
-                "cover": "cover.jpg",
                 "avatar": "avatar.jpg",
+                "avatarBlurhash": "test-blurhash",
+                "avatarDefaultColor": "#FFF000",
             },
         )
 
@@ -81,7 +89,14 @@ class TestPayloads(TestCase):
 
         self.assertEqual(
             data_dict,
-            {"id": str(self.space.id), "name": "test-space", "title": "Test Space", "cover": "", "avatar": ""},
+            {
+                "id": str(self.space.id),
+                "name": "test-space",
+                "title": "Test Space",
+                "avatar": "",
+                "avatarBlurhash": "",
+                "avatarDefaultColor": self.space.avatar_default_color,
+            },
         )
 
     def test_payload_to_dict(self):
@@ -95,8 +110,8 @@ class TestPayloads(TestCase):
             data_dict,
             {
                 "data": data,
-                "notification_type": self.notification_type,
-                "notification_version": "1.0.0",
+                "notificationType": self.notification_type,
+                "notificationVersion": "1.0.0",
             },
         )
 
@@ -109,14 +124,14 @@ class TestPayloads(TestCase):
 
         data_dict = payload.to_dict()
 
-        self.assertEqual(data_dict["notification_type"], "SPACE_MEMBERSHIP_REQUEST")
-        self.assertEqual(data_dict["notification_version"], "1.0.0")
+        self.assertEqual(data_dict["notificationType"], "SPACE_MEMBERSHIP_REQUEST")
+        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
         self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
         self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
-        self.assertEqual(data_dict["data"]["request_message"], "I'm interested in becoming a member of your space")
-        self.assertIsNotNone(data_dict["data"]["request_datetime"])
+        self.assertEqual(data_dict["data"]["requestMessage"], "I'm interested in becoming a member of your space")
+        self.assertIsNotNone(data_dict["data"]["requestDatetime"])
         self.assertEqual(
-            data_dict["data"]["collaborators_link"],
+            data_dict["data"]["collaboratorsLink"],
             "https://staging.dev.holi.social/spaces/test-space/collaborators/manage?tab=pending&userId="
             + str(self.user.username),
         )

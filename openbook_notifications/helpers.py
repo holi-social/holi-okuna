@@ -415,7 +415,7 @@ def _send_notification_to_user(user, notification):
 def flatten_payload(d, parent_key=""):
     flat_dict = {}
     for key, value in d.items():
-        new_key = f"{parent_key}_{key}" if parent_key else key
+        new_key = f"{parent_key}{key[0].upper() + key[1:]}" if parent_key else key
         if isinstance(value, dict):
             if key == "data":
                 flat_dict.update(flatten_payload(value, parent_key))

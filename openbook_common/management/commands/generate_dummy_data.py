@@ -11,13 +11,12 @@ from faker import Faker
 
 from openbook import settings
 from openbook_auth.models import User
-from openbook_circles.models import Circle
 from openbook_common.tests.helpers import (
     make_community_title,
     make_fake_post_title,
     make_users,
 )
-from openbook_common.types import ReactionType
+from openbook_common.enums import ReactionType
 from openbook_insights.models import Insight
 from openbook_posts.models import Post
 from openbook_terms.models import Topic

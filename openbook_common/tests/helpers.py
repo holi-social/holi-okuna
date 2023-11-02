@@ -291,6 +291,8 @@ def make_community(
     topics=None,
     location=None,
     geolocation=None,
+    admins: List[User] = None,
+    moderators: List[User] = None,
 ) -> Community:
     if not creator:
         creator = make_user()
@@ -318,6 +320,14 @@ def make_community(
     )
     community.topics.set(topics)
     community.geolocation = geolocation
+    if admins:
+        for admin in admins:
+            community.add_member(admin)
+            community.add_administrator(admin)
+    if moderators:
+        for moderator in moderators:
+            community.add_member(moderator)
+            community.add_moderator(moderator)
     community.save()
 
     return community

@@ -1,3 +1,4 @@
+import uuid
 import pytest
 
 from unittest.mock import Mock, call, patch
@@ -6,8 +7,13 @@ from django.test import TestCase
 from requests import Session
 from requests.adapters import HTTPAdapter
 
-from openbook_notifications.notifications import Notification, SpaceMembershipRequestNotification, Workflow
-from openbook_notifications.payloads import SpaceMembershipRequestPayload
+from openbook_notifications.notifications import (
+    Notification,
+    SpaceMembershipRequestNotification,
+    SpaceMembershipRequestApprovalNotification,
+    Workflow,
+)
+from openbook_notifications.payloads import SpaceMembershipRequestPayload, SpaceMembershipRequestApprovalPayload
 from openbook_notifications.toggles import notifications_toggle
 from openbook_common.tests.helpers import (
     make_community,
@@ -23,6 +29,7 @@ class NotificationTestCase(TestCase):
             workflow="test-workflow",
             recipients=["user-id"],
             payload={"data": {"key": "value"}},
+            transaction_id="test-transaction-id",
         )
 
     @patch("novu.api.EventApi")
@@ -44,6 +51,7 @@ class NotificationTestCase(TestCase):
                 "fcm": {"type": "data", "data": {"key: value"}},
                 "apns": {"payload": {"data": {"key: value"}}},
             },
+            transaction_id="test-transaction-id",
         )
 
         self.assertEqual(result, mock_event_instance.trigger.return_value)
@@ -90,11 +98,32 @@ class SpaceMembershipRequestNotificationTestCase(TestCase):
     def setUpTestData(cls):
         user = make_user()
         space = make_community()
+        transaction_id = str(uuid.uuid4())
         payload = SpaceMembershipRequestPayload(user=user, space=space)
         cls.notification_instance = SpaceMembershipRequestNotification(
             recipients=str(user.username),
             payload=payload,
+            transaction_id=transaction_id,
         )
 
     def test_space_membership_request_notification_workflow(self):
         self.assertEqual(self.notification_instance.workflow, Workflow.SPACE_MEMBERSHIP_REQUEST.value)
+
+
+@pytest.mark.django_db
+class SpaceMembershipRequestApprovalNotificationTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user = make_user()
+        approver = make_user()
+        space = make_community()
+        transaction_id = str(uuid.uuid4())
+        payload = SpaceMembershipRequestApprovalPayload(user=user, space=space, approver=approver)
+        cls.notification_instance = SpaceMembershipRequestApprovalNotification(
+            recipient=str(user.username),
+            payload=payload,
+            transaction_id=transaction_id,
+        )
+
+    def test_space_membership_request_approval_notification_workflow(self):
+        self.assertEqual(self.notification_instance.workflow, Workflow.SPACE_MEMBERSHIP_REQUEST_APPROVAL.value)

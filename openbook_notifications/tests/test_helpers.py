@@ -24,17 +24,19 @@ class TestFlattenPayload(TestCase):
         )
         payload_dict = payload.to_dict()
         expected_result = {
-            "user_id": str(user.id),
-            "user_full_name": "Test User",
-            "user_email": "test.user@holi.social",
-            "user_avatar": user.profile.avatar.url,
-            "space_id": str(space.id),
-            "space_name": "test-space",
-            "space_title": "Test Space",
-            "space_cover": "",
-            "space_avatar": "",
-            "request_message": "I'm interested in becoming a member of your space",
-            "notification_type": "SPACE_MEMBERSHIP_REQUEST",
-            "notification_version": "1.0.0",
+            "userId": str(user.id),
+            "userFullName": "Test User",
+            "userAvatar": user.profile.avatar.url,
+            "userAvatarBlurhash": "",
+            "userAvatarDefaultColor": user.avatar_default_color,
+            "spaceId": str(space.id),
+            "spaceName": "test-space",
+            "spaceTitle": "Test Space",
+            "spaceAvatar": "",
+            "spaceAvatarBlurhash": "",
+            "spaceAvatarDefaultColor": space.avatar_default_color,
+            "requestMessage": "I'm interested in becoming a member of your space",
+            "notificationType": "SPACE_MEMBERSHIP_REQUEST",
+            "notificationVersion": "1.0.0",
         }
         self.assertDictContainsSubset(expected_result, flatten_payload(payload_dict))
