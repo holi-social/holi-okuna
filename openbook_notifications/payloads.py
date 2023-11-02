@@ -60,7 +60,6 @@ class SpaceData:
         id: str,
         title: str,
         name: str,
-        cover: str,
         avatar_blurhash: str = "",
         avatar_default_color: str = "",
         avatar: Optional[str] = "",
@@ -68,7 +67,6 @@ class SpaceData:
         self.id = id
         self.name = name
         self.title = title
-        self.cover = cover
         self.avatar = avatar
         self.avatar_blurhash = avatar_blurhash
         self.avatar_default_color = avatar_default_color
@@ -78,7 +76,6 @@ class SpaceData:
             "id": self.id,
             "name": self.name,
             "title": self.title,
-            "cover": self.cover,
             "avatar": self.avatar,
             "avatarBlurhash": self.avatar_blurhash,
             "avatarDefaultColor": self.avatar_default_color,
@@ -90,7 +87,6 @@ class SpaceData:
             id=str(community.id),
             name=community.name,
             title=community.title,
-            cover=community.cover.url if community.cover else "",
             avatar=community.avatar.url if community.avatar else "",
             avatar_blurhash=community.avatar_blurhash if community.avatar_blurhash else "",
             avatar_default_color=str(community.avatar_default_color) if community.avatar_default_color else "",
