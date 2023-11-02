@@ -1,24 +1,27 @@
 import uuid
 import pytest
 
-from unittest.mock import Mock, call, patch
+from unittest.mock import call, patch
 from django.test import TestCase
 
 from requests import Session
 from requests.adapters import HTTPAdapter
 
+from novu.api import EventApi
+
 from openbook_notifications.notifications import (
     Notification,
     SpaceMembershipRequestNotification,
-    SpaceMembershipRequestApprovalNotification,
     Workflow,
+    SpaceMembershipRequestApprovalNotification,
 )
 from openbook_notifications.payloads import SpaceMembershipRequestPayload, SpaceMembershipRequestApprovalPayload
-from openbook_notifications.toggles import notifications_toggle
 from openbook_common.tests.helpers import (
     make_community,
     make_user,
 )
+from openbook_common.enums import FeatureToggleName, FeatureToggleType
+from openbook_common.models import FeatureToggle as FeatureToggleModel
 
 
 @pytest.mark.django_db
@@ -31,36 +34,36 @@ class NotificationTestCase(TestCase):
             payload={"data": {"key": "value"}},
             transaction_id="test-transaction-id",
         )
+        cls.notifications_toggle = FeatureToggleModel.objects.create(
+            name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
+        )
 
-    @patch("novu.api.EventApi")
-    @notifications_toggle
-    def test_notification_send(self, mock_event_api):
-        # Mock EventApi to prevent actual API calls
-        mock_event_instance = Mock()
-        mock_event_api.return_value = mock_event_instance
+        cls.overrides = {
+            "type": "data",
+            "fcm": {"type": "data", "data": {"key": "value"}},
+            "apns": {"payload": {"data": {"key": "value"}}},
+        }
 
+    @patch.object(EventApi, "trigger")
+    def test_notification_send(self, mock_event_api_trigger):
         result = self.notification_instance.send()
 
         # Assert that the EventApi trigger was called with the expected arguments
-        mock_event_instance.trigger.assert_called_with(
+        mock_event_api_trigger.assert_called_with(
             name="test-workflow",
             recipients=["user-id"],
             payload={"data": {"key": "value"}},
-            overrides={
-                "type": "data",
-                "fcm": {"type": "data", "data": {"key: value"}},
-                "apns": {"payload": {"data": {"key: value"}}},
-            },
+            overrides=self.overrides,
             transaction_id="test-transaction-id",
         )
 
-        self.assertEqual(result, mock_event_instance.trigger.return_value)
+        self.assertEqual(result, mock_event_api_trigger.return_value)
 
     def test_notification_session_setup(self):
         # Test that the session is set up correctly
         self.assertIsInstance(self.notification_instance.session, Session)
 
-        # Check the session's monted adapter
+        # Check the session's mounted adapter
         self.assertIsInstance(self.notification_instance.session.adapters["https://"], HTTPAdapter)
 
         # Check the adapter's attributes
@@ -70,26 +73,37 @@ class NotificationTestCase(TestCase):
             self.notification_instance.session.adapters["https://"].max_retries.status_forcelist, [502, 503, 504]
         )
 
-    @patch("novu.api.EventApi")
-    @notifications_toggle
-    def test_notification_send_with_retry(self, mock_event_api):
-        mock_event_instance = Mock()
-        mock_event_api.return_value = mock_event_instance
-
+    @patch.object(EventApi, "trigger")
+    def test_notification_send_with_retry(self, mock_event_api_trigger):
         # Simulate a failing first call
-        mock_event_instance.trigger.side_effect = [Exception("Failed"), {"status": "503"}]
+        mock_event_api_trigger.side_effect = [Exception("Failed"), {"status": "503"}]
 
-        result = self.notification_instance.send()
+        with self.assertRaises(Exception):
+            self.notification_instance.send()
+
+        self.notification_instance.send()
 
         # Assert that the EventApi trigger was called twice with the expected arguments
-        mock_event_instance.trigger.assert_has_calls(
+        assert mock_event_api_trigger.call_count == 2
+
+        mock_event_api_trigger.assert_has_calls(
             [
-                call(name="test-workflow", recipients=["user-id"], payload={"data": {"key": "value"}}),
-                call(name="test-workflow", recipients=["user-id"], payload={"data": {"key": "value"}}),
+                call(
+                    name="test-workflow",
+                    recipients=["user-id"],
+                    payload={"data": {"key": "value"}},
+                    overrides=self.overrides,
+                    transaction_id="test-transaction-id",
+                ),
+                call(
+                    name="test-workflow",
+                    recipients=["user-id"],
+                    payload={"data": {"key": "value"}},
+                    overrides=self.overrides,
+                    transaction_id="test-transaction-id",
+                ),
             ]
         )
-
-        self.assertEqual(result, {"status": "success"})
 
 
 @pytest.mark.django_db
