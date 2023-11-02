@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 class NotificationType(Enum):
     SPACE_MEMBERSHIP_REQUEST = "SPACE_MEMBERSHIP_REQUEST"
+    SPACE_MEMBERSHIP_REQUEST_APPROVAL = "SPACE_MEMBERSHIP_REQUEST_APPROVAL"
 
 
 class UserData:
@@ -19,7 +20,6 @@ class UserData:
         self,
         id: str,
         full_name: str,
-        email: str,
         avatar_blurhash: Optional[str] = "",
         avatar_default_color: Optional[str] = "",
         avatar: Optional[str] = "",
@@ -27,7 +27,6 @@ class UserData:
     ):
         self.id = id
         self.full_name = full_name
-        self.email = email
         self.avatar = avatar
         self.avatar_blurhash = avatar_blurhash
         self.avatar_default_color = avatar_default_color
@@ -37,7 +36,6 @@ class UserData:
         return {
             "id": self.id,
             "fullName": self.full_name,
-            "email": self.email,
             "avatar": self.avatar,
             "avatarBlurhash": self.avatar_blurhash,
             "avatarDefaultColor": self.avatar_default_color,
@@ -49,7 +47,6 @@ class UserData:
         return cls(
             id=str(user.username),
             full_name=user.profile.full_name(),
-            email=user.email,
             avatar=user.profile.avatar.url if user.profile.avatar else "",
             avatar_blurhash=user.profile.avatar_blurhash if user.profile.avatar_blurhash else "",
             avatar_default_color=str(user.avatar_default_color) if user.avatar_default_color else "",
@@ -63,7 +60,6 @@ class SpaceData:
         id: str,
         title: str,
         name: str,
-        cover: str,
         avatar_blurhash: str = "",
         avatar_default_color: str = "",
         avatar: Optional[str] = "",
@@ -71,7 +67,6 @@ class SpaceData:
         self.id = id
         self.name = name
         self.title = title
-        self.cover = cover
         self.avatar = avatar
         self.avatar_blurhash = avatar_blurhash
         self.avatar_default_color = avatar_default_color
@@ -81,7 +76,6 @@ class SpaceData:
             "id": self.id,
             "name": self.name,
             "title": self.title,
-            "cover": self.cover,
             "avatar": self.avatar,
             "avatarBlurhash": self.avatar_blurhash,
             "avatarDefaultColor": self.avatar_default_color,
@@ -93,7 +87,6 @@ class SpaceData:
             id=str(community.id),
             name=community.name,
             title=community.title,
-            cover=community.cover.url if community.cover else "",
             avatar=community.avatar.url if community.avatar else "",
             avatar_blurhash=community.avatar_blurhash if community.avatar_blurhash else "",
             avatar_default_color=str(community.avatar_default_color) if community.avatar_default_color else "",
@@ -116,7 +109,6 @@ class Payload:
 
 class SpaceMembershipRequestPayload(Payload):
     NOTIFICATION_VERSION = "1.0.0"
-    request_datetime = datetime.now().isoformat()
 
     def __init__(self, user: User, space: Community, message: Optional[str] = ""):
         super().__init__(
@@ -124,9 +116,25 @@ class SpaceMembershipRequestPayload(Payload):
                 "user": UserData.from_user(user).to_dict(),
                 "space": SpaceData.from_community(space).to_dict(),
                 "requestMessage": message if message else "",
-                "requestDatetime": self.request_datetime,
+                "requestDatetime": datetime.now().isoformat(),
                 "collaboratorsLink": f"{settings.APP_URL}/spaces/{space.name}/collaborators/manage?tab=pending&userId={user.username}",
             },
             notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST.value,
             notification_version=SpaceMembershipRequestPayload.NOTIFICATION_VERSION,
+        )
+
+
+class SpaceMembershipRequestApprovalPayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, user: User, space: Community, approver: User):
+        super().__init__(
+            data={
+                "user": UserData.from_user(user).to_dict(),
+                "space": SpaceData.from_community(space).to_dict(),
+                "approver": UserData.from_user(approver).to_dict(),
+                "approvalDatetime": datetime.now().isoformat(),
+            },
+            notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST_APPROVAL.value,
+            notification_version=SpaceMembershipRequestApprovalPayload.NOTIFICATION_VERSION,
         )

@@ -695,29 +695,70 @@ class TestUsers:
         assert devices[0].token == "some_token"
         assert devices[0].device_type == "ANDROID"
         mock_set_subscriber_credentials.assert_called_once_with(
-            user_id=str(user.username), provider_id=NotificationProvider.FCM.value, device_tokens=["some_token"]
+            subscriber_id=str(user.username), provider_id=NotificationProvider.FCM, device_tokens=["some_token"]
         )
 
     @mock.patch("openbook_notifications.api.NotificationApi.set_subscriber_credentials")
     def test_can_register_the_same_device_twice(self, mock_set_subscriber_credentials):
+        # GIVEN all systems work fine
         user = make_user()
 
+        # WHEN user tries to register their device
         response = self.mutate_register_device(user)
 
+        # THEN the request succeeds
         assert response.errors is None
         assert response.data["registerDevice"]["success"] is True
 
+        # THEN the device was registered in Okuna and in the notification system
         assert len(user.devices.all()) == 1
-
-        response = self.mutate_register_device(user)
-
-        assert response.errors is None
-        assert response.data["registerDevice"]["success"] is True
-
-        assert len(user.devices.all()) == 1
-
         mock_set_subscriber_credentials.assert_called_once_with(
-            user_id=str(user.username), provider_id=NotificationProvider.FCM.value, device_tokens=["some_token"]
+            subscriber_id=str(user.username), provider_id=NotificationProvider.FCM, device_tokens=["some_token"]
+        )
+
+        # WHEN user "re-tries" to register their device (e.g. due to app restart)
+        response = self.mutate_register_device(user)
+
+        # THEN the request succeeds
+        assert response.errors is None
+        assert response.data["registerDevice"]["success"] is True
+
+        # THEN the device is still known to Okuna
+        assert len(user.devices.all()) == 1
+
+        # THEN notification system has *still* only been called once (because device was already known)
+        mock_set_subscriber_credentials.assert_called_once_with(
+            subscriber_id=str(user.username), provider_id=NotificationProvider.FCM, device_tokens=["some_token"]
+        )
+
+    @mock.patch("openbook_notifications.api.NotificationApi.set_subscriber_credentials")
+    def test_only_registers_device_in_okuna_if_succeeded_in_notification_system(self, mock_set_subscriber_credentials):
+        # GIVEN registering a device in the notification system fails
+        user = make_user()
+        mock_set_subscriber_credentials.side_effect = Exception("Server error")
+
+        # WHEN user tries to register their device
+        response = self.mutate_register_device(user)
+
+        # THEN the request fails
+        assert response.errors is not None
+
+        # THEN no device was registered in Okuna
+        assert len(user.devices.all()) == 0
+
+        # WHEN user retries to register their device
+        mock_set_subscriber_credentials.side_effect = None
+        mock_set_subscriber_credentials.reset_mock()
+        response = self.mutate_register_device(user)
+
+        # THEN the request succeeds
+        assert response.errors is None
+        assert response.data["registerDevice"]["success"] is True
+
+        # THEN the device was registered in Okuna and in the notification system
+        assert len(user.devices.all()) == 1
+        mock_set_subscriber_credentials.assert_called_once_with(
+            subscriber_id=str(user.username), provider_id=NotificationProvider.FCM, device_tokens=["some_token"]
         )
 
     @mock.patch("openbook_notifications.api.NotificationApi.set_subscriber_credentials")

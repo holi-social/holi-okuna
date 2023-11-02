@@ -17,7 +17,7 @@ from openbook_notifications.payloads import (
 @pytest.mark.django_db
 class TestPayloads(TestCase):
     def setUp(self):
-        self.user = make_user(name="Test", last_name="User", email="test.user@holi.social")
+        self.user = make_user(name="Test", last_name="User")
         self.space = make_community(title="Test Space")
         self.notification_type = "TEST_NOTIFICATION_TYPE"
 
@@ -25,7 +25,6 @@ class TestPayloads(TestCase):
         user_data = UserData(
             id="test-user-id",
             full_name="Test User",
-            email="test.user@holi.social",
             avatar="avatar.jpg",
             avatar_blurhash="test_blurhash",
             avatar_default_color="#FFF000",
@@ -38,7 +37,6 @@ class TestPayloads(TestCase):
             {
                 "id": "test-user-id",
                 "fullName": "Test User",
-                "email": "test.user@holi.social",
                 "avatar": "avatar.jpg",
                 "avatarBlurhash": "test_blurhash",
                 "avatarDefaultColor": "#FFF000",
@@ -55,7 +53,6 @@ class TestPayloads(TestCase):
             {
                 "id": str(self.user.username),
                 "fullName": "Test User",
-                "email": "test.user@holi.social",
                 "avatar": self.user.profile.avatar.url,
                 "avatarBlurhash": "",
                 "avatarDefaultColor": self.user.avatar_default_color,
@@ -68,7 +65,6 @@ class TestPayloads(TestCase):
             id="test-space-id",
             name="test-space",
             title="Test Space",
-            cover="cover.jpg",
             avatar="avatar.jpg",
             avatar_blurhash="test-blurhash",
             avatar_default_color="#FFF000",
@@ -81,7 +77,6 @@ class TestPayloads(TestCase):
                 "id": "test-space-id",
                 "name": "test-space",
                 "title": "Test Space",
-                "cover": "cover.jpg",
                 "avatar": "avatar.jpg",
                 "avatarBlurhash": "test-blurhash",
                 "avatarDefaultColor": "#FFF000",
@@ -98,7 +93,6 @@ class TestPayloads(TestCase):
                 "id": str(self.space.id),
                 "name": "test-space",
                 "title": "Test Space",
-                "cover": "",
                 "avatar": "",
                 "avatarBlurhash": "",
                 "avatarDefaultColor": self.space.avatar_default_color,

@@ -624,6 +624,9 @@ class Community(ModelWithUUID):
     def remove_membership_request(self, user):
         CommunityMembershipRequest.delete_membership_request(self, user)
 
+    def get_membership_request(self, user):
+        return CommunityMembershipRequest.get_membership_request(self, user)
+
     def remove_invite(self, user):
         CommunityInvite.delete_community_invite(user_name=user.username, community_name=self.name)
 
@@ -1021,6 +1024,10 @@ class CommunityMembershipRequest(ModelWithUUID):
     @classmethod
     def delete_membership_request(cls, community, user):
         cls.objects.filter(community=community, user=user).delete()
+
+    @classmethod
+    def get_membership_request(cls, community, user):
+        return cls.objects.get(community=community, user=user)
 
 
 class CommunityPendingInvite(ModelWithUUID):

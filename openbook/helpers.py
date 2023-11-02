@@ -19,10 +19,6 @@ from openbook_communities.models import Community
 logger = structlog.getLogger(__name__)
 
 
-def generate_publish_failure_message(cls):
-    return f"Failed to publish {cls.__name__} event"
-
-
 def publish_space_created_event(community: Community):
     try:
         creator = UserPayload.from_user(community.creator)
@@ -30,7 +26,7 @@ def publish_space_created_event(community: Community):
         event = SpaceCreatedEvent(creator, space)
         publish_event(event=event, topic=PubSubTopic.OKUNA.value)
     except Exception as e:
-        logger.error(generate_publish_failure_message(SpaceCreatedEvent), str(e))
+        logger.error(__generate_publish_failure_message(SpaceCreatedEvent), str(e))
 
 
 def publish_space_user_added_event(username: str, community: Community):
@@ -41,7 +37,7 @@ def publish_space_user_added_event(username: str, community: Community):
         event = SpaceUserAddedEvent(user, space)
         publish_event(event=event, topic=PubSubTopic.OKUNA.value)
     except Exception as e:
-        logger.error(generate_publish_failure_message(SpaceUserAddedEvent), str(e))
+        logger.error(__generate_publish_failure_message(SpaceUserAddedEvent), str(e))
 
 
 def publish_user_name_updated_event(user: User):
@@ -50,7 +46,7 @@ def publish_user_name_updated_event(user: User):
         event = UserNameUpdatedEvent(updated_user)
         publish_event(event=event, topic=PubSubTopic.OKUNA.value)
     except Exception as e:
-        logger.error(generate_publish_failure_message(UserNameUpdatedEvent), str(e))
+        logger.error(__generate_publish_failure_message(UserNameUpdatedEvent), str(e))
 
 
 def publish_user_email_updated_event(user: User):
@@ -68,7 +64,7 @@ def publish_space_deleted_event(community: Community):
         event = SpaceDeletedEvent(space)
         publish_event(event=event, topic=PubSubTopic.OKUNA.value)
     except Exception as e:
-        logger.error(generate_publish_failure_message(SpaceDeletedEvent), str(e))
+        logger.error(__generate_publish_failure_message(SpaceDeletedEvent), str(e))
 
 
 def publish_user_deleted_event(user: User):
@@ -77,7 +73,7 @@ def publish_user_deleted_event(user: User):
         event = UserDeletedEvent(deleted_user)
         publish_event(event=event, topic=PubSubTopic.OKUNA.value)
     except Exception as e:
-        logger.error(generate_publish_failure_message(UserDeletedEvent), str(e))
+        logger.error(__generate_publish_failure_message(UserDeletedEvent), str(e))
 
 
 def publish_space_user_left_event(user: User, community: Community):
@@ -87,7 +83,7 @@ def publish_space_user_left_event(user: User, community: Community):
         event = SpaceUserLeftEvent(user, space)
         publish_event(event=event, topic=PubSubTopic.OKUNA.value)
     except Exception as e:
-        logger.error(generate_publish_failure_message(SpaceUserLeftEvent), str(e))
+        logger.error(__generate_publish_failure_message(SpaceUserLeftEvent), str(e))
 
 
 def publish_space_user_removed_event(user: User, community: Community):
@@ -97,4 +93,8 @@ def publish_space_user_removed_event(user: User, community: Community):
         event = SpaceUserRemovedEvent(user, space)
         publish_event(event=event, topic=PubSubTopic.OKUNA.value)
     except Exception as e:
-        logger.error(generate_publish_failure_message(SpaceUserRemovedEvent), str(e))
+        logger.error(__generate_publish_failure_message(SpaceUserRemovedEvent), str(e))
+
+
+def __generate_publish_failure_message(cls):
+    return f"Failed to publish {cls.__name__} event"

@@ -96,9 +96,6 @@ from openbook_terms.models import Topic, SDG, Skill
 from openbook_translation import translation_strategy
 from openbook.utils import DEFAULT_EMAIL_LANGUAGE, generate_hash, get_supported_language_for_email
 
-from openbook_notifications.notifications import SpaceMembershipRequestNotification
-from openbook_notifications.payloads import SpaceMembershipRequestPayload
-
 logger = logging.getLogger(__name__)
 
 
@@ -2161,13 +2158,16 @@ class User(ModelWithUUID, AbstractUser):
                 membership_request.id, staff_member.id
             )
 
-        recipients = [str(staff_member.username) for staff_member in staff_members]
-        payload = SpaceMembershipRequestPayload(space=community_to_join, user=self, message=message)
-        transaction_id = str(membership_request.id)
-        notification = SpaceMembershipRequestNotification(
-            recipients=recipients, payload=payload, transaction_id=transaction_id
+        # deferred import to circumvent circular imports
+        from openbook_notifications.notifications import Notifications
+
+        Notifications.send_space_membership_request_notification(
+            membership_request=membership_request,
+            recipients=staff_members,
+            requester=self,
+            space=community_to_join,
+            message=message,
         )
-        notification.send()
 
         return community_to_join
 
@@ -2189,7 +2189,6 @@ class User(ModelWithUUID, AbstractUser):
 
         Community = get_community_model()
         community_to_join = Community.objects.get(name=community_name)
-
         community_to_join.remove_membership_request(user_to_approve)
         community_to_join.add_member(user_to_approve)
 
@@ -2197,6 +2196,13 @@ class User(ModelWithUUID, AbstractUser):
             community_to_join.remove_invite(user_to_approve)
 
         self.notify_membership_approval(community_to_join, user_to_approve)
+
+        # deferred import to circumvent circular imports
+        from openbook_notifications.notifications import Notifications
+
+        Notifications.send_space_membership_request_approval_notification(
+            requester=user_to_approve, space=community_to_join, approver=self
+        )
 
         return community_to_join
 
