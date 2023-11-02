@@ -136,7 +136,6 @@ class NotificationApiTestCase(TestCase):
         response = NotificationApi.set_subscriber_credentials(user_id, provider_id, webhook_url, device_tokens)
 
         self.assertEqual(response, expected_subscriber_data)
-        mock_subscriber_api_delete_credentials.assert_called_once_with(user_id, provider_id.value)
         mock_subscriber_api_credentials.assert_called_once_with(
             user_id, provider_id.value.value, webhook_url, device_tokens
         )

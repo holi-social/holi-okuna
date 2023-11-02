@@ -68,22 +68,10 @@ class NotificationApi:
         webhook_url: str | None = None,
         device_tokens: List[str] | None = None,
     ):
-        subscriber_api = SubscriberApi()
-        # need to delete old credentials first. otherwise, an old push token might stick around on novu and novu will
-        # try to use the old push token to deliver a message and as a result, fail to do so
-        log_info = {"subscriber_id": subscriber_id, "provider_id": provider_id}
-        logger.debug("Deleting old subscriber credentials for %s", log_info)
-        try:
-            subscriber_api.delete_credentials(subscriber_id, provider_id.value)
-        except HTTPError as e:
-            logger.info(
-                "Deleting old subscriber credentials failed for %s. This is probably due to no previous credentials "
-                + "having been set before, so probably nothing to worry about. Error message: %s",
-                log_info,
-                str(e),
-            )
-        logger.debug("Setting new subscriber credentials for %s", log_info)
-        return subscriber_api.credentials(subscriber_id, provider_id.value.value, webhook_url, device_tokens)
+        logger.debug(
+            "Setting new subscriber credentials for %s", {"subscriber_id": subscriber_id, "provider_id": provider_id}
+        )
+        return SubscriberApi().credentials(subscriber_id, provider_id.value.value, webhook_url, device_tokens)
 
     @staticmethod
     @notifications_toggle
