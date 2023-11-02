@@ -421,23 +421,6 @@ def check_can_get_community_with_name_members(user, community_name):
             )
 
 
-def check_can_join_community_with_name(user, community_name):
-    if user.is_banned_from_community_with_name(community_name):
-        raise ValidationError("You can't join a community you have been banned from.")
-
-    if user.is_member_of_community_with_name(community_name):
-        raise ValidationError(
-            _("You are already a member of the community."),
-        )
-
-    Community = get_community_model()
-    if Community.is_community_with_name_private(community_name=community_name):
-        if not user.is_invited_to_community_with_name(community_name=community_name):
-            raise ValidationError(
-                _("You are not invited to join this community."),
-            )
-
-
 def check_can_leave_community_with_name(user, community_name):
     if not user.is_member_of_community_with_name(community_name=community_name):
         raise ValidationError(

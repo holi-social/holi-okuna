@@ -2120,26 +2120,6 @@ class User(ModelWithUUID, AbstractUser):
             exclude_keywords=exclude_keywords,
         )
 
-    def join_community_with_name(self, community_name):
-        check_can_join_community_with_name(user=self, community_name=community_name)
-        Community = get_community_model()
-        community_to_join = Community.objects.get(name=community_name)
-        community_to_join.add_member(self)
-
-        # Clean up_full any invites
-        CommunityInvite = get_community_invite_model()
-        CommunityInvite.objects.filter(community__name=community_name, invited_user__username=self.username).delete()
-
-        community_to_join.remove_membership_request(self)
-        get_community_notifications_subscription_model().enable_new_post_notification_for_community(
-            community_to_join, self
-        )
-
-        self.notify_membership_approval(community_to_join, self)
-
-        # No need to delete community invite notifications as they are delete cascaded
-        return community_to_join
-
     def request_membership_to_community_with_name(self, community_name, message=None):
         # "Autojoin" for spaces will be configurable per space in the future
         # use self.join_community_with_name(space.name) as a template
