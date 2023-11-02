@@ -405,6 +405,56 @@ class TestCommunities:
         mock_notification_api_cancel_workflow.assert_called_once_with(transaction_id=str(membership_request.id))
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
+    def test_space_membership_request_approval_process_with_invite_to_same_user(self):
+        invitee_email = "test@test.com"
+        invitee = make_user(email=invitee_email)
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+
+        def member_result(user, is_admin):
+            return {
+                "user": {"id": user.username},
+                "isAdministrator": is_admin,
+            }
+
+        # Create a Membership Request
+        mutate_update_space_user_connection_data(
+            auth_user=invitee,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+
+        # Send Invite Request
+        mutate_invite_user_by_email(
+            auth_user=space_creator,
+            email=invitee_email,
+            space_id=space.id,
+        )
+
+        # Approve user Membership Request
+        space_after_approval = mutate_update_space_user_connection_data(
+            auth_user=space_creator,
+            user_id=invitee.username,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBER,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+
+        assert_paged_results_equal(
+            space_after_approval["members"],
+            [member_result(space_creator, is_admin=True), member_result(invitee, is_admin=False)],
+        )
+
+        user_space = get_space_for_user(invitee, space)
+
+        # User has correct connection statuses (there should be more if invitation was still present)
+        assert len(user_space["connectionStatusToMyself"]) == len(
+            [SpaceUserConnectionType.MEMBER.value, SpaceUserConnectionType.FOLLOWER.value]
+        )
+        assert SpaceUserConnectionType.MEMBER.value in user_space["connectionStatusToMyself"]
+        assert SpaceUserConnectionType.FOLLOWER.value in user_space["connectionStatusToMyself"]
+
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
     @mock.patch("openbook_notifications.notifications.SpaceMembershipRequestNotification.send")
@@ -988,6 +1038,57 @@ class TestCommunities:
         mock_publish_space_user_added_event.assert_called_once_with(username=invitee.username, community=space)
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
+
+    def test_space_invite_approval_process_with_membership_request_from_same_invited_user(self):
+        invitee_email = "test@test.com"
+        invitee = make_user(email=invitee_email)
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+
+        def member_result(user, is_admin):
+            return {
+                "user": {"id": user.username},
+                "isAdministrator": is_admin,
+            }
+
+        # Send Invite Request
+        mutate_invite_user_by_email(
+            auth_user=space_creator,
+            email=invitee_email,
+            space_id=space.id,
+        )
+
+        # Invited user has invitee status
+        assert get_space_for_user(invitee, space)["connectionStatusToMyself"] == [
+            SpaceUserConnectionType.MEMBERSHIP_INVITEE.value
+        ]
+
+        # Create a Membership Request
+        mutate_update_space_user_connection_data(
+            auth_user=invitee,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+
+        # Accept Invite
+        space_after_approval = mutate_update_space_user_connection_data(
+            auth_user=invitee,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+
+        assert_paged_results_equal(
+            space_after_approval["members"],
+            [member_result(space_creator, is_admin=True), member_result(invitee, is_admin=False)],
+        )
+
+        # User has correct connection status (not including MEMBERSHIP_REQUESTOR)
+        assert get_space_for_user(invitee, space)["connectionStatusToMyself"] == [
+            SpaceUserConnectionType.FOLLOWER.value,
+            SpaceUserConnectionType.MEMBER.value,
+        ]
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")

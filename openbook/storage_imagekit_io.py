@@ -85,6 +85,9 @@ class ImagekitIoStorage(Storage):
         """
         Delete an image by file_id
         """
+        if not file_id:
+            logger.info("ImagekitIoStorage.delete_image was called with an empty file_id. Doing nothing.")
+            return
         try:
             error = self.imagekit.delete_file(file_id).get("error")
             if error is not None:
@@ -98,7 +101,11 @@ class ImagekitIoStorage(Storage):
 
     def _get_file_id(self, url):
         filename = os.path.basename(url)
-        return self.imagekit.list_files({"name": filename})["response"][0]["fileId"]
+        try:
+            return self.imagekit.list_files({"name": filename})["response"][0]["fileId"]
+        except IndexError:
+            logger.warning("ImagekitIoStorage.list_files did not find any files with filename: %s", filename)
+            return None
 
 
 def _get_file_extension(filename):

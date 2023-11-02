@@ -8,6 +8,7 @@ class EventType(Enum):
     SPACE_CREATED = "SpaceCreated"
     SPACE_USER_ADDED = "SpaceUserAdded"
     USER_NAME_UPDATED = "UserNameUpdated"
+    USER_EMAIL_UPDATED = "UserEmailUpdated"
     SPACE_DELETED = "SpaceDeleted"
     USER_DELETED = "UserDeleted"
     SPACE_USER_LEFT = "SpaceUserLeft"
@@ -44,6 +45,17 @@ class UserNameUpdatedEvent(Event):
             data={"user": user.to_dict()},
             event_type=EventType.USER_NAME_UPDATED.value,
             event_version=UserNameUpdatedEvent.EVENT_VERSION,
+        )
+
+
+class UserEmailUpdatedEvent(Event):
+    EVENT_VERSION = "1.0.0"
+
+    def __init__(self, user: UserPayload):
+        super().__init__(
+            data={"user": user.to_dict()},
+            event_type=EventType.USER_EMAIL_UPDATED.value,
+            event_version=UserEmailUpdatedEvent.EVENT_VERSION,
         )
 
 
