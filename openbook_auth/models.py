@@ -96,6 +96,8 @@ from openbook_terms.models import Topic, SDG, Skill
 from openbook_translation import translation_strategy
 from openbook.utils import DEFAULT_EMAIL_LANGUAGE, generate_hash, get_supported_language_for_email
 
+from openbook_notifications.api import NotificationApi
+
 logger = logging.getLogger(__name__)
 
 
@@ -2176,6 +2178,8 @@ class User(ModelWithUUID, AbstractUser):
 
         Community = get_community_model()
         community_to_join = Community.objects.get(name=community_name)
+        membership_request = community_to_join.get_membership_request(self)
+        NotificationApi.cancel_workflow(transaction_id=str(membership_request.id))
         community_to_join.remove_membership_request(self)
 
         return community_to_join
@@ -2189,13 +2193,15 @@ class User(ModelWithUUID, AbstractUser):
 
         Community = get_community_model()
         community_to_join = Community.objects.get(name=community_name)
+        membership_request = community_to_join.get_membership_request(user_to_approve)
+
         community_to_join.remove_membership_request(user_to_approve)
         community_to_join.add_member(user_to_approve)
 
         if user_to_approve.is_invited_to_community_with_name(community_name):
             community_to_join.remove_invite(user_to_approve)
 
-        self.notify_membership_approval(community_to_join, user_to_approve)
+        self.notify_membership_approval(community_to_join, user_to_approve, membership_request)
 
         # deferred import to circumvent circular imports
         from openbook_notifications.notifications import Notifications
@@ -2250,7 +2256,7 @@ class User(ModelWithUUID, AbstractUser):
 
         return community_to_join
 
-    def notify_membership_approval(self, community_to_join, user_to_approve):
+    def notify_membership_approval(self, community_to_join, user_to_approve, membership_request=None):
         CommunityMembershipApprovedNotification = get_community_membership_approved_notification_model()
         CommunityMembershipApprovedNotification.create_community_membership_approved_notification(
             user_to_approve.id, community_to_join.id, user_to_approve.id
@@ -2259,6 +2265,9 @@ class User(ModelWithUUID, AbstractUser):
             CommunityMembershipApprovedNotification.create_community_membership_approved_notification(
                 staff_member.id, community_to_join.id, user_to_approve.id
             )
+
+        if membership_request is not None:
+            NotificationApi.cancel_workflow(transaction_id=str(membership_request.id))
 
     def notify_membership_removal(self, community, user_to_remove):
         CommunityMembershipRevokedNotification = get_community_membership_revoked_notification_model()
@@ -2284,6 +2293,9 @@ class User(ModelWithUUID, AbstractUser):
         user_to_revoke_request_for: User = User.objects.get(username=username)
         if not user_to_revoke_request_for.is_membership_requestor_of_community_with_name(community_name):
             raise ValidationError(_("User did not request membership to community"))
+
+        membership_request = community.get_membership_request(user_to_revoke_request_for)
+        NotificationApi.cancel_workflow(transaction_id=str(membership_request.id))
 
         community.remove_membership_request(user_to_revoke_request_for)
 
