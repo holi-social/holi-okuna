@@ -2284,6 +2284,19 @@ class User(ModelWithUUID, AbstractUser):
         NotificationApi.delete_in_app_messages(transaction_id=transaction_id)
         community.remove_membership_request(user_to_revoke_request_for)
 
+        # deferred import to circumvent circular imports
+        from openbook_notifications.notifications import Notifications
+
+        Notifications.send_space_membership_request_decline_user_notification(
+            requester=user_to_revoke_request_for, space=community, denier=self
+        )
+        Notifications.send_space_membership_request_decline_admin_notification(
+            recipients=community.get_staff_members(),
+            requester=user_to_revoke_request_for,
+            space=community,
+            denier=self,
+        )
+
         return community
 
     def leave_community_with_name(self, community_name):
