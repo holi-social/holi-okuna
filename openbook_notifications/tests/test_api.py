@@ -1,8 +1,10 @@
 import pytest
 
 from django.test import TestCase
+from novu.api import MessageApi
+from novu.dto import MessageDto
 from requests.exceptions import HTTPError
-from unittest.mock import patch
+from unittest.mock import patch, call
 
 from novu.api.event import EventApi
 from novu.api.subscriber import SubscriberApi
@@ -148,3 +150,11 @@ class NotificationApiTestCase(TestCase):
         NotificationApi.cancel_workflow(transaction_id="transaction-id")
 
         mock_event_api_delete.assert_called_once_with(transaction_id="transaction-id")
+
+    @patch.object(MessageApi, "list")
+    @patch.object(MessageApi, "delete")
+    def test_delete_in_app_messages(self, mock_message_api_delete, mock_message_api_list):
+        mock_message_api_list.return_value.data = [MessageDto(_id=1), MessageDto(_id=2)]
+        NotificationApi.delete_in_app_messages(transaction_id="transaction-id")
+        mock_message_api_list.assert_called_once_with(transaction_id="transaction-id", channel="in_app")
+        mock_message_api_delete.assert_has_calls([call(message_id=1), call(message_id=2)])

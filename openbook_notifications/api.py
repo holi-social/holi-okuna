@@ -3,12 +3,13 @@ from typing import List, Optional, TYPE_CHECKING
 from requests.exceptions import HTTPError
 import structlog
 
+from novu.api.message import MessageApi
 from novu.api.event import EventApi
 from novu.api.subscriber import SubscriberApi
 from novu.dto.subscriber import SubscriberDto
 
 from openbook_notifications.toggles import notifications_toggle
-from openbook_notifications.enums import NotificationProvider
+from openbook_notifications.enums import NotificationProvider, NotificationChannel
 
 logger = structlog.get_logger(__name__)
 
@@ -87,3 +88,10 @@ class NotificationApi:
     @notifications_toggle
     def cancel_workflow(transaction_id: str):
         EventApi().delete(transaction_id=transaction_id)
+
+    @staticmethod
+    @notifications_toggle
+    def delete_in_app_messages(transaction_id: str):
+        messages = MessageApi().list(transaction_id=transaction_id, channel=NotificationChannel.IN_APP.value)
+        for message in messages.data:
+            MessageApi().delete(message_id=message._id)
