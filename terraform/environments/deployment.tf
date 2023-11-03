@@ -216,7 +216,7 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "INSPIRATION_SPACE_ID"
-          value = local.environment == "production" ? "12ed0bc1-722d-4ba6-9d07-c0a7b303edea" : "c12944a8-578f-496f-bd7b-200ad8243561"
+          value = local.environment == "production" ? "12ed0bc1-722d-4ba6-9d07-c0a7b303edea" : "38e8c60c-0d64-4b65-ae0c-c094eb97b94f"
         }
         resources {
           limits = {
