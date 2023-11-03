@@ -314,8 +314,12 @@ class TestCommunities(TestCase):
     )
     @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
     @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
-    def test_space_membership_request_approval_user_process(
+    @mock.patch(
+        "openbook_notifications.notifications.Notifications.send_space_membership_request_approval_admin_notification"
+    )
+    def test_space_membership_request_approval_process(
         self,
+        mock_send_space_membership_request_approval_admin_notification,
         mock_notification_api_delete_in_app_messages,
         mock_notification_api_cancel_workflow,
         mock_send_space_membership_request_approval_user_notification,
@@ -433,6 +437,10 @@ class TestCommunities(TestCase):
             staff_notifications["data"][0]["options"]["user"]["fullName"] == membership_requestor.profile.full_name()
         )
 
+        # THEN staff should receive notification via Notifications system
+        mock_send_space_membership_request_approval_admin_notification.assert_called_once_with(
+            requester=membership_requestor, space=space
+        )
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
     def test_space_membership_request_approval_user_process_with_invite_to_same_user(self):
