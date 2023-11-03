@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 class NotificationType(Enum):
     SPACE_MEMBERSHIP_REQUEST = "SPACE_MEMBERSHIP_REQUEST"
-    SPACE_MEMBERSHIP_REQUEST_APPROVAL = "SPACE_MEMBERSHIP_REQUEST_APPROVAL"
+    SPACE_MEMBERSHIP_REQUEST_APPROVAL_USER = "SPACE_MEMBERSHIP_REQUEST_APPROVAL_USER"
 
 
 class UserData:
@@ -124,7 +124,7 @@ class SpaceMembershipRequestPayload(Payload):
         )
 
 
-class SpaceMembershipRequestApprovalPayload(Payload):
+class SpaceMembershipRequestApprovalUserPayload(Payload):
     NOTIFICATION_VERSION = "1.0.0"
 
     def __init__(self, user: User, space: Community, approver: User):
@@ -135,6 +135,6 @@ class SpaceMembershipRequestApprovalPayload(Payload):
                 "approver": UserData.from_user(approver).to_dict(),
                 "approvalDatetime": datetime.now().isoformat(),
             },
-            notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST_APPROVAL.value,
-            notification_version=SpaceMembershipRequestApprovalPayload.NOTIFICATION_VERSION,
+            notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST_APPROVAL_USER.value,
+            notification_version=SpaceMembershipRequestApprovalUserPayload.NOTIFICATION_VERSION,
         )

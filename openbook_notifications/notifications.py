@@ -10,7 +10,7 @@ from openbook_auth.models import User
 from openbook_communities.models import Community, CommunityMembershipRequest
 
 from openbook_notifications.helpers import flatten_payload
-from openbook_notifications.payloads import SpaceMembershipRequestPayload, SpaceMembershipRequestApprovalPayload
+from openbook_notifications.payloads import SpaceMembershipRequestPayload, SpaceMembershipRequestApprovalUserPayload
 from openbook_notifications.toggles import notifications_toggle
 
 from novu.api import EventApi
@@ -18,7 +18,7 @@ from novu.api import EventApi
 
 class Workflow(Enum):
     SPACE_MEMBERSHIP_REQUEST = "space-membership-request"
-    SPACE_MEMBERSHIP_REQUEST_APPROVAL = "space-membership-request-approval"
+    SPACE_MEMBERSHIP_REQUEST_APPROVAL_USER = "space-membership-request-approval-user"
 
 
 # Use this classes static methods to trigger notifications via the Notifications system (novu)
@@ -40,14 +40,14 @@ class Notifications:
         notification.send()
 
     @staticmethod
-    def send_space_membership_request_approval_notification(
+    def send_space_membership_request_approval_user_notification(
         requester: User,
         space: Community,
         approver: User,
     ):
-        notification = SpaceMembershipRequestApprovalNotification(
+        notification = SpaceMembershipRequestApprovalUserNotification(
             recipient=requester.username,
-            payload=SpaceMembershipRequestApprovalPayload(user=requester, space=space, approver=approver),
+            payload=SpaceMembershipRequestApprovalUserPayload(user=requester, space=space, approver=approver),
         )
         notification.send()
 
@@ -99,12 +99,12 @@ class SpaceMembershipRequestNotification(Notification):
 
 
 # INTERNAL USE ONLY, use Notifications instead to trigger notifications
-class SpaceMembershipRequestApprovalNotification(Notification):
+class SpaceMembershipRequestApprovalUserNotification(Notification):
     def __init__(
-        self, recipient: str, payload: SpaceMembershipRequestApprovalPayload, transaction_id: str | None = None
+        self, recipient: str, payload: SpaceMembershipRequestApprovalUserPayload, transaction_id: str | None = None
     ):
         super().__init__(
-            workflow=Workflow.SPACE_MEMBERSHIP_REQUEST_APPROVAL.value,
+            workflow=Workflow.SPACE_MEMBERSHIP_REQUEST_APPROVAL_USER.value,
             recipients=recipient,
             payload=payload.to_dict(),
             transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
