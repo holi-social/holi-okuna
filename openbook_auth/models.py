@@ -2186,7 +2186,7 @@ class User(ModelWithUUID, AbstractUser):
         # deferred import to circumvent circular imports
         from openbook_notifications.notifications import Notifications
 
-        Notifications.send_space_membership_request_approval_notification(
+        Notifications.send_space_membership_request_approval_user_notification(
             requester=user_to_approve, space=community_to_join, approver=self
         )
 

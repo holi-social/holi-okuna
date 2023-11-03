@@ -310,13 +310,13 @@ class TestCommunities(TestCase):
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
     @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
     @mock.patch(
-        "openbook_notifications.notifications.Notifications.send_space_membership_request_approval_notification"
+        "openbook_notifications.notifications.Notifications.send_space_membership_request_approval_user_notification"
     )
     @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
-    def test_space_membership_request_approval_process(
+    def test_space_membership_request_approval_user_process(
         self,
         mock_notification_api_cancel_workflow,
-        mock_send_space_membership_request_approval_notification,
+        mock_send_space_membership_request_approval_user_notification,
         mock_send_space_membership_request_notification,
         mock_publish_space_user_added_event,
         mock_invalidate_discover_spaces_query_cache,
@@ -409,8 +409,8 @@ class TestCommunities(TestCase):
         assert membership_requestor_notifications["data"][0]["notificationType"] == "CMRA"
 
         # THEN user should receive notification via Notifications system
-        mock_send_space_membership_request_approval_notification.assert_called_once()
-        approval_kwargs = mock_send_space_membership_request_approval_notification.call_args.kwargs
+        mock_send_space_membership_request_approval_user_notification.assert_called_once()
+        approval_kwargs = mock_send_space_membership_request_approval_user_notification.call_args.kwargs
 
         self.assertEquals(approval_kwargs["requester"], membership_requestor)
         self.assertEquals(approval_kwargs["space"], space)
@@ -430,7 +430,7 @@ class TestCommunities(TestCase):
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
-    def test_space_membership_request_approval_process_with_invite_to_same_user(self):
+    def test_space_membership_request_approval_user_process_with_invite_to_same_user(self):
         invitee_email = "test@test.com"
         invitee = make_user(email=invitee_email)
         space_creator = make_user()
