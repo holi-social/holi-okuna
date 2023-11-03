@@ -313,8 +313,10 @@ class TestCommunities(TestCase):
         "openbook_notifications.notifications.Notifications.send_space_membership_request_approval_user_notification"
     )
     @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
+    @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
     def test_space_membership_request_approval_user_process(
         self,
+        mock_notification_api_delete_in_app_messages,
         mock_notification_api_cancel_workflow,
         mock_send_space_membership_request_approval_user_notification,
         mock_send_space_membership_request_notification,
@@ -418,6 +420,9 @@ class TestCommunities(TestCase):
 
         # THEN space membership request workflow should be cancelled to avoid sending emails to staff members
         mock_notification_api_cancel_workflow.assert_called_once_with(transaction_id=str(membership_request.id))
+
+        # THEN in-app messages should be deleted
+        mock_notification_api_delete_in_app_messages.assert_called_once_with(transaction_id=str(membership_request.id))
 
         # THEN staff has approval notification
         staff_notifications = get_notifications(space_creator)
@@ -590,8 +595,10 @@ class TestCommunities(TestCase):
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
     @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
     @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
+    @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
     def test_space_membership_request_rejection_process(
         self,
+        mock_notification_api_delete_in_app_messages,
         mock_notification_api_cancel_workflow,
         mock_send_space_membership_request_notification,
         mock_publish_space_user_added_event,
@@ -683,6 +690,9 @@ class TestCommunities(TestCase):
 
         # THEN space membership request workflow should be cancelled to avoid sending emails to staff members
         mock_notification_api_cancel_workflow.assert_called_once_with(transaction_id=str(membership_request.id))
+
+        # THEN in-app messages should be deleted
+        mock_notification_api_delete_in_app_messages.assert_called_once_with(transaction_id=str(membership_request.id))
 
         mock_publish_space_user_added_event.assert_not_called()
         mock_invalidate_discover_spaces_query_cache.assert_called()

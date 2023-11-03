@@ -2159,7 +2159,9 @@ class User(ModelWithUUID, AbstractUser):
         Community = get_community_model()
         community_to_join = Community.objects.get(name=community_name)
         membership_request = community_to_join.get_membership_request(self)
-        NotificationApi.cancel_workflow(transaction_id=str(membership_request.id))
+        transaction_id = str(membership_request.id)
+        NotificationApi.cancel_workflow(transaction_id=transaction_id)
+        NotificationApi.delete_in_app_messages(transaction_id=transaction_id)
         community_to_join.remove_membership_request(self)
 
         return community_to_join
@@ -2247,7 +2249,9 @@ class User(ModelWithUUID, AbstractUser):
             )
 
         if membership_request is not None:
-            NotificationApi.cancel_workflow(transaction_id=str(membership_request.id))
+            transaction_id = str(membership_request.id)
+            NotificationApi.cancel_workflow(transaction_id=transaction_id)
+            NotificationApi.delete_in_app_messages(transaction_id=transaction_id)
 
     def notify_membership_removal(self, community, user_to_remove):
         CommunityMembershipRevokedNotification = get_community_membership_revoked_notification_model()
@@ -2275,8 +2279,9 @@ class User(ModelWithUUID, AbstractUser):
             raise ValidationError(_("User did not request membership to community"))
 
         membership_request = community.get_membership_request(user_to_revoke_request_for)
-        NotificationApi.cancel_workflow(transaction_id=str(membership_request.id))
-
+        transaction_id = str(membership_request.id)
+        NotificationApi.cancel_workflow(transaction_id=transaction_id)
+        NotificationApi.delete_in_app_messages(transaction_id=transaction_id)
         community.remove_membership_request(user_to_revoke_request_for)
 
         return community
