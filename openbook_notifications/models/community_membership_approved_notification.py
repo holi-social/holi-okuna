@@ -5,6 +5,7 @@ from openbook_common.models import ModelWithUUID
 from openbook_auth.models import User
 from openbook_communities.models import Community
 from openbook_notifications.models.notification import Notification
+from openbook_notifications.toggles import mute_notifications
 
 
 class CommunityMembershipApprovedNotification(ModelWithUUID):
@@ -13,6 +14,7 @@ class CommunityMembershipApprovedNotification(ModelWithUUID):
     approved_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
 
     @classmethod
+    @mute_notifications
     def create_community_membership_approved_notification(cls, owner_id, community_id, user_id):
         membership_accepted_notification = cls.objects.create(approved_user_id=user_id, community_id=community_id)
         Notification.create_notification(
