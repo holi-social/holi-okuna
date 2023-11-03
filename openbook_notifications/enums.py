@@ -1,6 +1,6 @@
 from enum import Enum
 import strawberry
-from novu.enums import PushProviderIdEnum, EmailProviderIdEnum
+from novu.enums import PushProviderIdEnum, EmailProviderIdEnum, Channel
 
 
 @strawberry.enum
@@ -33,3 +33,7 @@ class NotificationProvider(Enum):
     APNS = PushProviderIdEnum.APNS
     FCM = PushProviderIdEnum.FCM
     EMAIL = EmailProviderIdEnum.CUSTOM_SMTP
+
+
+class NotificationChannel(Enum):
+    IN_APP = Channel.IN_APP
