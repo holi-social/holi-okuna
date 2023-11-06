@@ -2177,7 +2177,6 @@ class User(ModelWithUUID, AbstractUser):
         community_to_join = Community.objects.get(name=community_name)
         membership_request = community_to_join.get_membership_request(user_to_approve)
 
-        community_to_join.remove_membership_request(user_to_approve)
         community_to_join.add_member(user_to_approve)
 
         if user_to_approve.is_invited_to_community_with_name(community_name):
@@ -2192,6 +2191,9 @@ class User(ModelWithUUID, AbstractUser):
             requester=user_to_approve, space=community_to_join, approver=self
         )
 
+        Notifications.send_space_membership_request_approval_admin_notification(
+            requester=user_to_approve, space=community_to_join
+        )
         return community_to_join
 
     def accept_membership_invite_to_community_for_username(self, community_name) -> "Community":
@@ -2252,6 +2254,7 @@ class User(ModelWithUUID, AbstractUser):
             transaction_id = str(membership_request.id)
             NotificationApi.cancel_workflow(transaction_id=transaction_id)
             NotificationApi.delete_in_app_messages(transaction_id=transaction_id)
+            community_to_join.remove_membership_request(user_to_approve)
 
     def notify_membership_removal(self, community, user_to_remove):
         CommunityMembershipRevokedNotification = get_community_membership_revoked_notification_model()
