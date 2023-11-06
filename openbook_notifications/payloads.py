@@ -136,6 +136,7 @@ class SpaceMembershipRequestApprovalUserPayload(Payload):
                 "space": SpaceData.from_community(space).to_dict(),
                 "approver": UserData.from_user(approver).to_dict(),
                 "approvalDatetime": datetime.now().isoformat(),
+                "spaceLink": f"{settings.APP_URL}/spaces/{space.name}",
             },
             notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST_APPROVAL_USER.value,
             notification_version=SpaceMembershipRequestApprovalUserPayload.NOTIFICATION_VERSION,

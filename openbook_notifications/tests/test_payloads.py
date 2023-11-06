@@ -155,6 +155,10 @@ class TestPayloads(TestCase):
         self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
         self.assertEqual(data_dict["data"]["approver"]["id"], str(self.admin.username))
         self.assertIsNotNone(data_dict["data"]["approvalDatetime"])
+        self.assertEqual(
+            data_dict["data"]["spaceLink"],
+            "https://staging.dev.holi.social/spaces/test-space",
+        )
 
     def test_space_membership_request_decline_payload(self):
         payload = SpaceMembershipRequestDeclinePayload(
