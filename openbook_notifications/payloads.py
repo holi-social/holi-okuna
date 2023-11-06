@@ -13,6 +13,8 @@ if TYPE_CHECKING:
 class NotificationType(Enum):
     SPACE_MEMBERSHIP_REQUEST = "SPACE_MEMBERSHIP_REQUEST"
     SPACE_MEMBERSHIP_REQUEST_APPROVAL_USER = "SPACE_MEMBERSHIP_REQUEST_APPROVAL_USER"
+    SPACE_MEMBERSHIP_REQUEST_DECLINE_USER = "SPACE_MEMBERSHIP_REQUEST_DECLINE_USER"
+    SPACE_MEMBERSHIP_REQUEST_DECLINE_ADMIN = "SPACE_MEMBERSHIP_REQUEST_DECLINE_ADMIN"
 
 
 class UserData:
@@ -137,4 +139,20 @@ class SpaceMembershipRequestApprovalUserPayload(Payload):
             },
             notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST_APPROVAL_USER.value,
             notification_version=SpaceMembershipRequestApprovalUserPayload.NOTIFICATION_VERSION,
+        )
+
+
+class SpaceMembershipRequestDeclinePayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, user: User, space: Community, denier: User, notification_type: NotificationType):
+        super().__init__(
+            data={
+                "user": UserData.from_user(user).to_dict(),
+                "space": SpaceData.from_community(space).to_dict(),
+                "denier": UserData.from_user(denier).to_dict(),
+                "denialDatetime": datetime.now().isoformat(),
+            },
+            notification_type=notification_type,
+            notification_version=SpaceMembershipRequestDeclinePayload.NOTIFICATION_VERSION,
         )
