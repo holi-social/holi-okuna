@@ -15,11 +15,15 @@ from openbook_notifications.notifications import (
     Workflow,
     SpaceMembershipRequestApprovalUserNotification,
     SpaceMembershipRequestApprovalAdminNotification,
+    SpaceMembershipRequestDeclineUserNotification,
+    SpaceMembershipRequestDeclineAdminNotification,
 )
 from openbook_notifications.payloads import (
     SpaceMembershipRequestPayload,
     SpaceMembershipRequestApprovalUserPayload,
     SpaceMembershipRequestApprovalAdminPayload,
+    SpaceMembershipRequestDeclinePayload,
+    NotificationType,
 )
 from openbook_common.tests.helpers import (
     make_community,
@@ -164,3 +168,50 @@ class SpaceMembershipRequestApprovalAdminNotificationTestCase(TestCase):
 
     def test_space_membership_request_approval_admin_notification_workflow(self):
         self.assertEqual(self.notification_instance.workflow, Workflow.SPACE_MEMBERSHIP_REQUEST_APPROVAL_ADMIN.value)
+
+
+class SpaceMembershipRequestDeclineUserNotificationTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user = make_user()
+        denier = make_user()
+        space = make_community()
+        transaction_id = str(uuid.uuid4())
+        payload = SpaceMembershipRequestDeclinePayload(
+            user=user,
+            space=space,
+            denier=denier,
+            notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST_DECLINE_USER.value,
+        )
+        cls.notification_instance = SpaceMembershipRequestDeclineUserNotification(
+            recipient=str(user.username),
+            payload=payload,
+            transaction_id=transaction_id,
+        )
+
+    def test_space_membership_request_decline_user_notification_workflow(self):
+        self.assertEqual(self.notification_instance.workflow, Workflow.SPACE_MEMBERSHIP_REQUEST_DECLINE_USER.value)
+
+
+@pytest.mark.django_db
+class SpaceMembershipRequestDeclineAdminNotificationTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user = make_user()
+        denier = make_user()
+        space = make_community()
+        transaction_id = str(uuid.uuid4())
+        payload = SpaceMembershipRequestDeclinePayload(
+            user=user,
+            space=space,
+            denier=denier,
+            notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST_DECLINE_ADMIN.value,
+        )
+        cls.notification_instance = SpaceMembershipRequestDeclineAdminNotification(
+            recipients=[str(denier.username)],
+            payload=payload,
+            transaction_id=transaction_id,
+        )
+
+    def test_space_membership_request_decline_admin_notification_workflow(self):
+        self.assertEqual(self.notification_instance.workflow, Workflow.SPACE_MEMBERSHIP_REQUEST_DECLINE_ADMIN.value)

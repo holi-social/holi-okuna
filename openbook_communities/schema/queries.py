@@ -4,7 +4,8 @@ from typing import Annotated, List, Optional
 import strawberry
 import strawberry_django
 from asgiref.sync import async_to_sync, sync_to_async
-from django.db.models import Count, Prefetch, Q
+from django.db.models import Count, Prefetch, F, Q
+from django.db.models.lookups import IContains
 from django.utils.translation import gettext_lazy as _
 from graphql import GraphQLError
 
@@ -14,6 +15,7 @@ from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.schema.types import GeoJSON, Paged
 from openbook_common.types import GeolocationFeature
 from openbook_common.utils.helpers import is_uuid
+from openbook_common.validators import string_not_empty
 from openbook_communities.models import CollaborationTool as CollaborationToolModel
 from openbook_communities.models import Community as CommunityModel
 from openbook_communities.models import SpaceUserConnectionType
@@ -281,6 +283,23 @@ class Query:
     def collaboration_tools(self, space_id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[CollaborationTool]:
         return Paged.of(
             CollaborationToolModel.objects.filter(community__id=space_id).order_by("-created_at"),
+            offset,
+            limit,
+        )
+
+    @strawberry_django.field()
+    def spaces_by_name(self, info, substring: str, offset: int = 0, limit: int = 5) -> Paged[Space]:
+        string_not_empty(substring)
+
+        title_query = IContains(
+            F("title"),
+            substring,
+        )
+
+        return Paged.of(
+            CommunityModel.objects.annotate(member_count=Count("memberships"))
+            .filter(title_query)
+            .order_by("-member_count"),
             offset,
             limit,
         )
