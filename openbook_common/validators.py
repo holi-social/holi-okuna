@@ -102,3 +102,8 @@ def url_safety_validator(url: str):
         raise ValidationError(
             _("The link cannot be posted as it was detected as malicious"),
         )
+
+
+def string_not_empty(string):
+    if not re.match("\\S", string):
+        raise ValidationError("You must provide at least one character in the search string")
