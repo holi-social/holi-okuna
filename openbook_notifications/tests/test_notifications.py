@@ -17,6 +17,7 @@ from openbook_notifications.notifications import (
     SpaceMembershipRequestApprovalAdminNotification,
     SpaceMembershipRequestDeclineUserNotification,
     SpaceMembershipRequestDeclineAdminNotification,
+    SpaceMembershipInviteNotification,
 )
 from openbook_notifications.payloads import (
     SpaceMembershipRequestPayload,
@@ -24,6 +25,7 @@ from openbook_notifications.payloads import (
     SpaceMembershipRequestApprovalAdminPayload,
     SpaceMembershipRequestDeclinePayload,
     NotificationType,
+    SpaceMembershipInvitePayload,
 )
 from openbook_common.tests.helpers import (
     make_community,
@@ -215,3 +217,21 @@ class SpaceMembershipRequestDeclineAdminNotificationTestCase(TestCase):
 
     def test_space_membership_request_decline_admin_notification_workflow(self):
         self.assertEqual(self.notification_instance.workflow, Workflow.SPACE_MEMBERSHIP_REQUEST_DECLINE_ADMIN.value)
+
+
+@pytest.mark.django_db
+class SpaceMembershipInviteNotificationTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user = make_user()
+        space = make_community()
+        transaction_id = str(uuid.uuid4())
+        payload = SpaceMembershipInvitePayload(user=user, space=space)
+        cls.notification_instance = SpaceMembershipInviteNotification(
+            recipient=str(user.username),
+            payload=payload,
+            transaction_id=transaction_id,
+        )
+
+    def test_space_membership_invite_notification_workflow(self):
+        self.assertEqual(self.notification_instance.workflow, Workflow.SPACE_MEMBERSHIP_INVITE.value)
