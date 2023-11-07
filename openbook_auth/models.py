@@ -2192,7 +2192,7 @@ class User(ModelWithUUID, AbstractUser):
         )
 
         Notifications.send_space_membership_request_approval_admin_notification(
-            requester=user_to_approve, space=community_to_join
+            recipients=community_to_join.get_staff_members(), requester=user_to_approve, space=community_to_join
         )
         return community_to_join
 

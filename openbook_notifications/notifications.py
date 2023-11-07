@@ -62,11 +62,12 @@ class Notifications:
 
     @staticmethod
     def send_space_membership_request_approval_admin_notification(
+        recipients: User | List[User],
         requester: User,
         space: Community,
     ):
         notification = SpaceMembershipRequestApprovalAdminNotification(
-            recipient=requester.username,
+            recipients=[str(recipient.username) for recipient in recipients],
             payload=SpaceMembershipRequestApprovalAdminPayload(user=requester, space=space),
         )
         notification.send()
@@ -168,11 +169,14 @@ class SpaceMembershipRequestApprovalUserNotification(Notification):
 
 class SpaceMembershipRequestApprovalAdminNotification(Notification):
     def __init__(
-        self, recipient: str, payload: SpaceMembershipRequestApprovalAdminPayload, transaction_id: Optional[str] = None
+        self,
+        recipients: str | List[str],
+        payload: SpaceMembershipRequestApprovalAdminPayload,
+        transaction_id: Optional[str] = None,
     ):
         super().__init__(
             workflow=Workflow.SPACE_MEMBERSHIP_REQUEST_APPROVAL_ADMIN.value,
-            recipients=recipient,
+            recipients=recipients,
             payload=payload.to_dict(),
             transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
         )
