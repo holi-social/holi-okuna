@@ -161,7 +161,7 @@ class SpaceMembershipRequestApprovalAdminNotificationTestCase(TestCase):
         transaction_id = str(uuid.uuid4())
         payload = SpaceMembershipRequestApprovalAdminPayload(user=user, space=space)
         cls.notification_instance = SpaceMembershipRequestApprovalAdminNotification(
-            recipient=str(user.username),
+            recipients=str(user.username),
             payload=payload,
             transaction_id=transaction_id,
         )

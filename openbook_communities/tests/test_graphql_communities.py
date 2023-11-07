@@ -438,9 +438,13 @@ class TestCommunities(TestCase):
         )
 
         # THEN staff should receive notification via Notifications system
-        mock_send_space_membership_request_approval_admin_notification.assert_called_once_with(
-            requester=membership_requestor, space=space
-        )
+        kwargs = mock_send_space_membership_request_approval_admin_notification.call_args.kwargs
+        expected_recipients = [space_creator.username]
+
+        self.assertEquals([r.username for r in kwargs["recipients"]], expected_recipients)
+        self.assertEquals(kwargs["requester"], membership_requestor)
+        self.assertEquals(kwargs["space"], space)
+
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
     def test_space_membership_request_approval_user_process_with_invite_to_same_user(self):
