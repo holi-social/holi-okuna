@@ -10,6 +10,7 @@ from openbook_communities.models import (
     OnboardingStep,
 )
 
+import traceback
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -43,7 +44,10 @@ class CommunityAdmin(admin.ModelAdmin):
     def resend_space_created_event(self, request, queryset):
         for community in queryset.all():
             logger.info("Resending SpaceCreatedEvent: " + str(community))
-            publish_space_created_event(community)
+            try:
+                publish_space_created_event(community)
+            except Exception as e:
+                logger.warning(traceback.format_exc())
 
     actions = [resend_space_created_event]
 
