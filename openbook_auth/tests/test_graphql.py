@@ -193,9 +193,7 @@ class TestUsers:
     def test_can_update_authenticated_user(
         self, mock_update_subscriber, mock_get_language_from_request, mock_publish_user_name_updated_event, mock_patch
     ):
-        response = Response()
-        response.status_code = 200
-        response._content = str.encode(json.dumps({}))
+        response = self.create_ory_response(200, {})
         mock_patch.return_value = response
         user = make_user(name="Fritz", last_name="Meier", identity="fritz")
         community = make_community()
@@ -276,9 +274,7 @@ class TestUsers:
     def test_can_update_authenticated_user_generates_an_identity(
         self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
     ):
-        ory_patch_mock_response = Response()
-        ory_patch_mock_response.status_code = 200
-        ory_patch_mock_response._content = str.encode(json.dumps({}))
+        ory_patch_mock_response = self.create_ory_response(200, {})
         ory_patch_mock.return_value = ory_patch_mock_response
         user = make_user()
         user.identity = None
@@ -288,7 +284,7 @@ class TestUsers:
         assert result.errors is None
 
         expected_ory_call_body = [
-            {"op": "add", "path": "/traits/identity", "value": "fritz"},
+            {"op": "add", "path": "/metadata_public/identity", "value": "fritz.meier"},
         ]
 
         ory_patch_mock.assert_called_with(
@@ -300,8 +296,8 @@ class TestUsers:
         result = result.data["updateAuthenticatedUser"]
         persisted_user = User.objects.get(username=user.username)
 
-        assert "fritz" == persisted_user.identity
-        assert "fritz" == result["identity"]
+        assert "fritz.meier" == persisted_user.identity
+        assert "fritz.meier" == result["identity"]
 
         # test it only registers identity once
         result = api_update_authenticated_user_names(user, "Hans", "Meier")
@@ -310,8 +306,8 @@ class TestUsers:
 
         result = result.data["updateAuthenticatedUser"]
         persisted_user = User.objects.get(username=user.username)
-        assert "fritz" == persisted_user.identity
-        assert "fritz" == result["identity"]
+        assert "fritz.meier" == persisted_user.identity
+        assert "fritz.meier" == result["identity"]
 
         assert mock_update_subscriber.call_count == 2
 
@@ -321,21 +317,19 @@ class TestUsers:
     def test_api_registers_new_user_with_already_taken_identity_for_a_user(
         self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
     ):
-        ory_update_response_stub = Response()
-        ory_update_response_stub.status_code = 200
-        ory_update_response_stub._content = str.encode(json.dumps({}))
+        ory_update_response_stub = self.create_ory_response(200, {})
         ory_patch_mock.return_value = ory_update_response_stub
 
-        make_user(name="Fritz", last_name="Meier", identity="fritz")
-        new_fritz = make_user(name="Fritz", last_name="Hansen")
+        make_user(name="Fritz", last_name="Hansen", identity="fritz.hansen")
+        new_fritz = make_user(name="Fritz", last_name="Hansen", identity="something")
         new_fritz.identity = None
 
         result = api_update_authenticated_user_names(new_fritz, "Fritz", "Hansen")
 
         assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritzhansen"
+        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.hansen1"
 
-        expected_json_body = [{"op": "add", "path": "/traits/identity", "value": "fritzhansen"}]
+        expected_json_body = [{"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen1"}]
 
         ory_patch_mock.assert_called_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{new_fritz.username}",
@@ -353,17 +347,9 @@ class TestUsers:
     def test_api_registers_new_user_with_ory_identity_collision(
         self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
     ):
-        ory_update_user_name_success = Response()
-        ory_update_user_name_success.status_code = 200
-        ory_update_user_name_success._content = str.encode(json.dumps({}))
-
-        ory_update_identity_conflict = Response()
-        ory_update_identity_conflict.status_code = 409
-        ory_update_identity_conflict._content = str.encode(json.dumps({"error": {"message": "Error Message"}}))
-
-        ory_update_identity_success = Response()
-        ory_update_identity_success.status_code = 200
-        ory_update_identity_success._content = str.encode(json.dumps({}))
+        ory_update_user_name_success = self.create_ory_response(200, {})
+        ory_update_identity_conflict = self.create_ory_response(409, {"error": {"message": "Error Message"}})
+        ory_update_identity_success = self.create_ory_response(200, {})
 
         ory_patch_mock.side_effect = [
             ory_update_user_name_success,
@@ -377,7 +363,7 @@ class TestUsers:
         result = api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
 
         assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritzhansen"
+        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.hansen1"
 
         ory_patch_mock.assert_has_calls(
             [
@@ -385,14 +371,14 @@ class TestUsers:
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
                     headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
                     json=[
-                        {"op": "add", "path": "/traits/identity", "value": "fritz"},
+                        {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen"},
                     ],
                 ),
                 call(
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
                     headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
                     json=[
-                        {"op": "add", "path": "/traits/identity", "value": "fritzhansen"},
+                        {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen1"},
                     ],
                 ),
             ]
@@ -408,17 +394,9 @@ class TestUsers:
     def test_api_registers_new_user_with_ory_identity_collision_only_first_name(
         self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
     ):
-        ory_update_user_name_success = Response()
-        ory_update_user_name_success.status_code = 200
-        ory_update_user_name_success._content = str.encode(json.dumps({}))
-
-        ory_update_identity_conflict = Response()
-        ory_update_identity_conflict.status_code = 409
-        ory_update_identity_conflict._content = str.encode(json.dumps({"error": {"message": "Error Message"}}))
-
-        ory_update_identity_success = Response()
-        ory_update_identity_success.status_code = 200
-        ory_update_identity_success._content = str.encode(json.dumps({}))
+        ory_update_user_name_success = self.create_ory_response(200, {})
+        ory_update_identity_conflict = self.create_ory_response(409, {"error": {"message": "Error Message"}})
+        ory_update_identity_success = self.create_ory_response(200, {})
 
         ory_patch_mock.side_effect = [
             ory_update_user_name_success,
@@ -440,14 +418,14 @@ class TestUsers:
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
                     headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
                     json=[
-                        {"op": "add", "path": "/traits/identity", "value": "fritz"},
+                        {"op": "add", "path": "/metadata_public/identity", "value": "fritz"},
                     ],
                 ),
                 call(
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
                     headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
                     json=[
-                        {"op": "add", "path": "/traits/identity", "value": "fritz1"},
+                        {"op": "add", "path": "/metadata_public/identity", "value": "fritz1"},
                     ],
                 ),
             ]
@@ -463,17 +441,9 @@ class TestUsers:
     def test_api_registers_new_user_with_ory_identity_multiple_collision(
         self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
     ):
-        ory_update_user_name_success = Response()
-        ory_update_user_name_success.status_code = 200
-        ory_update_user_name_success._content = str.encode(json.dumps({}))
-
-        ory_update_identity_conflict = Response()
-        ory_update_identity_conflict.status_code = 409
-        ory_update_identity_conflict._content = str.encode(json.dumps({"error": {"message": "Error Message"}}))
-
-        ory_update_identity_success = Response()
-        ory_update_identity_success.status_code = 200
-        ory_update_identity_success._content = str.encode(json.dumps({}))
+        ory_update_user_name_success = self.create_ory_response(200, {})
+        ory_update_identity_conflict = self.create_ory_response(409, {"error": {"message": "Error Message"}})
+        ory_update_identity_success = self.create_ory_response(200, {})
 
         ory_patch_mock.side_effect = [
             ory_update_user_name_success,
@@ -489,7 +459,7 @@ class TestUsers:
         result = api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
 
         assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritzhansen2"
+        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.hansen3"
 
         ory_patch_mock.assert_has_calls(
             [
@@ -497,21 +467,21 @@ class TestUsers:
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
                     headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
                     json=[
-                        {"op": "add", "path": "/traits/identity", "value": "fritz"},
+                        {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen"},
                     ],
                 ),
                 call(
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
                     headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
                     json=[
-                        {"op": "add", "path": "/traits/identity", "value": "fritzhansen"},
+                        {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen1"},
                     ],
                 ),
                 call(
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
                     headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
                     json=[
-                        {"op": "add", "path": "/traits/identity", "value": "fritzhansen1"},
+                        {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen2"},
                     ],
                 ),
             ]
@@ -528,10 +498,7 @@ class TestUsers:
     def test_can_delete_authenticated_user(
         self, mock_delete_subscriber, mock_publish_space_deleted_event, mock_publish_user_deleted_event, mock_delete
     ):
-        response = Response()
-        response.status_code = 204
-        response._content = str.encode(json.dumps({}))
-        mock_delete.return_value = response
+        mock_delete.return_value = self.create_ory_response(204, {})
 
         user = make_user(name="Fritz", last_name="Meier")
         space = make_community(creator=user)
@@ -556,6 +523,12 @@ class TestUsers:
         mock_publish_user_deleted_event.assert_called_once_with(user=user)
         mock_publish_space_deleted_event.assert_called_once_with(space)
         mock_delete_subscriber.assert_called_once_with(user_id=str(user.username))
+
+    def create_ory_response(self, http_status, json_body):
+        response = Response()
+        response.status_code = http_status
+        response._content = str.encode(json.dumps(json_body))
+        return response
 
     def test_block_user(self):
         blocking_user = make_user(name="BlockingUser")
