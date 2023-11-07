@@ -1207,10 +1207,12 @@ class TestCommunities(TestCase):
 
         # THEN in-app messages should be deleted
         mock_notification_api_delete_in_app_messages.assert_has_calls(
-            [mock.call(transaction_id=str(membership_request.id)),
-            mock.call(
-                transaction_id=str(invite.id),
-            ),]
+            [
+                mock.call(transaction_id=str(membership_request.id)),
+                mock.call(
+                    transaction_id=str(invite.id),
+                ),
+            ]
         )
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
