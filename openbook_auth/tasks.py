@@ -26,7 +26,7 @@ def update_ory_user_names(user_id: int) -> None:
 
 def update_ory_user_identity(user: User) -> bool:
     data = [
-        {"op": "add", "path": "/traits/identity", "value": user.identity},
+        {"op": "add", "path": "/metadata_public/identity", "value": user.identity},
     ]
     try:
         update_ory(user.username, data)

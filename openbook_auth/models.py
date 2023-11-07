@@ -705,7 +705,8 @@ class User(ModelWithUUID, AbstractUser):
 
     @classmethod
     def sanitize_identity_input(cls, identity):
-        return re.sub(r"[^a-zA-Z0-9_.-]+", "", unidecode(identity).strip().lower())
+        identity_with_spaces = re.sub(r"[^a-zA-Z0-9_. -]+", "", unidecode(identity).strip().lower())
+        return re.sub(r"\s+", ".", identity_with_spaces)  # replace all consecutive whitespaces by single dot
 
     @classmethod
     def is_valid_identity(cls, identity):

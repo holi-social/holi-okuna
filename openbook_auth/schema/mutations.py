@@ -78,19 +78,16 @@ class Mutation:
             publish_user_name_updated_event(user=current_user)
 
         # set identity when needed
-        if not current_user.identity and input.first_name:
-            current_user.identity = UserModel.sanitize_identity_input(input.first_name)
+        if not current_user.identity and current_user.profile.full_name():
+            current_user.identity = UserModel.sanitize_identity_input(current_user.profile.full_name())
 
             if (
                 UserModel.is_invalid_identity(current_user.identity)
                 or UserModel.is_identity_taken(current_user.identity)
                 or not update_ory_user_identity(current_user)
             ):
-                identity_wish = UserModel.sanitize_identity_input(current_user.profile.full_name())
-                # when the user has no last name, full_name is identical to first_name, so init the counter with 0
-                # to already start adding a number on the call to next_unique_identity.
-                # Otherwise init with None, to not add a number on the first call to next_unique_identity
-                counter = None if identity_wish != current_user.identity else 0
+                identity_wish = current_user.identity
+                counter = 0
                 tries = 0
                 taken_identities = UserModel.get_taken_identities(identity_wish)
                 while True:
