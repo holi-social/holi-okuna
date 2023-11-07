@@ -97,7 +97,7 @@ class Mutation:
                     if update_ory_user_identity(current_user):
                         break  # Ory update was successful, and there was no collision. We are done.
                     tries += 1
-                    if tries > 10:
+                    if tries >= 3:
                         logger.error("Could not generate identity from user name after %s attempts.", tries)
                         raise ValidationError({"identity": _("Could not generate identity from user names.")})
 
