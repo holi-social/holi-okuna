@@ -16,6 +16,7 @@ class NotificationType(Enum):
     SPACE_MEMBERSHIP_REQUEST_APPROVAL_ADMIN = "SPACE_MEMBERSHIP_REQUEST_APPROVAL_ADMIN"
     SPACE_MEMBERSHIP_REQUEST_DECLINE_USER = "SPACE_MEMBERSHIP_REQUEST_DECLINE_USER"
     SPACE_MEMBERSHIP_REQUEST_DECLINE_ADMIN = "SPACE_MEMBERSHIP_REQUEST_DECLINE_ADMIN"
+    SPACE_MEMBERSHIP_INVITE = "SPACE_MEMBERSHIP_INVITE"
 
 
 class UserData:
@@ -171,4 +172,19 @@ class SpaceMembershipRequestDeclinePayload(Payload):
             },
             notification_type=notification_type,
             notification_version=SpaceMembershipRequestDeclinePayload.NOTIFICATION_VERSION,
+        )
+
+
+class SpaceMembershipInvitePayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, user: User, space: Community):
+        super().__init__(
+            data={
+                "user": UserData.from_user(user).to_dict(),
+                "space": SpaceData.from_community(space).to_dict(),
+                "inviteDatetime": datetime.now().isoformat(),
+            },
+            notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE.value,
+            notification_version=SpaceMembershipInvitePayload.NOTIFICATION_VERSION,
         )
