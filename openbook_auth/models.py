@@ -89,7 +89,7 @@ from openbook_notifications import helpers
 from openbook_notifications.helpers import (
     get_notification_language_code_for_target_user,
 )
-from openbook_notifications.toggles import notifications_toggle
+from openbook_notifications.toggles import notifications_toggle, mute_notifications
 from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
 from openbook_posts.query_collections import get_posts_for_user_collection
 from openbook_terms.models import Topic, SDG, Skill
@@ -2349,6 +2349,16 @@ class User(ModelWithUUID, AbstractUser):
 
     def invite_user_to_community(self, user, community):
         community_invite = community.create_invite(creator=self, invited_user=user)
+        # deferred import to circumvent circular imports
+        from openbook_notifications.notifications import Notifications
+
+        Notifications.send_space_membership_invite_notification(
+            inviter=self,
+            recipient=user,
+            space=community,
+            community_invite=community_invite,
+        )
+
         self._create_community_invite_notification(community_invite)
         return community_invite
 
@@ -4412,6 +4422,7 @@ class User(ModelWithUUID, AbstractUser):
             owner_id=post_comment_reaction.post_comment.commenter_id,
         )
 
+    @mute_notifications
     def _create_community_invite_notification(self, community_invite):
         CommunityInviteNotification = get_community_invite_notification_model()
         CommunityInviteNotification.create_community_invite_notification(
@@ -4419,6 +4430,7 @@ class User(ModelWithUUID, AbstractUser):
             owner_id=community_invite.invited_user_id,
         )
 
+    @mute_notifications
     def _send_community_invite_push_notification(self, community_invite):
         helpers.send_community_invite_push_notification(community_invite=community_invite)
 
