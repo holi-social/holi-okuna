@@ -44,6 +44,7 @@ from openbook_communities.models import (
     Community,
     CommunityNotificationsSubscription,
     SpaceUserConnectionType,
+    CommunityInvite,
 )
 from openbook_communities.tests.helpers import (
     assert_onboarding,
@@ -998,8 +999,12 @@ class TestCommunities(TestCase):
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
     def test_space_invite_approval_process(
-        self, mock_publish_space_user_added_event, mock_invalidate_discover_spaces_query_cache
+        self,
+        mock_send_space_membership_invite_notification,
+        mock_publish_space_user_added_event,
+        mock_invalidate_discover_spaces_query_cache,
     ):
         invitee_email = "test@test.com"
         invitee = make_user(email=invitee_email)
@@ -1040,6 +1045,16 @@ class TestCommunities(TestCase):
         assert get_space_for_user(invitee, space)["connectionStatusToMyself"] == [
             SpaceUserConnectionType.MEMBERSHIP_INVITEE.value
         ]
+
+        community_invite = space.get_membership_invite(invitee)
+
+        # THEN invitee should receive notification via Notifications system
+        mock_send_space_membership_invite_notification.assert_called_once_with(
+            inviter=space_creator,
+            recipient=invitee,
+            space=space,
+            community_invite=community_invite,
+        )
 
         # Accept Invite
         space_after_approval = mutate_update_space_user_connection_data(
@@ -1130,8 +1145,12 @@ class TestCommunities(TestCase):
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
     def test_space_invite_rejection_process(
-        self, mock_publish_space_user_added_event, mock_invalidate_discover_spaces_query_cache
+        self,
+        mock_send_space_membership_invite_notification,
+        mock_publish_space_user_added_event,
+        mock_invalidate_discover_spaces_query_cache,
     ):
         invitee_email = "test@test.com"
         invitee = make_user(email=invitee_email)
@@ -1172,6 +1191,16 @@ class TestCommunities(TestCase):
         assert get_space_for_user(invitee, space)["connectionStatusToMyself"] == [
             SpaceUserConnectionType.MEMBERSHIP_INVITEE.value
         ]
+
+        community_invite = space.get_membership_invite(invitee)
+
+        # THEN invitee should receive notification via Notifications system
+        mock_send_space_membership_invite_notification.assert_called_once_with(
+            inviter=space_creator,
+            recipient=invitee,
+            space=space,
+            community_invite=community_invite,
+        )
 
         # Decline invite
         space_after_approval = mutate_update_space_user_connection_data(
@@ -2315,7 +2344,8 @@ class TestCommunities(TestCase):
         assert len(tasks_external) == 1
         assert tasks_external[0].get("id") == str(public_task.id)
 
-    def test_can_invite_user_to_space(self):
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
+    def test_can_invite_user_to_space(self, mock_send_space_membership_invite_notification):
         invitee = make_user()
         admin = make_user()
         space = make_community(creator=admin)
@@ -2343,6 +2373,16 @@ class TestCommunities(TestCase):
         space_invite_notification = next(n for n in notifications if n["notificationType"] == "CI")
         assert space_invite_notification["owner"]["fullName"] == invitee.profile.full_name()
         assert space_invite_notification["options"]["user"]["fullName"] == admin.profile.full_name()
+
+        community_invite = space.get_membership_invite(invitee)
+
+        # THEN invitee should receive notification via Notifications system
+        mock_send_space_membership_invite_notification.assert_called_once_with(
+            inviter=admin,
+            recipient=invitee,
+            space=space,
+            community_invite=community_invite,
+        )
 
     def test_correctly_updates_onboarding_steps(self):
         user = make_user()
