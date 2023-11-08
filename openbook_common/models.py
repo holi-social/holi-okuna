@@ -1,3 +1,4 @@
+from __future__ import annotations
 import uuid
 from urllib.parse import urlparse, urljoin, urlsplit
 
@@ -17,6 +18,7 @@ from openbook_common.validators import hex_color_validator
 import tldextract
 import requests
 from bs4 import BeautifulSoup
+from typing import List
 
 
 class ModelWithUUID(models.Model):
@@ -162,7 +164,7 @@ class LinkPreview(ModelWithUUID):
     ]
 
     @classmethod
-    def parse_text(cls, text):
+    def parse_text(cls, text) -> List[LinkPreview]:
         previews = []
         link_urls = extract_urls_from_string(text)
         if link_urls:

@@ -7,7 +7,7 @@ from typing import List
 from typing import Optional
 
 from openbook_auth.models import User
-from openbook_communities.models import Community, CommunityMembershipRequest
+from openbook_communities.models import Community, CommunityMembershipRequest, CommunityInvite
 
 from openbook_notifications.helpers import flatten_payload
 from openbook_notifications.payloads import (
@@ -16,6 +16,7 @@ from openbook_notifications.payloads import (
     SpaceMembershipRequestApprovalAdminPayload,
     SpaceMembershipRequestDeclinePayload,
     NotificationType,
+    SpaceMembershipInvitePayload,
 )
 from openbook_notifications.toggles import notifications_toggle
 
@@ -28,6 +29,7 @@ class Workflow(Enum):
     SPACE_MEMBERSHIP_REQUEST_APPROVAL_ADMIN = "space-membership-request-approval-admin"
     SPACE_MEMBERSHIP_REQUEST_DECLINE_USER = "space-membership-request-decline-user"
     SPACE_MEMBERSHIP_REQUEST_DECLINE_ADMIN = "space-membership-request-decline-admin"
+    SPACE_MEMBERSHIP_INVITE = "space-membership-invite"
 
 
 # Use this classes static methods to trigger notifications via the Notifications system (novu)
@@ -104,6 +106,20 @@ class Notifications:
                 denier=denier,
                 notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST_DECLINE_ADMIN.value,
             ),
+        )
+        notification.send()
+
+    @staticmethod
+    def send_space_membership_invite_notification(
+        community_invite: CommunityInvite,
+        recipient: User,
+        inviter: User,
+        space: Community,
+    ):
+        notification = SpaceMembershipInviteNotification(
+            recipient=str(recipient.username),
+            payload=SpaceMembershipInvitePayload(user=inviter, space=space),
+            transaction_id=str(community_invite.id),
         )
         notification.send()
 
@@ -208,4 +224,15 @@ class SpaceMembershipRequestDeclineAdminNotification(Notification):
             recipients=recipients,
             payload=payload.to_dict(),
             transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
+        )
+
+
+# INTERNAL USE ONLY, use Notifications instead to trigger notifications
+class SpaceMembershipInviteNotification(Notification):
+    def __init__(self, recipient: str, payload: SpaceMembershipInvitePayload, transaction_id: str):
+        super().__init__(
+            workflow=Workflow.SPACE_MEMBERSHIP_INVITE.value,
+            recipients=recipient,
+            payload=payload.to_dict(),
+            transaction_id=transaction_id,
         )
