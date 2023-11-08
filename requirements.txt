@@ -78,7 +78,7 @@ six==1.16.0
 spinners==0.0.24
 sqlparse==0.4.4; python_version >= '3.5'
 stevedore==5.1.0; python_version >= '3.6'
-strawberry-graphql-django==0.17.2
+strawberry-graphql-django==0.24.1
 termcolor==2.3.0
 text-unidecode==1.3
 tldextract==3.4.4
