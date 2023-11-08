@@ -136,9 +136,11 @@ class Notifications:
     ):
         notification = SpaceMembershipInviteApprovalUserNotification(
             recipient=invitee.username,
-            payload=SpaceMembershipInviteApprovalPayload(user=invitee, space=space,
-                            notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_APPROVAL_USER.value,
-),
+            payload=SpaceMembershipInviteApprovalPayload(
+                user=invitee,
+                space=space,
+                notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_APPROVAL_USER.value,
+            ),
         )
         notification.send()
 
@@ -150,9 +152,11 @@ class Notifications:
     ):
         notification = SpaceMembershipInviteApprovalAdminNotification(
             recipients=[str(recipient.username) for recipient in recipients],
-            payload=SpaceMembershipInviteApprovalPayload(user=invitee, space=space,
-                            notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_APPROVAL_ADMIN.value,
-),
+            payload=SpaceMembershipInviteApprovalPayload(
+                user=invitee,
+                space=space,
+                notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_APPROVAL_ADMIN.value,
+            ),
         )
         notification.send()
 
@@ -163,9 +167,11 @@ class Notifications:
     ):
         notification = SpaceMembershipInviteDeclineUserNotification(
             recipient=invitee.username,
-            payload=SpaceMembershipInviteDeclinePayload(user=invitee, space=space,
-                            notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_DECLINE_USER.value,
-),
+            payload=SpaceMembershipInviteDeclinePayload(
+                user=invitee,
+                space=space,
+                notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_DECLINE_USER.value,
+            ),
         )
         notification.send()
 

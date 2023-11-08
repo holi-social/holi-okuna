@@ -193,6 +193,7 @@ class SpaceMembershipInvitePayload(Payload):
             notification_version=SpaceMembershipInvitePayload.NOTIFICATION_VERSION,
         )
 
+
 class SpaceMembershipInviteApprovalPayload(Payload):
     NOTIFICATION_VERSION = "1.0.0"
 
@@ -205,6 +206,7 @@ class SpaceMembershipInviteApprovalPayload(Payload):
             notification_type=notification_type,
             notification_version=SpaceMembershipInviteApprovalPayload.NOTIFICATION_VERSION,
         )
+
 
 class SpaceMembershipInviteDeclinePayload(Payload):
     NOTIFICATION_VERSION = "1.0.0"
