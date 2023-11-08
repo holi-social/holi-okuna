@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from unittest import mock
 from unittest.mock import call
 from django.http import HttpRequest
+from structlog.testing import capture_logs
 
 import pytest
 from asgiref.sync import async_to_sync, sync_to_async
@@ -321,7 +322,7 @@ class TestUsers:
         ory_patch_mock.return_value = ory_update_response_stub
 
         make_user(name="Fritz", last_name="Hansen", identity="fritz.hansen")
-        new_fritz = make_user(name="Fritz", last_name="Hansen", identity="something")
+        new_fritz = make_user(name="Fritz", last_name="Hansen", identity="something_to_prevent_collision")
         new_fritz.identity = None
 
         result = api_update_authenticated_user_names(new_fritz, "Fritz", "Hansen")
@@ -344,7 +345,7 @@ class TestUsers:
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
-    def test_api_registers_new_user_with_ory_identity_collision(
+    def test_api_registers_new_user_with_ory_failing_once(
         self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
     ):
         ory_update_user_name_success = self.create_ory_response(200, {})
@@ -363,7 +364,7 @@ class TestUsers:
         result = api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
 
         assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.hansen1"
+        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.hansen"
 
         ory_patch_mock.assert_has_calls(
             [
@@ -378,7 +379,7 @@ class TestUsers:
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
                     headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
                     json=[
-                        {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen1"},
+                        {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen"},
                     ],
                 ),
             ]
@@ -391,7 +392,7 @@ class TestUsers:
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
-    def test_api_registers_new_user_with_ory_identity_collision_only_first_name(
+    def test_api_registers_new_user_only_first_name_with_ory_failing_once(
         self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
     ):
         ory_update_user_name_success = self.create_ory_response(200, {})
@@ -410,7 +411,7 @@ class TestUsers:
         result = api_update_authenticated_user_names(new_user, "Fritz", "")
 
         assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz1"
+        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz"
 
         ory_patch_mock.assert_has_calls(
             [
@@ -425,7 +426,7 @@ class TestUsers:
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
                     headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
                     json=[
-                        {"op": "add", "path": "/metadata_public/identity", "value": "fritz1"},
+                        {"op": "add", "path": "/metadata_public/identity", "value": "fritz"},
                     ],
                 ),
             ]
@@ -438,28 +439,32 @@ class TestUsers:
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
-    def test_api_registers_new_user_with_ory_identity_multiple_collision(
+    def test_api_registers_new_user_with_ory_failing_too_many_times(
         self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
     ):
         ory_update_user_name_success = self.create_ory_response(200, {})
         ory_update_identity_conflict = self.create_ory_response(409, {"error": {"message": "Error Message"}})
-        ory_update_identity_success = self.create_ory_response(200, {})
 
         ory_patch_mock.side_effect = [
             ory_update_user_name_success,
             ory_update_identity_conflict,
             ory_update_identity_conflict,
             ory_update_identity_conflict,
-            ory_update_identity_success,
         ]
 
         new_user = make_user()
         new_user.identity = None
 
-        result = api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
+        with capture_logs() as cap_logs:
+            result = api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
+            log_entry = next(e for e in cap_logs if "MANUAL INTERVENTION NEEDED!" in e["event"])
+            assert log_entry["log_level"] == "error"
+            assert log_entry["event"] == "asdf"
+
+            # assert "MANUAL INTERVENTION NEEDED!" in caplog.text
 
         assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.hansen3"
+        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.hansen"
 
         ory_patch_mock.assert_has_calls(
             [
@@ -474,14 +479,14 @@ class TestUsers:
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
                     headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
                     json=[
-                        {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen1"},
+                        {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen"},
                     ],
                 ),
                 call(
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
                     headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
                     json=[
-                        {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen2"},
+                        {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen"},
                     ],
                 ),
             ]
