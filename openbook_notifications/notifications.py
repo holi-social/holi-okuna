@@ -181,7 +181,7 @@ class Notifications:
         invitee: User,
         space: Community,
     ):
-        notification = SpaceMembershipInviteApprovalAdminNotification(
+        notification = SpaceMembershipInviteDeclineAdminNotification(
             recipient=recipient.username,
             payload=SpaceMembershipInviteDeclinePayload(
                 user=invitee,
