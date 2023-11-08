@@ -459,7 +459,6 @@ class TestUsers:
             result = api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
             log_entry = next(e for e in cap_logs if "MANUAL INTERVENTION NEEDED!" in e["event"])
             assert log_entry["log_level"] == "error"
-            assert log_entry["event"] == "asdf"
 
             # assert "MANUAL INTERVENTION NEEDED!" in caplog.text
 
