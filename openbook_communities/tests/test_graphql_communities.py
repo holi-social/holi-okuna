@@ -1025,11 +1025,15 @@ class TestCommunities(TestCase):
     @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
     @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
     @mock.patch(
-        "openbook_notifications.notifications.Notifications.send_space_membership_request_approval_admin_notification"
+        "openbook_notifications.notifications.Notifications.send_space_membership_invite_approval_user_notification"
+    )
+    @mock.patch(
+        "openbook_notifications.notifications.Notifications.send_space_membership_invite_approval_admin_notification"
     )
     def test_space_invite_approval_process(
         self,
-        mock_send_space_membership_request_approval_admin_notification,
+        mock_send_space_membership_invite_approval_admin_notification,
+        mock_send_space_membership_invite_approval_user_notification,
         mock_notification_api_delete_in_app_messages,
         mock_notification_api_cancel_workflow,
         mock_send_space_membership_invite_notification,
@@ -1127,12 +1131,18 @@ class TestCommunities(TestCase):
         # THEN in-app messages should be deleted
         mock_notification_api_delete_in_app_messages.assert_called_once_with(transaction_id=str(community_invite.id))
 
+        # THEN user should receive notification via Notificaitons system
+        mock_send_space_membership_invite_approval_user_notification.assert_called_once_with(
+            invitee=invitee,
+            space=space,
+        )
+
         # THEN staff should receive notification via Notifications system
-        kwargs = mock_send_space_membership_request_approval_admin_notification.call_args.kwargs
+        kwargs = mock_send_space_membership_invite_approval_admin_notification.call_args.kwargs
         expected_recipients = [space_creator.username]
 
         self.assertEquals([r.username for r in kwargs["recipients"]], expected_recipients)
-        self.assertEquals(kwargs["requester"], invitee)
+        self.assertEquals(kwargs["invitee"], invitee)
         self.assertEquals(kwargs["space"], space)
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
@@ -1220,8 +1230,16 @@ class TestCommunities(TestCase):
     @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
     @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
     @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
+    @mock.patch(
+        "openbook_notifications.notifications.Notifications.send_space_membership_invite_decline_user_notification"
+    )
+    @mock.patch(
+        "openbook_notifications.notifications.Notifications.send_space_membership_invite_decline_admin_notification"
+    )
     def test_space_invite_rejection_process(
         self,
+        mock_send_space_membership_invite_decline_admin_notification,
+        mock_send_space_membership_invite_decline_user_notification,
         mock_notification_api_delete_in_app_messages,
         mock_notification_api_cancel_workflow,
         mock_send_space_membership_invite_notification,
@@ -1312,6 +1330,19 @@ class TestCommunities(TestCase):
 
         # THEN in-app messages should be deleted
         mock_notification_api_delete_in_app_messages.assert_called_once_with(transaction_id=str(community_invite.id))
+
+        # THEN user should receive notification via Notificaitons system
+        mock_send_space_membership_invite_decline_user_notification.assert_called_once_with(
+            invitee=invitee,
+            space=space,
+        )
+
+        # THEN inviting staff member should receive notification via Notifications system
+        mock_send_space_membership_invite_decline_admin_notification.assert_called_once_with(
+            recipient=space.creator,
+            invitee=invitee,
+            space=space,
+        )
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
