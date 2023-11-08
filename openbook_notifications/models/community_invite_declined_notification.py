@@ -6,6 +6,7 @@ from openbook_common.models import ModelWithUUID
 from openbook_auth.models import User
 from openbook_communities.models import Community
 from openbook_notifications.models.notification import Notification
+from openbook_notifications.toggles import mute_notifications
 
 
 class CommunityInviteDeclinedNotification(ModelWithUUID):
@@ -14,6 +15,7 @@ class CommunityInviteDeclinedNotification(ModelWithUUID):
     invitee = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
 
     @classmethod
+    @mute_notifications
     def create_community_invite_declined_notification(
         cls, owner_id: UUID, community_id: UUID, invitee_id: UUID
     ) -> "CommunityInviteDeclinedNotification":

@@ -189,7 +189,7 @@ class Mutation:
         device_type = data.get("device_type")
         subscriber_id = str(current_user.username)
 
-        logger.info(
+        logger.debug(
             "register_device %s %s",
             input,
             current_user.has_device_with_token_and_type(token=token, device_type=device_type),

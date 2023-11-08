@@ -17,6 +17,8 @@ from openbook_notifications.payloads import (
     SpaceMembershipRequestDeclinePayload,
     NotificationType,
     SpaceMembershipInvitePayload,
+    SpaceMembershipInviteApprovalPayload,
+    SpaceMembershipInviteDeclinePayload,
 )
 from openbook_notifications.toggles import notifications_toggle
 
@@ -30,6 +32,10 @@ class Workflow(Enum):
     SPACE_MEMBERSHIP_REQUEST_DECLINE_USER = "space-membership-request-decline-user"
     SPACE_MEMBERSHIP_REQUEST_DECLINE_ADMIN = "space-membership-request-decline-admin"
     SPACE_MEMBERSHIP_INVITE = "space-membership-invite"
+    SPACE_MEMBERSHIP_INVITE_APPROVAL_USER = "space-membership-invite-approval-user"
+    SPACE_MEMBERSHIP_INVITE_APPROVAL_ADMIN = "space-membership-invite-approval-admin"
+    SPACE_MEMBERSHIP_INVITE_DECLINE_USER = "space-membership-invite-decline-user"
+    SPACE_MEMBERSHIP_INVITE_DECLINE_ADMIN = "space-membership-invite-decline-admin"
 
 
 # Use this classes static methods to trigger notifications via the Notifications system (novu)
@@ -120,6 +126,68 @@ class Notifications:
             recipient=str(recipient.username),
             payload=SpaceMembershipInvitePayload(user=inviter, space=space),
             transaction_id=str(community_invite.id),
+        )
+        notification.send()
+
+    @staticmethod
+    def send_space_membership_invite_approval_user_notification(
+        invitee: User,
+        space: Community,
+    ):
+        notification = SpaceMembershipInviteApprovalUserNotification(
+            recipient=invitee.username,
+            payload=SpaceMembershipInviteApprovalPayload(
+                user=invitee,
+                space=space,
+                notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_APPROVAL_USER.value,
+            ),
+        )
+        notification.send()
+
+    @staticmethod
+    def send_space_membership_invite_approval_admin_notification(
+        recipients: User | List[User],
+        invitee: User,
+        space: Community,
+    ):
+        notification = SpaceMembershipInviteApprovalAdminNotification(
+            recipients=[str(recipient.username) for recipient in recipients],
+            payload=SpaceMembershipInviteApprovalPayload(
+                user=invitee,
+                space=space,
+                notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_APPROVAL_ADMIN.value,
+            ),
+        )
+        notification.send()
+
+    @staticmethod
+    def send_space_membership_invite_decline_user_notification(
+        invitee: User,
+        space: Community,
+    ):
+        notification = SpaceMembershipInviteDeclineUserNotification(
+            recipient=invitee.username,
+            payload=SpaceMembershipInviteDeclinePayload(
+                user=invitee,
+                space=space,
+                notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_DECLINE_USER.value,
+            ),
+        )
+        notification.send()
+
+    @staticmethod
+    def send_space_membership_invite_decline_admin_notification(
+        recipient: User,
+        invitee: User,
+        space: Community,
+    ):
+        notification = SpaceMembershipInviteDeclineAdminNotification(
+            recipient=recipient.username,
+            payload=SpaceMembershipInviteDeclinePayload(
+                user=invitee,
+                space=space,
+                notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_DECLINE_ADMIN.value,
+            ),
         )
         notification.send()
 
@@ -235,4 +303,68 @@ class SpaceMembershipInviteNotification(Notification):
             recipients=recipient,
             payload=payload.to_dict(),
             transaction_id=transaction_id,
+        )
+
+
+# INTERNAL USE ONLY, use Notifications instead to trigger notifications
+class SpaceMembershipInviteApprovalUserNotification(Notification):
+    def __init__(
+        self,
+        recipient: str,
+        payload: SpaceMembershipInvitePayload,
+        transaction_id: str | None = None,
+    ):
+        super().__init__(
+            workflow=Workflow.SPACE_MEMBERSHIP_INVITE_APPROVAL_USER.value,
+            recipients=recipient,
+            payload=payload.to_dict(),
+            transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
+        )
+
+
+# INTERNAL USE ONLY, use Notifications instead to trigger notifications
+class SpaceMembershipInviteApprovalAdminNotification(Notification):
+    def __init__(
+        self,
+        recipients: str | List[str],
+        payload: SpaceMembershipInvitePayload,
+        transaction_id: str | None = None,
+    ):
+        super().__init__(
+            workflow=Workflow.SPACE_MEMBERSHIP_INVITE_APPROVAL_ADMIN.value,
+            recipients=recipients,
+            payload=payload.to_dict(),
+            transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
+        )
+
+
+# INTERNAL USE ONLY, use Notifications instead to trigger notifications
+class SpaceMembershipInviteDeclineUserNotification(Notification):
+    def __init__(
+        self,
+        recipient: str,
+        payload: SpaceMembershipInvitePayload,
+        transaction_id: str | None = None,
+    ):
+        super().__init__(
+            workflow=Workflow.SPACE_MEMBERSHIP_INVITE_DECLINE_USER.value,
+            recipients=recipient,
+            payload=payload.to_dict(),
+            transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
+        )
+
+
+# INTERNAL USE ONLY, use Notifications instead to trigger notifications
+class SpaceMembershipInviteDeclineAdminNotification(Notification):
+    def __init__(
+        self,
+        recipient: str,
+        payload: SpaceMembershipInvitePayload,
+        transaction_id: str | None = None,
+    ):
+        super().__init__(
+            workflow=Workflow.SPACE_MEMBERSHIP_INVITE_DECLINE_ADMIN.value,
+            recipients=recipient,
+            payload=payload.to_dict(),
+            transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
         )

@@ -448,7 +448,13 @@ class TestCommunities(TestCase):
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
-    def test_space_membership_request_approval_user_process_with_invite_to_same_user(self):
+    @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
+    @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
+    def test_space_membership_request_approval_user_process_with_invite_to_same_user(
+        self,
+        mock_notification_api_delete_in_app_messages,
+        mock_notification_api_cancel_workflow,
+    ):
         invitee_email = "test@test.com"
         invitee = make_user(email=invitee_email)
         space_creator = make_user()
@@ -475,6 +481,12 @@ class TestCommunities(TestCase):
             space_id=space.id,
         )
 
+        # THEN a membership request should be created
+        membership_request = space.get_membership_request(invitee)
+
+        # THEN an invite object should have been created
+        invite = space.get_membership_invite(invitee)
+
         # Approve user Membership Request
         space_after_approval = mutate_update_space_user_connection_data(
             auth_user=space_creator,
@@ -497,6 +509,16 @@ class TestCommunities(TestCase):
         )
         assert SpaceUserConnectionType.MEMBER.value in user_space["connectionStatusToMyself"]
         assert SpaceUserConnectionType.FOLLOWER.value in user_space["connectionStatusToMyself"]
+
+        # THEN invite and membership request workflows should be cancelled
+        mock_notification_api_cancel_workflow.assert_has_calls(
+            [mock.call(transaction_id=str(membership_request.id)), mock.call(transaction_id=str(invite.id))]
+        )
+
+        # THEN in-app messages should be deleted
+        mock_notification_api_delete_in_app_messages.assert_has_calls(
+            [mock.call(transaction_id=str(membership_request.id)), mock.call(transaction_id=str(invite.id))]
+        )
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
@@ -1000,8 +1022,20 @@ class TestCommunities(TestCase):
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
     @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
+    @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
+    @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
+    @mock.patch(
+        "openbook_notifications.notifications.Notifications.send_space_membership_invite_approval_user_notification"
+    )
+    @mock.patch(
+        "openbook_notifications.notifications.Notifications.send_space_membership_invite_approval_admin_notification"
+    )
     def test_space_invite_approval_process(
         self,
+        mock_send_space_membership_invite_approval_admin_notification,
+        mock_send_space_membership_invite_approval_user_notification,
+        mock_notification_api_delete_in_app_messages,
+        mock_notification_api_cancel_workflow,
         mock_send_space_membership_invite_notification,
         mock_publish_space_user_added_event,
         mock_invalidate_discover_spaces_query_cache,
@@ -1046,6 +1080,7 @@ class TestCommunities(TestCase):
             SpaceUserConnectionType.MEMBERSHIP_INVITEE.value
         ]
 
+        # THEN an invite object should have been created
         community_invite = space.get_membership_invite(invitee)
 
         # THEN invitee should receive notification via Notifications system
@@ -1090,9 +1125,35 @@ class TestCommunities(TestCase):
         # User added event was sent
         mock_publish_space_user_added_event.assert_called_once_with(username=invitee.username, community=space)
 
+        # THEN invite workflow should be cancelled
+        mock_notification_api_cancel_workflow.assert_called_once_with(transaction_id=str(community_invite.id))
+
+        # THEN in-app messages should be deleted
+        mock_notification_api_delete_in_app_messages.assert_called_once_with(transaction_id=str(community_invite.id))
+
+        # THEN user should receive notification via Notificaitons system
+        mock_send_space_membership_invite_approval_user_notification.assert_called_once_with(
+            invitee=invitee,
+            space=space,
+        )
+
+        # THEN staff should receive notification via Notifications system
+        kwargs = mock_send_space_membership_invite_approval_admin_notification.call_args.kwargs
+        expected_recipients = [space_creator.username]
+
+        self.assertEquals([r.username for r in kwargs["recipients"]], expected_recipients)
+        self.assertEquals(kwargs["invitee"], invitee)
+        self.assertEquals(kwargs["space"], space)
+
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
-    def test_space_invite_approval_process_with_membership_request_from_same_invited_user(self):
+    @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
+    @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
+    def test_space_invite_approval_process_with_membership_request_from_same_invited_user(
+        self,
+        mock_notification_api_delete_in_app_messages,
+        mock_notification_api_cancel_workflow,
+    ):
         invitee_email = "test@test.com"
         invitee = make_user(email=invitee_email)
         space_creator = make_user()
@@ -1124,6 +1185,12 @@ class TestCommunities(TestCase):
             connect_action=UpdateConnectionAction.CONNECT,
         )
 
+        # THEN an invite object should have been created
+        invite = space.get_membership_invite(invitee)
+
+        # THEN an membership request object should have been created
+        membership_request = space.get_membership_request(invitee)
+
         # Accept Invite
         space_after_approval = mutate_update_space_user_connection_data(
             auth_user=invitee,
@@ -1143,11 +1210,38 @@ class TestCommunities(TestCase):
             SpaceUserConnectionType.MEMBER.value,
         ]
 
+        # THEN invite and membership request workflows should be cancelled
+        mock_notification_api_cancel_workflow.assert_has_calls(
+            [mock.call(transaction_id=str(membership_request.id)), mock.call(transaction_id=str(invite.id))]
+        )
+
+        # THEN in-app messages should be deleted
+        mock_notification_api_delete_in_app_messages.assert_has_calls(
+            [
+                mock.call(transaction_id=str(membership_request.id)),
+                mock.call(
+                    transaction_id=str(invite.id),
+                ),
+            ]
+        )
+
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
     @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
+    @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
+    @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
+    @mock.patch(
+        "openbook_notifications.notifications.Notifications.send_space_membership_invite_decline_user_notification"
+    )
+    @mock.patch(
+        "openbook_notifications.notifications.Notifications.send_space_membership_invite_decline_admin_notification"
+    )
     def test_space_invite_rejection_process(
         self,
+        mock_send_space_membership_invite_decline_admin_notification,
+        mock_send_space_membership_invite_decline_user_notification,
+        mock_notification_api_delete_in_app_messages,
+        mock_notification_api_cancel_workflow,
         mock_send_space_membership_invite_notification,
         mock_publish_space_user_added_event,
         mock_invalidate_discover_spaces_query_cache,
@@ -1192,6 +1286,7 @@ class TestCommunities(TestCase):
             SpaceUserConnectionType.MEMBERSHIP_INVITEE.value
         ]
 
+        # THEN an invite object should have been created
         community_invite = space.get_membership_invite(invitee)
 
         # THEN invitee should receive notification via Notifications system
@@ -1229,6 +1324,25 @@ class TestCommunities(TestCase):
         assert staff_notifications["data"][0]["notificationType"] == "CID"
         assert staff_notifications["data"][0]["options"]["space"]["title"] == space.title
         assert staff_notifications["data"][0]["options"]["user"]["fullName"] == invitee.profile.full_name()
+
+        # THEN invite workflow should be cancelled
+        mock_notification_api_cancel_workflow.assert_called_once_with(transaction_id=str(community_invite.id))
+
+        # THEN in-app messages should be deleted
+        mock_notification_api_delete_in_app_messages.assert_called_once_with(transaction_id=str(community_invite.id))
+
+        # THEN user should receive notification via Notificaitons system
+        mock_send_space_membership_invite_decline_user_notification.assert_called_once_with(
+            invitee=invitee,
+            space=space,
+        )
+
+        # THEN inviting staff member should receive notification via Notifications system
+        mock_send_space_membership_invite_decline_admin_notification.assert_called_once_with(
+            recipient=space.creator,
+            invitee=invitee,
+            space=space,
+        )
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
