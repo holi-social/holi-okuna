@@ -86,6 +86,7 @@ from openbook_posts.helpers import (
 )
 from openbook_posts.jobs import process_post_media
 from openbook_posts.validators import post_comment_text_validators, post_text_validators
+from openbook_terms.models import InspirationPostCategory
 from video_encoding.backends import get_backend
 from video_encoding.fields import VideoField
 from video_encoding.models import Format
@@ -135,6 +136,9 @@ class Post(ModelWithUUID):
     links = SortedManyToManyField(LinkPreview, related_name="+", blank=True)
     mentions = models.ManyToManyField(User, related_name="mentioned_in_posts", blank=True, through="PostUserMention")
     is_public = models.BooleanField(default=False, db_index=True)
+    inspiration_post_category = models.ForeignKey(
+        InspirationPostCategory, on_delete=models.CASCADE, null=True, blank=True
+    )
 
     class Meta:
         index_together = [
