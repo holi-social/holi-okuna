@@ -18,6 +18,10 @@ from openbook_notifications.notifications import (
     SpaceMembershipRequestDeclineUserNotification,
     SpaceMembershipRequestDeclineAdminNotification,
     SpaceMembershipInviteNotification,
+    SpaceMembershipInviteApprovalUserNotification,
+    SpaceMembershipInviteApprovalAdminNotification,
+    SpaceMembershipInviteDeclineUserNotification,
+    SpaceMembershipInviteDeclineAdminNotification,
 )
 from openbook_notifications.payloads import (
     SpaceMembershipRequestPayload,
@@ -26,6 +30,8 @@ from openbook_notifications.payloads import (
     SpaceMembershipRequestDeclinePayload,
     NotificationType,
     SpaceMembershipInvitePayload,
+    SpaceMembershipInviteApprovalPayload,
+    SpaceMembershipInviteDeclinePayload,
 )
 from openbook_common.tests.helpers import (
     make_community,
@@ -235,3 +241,91 @@ class SpaceMembershipInviteNotificationTestCase(TestCase):
 
     def test_space_membership_invite_notification_workflow(self):
         self.assertEqual(self.notification_instance.workflow, Workflow.SPACE_MEMBERSHIP_INVITE.value)
+
+
+@pytest.mark.django_db
+class SpaceMembershipInviteApprovalUserNotificationTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user = make_user()
+        space = make_community()
+        transaction_id = str(uuid.uuid4())
+        payload = SpaceMembershipInviteApprovalPayload(
+            user=user,
+            space=space,
+            notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_APPROVAL_USER.value,
+        )
+        cls.notification_instance = SpaceMembershipInviteApprovalUserNotification(
+            recipient=user.username,
+            payload=payload,
+            transaction_id=transaction_id,
+        )
+
+    def test_space_membership_invite_approval_user_notification_workflow(self):
+        self.assertEqual(self.notification_instance.workflow, Workflow.SPACE_MEMBERSHIP_INVITE_APPROVAL_USER.value)
+
+
+@pytest.mark.django_db
+class SpaceMembershipInviteApprovalAdminNotificationTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user = make_user()
+        space = make_community()
+        transaction_id = str(uuid.uuid4())
+        payload = SpaceMembershipInviteApprovalPayload(
+            user=user,
+            space=space,
+            notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_APPROVAL_ADMIN.value,
+        )
+        cls.notification_instance = SpaceMembershipInviteApprovalAdminNotification(
+            recipients=[str(space.creator.username)],
+            payload=payload,
+            transaction_id=transaction_id,
+        )
+
+    def test_space_membership_invite_approval_admin_notification_workflow(self):
+        self.assertEqual(self.notification_instance.workflow, Workflow.SPACE_MEMBERSHIP_INVITE_APPROVAL_ADMIN.value)
+
+
+@pytest.mark.django_db
+class SpaceMembershipInviteDeclineUserNotificationTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user = make_user()
+        space = make_community()
+        transaction_id = str(uuid.uuid4())
+        payload = SpaceMembershipInviteDeclinePayload(
+            user=user,
+            space=space,
+            notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_DECLINE_USER.value,
+        )
+        cls.notification_instance = SpaceMembershipInviteDeclineUserNotification(
+            recipient=user.username,
+            payload=payload,
+            transaction_id=transaction_id,
+        )
+
+    def test_space_membership_invite_decline_user_notification_workflow(self):
+        self.assertEqual(self.notification_instance.workflow, Workflow.SPACE_MEMBERSHIP_INVITE_DECLINE_USER.value)
+
+
+@pytest.mark.django_db
+class SpaceMembershipInviteDeclineAdminNotificationTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user = make_user()
+        space = make_community()
+        transaction_id = str(uuid.uuid4())
+        payload = SpaceMembershipInviteDeclinePayload(
+            user=user,
+            space=space,
+            notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_DECLINE_ADMIN.value,
+        )
+        cls.notification_instance = SpaceMembershipInviteDeclineAdminNotification(
+            recipient=space.creator.username,
+            payload=payload,
+            transaction_id=transaction_id,
+        )
+
+    def test_space_membership_invite_decline_admin_notification_workflow(self):
+        self.assertEqual(self.notification_instance.workflow, Workflow.SPACE_MEMBERSHIP_INVITE_DECLINE_ADMIN.value)
