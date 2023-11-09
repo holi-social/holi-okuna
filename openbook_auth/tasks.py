@@ -26,16 +26,16 @@ def update_ory_user_names(user_id: int) -> None:
 
 def update_ory_user_identity(user: User) -> bool:
     data = [
-        {"op": "add", "path": "/traits/identity", "value": user.identity},
+        {"op": "add", "path": "/metadata_public/identity", "value": user.identity},
     ]
     try:
         update_ory(user.username, data)
         return True
     except OryRequestError as error:
         if error.status_code == 409:
-            logger.error("Could not set identity for user %s. Identity already exists: %s", user.id, error.error)
+            logger.warning("Could not set identity for user %s. Identity already exists: %s", user.id, error.error)
         else:
-            logger.error("Could not set identity for user %s. Ory response: %s", user.id, error.error)
+            logger.warning("Could not set identity for user %s. Ory response: %s", user.id, error.error)
     return False
 
 
