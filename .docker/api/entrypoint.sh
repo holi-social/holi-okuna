@@ -17,6 +17,6 @@ cd /opt/okuna-api
 python manage.py migrate
 # we most probably currently don't need to execute collectmedia, it only uploads emoji files.
 #echo "yes" | python manage.py collectmedia # it always asks even if media folder is nonexistent
-python manage.py loaddata emoji-groups.json emojis.json badges.json categories.json languages.json topics.json skills.json sdgs.json moderation_categories.json
+python manage.py loaddata emoji-groups.json emojis.json badges.json categories.json languages.json topics.json skills.json sdgs.json inspirationpostcategories.json moderation_categories.json
 
 exec "$@"

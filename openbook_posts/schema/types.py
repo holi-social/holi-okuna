@@ -18,6 +18,7 @@ from openbook_posts.models import PostComment as PostCommentModel
 from openbook_posts.models import PostCommentReaction as PostCommentReactionModel
 from openbook_posts.models import PostImage as PostImageModel
 from openbook_posts.models import PostReaction as PostReactionModel
+from openbook_terms.schema.types import InspirationPostCategory
 
 if TYPE_CHECKING:
     from openbook_communities.schema.types import Space
@@ -103,6 +104,7 @@ class Post:
         Annotated["Space", strawberry.lazy("openbook_communities.schema.types")]
     ] = strawberry_django.field(field_name="community")
     creator: User = strawberry_django.field(select_related="creator__profile")
+    inspiration_post_category: Optional[InspirationPostCategory]
 
     @strawberry_django.field()
     def image(self) -> Optional[PostImage]:
