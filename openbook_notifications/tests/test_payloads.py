@@ -16,6 +16,8 @@ from openbook_notifications.payloads import (
     SpaceMembershipRequestApprovalAdminPayload,
     SpaceMembershipRequestDeclinePayload,
     SpaceMembershipInvitePayload,
+    SpaceMembershipInviteApprovalPayload,
+    SpaceMembershipInviteDeclinePayload,
 )
 
 
@@ -217,3 +219,31 @@ class TestPayloads(TestCase):
         self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
         self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
         self.assertIsNotNone(data_dict["data"]["inviteDatetime"])
+
+    def test_space_membership_invite_approval_payload(self):
+        payload = SpaceMembershipInviteApprovalPayload(
+            user=self.user,
+            space=self.space,
+            notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_APPROVAL_USER.value,
+        )
+
+        data_dict = payload.to_dict()
+
+        self.assertEqual(data_dict["notificationType"], "SPACE_MEMBERSHIP_INVITE_APPROVAL_USER")
+        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
+        self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
+        self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
+
+    def test_space_membership_invite_decline_payload(self):
+        payload = SpaceMembershipInviteDeclinePayload(
+            user=self.user,
+            space=self.space,
+            notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_DECLINE_USER.value,
+        )
+
+        data_dict = payload.to_dict()
+
+        self.assertEqual(data_dict["notificationType"], "SPACE_MEMBERSHIP_INVITE_DECLINE_USER")
+        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
+        self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
+        self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
