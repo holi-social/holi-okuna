@@ -66,7 +66,7 @@ def publish_user_email_updated_event(user: User):
         event = UserEmailUpdatedEvent(updated_user)
         publish_event(event=event, topic=PubSubTopic.OKUNA.value)
     except Exception as e:
-        logger.error(generate_publish_failure_message(UserEmailUpdatedEvent), str(e))
+        logger.error(__generate_publish_failure_message(UserEmailUpdatedEvent), str(e))
 
 
 def publish_space_deleted_event(community: Community):
