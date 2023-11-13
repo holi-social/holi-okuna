@@ -372,14 +372,7 @@ class ModeratedObject(ModelWithUUID):
 
     @staticmethod
     def not_moderated_query(user, object_type, prefix=None):
-        return ~PQ(
-            prefix,
-            __in=(
-                ModeratedObject.objects.filter(object_type=object_type, status=ModeratedObject.STATUS_APPROVED).values(
-                    "object_id"
-                )
-            ),
-        )
+        return ~PQ(prefix, moderated_object__status=ModeratedObject.STATUS_APPROVED)
 
 
 class ModerationReport(ModelWithUUID):
