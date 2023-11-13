@@ -6,6 +6,7 @@ from openbook_communities.events.payloads import SpacePayload, UserPayload
 
 class EventType(Enum):
     SPACE_CREATED = "SpaceCreated"
+    SPACE_UPDATED = "SpaceUpdated"
     SPACE_USER_ADDED = "SpaceUserAdded"
     USER_NAME_UPDATED = "UserNameUpdated"
     USER_EMAIL_UPDATED = "UserEmailUpdated"
@@ -23,6 +24,17 @@ class SpaceCreatedEvent(Event):
             data={"creator": creator.to_dict(), "space": space.to_dict()},
             event_type=EventType.SPACE_CREATED.value,
             event_version=SpaceCreatedEvent.EVENT_VERSION,
+        )
+
+
+class SpaceUpdatedEvent(Event):
+    EVENT_VERSION = "1.0.0"
+
+    def __init__(self, creator: UserPayload, space: SpacePayload):
+        super().__init__(
+            data={"creator": creator.to_dict(), "space": space.to_dict()},
+            event_type=EventType.SPACE_UPDATED.value,
+            event_version=SpaceUpdatedEvent.EVENT_VERSION,
         )
 
 

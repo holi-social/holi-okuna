@@ -59,7 +59,7 @@ class Command(BaseCommand):
 
     def set_identity(self, ory_id, identity):
         body_data = [
-            {"op": "add", "path": "/traits/identity", "value": identity},
+            {"op": "add", "path": "/metadata_public/identity", "value": identity},
         ]
         update_ory(ory_id, body_data)
         print(f"User {ory_id} identity set")

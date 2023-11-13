@@ -12,7 +12,15 @@ if TYPE_CHECKING:
 
 class NotificationType(Enum):
     SPACE_MEMBERSHIP_REQUEST = "SPACE_MEMBERSHIP_REQUEST"
-    SPACE_MEMBERSHIP_REQUEST_APPROVAL = "SPACE_MEMBERSHIP_REQUEST_APPROVAL"
+    SPACE_MEMBERSHIP_REQUEST_APPROVAL_USER = "SPACE_MEMBERSHIP_REQUEST_APPROVAL_USER"
+    SPACE_MEMBERSHIP_REQUEST_APPROVAL_ADMIN = "SPACE_MEMBERSHIP_REQUEST_APPROVAL_ADMIN"
+    SPACE_MEMBERSHIP_REQUEST_DECLINE_USER = "SPACE_MEMBERSHIP_REQUEST_DECLINE_USER"
+    SPACE_MEMBERSHIP_REQUEST_DECLINE_ADMIN = "SPACE_MEMBERSHIP_REQUEST_DECLINE_ADMIN"
+    SPACE_MEMBERSHIP_INVITE = "SPACE_MEMBERSHIP_INVITE"
+    SPACE_MEMBERSHIP_INVITE_APPROVAL_USER = "SPACE_MEMBERSHIP_INVITE_APPROVAL_USER"
+    SPACE_MEMBERSHIP_INVITE_APPROVAL_ADMIN = "SPACE_MEMBERSHIP_INVITE_APPROVAL_ADMIN"
+    SPACE_MEMBERSHIP_INVITE_DECLINE_USER = "SPACE_MEMBERSHIP_INVITE_DECLINE_USER"
+    SPACE_MEMBERSHIP_INVITE_DECLINE_ADMIN = "SPACE_MEMBERSHIP_INVITE_DECLINE_ADMIN"
 
 
 class UserData:
@@ -124,7 +132,7 @@ class SpaceMembershipRequestPayload(Payload):
         )
 
 
-class SpaceMembershipRequestApprovalPayload(Payload):
+class SpaceMembershipRequestApprovalUserPayload(Payload):
     NOTIFICATION_VERSION = "1.0.0"
 
     def __init__(self, user: User, space: Community, approver: User):
@@ -134,7 +142,81 @@ class SpaceMembershipRequestApprovalPayload(Payload):
                 "space": SpaceData.from_community(space).to_dict(),
                 "approver": UserData.from_user(approver).to_dict(),
                 "approvalDatetime": datetime.now().isoformat(),
+                "spaceLink": f"{settings.APP_URL}/spaces/{space.name}",
             },
-            notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST_APPROVAL.value,
-            notification_version=SpaceMembershipRequestApprovalPayload.NOTIFICATION_VERSION,
+            notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST_APPROVAL_USER.value,
+            notification_version=SpaceMembershipRequestApprovalUserPayload.NOTIFICATION_VERSION,
+        )
+
+
+class SpaceMembershipRequestApprovalAdminPayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, user: User, space: Community):
+        super().__init__(
+            data={
+                "user": UserData.from_user(user).to_dict(),
+                "space": SpaceData.from_community(space).to_dict(),
+            },
+            notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST_APPROVAL_ADMIN.value,
+            notification_version=SpaceMembershipRequestApprovalAdminPayload.NOTIFICATION_VERSION,
+        )
+
+
+class SpaceMembershipRequestDeclinePayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, user: User, space: Community, denier: User, notification_type: NotificationType):
+        super().__init__(
+            data={
+                "user": UserData.from_user(user).to_dict(),
+                "space": SpaceData.from_community(space).to_dict(),
+                "denier": UserData.from_user(denier).to_dict(),
+                "denialDatetime": datetime.now().isoformat(),
+            },
+            notification_type=notification_type,
+            notification_version=SpaceMembershipRequestDeclinePayload.NOTIFICATION_VERSION,
+        )
+
+
+class SpaceMembershipInvitePayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, user: User, space: Community):
+        super().__init__(
+            data={
+                "user": UserData.from_user(user).to_dict(),
+                "space": SpaceData.from_community(space).to_dict(),
+                "inviteDatetime": datetime.now().isoformat(),
+            },
+            notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE.value,
+            notification_version=SpaceMembershipInvitePayload.NOTIFICATION_VERSION,
+        )
+
+
+class SpaceMembershipInviteApprovalPayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, user: User, space: Community, notification_type: NotificationType):
+        super().__init__(
+            data={
+                "user": UserData.from_user(user).to_dict(),
+                "space": SpaceData.from_community(space).to_dict(),
+            },
+            notification_type=notification_type,
+            notification_version=SpaceMembershipInviteApprovalPayload.NOTIFICATION_VERSION,
+        )
+
+
+class SpaceMembershipInviteDeclinePayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, user: User, space: Community, notification_type: NotificationType):
+        super().__init__(
+            data={
+                "user": UserData.from_user(user).to_dict(),
+                "space": SpaceData.from_community(space).to_dict(),
+            },
+            notification_type=notification_type,
+            notification_version=SpaceMembershipInviteDeclinePayload.NOTIFICATION_VERSION,
         )

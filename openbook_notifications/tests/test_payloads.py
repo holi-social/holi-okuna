@@ -10,7 +10,14 @@ from openbook_notifications.payloads import (
     UserData,
     SpaceData,
     Payload,
+    NotificationType,
     SpaceMembershipRequestPayload,
+    SpaceMembershipRequestApprovalUserPayload,
+    SpaceMembershipRequestApprovalAdminPayload,
+    SpaceMembershipRequestDeclinePayload,
+    SpaceMembershipInvitePayload,
+    SpaceMembershipInviteApprovalPayload,
+    SpaceMembershipInviteDeclinePayload,
 )
 
 
@@ -18,8 +25,10 @@ from openbook_notifications.payloads import (
 class TestPayloads(TestCase):
     def setUp(self):
         self.user = make_user(name="Test", last_name="User")
-        self.space = make_community(title="Test Space")
+        self.admin = make_user(name="Test", last_name="Admin")
+        self.space = make_community(title="Test Space", creator=self.admin)
         self.notification_type = "TEST_NOTIFICATION_TYPE"
+        self.approver = make_user(name="Test", last_name="Approver")
 
     def test_user_data_to_dict(self):
         user_data = UserData(
@@ -135,3 +144,106 @@ class TestPayloads(TestCase):
             "https://staging.dev.holi.social/spaces/test-space/collaborators/manage?tab=pending&userId="
             + str(self.user.username),
         )
+
+    def test_space_membership_request_approval_user_payload(self):
+        payload = SpaceMembershipRequestApprovalUserPayload(user=self.user, space=self.space, approver=self.approver)
+
+        data_dict = payload.to_dict()
+
+        self.assertEqual(data_dict["notificationType"], "SPACE_MEMBERSHIP_REQUEST_APPROVAL_USER")
+        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
+        self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
+        self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
+        self.assertEqual(data_dict["data"]["approver"]["id"], str(self.approver.id))
+        self.assertIsNotNone(data_dict["data"]["approvalDatetime"])
+
+    def test_space_membership_request_approval_admin_payload(self):
+        payload = SpaceMembershipRequestApprovalAdminPayload(
+            user=self.user,
+            space=self.space,
+        )
+
+        data_dict = payload.to_dict()
+
+        self.assertEqual(data_dict["notificationType"], "SPACE_MEMBERSHIP_REQUEST_APPROVAL_ADMIN")
+        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
+        self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
+        self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
+
+        payload = SpaceMembershipRequestApprovalUserPayload(
+            user=self.user,
+            space=self.space,
+            approver=self.admin,
+        )
+
+        data_dict = payload.to_dict()
+
+        self.assertEqual(data_dict["notificationType"], "SPACE_MEMBERSHIP_REQUEST_APPROVAL_USER")
+        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
+        self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
+        self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
+        self.assertEqual(data_dict["data"]["approver"]["id"], str(self.admin.username))
+        self.assertIsNotNone(data_dict["data"]["approvalDatetime"])
+        self.assertEqual(
+            data_dict["data"]["spaceLink"],
+            "https://staging.dev.holi.social/spaces/test-space",
+        )
+
+    def test_space_membership_request_decline_payload(self):
+        payload = SpaceMembershipRequestDeclinePayload(
+            user=self.user,
+            space=self.space,
+            denier=self.admin,
+            notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST_DECLINE_USER.value,
+        )
+
+        data_dict = payload.to_dict()
+
+        self.assertEqual(data_dict["notificationType"], "SPACE_MEMBERSHIP_REQUEST_DECLINE_USER")
+        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
+        self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
+        self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
+        self.assertEqual(data_dict["data"]["denier"]["id"], str(self.admin.username))
+        self.assertIsNotNone(data_dict["data"]["denialDatetime"])
+
+    def test_space_membership_invite_payload(self):
+        payload = SpaceMembershipInvitePayload(
+            user=self.user,
+            space=self.space,
+        )
+
+        data_dict = payload.to_dict()
+
+        self.assertEqual(data_dict["notificationType"], "SPACE_MEMBERSHIP_INVITE")
+        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
+        self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
+        self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
+        self.assertIsNotNone(data_dict["data"]["inviteDatetime"])
+
+    def test_space_membership_invite_approval_payload(self):
+        payload = SpaceMembershipInviteApprovalPayload(
+            user=self.user,
+            space=self.space,
+            notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_APPROVAL_USER.value,
+        )
+
+        data_dict = payload.to_dict()
+
+        self.assertEqual(data_dict["notificationType"], "SPACE_MEMBERSHIP_INVITE_APPROVAL_USER")
+        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
+        self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
+        self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
+
+    def test_space_membership_invite_decline_payload(self):
+        payload = SpaceMembershipInviteDeclinePayload(
+            user=self.user,
+            space=self.space,
+            notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_DECLINE_USER.value,
+        )
+
+        data_dict = payload.to_dict()
+
+        self.assertEqual(data_dict["notificationType"], "SPACE_MEMBERSHIP_INVITE_DECLINE_USER")
+        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
+        self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
+        self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))

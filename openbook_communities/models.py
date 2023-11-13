@@ -697,6 +697,9 @@ class Community(ModelWithUUID):
         CommunityInvite = get_community_invite_model()
         return CommunityInvite.create_community_invite(creator=creator, invited_user=invited_user, community=self)
 
+    def get_membership_invite(self, user):
+        return CommunityInvite.get_membership_invite(self, user)
+
     def create_pending_invite(self, creator, invited_email_hash):
         CommunityPendingInvite = get_community_pending_invite_model()
         return CommunityPendingInvite.create_community_pending_invite(
@@ -1091,6 +1094,10 @@ class CommunityInvite(ModelWithUUID):
     @classmethod
     def create_community_invite(cls, creator, invited_user, community):
         return cls.objects.create(creator=creator, invited_user=invited_user, community=community)
+
+    @classmethod
+    def get_membership_invite(cls, community, user):
+        return cls.objects.get(community=community, invited_user=user)
 
     @classmethod
     def delete_community_invite(cls, user_name, community_name):

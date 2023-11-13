@@ -4,6 +4,7 @@ from openbook_auth.models import User
 from openbook_common.pubsub.publisher import publish_event
 from openbook_communities.events.events import (
     SpaceCreatedEvent,
+    SpaceUpdatedEvent,
     SpaceDeletedEvent,
     SpaceUserAddedEvent,
     SpaceUserLeftEvent,
@@ -27,6 +28,16 @@ def publish_space_created_event(community: Community):
         publish_event(event=event, topic=PubSubTopic.OKUNA.value)
     except Exception as e:
         logger.error(__generate_publish_failure_message(SpaceCreatedEvent), str(e))
+
+
+def publish_space_updated_event(community: Community):
+    try:
+        creator = UserPayload.from_user(community.creator)
+        space = SpacePayload.from_community(community)
+        event = SpaceUpdatedEvent(creator, space)
+        publish_event(event=event, topic=PubSubTopic.OKUNA.value)
+    except Exception as e:
+        logger.error(__generate_publish_failure_message(SpaceUpdatedEvent), str(e))
 
 
 def publish_space_user_added_event(username: str, community: Community):
@@ -55,7 +66,7 @@ def publish_user_email_updated_event(user: User):
         event = UserEmailUpdatedEvent(updated_user)
         publish_event(event=event, topic=PubSubTopic.OKUNA.value)
     except Exception as e:
-        logger.error(generate_publish_failure_message(UserEmailUpdatedEvent), str(e))
+        logger.error(__generate_publish_failure_message(UserEmailUpdatedEvent), str(e))
 
 
 def publish_space_deleted_event(community: Community):

@@ -108,6 +108,7 @@ INSTALLED_APPS = [
     "openbook_translation",
     "openbook_terms",
     "strawberry.django",
+    "sortedm2m",
 ]
 
 MODELTRANSLATION_FALLBACK_LANGUAGES = ("en",)

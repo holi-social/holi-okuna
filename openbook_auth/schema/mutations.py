@@ -78,33 +78,41 @@ class Mutation:
             publish_user_name_updated_event(user=current_user)
 
         # set identity when needed
-        if not current_user.identity and input.first_name:
-            current_user.identity = UserModel.sanitize_identity_input(input.first_name)
+        if not current_user.identity and current_user.profile.full_name():
+            current_user.identity = UserModel.sanitize_identity_input(current_user.profile.full_name())
+            identity_wish = current_user.identity
+            counter = 0
 
-            if (
-                UserModel.is_invalid_identity(current_user.identity)
-                or UserModel.is_identity_taken(current_user.identity)
-                or not update_ory_user_identity(current_user)
-            ):
-                identity_wish = UserModel.sanitize_identity_input(current_user.profile.full_name())
-                # when the user has no last name, full_name is identical to first_name, so init the counter with 0
-                # to already start adding a number on the call to next_unique_identity.
-                # Otherwise init with None, to not add a number on the first call to next_unique_identity
-                counter = None if identity_wish != current_user.identity else 0
-                tries = 0
-                taken_identities = UserModel.get_taken_identities(identity_wish)
-                while True:
-                    current_user.identity, counter = UserModel.next_unique_identity(
-                        identity_wish, taken_identities, counter
-                    )
-                    if update_ory_user_identity(current_user):
-                        break  # Ory update was successful, and there was no collision. We are done.
-                    tries += 1
-                    if tries > 10:
-                        logger.error("Could not generate identity from user name after %s attempts.", tries)
-                        raise ValidationError({"identity": _("Could not generate identity from user names.")})
+            while True:
+                try:
+                    if UserModel.is_identity_taken(current_user.identity):
+                        taken_identities = UserModel.get_taken_identities(identity_wish)
+                        current_user.identity, counter = UserModel.next_unique_identity(
+                            identity_wish, taken_identities, counter
+                        )
+                    current_user.save()
+                except ValidationError as error:
+                    if "A user with that identity already exists." in error.message_dict["identity"]:
+                        taken_identities = UserModel.get_taken_identities(identity_wish)
+                        current_user.identity, counter = UserModel.next_unique_identity(
+                            identity_wish, taken_identities, counter
+                        )
+                        continue
+                    else:
+                        raise error
+                break
 
-            current_user.save()
+            tries = 0
+            while tries < 3:
+                if update_ory_user_identity(current_user):
+                    break  # Ory update was successful, and there was no collision. We are done.
+                tries += 1
+            if tries >= 3:
+                logger.error(
+                    "MANUAL INTERVENTION NEEDED!!! Could not write identity to Ory for user with Ory id: %s to '%s'. Maybe Ory was not reachable? Use the patch_ory admin command to set it manually.",
+                    current_user.username,
+                    current_user.identity,
+                )
 
         locale = get_language_from_request(info.context.request)
         NotificationApi.update_subscriber(user=current_user, locale=locale)
@@ -189,7 +197,7 @@ class Mutation:
         device_type = data.get("device_type")
         subscriber_id = str(current_user.username)
 
-        logger.info(
+        logger.debug(
             "register_device %s %s",
             input,
             current_user.has_device_with_token_and_type(token=token, device_type=device_type),

@@ -89,12 +89,14 @@ from openbook_notifications import helpers
 from openbook_notifications.helpers import (
     get_notification_language_code_for_target_user,
 )
-from openbook_notifications.toggles import notifications_toggle
+from openbook_notifications.toggles import notifications_toggle, mute_notifications
 from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
 from openbook_posts.query_collections import get_posts_for_user_collection
 from openbook_terms.models import Topic, SDG, Skill
 from openbook_translation import translation_strategy
 from openbook.utils import DEFAULT_EMAIL_LANGUAGE, generate_hash, get_supported_language_for_email
+
+from openbook_notifications.api import NotificationApi
 
 logger = logging.getLogger(__name__)
 
@@ -703,7 +705,8 @@ class User(ModelWithUUID, AbstractUser):
 
     @classmethod
     def sanitize_identity_input(cls, identity):
-        return re.sub(r"[^a-zA-Z0-9_.-]+", "", unidecode(identity).strip().lower())
+        identity_with_spaces = re.sub(r"[^a-zA-Z0-9_. -]+", "", unidecode(identity).strip().lower())
+        return re.sub(r"\s+", ".", identity_with_spaces)  # replace all consecutive whitespaces by single dot
 
     @classmethod
     def is_valid_identity(cls, identity):
@@ -2118,26 +2121,6 @@ class User(ModelWithUUID, AbstractUser):
             exclude_keywords=exclude_keywords,
         )
 
-    def join_community_with_name(self, community_name):
-        check_can_join_community_with_name(user=self, community_name=community_name)
-        Community = get_community_model()
-        community_to_join = Community.objects.get(name=community_name)
-        community_to_join.add_member(self)
-
-        # Clean up_full any invites
-        CommunityInvite = get_community_invite_model()
-        CommunityInvite.objects.filter(community__name=community_name, invited_user__username=self.username).delete()
-
-        community_to_join.remove_membership_request(self)
-        get_community_notifications_subscription_model().enable_new_post_notification_for_community(
-            community_to_join, self
-        )
-
-        self.notify_membership_approval(community_to_join, self)
-
-        # No need to delete community invite notifications as they are delete cascaded
-        return community_to_join
-
     def request_membership_to_community_with_name(self, community_name, message=None):
         # "Autojoin" for spaces will be configurable per space in the future
         # use self.join_community_with_name(space.name) as a template
@@ -2176,6 +2159,10 @@ class User(ModelWithUUID, AbstractUser):
 
         Community = get_community_model()
         community_to_join = Community.objects.get(name=community_name)
+        membership_request = community_to_join.get_membership_request(self)
+        transaction_id = str(membership_request.id)
+        NotificationApi.cancel_workflow(transaction_id=transaction_id)
+        NotificationApi.delete_in_app_messages(transaction_id=transaction_id)
         community_to_join.remove_membership_request(self)
 
         return community_to_join
@@ -2189,21 +2176,28 @@ class User(ModelWithUUID, AbstractUser):
 
         Community = get_community_model()
         community_to_join = Community.objects.get(name=community_name)
-        community_to_join.remove_membership_request(user_to_approve)
+        membership_request = community_to_join.get_membership_request(user_to_approve)
+        invite = None
+
         community_to_join.add_member(user_to_approve)
 
         if user_to_approve.is_invited_to_community_with_name(community_name):
-            community_to_join.remove_invite(user_to_approve)
+            invite = community_to_join.get_membership_invite(user_to_approve)
 
-        self.notify_membership_approval(community_to_join, user_to_approve)
+        self.notify_membership_approval(
+            community_to_join, user_to_approve, membership_request=membership_request, invite=invite
+        )
 
         # deferred import to circumvent circular imports
         from openbook_notifications.notifications import Notifications
 
-        Notifications.send_space_membership_request_approval_notification(
+        Notifications.send_space_membership_request_approval_user_notification(
             requester=user_to_approve, space=community_to_join, approver=self
         )
 
+        Notifications.send_space_membership_request_approval_admin_notification(
+            recipients=community_to_join.get_staff_members(), requester=user_to_approve, space=community_to_join
+        )
         return community_to_join
 
     def accept_membership_invite_to_community_for_username(self, community_name) -> "Community":
@@ -2211,18 +2205,28 @@ class User(ModelWithUUID, AbstractUser):
 
         Community = get_community_model()
         community_to_join = Community.objects.get(name=community_name)
+        invite = community_to_join.get_membership_invite(self)
+        membership_request = None
 
-        community_to_join.remove_invite(self)
         community_to_join.add_member(self)
 
         if self.is_membership_requestor_of_community_with_name(community_name):
-            community_to_join.remove_membership_request(self)
+            membership_request = community_to_join.get_membership_request(self)
 
         get_community_notifications_subscription_model().enable_new_post_notification_for_community(
             community_to_join, self
         )
 
-        self.notify_membership_approval(community_to_join, self)
+        self.notify_membership_approval(community_to_join, self, membership_request=membership_request, invite=invite)
+
+        # deferred import to circumvent circular imports
+        from openbook_notifications.notifications import Notifications
+
+        Notifications.send_space_membership_invite_approval_user_notification(invitee=self, space=community_to_join)
+
+        Notifications.send_space_membership_invite_approval_admin_notification(
+            recipients=community_to_join.get_staff_members(), invitee=self, space=community_to_join
+        )
 
         return community_to_join
 
@@ -2233,24 +2237,35 @@ class User(ModelWithUUID, AbstractUser):
         community_to_join = Community.objects.get(name=community_name)
 
         CommunityInvite = get_community_invite_model()
-        community_invite = CommunityInvite.objects.filter(
-            community__name=community_name, invited_user__username=self.username
-        )
+        community_invite = community_to_join.get_membership_invite(self)
 
         # Check if inviting admin is still staff of community
-        inviting_admin = community_invite.first().creator
+        inviting_admin = community_invite.creator
         try:
             check_is_staff_of_community_with_name(inviting_admin, community_name)
         except:
             inviting_admin = None
 
+        transaction_id = str(community_invite.id)
+        NotificationApi.cancel_workflow(transaction_id=transaction_id)
+        NotificationApi.delete_in_app_messages(transaction_id=transaction_id)
         community_invite.delete()
 
         self.notify_invite_declined(community_to_join, inviting_admin, self)
 
+        # deferred import to circumvent circular imports
+        from openbook_notifications.notifications import Notifications
+
+        Notifications.send_space_membership_invite_decline_user_notification(invitee=self, space=community_to_join)
+
+        if inviting_admin:
+            Notifications.send_space_membership_invite_decline_admin_notification(
+                recipient=inviting_admin, invitee=self, space=community_to_join
+            )
+
         return community_to_join
 
-    def notify_membership_approval(self, community_to_join, user_to_approve):
+    def notify_membership_approval(self, community_to_join, user_to_approve, membership_request=None, invite=None):
         CommunityMembershipApprovedNotification = get_community_membership_approved_notification_model()
         CommunityMembershipApprovedNotification.create_community_membership_approved_notification(
             user_to_approve.id, community_to_join.id, user_to_approve.id
@@ -2259,6 +2274,18 @@ class User(ModelWithUUID, AbstractUser):
             CommunityMembershipApprovedNotification.create_community_membership_approved_notification(
                 staff_member.id, community_to_join.id, user_to_approve.id
             )
+
+        if membership_request is not None:
+            transaction_id = str(membership_request.id)
+            NotificationApi.cancel_workflow(transaction_id=transaction_id)
+            NotificationApi.delete_in_app_messages(transaction_id=transaction_id)
+            community_to_join.remove_membership_request(user_to_approve)
+
+        if invite is not None:
+            transaction_id = str(invite.id)
+            NotificationApi.cancel_workflow(transaction_id=transaction_id)
+            NotificationApi.delete_in_app_messages(transaction_id=transaction_id)
+            community_to_join.remove_invite(user_to_approve)
 
     def notify_membership_removal(self, community, user_to_remove):
         CommunityMembershipRevokedNotification = get_community_membership_revoked_notification_model()
@@ -2285,7 +2312,24 @@ class User(ModelWithUUID, AbstractUser):
         if not user_to_revoke_request_for.is_membership_requestor_of_community_with_name(community_name):
             raise ValidationError(_("User did not request membership to community"))
 
+        membership_request = community.get_membership_request(user_to_revoke_request_for)
+        transaction_id = str(membership_request.id)
+        NotificationApi.cancel_workflow(transaction_id=transaction_id)
+        NotificationApi.delete_in_app_messages(transaction_id=transaction_id)
         community.remove_membership_request(user_to_revoke_request_for)
+
+        # deferred import to circumvent circular imports
+        from openbook_notifications.notifications import Notifications
+
+        Notifications.send_space_membership_request_decline_user_notification(
+            requester=user_to_revoke_request_for, space=community, denier=self
+        )
+        Notifications.send_space_membership_request_decline_admin_notification(
+            recipients=community.get_staff_members(),
+            requester=user_to_revoke_request_for,
+            space=community,
+            denier=self,
+        )
 
         return community
 
@@ -2336,6 +2380,16 @@ class User(ModelWithUUID, AbstractUser):
 
     def invite_user_to_community(self, user, community):
         community_invite = community.create_invite(creator=self, invited_user=user)
+        # deferred import to circumvent circular imports
+        from openbook_notifications.notifications import Notifications
+
+        Notifications.send_space_membership_invite_notification(
+            inviter=self,
+            recipient=user,
+            space=community,
+            community_invite=community_invite,
+        )
+
         self._create_community_invite_notification(community_invite)
         return community_invite
 
@@ -4399,6 +4453,7 @@ class User(ModelWithUUID, AbstractUser):
             owner_id=post_comment_reaction.post_comment.commenter_id,
         )
 
+    @mute_notifications
     def _create_community_invite_notification(self, community_invite):
         CommunityInviteNotification = get_community_invite_notification_model()
         CommunityInviteNotification.create_community_invite_notification(
@@ -4406,6 +4461,7 @@ class User(ModelWithUUID, AbstractUser):
             owner_id=community_invite.invited_user_id,
         )
 
+    @mute_notifications
     def _send_community_invite_push_notification(self, community_invite):
         helpers.send_community_invite_push_notification(community_invite=community_invite)
 

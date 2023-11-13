@@ -4,6 +4,7 @@ from django.db import models
 from openbook_common.models import ModelWithUUID
 from openbook_communities.models import CommunityInvite
 from openbook_notifications.models.notification import Notification
+from openbook_notifications.toggles import mute_notifications
 
 
 class CommunityInviteNotification(ModelWithUUID):
@@ -11,6 +12,7 @@ class CommunityInviteNotification(ModelWithUUID):
     community_invite = models.ForeignKey(CommunityInvite, on_delete=models.CASCADE)
 
     @classmethod
+    @mute_notifications
     def create_community_invite_notification(cls, community_invite_id, owner_id):
         community_invite_notification = cls.objects.create(community_invite_id=community_invite_id)
         Notification.create_notification(
@@ -21,6 +23,7 @@ class CommunityInviteNotification(ModelWithUUID):
         return community_invite_notification
 
     @classmethod
+    @mute_notifications
     def delete_community_invite_notification(cls, community_invite_id, owner_id):
         cls.objects.filter(community_invite_id=community_invite_id, notification__owner_id=owner_id).delete()
 

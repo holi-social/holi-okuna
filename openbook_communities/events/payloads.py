@@ -18,20 +18,33 @@ class UserPayload:
 
 
 class SpacePayload:
-    def __init__(self, id: str, name: str, slug: str, avatarDefaultColor: str):
+    def __init__(self, id: str, name: str, slug: str, avatar: str, avatarDefaultColor: str):
         self.id = id
         self.name = name
+        self.avatar = avatar
         self.slug = slug
         self.avatarDefaultColor = avatarDefaultColor
 
     def to_dict(self):
-        return {"id": self.id, "name": self.name, "slug": self.slug, "avatarDefaultColor": self.avatarDefaultColor}
+        return {
+            "id": self.id,
+            "name": self.name,
+            "slug": self.slug,
+            "avatar": self.avatar,
+            "avatarDefaultColor": self.avatarDefaultColor,
+        }
 
     @classmethod
     def from_community(cls, community: Community):
+        if community.avatar:
+            avatarUrl = community.avatar.url
+        else:
+            avatarUrl = None
+
         return cls(
             id=str(community.id),
             name=community.title,
             slug=community.name,
+            avatar=avatarUrl,
             avatarDefaultColor=community.avatar_default_color,
         )

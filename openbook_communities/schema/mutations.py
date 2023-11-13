@@ -10,6 +10,7 @@ from graphql import GraphQLError
 
 from openbook.helpers import (
     publish_space_created_event,
+    publish_space_updated_event,
     publish_space_deleted_event,
     publish_space_user_added_event,
     publish_space_user_left_event,
@@ -201,6 +202,7 @@ class Mutation:
             onboarding_steps=data.get("onboarding_steps"),
         )
 
+        publish_space_updated_event(community=space)
         invalidate_discover_spaces_query_cache()
 
         return space

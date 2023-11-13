@@ -86,9 +86,12 @@ from openbook_posts.helpers import (
 )
 from openbook_posts.jobs import process_post_media
 from openbook_posts.validators import post_comment_text_validators, post_text_validators
+from openbook_terms.models import InspirationPostCategory
 from video_encoding.backends import get_backend
 from video_encoding.fields import VideoField
 from video_encoding.models import Format
+
+from sortedm2m.fields import SortedManyToManyField
 
 magic = get_magic()
 post_image_storage = default_storage
@@ -129,9 +132,13 @@ class Post(ModelWithUUID):
         (STATUS_PUBLISHED, "Published"),
     )
     status = models.CharField(blank=False, null=False, choices=STATUSES, default=STATUS_DRAFT, max_length=2)
-    links = models.ManyToManyField(LinkPreview, related_name="+", blank=True)
+    # we need a sorted m2m for having the linkpreviews in the same order as the links in the text.
+    links = SortedManyToManyField(LinkPreview, related_name="+", blank=True)
     mentions = models.ManyToManyField(User, related_name="mentioned_in_posts", blank=True, through="PostUserMention")
     is_public = models.BooleanField(default=False, db_index=True)
+    inspiration_post_category = models.ForeignKey(
+        InspirationPostCategory, on_delete=models.CASCADE, null=True, blank=True
+    )
 
     class Meta:
         index_together = [
@@ -924,10 +931,16 @@ class Post(ModelWithUUID):
                 send_user_new_post_push_notification(user_notifications_subscription=subscription, post=self)
 
     def _process_post_links(self):
+        # always clear, re-add if text contains links. If the text is edited and a link is dropped, this should behave
+        # correctly. This leads to completely new entries in the m2m mapping table on every save, but since otherwise,
+        # we can't guarantee the order, this is acceptable. This also auto-heals old, wrongly sorted or saved entries on
+        # the next save.
+        self.links.clear()
         if self.has_text():
-            self.links.set(LinkPreview.parse_text(self.text))
-        else:
-            self.links.clear()
+            # we need to add all items separately, sequentially for sorting to prevail
+            # (instead of setting the whole QuerySet)
+            for preview in LinkPreview.parse_text(self.text):
+                self.links.add(preview)
 
     def __str__(self):
         return f"{self.__class__.__name__}: {self.title}"

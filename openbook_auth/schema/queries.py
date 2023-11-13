@@ -14,7 +14,7 @@ from graphql import GraphQLError
 from openbook_auth.models import User as UserModel
 from openbook_auth.schema.types import User
 from openbook_auth.utils import verify_authorized_user
-from openbook_auth.validators import string_not_empty
+from openbook_common.validators import string_not_empty
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.schema.types import Paged
 from openbook_notifications.api import NotificationApi
