@@ -953,7 +953,8 @@ class Post(ModelWithUUID):
             return (
                 pQ(is_deleted=False, status=Post.STATUS_PUBLISHED)
                 & (pQ(is_public=True) | pQ(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC))
-                & ModeratedObject.not_moderated_query(user, ModeratedObject.OBJECT_TYPE_POST, prefix)
+                & (~pQ(moderated_object__status=ModeratedObject.STATUS_APPROVED))
+                # & ModeratedObject.not_moderated_query(user, ModeratedObject.OBJECT_TYPE_POST, prefix)
             )
 
         return (
