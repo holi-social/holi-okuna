@@ -21,7 +21,7 @@ from openbook_notifications.notifications import (
     SpaceMembershipInviteApprovalUserNotification,
     SpaceMembershipInviteApprovalAdminNotification,
     SpaceMembershipInviteDeclineUserNotification,
-    SpaceMembershipInviteDeclineAdminNotification,
+    PostCommentMentionNotification,
 )
 from openbook_notifications.payloads import (
     SpaceMembershipRequestPayload,
@@ -32,10 +32,12 @@ from openbook_notifications.payloads import (
     SpaceMembershipInvitePayload,
     SpaceMembershipInviteApprovalPayload,
     SpaceMembershipInviteDeclinePayload,
+    PostCommentMentionPayload,
 )
 from openbook_common.tests.helpers import (
     make_community,
     make_user,
+    make_post_comment,
 )
 from openbook_common.enums import FeatureToggleName, FeatureToggleType
 from openbook_common.models import FeatureToggle as FeatureToggleModel
@@ -310,22 +312,21 @@ class SpaceMembershipInviteDeclineUserNotificationTestCase(TestCase):
 
 
 @pytest.mark.django_db
-class SpaceMembershipInviteDeclineAdminNotificationTestCase(TestCase):
+class PostCommentMentionNotificationTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        user = make_user()
-        space = make_community()
+        post_comment = make_post_comment()
         transaction_id = str(uuid.uuid4())
-        payload = SpaceMembershipInviteDeclinePayload(
-            user=user,
-            space=space,
-            notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_DECLINE_ADMIN.value,
+        payload = PostCommentMentionPayload(
+            post_comment=post_comment,
+            notification_type=NotificationType.POST_COMMENT_MENTION.value,
         )
-        cls.notification_instance = SpaceMembershipInviteDeclineAdminNotification(
-            recipient=space.creator.username,
+        print(post_comment.mentions)
+        cls.notification_instance = PostCommentMentionNotification(
+            mentions=[str(mention.username) for mention in post_comment.mentions.all()],
             payload=payload,
             transaction_id=transaction_id,
         )
 
-    def test_space_membership_invite_decline_admin_notification_workflow(self):
-        self.assertEqual(self.notification_instance.workflow, Workflow.SPACE_MEMBERSHIP_INVITE_DECLINE_ADMIN.value)
+    def test_post_comment_mention_notification_workflow(self):
+        self.assertEqual(self.notification_instance.workflow, Workflow.POST_COMMENT_MENTION.value)
