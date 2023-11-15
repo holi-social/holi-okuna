@@ -272,3 +272,20 @@ def react_to_post_comment(post_comment, action, posting_user):
             "reactionAction": action,
         },
     )
+
+
+def update_post_comment(user, info):
+    return async_to_sync(schema.execute)(
+        """
+        mutation test($input: CreatePostCommentInput!){
+            updatePostComment(input: $input) {
+                postComment {
+                        id
+                        text
+                }
+            }
+        }
+        """,
+        context_value=benedict({"request": {"user": user}}),
+        variable_values={"input": info},
+    )
