@@ -22,6 +22,7 @@ from openbook_notifications.notifications import (
     SpaceMembershipInviteApprovalAdminNotification,
     SpaceMembershipInviteDeclineUserNotification,
     PostCommentMentionNotification,
+    SpaceMembershipInviteDeclineAdminNotification,
 )
 from openbook_notifications.payloads import (
     SpaceMembershipRequestPayload,
@@ -312,6 +313,28 @@ class SpaceMembershipInviteDeclineUserNotificationTestCase(TestCase):
 
 
 @pytest.mark.django_db
+class SpaceMembershipInviteDeclineAdminNotificationTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user = make_user()
+        space = make_community()
+        transaction_id = str(uuid.uuid4())
+        payload = SpaceMembershipInviteDeclinePayload(
+            user=user,
+            space=space,
+            notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_DECLINE_ADMIN.value,
+        )
+        cls.notification_instance = SpaceMembershipInviteDeclineAdminNotification(
+            recipient=space.creator.username,
+            payload=payload,
+            transaction_id=transaction_id,
+        )
+
+    def test_space_membership_invite_decline_admin_notification_workflow(self):
+        self.assertEqual(self.notification_instance.workflow, Workflow.SPACE_MEMBERSHIP_INVITE_DECLINE_ADMIN.value)
+
+
+@pytest.mark.django_db
 class PostCommentMentionNotificationTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -321,7 +344,6 @@ class PostCommentMentionNotificationTestCase(TestCase):
             post_comment=post_comment,
             notification_type=NotificationType.POST_COMMENT_MENTION.value,
         )
-        print(post_comment.mentions)
         cls.notification_instance = PostCommentMentionNotification(
             mentions=[str(mention.username) for mention in post_comment.mentions.all()],
             payload=payload,
