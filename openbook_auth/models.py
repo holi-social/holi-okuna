@@ -1565,7 +1565,14 @@ class User(ModelWithUUID, AbstractUser):
     def comment_post_with_id(self, post_id, text):
         Post = get_post_model()
         post = Post.objects.filter(pk=post_id).get()
-        return self.comment_post(post=post, text=text)
+        post_comment = self.comment_post(post=post, text=text)
+
+        from openbook_notifications.notifications import Notifications
+
+        if post_comment.mentions.exists():
+            Notifications.send_post_comment_mention_notification(post_comment=post_comment)
+
+        return post_comment
 
     def comment_post(self, post, text):
         check_can_comment_in_post(user=self, post=post)
