@@ -43,7 +43,7 @@ class SpaceMembershipRequestNotificationHandler:
 class OryWebhook(View):
     def post(self, request):
         data = json.loads(request.body)
-        logger.debug(f"Processing Ory Webhook for user: {data['id']}")
+        logger.info(f"Processing Ory Webhook for user: {data['id']}")
         user = User.objects.get(username=data["id"])
         user.email = data["email"]
         user.save()
