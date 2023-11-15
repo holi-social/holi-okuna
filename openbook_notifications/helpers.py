@@ -424,3 +424,11 @@ def flatten_payload(d, parent_key=""):
         else:
             flat_dict[new_key] = value
     return flat_dict
+
+
+def replace_mentions_with_full_names(text, mentioned_users):
+    for user in mentioned_users:
+        user_id = f"@{user.username}"
+        user_full_name = f"{user.profile.full_name()}"
+        text = text.replace(user_id, user_full_name)
+    return text

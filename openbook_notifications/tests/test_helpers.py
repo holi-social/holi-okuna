@@ -3,7 +3,7 @@ from unittest import TestCase
 import pytest
 from openbook_common.tests.helpers import make_user, make_community
 
-from openbook_notifications.helpers import flatten_payload
+from openbook_notifications.helpers import flatten_payload, replace_mentions_with_full_names
 from openbook_notifications.payloads import SpaceMembershipRequestPayload
 
 
@@ -40,3 +40,25 @@ class TestFlattenPayload(TestCase):
             "notificationVersion": "1.0.0",
         }
         self.assertDictContainsSubset(expected_result, flatten_payload(payload_dict))
+
+
+@pytest.mark.django_db
+class TestReplaceMentions(TestCase):
+    def test_replace_mentions_with_full_names_single_mention(self):
+        mentioned_user = make_user()
+        mentioned_users = [mentioned_user]
+
+        text = f"@{mentioned_user.username} what do you think about this post?"
+        expected_result = f"{mentioned_user.profile.full_name()} what do you think about this post?"
+
+        self.assertEqual(replace_mentions_with_full_names(text, mentioned_users), expected_result)
+
+    def test_replace_mentions_with_full_names_multiple_mentions(self):
+        mentioned_user = make_user()
+        another_mentioned_user = make_user()
+        mentioned_users = [mentioned_user, another_mentioned_user]
+
+        text = f"What do you think, @{mentioned_user.username} and @{another_mentioned_user.username}?"
+        expected_result = f"What do you think, {mentioned_user.profile.full_name()} and {another_mentioned_user.profile.full_name()}?"
+
+        self.assertEqual(replace_mentions_with_full_names(text, mentioned_users), expected_result)

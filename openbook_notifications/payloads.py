@@ -5,9 +5,12 @@ from enum import Enum
 from datetime import datetime
 from django.conf import settings
 
+from openbook_notifications.helpers import replace_mentions_with_full_names
+
 if TYPE_CHECKING:
     from openbook_auth.models import User
     from openbook_communities.models import Community
+    from openbook_posts.models import PostComment, Post
 
 
 class NotificationType(Enum):
@@ -21,6 +24,7 @@ class NotificationType(Enum):
     SPACE_MEMBERSHIP_INVITE_APPROVAL_ADMIN = "SPACE_MEMBERSHIP_INVITE_APPROVAL_ADMIN"
     SPACE_MEMBERSHIP_INVITE_DECLINE_USER = "SPACE_MEMBERSHIP_INVITE_DECLINE_USER"
     SPACE_MEMBERSHIP_INVITE_DECLINE_ADMIN = "SPACE_MEMBERSHIP_INVITE_DECLINE_ADMIN"
+    POST_COMMENT_MENTION = "POST_COMMENT_MENTION"
 
 
 class UserData:
@@ -99,6 +103,35 @@ class SpaceData:
             avatar_blurhash=community.avatar_blurhash if community.avatar_blurhash else "",
             avatar_default_color=str(community.avatar_default_color) if community.avatar_default_color else "",
         )
+
+
+class PostData:
+    def __init__(self, id: str, title: str):
+        self.id = id
+        self.title = title
+
+    def to_dict(self):
+        return {"id": self.id, "title": self.title}
+
+    @classmethod
+    def from_post(cls, post: Post):
+        return cls(id=str(post.id), title=post.title)
+
+
+class PostCommentData:
+    def __init__(self, id: str, text: str):
+        self.id = id
+        self.text = text
+
+    def to_dict(self):
+        return {"id": self.id, "text": self.text}
+
+    @classmethod
+    def from_post_comment(cls, post_comment: PostComment):
+        mentioned_users = post_comment.mentions.all()
+        text = replace_mentions_with_full_names(text=post_comment.text, mentioned_users=mentioned_users)
+
+        return cls(id=str(post_comment.id), text=text)
 
 
 class Payload:
@@ -219,4 +252,25 @@ class SpaceMembershipInviteDeclinePayload(Payload):
             },
             notification_type=notification_type,
             notification_version=SpaceMembershipInviteDeclinePayload.NOTIFICATION_VERSION,
+        )
+
+
+class PostCommentMentionPayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(
+        self,
+        post_comment: PostComment,
+        notification_type: NotificationType,
+    ):
+        super().__init__(
+            data={
+                "user": UserData.from_user(post_comment.commenter).to_dict(),
+                "post": PostData.from_post(post_comment.post).to_dict(),
+                "comment": PostCommentData.from_post_comment(post_comment).to_dict(),
+                "commentLink": f"{settings.APP_URL}/posts/{post_comment.post_id}?commentId={post_comment.id}",
+                "commentDatetime": datetime.now().isoformat(),
+            },
+            notification_type=notification_type,
+            notification_version=PostCommentMentionPayload.NOTIFICATION_VERSION,
         )

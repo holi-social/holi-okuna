@@ -19,10 +19,13 @@ from openbook_notifications.payloads import (
     SpaceMembershipInvitePayload,
     SpaceMembershipInviteApprovalPayload,
     SpaceMembershipInviteDeclinePayload,
+    PostCommentMentionPayload,
 )
 from openbook_notifications.toggles import notifications_toggle
 
 from novu.api import EventApi
+
+from openbook_posts.models import PostComment
 
 
 class Workflow(Enum):
@@ -36,6 +39,7 @@ class Workflow(Enum):
     SPACE_MEMBERSHIP_INVITE_APPROVAL_ADMIN = "space-membership-invite-approval-admin"
     SPACE_MEMBERSHIP_INVITE_DECLINE_USER = "space-membership-invite-decline-user"
     SPACE_MEMBERSHIP_INVITE_DECLINE_ADMIN = "space-membership-invite-decline-admin"
+    POST_COMMENT_MENTION = "post-comment-mention"
 
 
 # Use this classes static methods to trigger notifications via the Notifications system (novu)
@@ -187,6 +191,17 @@ class Notifications:
                 user=invitee,
                 space=space,
                 notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_DECLINE_ADMIN.value,
+            ),
+        )
+        notification.send()
+
+    @staticmethod
+    def send_post_comment_mention_notification(post_comment: PostComment):
+        notification = PostCommentMentionNotification(
+            mentions=[str(mentioned_user.username) for mentioned_user in post_comment.mentions.all()],
+            payload=PostCommentMentionPayload(
+                post_comment=post_comment,
+                notification_type=NotificationType.POST_COMMENT_MENTION.value,
             ),
         )
         notification.send()
@@ -365,6 +380,22 @@ class SpaceMembershipInviteDeclineAdminNotification(Notification):
         super().__init__(
             workflow=Workflow.SPACE_MEMBERSHIP_INVITE_DECLINE_ADMIN.value,
             recipients=recipient,
+            payload=payload.to_dict(),
+            transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
+        )
+
+
+# INTERNAL USE ONLY, use Notifications instead to trigger notifications
+class PostCommentMentionNotification(Notification):
+    def __init__(
+        self,
+        mentions: List[str],
+        payload: PostCommentMentionPayload,
+        transaction_id: Optional[str] = None,
+    ):
+        super().__init__(
+            workflow=Workflow.POST_COMMENT_MENTION.value,
+            recipients=mentions,
             payload=payload.to_dict(),
             transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
         )
