@@ -650,14 +650,23 @@ class TestUsers:
             }
           }
         """
+
+        request = HttpRequest()
+        request.COOKIES = {}
+        request.user = user
+
         return async_to_sync(schema.execute)(
             register_device_mutation,
-            context_value=benedict({"request": {"user": user}}),
+            context_value=benedict({"request": request}),
             variable_values={"input": {"token": token, "deviceType": device_type}},
         )
 
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.find_or_create_subscriber")
     @mock.patch("openbook_notifications.api.NotificationApi.set_subscriber_credentials")
-    def test_can_register_device(self, mock_set_subscriber_credentials):
+    def test_can_register_device(
+        self, mock_set_subscriber_credentials, mock_find_or_create_subscriber, mock_get_language_from_request
+    ):
         user = make_user()
 
         assert len(user.devices.all()) == 0
@@ -674,9 +683,14 @@ class TestUsers:
         mock_set_subscriber_credentials.assert_called_once_with(
             subscriber_id=str(user.username), provider_id=NotificationProvider.FCM, device_tokens=["some_token"]
         )
+        mock_find_or_create_subscriber.assert_called_once_with(user=user, locale="en")
 
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.find_or_create_subscriber")
     @mock.patch("openbook_notifications.api.NotificationApi.set_subscriber_credentials")
-    def test_can_register_the_same_device_twice(self, mock_set_subscriber_credentials):
+    def test_can_register_the_same_device_twice(
+        self, mock_set_subscriber_credentials, mock_find_or_create_subscriber, mock_get_language_from_request
+    ):
         # GIVEN all systems work fine
         user = make_user()
 
@@ -707,9 +721,14 @@ class TestUsers:
         mock_set_subscriber_credentials.assert_called_once_with(
             subscriber_id=str(user.username), provider_id=NotificationProvider.FCM, device_tokens=["some_token"]
         )
+        mock_find_or_create_subscriber.assert_called_once_with(user=user, locale="en")
 
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.find_or_create_subscriber")
     @mock.patch("openbook_notifications.api.NotificationApi.set_subscriber_credentials")
-    def test_only_registers_device_in_okuna_if_succeeded_in_notification_system(self, mock_set_subscriber_credentials):
+    def test_only_registers_device_in_okuna_if_succeeded_in_notification_system(
+        self, mock_set_subscriber_credentials, mock_find_or_create_subscriber, mock_get_language_from_request
+    ):
         # GIVEN registering a device in the notification system fails
         user = make_user()
         mock_set_subscriber_credentials.side_effect = Exception("Server error")
@@ -737,12 +756,52 @@ class TestUsers:
         mock_set_subscriber_credentials.assert_called_once_with(
             subscriber_id=str(user.username), provider_id=NotificationProvider.FCM, device_tokens=["some_token"]
         )
+        mock_find_or_create_subscriber.assert_called()
 
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.find_or_create_subscriber")
     @mock.patch("openbook_notifications.api.NotificationApi.set_subscriber_credentials")
-    def test_can_not_register_device_if_not_logged_in(self, mock_set_subscriber_credentials):
+    def test_only_registers_device_in_okuna_if_subscriber_creation_succeeded_in_notification_system(
+        self, mock_set_subscriber_credentials, mock_find_or_create_subscriber, mock_get_language_from_request
+    ):
+        # GIVEN registering a device in the notification system fails
+        user = make_user()
+        mock_find_or_create_subscriber.side_effect = Exception("Server error")
+
+        # WHEN user tries to register their device
+        response = self.mutate_register_device(user)
+
+        # THEN the request fails
+        assert response.errors is not None
+
+        # THEN no device was registered in Okuna
+        assert len(user.devices.all()) == 0
+
+        # WHEN user retries to register their device
+        mock_find_or_create_subscriber.side_effect = None
+        mock_find_or_create_subscriber.reset_mock()
+        response = self.mutate_register_device(user)
+
+        # THEN the request succeeds
+        assert response.errors is None
+        assert response.data["registerDevice"]["success"] is True
+
+        # THEN the device was registered in Okuna and in the notification system
+        assert len(user.devices.all()) == 1
+        mock_set_subscriber_credentials.assert_called_once_with(
+            subscriber_id=str(user.username), provider_id=NotificationProvider.FCM, device_tokens=["some_token"]
+        )
+        mock_find_or_create_subscriber.assert_called()
+
+    @mock.patch("openbook_notifications.api.NotificationApi.find_or_create_subscriber")
+    @mock.patch("openbook_notifications.api.NotificationApi.set_subscriber_credentials")
+    def test_can_not_register_device_if_not_logged_in(
+        self, mock_set_subscriber_credentials, mock_find_or_create_subscriber
+    ):
         response = self.mutate_register_device(AnonymousUser)
 
         assert_is_unauthorized(response)
+        mock_find_or_create_subscriber.assert_not_called()
         mock_set_subscriber_credentials.assert_not_called()
 
     def test_validates_device_registration(self):
