@@ -209,6 +209,9 @@ class Mutation:
             provider_id = (
                 NotificationProvider.APNS if device_type == DeviceType.IOS.value else NotificationProvider.FCM
             )
+            # Create subscriber if it doesn't exist already
+            locale = get_language_from_request(info.context.request)
+            NotificationApi.find_or_create_subscriber(user=current_user, locale=locale)
             NotificationApi.set_subscriber_credentials(
                 subscriber_id=subscriber_id, provider_id=provider_id, device_tokens=[token]
             )
