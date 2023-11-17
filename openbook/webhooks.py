@@ -53,8 +53,8 @@ class OryWebhook(View):
         user.save()
 
         try:
-            NotificationApi.find_subscriber(user_id=user.username)
-            NotificationApi.update_subscriber(user=user)
+            subscriber = NotificationApi.find_subscriber(user_id=user.username)
+            NotificationApi.update_subscriber(user=user, locale=subscriber.locale)
         except HTTPError as http_err:
             if http_err.response.status_code == 404:
                 # We can not create the subscriber in novu, as we don't know the users locale

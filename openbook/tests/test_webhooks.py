@@ -6,6 +6,7 @@ from unittest import mock
 from django.urls import reverse
 from asgiref.sync import async_to_sync
 from requests.exceptions import HTTPError
+from novu.dto.subscriber import SubscriberDto
 
 from openbook_auth.models import User
 
@@ -26,6 +27,8 @@ class OryWebhookTestCase(TransactionTestCase):
             "email": new_email,
         }
         endpoint = reverse("ory-webhook-endpoint")
+        locale = "en"
+        mock_find_subscriber.return_value = SubscriberDto(subscriber_id=user.username, locale=locale)
 
         # WHEN
         response = async_to_sync(client.post)(endpoint, payload, content_type="application/json")
@@ -37,7 +40,7 @@ class OryWebhookTestCase(TransactionTestCase):
         assert updated_user.email == new_email
 
         mock_find_subscriber.assert_called_with(user_id=user.username)
-        mock_update_subscriber.assert_called_with(user=updated_user)
+        mock_update_subscriber.assert_called_with(user=updated_user, locale=locale)
 
     @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
     @mock.patch("openbook_notifications.api.NotificationApi.find_subscriber")
