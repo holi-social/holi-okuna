@@ -106,16 +106,26 @@ class SpaceData:
 
 
 class PostData:
-    def __init__(self, id: str, title: str):
+    def __init__(self, id: str, title: str, context: str):
         self.id = id
         self.title = title
+        self.context = context
 
     def to_dict(self):
-        return {"id": self.id, "title": self.title}
+        return {"id": self.id, "title": self.title, "context": self.context}
 
     @classmethod
     def from_post(cls, post: Post):
-        return cls(id=str(post.id), title=post.title)
+        """
+        Note: Currently, this method is implemented to handle only posts in spaces because it is the only place
+        where users can create posts. In the future, our users will be able to create insight posts and inspiration
+        posts and the context of this method should be updated accordingly.
+        """
+        return cls(
+            id=str(post.id),
+            title=post.title if post.title else "",
+            context=post.community.title if post.community and post.community.title else "",
+        )
 
 
 class PostCommentData:
