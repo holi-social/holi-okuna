@@ -8,7 +8,7 @@ from asgiref.sync import sync_to_async
 from django.db.models import Q
 from graphql import GraphQLError
 
-from openbook_auth.models import User as UserModel
+from openbook_auth.models import User as UserModel, UserBlock
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.schema.types import Paged
 from openbook_insights.models import Insight as InsightModel
@@ -20,22 +20,26 @@ class Query:
     @strawberry_django.field()
     def insights_by_user_id(self, info, id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         current_user = info.context.request.user
+        user_blocks = UserBlock.users_blocking_or_blocked(current_user)
         try:
             user = UserModel.objects.filter(UserModel.is_visible_query(current_user)).get(username=id)
+            if user.id in user_blocks:
+                raise UserModel.DoesNotExist
         except UserModel.DoesNotExist:
             raise GraphQLError("User not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
-        return Paged.of(
-            InsightModel.objects.filter(creator=user).order_by("-date_published", "id"),
-            offset,
-            limit,
-        )
+
+        insights = list(InsightModel.objects.filter(creator=user).order_by("-date_published", "id"))
+        for insight in insights:
+            insight.posts = filter(insight.posts, lambda post: post.creator.id not in user_blocks)
+
+        return Paged(insights[offset : offset + limit], len(insights))
 
     @strawberry_django.field()
     def last_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         current_user = info.context.request.user
         paged_insights = Paged.of(
             InsightModel.objects.filter(
-                Q(creator__isnull=True) | UserModel.is_visible_ignore_blocked_query(current_user, "creator"),
+                Q(creator__isnull=True) | UserModel.is_visible_ignore_blocked_query("creator"),
                 date_published__lte=datetime.now(),
             )
             .select_related("creator", "creator__profile", "topic")
@@ -56,12 +60,16 @@ class Query:
     def insight_by_id(self, info, id: uuid.UUID) -> Optional[Insight]:
         current_user = info.context.request.user
         try:
-            return (
-                InsightModel.objects.filter(
-                    Q(creator__isnull=True) | UserModel.is_visible_query(current_user, "creator")
-                )
+            insight = (
+                InsightModel.objects.filter(Q(creator__isnull=True) | UserModel.is_visible_query("creator"))
                 .filter(date_published__lte=datetime.now())
                 .get(id=id)
             )
+            user_blocks = UserBlock.users_blocking_or_blocked(current_user)
+            # check for insights / posts that are blocked and filter them
+            if insight.creator.id in user_blocks:
+                raise InsightModel.DoesNotExist
+            insight.posts = filter(insight.posts, lambda post: post.creator.id not in user_blocks)
+            return insight
         except InsightModel.DoesNotExist:
             raise GraphQLError("Insight not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})

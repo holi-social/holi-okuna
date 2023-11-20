@@ -169,9 +169,10 @@ class TestUsers:
         assert response.data is not None
 
         users_by_chat_identities = response.data["usersByChatIdentities"]
-        assert users_by_chat_identities["totalResults"] == 3
+        assert users_by_chat_identities["totalResults"] == 5  # total count includes blocked ones
 
         response_chat_user_ids = [user["id"] for user in users_by_chat_identities["data"]]
+        print(response_chat_user_ids)
         assert str(chat_users[0].id) not in response_chat_user_ids
         assert str(chat_users[1].id) not in response_chat_user_ids
         assert str(chat_users[2].id) in response_chat_user_ids
@@ -585,9 +586,12 @@ class TestUsers:
         blocked_post_raw = get_post_with_id_raw(blocked_post, blocking_user)
         assert blocked_post_raw.data["postById"] is None
         other_post_data = get_post_with_id_data(other_post, blocking_user)
-        assert other_post_data["involvedUsers"]["totalResults"] == 1
-        assert other_post_data["numberOfComments"] == 0
-        assert other_post_data["commenters"]["totalResults"] == 0
+        assert other_post_data["involvedUsers"]["totalResults"] == 2  # does include blocked users
+        assert len(other_post_data["involvedUsers"]["data"]) == 1  # does not include blocked users
+        assert other_post_data["numberOfComments"] == 1  # does include blocked users
+        assert len(other_post_data["comments"]) == 0  # does not include blocked users
+        assert other_post_data["commenters"]["totalResults"] == 1  # does include blocked users
+        assert len(other_post_data["commenters"]["data"]) == 0  # does not include blocked users
 
         assert response.errors is None
         assert response.data["blockUser"]["success"] is True
@@ -611,7 +615,8 @@ class TestUsers:
             """,
             context_value=benedict({"request": {"user": blocking_user}}),
         )
-        assert response.data["userSuggestions"]["totalResults"] == 1
+        assert response.data["userSuggestions"]["totalResults"] == 2  # does include blocked users
+        assert len(response.data["userSuggestions"]["data"]) == 1  # does not include blocked users
         assert response.data["userSuggestions"]["data"][0]["fullName"] == "OtherUser"
 
     def test_user_connection_status_to_space(self):

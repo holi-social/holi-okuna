@@ -23,7 +23,7 @@ from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFit
 from rest_framework.exceptions import ValidationError
 
-from openbook_auth.models import User, UserBlock, get_reactions
+from openbook_auth.models import User, get_reactions
 from openbook_common.enums import ReactionType
 from openbook_common.helpers import (
     PQ,
