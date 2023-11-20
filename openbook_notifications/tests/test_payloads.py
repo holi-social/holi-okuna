@@ -271,4 +271,5 @@ class TestPayloads(TestCase):
         )
         self.assertEqual(data_dict["data"]["post"]["id"], str(self.post_comment.post_id))
         self.assertEqual(data_dict["data"]["post"]["title"], self.post_comment.post.title)
+        self.assertEqual(data_dict["data"]["post"]["context"], self.post_comment.post.community.title)
         self.assertIsNotNone(data_dict["data"]["commentDatetime"])

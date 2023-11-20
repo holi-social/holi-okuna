@@ -603,16 +603,12 @@ def check_app_version(version: str, build_number: str):
 
 
 def make_post_comment():
-    post = mixer.blend(Post)
+    space = make_community()
+    post = mixer.blend(Post, community=space)
     commenter = make_user()
     mentioned_user = make_user()
     text = fake.paragraph()
 
-    post_comment = mixer.blend(
-        PostComment,
-        commenter=commenter,
-        post=post,
-        text=f"@{mentioned_user.username} {text}",
-    )
+    post_comment = mixer.blend(PostComment, commenter=commenter, post=post, text=f"@{mentioned_user.username} {text}")
 
     return post_comment
