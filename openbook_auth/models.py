@@ -1572,6 +1572,12 @@ class User(ModelWithUUID, AbstractUser):
         if post_comment.mentions.exists():
             Notifications.send_post_comment_mention_notification(post_comment=post_comment)
 
+        is_post_author_mentioned = post_comment.mentions.filter(username=post.creator.username).exists()
+        is_post_author_commenter = post_comment.commenter.username == post.creator.username
+
+        if not is_post_author_mentioned and not is_post_author_commenter:
+            Notifications.send_post_comment_author_notification(post_comment=post_comment)
+
         return post_comment
 
     def comment_post(self, post, text):
