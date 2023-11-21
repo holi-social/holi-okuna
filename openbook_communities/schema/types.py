@@ -13,6 +13,7 @@ from openbook_communities.models import CollaborationTool as CollaborationToolMo
 from openbook_communities.models import Community as CommunityModel
 from openbook_communities.models import CommunityMembership as CommunityMembershipModel
 from openbook_communities.models import CommunityMembershipRequest as CommunityMembershipRequestModel
+from openbook_communities.models import CommunityInvite as CommunityInviteModel
 from openbook_communities.models import ExternalLink as ExternalLinkModel
 from openbook_communities.models import ExternalLinkType
 from openbook_communities.models import OnboardingStep as OnboardingStepModel
@@ -204,6 +205,14 @@ class SpaceMembershipRequest:
     message: strawberry.auto
 
 
+@strawberry_django.type(CommunityInviteModel)
+class SpaceInvite:
+    id: strawberry.auto
+    community: "Space"
+    invited_user: User
+    creator: User
+
+
 @strawberry_django.type(OnboardingStepModel)
 class OnboardingStep:
     text: Optional[str]
@@ -263,6 +272,20 @@ class Space:
         return Paged(
             self.membership_requests.all()[offset : offset + limit],
             self.membership_requests.count(),
+        )
+
+    @strawberry_django.field(
+        description="A list of all active invites to this space", prefetch_related="invites__invited_user__profile"
+    )
+    def invites(self, info, offset: int = 0, limit: int = 10) -> Paged[SpaceInvite]:
+        current_user: UserModel = info.context.request.user
+
+        if current_user.is_anonymous or not current_user.is_administrator_of_community_with_id(self.id):
+            return Paged([], 0)
+
+        return Paged(
+            self.invites.all()[offset : offset + limit],
+            self.invites.count(),
         )
 
     @strawberry_django.field()
