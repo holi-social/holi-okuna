@@ -20,6 +20,7 @@ from openbook_notifications.payloads import (
     SpaceMembershipInviteApprovalPayload,
     SpaceMembershipInviteDeclinePayload,
     PostCommentMentionPayload,
+    PostCommentAuthorPayload,
 )
 from openbook_notifications.toggles import notifications_toggle
 
@@ -40,6 +41,7 @@ class Workflow(Enum):
     SPACE_MEMBERSHIP_INVITE_DECLINE_USER = "space-membership-invite-decline-user"
     SPACE_MEMBERSHIP_INVITE_DECLINE_ADMIN = "space-membership-invite-decline-admin"
     POST_COMMENT_MENTION = "post-comment-mention"
+    POST_COMMENT_AUTHOR = "post-comment-author"
 
 
 # Use this classes static methods to trigger notifications via the Notifications system (novu)
@@ -202,6 +204,17 @@ class Notifications:
             payload=PostCommentMentionPayload(
                 post_comment=post_comment,
                 notification_type=NotificationType.POST_COMMENT_MENTION.value,
+            ),
+        )
+        notification.send()
+
+    @staticmethod
+    def send_post_comment_author_notification(post_comment: PostComment):
+        notification = PostCommentAuthorNotification(
+            author=str(post_comment.post.creator.username),
+            payload=PostCommentAuthorPayload(
+                post_comment=post_comment,
+                notification_type=NotificationType.POST_COMMENT_AUTHOR.value,
             ),
         )
         notification.send()
@@ -396,6 +409,22 @@ class PostCommentMentionNotification(Notification):
         super().__init__(
             workflow=Workflow.POST_COMMENT_MENTION.value,
             recipients=mentions,
+            payload=payload.to_dict(),
+            transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
+        )
+
+
+# INTERNAL USE ONLY, use Notifications instead to trigger notifications
+class PostCommentAuthorNotification(Notification):
+    def __init__(
+        self,
+        author: str,
+        payload: PostCommentAuthorPayload,
+        transaction_id: Optional[str] = None,
+    ):
+        super().__init__(
+            workflow=Workflow.POST_COMMENT_AUTHOR.value,
+            recipients=author,
             payload=payload.to_dict(),
             transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
         )

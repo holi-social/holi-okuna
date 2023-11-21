@@ -21,6 +21,7 @@ from openbook_notifications.payloads import (
     SpaceMembershipInviteApprovalPayload,
     SpaceMembershipInviteDeclinePayload,
     PostCommentMentionPayload,
+    PostCommentAuthorPayload,
 )
 
 
@@ -272,4 +273,25 @@ class TestPayloads(TestCase):
         self.assertEqual(data_dict["data"]["post"]["id"], str(self.post_comment.post_id))
         self.assertEqual(data_dict["data"]["post"]["title"], self.post_comment.post.title)
         self.assertEqual(data_dict["data"]["post"]["context"], self.post_comment.post.community.title)
+        self.assertIsNotNone(data_dict["data"]["commentDatetime"])
+
+    def test_post_comment_author_payload(self):
+        payload = PostCommentAuthorPayload(
+            post_comment=self.post_comment,
+            notification_type=NotificationType.POST_COMMENT_AUTHOR.value,
+        )
+
+        data_dict = payload.to_dict()
+        self.assertEqual(data_dict["notificationType"], "POST_COMMENT_AUTHOR")
+        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
+        self.assertEqual(data_dict["data"]["user"]["id"], str(self.post_comment.post.creator.username))
+        self.assertEqual(data_dict["data"]["comment"]["id"], str(self.post_comment.id))
+        self.assertEqual(
+            data_dict["data"]["comment"]["text"],
+            replace_mentions_with_full_names(
+                text=self.post_comment.text, mentioned_users=self.post_comment.mentions.all()
+            ),
+        )
+        self.assertEqual(data_dict["data"]["post"]["id"], str(self.post_comment.post_id))
+        self.assertEqual(data_dict["data"]["post"]["title"], self.post_comment.post.title)
         self.assertIsNotNone(data_dict["data"]["commentDatetime"])
