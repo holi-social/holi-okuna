@@ -5502,8 +5502,7 @@ class UserBlock(ModelWithUUID):
 
     @staticmethod
     def filter_blocked_users(current_user, query, offset, limit):
-        users = query[offset : offset + limit + 2]
-        return [user for user in users if user.id not in UserBlock.users_blocking_or_blocked(current_user)][:limit]
+        return UserBlock.filter_blocked_objects(current_user, lambda user: user.id, query, offset, limit)
 
     @staticmethod
     def filter_blocked_objects(current_user, user_id_getter: Callable, query, offset=None, limit=None):
@@ -5520,8 +5519,7 @@ class UserBlock(ModelWithUUID):
 
     @staticmethod
     def paged(current_user: User, query: QuerySet, offset: int, limit: int, user_id_getter: Callable):
-        data = query[offset : offset + limit + 2]
-        data = [d for d in data if user_id_getter(d) not in UserBlock.users_blocking_or_blocked(current_user)][:limit]
+        data = UserBlock.filter_blocked_objects(current_user, user_id_getter, query, offset, limit)
         return Paged(data=data, total_results=query.count())
 
 
