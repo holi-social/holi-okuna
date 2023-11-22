@@ -846,6 +846,94 @@ class TestCommunities(TestCase):
         self.assertEquals(kwargs["space"], community)
         self.assertEquals(kwargs["message"], message)
 
+    def test_space_invites_only_visible_to_admins(
+        self,
+    ):
+        invitee_email = "test@test.com"
+        invitee = make_user(email=invitee_email)
+        member = make_user()
+        non_member = make_user()
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+        space.add_member(member)
+
+        def member_result(user, is_admin):
+            return {
+                "user": {"id": user.username},
+                "isAdministrator": is_admin,
+            }
+
+        # Send Invite Request
+        mutate_invite_user_by_email(
+            auth_user=space_creator,
+            email=invitee_email,
+            space_id=space.id,
+        )
+
+        # Invited user has invitee status
+        assert get_space_for_user(invitee, space)["connectionStatusToMyself"] == [
+            SpaceUserConnectionType.MEMBERSHIP_INVITEE.value
+        ]
+
+        # Prepare query to check for each user
+        space_by_id_query = f"""
+            query {{
+                spaceById(idOrName: "{space.name}") {{
+                    invites {{
+                        totalResults
+                        data {{
+                            id
+                            invitedUser {{
+                                id
+                            }}
+                        }}
+                    }}
+                    members {{
+                        totalResults
+                        data {{
+                            id
+                        }}
+                    }}
+                }}
+            }}
+            """
+
+        # THEN admin should get the invites
+        response_admin = async_to_sync(schema.execute)(
+            space_by_id_query,
+            context_value=benedict({"request": {"user": space_creator}}),
+        )
+        assert response_admin.errors is None
+        paged_invites = response_admin.data["spaceById"]["invites"]
+        assert paged_invites["totalResults"] == 1
+
+        # THEN non-admin member should get zero invites
+        response_member = async_to_sync(schema.execute)(
+            space_by_id_query,
+            context_value=benedict({"request": {"user": member}}),
+        )
+        assert response_member.errors is None
+        paged_invites = response_member.data["spaceById"]["invites"]
+        assert paged_invites["totalResults"] == 0
+
+        # THEN non-member should get zero invites
+        response_non_member = async_to_sync(schema.execute)(
+            space_by_id_query,
+            context_value=benedict({"request": {"user": non_member}}),
+        )
+        assert response_non_member.errors is None
+        paged_invites = response_non_member.data["spaceById"]["invites"]
+        assert paged_invites["totalResults"] == 0
+
+        # THEN anonymous user should get zero invites
+        response_non_member = async_to_sync(schema.execute)(
+            space_by_id_query,
+            context_value=benedict({"request": {"user": AnonymousUser}}),
+        )
+        assert response_non_member.errors is None
+        paged_members = response_non_member.data["spaceById"]["invites"]
+        assert paged_members["totalResults"] == 0
+
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     def test_space_admin_grant_and_revoke_admin_access_success(self, mock_invalidate_discover_spaces_query_cache):
         space_member = make_user()
