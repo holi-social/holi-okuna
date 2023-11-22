@@ -298,6 +298,7 @@ class PostCommentAuthorPayload(Payload):
         super().__init__(
             data={
                 "user": UserData.from_user(post_comment.post.creator).to_dict(),
+                "commenter": UserData.from_user(post_comment.commenter).to_dict(),
                 "post": PostData.from_post(post_comment.post).to_dict(),
                 "comment": PostCommentData.from_post_comment(post_comment).to_dict(),
                 "commentLink": f"{settings.APP_URL}/posts/{post_comment.post_id}?commentId={post_comment.id}",

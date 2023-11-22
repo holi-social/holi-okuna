@@ -285,6 +285,7 @@ class TestPayloads(TestCase):
         self.assertEqual(data_dict["notificationType"], "POST_COMMENT_AUTHOR")
         self.assertEqual(data_dict["notificationVersion"], "1.0.0")
         self.assertEqual(data_dict["data"]["user"]["id"], str(self.post_comment.post.creator.username))
+        self.assertEqual(data_dict["data"]["commenter"]["id"], str(self.post_comment.commenter.username))
         self.assertEqual(data_dict["data"]["comment"]["id"], str(self.post_comment.id))
         self.assertEqual(
             data_dict["data"]["comment"]["text"],
