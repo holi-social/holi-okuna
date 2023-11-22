@@ -5484,7 +5484,7 @@ class UserBlock(ModelWithUUID):
         all_bidirectional_blocks = chain(
             *[
                 [(rset["blocker_id"], rset["blocked_user_id"]), (rset["blocked_user_id"], rset["blocker_id"])]
-                for rset in list(UserBlock.objects.values("blocker_id", "blocked_user_id"))
+                for rset in UserBlock.objects.values("blocker_id", "blocked_user_id")
             ]
         )
         result = defaultdict(set)
