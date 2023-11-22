@@ -5501,11 +5501,7 @@ class UserBlock(ModelWithUUID):
         caches[USERBLOCK].delete(key="full")
 
     @staticmethod
-    def filter_blocked_users(current_user, query, offset, limit):
-        return UserBlock.filter_blocked_objects(current_user, lambda user: user.id, query, offset, limit)
-
-    @staticmethod
-    def filter_blocked_objects(current_user, user_id_getter: Callable, query, offset=None, limit=None):
+    def filter_blocked_objects(current_user, user_id_getter: Callable, query: QuerySet, offset=None, limit=None):
         if offset is None or limit is None:
             return [d for d in query if user_id_getter(d) not in UserBlock.users_blocking_or_blocked(current_user)]
         data = query[offset : offset + limit + 2]
@@ -5518,7 +5514,7 @@ class UserBlock(ModelWithUUID):
         return obj
 
     @staticmethod
-    def paged(current_user: User, query: QuerySet, offset: int, limit: int, user_id_getter: Callable):
+    def paged(current_user: User, user_id_getter: Callable, query: QuerySet, offset: int, limit: int):
         data = UserBlock.filter_blocked_objects(current_user, user_id_getter, query, offset, limit)
         return Paged(data=data, total_results=query.count())
 

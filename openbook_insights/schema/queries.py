@@ -36,6 +36,7 @@ class Query:
         current_user = info.context.request.user
         paged_insights = UserBlock.paged(
             current_user,
+            lambda insight: insight.creator.id,
             InsightModel.objects.filter(
                 Q(creator__isnull=True) | UserModel.is_visible_ignore_blocked_query("creator"),
                 date_published__lte=datetime.now(),
@@ -50,7 +51,6 @@ class Query:
             .cache(ops=["fetch", "count"], timeout=300),
             offset,
             limit,
-            lambda insight: insight.creator.id,
         )
 
         return paged_insights

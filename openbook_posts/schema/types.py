@@ -145,7 +145,7 @@ class Post:
             )
             .distinct()
         )
-        return UserBlockModel.paged(current_user, involved_users, offset, limit, lambda user: user.id)
+        return UserBlockModel.paged(current_user, lambda user: user.id, involved_users, offset, limit)
 
     @strawberry_django.field()
     def commenters(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
@@ -156,7 +156,7 @@ class Post:
             .filter(Q(posts_comments__post=self) & PostCommentModel.is_visible_query(current_user, "posts_comments"))
             .distinct()
         )
-        return UserBlockModel.paged(current_user, commenters, offset, limit, lambda user: user.id)
+        return UserBlockModel.paged(current_user, lambda user: user.id, commenters, offset, limit)
 
     @strawberry_django.field()
     def reactions(self, info) -> ReactionCounts:

@@ -270,9 +270,9 @@ class TestInsights:
         assert insight4_result["involvedUsers"]["totalResults"] == 1
 
     def test_last_insights_with_blocked_user(self):
-        insight_user = make_user()
-        query_user = make_user()
-        blocked_user = make_user()
+        insight_user = make_user(name="InsightUser")
+        query_user = make_user(name="QueryUser")
+        blocked_user = make_user(name="Blocked")
         query_user.block_user_with_id(blocked_user.id)
 
         now = timezone.now()
