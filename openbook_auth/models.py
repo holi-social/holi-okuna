@@ -4,7 +4,7 @@ import secrets
 from collections import defaultdict
 from datetime import datetime, timedelta
 from itertools import chain
-from typing import Iterable, List, Set
+from typing import Iterable, List, Set, Callable
 from enum import Enum
 from uuid import UUID
 
@@ -5501,16 +5501,21 @@ class UserBlock(ModelWithUUID):
         caches[USERBLOCK].delete(key="full")
 
     @staticmethod
-    def paged_result_filtered_by_user_block(
-        users: QuerySet | List, blocking_user: User, offset: int, limit: int
-    ) -> Paged[User]:
-        total_count = users.count() if isinstance(users, QuerySet) else len(users)
-        paged_users = [
-            user
-            for user in users[offset : offset + limit]
-            if user.id not in UserBlock.users_blocking_or_blocked(blocking_user)
-        ]
-        return Paged(paged_users, total_count)
+    def filter_blocked_users(current_user, query, offset, limit):
+        users = query[offset : offset + limit + 2]
+        return [user for user in users if user.id not in UserBlock.users_blocking_or_blocked(current_user)][:limit]
+
+    @staticmethod
+    def filter_single_object(current_user: User, obj, user_id_getter: Callable):
+        if user_id_getter(obj) in UserBlock.users_blocking_or_blocked(current_user):
+            raise type(obj).DoesNotExist
+        return obj
+
+    @staticmethod
+    def paged(current_user: User, query: QuerySet, offset: int, limit: int, user_id_getter: Callable):
+        data = query[offset : offset + limit + 2]
+        data = [d for d in data if user_id_getter(d) not in UserBlock.users_blocking_or_blocked(current_user)][:limit]
+        return Paged(data=data, total_results=query.count())
 
 
 @receiver(

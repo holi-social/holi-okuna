@@ -136,7 +136,7 @@ class Post:
     @strawberry_django.field(description="A list of all users involved. Author of the post plus all commenters")
     def involved_users(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
         current_user = info.context.request.user
-        involved_users = list(
+        involved_users = (
             UserModel.objects.select_related("profile")
             .filter(UserModel.is_visible_query(current_user))
             .filter(
@@ -145,7 +145,7 @@ class Post:
             )
             .distinct()
         )
-        return UserBlockModel.paged_result_filtered_by_user_block(involved_users, current_user, offset, limit)
+        return UserBlockModel.paged(current_user, involved_users, offset, limit, lambda user: user.id)
 
     @strawberry_django.field()
     def commenters(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
@@ -156,7 +156,7 @@ class Post:
             .filter(Q(posts_comments__post=self) & PostCommentModel.is_visible_query(current_user, "posts_comments"))
             .distinct()
         )
-        return UserBlockModel.paged_result_filtered_by_user_block(commenters, current_user, offset, limit)
+        return UserBlockModel.paged(current_user, commenters, offset, limit, lambda user: user.id)
 
     @strawberry_django.field()
     def reactions(self, info) -> ReactionCounts:

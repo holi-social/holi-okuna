@@ -1,4 +1,3 @@
-import itertools
 import uuid
 from datetime import datetime, timedelta
 from typing import Generic, List, Optional, TypeVar
@@ -44,10 +43,7 @@ class Query:
         try:
             current_user = info.context.request.user
             user = UserModel.objects.filter(UserModel.is_visible_query(current_user)).get(username=id)
-            print(f"{user} {user.id} {UserBlockModel.users_blocking_or_blocked(current_user)}")
-            if user.id in UserBlockModel.users_blocking_or_blocked(current_user):
-                raise UserModel.DoesNotExist
-            return user
+            return UserBlockModel.filter_single_object(current_user, user, lambda u: u.id)
         except UserModel.DoesNotExist:
             raise GraphQLError("User not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
 
@@ -55,7 +51,7 @@ class Query:
     def users_by_chat_identities(self, info, identities: List[str], offset: int = 0, limit: int = 10) -> Paged[User]:
         current_user = verify_authorized_user(info)
         users = UserModel.objects.filter(Q(identity__in=identities) & UserModel.is_visible_query(current_user))
-        return UserBlockModel.paged_result_filtered_by_user_block(users, current_user, offset, limit)
+        return UserBlockModel.paged(current_user, users, offset, limit, lambda u: u.id)
 
     @strawberry_django.field()
     def user_by_name(self, info, substring: str, offset: int = 0, limit: int = 5) -> Paged[User]:
@@ -79,46 +75,29 @@ class Query:
             .filter(Q(profile__name__icontains=substring) & excludes_filter)
             .order_by("profile__name", "profile__last_name")
         )
-        by_first_name_list = list(
-            by_first_name_query[offset : offset + limit + 2]  # select two more as buffer in case of blocked users
-        )
-        by_first_name = list(
-            itertools.islice(
-                filter(
-                    lambda user: user.id not in UserBlockModel.users_blocking_or_blocked(current_user),
-                    by_first_name_list,
-                ),
-                limit,
-            )
-        )
+        by_first_name = UserBlockModel.filter_blocked_users(current_user, by_first_name_query, offset, limit)
 
         by_first_name_len = len(by_first_name)
 
-        if by_first_name_len >= limit:
+        if by_first_name_len >= limit:  # we have more users than we are looking for
             return Paged(by_first_name, total_results)
 
-        if by_first_name_len > 0:
+        if by_first_name_len > 0:  # we have some users, but not enough
             new_offset = 0
             new_limit = limit - by_first_name_len
         else:
             new_offset = offset - by_first_name_query.count()
             new_limit = limit
 
-        by_full_name = list(
-            itertools.islice(
-                filter(
-                    lambda user: user.id not in UserBlockModel.users_blocking_or_blocked(current_user),
-                    list(
-                        UserModel.objects.select_related("profile")
-                        .filter(full_name_query & ~Q(profile__name__icontains=substring))
-                        .order_by("profile__name", "profile__last_name")
-                    )[
-                        new_offset : new_offset + new_limit + 2  # select two more as buffer in case of blocked users
-                    ],
-                ),
-                new_limit,  # remove buffer for filtering blocked users
-            )
+        by_full_name = UserBlockModel.filter_blocked_users(
+            current_user,
+            UserModel.objects.select_related("profile")
+            .filter(full_name_query & ~Q(profile__name__icontains=substring))
+            .order_by("profile__name", "profile__last_name"),
+            new_offset,
+            new_limit,
         )
+
         return Paged(by_first_name + by_full_name, total_results)
 
     @strawberry_django.field()
@@ -133,4 +112,4 @@ class Query:
         if current_user.id:
             query = query.exclude(id=current_user.id)
 
-        return UserBlockModel.paged_result_filtered_by_user_block(query, current_user, offset, limit)
+        return UserBlockModel.paged(current_user, query, offset, limit, lambda user: user.id)

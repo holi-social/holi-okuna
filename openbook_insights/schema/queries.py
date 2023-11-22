@@ -20,19 +20,22 @@ class Query:
     @strawberry_django.field()
     def insights_by_user_id(self, info, id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         current_user = info.context.request.user
-        user_blocks = UserBlock.users_blocking_or_blocked(current_user)
         try:
             user = UserModel.objects.filter(UserModel.is_visible_query(current_user)).get(username=id)
-            if user.id in user_blocks:
-                raise UserModel.DoesNotExist
+            user = UserBlock.filter_single_object(current_user, user, lambda u: u.id)
         except UserModel.DoesNotExist:
             raise GraphQLError("User not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
-
-        insights = list(InsightModel.objects.filter(creator=user).order_by("-date_published", "id"))
-        for insight in insights:
-            insight.posts = filter(insight.posts, lambda post: post.creator.id not in user_blocks)
-
-        return Paged(insights[offset : offset + limit], len(insights))
+        return Paged.of(
+            InsightModel.objects.filter(creator=user).order_by("-date_published", "id"),
+            offset,
+            limit,
+        )
+        # TODO I think this is not correct. We don't filter the insights with posts from blocked users
+        # insights = list(InsightModel.objects.filter(creator=user).order_by("-date_published", "id"))
+        # for insight in insights:
+        #     insight.posts = filter(insight.posts, lambda post: post.creator.id not in user_blocks)
+        #
+        # return Paged(insights[offset : offset + limit], len(insights))
 
     @strawberry_django.field()
     def last_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
@@ -65,11 +68,6 @@ class Query:
                 .filter(date_published__lte=datetime.now())
                 .get(id=id)
             )
-            user_blocks = UserBlock.users_blocking_or_blocked(current_user)
-            # check for insights / posts that are blocked and filter them
-            if insight.creator.id in user_blocks:
-                raise InsightModel.DoesNotExist
-            insight.posts = filter(insight.posts, lambda post: post.creator.id not in user_blocks)
-            return insight
+            return UserBlock.filter_single_object(current_user, insight, lambda i: i.creator.id)
         except InsightModel.DoesNotExist:
             raise GraphQLError("Insight not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
