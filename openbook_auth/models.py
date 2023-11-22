@@ -5506,6 +5506,13 @@ class UserBlock(ModelWithUUID):
         return [user for user in users if user.id not in UserBlock.users_blocking_or_blocked(current_user)][:limit]
 
     @staticmethod
+    def filter_blocked_objects(current_user, user_id_getter: Callable, query, offset=None, limit=None):
+        if offset is None or limit is None:
+            return [d for d in query if user_id_getter(d) not in UserBlock.users_blocking_or_blocked(current_user)]
+        data = query[offset : offset + limit + 2]
+        return [d for d in data if user_id_getter(d) not in UserBlock.users_blocking_or_blocked(current_user)][:limit]
+
+    @staticmethod
     def filter_single_object(current_user: User, obj, user_id_getter: Callable):
         if user_id_getter(obj) in UserBlock.users_blocking_or_blocked(current_user):
             raise type(obj).DoesNotExist

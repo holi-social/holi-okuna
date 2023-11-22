@@ -268,3 +268,51 @@ class TestInsights:
         assert insight4_result["title"] == insight4.title
         assert insight4_result["numberOfPosts"] == 0
         assert insight4_result["involvedUsers"]["totalResults"] == 1
+
+    def test_last_insights_with_blocked_user(self):
+        insight_user = make_user()
+        query_user = make_user()
+        blocked_user = make_user()
+        query_user.block_user_with_id(blocked_user.id)
+
+        now = timezone.now()
+        post1 = insight_user.create_post(title="not blocked post", text=(make_fake_post_text()), is_public=True)
+        post2 = blocked_user.create_post(title="blocked post", text=(make_fake_post_text()), is_public=True)
+        insight1 = Insight.objects.create(
+            creator=insight_user,
+            title="Insight  Foo",
+            date_published=now,
+        )
+        insight1.posts.add(post1, post2)
+
+        insight2 = Insight.objects.create(
+            creator=blocked_user, title="Insight 2 Blocked", date_published=now - timezone.timedelta(days=1)
+        )
+
+        response = async_to_sync(schema.execute)(
+            f"""
+            query {{
+                lastInsights {{
+                    data {{
+                        title
+                        numberOfPosts
+                        posts {{
+                            title
+                        }}
+                        involvedUsers {{
+                            totalResults
+                            data {{
+                              fullName
+                            }}
+                        }}
+                    }}
+                }}
+            }}
+            """,
+            context_value=benedict({"request": {"user": query_user}}),
+        )
+        insights = response.data["lastInsights"]["data"]
+        assert len(insights) == 1
+        insight1_result = insights[0]
+        assert insight1_result["title"] == insight1.title
+        assert len(insight1_result["posts"]) == 1

@@ -30,17 +30,12 @@ class Query:
             offset,
             limit,
         )
-        # TODO I think this is not correct. We don't filter the insights with posts from blocked users
-        # insights = list(InsightModel.objects.filter(creator=user).order_by("-date_published", "id"))
-        # for insight in insights:
-        #     insight.posts = filter(insight.posts, lambda post: post.creator.id not in user_blocks)
-        #
-        # return Paged(insights[offset : offset + limit], len(insights))
 
     @strawberry_django.field()
     def last_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         current_user = info.context.request.user
-        paged_insights = Paged.of(
+        paged_insights = UserBlock.paged(
+            current_user,
             InsightModel.objects.filter(
                 Q(creator__isnull=True) | UserModel.is_visible_ignore_blocked_query("creator"),
                 date_published__lte=datetime.now(),
@@ -55,6 +50,7 @@ class Query:
             .cache(ops=["fetch", "count"], timeout=300),
             offset,
             limit,
+            lambda insight: insight.creator.id,
         )
 
         return paged_insights

@@ -6,7 +6,7 @@ import strawberry_django
 from asgiref.sync import sync_to_async
 from django.db.models import Q
 
-from openbook_auth.models import User as UserModel
+from openbook_auth.models import User as UserModel, UserBlock
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import Paged
 from openbook_insights.models import Insight as InsightModel
@@ -31,7 +31,11 @@ class Insight:
     @strawberry_django.field()
     def posts(self, info) -> List[Annotated["Post", strawberry.lazy("openbook_posts.schema.types")]]:
         current_user = info.context.request.user
-        return self.posts.filter(PostModel.is_visible_query(current_user)).order_by("created")
+        return UserBlock.filter_blocked_objects(
+            current_user,
+            lambda post: post.creator.id,
+            self.posts.filter(PostModel.is_visible_query(current_user)).order_by("created"),
+        )
 
     # this should be removed and be replaced by paged posts
     @strawberry_django.field()
