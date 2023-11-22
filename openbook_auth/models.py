@@ -1,10 +1,12 @@
 import logging
 import re
 import secrets
-import time
+from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Iterable, List
+from itertools import chain
+from typing import Iterable, List, Set
 from enum import Enum
+from uuid import UUID
 
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -5469,36 +5471,29 @@ class UserBlock(ModelWithUUID):
 
     @classmethod
     def users_are_blocked(cls, user_a_id, user_b_id):
-        bidirectional_blocks = set(
-            [
-                (user_a_id, user_b_id),
-                (user_b_id, user_a_id),
-            ]
-        )
-        return len(UserBlock.cached_user_blocks().intersection(bidirectional_blocks)) > 0
+        return user_b_id in (UserBlock.cached_user_blocks().get(user_a_id) or {})
 
     @staticmethod
-    def users_blocking_or_blocked(user: User) -> set[str]:
+    def users_blocking_or_blocked(user: User) -> Set[UUID]:
         if user.is_anonymous:
             return {}
-        blocks: {tuple[str, str]} = UserBlock.cached_user_blocks()
-        blocked_by_user: {str} = {v[0] for v in blocks if v[1] == user.id}
-        user_blocked_by: {str} = {v[1] for v in blocks if v[0] == user.id}
-        return blocked_by_user.union(user_blocked_by)
+        return UserBlock.cached_user_blocks().get(user.id) or {}
 
     @staticmethod
-    def __user_blocks_from_database() -> {tuple[str, str]}:
-        return set(
-            (
-                [
-                    (rset["blocker_id"], rset["blocked_user_id"])
-                    for rset in list(UserBlock.objects.values("blocker_id", "blocked_user_id"))
-                ]
-            )
+    def __user_blocks_from_database() -> {UUID: Set[UUID]}:
+        all_bidirectional_blocks = chain(
+            *[
+                [(rset["blocker_id"], rset["blocked_user_id"]), (rset["blocked_user_id"], rset["blocker_id"])]
+                for rset in list(UserBlock.objects.values("blocker_id", "blocked_user_id"))
+            ]
         )
+        result = defaultdict(set)
+        for k in all_bidirectional_blocks:
+            result[k[0]].add(k[1])
+        return result
 
     @staticmethod
-    def cached_user_blocks() -> {tuple[str, str]}:
+    def cached_user_blocks() -> {UUID, Set[UUID]}:
         return caches[USERBLOCK].get_or_set(key="full", default=UserBlock.__user_blocks_from_database)
 
     @staticmethod
