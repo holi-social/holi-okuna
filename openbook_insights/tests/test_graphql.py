@@ -298,6 +298,9 @@ class TestInsights:
                         numberOfPosts
                         posts {{
                             title
+                            creator {{
+                                fullName
+                            }}
                         }}
                         involvedUsers {{
                             totalResults

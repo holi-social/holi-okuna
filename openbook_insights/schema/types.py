@@ -33,7 +33,7 @@ class Insight:
         current_user = info.context.request.user
         return UserBlock.filter_blocked_objects(
             current_user,
-            lambda post: post.creator.id,
+            lambda post: (temp := post.creator.id) if post and post.creator is not None else None,
             self.posts.filter(PostModel.is_visible_query(current_user)).order_by("created"),
         )
 
@@ -60,4 +60,4 @@ class Insight:
             is_deleted=False,
         ).distinct()
         query = query.select_related("profile").cache(ops=["fetch", "count"], timeout=300)
-        return Paged.of(query, offset, limit)
+        return UserBlock.paged(current_user, lambda user: user.id, query, offset, limit)
