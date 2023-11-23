@@ -5528,8 +5528,8 @@ class UserBlock(ModelWithUUID):
         return obj
 
     @staticmethod
-    def paged(current_user: User, user_getter: Callable, query: QuerySet, offset: int, limit: int):
-        data = UserBlock.filter_blocked_objects(current_user, user_getter, query, offset, limit)
+    def paged(current_user: User, user_id_getter: Callable, query: QuerySet, offset: int, limit: int):
+        data = UserBlock.filter_blocked_objects(current_user, user_id_getter, query, offset, limit)
         return Paged(data=data, total_results=query.count())
 
 

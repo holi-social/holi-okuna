@@ -11,7 +11,7 @@ def resolve_post(current_user, post_id):
         return UserBlockModel.filter_single_object(
             current_user,
             post,
-            lambda post: (temp := post.creator.id) if post and post.creator is not None else None,
+            lambda p: None if p or p.creator is None else p.creator.id,
         )
     except PostModel.DoesNotExist:
         raise GraphQLError("Post not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
