@@ -33,7 +33,7 @@ class Insight:
         current_user = info.context.request.user
         return UserBlock.filter_blocked_objects(
             current_user,
-            lambda post: None if post or post.creator is None else post.creator.id,
+            lambda post: None if post.creator is None else post.creator.id,
             self.posts.filter(PostModel.is_visible_query(current_user)).order_by("created"),
         )
 

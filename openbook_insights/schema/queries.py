@@ -36,7 +36,7 @@ class Query:
         current_user = info.context.request.user
         paged_insights = UserBlock.paged(
             current_user,
-            lambda insight: None if insight or insight.creator is None else insight.creator.id,
+            lambda insight: None if insight.creator is None else insight.creator.id,
             InsightModel.objects.filter(
                 Q(creator__isnull=True) | UserModel.is_visible_ignore_blocked_query("creator"),
                 date_published__lte=datetime.now(),
@@ -67,7 +67,7 @@ class Query:
             return UserBlock.filter_single_object(
                 current_user,
                 insight,
-                lambda insight: None if insight or insight.creator is None else insight.creator.id,
+                lambda i: None if i.creator is None else i.creator.id,
             )
         except InsightModel.DoesNotExist:
             raise GraphQLError("Insight not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
