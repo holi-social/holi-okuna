@@ -5466,39 +5466,53 @@ class UserBlock(ModelWithUUID):
     @classmethod
     def create_user_block(cls, blocker_id, blocked_user_id):
         result = cls.objects.create(blocker_id=blocker_id, blocked_user_id=blocked_user_id)
-        UserBlock.invalidate_cached_user_blocks()
+        UserBlock.invalidate_cached_user_blocks([blocker_id, blocked_user_id])
         return result
 
     @classmethod
-    def users_are_blocked(cls, user_a_id, user_b_id):
-        return user_b_id in (UserBlock.cached_user_blocks().get(user_a_id) or {})
+    def users_are_blocked(cls, user_a_id: UUID, user_b_id: UUID):
+        return user_b_id in (UserBlock.cached_user_blocks(user_a_id) or set())
 
     @staticmethod
     def users_blocking_or_blocked(user: User) -> Set[UUID]:
         if user.is_anonymous:
             return {}
-        return UserBlock.cached_user_blocks().get(user.id) or {}
+        return UserBlock.cached_user_blocks(user.id) or set()
 
     @staticmethod
-    def __user_blocks_from_database() -> {UUID: Set[UUID]}:
-        all_bidirectional_blocks = chain(
-            *[
-                [(rset["blocker_id"], rset["blocked_user_id"]), (rset["blocked_user_id"], rset["blocker_id"])]
-                for rset in UserBlock.objects.values("blocker_id", "blocked_user_id")
-            ]
+    def __user_blocks_from_database(user_id: UUID) -> Set[UUID]:
+        """
+        We select all user ids that are blocked by us or blocking us by squashing the blockers and blocked's together
+        and afterwards filtering out our own id.
+        """
+        result = set(
+            chain(
+                *[
+                    [rset["blocker_id"], rset["blocked_user_id"]]
+                    for rset in UserBlock.objects.filter(Q(blocker_id=user_id) | Q(blocked_user_id=user_id)).values(
+                        "blocker_id", "blocked_user_id"
+                    )
+                ]
+            ),
         )
-        result = defaultdict(set)
-        for k in all_bidirectional_blocks:
-            result[k[0]].add(k[1])
+        result.discard(user_id)
         return result
 
     @staticmethod
-    def cached_user_blocks() -> {UUID, Set[UUID]}:
-        return caches[USERBLOCK].get_or_set(key="full", default=UserBlock.__user_blocks_from_database)
+    def cached_user_blocks(user_id: UUID) -> Set[UUID]:
+        return caches[USERBLOCK].get_or_set(
+            key=UserBlock.__user_block_cache_key(user_id),
+            default=lambda: UserBlock.__user_blocks_from_database(user_id),
+        )
 
     @staticmethod
-    def invalidate_cached_user_blocks() -> None:
-        caches[USERBLOCK].delete(key="full")
+    def __user_block_cache_key(user_id: UUID):
+        return f"ub_{str(user_id)}"
+
+    @staticmethod
+    def invalidate_cached_user_blocks(user_ids: [UUID]) -> None:
+        for uid in user_ids:
+            caches[USERBLOCK].delete(key=UserBlock.__user_block_cache_key(uid))
 
     @staticmethod
     def filter_blocked_objects(current_user, user_id_getter: Callable, query: QuerySet, offset=None, limit=None):
@@ -5514,8 +5528,8 @@ class UserBlock(ModelWithUUID):
         return obj
 
     @staticmethod
-    def paged(current_user: User, user_id_getter: Callable, query: QuerySet, offset: int, limit: int):
-        data = UserBlock.filter_blocked_objects(current_user, user_id_getter, query, offset, limit)
+    def paged(current_user: User, user_getter: Callable, query: QuerySet, offset: int, limit: int):
+        data = UserBlock.filter_blocked_objects(current_user, user_getter, query, offset, limit)
         return Paged(data=data, total_results=query.count())
 
 
