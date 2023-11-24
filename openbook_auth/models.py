@@ -4892,19 +4892,6 @@ class User(ModelWithUUID, AbstractUser):
             return f"Admin {self.__class__.__name__}, ID {self.id}"
 
     @staticmethod
-    def is_visible_query(user, prefix=None, exclude_user=False):
-        """
-        Checks if the user is generally visible on the platform, e.g. is not deleted and has a profile.
-        Does not check for user blocks, that needs to be done separately.
-
-        Changed from original okuna behaviour (userblock was part of the query) because of expensive subqueries for
-        userblock.
-        """
-        # TODO find a solution for "& ModeratedObject.not_moderated_query(user, prefix))"
-        blocked_user_ids = {user.id} if user is not None and not exclude_user else {}
-        return User.is_visible_ignore_blocked_query(prefix) & ~PQ(prefix, __in=blocked_user_ids)
-
-    @staticmethod
     def is_visible_ignore_blocked_query(prefix=None):
         pQ = PrefixedQ(prefix)
         return pQ(is_deleted=False) & pQ(profile__isnull=False) & pQ(identity__isnull=False)

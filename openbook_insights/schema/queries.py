@@ -21,7 +21,7 @@ class Query:
     def insights_by_user_id(self, info, id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         current_user = info.context.request.user
         try:
-            user = UserModel.objects.filter(UserModel.is_visible_query(current_user)).get(username=id)
+            user = UserModel.objects.filter(UserModel.is_visible_ignore_blocked_query()).get(username=id)
             user = UserBlock.filter_single_object(current_user, user, lambda u: u.id)
         except UserModel.DoesNotExist:
             raise GraphQLError("User not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
@@ -60,7 +60,9 @@ class Query:
         current_user = info.context.request.user
         try:
             insight = (
-                InsightModel.objects.filter(Q(creator__isnull=True) | UserModel.is_visible_query("creator"))
+                InsightModel.objects.filter(
+                    Q(creator__isnull=True) | UserModel.is_visible_ignore_blocked_query("creator")
+                )
                 .filter(date_published__lte=datetime.now())
                 .get(id=id)
             )

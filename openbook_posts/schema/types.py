@@ -138,7 +138,7 @@ class Post:
         current_user = info.context.request.user
         involved_users = (
             UserModel.objects.select_related("profile")
-            .filter(UserModel.is_visible_query(current_user))
+            .filter(UserModel.is_visible_ignore_blocked_query())
             .filter(
                 (Q(posts=self) & PostModel.is_visible_query(current_user, "posts"))
                 | (Q(posts_comments__post=self) & PostCommentModel.is_visible_query(current_user, "posts_comments"))
@@ -152,7 +152,7 @@ class Post:
         current_user = info.context.request.user
         commenters = (
             UserModel.objects.select_related("profile")
-            .filter(UserModel.is_visible_query(current_user))
+            .filter(UserModel.is_visible_ignore_blocked_query())
             .filter(Q(posts_comments__post=self) & PostCommentModel.is_visible_query(current_user, "posts_comments"))
             .distinct()
         )

@@ -42,7 +42,7 @@ class Query:
     def user_by_id(self, info, id: uuid.UUID) -> Optional[User]:
         try:
             current_user = info.context.request.user
-            user = UserModel.objects.filter(UserModel.is_visible_query(current_user)).get(username=id)
+            user = UserModel.objects.filter(UserModel.is_visible_ignore_blocked_query()).get(username=id)
             return UserBlockModel.filter_single_object(current_user, user, lambda u: u.id)
         except UserModel.DoesNotExist:
             raise GraphQLError("User not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
@@ -50,7 +50,7 @@ class Query:
     @strawberry_django.field()
     def users_by_chat_identities(self, info, identities: List[str], offset: int = 0, limit: int = 10) -> Paged[User]:
         current_user = verify_authorized_user(info)
-        users = UserModel.objects.filter(Q(identity__in=identities) & UserModel.is_visible_query(current_user))
+        users = UserModel.objects.filter(Q(identity__in=identities) & UserModel.is_visible_ignore_blocked_query())
         return UserBlockModel.paged(current_user, lambda u: u.id, users, offset, limit)
 
     @strawberry_django.field()
@@ -59,7 +59,7 @@ class Query:
 
         current_user = info.context.request.user
         users_to_exclude_ids = [current_user.id] if not current_user.is_anonymous else []
-        excludes_filter = ~Q(id__in=users_to_exclude_ids) & UserModel.is_visible_query(current_user)
+        excludes_filter = ~Q(id__in=users_to_exclude_ids) & UserModel.is_visible_ignore_blocked_query()
         full_name_query = (
             IContains(
                 Concat(F("profile__name"), Value(" "), F("profile__last_name")),
@@ -108,7 +108,7 @@ class Query:
         current_user = info.context.request.user
         query = (
             UserModel.objects.select_related("profile")
-            .filter(UserModel.is_visible_query(current_user))
+            .filter(UserModel.is_visible_ignore_blocked_query())
             .filter(date_joined__lte=datetime.now() - timedelta(hours=1))
             .order_by("-date_joined")
         )

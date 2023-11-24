@@ -157,27 +157,30 @@ class TestUsers:
         assert executed.data["userByName"]["data"][3]["firstName"] == "Thomas"
 
     def test_get_users_by_chat_identities_success(self):
-        user = make_user()
+        user = make_user(identity="user_identity")
         chat_users = [make_user(identity=f"identity_{i}") for i in range(5)]
 
         user.block_user_with_id(chat_users[0].id)
         chat_users[1].block_user_with_id(user.id)
 
-        response = get_users_by_chat_identities(user, [chat_user.identity for chat_user in chat_users])
+        response = get_users_by_chat_identities(
+            user, [chat_user.identity for chat_user in chat_users] + [user.identity]
+        )
 
         assert response.errors is None
         assert response.data is not None
 
         users_by_chat_identities = response.data["usersByChatIdentities"]
-        assert users_by_chat_identities["totalResults"] == 5  # total count includes blocked ones
+        assert users_by_chat_identities["totalResults"] == 6  # total count includes blocked ones
 
         response_chat_user_ids = [user["id"] for user in users_by_chat_identities["data"]]
-        print(response_chat_user_ids)
         assert str(chat_users[0].id) not in response_chat_user_ids
         assert str(chat_users[1].id) not in response_chat_user_ids
         assert str(chat_users[2].id) in response_chat_user_ids
         assert str(chat_users[3].id) in response_chat_user_ids
         assert str(chat_users[4].id) in response_chat_user_ids
+        assert str(user.id) in response_chat_user_ids
+        assert len(response_chat_user_ids) == 4
 
     def test_get_users_by_chat_identities_error_user_not_logged_in(self):
         chat_users = [make_user(identity=f"identity_{i}") for i in range(5)]
