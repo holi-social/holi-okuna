@@ -126,6 +126,12 @@ class Mutation:
                     return space
                 case (ConnectionType.MEMBERSHIP_INVITEE, Action.CONNECT):
                     return current_user.invite_to_community(username=str(user_id), community=space)
+                # space admin withdraws membership invite
+                case (ConnectionType.MEMBERSHIP_INVITEE, Action.DISCONNECT):
+                    current_user.uninvite_user_with_username_to_community_with_name(
+                        username=str(user_id), community_name=space.name
+                    )
+                    return space
                 case (ConnectionType.ADMINISTRATOR, Action.GRANT_ADMIN_ACCESS):
                     return current_user.add_administrator_with_username_to_community_with_name(user_id, space.name)
                 case (ConnectionType.ADMINISTRATOR, Action.REVOKE_ADMIN_ACCESS):

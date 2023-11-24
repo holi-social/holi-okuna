@@ -857,12 +857,6 @@ class TestCommunities(TestCase):
         space = make_community(creator=space_creator)
         space.add_member(member)
 
-        def member_result(user, is_admin):
-            return {
-                "user": {"id": user.username},
-                "isAdministrator": is_admin,
-            }
-
         # Send Invite Request
         mutate_invite_user_by_email(
             auth_user=space_creator,
@@ -933,6 +927,154 @@ class TestCommunities(TestCase):
         assert response_non_member.errors is None
         paged_members = response_non_member.data["spaceById"]["invites"]
         assert paged_members["totalResults"] == 0
+
+    def test_space_admin_withdraw_invite_success(
+        self,
+    ):
+        invitee_email = "test@test.com"
+        invitee = make_user(email=invitee_email)
+        member = make_user()
+        non_member = make_user()
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+        space.add_member(member)
+
+        # Send Invite Request
+        mutate_invite_user_by_email(
+            auth_user=space_creator,
+            email=invitee_email,
+            space_id=space.id,
+        )
+
+        # Invited user has invitee status
+        assert get_space_for_user(invitee, space)["connectionStatusToMyself"] == [
+            SpaceUserConnectionType.MEMBERSHIP_INVITEE.value
+        ]
+
+        # Prepare query to check for each user
+        space_by_id_query = f"""
+            query {{
+                spaceById(idOrName: "{space.name}") {{
+                    invites {{
+                        totalResults
+                        data {{
+                            id
+                            invitedUser {{
+                                id
+                            }}
+                        }}
+                    }}
+                    members {{
+                        totalResults
+                        data {{
+                            id
+                        }}
+                    }}
+                }}
+            }}
+            """
+
+        # THEN admin should get the invites
+        response_admin = async_to_sync(schema.execute)(
+            space_by_id_query,
+            context_value=benedict({"request": {"user": space_creator}}),
+        )
+        assert response_admin.errors is None
+        paged_invites = response_admin.data["spaceById"]["invites"]
+        assert paged_invites["totalResults"] == 1
+
+        # THEN Admin withdraws invite
+        mutate_update_space_user_connection_data(
+            auth_user=space_creator,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+            connect_action=UpdateConnectionAction.DISCONNECT,
+            user_id=invitee.username,
+        )
+
+        # THEN admin should get zero invites
+        response_admin = async_to_sync(schema.execute)(
+            space_by_id_query,
+            context_value=benedict({"request": {"user": space_creator}}),
+        )
+        assert response_admin.errors is None
+        paged_invites = response_admin.data["spaceById"]["invites"]
+        assert paged_invites["totalResults"] == 0
+
+    # TODO
+    def test_space_admin_withdraw_invite_error(
+        self,
+    ):
+        invitee_email = "test@test.com"
+        invitee = make_user(email=invitee_email)
+        member = make_user()
+        non_invitee = make_user()
+        non_member = make_user()
+        space_creator = make_user()
+        space = make_community(creator=space_creator)
+        space.add_member(member)
+
+        # Send Invite Request
+        mutate_invite_user_by_email(
+            auth_user=space_creator,
+            email=invitee_email,
+            space_id=space.id,
+        )
+
+        # Invited user has invitee status
+        assert get_space_for_user(invitee, space)["connectionStatusToMyself"] == [
+            SpaceUserConnectionType.MEMBERSHIP_INVITEE.value
+        ]
+
+        # THEN Admin withdraws invite of non-invitee (error)
+        response_admin = mutate_update_space_user_connection_raw(
+            auth_user=space_creator,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+            connect_action=UpdateConnectionAction.DISCONNECT,
+            user_id=non_invitee.username,
+        )
+        assert response_admin.data is None
+        assert response_admin.errors is not None
+        assert "No invite to withdraw." in response_admin.errors[0].extensions["errors"]
+
+        # THEN non-admin withdraws invite of invitee (error)
+        response_non_admin = mutate_update_space_user_connection_raw(
+            auth_user=member,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+            connect_action=UpdateConnectionAction.DISCONNECT,
+            user_id=invitee.username,
+        )
+        assert response_non_admin.data is None
+        assert response_non_admin.errors is not None
+
+        # THEN non-member withdraws invite of invitee (error)
+        response_non_member = mutate_update_space_user_connection_raw(
+            auth_user=non_member,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+            connect_action=UpdateConnectionAction.DISCONNECT,
+            user_id=invitee.username,
+        )
+        assert response_non_member.data is None
+        assert response_non_member.errors is not None
+
+        # THEN anonymous user withdraws invite of invitee (error)
+        response_anonymous = mutate_update_space_user_connection_raw(
+            auth_user=AnonymousUser,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+            connect_action=UpdateConnectionAction.DISCONNECT,
+            user_id=invitee.username,
+        )
+        assert response_anonymous.data is None
+        assert response_anonymous.errors is not None
+
+        # THEN Invited user still has invitee status
+        assert get_space_for_user(invitee, space)["connectionStatusToMyself"] == [
+            SpaceUserConnectionType.MEMBERSHIP_INVITEE.value
+        ]
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     def test_space_admin_grant_and_revoke_admin_access_success(self, mock_invalidate_discover_spaces_query_cache):
