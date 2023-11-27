@@ -3,11 +3,13 @@ import structlog
 
 from django.http import JsonResponse
 from django.views import View
+from rest_framework import exceptions
 from requests.exceptions import HTTPError
-
+from rest_framework.authtoken.models import Token
 from openbook_auth.models import User
 from openbook_notifications.payloads import NotificationType
 from openbook_notifications.api import NotificationApi
+from django.utils.translation import gettext_lazy as _
 
 logger = structlog.get_logger(__name__)
 
@@ -44,6 +46,8 @@ class SpaceMembershipRequestNotificationHandler:
 
 class OryWebhook(View):
     def post(self, request):
+        self.check_bearer_token(request)
+
         data = json.loads(request.body)
         logger.info(f"Processing Ory Webhook for user: {data['id']}")
 
@@ -63,3 +67,17 @@ class OryWebhook(View):
                 raise http_err
 
         return JsonResponse({}, status=200)
+
+    def check_bearer_token(self, request):
+        auth_header = request.META.get("HTTP_AUTHENTICATION")
+        if not auth_header:
+            raise exceptions.AuthenticationFailed(_("No Authentication header."))
+        auth = request.META.get("HTTP_AUTHENTICATION").split()
+        if len(auth) != 2 or auth[0].lower() != "bearer":
+            raise exceptions.AuthenticationFailed(_("Wrong Authentication header."))
+        try:
+            token = Token.objects.select_related("user").get(key=auth[1])
+            if not token.user.is_active:
+                raise exceptions.AuthenticationFailed(_("User inactive or deleted."))
+        except Token.DoesNotExist:
+            raise exceptions.AuthenticationFailed(_("Invalid token."))
