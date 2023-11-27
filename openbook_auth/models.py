@@ -961,6 +961,21 @@ class User(ModelWithUUID, AbstractUser):
         count = self.connections.filter(target_connection__user_id=user_id, circles__id__in=circles_ids).count()
         return count > 0
 
+    def full_connections(self):
+        Connection = get_connection_model()
+
+        return Connection.objects.filter(
+            circles__id__isnull=False, target_connection__circles__id=self.connections_circle_id
+        )
+
+    def connected_users(self):
+        connected_user_ids = self.full_connections().values("user_id")
+        return (
+            User.objects.select_related("profile")
+            .filter(id__in=connected_user_ids)
+            .order_by("profile__name", "profile__last_name")
+        )
+
     def is_following_user(self, user):
         return self.is_following_user_with_id(user.pk)
 

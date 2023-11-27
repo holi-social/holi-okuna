@@ -15,6 +15,7 @@ from openbook_common.tests.helpers import (
 )
 from openbook_notifications.models import Notification
 from openbook_posts.models import PostComment
+from openbook_connections.tests.helpers import connect_to_user
 
 
 class UserModelTest(TestAssertionsMixin, TransactionTestCase):
@@ -266,3 +267,42 @@ class UserModelTest(TestAssertionsMixin, TransactionTestCase):
         # good numbers are valid
         self.assertFalse(User.is_invalid_identity("fritz1"))
         self.assertFalse(User.is_invalid_identity("fritz99"))
+
+    def test_full_connections(self):
+        user1 = make_user()
+        user2 = make_user()
+        user3 = make_user()
+        user4 = make_user()
+
+        # Setup connections of user1:
+        # Full connection to user2
+        connect_to_user(user1, user2)
+        connect_to_user(user2, user1)
+        # One-sided connections to user3 and user4
+        connect_to_user(user1, user3)
+        connect_to_user(user4, user1)
+
+        # Assert that connections were set up correctly
+        assert user1.is_fully_connected_with_user_with_id(user2) is True
+        assert user1.is_fully_connected_with_user_with_id(user3) is False
+        assert user1.is_fully_connected_with_user_with_id(user4) is False
+
+        # Check full_connections
+        connections = user1.full_connections().all()
+        assert len(connections) == 1
+        assert connections[0].user_id == user2.id
+
+    def test_connected_users(self):
+        user1 = make_user()
+        user2 = make_user()
+
+        # Setup full connection to user2
+        connect_to_user(user1, user2)
+        connect_to_user(user2, user1)
+
+        # Assert that connection was set up correctly
+        assert user1.is_fully_connected_with_user_with_id(user2) is True
+
+        users = user1.connected_users()
+        assert len(users) == 1
+        assert users[0].id == user2.id
