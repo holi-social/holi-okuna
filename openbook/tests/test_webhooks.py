@@ -34,7 +34,7 @@ class OryWebhookTestCase(TransactionTestCase):
 
         # WHEN
         response = async_to_sync(client.post)(
-            endpoint, payload, content_type="application/json", headers={"AUTHENTICATION": "Bearer " + token}
+            endpoint, payload, content_type="application/json", headers={"AUTHORIZATION": "Token " + token}
         )
 
         # THEN
@@ -63,7 +63,7 @@ class OryWebhookTestCase(TransactionTestCase):
 
         # WHEN
         response = async_to_sync(client.post)(
-            endpoint, payload, content_type="application/json", headers={"AUTHENTICATION": "Bearer " + token}
+            endpoint, payload, content_type="application/json", headers={"AUTHORIZATION": "Token " + token}
         )
 
         # THEN
@@ -93,7 +93,7 @@ class OryWebhookTestCase(TransactionTestCase):
         # WHEN
         with self.assertRaises(HTTPError):
             async_to_sync(client.post)(
-                endpoint, payload, content_type="application/json", headers={"AUTHENTICATION": "Bearer " + token}
+                endpoint, payload, content_type="application/json", headers={"AUTHORIZATION": "Token " + token}
             )
 
         # THEN
