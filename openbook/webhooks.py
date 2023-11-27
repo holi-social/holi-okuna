@@ -3,14 +3,11 @@ import structlog
 
 from django.http import JsonResponse
 from django.views import View
-from rest_framework import exceptions
 from requests.exceptions import HTTPError
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.authtoken.models import Token
 from openbook_auth.models import User
 from openbook_notifications.payloads import NotificationType
 from openbook_notifications.api import NotificationApi
-from django.utils.translation import gettext_lazy as _
 
 logger = structlog.get_logger(__name__)
 
