@@ -88,3 +88,25 @@ def get_user_connection_status_to_space_raw(user_to_get, space, calling_user=Non
         """,
         context_value=benedict({"request": {"user": calling_user or AnonymousUser}}),
     )
+
+
+def get_connected_users(calling_user=None):
+    response = get_connected_users_raw(calling_user)
+    assert response.errors is None
+    return response.data["connectedUsers"]
+
+
+def get_connected_users_raw(calling_user=None):
+    return async_to_sync(schema.execute)(
+        f"""
+        query {{
+            connectedUsers {{
+                totalResults
+                data {{
+                    id
+                }}
+            }}
+        }}
+        """,
+        context_value=benedict({"request": {"user": calling_user or AnonymousUser}}),
+    )
