@@ -7,6 +7,7 @@ from django.urls import reverse
 from asgiref.sync import async_to_sync
 from requests.exceptions import HTTPError
 from novu.dto.subscriber import SubscriberDto
+from rest_framework.authtoken.models import Token
 
 from openbook_auth.models import User
 
@@ -21,6 +22,7 @@ class OryWebhookTestCase(TransactionTestCase):
         # GIVEN
         client = AsyncClient()
         user = make_user()
+        token = Token.objects.first().key
         new_email = "new_email@test.com"
         payload = {
             "id": user.username,
@@ -31,7 +33,9 @@ class OryWebhookTestCase(TransactionTestCase):
         mock_find_subscriber.return_value = SubscriberDto(subscriber_id=user.username, locale=locale)
 
         # WHEN
-        response = async_to_sync(client.post)(endpoint, payload, content_type="application/json")
+        response = async_to_sync(client.post)(
+            endpoint, payload, content_type="application/json", headers={"AUTHENTICATION": "Bearer " + token}
+        )
 
         # THEN
         assert response.status_code == 200
@@ -48,6 +52,7 @@ class OryWebhookTestCase(TransactionTestCase):
         # GIVEN
         client = AsyncClient()
         user = make_user()
+        token = Token.objects.first().key
         new_email = "new_email@test.com"
         payload = {
             "id": user.username,
@@ -57,7 +62,9 @@ class OryWebhookTestCase(TransactionTestCase):
         mock_find_subscriber.side_effect = HTTPError(response=type("Response", (object,), {"status_code": 404}))
 
         # WHEN
-        response = async_to_sync(client.post)(endpoint, payload, content_type="application/json")
+        response = async_to_sync(client.post)(
+            endpoint, payload, content_type="application/json", headers={"AUTHENTICATION": "Bearer " + token}
+        )
 
         # THEN
         assert response.status_code == 200
@@ -74,6 +81,7 @@ class OryWebhookTestCase(TransactionTestCase):
         # GIVEN
         client = AsyncClient()
         user = make_user()
+        token = Token.objects.first().key
         new_email = "new_email@test.com"
         payload = {
             "id": user.username,
@@ -84,7 +92,9 @@ class OryWebhookTestCase(TransactionTestCase):
 
         # WHEN
         with self.assertRaises(HTTPError):
-            async_to_sync(client.post)(endpoint, payload, content_type="application/json")
+            async_to_sync(client.post)(
+                endpoint, payload, content_type="application/json", headers={"AUTHENTICATION": "Bearer " + token}
+            )
 
         # THEN
         updated_user = User.objects.get(username=user.username)
