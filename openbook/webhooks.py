@@ -44,6 +44,8 @@ class SpaceMembershipRequestNotificationHandler:
 
 class OryWebhook(View):
     def post(self, request):
+        # this will check, that the request has an Authentication header with a valid Token for an existing user in Django.
+        # Ory Webhook requests needs to contain an auth token prefixed with "Token". Tokens can be seen via admin portal or in the DB.
         TokenAuthentication().authenticate(request)
 
         data = json.loads(request.body)
