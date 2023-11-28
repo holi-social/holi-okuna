@@ -4,7 +4,7 @@ import structlog
 from django.http import JsonResponse
 from django.views import View
 from requests.exceptions import HTTPError
-
+from rest_framework.authentication import TokenAuthentication
 from openbook_auth.models import User
 from openbook_notifications.payloads import NotificationType
 from openbook_notifications.api import NotificationApi
@@ -44,6 +44,10 @@ class SpaceMembershipRequestNotificationHandler:
 
 class OryWebhook(View):
     def post(self, request):
+        # this will check, that the request has an Authentication header with a valid Token for an existing user in Django.
+        # Ory Webhook requests needs to contain an auth token prefixed with "Token". Tokens can be seen via admin portal or in the DB.
+        TokenAuthentication().authenticate(request)
+
         data = json.loads(request.body)
         logger.info(f"Processing Ory Webhook for user: {data['id']}")
 
