@@ -21,12 +21,13 @@ from openbook_notifications.payloads import (
     SpaceMembershipInviteDeclinePayload,
     PostCommentMentionPayload,
     PostCommentAuthorPayload,
+    SpaceNewPostPayload,
 )
 from openbook_notifications.toggles import notifications_toggle
 
 from novu.api import EventApi
 
-from openbook_posts.models import PostComment
+from openbook_posts.models import Post, PostComment
 
 
 class Workflow(Enum):
@@ -42,6 +43,7 @@ class Workflow(Enum):
     SPACE_MEMBERSHIP_INVITE_DECLINE_ADMIN = "space-membership-invite-decline-admin"
     POST_COMMENT_MENTION = "post-comment-mention"
     POST_COMMENT_AUTHOR = "post-comment-author"
+    SPACE_NEW_POST = "space-new-post"
 
 
 # Use this classes static methods to trigger notifications via the Notifications system (novu)
@@ -215,6 +217,18 @@ class Notifications:
             payload=PostCommentAuthorPayload(
                 post_comment=post_comment,
                 notification_type=NotificationType.POST_COMMENT_AUTHOR.value,
+            ),
+        )
+        notification.send()
+
+    @staticmethod
+    def send_space_new_post_notification(post: Post):
+        members = post.community.get_staff_members().exclude(id=post.creator.id)
+        notification = SpaceNewPostNotification(
+            members=[str(member.username) for member in members],
+            payload=SpaceNewPostPayload(
+                post=post,
+                notification_type=NotificationType.SPACE_NEW_POST.value,
             ),
         )
         notification.send()
@@ -425,6 +439,22 @@ class PostCommentAuthorNotification(Notification):
         super().__init__(
             workflow=Workflow.POST_COMMENT_AUTHOR.value,
             recipients=author,
+            payload=payload.to_dict(),
+            transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
+        )
+
+
+# INTERNAL USE ONLY, use Notifications instead to trigger notifications
+class SpaceNewPostNotification(Notification):
+    def __init__(
+        self,
+        members: List[str],
+        payload: SpaceNewPostPayload,
+        transaction_id: Optional[str] = None,
+    ):
+        super().__init__(
+            workflow=Workflow.SPACE_NEW_POST.value,
+            recipients=members,
             payload=payload.to_dict(),
             transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
         )
