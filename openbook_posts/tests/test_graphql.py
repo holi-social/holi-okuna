@@ -461,11 +461,13 @@ class TestPosts(TestCase):
         assert response.data is None
         assert "Field 'visibility' of required type 'VisibilityType!' was not provided" in response.errors[0].message
 
-    def test_space_user_can_create_space_post_2(self):
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_new_post_notification")
+    def test_space_user_can_create_space_post_2(self, mock_send_space_new_post_notification):
         space_admin = make_user()
         member_user = make_user()
         space = make_community(creator=space_admin)
         space.add_member(member_user)
+        space.add_moderator(member_user)
 
         # space admin can create public post
         input_data = {
@@ -478,10 +480,11 @@ class TestPosts(TestCase):
 
         data = response.data["createSpacePost2"]
 
-        assert data["space"]["id"] == str(space.id)
-        assert data["space"]["posts"]["totalResults"] == 1
         assert data["text"] == input_data["text"]
         assert data["isPublic"] is True
+        post_id = data["id"]
+        post = Post.objects.get(id=post_id)
+        mock_send_space_new_post_notification.assert_called_with(post=post)
 
         # space admin can create private post
         input_data = {
@@ -494,16 +497,20 @@ class TestPosts(TestCase):
 
         data = response.data["createSpacePost2"]
 
-        assert data["space"]["id"] == str(space.id)
-        assert data["space"]["posts"]["totalResults"] == 2
         assert data["text"] == input_data["text"]
         assert data["isPublic"] is False
 
-    def test_member_user_can_create_only_member_visibility_space_post_2(self):
+        post_id = data["id"]
+        post = Post.objects.get(id=post_id)
+        mock_send_space_new_post_notification.assert_called_with(post=post)
+
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_new_post_notification")
+    def test_member_user_can_create_only_member_visibility_space_post_2(self, mock_send_space_new_post_notification):
         space_admin = make_user()
         member_user = make_user()
         space = make_community(creator=space_admin)
         space.add_member(member_user)
+        space.add_moderator(member_user)
 
         # member user can create private post
         input_data = {
@@ -516,10 +523,12 @@ class TestPosts(TestCase):
 
         data = response.data["createSpacePost2"]
 
-        assert data["space"]["id"] == str(space.id)
-        assert data["space"]["posts"]["totalResults"] == 1
         assert data["text"] == input_data["text"]
         assert data["isPublic"] == False
+
+        post_id = data["id"]
+        post = Post.objects.get(id=post_id)
+        mock_send_space_new_post_notification.assert_called_once_with(post=post)
 
         # member user cannot create public post
         input_data = {
