@@ -55,10 +55,14 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 @pytest.mark.django_db
 class TestPosts(TestCase):
-    def setUp(self):
+    def setup(self):
         self.notifications_toggle = FeatureToggleModel.objects.create(
             name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
         )
+
+    def teardown(self):
+        if self.notifications_toggle.id is not None:
+            self.notifications_toggle.delete()
 
     @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
     @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
