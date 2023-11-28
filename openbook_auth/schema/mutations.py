@@ -73,10 +73,6 @@ class Mutation:
             save=True,
         )
 
-        if input.first_name or input.last_name:
-            update_ory_user_names(current_user.id)
-            publish_user_name_updated_event(user=current_user)
-
         # set identity when needed
         if not current_user.identity and current_user.profile.full_name():
             current_user.identity = UserModel.sanitize_identity_input(current_user.profile.full_name())
@@ -113,6 +109,10 @@ class Mutation:
                     current_user.username,
                     current_user.identity,
                 )
+
+        if input.first_name or input.last_name:
+            update_ory_user_names(current_user.id)
+            publish_user_name_updated_event(user=current_user)
 
         locale = get_language_from_request(info.context.request)
         NotificationApi.update_subscriber(user=current_user, locale=locale)
