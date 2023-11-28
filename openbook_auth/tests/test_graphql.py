@@ -284,14 +284,10 @@ class TestUsers:
 
         assert result.errors is None
 
-        expected_ory_call_body = [
-            {"op": "add", "path": "/metadata_public/identity", "value": "fritz.meier"},
-        ]
-
-        ory_patch_mock.assert_called_with(
+        ory_patch_mock.assert_any_call(
             f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
-            json=expected_ory_call_body,
+            json=[{"op": "add", "path": "/metadata_public/identity", "value": "fritz.meier"}],
         )
 
         result = result.data["updateAuthenticatedUser"]
@@ -332,7 +328,7 @@ class TestUsers:
 
         expected_json_body = [{"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen1"}]
 
-        ory_patch_mock.assert_called_with(
+        ory_patch_mock.assert_any_call(
             f"{settings.ORY_BASE_URL}/admin/identities/{new_fritz.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
             json=expected_json_body,
@@ -353,9 +349,9 @@ class TestUsers:
         ory_update_identity_success = self.create_ory_response(200, {})
 
         ory_patch_mock.side_effect = [
-            ory_update_user_name_success,
             ory_update_identity_conflict,
             ory_update_identity_success,
+            ory_update_user_name_success,
         ]
 
         new_user = make_user()
@@ -400,9 +396,9 @@ class TestUsers:
         ory_update_identity_success = self.create_ory_response(200, {})
 
         ory_patch_mock.side_effect = [
-            ory_update_user_name_success,
             ory_update_identity_conflict,
             ory_update_identity_success,
+            ory_update_user_name_success,
         ]
 
         new_user = make_user()
@@ -446,10 +442,10 @@ class TestUsers:
         ory_update_identity_conflict = self.create_ory_response(409, {"error": {"message": "Error Message"}})
 
         ory_patch_mock.side_effect = [
+            ory_update_identity_conflict,
+            ory_update_identity_conflict,
+            ory_update_identity_conflict,
             ory_update_user_name_success,
-            ory_update_identity_conflict,
-            ory_update_identity_conflict,
-            ory_update_identity_conflict,
         ]
 
         new_user = make_user()
