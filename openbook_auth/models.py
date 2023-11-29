@@ -3033,10 +3033,12 @@ class User(ModelWithUUID, AbstractUser):
 
         from openbook_notifications.notifications import Notifications
 
-        collaborators = post.community.get_staff_members().exclude(id=post.creator.id)
+        collaborators = self.get_community_with_name_members(community_name=post.community.name).exclude(
+            id=post.creator.id
+        )
 
         if collaborators:
-            Notifications.send_space_new_post_notification(post=post)
+            Notifications.send_space_new_post_notification(post=post, collaborators=collaborators)
 
         return post
 
