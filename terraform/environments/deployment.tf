@@ -227,7 +227,7 @@ resource "google_cloud_run_service" "okuna" {
           value = local.environment == "production" ? "https://chat.holi.social" : "https://development-chat.holi.social"
         }
         env {
-          name = "ORY_ACCESS_TOKEN"
+          name = "CHAT_ADMIN_ACCESS_TOKEN"
           value_from {
             secret_key_ref {
               key  = "latest"
