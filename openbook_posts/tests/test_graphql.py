@@ -6,6 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.test import AsyncClient
 
+from openbook_auth.models import User
 from openbook_common.enums import VisibilityType
 from openbook_common.tests.helpers import (
     make_community,
@@ -14,6 +15,7 @@ from openbook_common.tests.helpers import (
     make_user,
     simple_jpeg_bytes,
 )
+from openbook_common.utils.model_loaders import get_community_model
 from openbook_communities.models import CommunityNotificationsSubscription
 from openbook_notifications.models import CommunityNewPostNotification
 from openbook_posts.models import (
@@ -486,9 +488,11 @@ class TestPosts(TestCase):
 
         assert data["text"] == input_data["text"]
         assert data["isPublic"] is True
+
         post_id = data["id"]
         post = Post.objects.get(id=post_id)
-        mock_send_space_new_post_notification.assert_called_with(post=post)
+
+        mock_send_space_new_post_notification.assert_called_with(post=post, collaborators=[member_user])
 
         # space admin can create private post
         input_data = {
@@ -506,7 +510,8 @@ class TestPosts(TestCase):
 
         post_id = data["id"]
         post = Post.objects.get(id=post_id)
-        mock_send_space_new_post_notification.assert_called_with(post=post)
+
+        mock_send_space_new_post_notification.assert_called_with(post=post, collaborators=[member_user])
 
     @mock.patch("openbook_notifications.notifications.Notifications.send_space_new_post_notification")
     def test_member_user_can_create_only_member_visibility_space_post_2(self, mock_send_space_new_post_notification):
@@ -532,7 +537,8 @@ class TestPosts(TestCase):
 
         post_id = data["id"]
         post = Post.objects.get(id=post_id)
-        mock_send_space_new_post_notification.assert_called_once_with(post=post)
+
+        mock_send_space_new_post_notification.assert_called_once_with(post=post, collaborators=[space_admin])
 
         # member user cannot create public post
         input_data = {

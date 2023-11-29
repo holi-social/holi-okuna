@@ -3038,7 +3038,7 @@ class User(ModelWithUUID, AbstractUser):
         )
 
         if collaborators:
-            Notifications.send_space_new_post_notification(post=post, collaborators=collaborators)
+            Notifications.send_space_new_post_notification(post=post, collaborators=list(collaborators))
 
         return post
 
