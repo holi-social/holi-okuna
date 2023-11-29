@@ -3,18 +3,32 @@ from openbook_auth.models import User
 
 
 class UserPayload:
-    def __init__(self, id: str, name: str, email: str, identity: str):
+    def __init__(self, id: str, name: str, email: str, identity: str, avatar: str = ""):
         self.id = id
         self.name = name
         self.email = email
         self.identity = identity
+        self.avatar = avatar
 
     def to_dict(self):
-        return {"id": self.id, "name": self.name, "email": self.email, "identity": self.identity}
+        return {
+            "id": self.id,
+            "name": self.name,
+            "email": self.email,
+            "identity": self.identity,
+            "avatar": self.avatar,
+        }
 
     @classmethod
     def from_user(cls, user: User):
-        return cls(id=str(user.username), name=user.profile.full_name(), email=user.email, identity=user.identity)
+        avatar_url = user.profile.avatar.url if user.profile.avatar else None
+        return cls(
+            id=str(user.username),
+            name=user.profile.full_name(),
+            email=user.email,
+            identity=user.identity,
+            avatar=avatar_url,
+        )
 
 
 class SpacePayload:

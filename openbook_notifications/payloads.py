@@ -25,6 +25,7 @@ class NotificationType(Enum):
     SPACE_MEMBERSHIP_INVITE_DECLINE_USER = "SPACE_MEMBERSHIP_INVITE_DECLINE_USER"
     SPACE_MEMBERSHIP_INVITE_DECLINE_ADMIN = "SPACE_MEMBERSHIP_INVITE_DECLINE_ADMIN"
     POST_COMMENT_MENTION = "POST_COMMENT_MENTION"
+    POST_COMMENT_AUTHOR = "POST_COMMENT_AUTHOR"
 
 
 class UserData:
@@ -283,4 +284,26 @@ class PostCommentMentionPayload(Payload):
             },
             notification_type=notification_type,
             notification_version=PostCommentMentionPayload.NOTIFICATION_VERSION,
+        )
+
+
+class PostCommentAuthorPayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(
+        self,
+        post_comment: PostComment,
+        notification_type: NotificationType,
+    ):
+        super().__init__(
+            data={
+                "user": UserData.from_user(post_comment.post.creator).to_dict(),
+                "commenter": UserData.from_user(post_comment.commenter).to_dict(),
+                "post": PostData.from_post(post_comment.post).to_dict(),
+                "comment": PostCommentData.from_post_comment(post_comment).to_dict(),
+                "commentLink": f"{settings.APP_URL}/posts/{post_comment.post_id}?commentId={post_comment.id}",
+                "commentDatetime": datetime.now().isoformat(),
+            },
+            notification_type=notification_type,
+            notification_version=PostCommentAuthorPayload.NOTIFICATION_VERSION,
         )

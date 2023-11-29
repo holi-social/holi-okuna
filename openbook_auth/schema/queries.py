@@ -116,3 +116,9 @@ class Query:
             query = query.exclude(id=current_user.id)
 
         return UserBlockModel.paged(current_user, lambda user: user.id, query, offset, limit)
+
+    @strawberry_django.field()
+    def connected_users(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
+        current_user = verify_authorized_user(info)
+
+        return Paged.of(current_user.connected_users(), offset, limit)

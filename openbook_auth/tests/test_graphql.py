@@ -26,6 +26,8 @@ from openbook_auth.tests.helpers import (
     get_user_connection_status_to_space_data,
     get_user_with_id_raw,
     get_users_by_chat_identities,
+    get_connected_users,
+    get_connected_users_raw,
 )
 from openbook_common.enums import FeatureToggleName, FeatureToggleType
 from openbook_common.models import FeatureToggle
@@ -41,6 +43,7 @@ from openbook_common.tests.helpers import (
 from openbook_communities.models import SpaceUserConnectionType
 from openbook_notifications.enums import NotificationProvider
 from openbook_posts.tests.helpers import get_post_with_id_data, get_post_with_id_raw
+from openbook_connections.tests.helpers import connect_to_user
 
 logger = logging.getLogger(__name__)
 
@@ -288,14 +291,10 @@ class TestUsers:
 
         assert result.errors is None
 
-        expected_ory_call_body = [
-            {"op": "add", "path": "/metadata_public/identity", "value": "fritz.meier"},
-        ]
-
-        ory_patch_mock.assert_called_with(
+        ory_patch_mock.assert_any_call(
             f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
-            json=expected_ory_call_body,
+            json=[{"op": "add", "path": "/metadata_public/identity", "value": "fritz.meier"}],
         )
 
         result = result.data["updateAuthenticatedUser"]
@@ -336,7 +335,7 @@ class TestUsers:
 
         expected_json_body = [{"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen1"}]
 
-        ory_patch_mock.assert_called_with(
+        ory_patch_mock.assert_any_call(
             f"{settings.ORY_BASE_URL}/admin/identities/{new_fritz.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
             json=expected_json_body,
@@ -357,9 +356,9 @@ class TestUsers:
         ory_update_identity_success = self.create_ory_response(200, {})
 
         ory_patch_mock.side_effect = [
-            ory_update_user_name_success,
             ory_update_identity_conflict,
             ory_update_identity_success,
+            ory_update_user_name_success,
         ]
 
         new_user = make_user()
@@ -404,9 +403,9 @@ class TestUsers:
         ory_update_identity_success = self.create_ory_response(200, {})
 
         ory_patch_mock.side_effect = [
-            ory_update_user_name_success,
             ory_update_identity_conflict,
             ory_update_identity_success,
+            ory_update_user_name_success,
         ]
 
         new_user = make_user()
@@ -450,10 +449,10 @@ class TestUsers:
         ory_update_identity_conflict = self.create_ory_response(409, {"error": {"message": "Error Message"}})
 
         ory_patch_mock.side_effect = [
+            ory_update_identity_conflict,
+            ory_update_identity_conflict,
+            ory_update_identity_conflict,
             ory_update_user_name_success,
-            ory_update_identity_conflict,
-            ory_update_identity_conflict,
-            ory_update_identity_conflict,
         ]
 
         new_user = make_user()
@@ -860,3 +859,23 @@ class TestUsers:
             else:
                 assert test_case["expected_error"] in str(response.errors[0].message)
             assert (response.data["registerDevice"] if response.data else response.data) is None
+
+    def test_connected_users(self):
+        user1 = make_user()
+        user2 = make_user(name="B", last_name="B")
+        user3 = make_user(name="A", last_name="A")
+
+        # Setup full connections to user2 and user3
+        connect_to_user(user1, user2)
+        connect_to_user(user2, user1)
+        connect_to_user(user1, user3)
+        connect_to_user(user3, user1)
+
+        connected_users = get_connected_users(user1)
+        assert connected_users["totalResults"] == 2
+        assert connected_users["data"][0]["id"] == str(user3.id)
+        assert connected_users["data"][1]["id"] == str(user2.id)
+
+    def test_cannot_retrieve_connected_users_if_not_logged_in(self):
+        response = get_connected_users_raw()
+        assert_is_unauthorized(response)
