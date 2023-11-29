@@ -108,13 +108,14 @@ class SpaceData:
 
 
 class PostData:
-    def __init__(self, id: str, title: str, context: str):
+    def __init__(self, id: str, title: str, context: str, is_public: bool):
         self.id = id
         self.title = title
         self.context = context
+        self.is_public = is_public
 
     def to_dict(self):
-        return {"id": self.id, "title": self.title, "context": self.context}
+        return {"id": self.id, "title": self.title, "context": self.context, "isPublic": self.is_public}
 
     @classmethod
     def from_post(cls, post: Post):
@@ -127,6 +128,7 @@ class PostData:
             id=str(post.id),
             title=post.title if post.title else "",
             context=post.community.title if post.community and post.community.title else "",
+            is_public=post.is_public,
         )
 
 
