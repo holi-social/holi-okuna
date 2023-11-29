@@ -5,6 +5,7 @@ import structlog
 from django.conf import settings
 from django_rq import job
 
+from openbook.settings import CHAT_SERVER_NAME, CHAT_SERVER_URL
 from openbook_auth.errors import OryRequestError
 from openbook_auth.models import User
 
@@ -53,3 +54,11 @@ def update_ory(user_id, data):
             error=error["message"],
             status_code=response.status_code,
         )
+
+
+def create_matrix_user_account(identity: str):
+    """try to create a matrix account with the provided identity. Returns True, when the call created a new account, False otherwise"""
+    url = f"{CHAT_SERVER_URL}/_synapse/admin/v2/users/%40{identity}%3A{CHAT_SERVER_NAME}"
+    headers = {"Authorization": f"Bearer {settings.CHAT_ADMIN_ACCESS_TOKEN}"}
+    response = requests.put(url, headers=headers, json={})
+    return response.status_code == 201

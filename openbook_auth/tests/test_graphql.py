@@ -197,7 +197,7 @@ class TestUsers:
     def test_can_update_authenticated_user(
         self, mock_update_subscriber, mock_get_language_from_request, mock_publish_user_name_updated_event, mock_patch
     ):
-        response = self.create_ory_response(200, {})
+        response = self.create_response(200)
         mock_patch.return_value = response
         user = make_user(name="Fritz", last_name="Meier", identity="fritz")
         community = make_community()
@@ -272,14 +272,15 @@ class TestUsers:
         mock_publish_user_name_updated_event.assert_called_once_with(user=user)
         mock_update_subscriber.assert_called_once_with(user=user, locale=mock_get_language_from_request.return_value)
 
+    @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
     def test_can_update_authenticated_user_generates_an_identity(
-        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
+        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
     ):
-        ory_patch_mock_response = self.create_ory_response(200, {})
-        ory_patch_mock.return_value = ory_patch_mock_response
+        ory_patch_mock.return_value = self.create_response(200)
+        matrix_put_mock.return_value = self.create_response(201)
         user = make_user()
         user.identity = None
 
@@ -311,14 +312,16 @@ class TestUsers:
 
         assert mock_update_subscriber.call_count == 2
 
+    @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
     def test_api_registers_new_user_with_already_taken_identity_for_a_user(
-        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
+        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
     ):
-        ory_update_response_stub = self.create_ory_response(200, {})
+        ory_update_response_stub = self.create_response(200)
         ory_patch_mock.return_value = ory_update_response_stub
+        matrix_put_mock.return_value = self.create_response(201)
 
         make_user(name="Fritz", last_name="Hansen", identity="fritz.hansen")
         new_fritz = make_user(name="Fritz", last_name="Hansen", identity="something_to_prevent_collision")
@@ -341,15 +344,17 @@ class TestUsers:
             user=new_fritz, locale=mock_get_language_from_request.return_value
         )
 
+    @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
     def test_api_registers_new_user_with_ory_failing_once(
-        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
+        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
     ):
-        ory_update_user_name_success = self.create_ory_response(200, {})
-        ory_update_identity_conflict = self.create_ory_response(409, {"error": {"message": "Error Message"}})
-        ory_update_identity_success = self.create_ory_response(200, {})
+        ory_update_user_name_success = self.create_response(200)
+        ory_update_identity_conflict = self.create_response(409, {"error": {"message": "Error Message"}})
+        ory_update_identity_success = self.create_response(200)
+        matrix_put_mock.return_value = self.create_response(201)
 
         ory_patch_mock.side_effect = [
             ory_update_identity_conflict,
@@ -388,15 +393,17 @@ class TestUsers:
             user=new_user, locale=mock_get_language_from_request.return_value
         )
 
+    @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
     def test_api_registers_new_user_only_first_name_with_ory_failing_once(
-        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
+        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
     ):
-        ory_update_user_name_success = self.create_ory_response(200, {})
-        ory_update_identity_conflict = self.create_ory_response(409, {"error": {"message": "Error Message"}})
-        ory_update_identity_success = self.create_ory_response(200, {})
+        ory_update_user_name_success = self.create_response(200)
+        ory_update_identity_conflict = self.create_response(409, {"error": {"message": "Error Message"}})
+        ory_update_identity_success = self.create_response(200)
+        matrix_put_mock.return_value = self.create_response(201)
 
         ory_patch_mock.side_effect = [
             ory_update_identity_conflict,
@@ -435,14 +442,45 @@ class TestUsers:
             user=new_user, locale=mock_get_language_from_request.return_value
         )
 
+    @mock.patch("openbook_auth.tasks.requests.put")
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
+    def test_api_registers_new_user_with_matrix_id_taken(
+        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
+    ):
+        ory_update_user_name_success = self.create_response(200)
+        ory_update_identity_success = self.create_response(200)
+
+        ory_patch_mock.side_effect = [
+            ory_update_identity_success,
+            ory_update_user_name_success,
+        ]
+
+        matrix_put_mock.side_effect = [self.create_response(200), self.create_response(201)]
+
+        new_user = make_user()
+        new_user.identity = None
+
+        result = api_update_authenticated_user_names(new_user, "Fritz", "Fratz")
+
+        assert result.errors is None
+        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.fratz1"
+
+        mock_update_subscriber.assert_called_once_with(
+            user=new_user, locale=mock_get_language_from_request.return_value
+        )
+
+    @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
     def test_api_registers_new_user_with_ory_failing_too_many_times(
-        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
+        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
     ):
-        ory_update_user_name_success = self.create_ory_response(200, {})
-        ory_update_identity_conflict = self.create_ory_response(409, {"error": {"message": "Error Message"}})
+        ory_update_user_name_success = self.create_response(200)
+        ory_update_identity_conflict = self.create_response(409, {"error": {"message": "Error Message"}})
+        matrix_put_mock.return_value = self.create_response(201)
 
         ory_patch_mock.side_effect = [
             ory_update_identity_conflict,
@@ -501,7 +539,7 @@ class TestUsers:
     def test_can_delete_authenticated_user(
         self, mock_delete_subscriber, mock_publish_space_deleted_event, mock_publish_user_deleted_event, mock_delete
     ):
-        mock_delete.return_value = self.create_ory_response(204, {})
+        mock_delete.return_value = self.create_response(204)
 
         user = make_user(name="Fritz", last_name="Meier")
         space = make_community(creator=user)
@@ -527,7 +565,7 @@ class TestUsers:
         mock_publish_space_deleted_event.assert_called_once_with(space)
         mock_delete_subscriber.assert_called_once_with(user_id=str(user.username))
 
-    def create_ory_response(self, http_status, json_body):
+    def create_response(self, http_status, json_body={}):
         response = Response()
         response.status_code = http_status
         response._content = str.encode(json.dumps(json_body))

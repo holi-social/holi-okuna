@@ -218,6 +218,23 @@ resource "google_cloud_run_service" "okuna" {
           name  = "INSPIRATION_SPACE_ID"
           value = local.environment == "production" ? "12ed0bc1-722d-4ba6-9d07-c0a7b303edea" : "38e8c60c-0d64-4b65-ae0c-c094eb97b94f"
         }
+        env {
+          name  = "CHAT_SERVER_NAME"
+          value = local.environment == "production" ? "chat.holi.social" : "development-chat.holi.social"
+        }
+        env {
+          name  = "CHAT_SERVER_URL"
+          value = local.environment == "production" ? "https://chat.holi.social" : "https://development-chat.holi.social"
+        }
+        env {
+          name = "ORY_ACCESS_TOKEN"
+          value_from {
+            secret_key_ref {
+              key  = "latest"
+              name = local.environment_name == "production" ? "CHAT_ADMIN_ACCESS_TOKEN_PRODUCTION" : "CHAT_ADMIN_ACCESS_TOKEN_DEVELOPMENT"
+            }
+          }
+        }
         resources {
           limits = {
             # cpu can only be scaled down to 1000m as long as container_concurrency is set to != 1
