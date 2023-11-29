@@ -22,7 +22,7 @@ from openbook_notifications.payloads import (
     PostCommentMentionPayload,
     PostCommentAuthorPayload,
 )
-from openbook_notifications.toggles import notifications_toggle
+from openbook_notifications.toggles import notifications_toggle, mute_notifications
 
 from novu.api import EventApi
 
@@ -198,6 +198,7 @@ class Notifications:
         notification.send()
 
     @staticmethod
+    @mute_notifications
     def send_post_comment_mention_notification(post_comment: PostComment):
         notification = PostCommentMentionNotification(
             mentions=[str(mentioned_user.username) for mentioned_user in post_comment.mentions.all()],
@@ -209,6 +210,7 @@ class Notifications:
         notification.send()
 
     @staticmethod
+    @mute_notifications
     def send_post_comment_author_notification(post_comment: PostComment):
         notification = PostCommentAuthorNotification(
             author=str(post_comment.post.creator.username),
