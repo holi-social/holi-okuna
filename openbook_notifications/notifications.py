@@ -222,10 +222,9 @@ class Notifications:
         notification.send()
 
     @staticmethod
-    def send_space_new_post_notification(post: Post):
-        members = post.community.get_staff_members().exclude(id=post.creator.id)
+    def send_space_new_post_notification(post: Post, collaborators=List[User]):
         notification = SpaceNewPostNotification(
-            members=[str(member.username) for member in members],
+            collaborators=[str(collaborator.username) for collaborator in collaborators],
             payload=SpaceNewPostPayload(
                 post=post,
                 notification_type=NotificationType.SPACE_NEW_POST.value,
@@ -448,13 +447,13 @@ class PostCommentAuthorNotification(Notification):
 class SpaceNewPostNotification(Notification):
     def __init__(
         self,
-        members: List[str],
+        collaborators: List[str],
         payload: SpaceNewPostPayload,
         transaction_id: Optional[str] = None,
     ):
         super().__init__(
             workflow=Workflow.SPACE_NEW_POST.value,
-            recipients=members,
+            recipients=collaborators,
             payload=payload.to_dict(),
             transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
         )

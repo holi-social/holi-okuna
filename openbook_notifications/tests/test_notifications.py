@@ -9,6 +9,7 @@ from requests.adapters import HTTPAdapter
 
 from novu.api import EventApi
 
+from openbook_common.utils.model_loaders import get_community_model
 from openbook_notifications.notifications import (
     Notification,
     SpaceMembershipRequestNotification,
@@ -391,10 +392,13 @@ class SpaceNewPostNotificationTestCase(TestCase):
             notification_type=NotificationType.SPACE_NEW_POST.value,
         )
 
-        members = post.community.get_staff_members().exclude(id=post.creator.id)
+        community_model = get_community_model()
+        collaborators = community_model.get_community_with_name_members(community_name=post.community.name).exclude(
+            id=post.creator.id
+        )
 
         cls.notification_instance = SpaceNewPostNotification(
-            members=[str(member.username) for member in members],
+            collaborators=[str(collaborator.username) for collaborator in collaborators],
             payload=payload,
             transaction_id=transaction_id,
         )
