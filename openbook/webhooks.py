@@ -67,10 +67,9 @@ class OryWebhook(View):
                                 "instance_ptr": "#/traits/email",  # Points to the field that failed validation.
                                 "messages": [
                                     {
-                                        "id": 1,  # Unique numeric ID of the error that helps the frontend to interpret this message.
+                                        "id": 8000001,  # Unique numeric ID of the error that helps the frontend to interpret this message.
                                         "text": "The email address is already taken",
-                                        "type": "validation",
-                                        "context": {"value": "email taken"},
+                                        "type": "error",
                                     }
                                 ],
                             }
