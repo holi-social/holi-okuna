@@ -22,7 +22,7 @@ from openbook_auth.schema.types import UpdateAuthenticatedUserInput, User, Regis
 from openbook_auth.serializers.authenticated_user_serializers import (
     UpdateAuthenticatedUserSerializer,
 )
-from openbook_auth.tasks import update_ory_user_identity, update_ory_user_names
+from openbook_auth.tasks import update_ory_user_identity, update_ory_user_names, create_matrix_user_account
 from openbook_auth.utils import verify_authorized_user
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.helpers import is_parameter_null, to_input_dict
@@ -75,22 +75,32 @@ class Mutation:
 
         # set identity when needed
         if not current_user.identity and current_user.profile.full_name():
-            current_user.identity = UserModel.sanitize_identity_input(current_user.profile.full_name())
-            identity_wish = current_user.identity
+            identity_wish = UserModel.sanitize_identity_input(current_user.profile.full_name())
+            current_identity_trial = identity_wish
             counter = 0
+            taken_identities = []
+
+            if UserModel.is_identity_taken(current_identity_trial):
+                taken_identities = UserModel.get_taken_identities(identity_wish)
+                current_identity_trial, counter = UserModel.next_unique_identity(
+                    identity_wish, taken_identities, counter
+                )
 
             while True:
+                # find an available matrix identity
+                while not create_matrix_user_account(current_identity_trial):
+                    current_identity_trial, counter = UserModel.next_unique_identity(
+                        identity_wish, taken_identities, counter
+                    )
+                # store the created matrix identity
                 try:
-                    if UserModel.is_identity_taken(current_user.identity):
-                        taken_identities = UserModel.get_taken_identities(identity_wish)
-                        current_user.identity, counter = UserModel.next_unique_identity(
-                            identity_wish, taken_identities, counter
-                        )
+                    current_user.identity = current_identity_trial
                     current_user.save()
                 except ValidationError as error:
+                    # somehow we have a collision in Okuna, so we keep trying new identities
                     if "A user with that identity already exists." in error.message_dict["identity"]:
                         taken_identities = UserModel.get_taken_identities(identity_wish)
-                        current_user.identity, counter = UserModel.next_unique_identity(
+                        current_identity_trial, counter = UserModel.next_unique_identity(
                             identity_wish, taken_identities, counter
                         )
                         continue
@@ -110,7 +120,7 @@ class Mutation:
                     current_user.identity,
                 )
 
-        if input.first_name or input.last_name:
+        if input.first_name or input.last_name or input.avatar or remove_avatar:
             update_ory_user_names(current_user.id)
             publish_user_name_updated_event(user=current_user)
 
