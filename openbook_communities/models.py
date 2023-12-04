@@ -49,6 +49,7 @@ from openbook_communities.queries import (
     make_get_joined_communities_query_for_user,
 )
 from imagekit.models import ProcessedImageField
+from openbook_notifications.api import NotificationApi
 
 from openbook_auth.models import User
 from openbook_moderation.models import ModeratedObject
@@ -803,6 +804,22 @@ class Community(ModelWithUUID):
         CommunityInviteNotification = get_community_invite_notification_model()
         CommunityInviteNotification.objects.filter(community_invite__community_id=self.pk).delete()
 
+    def delete_pending_notifications(self):
+        for membership_request in self.membership_requests.all():
+            membership_request.delete_notifications()
+        for membership_invite in self.invites.all():
+            membership_invite.delete_notifications()
+
+    def delete_pending_notifications_for_user(self, username):
+        for membership_request in self.membership_requests.all():
+            NotificationApi.delete_in_app_messages(
+                transaction_id=str(membership_request.id), subscriber_id=str(username)
+            )
+        for membership_invite in self.invites.all():
+            NotificationApi.delete_in_app_messages(
+                transaction_id=str(membership_invite.id), subscriber_id=str(username)
+            )
+
     def soft_delete(self):
         self.is_deleted = True
         for post in self.posts.all().iterator():
@@ -1032,6 +1049,11 @@ class CommunityMembershipRequest(ModelWithUUID):
     def get_membership_request(cls, community, user):
         return cls.objects.get(community=community, user=user)
 
+    def delete_notifications(self):
+        transaction_id = str(self.id)
+        NotificationApi.cancel_workflow(transaction_id=transaction_id)
+        NotificationApi.delete_in_app_messages(transaction_id=transaction_id)
+
 
 class CommunityPendingInvite(ModelWithUUID):
     creator = models.ForeignKey(
@@ -1068,9 +1090,9 @@ class CommunityPendingInvite(ModelWithUUID):
 class CommunityInvite(ModelWithUUID):
     creator = models.ForeignKey(
         User,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="created_communities_invites",
-        null=False,
+        null=True,
         blank=False,
     )
     invited_user = models.ForeignKey(
@@ -1106,6 +1128,11 @@ class CommunityInvite(ModelWithUUID):
     @classmethod
     def is_user_with_username_invited_to_community_with_name(cls, username, community_name):
         return cls.objects.filter(community__name=community_name, invited_user__username=username).exists()
+
+    def delete_notifications(self):
+        transaction_id = str(self.id)
+        NotificationApi.cancel_workflow(transaction_id=transaction_id)
+        NotificationApi.delete_in_app_messages(transaction_id=transaction_id)
 
 
 class CommunityNotificationsSubscription(ModelWithUUID):
