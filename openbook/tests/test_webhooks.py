@@ -10,8 +10,9 @@ from novu.dto.subscriber import SubscriberDto
 from rest_framework.authtoken.models import Token
 
 from openbook_auth.models import User
+from openbook_notifications.payloads import NotificationType
 
-from openbook_common.tests.helpers import make_user
+from openbook_common.tests.helpers import make_user, make_community
 
 
 @pytest.mark.django_db
@@ -102,3 +103,191 @@ class OryWebhookTestCase(TransactionTestCase):
 
         mock_find_subscriber.assert_called_with(user_id=user.username)
         mock_update_subscriber.assert_not_called()
+
+
+@pytest.mark.django_db
+class NotificationWebhookTestCase(TransactionTestCase):
+    def test_checks_if_subscriber_is_admin_for_membership_request(self):
+        # GIVEN
+        client = AsyncClient()
+        user = make_user()
+        space = make_community(creator=user)
+        payload = {
+            "subscriber": {
+                "subscriberId": user.username,
+            },
+            "payload": {
+                "notificationType": NotificationType.SPACE_MEMBERSHIP_REQUEST.value,
+                "data": {"space": {"name": space.name}},
+            },
+        }
+        endpoint = reverse("notification-webhook-endpoint")
+
+        # WHEN
+        response = async_to_sync(client.post)(endpoint, payload, content_type="application/json")
+
+        # THEN
+        assert response.status_code == 200
+        content = json.loads(response.content)
+        assert content["valid"] == True
+
+    def test_handles_if_subscriber_is_not_admin_for_membership_request(self):
+        # GIVEN
+        client = AsyncClient()
+        user = make_user()
+        space = make_community()
+        payload = {
+            "subscriber": {
+                "subscriberId": user.username,
+            },
+            "payload": {
+                "notificationType": NotificationType.SPACE_MEMBERSHIP_REQUEST.value,
+                "data": {"space": {"name": space.name}},
+            },
+        }
+        endpoint = reverse("notification-webhook-endpoint")
+
+        # WHEN
+        response = async_to_sync(client.post)(endpoint, payload, content_type="application/json")
+
+        # THEN
+        assert response.status_code == 200
+        content = json.loads(response.content)
+        assert content["valid"] == False
+
+    def test_handles_missing_user_for_membership_request(self):
+        # GIVEN
+        client = AsyncClient()
+        space = make_community()
+        payload = {
+            "subscriber": {
+                "subscriberId": "unknown",
+            },
+            "payload": {
+                "notificationType": NotificationType.SPACE_MEMBERSHIP_REQUEST.value,
+                "data": {"space": {"name": space.name}},
+            },
+        }
+        endpoint = reverse("notification-webhook-endpoint")
+
+        # WHEN
+        response = async_to_sync(client.post)(endpoint, payload, content_type="application/json")
+
+        # THEN
+        assert response.status_code == 200
+        content = json.loads(response.content)
+        assert content["valid"] == False
+
+    def test_handles_missing_space_for_membership_request(self):
+        # GIVEN
+        client = AsyncClient()
+        user = make_user()
+        payload = {
+            "subscriber": {
+                "subscriberId": user.username,
+            },
+            "payload": {
+                "notificationType": NotificationType.SPACE_MEMBERSHIP_REQUEST.value,
+                "data": {"space": {"name": "unknown"}},
+            },
+        }
+        endpoint = reverse("notification-webhook-endpoint")
+
+        # WHEN
+        response = async_to_sync(client.post)(endpoint, payload, content_type="application/json")
+
+        # THEN
+        assert response.status_code == 200
+        content = json.loads(response.content)
+        assert content["valid"] == False
+
+    def test_handles_invalid_notification_payload_for_membership_request(self):
+        # GIVEN
+        client = AsyncClient()
+        user = make_user()
+        payload = {
+            "subscriber": {
+                "subscriberId": user.username,
+            },
+            "payload": {
+                "notificationType": NotificationType.SPACE_MEMBERSHIP_REQUEST.value,
+                "data": {},
+            },
+        }
+        endpoint = reverse("notification-webhook-endpoint")
+
+        # WHEN
+        response = async_to_sync(client.post)(endpoint, payload, content_type="application/json")
+
+        # THEN
+        assert response.status_code == 200
+        content = json.loads(response.content)
+        assert content["valid"] == False
+
+    def test_handles_invalid_payload_for_membership_request(self):
+        # GIVEN
+        client = AsyncClient()
+        user = make_user()
+        payload = {
+            "payload": {
+                "notificationType": NotificationType.SPACE_MEMBERSHIP_REQUEST.value,
+            },
+        }
+        endpoint = reverse("notification-webhook-endpoint")
+
+        # WHEN
+        response = async_to_sync(client.post)(endpoint, payload, content_type="application/json")
+
+        # THEN
+        assert response.status_code == 200
+        content = json.loads(response.content)
+        assert content["valid"] == False
+
+    def test_handles_unhandled_notification_type(self):
+        # GIVEN
+        client = AsyncClient()
+        user = make_user()
+        payload = {
+            "payload": {
+                "notificationType": NotificationType.SPACE_MEMBERSHIP_INVITE.value,
+            },
+        }
+        endpoint = reverse("notification-webhook-endpoint")
+
+        # WHEN
+        response = async_to_sync(client.post)(endpoint, payload, content_type="application/json")
+
+        # THEN
+        assert response.status_code == 400
+
+    def test_handles_unknown_notification_type(self):
+        # GIVEN
+        client = AsyncClient()
+        user = make_user()
+        payload = {
+            "payload": {
+                "notificationType": "unknown",
+            },
+        }
+        endpoint = reverse("notification-webhook-endpoint")
+
+        # WHEN
+        response = async_to_sync(client.post)(endpoint, payload, content_type="application/json")
+
+        # THEN
+        assert response.status_code == 400
+
+    def test_handles_missing_notification_type(self):
+        # GIVEN
+        client = AsyncClient()
+        user = make_user()
+        payload = {
+            "payload": {},
+        }
+        endpoint = reverse("notification-webhook-endpoint")
+
+        # WHEN
+        response = async_to_sync(client.post)(endpoint, payload, content_type="application/json")
+
+        # THEN
+        assert response.status_code == 400
