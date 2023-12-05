@@ -220,7 +220,7 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "CHAT_SERVER_NAME"
-          value = local.environment == "production" ? "chat.holi.social" : "development-chat.holi.social"
+          value = local.environment == "production" ? "holi.social" : "development-chat.holi.social"
         }
         env {
           name  = "CHAT_SERVER_URL"
