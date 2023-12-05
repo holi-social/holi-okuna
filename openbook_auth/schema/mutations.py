@@ -153,9 +153,10 @@ class Mutation:
             try:
                 exclusive_administrated_communities = list(current_user.get_exclusive_administrated_communities())
 
+                current_user.delete_pending_notifications()
+                NotificationApi.delete_subscriber(user_id=current_user.username)
                 current_user.delete()
                 publish_user_deleted_event(user=current_user)
-                NotificationApi.delete_subscriber(user_id=current_user.username)
                 logger.info(f"Successfully deleted user {current_user.username}")
 
                 logger.warning(f"All spaces exclusively administered by {current_user.username} will be deleted")
@@ -164,6 +165,7 @@ class Mutation:
                     for space in exclusive_administrated_communities:
                         # Make a copy of the space before deleting it to pass it as a SpaceDeleted event payload
                         space_to_delete = deepcopy(space)
+                        space.delete_pending_notifications()
                         space.delete()
                         publish_space_deleted_event(space_to_delete)
 

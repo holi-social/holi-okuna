@@ -156,5 +156,18 @@ class NotificationApiTestCase(TestCase):
     def test_delete_in_app_messages(self, mock_message_api_delete, mock_message_api_list):
         mock_message_api_list.return_value.data = [MessageDto(_id=1), MessageDto(_id=2)]
         NotificationApi.delete_in_app_messages(transaction_id="transaction-id")
-        mock_message_api_list.assert_called_once_with(transaction_id="transaction-id", channel="in_app")
+        mock_message_api_list.assert_called_once_with(
+            transaction_id="transaction-id", channel="in_app", subscriber_id=None
+        )
+        mock_message_api_delete.assert_has_calls([call(message_id=1), call(message_id=2)])
+
+    @patch.object(MessageApi, "list")
+    @patch.object(MessageApi, "delete")
+    def test_delete_in_app_messages_for_subscriber(self, mock_message_api_delete, mock_message_api_list):
+        subscriber_id = str(self.user.username)
+        mock_message_api_list.return_value.data = [MessageDto(_id=1), MessageDto(_id=2)]
+        NotificationApi.delete_in_app_messages(transaction_id="transaction-id", subscriber_id=subscriber_id)
+        mock_message_api_list.assert_called_once_with(
+            transaction_id="transaction-id", channel="in_app", subscriber_id=subscriber_id
+        )
         mock_message_api_delete.assert_has_calls([call(message_id=1), call(message_id=2)])
