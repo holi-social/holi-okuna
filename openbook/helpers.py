@@ -108,4 +108,4 @@ def publish_space_user_removed_event(user: User, community: Community):
 
 
 def __generate_publish_failure_message(cls):
-    return f"Failed to publish {cls.__name__} event"
+    return f"Failed to publish {cls.__name__} event: %s"
