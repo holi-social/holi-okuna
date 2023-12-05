@@ -1137,6 +1137,69 @@ class TestCommunities(TestCase):
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
+    @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
+    @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
+    @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
+    def test_revoking_space_admin_access_deletes_pending_notifications(
+        self,
+        mock_notification_api_delete_in_app_messages,
+        mock_notification_api_cancel_workflow,
+        mock_invalidate_discover_spaces_query_cache,
+        mock_send_space_membership_invite_notification,
+        mock_send_space_membership_request_notification,
+    ):
+        admin = make_user()
+        other_admin = make_user()
+        invitee = make_user()
+        membership_requestor = make_user()
+
+        space = make_community(admins=[admin, other_admin])
+
+        # Invite invitee to join space
+        mutate_update_space_user_connection_data(
+            auth_user=admin,
+            space_id=space.id,
+            user_id=invitee.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+        invite = space.get_membership_invite(invitee)
+
+        # Receive request from membership_requestor to join space
+        mutate_update_space_user_connection_data(
+            auth_user=membership_requestor,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+        membership_request = space.get_membership_request(membership_requestor)
+
+        # WHEN
+        # Other admin revokes admin rights
+        response = mutate_update_space_user_connection_raw(
+            auth_user=other_admin,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.ADMINISTRATOR,
+            connect_action=UpdateConnectionAction.REVOKE_ADMIN_ACCESS,
+            user_id=admin.username,
+        )
+
+        # THEN
+        assert response.errors is None
+        assert response.data is not None
+
+        # Do not expect pending workflows to be cancelled, as there is still another admin
+        mock_notification_api_cancel_workflow.assert_not_called()
+        # Expect pending notifications for former admin to be deleted
+        mock_notification_api_delete_in_app_messages.assert_has_calls(
+            [
+                mock.call(transaction_id=str(membership_request.id), subscriber_id=str(admin.username)),
+                mock.call(transaction_id=str(invite.id), subscriber_id=str(admin.username)),
+            ]
+        )
+
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     def test_space_admin_grant_and_revoke_admin_access_errors(self, mock_invalidate_discover_spaces_query_cache):
         space_member = make_user()
@@ -1636,6 +1699,67 @@ class TestCommunities(TestCase):
 
         mock_publish_space_user_left_event.assert_called_once_with(user=space_creator, community=space)
 
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
+    @mock.patch("openbook_communities.schema.mutations.publish_space_user_left_event")
+    @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
+    @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
+    def test_space_admin_leaves_community_deletes_pending_notifications(
+        self,
+        mock_notification_api_delete_in_app_messages,
+        mock_notification_api_cancel_workflow,
+        mock_publish_space_user_left_event,
+        mock_send_space_membership_invite_notification,
+        mock_send_space_membership_request_notification,
+    ):
+        admin = make_user()
+        other_admin = make_user()
+        invitee = make_user()
+        membership_requestor = make_user()
+
+        space = make_community(admins=[admin, other_admin])
+
+        # Invite invitee to join space
+        mutate_update_space_user_connection_data(
+            auth_user=admin,
+            space_id=space.id,
+            user_id=invitee.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+        invite = space.get_membership_invite(invitee)
+
+        # Receive request from membership_requestor to join space
+        mutate_update_space_user_connection_data(
+            auth_user=membership_requestor,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+        membership_request = space.get_membership_request(membership_requestor)
+
+        # WHEN
+        response = mutate_update_space_user_connection_raw(
+            auth_user=admin,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.ADMINISTRATOR,
+            connect_action=UpdateConnectionAction.LEAVE_SPACE,
+        )
+
+        # THEN
+        assert response.errors is None
+        assert response.data is not None
+
+        # Do not expect pending workflows to be cancelled, as there is still another admin
+        mock_notification_api_cancel_workflow.assert_not_called()
+        # Expect pending notifications for former admin to be deleted
+        mock_notification_api_delete_in_app_messages.assert_has_calls(
+            [
+                mock.call(transaction_id=str(membership_request.id), subscriber_id=str(admin.username)),
+                mock.call(transaction_id=str(invite.id), subscriber_id=str(admin.username)),
+            ]
+        )
+
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_left_event")
     def test_space_member_leaves_community_error_only_member(self, mock_publish_space_user_left_event):
         space_creator = make_user()
@@ -1735,6 +1859,69 @@ class TestCommunities(TestCase):
         assert notification.notification.first().notification_type == "CMRE"
 
         mock_publish_space_user_removed_event.assert_called_once_with(user=member_user, community=space)
+
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
+    @mock.patch("openbook_communities.schema.mutations.publish_space_user_left_event")
+    @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
+    @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
+    def test_remove_member_from_community_deletes_pending_notifications(
+        self,
+        mock_notification_api_delete_in_app_messages,
+        mock_notification_api_cancel_workflow,
+        mock_publish_space_user_left_event,
+        mock_send_space_membership_invite_notification,
+        mock_send_space_membership_request_notification,
+    ):
+        admin = make_user()
+        other_admin = make_user()
+        invitee = make_user()
+        membership_requestor = make_user()
+
+        space = make_community(admins=[admin, other_admin])
+
+        # Invite invitee to join space
+        mutate_update_space_user_connection_data(
+            auth_user=admin,
+            space_id=space.id,
+            user_id=invitee.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+        invite = space.get_membership_invite(invitee)
+
+        # Receive request from membership_requestor to join space
+        mutate_update_space_user_connection_data(
+            auth_user=membership_requestor,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+        membership_request = space.get_membership_request(membership_requestor)
+
+        # WHEN
+        # Other admin removes admin from space
+        response = mutate_update_space_user_connection_raw(
+            auth_user=other_admin,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.ADMINISTRATOR,
+            connect_action=UpdateConnectionAction.REMOVE_MEMBER,
+            user_id=admin.username,
+        )
+
+        # THEN
+        assert response.errors is None
+        assert response.data is not None
+
+        # Do not expect pending workflows to be cancelled, as there is still another admin
+        mock_notification_api_cancel_workflow.assert_not_called()
+        # Expect pending notifications for former admin to be deleted
+        mock_notification_api_delete_in_app_messages.assert_has_calls(
+            [
+                mock.call(transaction_id=str(membership_request.id), subscriber_id=str(admin.username)),
+                mock.call(transaction_id=str(invite.id), subscriber_id=str(admin.username)),
+            ]
+        )
 
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_removed_event")
     def test_remove_member_from_community_error_only_admin(self, mock_publish_space_user_removed_event):
@@ -2016,6 +2203,70 @@ class TestCommunities(TestCase):
 
         mock_invalidate_discover_spaces_query_cache.assert_called_once()
         mock_publish_space_deleted_event.assert_called_once_with(community)
+
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
+    @mock.patch("openbook_communities.schema.mutations.publish_space_deleted_event")
+    @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
+    @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
+    @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
+    def test_can_delete_space_with_pending_notifications(
+        self,
+        mock_notification_api_delete_in_app_messages,
+        mock_notification_api_cancel_workflow,
+        mock_invalidate_discover_spaces_query_cache,
+        mock_publish_space_deleted_event,
+        mock_send_space_membership_invite_notification,
+        mock_send_space_membership_request_notification,
+    ):
+        user = make_user()
+        invitee = make_user()
+        membership_requestor = make_user()
+        community = make_community(creator=user)
+
+        # Invite invitee to join space
+        mutate_update_space_user_connection_data(
+            auth_user=user,
+            space_id=community.id,
+            user_id=invitee.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+        invite = community.get_membership_invite(invitee)
+
+        # Receive request from membership_requestor to join space
+        mutate_update_space_user_connection_data(
+            auth_user=membership_requestor,
+            space_id=community.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+        membership_request = community.get_membership_request(membership_requestor)
+
+        delete_space_mutation = """
+            mutation test($id: UUID!) {
+                deleteSpace(id: $id) {
+                    success
+                }
+            }
+            """
+
+        response = async_to_sync(schema.execute)(
+            delete_space_mutation,
+            variable_values={"id": str(community.id)},
+            context_value=benedict({"request": {"user": user}}),
+        )
+
+        assert response.errors is None
+        assert response.data["deleteSpace"]["success"] is True
+
+        # Expect pending notifications for invitations and membership requests to be deleted resp. workflows to be cancelled
+        mock_notification_api_cancel_workflow.assert_has_calls(
+            [mock.call(transaction_id=str(membership_request.id)), mock.call(transaction_id=str(invite.id))]
+        )
+        mock_notification_api_delete_in_app_messages.assert_has_calls(
+            [mock.call(transaction_id=str(membership_request.id)), mock.call(transaction_id=str(invite.id))]
+        )
 
     @mock.patch("openbook_communities.schema.mutations.publish_space_deleted_event")
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
