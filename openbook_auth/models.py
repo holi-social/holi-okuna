@@ -961,6 +961,21 @@ class User(ModelWithUUID, AbstractUser):
         count = self.connections.filter(target_connection__user_id=user_id, circles__id__in=circles_ids).count()
         return count > 0
 
+    def full_connections(self):
+        Connection = get_connection_model()
+
+        return Connection.objects.filter(
+            circles__id__isnull=False, target_connection__circles__id=self.connections_circle_id
+        )
+
+    def connected_users(self):
+        connected_user_ids = self.full_connections().values("user_id")
+        return (
+            User.objects.select_related("profile")
+            .filter(id__in=connected_user_ids)
+            .order_by("profile__name", "profile__last_name")
+        )
+
     def is_following_user(self, user):
         return self.is_following_user_with_id(user.pk)
 
@@ -1565,7 +1580,20 @@ class User(ModelWithUUID, AbstractUser):
     def comment_post_with_id(self, post_id, text):
         Post = get_post_model()
         post = Post.objects.filter(pk=post_id).get()
-        return self.comment_post(post=post, text=text)
+        post_comment = self.comment_post(post=post, text=text)
+
+        from openbook_notifications.notifications import Notifications
+
+        if post_comment.mentions.exists():
+            Notifications.send_post_comment_mention_notification(post_comment=post_comment)
+
+        is_post_author_mentioned = post_comment.mentions.filter(username=post.creator.username).exists()
+        is_post_author_commenter = post_comment.commenter.username == post.creator.username
+
+        if not is_post_author_mentioned and not is_post_author_commenter:
+            Notifications.send_post_comment_author_notification(post_comment=post_comment)
+
+        return post_comment
 
     def comment_post(self, post, text):
         check_can_comment_in_post(user=self, post=post)
@@ -2160,9 +2188,7 @@ class User(ModelWithUUID, AbstractUser):
         Community = get_community_model()
         community_to_join = Community.objects.get(name=community_name)
         membership_request = community_to_join.get_membership_request(self)
-        transaction_id = str(membership_request.id)
-        NotificationApi.cancel_workflow(transaction_id=transaction_id)
-        NotificationApi.delete_in_app_messages(transaction_id=transaction_id)
+        membership_request.delete_notifications()
         community_to_join.remove_membership_request(self)
 
         return community_to_join
@@ -2246,9 +2272,7 @@ class User(ModelWithUUID, AbstractUser):
         except:
             inviting_admin = None
 
-        transaction_id = str(community_invite.id)
-        NotificationApi.cancel_workflow(transaction_id=transaction_id)
-        NotificationApi.delete_in_app_messages(transaction_id=transaction_id)
+        community_invite.delete_notifications()
         community_invite.delete()
 
         self.notify_invite_declined(community_to_join, inviting_admin, self)
@@ -2276,15 +2300,11 @@ class User(ModelWithUUID, AbstractUser):
             )
 
         if membership_request is not None:
-            transaction_id = str(membership_request.id)
-            NotificationApi.cancel_workflow(transaction_id=transaction_id)
-            NotificationApi.delete_in_app_messages(transaction_id=transaction_id)
+            membership_request.delete_notifications()
             community_to_join.remove_membership_request(user_to_approve)
 
         if invite is not None:
-            transaction_id = str(invite.id)
-            NotificationApi.cancel_workflow(transaction_id=transaction_id)
-            NotificationApi.delete_in_app_messages(transaction_id=transaction_id)
+            invite.delete_notifications()
             community_to_join.remove_invite(user_to_approve)
 
     def notify_membership_removal(self, community, user_to_remove):
@@ -2313,9 +2333,7 @@ class User(ModelWithUUID, AbstractUser):
             raise ValidationError(_("User did not request membership to community"))
 
         membership_request = community.get_membership_request(user_to_revoke_request_for)
-        transaction_id = str(membership_request.id)
-        NotificationApi.cancel_workflow(transaction_id=transaction_id)
-        NotificationApi.delete_in_app_messages(transaction_id=transaction_id)
+        membership_request.delete_notifications()
         community.remove_membership_request(user_to_revoke_request_for)
 
         # deferred import to circumvent circular imports
@@ -2332,6 +2350,12 @@ class User(ModelWithUUID, AbstractUser):
         )
 
         return community
+
+    def delete_pending_notifications(self):
+        for membership_request in self.community_membership_requests.all():
+            membership_request.delete_notifications()
+        for membership_invite in self.communities_invites.all():
+            membership_invite.delete_notifications()
 
     def leave_community_with_name(self, community_name):
         check_can_leave_community_with_name(user=self, community_name=community_name)
@@ -2430,6 +2454,7 @@ class User(ModelWithUUID, AbstractUser):
             community__name=community_name,
         )
         uninvited_user = community_invite.invited_user
+        community_invite.delete_notifications()
         community_invite.delete()
 
         return uninvited_user

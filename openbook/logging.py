@@ -117,6 +117,7 @@ LOGGING_CONFIG = {
 
 def initialize_logging():
     if SQL_LOGGING != "DO_NOT_LOG":
+        print("Setting logger django.db.backends to level DEBUG")
         LOGGING_CONFIG["loggers"]["django.db.backends"] = {
             "level": "DEBUG",
         }

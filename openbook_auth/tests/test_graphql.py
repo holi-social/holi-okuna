@@ -26,6 +26,8 @@ from openbook_auth.tests.helpers import (
     get_user_connection_status_to_space_data,
     get_user_with_id_raw,
     get_users_by_chat_identities,
+    get_connected_users,
+    get_connected_users_raw,
 )
 from openbook_common.enums import FeatureToggleName, FeatureToggleType
 from openbook_common.models import FeatureToggle
@@ -38,9 +40,14 @@ from openbook_common.tests.helpers import (
     make_user,
     assert_paged_results_equal,
 )
+from openbook_communities.enums import UpdateConnectionAction
 from openbook_communities.models import SpaceUserConnectionType
+from openbook_communities.tests.helpers import (
+    mutate_update_space_user_connection_data,
+)
 from openbook_notifications.enums import NotificationProvider
 from openbook_posts.tests.helpers import get_post_with_id_data, get_post_with_id_raw
+from openbook_connections.tests.helpers import connect_to_user
 
 logger = logging.getLogger(__name__)
 
@@ -194,7 +201,7 @@ class TestUsers:
     def test_can_update_authenticated_user(
         self, mock_update_subscriber, mock_get_language_from_request, mock_publish_user_name_updated_event, mock_patch
     ):
-        response = self.create_ory_response(200, {})
+        response = self.create_response(200)
         mock_patch.return_value = response
         user = make_user(name="Fritz", last_name="Meier", identity="fritz")
         community = make_community()
@@ -269,14 +276,15 @@ class TestUsers:
         mock_publish_user_name_updated_event.assert_called_once_with(user=user)
         mock_update_subscriber.assert_called_once_with(user=user, locale=mock_get_language_from_request.return_value)
 
+    @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
     def test_can_update_authenticated_user_generates_an_identity(
-        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
+        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
     ):
-        ory_patch_mock_response = self.create_ory_response(200, {})
-        ory_patch_mock.return_value = ory_patch_mock_response
+        ory_patch_mock.return_value = self.create_response(200)
+        matrix_put_mock.return_value = self.create_response(201)
         user = make_user()
         user.identity = None
 
@@ -284,14 +292,10 @@ class TestUsers:
 
         assert result.errors is None
 
-        expected_ory_call_body = [
-            {"op": "add", "path": "/metadata_public/identity", "value": "fritz.meier"},
-        ]
-
-        ory_patch_mock.assert_called_with(
+        ory_patch_mock.assert_any_call(
             f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
-            json=expected_ory_call_body,
+            json=[{"op": "add", "path": "/metadata_public/identity", "value": "fritz.meier"}],
         )
 
         result = result.data["updateAuthenticatedUser"]
@@ -312,14 +316,16 @@ class TestUsers:
 
         assert mock_update_subscriber.call_count == 2
 
+    @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
     def test_api_registers_new_user_with_already_taken_identity_for_a_user(
-        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
+        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
     ):
-        ory_update_response_stub = self.create_ory_response(200, {})
+        ory_update_response_stub = self.create_response(200)
         ory_patch_mock.return_value = ory_update_response_stub
+        matrix_put_mock.return_value = self.create_response(201)
 
         make_user(name="Fritz", last_name="Hansen", identity="fritz.hansen")
         new_fritz = make_user(name="Fritz", last_name="Hansen", identity="something_to_prevent_collision")
@@ -332,7 +338,7 @@ class TestUsers:
 
         expected_json_body = [{"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen1"}]
 
-        ory_patch_mock.assert_called_with(
+        ory_patch_mock.assert_any_call(
             f"{settings.ORY_BASE_URL}/admin/identities/{new_fritz.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
             json=expected_json_body,
@@ -342,20 +348,22 @@ class TestUsers:
             user=new_fritz, locale=mock_get_language_from_request.return_value
         )
 
+    @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
     def test_api_registers_new_user_with_ory_failing_once(
-        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
+        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
     ):
-        ory_update_user_name_success = self.create_ory_response(200, {})
-        ory_update_identity_conflict = self.create_ory_response(409, {"error": {"message": "Error Message"}})
-        ory_update_identity_success = self.create_ory_response(200, {})
+        ory_update_user_name_success = self.create_response(200)
+        ory_update_identity_conflict = self.create_response(409, {"error": {"message": "Error Message"}})
+        ory_update_identity_success = self.create_response(200)
+        matrix_put_mock.return_value = self.create_response(201)
 
         ory_patch_mock.side_effect = [
-            ory_update_user_name_success,
             ory_update_identity_conflict,
             ory_update_identity_success,
+            ory_update_user_name_success,
         ]
 
         new_user = make_user()
@@ -389,20 +397,22 @@ class TestUsers:
             user=new_user, locale=mock_get_language_from_request.return_value
         )
 
+    @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
     def test_api_registers_new_user_only_first_name_with_ory_failing_once(
-        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
+        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
     ):
-        ory_update_user_name_success = self.create_ory_response(200, {})
-        ory_update_identity_conflict = self.create_ory_response(409, {"error": {"message": "Error Message"}})
-        ory_update_identity_success = self.create_ory_response(200, {})
+        ory_update_user_name_success = self.create_response(200)
+        ory_update_identity_conflict = self.create_response(409, {"error": {"message": "Error Message"}})
+        ory_update_identity_success = self.create_response(200)
+        matrix_put_mock.return_value = self.create_response(201)
 
         ory_patch_mock.side_effect = [
-            ory_update_user_name_success,
             ory_update_identity_conflict,
             ory_update_identity_success,
+            ory_update_user_name_success,
         ]
 
         new_user = make_user()
@@ -436,20 +446,51 @@ class TestUsers:
             user=new_user, locale=mock_get_language_from_request.return_value
         )
 
+    @mock.patch("openbook_auth.tasks.requests.put")
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
+    def test_api_registers_new_user_with_matrix_id_taken(
+        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
+    ):
+        ory_update_user_name_success = self.create_response(200)
+        ory_update_identity_success = self.create_response(200)
+
+        ory_patch_mock.side_effect = [
+            ory_update_identity_success,
+            ory_update_user_name_success,
+        ]
+
+        matrix_put_mock.side_effect = [self.create_response(200), self.create_response(201)]
+
+        new_user = make_user()
+        new_user.identity = None
+
+        result = api_update_authenticated_user_names(new_user, "Fritz", "Fratz")
+
+        assert result.errors is None
+        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.fratz1"
+
+        mock_update_subscriber.assert_called_once_with(
+            user=new_user, locale=mock_get_language_from_request.return_value
+        )
+
+    @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
     def test_api_registers_new_user_with_ory_failing_too_many_times(
-        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock
+        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
     ):
-        ory_update_user_name_success = self.create_ory_response(200, {})
-        ory_update_identity_conflict = self.create_ory_response(409, {"error": {"message": "Error Message"}})
+        ory_update_user_name_success = self.create_response(200)
+        ory_update_identity_conflict = self.create_response(409, {"error": {"message": "Error Message"}})
+        matrix_put_mock.return_value = self.create_response(201)
 
         ory_patch_mock.side_effect = [
+            ory_update_identity_conflict,
+            ory_update_identity_conflict,
+            ory_update_identity_conflict,
             ory_update_user_name_success,
-            ory_update_identity_conflict,
-            ory_update_identity_conflict,
-            ory_update_identity_conflict,
         ]
 
         new_user = make_user()
@@ -497,15 +538,11 @@ class TestUsers:
 
     @mock.patch("openbook_auth.tasks.requests.delete")
     @mock.patch("openbook_auth.schema.mutations.publish_user_deleted_event")
-    @mock.patch("openbook_auth.schema.mutations.publish_space_deleted_event")
     @mock.patch("openbook_notifications.api.NotificationApi.delete_subscriber")
-    def test_can_delete_authenticated_user(
-        self, mock_delete_subscriber, mock_publish_space_deleted_event, mock_publish_user_deleted_event, mock_delete
-    ):
-        mock_delete.return_value = self.create_ory_response(204, {})
+    def test_can_delete_authenticated_user(self, mock_delete_subscriber, mock_publish_user_deleted_event, mock_delete):
+        mock_delete.return_value = self.create_response(204)
 
         user = make_user(name="Fritz", last_name="Meier")
-        space = make_community(creator=user)
 
         mutation_response = async_to_sync(schema.execute)(
             """
@@ -517,6 +554,7 @@ class TestUsers:
             """,
             context_value=benedict({"request": {"user": user}}),
         )
+
         mock_delete.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
@@ -525,10 +563,175 @@ class TestUsers:
         assert mutation_response.data["deleteAuthenticatedUser"]["success"] is True
 
         mock_publish_user_deleted_event.assert_called_once_with(user=user)
-        mock_publish_space_deleted_event.assert_called_once_with(space)
         mock_delete_subscriber.assert_called_once_with(user_id=str(user.username))
 
-    def create_ory_response(self, http_status, json_body):
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
+    @mock.patch("openbook_auth.tasks.requests.delete")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_deleted_event")
+    @mock.patch("openbook_auth.schema.mutations.publish_space_deleted_event")
+    @mock.patch("openbook_notifications.api.NotificationApi.delete_subscriber")
+    @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
+    @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
+    def test_can_delete_authenticated_user_and_pending_notifications(
+        self,
+        mock_notification_api_delete_in_app_messages,
+        mock_notification_api_cancel_workflow,
+        mock_delete_subscriber,
+        mock_publish_space_deleted_event,
+        mock_publish_user_deleted_event,
+        mock_delete,
+        mock_send_space_membership_invite_notification,
+        mock_send_space_membership_request_notification,
+    ):
+        mock_delete.return_value = self.create_response(204)
+
+        user = make_user(name="Fritz", last_name="Meier")
+        other_admin = make_user()
+        invitee = make_user()
+        administered_space = make_community(admins=[user, other_admin])
+        space_for_join_request = make_community()
+        space_for_invite = make_community()
+
+        # Invite invitee to join administered_space
+        mutate_update_space_user_connection_data(
+            auth_user=user,
+            space_id=administered_space.id,
+            user_id=invitee.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+        invite = administered_space.get_membership_invite(invitee)
+
+        # Request to join space_for_join_request
+        mutate_update_space_user_connection_data(
+            auth_user=user,
+            space_id=space_for_join_request.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+        membership_request = space_for_join_request.get_membership_request(user)
+
+        # Get invited to join space_for_invite
+        mutate_update_space_user_connection_data(
+            auth_user=space_for_invite.creator,
+            space_id=space_for_invite.id,
+            user_id=user.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+        own_invite = space_for_invite.get_membership_invite(user)
+
+        # WHEN
+        mutation_response = async_to_sync(schema.execute)(
+            """
+            mutation test {
+                deleteAuthenticatedUser {
+                    success
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": user}}),
+        )
+
+        # THEN
+        mock_delete.assert_called_once_with(
+            f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
+            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+        )
+
+        assert mutation_response.data["deleteAuthenticatedUser"]["success"] is True
+
+        mock_publish_user_deleted_event.assert_called_once_with(user=user)
+        # Expect administered_space not to be deleted as there is a second admin
+        mock_publish_space_deleted_event.assert_not_called()
+        mock_delete_subscriber.assert_called_once_with(user_id=str(user.username))
+        # Expect pending notifications for deleted user to be deleted resp. workflows to be cancelled - but not for invite of invitee
+        mock_notification_api_cancel_workflow.assert_has_calls(
+            [mock.call(transaction_id=str(membership_request.id)), mock.call(transaction_id=str(own_invite.id))]
+        )
+        mock_notification_api_delete_in_app_messages.assert_has_calls(
+            [mock.call(transaction_id=str(membership_request.id)), mock.call(transaction_id=str(own_invite.id))]
+        )
+
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
+    @mock.patch("openbook_auth.tasks.requests.delete")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_deleted_event")
+    @mock.patch("openbook_auth.schema.mutations.publish_space_deleted_event")
+    @mock.patch("openbook_notifications.api.NotificationApi.delete_subscriber")
+    @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
+    @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
+    def test_can_delete_authenticated_user_with_spaces_and_notifications(
+        self,
+        mock_notification_api_delete_in_app_messages,
+        mock_notification_api_cancel_workflow,
+        mock_delete_subscriber,
+        mock_publish_space_deleted_event,
+        mock_publish_user_deleted_event,
+        mock_delete,
+        mock_send_space_membership_invite_notification,
+        mock_send_space_membership_request_notification,
+    ):
+        mock_delete.return_value = self.create_response(204)
+
+        user = make_user(name="Fritz", last_name="Meier")
+        space = make_community(creator=user)
+        invitee = make_user()
+        membership_requestor = make_user()
+
+        # Invite invitee to join space
+        mutate_update_space_user_connection_data(
+            auth_user=user,
+            space_id=space.id,
+            user_id=invitee.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_INVITEE,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+        invite = space.get_membership_invite(invitee)
+
+        # Receive request from membership_requestor to join space
+        mutate_update_space_user_connection_data(
+            auth_user=membership_requestor,
+            space_id=space.id,
+            connection_type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR,
+            connect_action=UpdateConnectionAction.CONNECT,
+        )
+        membership_request = space.get_membership_request(membership_requestor)
+
+        # WHEN
+        mutation_response = async_to_sync(schema.execute)(
+            """
+            mutation test {
+                deleteAuthenticatedUser {
+                    success
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": user}}),
+        )
+
+        # THEN
+        mock_delete.assert_called_once_with(
+            f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
+            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+        )
+
+        assert mutation_response.data["deleteAuthenticatedUser"]["success"] is True
+
+        mock_publish_user_deleted_event.assert_called_once_with(user=user)
+        # Expect space to be deleted as there are no other admins left
+        mock_publish_space_deleted_event.assert_called_once_with(space)
+        mock_delete_subscriber.assert_called_once_with(user_id=str(user.username))
+        # Expect pending notifications for invitations and membership requests to be deleted resp. workflows to be cancelled
+        mock_notification_api_cancel_workflow.assert_has_calls(
+            [mock.call(transaction_id=str(membership_request.id)), mock.call(transaction_id=str(invite.id))]
+        )
+        mock_notification_api_delete_in_app_messages.assert_has_calls(
+            [mock.call(transaction_id=str(membership_request.id)), mock.call(transaction_id=str(invite.id))]
+        )
+
+    def create_response(self, http_status, json_body={}):
         response = Response()
         response.status_code = http_status
         response._content = str.encode(json.dumps(json_body))
@@ -852,3 +1055,23 @@ class TestUsers:
             else:
                 assert test_case["expected_error"] in str(response.errors[0].message)
             assert (response.data["registerDevice"] if response.data else response.data) is None
+
+    def test_connected_users(self):
+        user1 = make_user()
+        user2 = make_user(name="B", last_name="B")
+        user3 = make_user(name="A", last_name="A")
+
+        # Setup full connections to user2 and user3
+        connect_to_user(user1, user2)
+        connect_to_user(user2, user1)
+        connect_to_user(user1, user3)
+        connect_to_user(user3, user1)
+
+        connected_users = get_connected_users(user1)
+        assert connected_users["totalResults"] == 2
+        assert connected_users["data"][0]["id"] == str(user3.id)
+        assert connected_users["data"][1]["id"] == str(user2.id)
+
+    def test_cannot_retrieve_connected_users_if_not_logged_in(self):
+        response = get_connected_users_raw()
+        assert_is_unauthorized(response)

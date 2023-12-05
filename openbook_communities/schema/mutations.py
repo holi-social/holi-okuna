@@ -90,7 +90,7 @@ class Mutation:
                 # user requests membership in space
                 case (ConnectionType.MEMBERSHIP_REQUESTOR, Action.CONNECT):
                     return current_user.request_membership_to_community_with_name(space.name, message)
-                # user leaves space
+                # user revokes membership request
                 case (ConnectionType.MEMBERSHIP_REQUESTOR, Action.DISCONNECT):
                     return current_user.revoke_membership_request_to_community_with_name(space.name)
                 # user accepts invitation to space
@@ -110,6 +110,7 @@ class Mutation:
                 # user leaves space or is removed by space admin
                 case (ConnectionType.MEMBER | ConnectionType.ADMINISTRATOR, Action.LEAVE_SPACE):
                     community_to_leave = current_user.leave_community_with_name(space.name)
+                    community_to_leave.delete_pending_notifications_for_user(current_user.username)
                     publish_space_user_left_event(user=current_user, community=community_to_leave)
                     return community_to_leave
                 case _:
@@ -117,6 +118,7 @@ class Mutation:
         else:
             # perform for other user
             match (connection_type, connect_action):
+                # space admin rejected membership request
                 case (ConnectionType.MEMBERSHIP_REQUESTOR, Action.DISCONNECT):
                     return current_user.revoke_membership_request_to_community_for_username(user_id, space.name)
                 # space admin accepted membership request
@@ -124,15 +126,24 @@ class Mutation:
                     space = current_user.approve_membership_request_to_community_for_username(user_id, space.name)
                     publish_space_user_added_event(username=str(user_id), community=space)
                     return space
+                # space admin invites user
                 case (ConnectionType.MEMBERSHIP_INVITEE, Action.CONNECT):
                     return current_user.invite_to_community(username=str(user_id), community=space)
+                # space admin withdraws membership invite
+                case (ConnectionType.MEMBERSHIP_INVITEE, Action.DISCONNECT):
+                    current_user.uninvite_user_with_username_to_community_with_name(
+                        username=str(user_id), community_name=space.name
+                    )
+                    return space
                 case (ConnectionType.ADMINISTRATOR, Action.GRANT_ADMIN_ACCESS):
                     return current_user.add_administrator_with_username_to_community_with_name(user_id, space.name)
                 case (ConnectionType.ADMINISTRATOR, Action.REVOKE_ADMIN_ACCESS):
+                    space.delete_pending_notifications_for_user(user_id)
                     return current_user.remove_administrator_with_username_from_community_with_name(
                         user_id, space.name
                     )
                 case (ConnectionType.ADMINISTRATOR, Action.REMOVE_MEMBER):
+                    space.delete_pending_notifications_for_user(user_id)
                     community = current_user.remove_member_from_community(user_id, space.name)
                     user_to_remove = UserModel.objects.get(username=user_id)
                     publish_space_user_removed_event(user=user_to_remove, community=community)
@@ -215,6 +226,7 @@ class Mutation:
             space = CommunityModel.objects.get(id=id)
 
             with transaction.atomic():
+                space.delete_pending_notifications()
                 current_user.delete_community_with_id(
                     community_id=id,
                 )

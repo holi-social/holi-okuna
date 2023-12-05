@@ -1,4 +1,5 @@
 import logging
+from unittest import mock, TestCase
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -32,7 +33,11 @@ from openbook_posts.tests.helpers import (
     react_to_post,
     react_to_post_comment,
     update_space_post,
+    update_post_comment,
 )
+
+from openbook_common.enums import FeatureToggleName, FeatureToggleType
+from openbook_common.models import FeatureToggle as FeatureToggleModel
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +54,94 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 
 @pytest.mark.django_db
-class TestPosts:
+class TestPosts(TestCase):
+    def setUp(self):
+        self.notifications_toggle = FeatureToggleModel.objects.create(
+            name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
+        )
+
+    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
+    def test_can_mention_user_in_post_comment(
+        self, mock_send_post_comment_author_notification, mock_send_post_comment_mention_notification
+    ):
+        posting_user = make_user()
+        mentioned_user = make_user(name="Mentioned")
+        commenter = make_user(name="Commenter")
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
+
+        input_data = {
+            "postId": str(post.id),
+            "text": f"comment text 1 @{mentioned_user.username}",
+        }
+
+        response = update_post_comment(commenter, input_data)
+        assert response.errors is None
+
+        post_comment_data = response.data["updatePostComment"]["postComment"]
+        post_comment = PostComment.objects.get(id=post_comment_data["id"])
+
+        mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=post_comment)
+        mock_send_post_comment_author_notification.assert_called_once_with(post_comment=post_comment)
+
+    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
+    def test_skip_post_comment_author_notification_if_author_is_commenter(
+        self, mock_send_post_comment_author_notification, mock_send_post_comment_mention_notification
+    ):
+        posting_user = make_user()
+        mentioned_user = make_user(name="Mentioned")
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
+
+        input_data = {
+            "postId": str(post.id),
+            "text": f"comment text 1 @{mentioned_user.username}",
+        }
+
+        response = update_post_comment(posting_user, input_data)
+        assert response.errors is None
+
+        post_comment_data = response.data["updatePostComment"]["postComment"]
+        post_comment = PostComment.objects.get(id=post_comment_data["id"])
+
+        mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=post_comment)
+        mock_send_post_comment_author_notification.assert_not_called()
+
+    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
+    def test_skip_post_comment_author_notification_if_author_is_mentioned(
+        self, mock_send_post_comment_author_notification, mock_send_post_comment_mention_notification
+    ):
+        posting_user = make_user()
+        commenter = make_user(name="Commenter")
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
+
+        input_data = {
+            "postId": str(post.id),
+            "text": f"comment text 1 @{posting_user.username}",
+        }
+
+        response = update_post_comment(commenter, input_data)
+        assert response.errors is None
+
+        post_comment_data = response.data["updatePostComment"]["postComment"]
+        post_comment = PostComment.objects.get(id=post_comment_data["id"])
+
+        mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=post_comment)
+        mock_send_post_comment_author_notification.assert_not_called()
+
     def test_can_fetch_post(self):
         posting_user = make_user()
         mentioned_user = make_user(name="Mentioned")

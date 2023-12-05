@@ -36,7 +36,7 @@ from openbook_moderation.models import (
     ModerationReport,
 )
 from openbook_notifications.models import Notification
-from openbook_posts.models import Post
+from openbook_posts.models import Post, PostComment
 from openbook_terms.models import SDG, Skill, Topic
 
 fake = Faker()
@@ -600,3 +600,16 @@ def check_app_version(version: str, build_number: str):
         """,
     )
     return response
+
+
+def make_post_comment():
+    space = make_community()
+    post_author = make_user()
+    post = mixer.blend(Post, creator=post_author, community=space)
+    commenter = make_user()
+    mentioned_user = make_user()
+    text = fake.paragraph()
+
+    post_comment = mixer.blend(PostComment, commenter=commenter, post=post, text=f"@{mentioned_user.username} {text}")
+
+    return post_comment

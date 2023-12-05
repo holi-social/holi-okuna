@@ -91,7 +91,9 @@ class NotificationApi:
 
     @staticmethod
     @notifications_toggle
-    def delete_in_app_messages(transaction_id: str):
-        messages = MessageApi().list(transaction_id=transaction_id, channel=NotificationChannel.IN_APP.value)
+    def delete_in_app_messages(transaction_id: str, subscriber_id: str | None = None):
+        messages = MessageApi().list(
+            transaction_id=transaction_id, channel=NotificationChannel.IN_APP.value, subscriber_id=subscriber_id
+        )
         for message in messages.data:
             MessageApi().delete(message_id=message._id)

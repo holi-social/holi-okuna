@@ -3,6 +3,7 @@ from django.db import models
 
 from openbook_common.models import ModelWithUUID
 from openbook_notifications.models.notification import Notification
+from openbook_notifications.toggles import mute_notifications
 from openbook_posts.models import PostCommentUserMention
 
 

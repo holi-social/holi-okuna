@@ -22,7 +22,7 @@ from openbook_auth.schema.types import UpdateAuthenticatedUserInput, User, Regis
 from openbook_auth.serializers.authenticated_user_serializers import (
     UpdateAuthenticatedUserSerializer,
 )
-from openbook_auth.tasks import update_ory_user_identity, update_ory_user_names
+from openbook_auth.tasks import update_ory_user_identity, update_ory_user_names, create_matrix_user_account
 from openbook_auth.utils import verify_authorized_user
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.helpers import is_parameter_null, to_input_dict
@@ -73,28 +73,34 @@ class Mutation:
             save=True,
         )
 
-        if input.first_name or input.last_name:
-            update_ory_user_names(current_user.id)
-            publish_user_name_updated_event(user=current_user)
-
         # set identity when needed
         if not current_user.identity and current_user.profile.full_name():
-            current_user.identity = UserModel.sanitize_identity_input(current_user.profile.full_name())
-            identity_wish = current_user.identity
+            identity_wish = UserModel.sanitize_identity_input(current_user.profile.full_name())
+            current_identity_trial = identity_wish
             counter = 0
+            taken_identities = []
+
+            if UserModel.is_identity_taken(current_identity_trial):
+                taken_identities = UserModel.get_taken_identities(identity_wish)
+                current_identity_trial, counter = UserModel.next_unique_identity(
+                    identity_wish, taken_identities, counter
+                )
 
             while True:
+                # find an available matrix identity
+                while not create_matrix_user_account(current_identity_trial):
+                    current_identity_trial, counter = UserModel.next_unique_identity(
+                        identity_wish, taken_identities, counter
+                    )
+                # store the created matrix identity
                 try:
-                    if UserModel.is_identity_taken(current_user.identity):
-                        taken_identities = UserModel.get_taken_identities(identity_wish)
-                        current_user.identity, counter = UserModel.next_unique_identity(
-                            identity_wish, taken_identities, counter
-                        )
+                    current_user.identity = current_identity_trial
                     current_user.save()
                 except ValidationError as error:
+                    # somehow we have a collision in Okuna, so we keep trying new identities
                     if "A user with that identity already exists." in error.message_dict["identity"]:
                         taken_identities = UserModel.get_taken_identities(identity_wish)
-                        current_user.identity, counter = UserModel.next_unique_identity(
+                        current_identity_trial, counter = UserModel.next_unique_identity(
                             identity_wish, taken_identities, counter
                         )
                         continue
@@ -113,6 +119,10 @@ class Mutation:
                     current_user.username,
                     current_user.identity,
                 )
+
+        if input.first_name or input.last_name or input.avatar or remove_avatar:
+            update_ory_user_names(current_user.id)
+            publish_user_name_updated_event(user=current_user)
 
         locale = get_language_from_request(info.context.request)
         NotificationApi.update_subscriber(user=current_user, locale=locale)
@@ -143,9 +153,10 @@ class Mutation:
             try:
                 exclusive_administrated_communities = list(current_user.get_exclusive_administrated_communities())
 
+                current_user.delete_pending_notifications()
+                NotificationApi.delete_subscriber(user_id=current_user.username)
                 current_user.delete()
                 publish_user_deleted_event(user=current_user)
-                NotificationApi.delete_subscriber(user_id=current_user.username)
                 logger.info(f"Successfully deleted user {current_user.username}")
 
                 logger.warning(f"All spaces exclusively administered by {current_user.username} will be deleted")
@@ -154,6 +165,7 @@ class Mutation:
                     for space in exclusive_administrated_communities:
                         # Make a copy of the space before deleting it to pass it as a SpaceDeleted event payload
                         space_to_delete = deepcopy(space)
+                        space.delete_pending_notifications()
                         space.delete()
                         publish_space_deleted_event(space_to_delete)
 
