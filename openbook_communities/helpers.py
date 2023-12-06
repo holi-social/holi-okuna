@@ -34,7 +34,8 @@ def upload_to_community_task_thumbnail_directory(task, filename):
 
 
 def create_community_name_from_title_and_hash(title, hash):
-    name = slugify(title)
+    slug = slugify(title)
+    name = slug
     try:
         community_name_not_taken_validator(name)
         return name
@@ -42,7 +43,7 @@ def create_community_name_from_title_and_hash(title, hash):
         name_suffix_length = min(8, len(hash))
         while name_suffix_length <= len(hash) and name_suffix_length > 0:
             name = (
-                f"{title[: settings.COMMUNITY_NAME_MAX_LENGTH - name_suffix_length - 1]}-{hash[: name_suffix_length]}"
+                f"{slug[: settings.COMMUNITY_NAME_MAX_LENGTH - name_suffix_length - 1]}-{hash[: name_suffix_length]}"
             )
             try:
                 community_name_not_taken_validator(name)
