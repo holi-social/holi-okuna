@@ -2,7 +2,7 @@ import pytest
 
 from django.test import TestCase
 from novu.api import MessageApi
-from novu.dto import MessageDto
+from novu.dto import MessageDto, PaginatedMessageDto
 from requests.exceptions import HTTPError
 from unittest.mock import patch, call
 
@@ -154,7 +154,11 @@ class NotificationApiTestCase(TestCase):
     @patch.object(MessageApi, "list")
     @patch.object(MessageApi, "delete")
     def test_delete_in_app_messages(self, mock_message_api_delete, mock_message_api_list):
-        mock_message_api_list.return_value.data = [MessageDto(_id=1), MessageDto(_id=2)]
+        mock_message_api_list.return_value = PaginatedMessageDto(
+            data=[MessageDto(_id=1), MessageDto(_id=2)],
+            total_count=2,
+            page_size=10,
+        )
         NotificationApi.delete_in_app_messages(transaction_id="transaction-id")
         mock_message_api_list.assert_called_once_with(
             transaction_id="transaction-id", channel="in_app", subscriber_id=None
@@ -163,9 +167,36 @@ class NotificationApiTestCase(TestCase):
 
     @patch.object(MessageApi, "list")
     @patch.object(MessageApi, "delete")
+    def test_delete_multiple_pages_of_in_app_messages(self, mock_message_api_delete, mock_message_api_list):
+        mock_message_api_list.side_effect = [
+            PaginatedMessageDto(
+                data=[MessageDto(_id=1), MessageDto(_id=2)],
+                total_count=3,
+                page_size=2,
+            ),
+            PaginatedMessageDto(
+                data=[MessageDto(_id=3)],
+                total_count=1,
+                page_size=2,
+            ),
+        ]
+
+        # WHEN
+        NotificationApi.delete_in_app_messages(transaction_id="transaction-id")
+
+        # THEN
+        mock_message_api_list.call_count == 2
+        mock_message_api_delete.assert_has_calls([call(message_id=1), call(message_id=2), call(message_id=3)])
+
+    @patch.object(MessageApi, "list")
+    @patch.object(MessageApi, "delete")
     def test_delete_in_app_messages_for_subscriber(self, mock_message_api_delete, mock_message_api_list):
         subscriber_id = str(self.user.username)
-        mock_message_api_list.return_value.data = [MessageDto(_id=1), MessageDto(_id=2)]
+        mock_message_api_list.return_value = PaginatedMessageDto(
+            data=[MessageDto(_id=1), MessageDto(_id=2)],
+            total_count=2,
+            page_size=10,
+        )
         NotificationApi.delete_in_app_messages(transaction_id="transaction-id", subscriber_id=subscriber_id)
         mock_message_api_list.assert_called_once_with(
             transaction_id="transaction-id", channel="in_app", subscriber_id=subscriber_id

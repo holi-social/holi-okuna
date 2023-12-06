@@ -93,7 +93,14 @@ class NotificationApi:
     @notifications_toggle
     def delete_in_app_messages(transaction_id: str, subscriber_id: str | None = None):
         messages = MessageApi().list(
-            transaction_id=transaction_id, channel=NotificationChannel.IN_APP.value, subscriber_id=subscriber_id
+            transaction_id=transaction_id,
+            channel=NotificationChannel.IN_APP.value,
+            subscriber_id=subscriber_id,
         )
         for message in messages.data:
             MessageApi().delete(message_id=message._id)
+
+        # If there are more messages than fetched, perform deletion again
+        # As we just deleted messages, we can start with page 0 again
+        if messages.total_count > messages.page_size:
+            NotificationApi.delete_in_app_messages(transaction_id=transaction_id, subscriber_id=subscriber_id)
