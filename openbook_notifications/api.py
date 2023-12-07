@@ -68,6 +68,19 @@ class NotificationApi:
 
     @staticmethod
     @notifications_toggle
+    def create_or_update_subscriber(user: User, locale: Optional[str]):
+        try:
+            subscriber = NotificationApi.update_subscriber(user, locale)
+        except HTTPError as http_err:
+            if http_err.response.status_code == 404:
+                subscriber = NotificationApi.create_subscriber(user, locale)
+            else:
+                raise
+
+        return subscriber
+
+    @staticmethod
+    @notifications_toggle
     def set_subscriber_credentials(
         subscriber_id: str,
         provider_id: NotificationProvider,
@@ -82,7 +95,14 @@ class NotificationApi:
     @staticmethod
     @notifications_toggle
     def delete_subscriber(user_id: str):
-        return SubscriberApi().delete(subscriber_id=str(user_id))
+        try:
+            return SubscriberApi().delete(subscriber_id=str(user_id))
+        except HTTPError as http_err:
+            if http_err.response.status_code == 404:
+                # User was already deleted
+                pass
+            else:
+                raise
 
     @staticmethod
     @notifications_toggle
@@ -98,7 +118,14 @@ class NotificationApi:
             subscriber_id=subscriber_id,
         )
         for message in messages.data:
-            MessageApi().delete(message_id=message._id)
+            try:
+                MessageApi().delete(message_id=message._id)
+            except HTTPError as http_err:
+                if http_err.response.status_code == 404:
+                    # Message was already deleted
+                    pass
+                else:
+                    raise
 
         # If there are more messages than fetched, perform deletion again
         # As we just deleted messages, we can start with page 0 again

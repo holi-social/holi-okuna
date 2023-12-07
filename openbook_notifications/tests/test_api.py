@@ -45,6 +45,24 @@ class NotificationApiTestCase(TestCase):
 
         self.assertEqual(subscriber, subscriber_data)
 
+    @patch.object(SubscriberApi, "delete")
+    def test_delete_subscriber(self, mock_subscriber_api_delete):
+        subscriber_id = str(self.user.username)
+
+        NotificationApi.delete_subscriber(subscriber_id)
+
+        mock_subscriber_api_delete.assert_called_once_with(subscriber_id=subscriber_id)
+
+    @patch.object(
+        SubscriberApi, "delete", side_effect=HTTPError(response=type("Response", (object,), {"status_code": 404}))
+    )
+    def test_delete_subscriber_if_already_deleted(self, mock_subscriber_api_delete):
+        subscriber_id = str(self.user.username)
+
+        NotificationApi.delete_subscriber(subscriber_id)
+
+        mock_subscriber_api_delete.assert_called_once_with(subscriber_id=subscriber_id)
+
     @patch.object(SubscriberApi, "get")
     def test_find_subscriber(self, mock_subscriber_api_get):
         subscriber_data = {
@@ -116,6 +134,46 @@ class NotificationApiTestCase(TestCase):
         subscriber = NotificationApi.update_subscriber(self.user, self.locale)
 
         self.assertEqual(subscriber, subscriber_data)
+
+    @patch.object(SubscriberApi, "put")
+    @patch.object(SubscriberApi, "create")
+    def test_create_or_update_subscriber_existing(self, mock_subscriber_api_create, mock_subscriber_api_put):
+        subscriber_data = {
+            "first_name": self.user.profile.name,
+            "last_name": self.user.profile.last_name,
+            "avatar": self.user.profile.avatar.url if self.user.profile.avatar else None,
+            "email": self.user.email,
+            "subscriber_id": str(self.user.username),
+            "locale": self.locale,
+        }
+        mock_subscriber_api_put.return_value = subscriber_data
+
+        subscriber = NotificationApi.create_or_update_subscriber(self.user, self.locale)
+
+        self.assertEqual(subscriber, subscriber_data)
+        mock_subscriber_api_create.assert_not_called()
+
+    @patch.object(
+        SubscriberApi, "put", side_effect=HTTPError(response=type("Response", (object,), {"status_code": 404}))
+    )
+    @patch.object(SubscriberApi, "create")
+    def test_create_or_update_subscriber_not_existing(self, mock_subscriber_api_create, mock_subscriber_api_put):
+        subscriber_data = {
+            "first_name": self.user.profile.name,
+            "last_name": self.user.profile.last_name,
+            "avatar": self.user.profile.avatar.url if self.user.profile.avatar else None,
+            "email": self.user.email,
+            "subscriber_id": str(self.user.username),
+            "locale": self.locale,
+        }
+
+        mock_subscriber_api_create.return_value = subscriber_data
+
+        subscriber = NotificationApi.create_or_update_subscriber(self.user, self.locale)
+
+        self.assertEqual(subscriber, subscriber_data)
+        mock_subscriber_api_put.assert_called_once()
+        mock_subscriber_api_create.assert_called_once()
 
     @patch.object(SubscriberApi, "credentials")
     @patch.object(SubscriberApi, "delete_credentials")
@@ -202,3 +260,19 @@ class NotificationApiTestCase(TestCase):
             transaction_id="transaction-id", channel="in_app", subscriber_id=subscriber_id
         )
         mock_message_api_delete.assert_has_calls([call(message_id=1), call(message_id=2)])
+
+    @patch.object(MessageApi, "list")
+    @patch.object(
+        MessageApi, "delete", side_effect=HTTPError(response=type("Response", (object,), {"status_code": 404}))
+    )
+    def test_delete_in_app_messages_if_already_deleted(self, mock_message_api_delete, mock_message_api_list):
+        mock_message_api_list.return_value = PaginatedMessageDto(
+            data=[MessageDto(_id=1)],
+            total_count=1,
+            page_size=10,
+        )
+        NotificationApi.delete_in_app_messages(transaction_id="transaction-id")
+        mock_message_api_list.assert_called_once_with(
+            transaction_id="transaction-id", channel="in_app", subscriber_id=None
+        )
+        mock_message_api_delete.assert_has_calls([call(message_id=1)])

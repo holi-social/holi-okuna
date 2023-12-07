@@ -125,7 +125,7 @@ class Mutation:
             publish_user_name_updated_event(user=current_user)
 
         locale = get_language_from_request(info.context.request)
-        NotificationApi.update_subscriber(user=current_user, locale=locale)
+        NotificationApi.create_or_update_subscriber(user=current_user, locale=locale)
 
         cache.set(f"{settings.USER_CACHE_PREFIX}{current_user.username}", current_user, timeout=300)
 
