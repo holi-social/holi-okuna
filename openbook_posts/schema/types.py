@@ -115,50 +115,48 @@ class Post:
     @strawberry_django.field()
     def comments(self, info) -> List[Optional["PostComment"]]:
         current_user = info.context.request.user
-        return (
+        all_comments = (
             PostCommentModel.objects.filter(post=self)
             .filter(PostCommentModel.is_visible_query(current_user))
-            .filter(UserBlockModel.not_blocked_query(current_user, "commenter"))
             .order_by("created")
         )
+        blocked_users = UserBlockModel.users_blocking_or_blocked(current_user)
+        non_blocked_comments = [comment for comment in all_comments if comment.commenter.id not in blocked_users]
+        return non_blocked_comments
 
     # this should be removed, once comments are paged
     @strawberry_django.field()
     def number_of_comments(self, info) -> int:
         current_user = info.context.request.user
+        # count does not respect userblocks due to caching, this is intended for now
         return (
-            PostCommentModel.objects.filter(post=self)
-            .filter(PostCommentModel.is_visible_query(current_user))
-            .filter(UserBlockModel.not_blocked_query(current_user, "commenter"))
-            .count()
+            PostCommentModel.objects.filter(post=self).filter(PostCommentModel.is_visible_query(current_user)).count()
         )
 
     @strawberry_django.field(description="A list of all users involved. Author of the post plus all commenters")
     def involved_users(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
         current_user = info.context.request.user
-        return Paged.of(
+        involved_users = (
             UserModel.objects.select_related("profile")
-            .filter(UserModel.is_visible_query(current_user))
+            .filter(UserModel.is_visible_ignore_blocked_query())
             .filter(
                 (Q(posts=self) & PostModel.is_visible_query(current_user, "posts"))
                 | (Q(posts_comments__post=self) & PostCommentModel.is_visible_query(current_user, "posts_comments"))
             )
-            .distinct(),
-            offset,
-            limit,
+            .distinct()
         )
+        return UserBlockModel.paged(current_user, lambda user: user.id, involved_users, offset, limit)
 
     @strawberry_django.field()
     def commenters(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
         current_user = info.context.request.user
-        return Paged.of(
+        commenters = (
             UserModel.objects.select_related("profile")
-            .filter(UserModel.is_visible_query(current_user))
+            .filter(UserModel.is_visible_ignore_blocked_query())
             .filter(Q(posts_comments__post=self) & PostCommentModel.is_visible_query(current_user, "posts_comments"))
-            .distinct(),
-            offset,
-            limit,
+            .distinct()
         )
+        return UserBlockModel.paged(current_user, lambda user: user.id, commenters, offset, limit)
 
     @strawberry_django.field()
     def reactions(self, info) -> ReactionCounts:

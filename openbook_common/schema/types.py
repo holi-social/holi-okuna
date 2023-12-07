@@ -1,5 +1,5 @@
 import json
-from typing import Generic, List, Optional, TypeVar
+from typing import Generic, List, Optional, TypeVar, Callable
 
 import strawberry
 import strawberry_django
