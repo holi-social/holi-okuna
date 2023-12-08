@@ -7,7 +7,7 @@ from openbook_posts.models import Post as PostModel
 
 def resolve_post(current_user, post_id):
     try:
-        post: PostModel = PostModel.objects.filter(PostModel.is_visible_query(current_user)).get(id=post_id)
+        post: PostModel = PostModel.objects.filter(PostModel.is_visible_query(current_user)).distinct().get(id=post_id)
         return UserBlockModel.filter_single_object(
             current_user,
             post,

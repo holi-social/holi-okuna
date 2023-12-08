@@ -168,7 +168,6 @@ class Post(ModelWithUUID):
         title=None,
         is_public=False,
     ) -> "Post":
-
         if not community_name and not community_id and not circles_ids and not is_public:
             raise ValidationError(_("A post requires circles or a community or to be public to be posted to."))
 
@@ -950,19 +949,17 @@ class Post(ModelWithUUID):
         pQ = PrefixedQ(prefix)
 
         if user.is_anonymous:
-            return (
-                pQ(is_deleted=False, status=Post.STATUS_PUBLISHED)
-                & (pQ(is_public=True) | pQ(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC))
-                & ModeratedObject.not_moderated_query(user, ModeratedObject.OBJECT_TYPE_POST, prefix)
-            )
+            return pQ(
+                is_deleted=False, status=Post.STATUS_PUBLISHED, is_public=True
+            ) & ModeratedObject.not_moderated_query(user, ModeratedObject.OBJECT_TYPE_POST, prefix)
 
         return (
             pQ(is_deleted=False)
             & (
-                pQ(creator=user)
+                (pQ(creator=user) & (pQ(community__isnull=True) | pQ(community__memberships__user__id=user.id)))
                 | (
                     pQ(status=Post.STATUS_PUBLISHED)
-                    & (pQ(is_public=True) | pQ(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC))
+                    & (pQ(is_public=True) | pQ(community__memberships__user__id=user.id))
                 )
             )
             & ModeratedObject.not_moderated_query(user, ModeratedObject.OBJECT_TYPE_POST, prefix)
