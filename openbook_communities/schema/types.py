@@ -312,7 +312,7 @@ class Space:
             elif visibility == VisibilityFilter.MEMBERS:
                 query = query.filter(is_public=False)
 
-        return Paged.of(query.order_by("-created"), offset, limit)
+        return Paged.of(query.distinct().order_by("-created"), offset, limit)
 
     @strawberry_django.field()
     def has_public_posts(self, info) -> bool:
