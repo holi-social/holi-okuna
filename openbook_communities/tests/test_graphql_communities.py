@@ -2983,12 +2983,24 @@ class TestCommunities(TestCase):
         user = make_user()
         community = make_community(creator=user)
 
-        onboarding_steps = [
+        initial_onboarding_steps = [
             {"text": "Step 1"},
             {"text": "Step 2"},
         ]
+        update_and_assert_onboarding_steps(user, community.id, initial_onboarding_steps)
 
-        update_and_assert_onboarding_steps(user, community.id, onboarding_steps)
+        onboarding_steps_add_step = [
+            {"text": "Step 1"},
+            {"text": "Step 1.5"},
+            {"text": "Step 2"},
+        ]
+        update_and_assert_onboarding_steps(user, community.id, onboarding_steps_add_step)
+
+        onboarding_steps_remove_step = [
+            {"text": "Step 1.5"},
+            {"text": "Step 2"},
+        ]
+        update_and_assert_onboarding_steps(user, community.id, onboarding_steps_remove_step)
 
         update_and_assert_onboarding_steps(user, community.id, [])
 

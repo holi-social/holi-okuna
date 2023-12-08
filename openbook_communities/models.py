@@ -1629,18 +1629,16 @@ class OnboardingStep(ModelWithUUID):
         onboarding_steps,
     ):
         with transaction.atomic():
-            # Not necessary to sort, we will just override everything
-            old_steps = cls.objects.filter(community=community)
+            old_steps = cls.objects.filter(community=community).order_by("step_number")
             new_step_count = len(onboarding_steps)
             old_step_count = len(old_steps)
             common_length = min(new_step_count, old_step_count)
 
-            # Overwrite old steps
+            # Overwrite texts of old steps
             for index in range(common_length):
                 new_step = onboarding_steps[index]
                 old_steps[index].update(
                     text=new_step["text"],
-                    step_number=index,
                 )
 
             # Create new steps if there are not enough
