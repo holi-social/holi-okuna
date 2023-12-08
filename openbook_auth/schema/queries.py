@@ -30,11 +30,10 @@ class Query:
         if current_user.is_anonymous:
             return None
         locale = get_language_from_request(info.context.request)
-        NotificationApi.find_or_create_subscriber(user=current_user, locale=locale)
 
         # TODO: This is a hack to make sure that the subscriber is updated with the correct locale.
         # Remove this when we add a language picker to the user profile.
-        NotificationApi.update_subscriber(user=current_user, locale=locale)
+        NotificationApi.create_or_update_subscriber(user=current_user, locale=locale)
 
         return current_user
 
