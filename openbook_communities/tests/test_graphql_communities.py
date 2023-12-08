@@ -2983,29 +2983,25 @@ class TestCommunities(TestCase):
         user = make_user()
         community = make_community(creator=user)
 
-        # Creating steps initially
-        onboarding_steps = [
+        initial_onboarding_steps = [
             {"text": "Step 1"},
             {"text": "Step 2"},
         ]
-        update_and_assert_onboarding_steps(user, community.id, onboarding_steps)
+        update_and_assert_onboarding_steps(user, community.id, initial_onboarding_steps)
 
-        # Adding a step
-        onboarding_steps_2 = [
+        onboarding_steps_add_step = [
             {"text": "Step 1"},
             {"text": "Step 1.5"},
             {"text": "Step 2"},
         ]
-        update_and_assert_onboarding_steps(user, community.id, onboarding_steps_2)
+        update_and_assert_onboarding_steps(user, community.id, onboarding_steps_add_step)
 
-        # Removing a step
-        onboarding_steps_3 = [
+        onboarding_steps_remove_step = [
             {"text": "Step 1.5"},
             {"text": "Step 2"},
         ]
-        update_and_assert_onboarding_steps(user, community.id, onboarding_steps_3)
+        update_and_assert_onboarding_steps(user, community.id, onboarding_steps_remove_step)
 
-        # Removing all steps
         update_and_assert_onboarding_steps(user, community.id, [])
 
     def test_can_not_update_onboarding_steps_if_empty(self):
