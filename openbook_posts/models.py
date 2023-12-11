@@ -168,7 +168,6 @@ class Post(ModelWithUUID):
         title=None,
         is_public=False,
     ) -> "Post":
-
         if not community_name and not community_id and not circles_ids and not is_public:
             raise ValidationError(_("A post requires circles or a community or to be public to be posted to."))
 
@@ -320,9 +319,6 @@ class Post(ModelWithUUID):
             trending_community_posts_query.add(Q(id__lt=max_id), Q.AND)
         elif min_id:
             trending_community_posts_query.add(Q(id__gt=min_id), Q.AND)
-
-        ModeratedObject = get_moderated_object_model()
-        trending_community_posts_query.add(~Q(post__moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
 
         trending_community_posts_queryset = (
             TrendingPost.objects.select_related(*posts_select_related)
@@ -502,10 +498,6 @@ class Post(ModelWithUUID):
                 )
 
                 count_query.add(~blocked_users_query_staff_members, Q.AND)
-
-            # Don't count items that have been reported and approved by community moderators
-            ModeratedObject = get_moderated_object_model()
-            count_query.add(~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED), Q.AND)
 
         # Don't count soft deleted items
         count_query.add(Q(is_deleted=False), Q.AND)
@@ -950,22 +942,16 @@ class Post(ModelWithUUID):
         pQ = PrefixedQ(prefix)
 
         if user.is_anonymous:
-            return (
-                pQ(is_deleted=False, status=Post.STATUS_PUBLISHED)
-                & (pQ(is_public=True) | pQ(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC))
-                & ModeratedObject.not_moderated_query(user, ModeratedObject.OBJECT_TYPE_POST, prefix)
+            return pQ(is_deleted=False, status=Post.STATUS_PUBLISHED) & (
+                pQ(is_public=True) | pQ(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC)
             )
 
-        return (
-            pQ(is_deleted=False)
-            & (
-                pQ(creator=user)
-                | (
-                    pQ(status=Post.STATUS_PUBLISHED)
-                    & (pQ(is_public=True) | pQ(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC))
-                )
+        return pQ(is_deleted=False) & (
+            pQ(creator=user)
+            | (
+                pQ(status=Post.STATUS_PUBLISHED)
+                & (pQ(is_public=True) | pQ(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC))
             )
-            & ModeratedObject.not_moderated_query(user, ModeratedObject.OBJECT_TYPE_POST, prefix)
         )
 
 
@@ -1454,9 +1440,7 @@ class PostComment(ModelWithUUID):
 
     @staticmethod
     def is_visible_query(user, prefix=None):
-        return PQ(prefix, is_deleted=False) & ModeratedObject.not_moderated_query(
-            user, ModeratedObject.OBJECT_TYPE_POST_COMMENT, prefix
-        )
+        return PQ(prefix, is_deleted=False)
 
 
 class PostReaction(ModelWithUUID):
