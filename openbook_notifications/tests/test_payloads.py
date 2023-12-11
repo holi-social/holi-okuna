@@ -5,6 +5,7 @@ from openbook_common.tests.helpers import (
     make_community,
     make_user,
     make_post_comment,
+    make_community_post,
 )
 from openbook_notifications.helpers import replace_mentions_with_full_names
 
@@ -22,6 +23,7 @@ from openbook_notifications.payloads import (
     SpaceMembershipInviteDeclinePayload,
     PostCommentMentionPayload,
     PostCommentAuthorPayload,
+    SpaceNewPostPayload,
 )
 
 
@@ -33,6 +35,7 @@ class TestPayloads(TestCase):
         self.space = make_community(title="Test Space", creator=self.admin)
         self.notification_type = "TEST_NOTIFICATION_TYPE"
         self.approver = make_user(name="Test", last_name="Approver")
+        self.post = make_community_post()
         self.post_comment = make_post_comment()
 
     def test_user_data_to_dict(self):
@@ -296,3 +299,17 @@ class TestPayloads(TestCase):
         self.assertEqual(data_dict["data"]["post"]["id"], str(self.post_comment.post_id))
         self.assertEqual(data_dict["data"]["post"]["title"], self.post_comment.post.title)
         self.assertIsNotNone(data_dict["data"]["commentDatetime"])
+
+    def test_space_new_post_payload(self):
+        payload = SpaceNewPostPayload(
+            post=self.post,
+            notification_type=NotificationType.SPACE_NEW_POST.value,
+        )
+
+        data_dict = payload.to_dict()
+        self.assertEqual(data_dict["notificationType"], "SPACE_NEW_POST")
+        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
+        self.assertEqual(data_dict["data"]["user"]["id"], str(self.post.creator.username))
+        self.assertEqual(data_dict["data"]["post"]["id"], str(self.post.id))
+        self.assertEqual(data_dict["data"]["space"]["id"], str(self.post.community.id))
+        self.assertIsNotNone(data_dict["data"]["createdDatetime"])

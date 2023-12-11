@@ -3033,6 +3033,15 @@ class User(ModelWithUUID, AbstractUser):
             is_public=is_public,
         )
 
+        from openbook_notifications.notifications import Notifications
+
+        collaborators = self.get_community_with_name_members(community_name=post.community.name).exclude(
+            id=post.creator.id
+        )
+
+        if collaborators:
+            Notifications.send_space_new_post_notification(post=post, collaborators=list(collaborators))
+
         return post
 
     def update_community_post(

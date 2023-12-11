@@ -4,6 +4,7 @@ from django.db import models
 from openbook_common.models import ModelWithUUID
 from openbook_communities.models import CommunityNotificationsSubscription
 from openbook_notifications.models.notification import Notification
+from openbook_notifications.toggles import mute_notifications
 from openbook_posts.models import Post
 
 
@@ -24,6 +25,7 @@ class CommunityNewPostNotification(ModelWithUUID):
         return " ".join(truncated_text) + "..."
 
     @classmethod
+    @mute_notifications
     def create_community_new_post_notification(cls, community_notifications_subscription_id, post_id, owner_id):
         community_new_post_notification = cls.objects.create(
             post_id=post_id,
@@ -37,6 +39,7 @@ class CommunityNewPostNotification(ModelWithUUID):
         return community_new_post_notification
 
     @classmethod
+    @mute_notifications
     def delete_community_new_post_notification(cls, community_notifications_subscription_id, post_id, owner_id):
         cls.objects.filter(
             community_notifications_subscription_id=community_notifications_subscription_id,
