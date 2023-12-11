@@ -466,11 +466,7 @@ class User(ModelWithUUID, AbstractUser):
         public_posts = (
             Post.objects.prefetch_related(*posts_prefetch_related)
             .only(*posts_only)
-            .filter(
-                user_query
-                & Q(is_public=True)
-                & exclude_deleted_posts_query
-            )
+            .filter(user_query & Q(is_public=True) & exclude_deleted_posts_query)
         )
 
         # Get user community posts
@@ -527,12 +523,7 @@ class User(ModelWithUUID, AbstractUser):
         public_posts = (
             Post.objects.prefetch_related(posts_prefetch_related)
             .only(posts_only)
-            .filter(
-                user_query
-                & Q(is_public=True)
-                & exclude_deleted_posts_query
-                & exclude_blocked_posts_query
-            )
+            .filter(user_query & Q(is_public=True) & exclude_deleted_posts_query & exclude_blocked_posts_query)
         )
 
         # Get user community posts
