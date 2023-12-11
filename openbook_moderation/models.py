@@ -370,10 +370,6 @@ class ModeratedObject(ModelWithUUID):
     def get_reporters(self):
         return User.objects.filter(moderation_reports__moderated_object_id=self.pk).all()
 
-    @staticmethod
-    def not_moderated_query(user, object_type, prefix=None):
-        return ~PQ(prefix, moderated_object__status=ModeratedObject.STATUS_APPROVED)
-
 
 class ModerationReport(ModelWithUUID):
     reporter = models.ForeignKey(User, on_delete=models.CASCADE, related_name="moderation_reports", null=False)
