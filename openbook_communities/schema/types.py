@@ -254,9 +254,9 @@ class Space:
     )
     def members(self, info, offset: int = 0, limit: int = 10) -> Paged[SpaceMember]:
         return Paged(
-            self.memberships.all().order_by("-is_administrator", "user__profile__name", "user__profile__last_name")[
-                offset : offset + limit
-            ],
+            self.memberships.all().order_by(
+                "-is_administrator", "user__profile__name", "user__profile__last_name", "user__profile__id"
+            )[offset : offset + limit],
             self.memberships.count(),
         )
 

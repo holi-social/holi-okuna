@@ -72,7 +72,7 @@ class Query:
         by_first_name_query = (
             UserModel.objects.select_related("profile")
             .filter(Q(profile__name__icontains=substring) & excludes_filter)
-            .order_by("profile__name", "profile__last_name")
+            .order_by("profile__name", "profile__last_name", "profile__id")
         )
         by_first_name = UserBlockModel.filter_blocked_objects(
             current_user, lambda user: user.id, by_first_name_query, offset, limit
@@ -95,7 +95,7 @@ class Query:
             lambda user: user.id,
             UserModel.objects.select_related("profile")
             .filter(full_name_query & ~Q(profile__name__icontains=substring))
-            .order_by("profile__name", "profile__last_name"),
+            .order_by("profile__name", "profile__last_name", "profile__id"),
             new_offset,
             new_limit,
         )
@@ -109,7 +109,7 @@ class Query:
             UserModel.objects.select_related("profile")
             .filter(UserModel.is_visible_ignore_blocked_query())
             .filter(date_joined__lte=datetime.now() - timedelta(hours=1))
-            .order_by("-date_joined")
+            .order_by("-date_joined", "profile__id")
         )
         if current_user.id:
             query = query.exclude(id=current_user.id)

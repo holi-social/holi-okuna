@@ -113,7 +113,7 @@ def get_reactions(model, reactions_query):
         model.objects.filter(reactions_query)
         .values("reaction_type")
         .annotate(count=Count("reaction_type"))
-        .order_by("-count")
+        .order_by("-count", "reaction_type")
         .all()
         .cache()
     )
@@ -963,7 +963,7 @@ class User(ModelWithUUID, AbstractUser):
         return (
             User.objects.select_related("profile")
             .filter(id__in=connected_user_ids)
-            .order_by("profile__name", "profile__last_name")
+            .order_by("profile__name", "profile__last_name", "profile__id")
         )
 
     def is_following_user(self, user):

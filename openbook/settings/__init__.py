@@ -159,7 +159,6 @@ MIDDLEWARE += [
     "openbook.middleware.slow_log_middleware",
 ]
 
-
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://localhost",
     r"^https://\w+\.dev\.holi\.social",
