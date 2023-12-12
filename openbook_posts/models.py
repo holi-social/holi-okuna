@@ -942,16 +942,11 @@ class Post(ModelWithUUID):
         pQ = PrefixedQ(prefix)
 
         if user.is_anonymous:
-            return pQ(is_deleted=False, status=Post.STATUS_PUBLISHED) & (
-                pQ(is_public=True) | pQ(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC)
-            )
+            return pQ(is_deleted=False, status=Post.STATUS_PUBLISHED, is_public=True)
 
         return pQ(is_deleted=False) & (
-            pQ(creator=user)
-            | (
-                pQ(status=Post.STATUS_PUBLISHED)
-                & (pQ(is_public=True) | pQ(community__type=get_community_model().COMMUNITY_TYPE_PUBLIC))
-            )
+            (pQ(creator=user) & (pQ(community__isnull=True) | pQ(community__memberships__user__id=user.id)))
+            | (pQ(status=Post.STATUS_PUBLISHED) & (pQ(is_public=True) | pQ(community__memberships__user__id=user.id)))
         )
 
 

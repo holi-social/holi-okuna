@@ -26,5 +26,5 @@ class Query:
             status=PostModel.STATUS_PUBLISHED,
             is_public=True,
             community__id=uuid.UUID(INSPIRATION_SPACE_ID),
-        )
+        ).distinct()
         return Paged.of(query.order_by("-created"), offset, limit)

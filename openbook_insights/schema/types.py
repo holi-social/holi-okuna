@@ -34,14 +34,14 @@ class Insight:
         return UserBlock.filter_blocked_objects(
             current_user,
             lambda post: None if post.creator is None else post.creator.id,
-            self.posts.filter(PostModel.is_visible_query(current_user)).order_by("created"),
+            self.posts.filter(PostModel.is_visible_query(current_user)).distinct().order_by("created"),
         )
 
     # this should be removed and be replaced by paged posts
     @strawberry_django.field()
     def number_of_posts(self, info) -> int:
         current_user = info.context.request.user
-        return self.posts.filter(PostModel.is_visible_query(current_user)).count()
+        return self.posts.filter(PostModel.is_visible_query(current_user)).distinct().count()
 
     @strawberry_django.field(
         description="A list of all users involved. Curator of the insight, Authors of all the posts and all commenters of those posts"
