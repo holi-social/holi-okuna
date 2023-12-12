@@ -292,9 +292,10 @@ class Query:
         )
 
         return Paged.of(
-            CommunityModel.objects.annotate(member_count=Count("memberships"))
-            .filter(title_query)
-            .order_by("-member_count"),
+            CommunityModel.objects.annotate(member_count=Count("memberships")).filter(title_query)
+            # Bug HOLI-6780: added created as second order criterion for deterministic order.
+            # This still has wrong order if while paging the membership counts change. Signed off by Max.
+            .order_by("-member_count", "-created"),
             offset,
             limit,
         )
