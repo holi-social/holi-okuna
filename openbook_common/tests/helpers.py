@@ -199,6 +199,20 @@ def make_post(user: Optional[User] = None, title: Optional[str] = None, text: Op
     )
 
 
+def make_community_post() -> Post:
+    creator = make_user()
+    user = make_user()
+    community = make_community(creator=creator)
+    community.add_member(user)
+
+    return user.create_community_post(
+        space_id=community.id,
+        community_name=community.id,
+        text=make_fake_post_text(),
+        title=make_fake_post_title(),
+    )
+
+
 def make_fake_list_name():
     return fake.text(max_nb_chars=settings.LIST_MAX_LENGTH)
 

@@ -136,26 +136,14 @@ def create_space_post_2(user, info):
             createSpacePost2(input: $input) {
                 id
                 title
-                space {
-                  id
-                  posts {
-                    totalResults
-                    data {
-                        title
-                        text
-                        isPublic
-                        created
-                        image {
-                            url
-                            blurhash
-                        }
-                    }
-                  }
-                }
                 text
                 isPublic
                 created
-
+                image {
+                    url
+                    blurhash
+                }
+        
             }
         }
         """,

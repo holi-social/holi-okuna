@@ -317,10 +317,13 @@ class Space:
     @strawberry_django.field()
     def has_public_posts(self, info) -> bool:
         current_user: UserModel = info.context.request.user
-        query = PostModel.objects.filter(
-            PostModel.is_visible_query(current_user), status=PostModel.STATUS_PUBLISHED, community=self
+        return (
+            PostModel.objects.filter(
+                PostModel.is_visible_query(current_user), status=PostModel.STATUS_PUBLISHED, community=self
+            )
+            .filter(is_public=True)
+            .exists()
         )
-        return query.filter(is_public=True).exists()
 
     @strawberry_django.field()
     def has_private_posts(self, info) -> bool:

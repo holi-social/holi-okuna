@@ -27,7 +27,6 @@ from openbook_communities.schema.types import (
     Space,
     Task,
 )
-from openbook_moderation.models import ModeratedObject as ModeratedObjectModel
 
 
 @sync_to_async
@@ -254,11 +253,7 @@ class Query:
                     "memberships__user__profile",
                     Prefetch("tasks", queryset=TaskModel.objects.filter(tasks_query)),
                 )
-                .filter(
-                    ModeratedObjectModel.not_moderated_query(
-                        info.context.request.user, ModeratedObjectModel.OBJECT_TYPE_COMMUNITY
-                    )
-                )
+                .filter(is_deleted=False)
                 .get(query)
             )
         except CommunityModel.DoesNotExist:

@@ -175,6 +175,30 @@ class NotificationApiTestCase(TestCase):
         mock_subscriber_api_put.assert_called_once()
         mock_subscriber_api_create.assert_called_once()
 
+    @patch.object(
+        SubscriberApi, "put", side_effect=HTTPError(response=type("Response", (object,), {"status_code": 400}))
+    )
+    @patch.object(SubscriberApi, "create")
+    def test_create_or_update_subscriber_not_existing_code_400(
+        self, mock_subscriber_api_create, mock_subscriber_api_put
+    ):
+        subscriber_data = {
+            "first_name": self.user.profile.name,
+            "last_name": self.user.profile.last_name,
+            "avatar": self.user.profile.avatar.url if self.user.profile.avatar else None,
+            "email": self.user.email,
+            "subscriber_id": str(self.user.username),
+            "locale": self.locale,
+        }
+
+        mock_subscriber_api_create.return_value = subscriber_data
+
+        subscriber = NotificationApi.create_or_update_subscriber(self.user, self.locale)
+
+        self.assertEqual(subscriber, subscriber_data)
+        mock_subscriber_api_put.assert_called_once()
+        mock_subscriber_api_create.assert_called_once()
+
     @patch.object(SubscriberApi, "credentials")
     @patch.object(SubscriberApi, "delete_credentials")
     def test_set_subscriber_credentials(self, mock_subscriber_api_delete_credentials, mock_subscriber_api_credentials):

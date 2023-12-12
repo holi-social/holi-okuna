@@ -72,7 +72,9 @@ class NotificationApi:
         try:
             subscriber = NotificationApi.update_subscriber(user, locale)
         except HTTPError as http_err:
-            if http_err.response.status_code == 404:
+            status_code = http_err.response.status_code
+            # Novu treats missing subscribers during update as "BAD REQUEST"
+            if status_code == 404 or status_code == 400:
                 subscriber = NotificationApi.create_subscriber(user, locale)
             else:
                 raise

@@ -461,19 +461,12 @@ class User(ModelWithUUID, AbstractUser):
             "community__title",
         )
 
-        exclude_reported_and_approved_posts_query = ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED)
-
         exclude_deleted_posts_query = Q(is_deleted=False, status=Post.STATUS_PUBLISHED)
 
         public_posts = (
             Post.objects.prefetch_related(*posts_prefetch_related)
             .only(*posts_only)
-            .filter(
-                user_query
-                & Q(is_public=True)
-                & exclude_deleted_posts_query
-                & exclude_reported_and_approved_posts_query
-            )
+            .filter(user_query & Q(is_public=True) & exclude_deleted_posts_query)
         )
 
         # Get user community posts
@@ -489,7 +482,6 @@ class User(ModelWithUUID, AbstractUser):
                 & community_posts_query
                 & exclude_private_community_posts_query
                 & exclude_deleted_posts_query
-                & exclude_reported_and_approved_posts_query
             )
         )
 
@@ -520,8 +512,6 @@ class User(ModelWithUUID, AbstractUser):
 
         user_query = Q(creator_id=user.pk)
 
-        exclude_reported_and_approved_posts_query = ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED)
-
         exclude_blocked_posts_query = ~Q(
             Q(creator__blocked_by_users__blocker_id=self.pk) | Q(creator__user_blocks__blocked_user_id=self.pk)
         )
@@ -533,13 +523,7 @@ class User(ModelWithUUID, AbstractUser):
         public_posts = (
             Post.objects.prefetch_related(posts_prefetch_related)
             .only(posts_only)
-            .filter(
-                user_query
-                & Q(is_public=True)
-                & exclude_deleted_posts_query
-                & exclude_blocked_posts_query
-                & exclude_reported_and_approved_posts_query
-            )
+            .filter(user_query & Q(is_public=True) & exclude_deleted_posts_query & exclude_blocked_posts_query)
         )
 
         # Get user community posts
@@ -556,7 +540,6 @@ class User(ModelWithUUID, AbstractUser):
                 & exclude_private_community_posts_query
                 & exclude_deleted_posts_query
                 & exclude_blocked_posts_query
-                & exclude_reported_and_approved_posts_query
             )
         )
 
@@ -3049,6 +3032,15 @@ class User(ModelWithUUID, AbstractUser):
             is_draft=is_draft,
             is_public=is_public,
         )
+
+        from openbook_notifications.notifications import Notifications
+
+        collaborators = self.get_community_with_name_members(community_name=post.community.name).exclude(
+            id=post.creator.id
+        )
+
+        if collaborators:
+            Notifications.send_space_new_post_notification(post=post, collaborators=list(collaborators))
 
         return post
 
