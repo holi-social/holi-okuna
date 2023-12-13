@@ -299,6 +299,7 @@ class TestTasks:
             "regularity": "REGULARLY",
             "contactEmail": "email@email.com",
             "thumbnail": None,
+            "slotsAvailable": 1,
         }
 
         response = async_to_sync(schema.execute)(
@@ -389,6 +390,7 @@ class TestTasks:
             "regularity": "REGULARLY",
             "contactEmail": "email@email.com",
             "thumbnail": None,
+            "slotsAvailable": 1,
         }
 
         response = async_to_sync(schema.execute)(

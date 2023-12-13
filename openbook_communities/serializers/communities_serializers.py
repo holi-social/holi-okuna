@@ -382,7 +382,7 @@ class CreateTaskSerializer(serializers.Serializer):
         max_length=settings.TASK_DESCRIPTION_MAX_LENGTH,
         required=True,
     )
-    slots_available = serializers.IntegerField(required=False, max_value=600)
+    slots_available = serializers.IntegerField(required=True, max_value=600)
     location = serializers.CharField(
         max_length=settings.TASK_LOCATION_MAX_LENGTH,
         required=False,
