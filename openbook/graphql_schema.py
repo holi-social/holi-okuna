@@ -23,6 +23,7 @@ from openbook_notifications.schema import queries as notifications_queries
 from openbook_posts.schema import mutations as posts_mutations
 from openbook_posts.schema import queries as posts_queries
 from openbook_terms.schema import queries as terms_queries
+from openbook_appointments.schema import mutations as appointments_mutations
 
 logger = structlog.get_logger(__name__)
 
@@ -73,6 +74,7 @@ Mutation = merge_types(
         communities_mutations.Mutation,
         notifications_mutations.Mutation,
         moderation_mutations.Mutation,
+        appointments_mutations.Mutation,
     ),
 )
 
