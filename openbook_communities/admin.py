@@ -12,6 +12,7 @@ from openbook_communities.models import (
 
 import traceback
 import structlog
+import time
 
 logger = structlog.get_logger(__name__)
 
@@ -46,6 +47,7 @@ class CommunityAdmin(admin.ModelAdmin):
             logger.info("Resending SpaceCreatedEvent: " + str(community))
             try:
                 publish_space_created_event(community)
+                time.sleep(5)
                 for membership in community.memberships.all():
                     logger.info("Adding user: " + str(membership.user))
                     publish_space_user_added_event(membership.user.username, community)
