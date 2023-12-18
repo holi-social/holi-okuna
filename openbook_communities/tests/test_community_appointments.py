@@ -89,14 +89,15 @@ class TestSpaceAppointments(TestCase):
             video_call_link="https://zoom.us/j/123456789",
         )
 
-    @patch('django.utils.timezone.now', return_value=mock_current_datetime)
+    @patch("django.utils.timezone.now", return_value=mock_current_datetime)
     def test_can_only_retrieve_upcoming_appointments(self, mock_current_datetime):
         response = get_space_by_id_with_appointments(self.space.id, self.member_user)
         assert response["appointments"]["totalResults"] == 3
-        assert str(self.old_public_appointment.id) not in [appointment["id"] for appointment in
-                                                           response["appointments"]["data"]]
+        assert str(self.old_public_appointment.id) not in [
+            appointment["id"] for appointment in response["appointments"]["data"]
+        ]
 
-    @patch('django.utils.timezone.now', return_value=mock_current_datetime)
+    @patch("django.utils.timezone.now", return_value=mock_current_datetime)
     def test_upcoming_appointments_ordered_chronologically(self, mock_current_datetime):
         response = get_space_by_id_with_appointments(self.space.id, self.member_user)
         assert response["appointments"]["totalResults"] == 3
@@ -104,7 +105,7 @@ class TestSpaceAppointments(TestCase):
         assert response["appointments"]["data"][1]["id"] == str(self.another_public_appointment.id)
         assert response["appointments"]["data"][2]["id"] == str(self.invite_only_appointment.id)
 
-    @patch('django.utils.timezone.now', return_value=mock_current_datetime)
+    @patch("django.utils.timezone.now", return_value=mock_current_datetime)
     def test_all_users_can_retrieve_all_public_appointments(self, mock_current_datetime):
         # space member
         response = get_space_by_id_with_appointments(self.space.id, self.member_user)
@@ -118,46 +119,56 @@ class TestSpaceAppointments(TestCase):
         response = get_space_by_id_with_appointments(self.space.id, AnonymousUser)
         assert response["appointments"]["totalResults"] == 2
 
-    @patch('django.utils.timezone.now', return_value=mock_current_datetime)
+    @patch("django.utils.timezone.now", return_value=mock_current_datetime)
     def test_member_users_can_retrieve_all_appointments_details(self, mock_current_datetime):
         response = get_space_by_id_with_appointments(self.space.id, self.member_user)
         assert response["appointments"]["totalResults"] == 3
         assert response["appointments"]["data"][0]["location"] == self.public_appointment.location
-        assert response["appointments"]["data"][0]["videoCallLink"][
-                   "url"] == self.public_appointment.video_call_link.url
+        assert (
+            response["appointments"]["data"][0]["videoCallLink"]["url"] == self.public_appointment.video_call_link.url
+        )
         assert response["appointments"]["data"][1]["location"] == self.another_public_appointment.location
-        assert response["appointments"]["data"][1]["videoCallLink"][
-                   "url"] == self.another_public_appointment.video_call_link.url
+        assert (
+            response["appointments"]["data"][1]["videoCallLink"]["url"]
+            == self.another_public_appointment.video_call_link.url
+        )
         assert response["appointments"]["data"][2]["location"] == self.invite_only_appointment.location
-        assert response["appointments"]["data"][2]["videoCallLink"][
-                   "url"] == self.invite_only_appointment.video_call_link.url
+        assert (
+            response["appointments"]["data"][2]["videoCallLink"]["url"]
+            == self.invite_only_appointment.video_call_link.url
+        )
 
-    @patch('django.utils.timezone.now', return_value=mock_current_datetime)
+    @patch("django.utils.timezone.now", return_value=mock_current_datetime)
     def test_external_users_can_not_retrieve_invite_only_appointments(self, mock_current_datetime):
         response = get_space_by_id_with_appointments(self.space.id, self.external_user)
         assert response["appointments"]["totalResults"] == 2
-        assert str(self.invite_only_appointment.id) not in [appointment["id"] for appointment in
-                                                            response["appointments"]["data"]]
+        assert str(self.invite_only_appointment.id) not in [
+            appointment["id"] for appointment in response["appointments"]["data"]
+        ]
 
-    @patch('django.utils.timezone.now', return_value=mock_current_datetime)
+    @patch("django.utils.timezone.now", return_value=mock_current_datetime)
     def test_external_users_can_retrieve_public_appointments_details(self, mock_current_datetime):
         response = get_space_by_id_with_appointments(self.space.id, self.external_user)
         assert response["appointments"]["totalResults"] == 2
         assert response["appointments"]["data"][0]["location"] == self.public_appointment.location
-        assert response["appointments"]["data"][0]["videoCallLink"][
-                   "url"] == self.public_appointment.video_call_link.url
+        assert (
+            response["appointments"]["data"][0]["videoCallLink"]["url"] == self.public_appointment.video_call_link.url
+        )
         assert response["appointments"]["data"][1]["location"] == self.another_public_appointment.location
-        assert response["appointments"]["data"][1]["videoCallLink"][
-                   "url"] == self.another_public_appointment.video_call_link.url
+        assert (
+            response["appointments"]["data"][1]["videoCallLink"]["url"]
+            == self.another_public_appointment.video_call_link.url
+        )
 
-    @patch('django.utils.timezone.now', return_value=mock_current_datetime)
+    @patch("django.utils.timezone.now", return_value=mock_current_datetime)
     def test_anonymous_users_can_not_retrieve_invite_only_appointments(self, mock_current_datetime):
         response = get_space_by_id_with_appointments(self.space.id, self.external_user)
         assert response["appointments"]["totalResults"] == 2
-        assert str(self.invite_only_appointment.id) not in [appointment["id"] for appointment in
-                                                            response["appointments"]["data"]]
+        assert str(self.invite_only_appointment.id) not in [
+            appointment["id"] for appointment in response["appointments"]["data"]
+        ]
 
-    @patch('django.utils.timezone.now', return_value=mock_current_datetime)
+    @patch("django.utils.timezone.now", return_value=mock_current_datetime)
     def test_anonymous_users_can_not_retrieve_public_appointments_details(self, mock_current_datetime):
         response = get_space_by_id_with_appointments(self.space.id, self.anonymous_user)
         assert response["appointments"]["totalResults"] == 2

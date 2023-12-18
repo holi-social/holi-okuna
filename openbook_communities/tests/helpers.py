@@ -211,7 +211,6 @@ def assert_collaboration_tools(community_id, user, expected):
     assert response.data["spaceById"]["collaborationTools"] == expected
 
 
-
 def get_space_by_id_with_appointments(space_id, user):
     response = async_to_sync(schema.execute)(
         """

@@ -256,7 +256,7 @@ class Space:
         return Paged(
             self.memberships.all().order_by(
                 "-is_administrator", "user__profile__name", "user__profile__last_name", "user__profile__id"
-            )[offset: offset + limit],
+            )[offset : offset + limit],
             self.memberships.count(),
         )
 
@@ -270,7 +270,7 @@ class Space:
             return Paged([], 0)
 
         return Paged(
-            self.membership_requests.all()[offset: offset + limit],
+            self.membership_requests.all()[offset : offset + limit],
             self.membership_requests.count(),
         )
 
@@ -284,7 +284,7 @@ class Space:
             return Paged([], 0)
 
         return Paged(
-            self.invites.all()[offset: offset + limit],
+            self.invites.all()[offset : offset + limit],
             self.invites.count(),
         )
 
@@ -294,15 +294,15 @@ class Space:
 
     @strawberry_django.field()
     def posts(
-            self, info, offset: int = 0, limit: int = 10, visibility: VisibilityFilter = VisibilityFilter.ALL
+        self, info, offset: int = 0, limit: int = 10, visibility: VisibilityFilter = VisibilityFilter.ALL
     ) -> Paged[Annotated["Post", strawberry.lazy("openbook_posts.schema.types")]]:
         current_user: UserModel = info.context.request.user
         query = PostModel.objects.filter(
             PostModel.is_visible_query(current_user), status=PostModel.STATUS_PUBLISHED, community=self
         )
         if (
-                current_user.is_anonymous
-                or not CommunityMembershipModel.objects.filter(community=self, user=current_user).exists()
+            current_user.is_anonymous
+            or not CommunityMembershipModel.objects.filter(community=self, user=current_user).exists()
         ):
             query = query.filter(is_public=True)
         else:
@@ -381,11 +381,10 @@ class Space:
 
             public_appointments.sort(key=lambda x: x.start_date_time)
 
-            return Paged(public_appointments[offset: offset + limit], len(public_appointments))
+            return Paged(public_appointments[offset : offset + limit], len(public_appointments))
 
         # If the user is a member of the space, retrieve all upcoming appointments
-        appointments = self.appointments.all().filter(end_date_time__gte=current_datetime).order_by(
-            "start_date_time")
+        appointments = self.appointments.all().filter(end_date_time__gte=current_datetime).order_by("start_date_time")
 
         return Paged.of(appointments, offset, limit)
 
