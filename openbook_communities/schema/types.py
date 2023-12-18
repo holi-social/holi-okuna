@@ -357,31 +357,11 @@ class Space:
         # Check if the user is anonymous or not a member of the space
         if current_user.is_anonymous or not current_user.is_member_of_community_with_id(self.id):
             # Retrieve upcoming public appointments
-            appointments = self.appointments.filter(invite_only=False, end_date_time__gte=current_datetime)
+            public_appointments = self.appointments.filter(
+                invite_only=False, end_date_time__gte=current_datetime
+            ).order_by("start_date_time")
 
-            # Exclude location and video call link from public appointments
-            public_appointments = [
-                Appointment(
-                    id=appointment.id,
-                    title=appointment.title,
-                    invite_only=appointment.invite_only,
-                    participants=appointment.participants.all(),
-                    start_date_time=appointment.start_date_time,
-                    end_date_time=appointment.end_date_time,
-                    description=appointment.description,
-                    permission=appointment.permission,
-                    creator=appointment.creator,
-                    thumbnail=appointment.thumbnail,
-                    thumbnail_blurhash=appointment.thumbnail_blurhash,
-                    location=None if current_user.is_anonymous else appointment.location,
-                    video_call_link=None if current_user.is_anonymous else appointment.video_call_link,
-                )
-                for appointment in appointments
-            ]
-
-            public_appointments.sort(key=lambda x: x.start_date_time)
-
-            return Paged(public_appointments[offset : offset + limit], len(public_appointments))
+            return Paged.of(public_appointments, offset, limit)
 
         # If the user is a member of the space, retrieve all upcoming appointments
         appointments = self.appointments.all().filter(end_date_time__gte=current_datetime).order_by("start_date_time")
