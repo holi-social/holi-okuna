@@ -1,11 +1,13 @@
 import logging
 import uuid
-from typing import TYPE_CHECKING, Annotated, List, Optional, TypeVar
+from typing import Annotated, List, Optional, TypeVar
+from django.utils import timezone
 
 import strawberry
 import strawberry_django
 from strawberry.file_uploads import Upload
 
+from openbook_appointments.schema.types import Appointment
 from openbook_auth.models import User as UserModel
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import GeolocationPoint, GeolocationPointInput, Paged
@@ -23,9 +25,7 @@ from openbook_communities.models import VisibilityType
 from openbook_posts.enums import VisibilityFilter
 from openbook_posts.models import Post as PostModel
 from openbook_terms.schema.types import SDG, Skill, Topic
-
-if TYPE_CHECKING:
-    from openbook_posts.schema.types import Post
+from openbook_posts.schema.types import Post
 
 logger = logging.getLogger(__name__)
 
@@ -348,6 +348,45 @@ class Space:
             return []
 
         return self.collaboration_tools.all()
+
+    @strawberry_django.field()
+    def appointments(self, info, offset: int = 0, limit: int = 10) -> Paged[Appointment]:
+        current_user: UserModel = info.context.request.user
+        current_datetime = timezone.now()
+
+        # Check if the user is anonymous or not a member of the space
+        if current_user.is_anonymous or not current_user.is_member_of_community_with_id(self.id):
+            # Retrieve upcoming public appointments
+            appointments = self.appointments.filter(invite_only=False, end_date_time__gte=current_datetime)
+
+            # Exclude location and video call link from public appointments
+            public_appointments = [
+                Appointment(
+                    id=appointment.id,
+                    title=appointment.title,
+                    invite_only=appointment.invite_only,
+                    participants=appointment.participants.all(),
+                    start_date_time=appointment.start_date_time,
+                    end_date_time=appointment.end_date_time,
+                    description=appointment.description,
+                    permission=appointment.permission,
+                    creator=appointment.creator,
+                    thumbnail=appointment.thumbnail,
+                    thumbnail_blurhash=appointment.thumbnail_blurhash,
+                    location=None if current_user.is_anonymous else appointment.location,
+                    video_call_link=None if current_user.is_anonymous else appointment.video_call_link,
+                )
+                for appointment in appointments
+            ]
+
+            public_appointments.sort(key=lambda x: x.start_date_time)
+
+            return Paged(public_appointments[offset : offset + limit], len(public_appointments))
+
+        # If the user is a member of the space, retrieve all upcoming appointments
+        appointments = self.appointments.all().filter(end_date_time__gte=current_datetime).order_by("start_date_time")
+
+        return Paged.of(appointments, offset, limit)
 
 
 @strawberry.type
