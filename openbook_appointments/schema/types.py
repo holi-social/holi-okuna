@@ -26,7 +26,6 @@ class Appointment:
     participants: Optional[List[User]]
     start_date_time: strawberry.auto
     end_date_time: strawberry.auto
-    location: strawberry.auto
     video_call_link: Optional[VideoCallLink]
     description: strawberry.auto
     thumbnail: Optional[str]
@@ -35,8 +34,24 @@ class Appointment:
     creator: User
 
     @strawberry_django.field()
+    def location(self, info) -> Optional[str]:
+        user = info.context.request.user
+        if user.is_anonymous:
+            return None
+
+        return self.location
+
+    @strawberry_django.field()
     def geolocation(self) -> Optional[GeolocationPoint]:
         return GeolocationPoint.from_point(self.geolocation)
+
+    @strawberry_django.field()
+    def video_call_link(self, info) -> Optional[VideoCallLink]:
+        user = info.context.request.user
+        if user.is_anonymous:
+            return None
+
+        return self.video_call_link
 
 
 @strawberry.input
