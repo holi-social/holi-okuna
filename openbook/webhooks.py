@@ -16,18 +16,21 @@ logger = structlog.get_logger(__name__)
 
 class NotificationWebhook(View):
     def post(self, request):
-        print(request)
-        data = json.loads(request.body)
-        notification_type = data["payload"]["notificationType"]
+        try:
+            data = json.loads(request.body)
+            notification_type = data["payload"]["notificationType"]
+            logger.info(f"Processing Notification Webhook for notification type: {notification_type}")
 
-        if notification_type:
-            handler = NotificationWebhookHandlerFactory.create_handler(notification_type)
-            if handler:
-                return handler.handle(data)
+            if notification_type:
+                handler = NotificationWebhookHandlerFactory.create_handler(notification_type)
+                if handler:
+                    return handler.handle(data)
+                else:
+                    return JsonResponse({"message": "Unknown notificationType"}, status=400)
             else:
-                return JsonResponse({"message": "Unknown notificationType"}, status=400)
-        else:
-            return JsonResponse({"message": "notificationType is missing"}, status=400)
+                return JsonResponse({"message": "notificationType is missing"}, status=400)
+        except KeyError:
+            return JsonResponse({"message": "Invalid payload"}, status=400)
 
 
 class NotificationWebhookHandlerFactory:
@@ -41,7 +44,16 @@ class NotificationWebhookHandlerFactory:
 
 class SpaceMembershipRequestNotificationHandler:
     def handle(self, data):
-        pass
+        try:
+            username = data["subscriber"]["subscriberId"]
+            space_name = data["payload"]["data"]["space"]["name"]
+            user = User.objects.get(username=username)
+            user_is_admin = user.is_administrator_of_community_with_name(space_name)
+            return JsonResponse({"valid": user_is_admin}, status=200)
+        except User.DoesNotExist:
+            return JsonResponse({"valid": False}, status=200)
+        except KeyError:
+            return JsonResponse({"valid": False}, status=200)
 
 
 class OryWebhook(View):

@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import collections
 import os
+import sys
+
 import structlog
 from dotenv import load_dotenv, find_dotenv
 from django.utils.translation import gettext_lazy as _
@@ -48,7 +50,7 @@ DEBUG = environment_checker.is_debug()
 IS_PRODUCTION = environment_checker.is_production()
 IS_STAGING = environment_checker.is_staging()
 IS_BUILD = environment_checker.is_build()
-TESTING = False
+TESTING = "pytest" in sys.argv[0]
 
 APP_URL = os.environ.get("APP_URL", "https://staging.dev.holi.social")
 if IS_PRODUCTION:
@@ -109,6 +111,7 @@ INSTALLED_APPS = [
     "openbook_terms",
     "strawberry.django",
     "sortedm2m",
+    "openbook_appointments",
 ]
 
 MODELTRANSLATION_FALLBACK_LANGUAGES = ("en",)
@@ -156,7 +159,6 @@ MIDDLEWARE += [
     "openbook_common.middleware.ChunkedContentLengthMiddleware",
     "openbook.middleware.slow_log_middleware",
 ]
-
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://localhost",
@@ -211,22 +213,45 @@ REDIS_RQ_DEFAULT_JOBS_CACHE_LOCATION = f"{REDIS_LOCATION}/{REDIS_DB_OFFSET + 1}"
 REDIS_RQ_HIGH_JOBS_CACHE_LOCATION = f"{REDIS_LOCATION}/{REDIS_DB_OFFSET + 2}"
 REDIS_RQ_LOW_JOBS_CACHE_LOCATION = f"{REDIS_LOCATION}/{REDIS_DB_OFFSET + 3}"
 REDIS_UNIFIED_API_RESPONSE_CACHE_LOCATION = f"{REDIS_LOCATION}/{REDIS_DB_OFFSET + 5}"
+REDIS_USERBLOCK_CACHE_LOCATION = REDIS_DEFAULT_CACHE_LOCATION
 
 UNIFIED_API_RESPONSE_CACHE = "unified-api-response-cache"
 RQ_DEFAULT_JOBS = "rq-default-jobs"
 RQ_HIGH_JOBS = "rq-high-jobs"
 RQ_LOW_JOBS = "rq-low-jobs"
+USERBLOCK = "userblock"
+CACHE_BACKENDS = {
+    "dummy": "django.core.cache.backends.dummy.DummyCache",
+    "redis": "django_redis.cache.RedisCache",
+}
+
+
+def redis_cache_backend() -> str:
+    # use for local cache debugging
+    result = CACHE_BACKENDS["redis"]
+    # result = (
+    #    CACHE_BACKENDS["dummy"] if DEBUG and not (IS_PRODUCTION or IS_STAGING or TESTING) else CACHE_BACKENDS["redis"]
+    # )
+    return result
+
 
 CACHES = {
     "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
+        "BACKEND": redis_cache_backend(),
         "LOCATION": REDIS_DEFAULT_CACHE_LOCATION,
         "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
         "KEY_PREFIX": "ob-api-" + ENVIRONMENT_ID + "-",
         "TIMEOUT": 60 * 60,
     },
+    USERBLOCK: {
+        "BACKEND": redis_cache_backend(),
+        "LOCATION": REDIS_USERBLOCK_CACHE_LOCATION,
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+        "KEY_PREFIX": f"ob-userblock-{ENVIRONMENT_ID}-",
+        "TIMEOUT": 60 * 60,  # 1 hour
+    },
     UNIFIED_API_RESPONSE_CACHE: {
-        "BACKEND": "django_redis.cache.RedisCache",
+        "BACKEND": redis_cache_backend(),
         "LOCATION": REDIS_UNIFIED_API_RESPONSE_CACHE_LOCATION,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
@@ -238,19 +263,19 @@ CACHES = {
         "TIMEOUT": 60 * 60,
     },
     RQ_DEFAULT_JOBS: {
-        "BACKEND": "django_redis.cache.RedisCache",
+        "BACKEND": CACHE_BACKENDS["redis"],  # django_rq needs redis, doesn't work with dummy backend
         "LOCATION": REDIS_RQ_DEFAULT_JOBS_CACHE_LOCATION,
         "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
         "KEY_PREFIX": "ob-api-rq-default-job-" + ENVIRONMENT_ID + "-",
     },
     RQ_HIGH_JOBS: {
-        "BACKEND": "django_redis.cache.RedisCache",
+        "BACKEND": CACHE_BACKENDS["redis"],  # django_rq needs redis, doesn't work with dummy backend
         "LOCATION": REDIS_RQ_HIGH_JOBS_CACHE_LOCATION,
         "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
         "KEY_PREFIX": "ob-api-rq-high-job-" + ENVIRONMENT_ID + "-",
     },
     RQ_LOW_JOBS: {
-        "BACKEND": "django_redis.cache.RedisCache",
+        "BACKEND": CACHE_BACKENDS["redis"],  # django_rq needs redis, doesn't work with dummy backend
         "LOCATION": REDIS_RQ_LOW_JOBS_CACHE_LOCATION,
         "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
         "KEY_PREFIX": "ob-api-rq-low-job-" + ENVIRONMENT_ID + "-",
@@ -691,3 +716,16 @@ INSPIRATION_SPACE_ID = os.environ.get("INSPIRATION_SPACE_ID", "00000000-0000-000
 CHAT_SERVER_NAME = os.environ.get("CHAT_SERVER_NAME")
 CHAT_SERVER_URL = os.environ.get("CHAT_SERVER_URL")
 CHAT_ADMIN_ACCESS_TOKEN = os.environ.get("CHAT_ADMIN_ACCESS_TOKEN")
+
+
+# Appointments
+APPOINTMENT_TITLE_MIN_LENGTH = 2
+APPOINTMENT_TITLE_MAX_LENGTH = 40
+APPOINTMENT_DESCRIPTION_MAX_LENGTH = 600
+APPOINTMENT_LOCATION_MAX_LENGTH = COMMUNITY_LOCATION_MAX_LENGTH
+APPOINTMENT_THUMBNAIL_MAX_SIZE = COMMUNITY_COVER_MAX_SIZE
+
+# Video call links
+VIDEO_CALL_LINK_DESCRIPTION_MAX_LENGTH = 100
+VIDEO_CALL_LINK_URL_MAX_LENGTH = 500
+VIDEO_CALL_LINK_URL_MIN_LENGTH = 3

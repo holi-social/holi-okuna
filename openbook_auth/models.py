@@ -1,9 +1,12 @@
 import logging
 import re
 import secrets
+from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Iterable
+from itertools import chain
+from typing import Iterable, List, Set, Callable
 from enum import Enum
+from uuid import UUID
 
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -33,6 +36,7 @@ from openbook_auth.helpers import (
 )
 from openbook_common.helpers import get_supported_translation_language, PQ, PrefixedQ
 from openbook_common.models import Badge, ModelWithUUID
+from openbook_common.schema.types import Paged
 from openbook_common.types import GeolocationFeature
 from openbook_common.enums import VisibilityType
 from openbook_common.utils.helpers import delete_file_field
@@ -98,6 +102,9 @@ from openbook.utils import DEFAULT_EMAIL_LANGUAGE, generate_hash, get_supported_
 
 from openbook_notifications.api import NotificationApi
 
+from django.core.cache import caches
+from openbook.settings import USERBLOCK
+
 logger = logging.getLogger(__name__)
 
 
@@ -106,7 +113,7 @@ def get_reactions(model, reactions_query):
         model.objects.filter(reactions_query)
         .values("reaction_type")
         .annotate(count=Count("reaction_type"))
-        .order_by("-count")
+        .order_by("-count", "reaction_type")
         .all()
         .cache()
     )
@@ -454,19 +461,12 @@ class User(ModelWithUUID, AbstractUser):
             "community__title",
         )
 
-        exclude_reported_and_approved_posts_query = ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED)
-
         exclude_deleted_posts_query = Q(is_deleted=False, status=Post.STATUS_PUBLISHED)
 
         public_posts = (
             Post.objects.prefetch_related(*posts_prefetch_related)
             .only(*posts_only)
-            .filter(
-                user_query
-                & Q(is_public=True)
-                & exclude_deleted_posts_query
-                & exclude_reported_and_approved_posts_query
-            )
+            .filter(user_query & Q(is_public=True) & exclude_deleted_posts_query)
         )
 
         # Get user community posts
@@ -482,7 +482,6 @@ class User(ModelWithUUID, AbstractUser):
                 & community_posts_query
                 & exclude_private_community_posts_query
                 & exclude_deleted_posts_query
-                & exclude_reported_and_approved_posts_query
             )
         )
 
@@ -513,8 +512,6 @@ class User(ModelWithUUID, AbstractUser):
 
         user_query = Q(creator_id=user.pk)
 
-        exclude_reported_and_approved_posts_query = ~Q(moderated_object__status=ModeratedObject.STATUS_APPROVED)
-
         exclude_blocked_posts_query = ~Q(
             Q(creator__blocked_by_users__blocker_id=self.pk) | Q(creator__user_blocks__blocked_user_id=self.pk)
         )
@@ -526,13 +523,7 @@ class User(ModelWithUUID, AbstractUser):
         public_posts = (
             Post.objects.prefetch_related(posts_prefetch_related)
             .only(posts_only)
-            .filter(
-                user_query
-                & Q(is_public=True)
-                & exclude_deleted_posts_query
-                & exclude_blocked_posts_query
-                & exclude_reported_and_approved_posts_query
-            )
+            .filter(user_query & Q(is_public=True) & exclude_deleted_posts_query & exclude_blocked_posts_query)
         )
 
         # Get user community posts
@@ -549,7 +540,6 @@ class User(ModelWithUUID, AbstractUser):
                 & exclude_private_community_posts_query
                 & exclude_deleted_posts_query
                 & exclude_blocked_posts_query
-                & exclude_reported_and_approved_posts_query
             )
         )
 
@@ -973,7 +963,7 @@ class User(ModelWithUUID, AbstractUser):
         return (
             User.objects.select_related("profile")
             .filter(id__in=connected_user_ids)
-            .order_by("profile__name", "profile__last_name")
+            .order_by("profile__name", "profile__last_name", "profile__id")
         )
 
     def is_following_user(self, user):
@@ -3043,6 +3033,15 @@ class User(ModelWithUUID, AbstractUser):
             is_public=is_public,
         )
 
+        from openbook_notifications.notifications import Notifications
+
+        collaborators = self.get_community_with_name_members(community_name=post.community.name).exclude(
+            id=post.creator.id
+        )
+
+        if collaborators:
+            Notifications.send_space_new_post_notification(post=post, collaborators=list(collaborators))
+
         return post
 
     def update_community_post(
@@ -4903,18 +4902,7 @@ class User(ModelWithUUID, AbstractUser):
             return f"Admin {self.__class__.__name__}, ID {self.id}"
 
     @staticmethod
-    def is_visible_query(user, prefix=None):
-        if user.is_anonymous:
-            return User.is_visible_ignore_blocked_query(user, prefix)
-        pQ = PrefixedQ(prefix)
-        # TODO find a solution for "& ModeratedObject.not_moderated_query(user, prefix))"
-        if user.is_anonymous:
-            return User.is_visible_ignore_blocked_query(user, prefix)
-
-        return User.is_visible_ignore_blocked_query(user, prefix) & UserBlock.not_blocked_query(user, prefix)
-
-    @staticmethod
-    def is_visible_ignore_blocked_query(user, prefix=None):
+    def is_visible_ignore_blocked_query(prefix=None):
         pQ = PrefixedQ(prefix)
         return pQ(is_deleted=False) & pQ(profile__isnull=False) & pQ(identity__isnull=False)
 
@@ -5474,22 +5462,72 @@ class UserBlock(ModelWithUUID):
 
     @classmethod
     def create_user_block(cls, blocker_id, blocked_user_id):
-        return cls.objects.create(blocker_id=blocker_id, blocked_user_id=blocked_user_id)
+        result = cls.objects.create(blocker_id=blocker_id, blocked_user_id=blocked_user_id)
+        UserBlock.invalidate_cached_user_blocks([blocker_id, blocked_user_id])
+        return result
 
     @classmethod
-    def users_are_blocked(cls, user_a_id, user_b_id):
-        return cls.objects.filter(
-            Q(blocked_user_id=user_a_id, blocker_id=user_b_id) | Q(blocked_user_id=user_b_id, blocker_id=user_a_id)
-        ).exists()
+    def users_are_blocked(cls, user_a_id: UUID, user_b_id: UUID):
+        return user_b_id in (UserBlock.cached_user_blocks(user_a_id) or set())
 
     @staticmethod
-    def not_blocked_query(user, prefix=None):
+    def users_blocking_or_blocked(user: User) -> Set[UUID]:
         if user.is_anonymous:
-            return Q()
+            return {}
+        return UserBlock.cached_user_blocks(user.id) or set()
 
-        user_blocked_by = UserBlock.objects.filter(blocked_user=user).values("blocker")
-        users_blocked = UserBlock.objects.filter(blocker=user).values("blocked_user")
-        return ~PQ(prefix, __in=user_blocked_by) & ~PQ(prefix, __in=users_blocked)
+    @staticmethod
+    def __user_blocks_from_database(user_id: UUID) -> Set[UUID]:
+        """
+        We select all user ids that are blocked by us or blocking us by squashing the blockers and blocked's together
+        and afterwards filtering out our own id.
+        """
+        result = set(
+            chain(
+                *[
+                    [rset["blocker_id"], rset["blocked_user_id"]]
+                    for rset in UserBlock.objects.filter(Q(blocker_id=user_id) | Q(blocked_user_id=user_id)).values(
+                        "blocker_id", "blocked_user_id"
+                    )
+                ]
+            ),
+        )
+        result.discard(user_id)
+        return result
+
+    @staticmethod
+    def cached_user_blocks(user_id: UUID) -> Set[UUID]:
+        return caches[USERBLOCK].get_or_set(
+            key=UserBlock.__user_block_cache_key(user_id),
+            default=lambda: UserBlock.__user_blocks_from_database(user_id),
+        )
+
+    @staticmethod
+    def __user_block_cache_key(user_id: UUID):
+        return f"ub_{str(user_id)}"
+
+    @staticmethod
+    def invalidate_cached_user_blocks(user_ids: [UUID]) -> None:
+        for uid in user_ids:
+            caches[USERBLOCK].delete(key=UserBlock.__user_block_cache_key(uid))
+
+    @staticmethod
+    def filter_blocked_objects(current_user, user_id_getter: Callable, query: QuerySet, offset=None, limit=None):
+        if offset is None or limit is None:
+            return [d for d in query if user_id_getter(d) not in UserBlock.users_blocking_or_blocked(current_user)]
+        data = query[offset : offset + limit + 2]
+        return [d for d in data if user_id_getter(d) not in UserBlock.users_blocking_or_blocked(current_user)][:limit]
+
+    @staticmethod
+    def filter_single_object(current_user: User, obj, user_id_getter: Callable):
+        if user_id_getter(obj) in UserBlock.users_blocking_or_blocked(current_user):
+            raise type(obj).DoesNotExist
+        return obj
+
+    @staticmethod
+    def paged(current_user: User, user_id_getter: Callable, query: QuerySet, offset: int, limit: int):
+        data = UserBlock.filter_blocked_objects(current_user, user_id_getter, query, offset, limit)
+        return Paged(data=data, total_results=query.count())
 
 
 @receiver(

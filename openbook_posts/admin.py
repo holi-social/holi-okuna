@@ -55,6 +55,7 @@ class PostAdmin(admin.ModelAdmin):
         "creator",
         "is_public",
         "status",
+        "is_deleted",
         "count_comments",
         "count_reactions",
         "has_text",
@@ -94,11 +95,12 @@ class PostCommentAdmin(admin.ModelAdmin):
         "text",
         "created",
         "commenter",
-        "post",
         "count_replies",
         "count_reactions",
         "count_mentions",
         "count_links",
+        "is_deleted",
+        "post",
     )
     list_filter = (("created", DateRangeQuickSelectListFilterBuilder(title="Created")),)
     search_fields = ("text", "commenter")

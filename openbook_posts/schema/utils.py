@@ -7,10 +7,11 @@ from openbook_posts.models import Post as PostModel
 
 def resolve_post(current_user, post_id):
     try:
-        return (
-            PostModel.objects.filter(PostModel.is_visible_query(current_user))
-            .filter(UserBlockModel.not_blocked_query(current_user, "creator"))
-            .get(id=post_id)
+        post: PostModel = PostModel.objects.filter(PostModel.is_visible_query(current_user)).distinct().get(id=post_id)
+        return UserBlockModel.filter_single_object(
+            current_user,
+            post,
+            lambda p: None if p.creator is None else p.creator.id,
         )
     except PostModel.DoesNotExist:
         raise GraphQLError("Post not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})

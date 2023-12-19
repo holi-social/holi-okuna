@@ -9,6 +9,7 @@ from requests.adapters import HTTPAdapter
 
 from novu.api import EventApi
 
+from openbook_common.utils.model_loaders import get_community_model
 from openbook_notifications.notifications import (
     Notification,
     SpaceMembershipRequestNotification,
@@ -24,6 +25,7 @@ from openbook_notifications.notifications import (
     PostCommentMentionNotification,
     SpaceMembershipInviteDeclineAdminNotification,
     PostCommentAuthorNotification,
+    SpaceNewPostNotification,
 )
 from openbook_notifications.payloads import (
     SpaceMembershipRequestPayload,
@@ -36,11 +38,13 @@ from openbook_notifications.payloads import (
     SpaceMembershipInviteDeclinePayload,
     PostCommentMentionPayload,
     PostCommentAuthorPayload,
+    SpaceNewPostPayload,
 )
 from openbook_common.tests.helpers import (
     make_community,
     make_user,
     make_post_comment,
+    make_community_post,
 )
 from openbook_common.enums import FeatureToggleName, FeatureToggleType
 from openbook_common.models import FeatureToggle as FeatureToggleModel
@@ -374,3 +378,30 @@ class PostCommentAuthorNotificationTestCase(TestCase):
 
     def test_post_comment_author_notification_workflow(self):
         self.assertEqual(self.notification_instance.workflow, Workflow.POST_COMMENT_AUTHOR.value)
+
+
+@pytest.mark.django_db
+class SpaceNewPostNotificationTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        post = make_community_post()
+        transaction_id = str(uuid.uuid4())
+
+        payload = SpaceNewPostPayload(
+            post=post,
+            notification_type=NotificationType.SPACE_NEW_POST.value,
+        )
+
+        community_model = get_community_model()
+        collaborators = community_model.get_community_with_name_members(community_name=post.community.name).exclude(
+            id=post.creator.id
+        )
+
+        cls.notification_instance = SpaceNewPostNotification(
+            collaborators=[str(collaborator.username) for collaborator in collaborators],
+            payload=payload,
+            transaction_id=transaction_id,
+        )
+
+    def test_space_new_post_workflow(self):
+        self.assertEqual(self.notification_instance.workflow, Workflow.SPACE_NEW_POST.value)

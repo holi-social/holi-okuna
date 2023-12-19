@@ -6,6 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.test import AsyncClient
 
+from openbook_auth.models import User
 from openbook_common.enums import VisibilityType
 from openbook_common.tests.helpers import (
     make_community,
@@ -14,6 +15,7 @@ from openbook_common.tests.helpers import (
     make_user,
     simple_jpeg_bytes,
 )
+from openbook_common.utils.model_loaders import get_community_model
 from openbook_communities.models import CommunityNotificationsSubscription
 from openbook_notifications.models import CommunityNewPostNotification
 from openbook_posts.models import (
@@ -55,10 +57,14 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 @pytest.mark.django_db
 class TestPosts(TestCase):
-    def setUp(self):
+    def setup(self):
         self.notifications_toggle = FeatureToggleModel.objects.create(
             name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
         )
+
+    def teardown(self):
+        if self.notifications_toggle.id is not None:
+            self.notifications_toggle.delete()
 
     @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
     @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
@@ -461,11 +467,13 @@ class TestPosts(TestCase):
         assert response.data is None
         assert "Field 'visibility' of required type 'VisibilityType!' was not provided" in response.errors[0].message
 
-    def test_space_user_can_create_space_post_2(self):
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_new_post_notification")
+    def test_space_user_can_create_space_post_2(self, mock_send_space_new_post_notification):
         space_admin = make_user()
         member_user = make_user()
         space = make_community(creator=space_admin)
         space.add_member(member_user)
+        space.add_moderator(member_user)
 
         # space admin can create public post
         input_data = {
@@ -478,10 +486,13 @@ class TestPosts(TestCase):
 
         data = response.data["createSpacePost2"]
 
-        assert data["space"]["id"] == str(space.id)
-        assert data["space"]["posts"]["totalResults"] == 1
         assert data["text"] == input_data["text"]
         assert data["isPublic"] is True
+
+        post_id = data["id"]
+        post = Post.objects.get(id=post_id)
+
+        mock_send_space_new_post_notification.assert_called_with(post=post, collaborators=[member_user])
 
         # space admin can create private post
         input_data = {
@@ -494,16 +505,21 @@ class TestPosts(TestCase):
 
         data = response.data["createSpacePost2"]
 
-        assert data["space"]["id"] == str(space.id)
-        assert data["space"]["posts"]["totalResults"] == 2
         assert data["text"] == input_data["text"]
         assert data["isPublic"] is False
 
-    def test_member_user_can_create_only_member_visibility_space_post_2(self):
+        post_id = data["id"]
+        post = Post.objects.get(id=post_id)
+
+        mock_send_space_new_post_notification.assert_called_with(post=post, collaborators=[member_user])
+
+    @mock.patch("openbook_notifications.notifications.Notifications.send_space_new_post_notification")
+    def test_member_user_can_create_only_member_visibility_space_post_2(self, mock_send_space_new_post_notification):
         space_admin = make_user()
         member_user = make_user()
         space = make_community(creator=space_admin)
         space.add_member(member_user)
+        space.add_moderator(member_user)
 
         # member user can create private post
         input_data = {
@@ -516,10 +532,13 @@ class TestPosts(TestCase):
 
         data = response.data["createSpacePost2"]
 
-        assert data["space"]["id"] == str(space.id)
-        assert data["space"]["posts"]["totalResults"] == 1
         assert data["text"] == input_data["text"]
         assert data["isPublic"] == False
+
+        post_id = data["id"]
+        post = Post.objects.get(id=post_id)
+
+        mock_send_space_new_post_notification.assert_called_once_with(post=post, collaborators=[space_admin])
 
         # member user cannot create public post
         input_data = {

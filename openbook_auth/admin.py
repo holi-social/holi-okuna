@@ -20,7 +20,16 @@ class UserAdmin(admin.ModelAdmin):
     ]
 
     exclude = ("password",)
-    list_display = ("username", "email", "get_first_name", "get_last_name", "get_location", "date_joined", "identity")
+    list_display = (
+        "username",
+        "email",
+        "get_first_name",
+        "get_last_name",
+        "get_location",
+        "date_joined",
+        "identity",
+        "is_deleted",
+    )
     list_filter = (("date_joined", DateRangeQuickSelectListFilterBuilder(title="Date joined")),)
     search_fields = ("username", "email", "identity", "profile__name", "profile__last_name")
 

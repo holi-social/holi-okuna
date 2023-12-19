@@ -76,9 +76,9 @@ class TestUsers:
 
     @pytest.mark.asyncio
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
-    @mock.patch("openbook_notifications.api.NotificationApi.find_or_create_subscriber")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     async def test_get_authenticated_user_returns_self_reference(
-        self, mock_find_or_create_subscriber, mock_get_language_from_request, client
+        self, mock_create_or_update_subscriber, mock_get_language_from_request, client
     ):
         user = await sync_to_async(make_user)(name="John", last_name="Holi")
         headers = await sync_to_async(make_authentication_headers_for_user)(user)
@@ -106,7 +106,7 @@ class TestUsers:
         assert authenticated_user["fullName"] == user.profile.full_name()
         assert authenticated_user["engagementLevel"] == user.profile.engagement_level
 
-        mock_find_or_create_subscriber.assert_called_once_with(
+        mock_create_or_update_subscriber.assert_called_once_with(
             user=user, locale=mock_get_language_from_request.return_value
         )
 
@@ -164,19 +164,21 @@ class TestUsers:
         assert executed.data["userByName"]["data"][3]["firstName"] == "Thomas"
 
     def test_get_users_by_chat_identities_success(self):
-        user = make_user()
+        user = make_user(identity="user_identity")
         chat_users = [make_user(identity=f"identity_{i}") for i in range(5)]
 
         user.block_user_with_id(chat_users[0].id)
         chat_users[1].block_user_with_id(user.id)
 
-        response = get_users_by_chat_identities(user, [chat_user.identity for chat_user in chat_users])
+        response = get_users_by_chat_identities(
+            user, [chat_user.identity for chat_user in chat_users] + [user.identity]
+        )
 
         assert response.errors is None
         assert response.data is not None
 
         users_by_chat_identities = response.data["usersByChatIdentities"]
-        assert users_by_chat_identities["totalResults"] == 3
+        assert users_by_chat_identities["totalResults"] == 6  # total count includes blocked ones
 
         response_chat_user_ids = [user["id"] for user in users_by_chat_identities["data"]]
         assert str(chat_users[0].id) not in response_chat_user_ids
@@ -184,6 +186,8 @@ class TestUsers:
         assert str(chat_users[2].id) in response_chat_user_ids
         assert str(chat_users[3].id) in response_chat_user_ids
         assert str(chat_users[4].id) in response_chat_user_ids
+        assert str(user.id) in response_chat_user_ids
+        assert len(response_chat_user_ids) == 4
 
     def test_get_users_by_chat_identities_error_user_not_logged_in(self):
         chat_users = [make_user(identity=f"identity_{i}") for i in range(5)]
@@ -197,9 +201,13 @@ class TestUsers:
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
-    @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     def test_can_update_authenticated_user(
-        self, mock_update_subscriber, mock_get_language_from_request, mock_publish_user_name_updated_event, mock_patch
+        self,
+        mock_create_or_update_subscriber,
+        mock_get_language_from_request,
+        mock_publish_user_name_updated_event,
+        mock_patch,
     ):
         response = self.create_response(200)
         mock_patch.return_value = response
@@ -274,14 +282,16 @@ class TestUsers:
         assert geos.GEOSGeometry(json.dumps(geolocation_geometry)) == persisted_profile.geolocation
 
         mock_publish_user_name_updated_event.assert_called_once_with(user=user)
-        mock_update_subscriber.assert_called_once_with(user=user, locale=mock_get_language_from_request.return_value)
+        mock_create_or_update_subscriber.assert_called_once_with(
+            user=user, locale=mock_get_language_from_request.return_value
+        )
 
     @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
-    @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     def test_can_update_authenticated_user_generates_an_identity(
-        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
+        self, mock_create_or_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
     ):
         ory_patch_mock.return_value = self.create_response(200)
         matrix_put_mock.return_value = self.create_response(201)
@@ -314,14 +324,14 @@ class TestUsers:
         assert "fritz.meier" == persisted_user.identity
         assert "fritz.meier" == result["identity"]
 
-        assert mock_update_subscriber.call_count == 2
+        assert mock_create_or_update_subscriber.call_count == 2
 
     @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
-    @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     def test_api_registers_new_user_with_already_taken_identity_for_a_user(
-        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
+        self, mock_create_or_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
     ):
         ory_update_response_stub = self.create_response(200)
         ory_patch_mock.return_value = ory_update_response_stub
@@ -344,16 +354,16 @@ class TestUsers:
             json=expected_json_body,
         )
 
-        mock_update_subscriber.assert_called_once_with(
+        mock_create_or_update_subscriber.assert_called_once_with(
             user=new_fritz, locale=mock_get_language_from_request.return_value
         )
 
     @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
-    @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     def test_api_registers_new_user_with_ory_failing_once(
-        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
+        self, mock_create_or_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
     ):
         ory_update_user_name_success = self.create_response(200)
         ory_update_identity_conflict = self.create_response(409, {"error": {"message": "Error Message"}})
@@ -393,16 +403,16 @@ class TestUsers:
             ]
         )
 
-        mock_update_subscriber.assert_called_once_with(
+        mock_create_or_update_subscriber.assert_called_once_with(
             user=new_user, locale=mock_get_language_from_request.return_value
         )
 
     @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
-    @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     def test_api_registers_new_user_only_first_name_with_ory_failing_once(
-        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
+        self, mock_create_or_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
     ):
         ory_update_user_name_success = self.create_response(200)
         ory_update_identity_conflict = self.create_response(409, {"error": {"message": "Error Message"}})
@@ -442,16 +452,16 @@ class TestUsers:
             ]
         )
 
-        mock_update_subscriber.assert_called_once_with(
+        mock_create_or_update_subscriber.assert_called_once_with(
             user=new_user, locale=mock_get_language_from_request.return_value
         )
 
     @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
-    @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     def test_api_registers_new_user_with_matrix_id_taken(
-        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
+        self, mock_create_or_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
     ):
         ory_update_user_name_success = self.create_response(200)
         ory_update_identity_success = self.create_response(200)
@@ -471,16 +481,16 @@ class TestUsers:
         assert result.errors is None
         assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.fratz1"
 
-        mock_update_subscriber.assert_called_once_with(
+        mock_create_or_update_subscriber.assert_called_once_with(
             user=new_user, locale=mock_get_language_from_request.return_value
         )
 
     @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
-    @mock.patch("openbook_notifications.api.NotificationApi.update_subscriber")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
     def test_api_registers_new_user_with_ory_failing_too_many_times(
-        self, mock_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
+        self, mock_create_or_update_subscriber, mock_get_language_from_request, ory_patch_mock, matrix_put_mock
     ):
         ory_update_user_name_success = self.create_response(200)
         ory_update_identity_conflict = self.create_response(409, {"error": {"message": "Error Message"}})
@@ -532,7 +542,7 @@ class TestUsers:
             ]
         )
 
-        mock_update_subscriber.assert_called_once_with(
+        mock_create_or_update_subscriber.assert_called_once_with(
             user=new_user, locale=mock_get_language_from_request.return_value
         )
 
@@ -788,9 +798,12 @@ class TestUsers:
         blocked_post_raw = get_post_with_id_raw(blocked_post, blocking_user)
         assert blocked_post_raw.data["postById"] is None
         other_post_data = get_post_with_id_data(other_post, blocking_user)
-        assert other_post_data["involvedUsers"]["totalResults"] == 1
-        assert other_post_data["numberOfComments"] == 0
-        assert other_post_data["commenters"]["totalResults"] == 0
+        assert other_post_data["involvedUsers"]["totalResults"] == 2  # does include blocked users
+        assert len(other_post_data["involvedUsers"]["data"]) == 1  # does not include blocked users
+        assert other_post_data["numberOfComments"] == 1  # does include blocked users
+        assert len(other_post_data["comments"]) == 0  # does not include blocked users
+        assert other_post_data["commenters"]["totalResults"] == 1  # does include blocked users
+        assert len(other_post_data["commenters"]["data"]) == 0  # does not include blocked users
 
         assert response.errors is None
         assert response.data["blockUser"]["success"] is True
@@ -814,7 +827,8 @@ class TestUsers:
             """,
             context_value=benedict({"request": {"user": blocking_user}}),
         )
-        assert response.data["userSuggestions"]["totalResults"] == 1
+        assert response.data["userSuggestions"]["totalResults"] == 2  # does include blocked users
+        assert len(response.data["userSuggestions"]["data"]) == 1  # does not include blocked users
         assert response.data["userSuggestions"]["data"][0]["fullName"] == "OtherUser"
 
     def test_user_connection_status_to_space(self):

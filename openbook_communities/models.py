@@ -1252,7 +1252,7 @@ class Task(ModelWithUUID):
         null=True,
     )
     created = models.DateTimeField(default=timezone.now, editable=False)
-    slots_available = models.PositiveIntegerField(blank=False, default=1)
+    slots_available = models.PositiveIntegerField(blank=False)
     slots_taken = models.PositiveIntegerField(blank=False, default=0)
     visibility = models.CharField(max_length=12, choices=VisibilityType.choices, default=VisibilityType.PUBLIC)
     location_type = models.CharField(max_length=6, choices=LocationType.choices, default=LocationType.REMOTE)
@@ -1315,7 +1315,7 @@ class Task(ModelWithUUID):
         visibility,
         location_type,
         contact_email,
-        slots_available=1,
+        slots_available,
         location=None,
         geolocation=None,
         regularity=None,
@@ -1353,7 +1353,7 @@ class Task(ModelWithUUID):
         visibility,
         location_type,
         contact_email,
-        slots_available=1,
+        slots_available,
         location=None,
         geolocation=None,
         regularity=None,
@@ -1368,9 +1368,8 @@ class Task(ModelWithUUID):
         self.location_type = location_type
         self.contact_email = contact_email
         self.regularity = regularity
+        self.slots_available = slots_available
 
-        if slots_available is not None:
-            self.slots_available = slots_available
         if location is not None:
             self.location = location
         if geolocation is not None:
@@ -1629,18 +1628,16 @@ class OnboardingStep(ModelWithUUID):
         onboarding_steps,
     ):
         with transaction.atomic():
-            # Not necessary to sort, we will just override everything
-            old_steps = cls.objects.filter(community=community)
+            old_steps = cls.objects.filter(community=community).order_by("step_number")
             new_step_count = len(onboarding_steps)
             old_step_count = len(old_steps)
             common_length = min(new_step_count, old_step_count)
 
-            # Overwrite old steps
+            # Overwrite texts of old steps
             for index in range(common_length):
                 new_step = onboarding_steps[index]
                 old_steps[index].update(
                     text=new_step["text"],
-                    step_number=index,
                 )
 
             # Create new steps if there are not enough

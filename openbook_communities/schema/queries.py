@@ -27,7 +27,6 @@ from openbook_communities.schema.types import (
     Space,
     Task,
 )
-from openbook_moderation.models import ModeratedObject as ModeratedObjectModel
 
 
 @sync_to_async
@@ -254,11 +253,7 @@ class Query:
                     "memberships__user__profile",
                     Prefetch("tasks", queryset=TaskModel.objects.filter(tasks_query)),
                 )
-                .filter(
-                    ModeratedObjectModel.not_moderated_query(
-                        info.context.request.user, ModeratedObjectModel.OBJECT_TYPE_COMMUNITY
-                    )
-                )
+                .filter(is_deleted=False)
                 .get(query)
             )
         except CommunityModel.DoesNotExist:
@@ -297,9 +292,10 @@ class Query:
         )
 
         return Paged.of(
-            CommunityModel.objects.annotate(member_count=Count("memberships"))
-            .filter(title_query)
-            .order_by("-member_count"),
+            CommunityModel.objects.annotate(member_count=Count("memberships")).filter(title_query)
+            # Bug HOLI-6780: added created as second order criterion for deterministic order.
+            # This still has wrong order if while paging the membership counts change. Signed off by Max.
+            .order_by("-member_count", "-created"),
             offset,
             limit,
         )
