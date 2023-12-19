@@ -6,3 +6,9 @@ from django.db.models import TextChoices
 class PermissionType(TextChoices):
     PARTICIPANTS = ("PARTICIPANTS",)
     ADMINS = ("ADMINS",)
+
+
+@strawberry.enum
+class StatusType(TextChoices):
+    PAST = ("PAST",)
+    UPCOMING = ("UPCOMING",)
