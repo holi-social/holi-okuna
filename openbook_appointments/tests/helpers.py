@@ -2,9 +2,10 @@ from asgiref.sync import async_to_sync
 from benedict import benedict
 
 from openbook.graphql_schema import schema
+from openbook_appointments.enums import StatusType
 
 
-def create_appointment(user, info):
+def create_appointment(user, input):
     return async_to_sync(schema.execute)(
         """
         mutation test($input: CreateAppointmentInput!){
@@ -31,5 +32,42 @@ def create_appointment(user, info):
         }
         """,
         context_value=benedict({"request": {"user": user}}),
-        variable_values={"input": info},
+        variable_values={"input": input},
+    )
+
+
+def appointments(user, space_id, status_type: StatusType):
+    return async_to_sync(schema.execute)(
+        """
+        query($spaceId: UUID!, $statusType: StatusType!){
+            appointments(spaceId: $spaceId, statusType: $statusType) {
+                totalResults
+                data {
+                    id
+                    title
+                    inviteOnly
+                    participants {
+                        fullName
+                    }
+                    startDateTime
+                    endDateTime
+                    location
+                    description
+                    permission
+                    videoCallLink {
+                        url
+                        additionalInfo
+                    }
+                    creator {
+                        fullName
+                    }
+                }
+            }
+        }
+        """,
+        context_value=benedict({"request": {"user": user}}),
+        variable_values={
+            "spaceId": str(space_id),
+            "statusType": status_type.value,
+        },
     )
