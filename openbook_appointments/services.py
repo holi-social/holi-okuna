@@ -56,6 +56,17 @@ class AppointmentService:
             creator=creator,
         )
 
+    def get_appointments(
+        self,
+        user,
+        space_id,
+        status_type,
+    ):
+        if user.is_anonymous or not user.is_member_of_community_with_id(space_id):
+            return self.repository.get_appointments(space_id=space_id, status_type=status_type, invite_only=False)
+
+        return self.repository.get_appointments(space_id=space_id, status_type=status_type)
+
 
 class VideoCallLinkService:
     def __init__(self):
