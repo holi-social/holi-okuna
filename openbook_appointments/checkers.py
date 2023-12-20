@@ -13,3 +13,11 @@ class AppointmentChecker:
             raise ValidationError(
                 _("You cannot create a public appointment if you are not an administrator of a space"),
             )
+
+    def check_can_query_invite_only_appointment(self, user, appointment):
+        space_id = appointment.space.id
+
+        if appointment.invite_only and (user.is_anonymous or not user.is_member_of_community_with_id(space_id)):
+            raise ValidationError(
+                _("You cannot query invite only appointments of a space you are not a member of"),
+            )

@@ -71,3 +71,36 @@ def appointments(user, space_id, status_type: StatusType):
             "statusType": status_type.value,
         },
     )
+
+
+def appointment(user, appointment_id):
+    return async_to_sync(schema.execute)(
+        """
+        query($appointmentId: UUID!){
+            appointment(appointmentId: $appointmentId) {
+                    id
+                    title
+                    inviteOnly
+                    participants {
+                        fullName
+                    }
+                    startDateTime
+                    endDateTime
+                    location
+                    description
+                    permission
+                    videoCallLink {
+                        url
+                        additionalInfo
+                    }
+                    creator {
+                        fullName
+                    }
+            }
+        }
+        """,
+        context_value=benedict({"request": {"user": user}}),
+        variable_values={
+            "appointmentId": str(appointment_id),
+        },
+    )

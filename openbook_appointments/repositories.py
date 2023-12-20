@@ -58,6 +58,9 @@ class AppointmentRepository:
 
         return appointments
 
+    def get_appointment(self, appointment_id):
+        return Appointment.objects.get(id=appointment_id)
+
 
 class VideoCallLinkRepository:
     def create_video_call_link(self, url, additional_info=None):
