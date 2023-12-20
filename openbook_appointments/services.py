@@ -67,6 +67,16 @@ class AppointmentService:
 
         return self.repository.get_appointments(space_id=space_id, status_type=status_type)
 
+    def get_appointment(
+        self,
+        appointment_id,
+        user,
+    ):
+        appointment = self.repository.get_appointment(appointment_id=appointment_id)
+        self.checker.check_can_query_invite_only_appointment(user=user, appointment=appointment)
+
+        return appointment
+
 
 class VideoCallLinkService:
     def __init__(self):
