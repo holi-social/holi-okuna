@@ -31,3 +31,16 @@ class Query:
             offset,
             limit,
         )
+
+    @strawberry_django.field()
+    def appointment(
+        self,
+        info,
+        appointment_id: uuid.UUID,
+    ) -> Appointment:
+        user = info.context.request.user
+
+        return AppointmentService().get_appointment(
+            appointment_id=appointment_id,
+            user=user,
+        )
