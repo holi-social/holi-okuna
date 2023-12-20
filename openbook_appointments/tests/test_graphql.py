@@ -14,7 +14,7 @@ from django.test import AsyncClient, TestCase
 
 from openbook import settings
 from openbook_appointments.enums import PermissionType, StatusType
-from openbook_appointments.tests.helpers import create_appointment, appointments
+from openbook_appointments.tests.helpers import create_appointment, appointments, appointment
 from openbook_common.tests.helpers import (
     make_community,
     make_user,
@@ -139,7 +139,6 @@ class TestAppointments(TestCase):
         assert data["creator"]["fullName"] == self.admin.profile.full_name()
 
     def test_can_create_invite_only_appointment_if_admin(self):
-
         response = create_appointment(self.admin, self.invite_only_appointment_input_data)
 
         data = response.data["createAppointment"]
@@ -264,3 +263,79 @@ class TestAppointments(TestCase):
         )
         assert past_appointments_response.errors is None
         assert past_appointments_response.data["appointments"]["totalResults"] == 0
+
+    def test_can_not_query_invite_only_appointment_if_anonymous(self):
+        mutation_response = create_appointment(self.admin, self.invite_only_appointment_input_data)
+        assert mutation_response.errors is None
+
+        appointment_id = mutation_response.data["createAppointment"]["id"]
+
+        query_response = appointment(user=AnonymousUser, appointment_id=appointment_id)
+
+        assert query_response.errors is not None
+        assert query_response.data is None
+
+        assert (
+            "You cannot query invite only appointments of a space you are not a member of"
+            in query_response.errors[0].extensions["errors"]
+        )
+
+    def test_can_not_query_invite_only_appointment_if_not_member(self):
+        mutation_response = create_appointment(self.admin, self.invite_only_appointment_input_data)
+        assert mutation_response.errors is None
+
+        appointment_id = mutation_response.data["createAppointment"]["id"]
+
+        query_response = appointment(user=self.external_member, appointment_id=appointment_id)
+
+        assert query_response.errors is not None
+        assert query_response.data is None
+
+        assert (
+            "You cannot query invite only appointments of a space you are not a member of"
+            in query_response.errors[0].extensions["errors"]
+        )
+
+    def test_can_query_public_appointment_if_anonymous(self):
+        mutation_response = create_appointment(self.admin, self.public_appointment_input_data)
+        assert mutation_response.errors is None
+
+        appointment_id = mutation_response.data["createAppointment"]["id"]
+
+        query_response = appointment(user=AnonymousUser, appointment_id=appointment_id)
+
+        assert query_response.errors is None
+        assert query_response.data["appointment"]["id"] == appointment_id
+
+    def test_can_query_public_appointment_if_not_member(self):
+        mutation_response = create_appointment(self.admin, self.public_appointment_input_data)
+        assert mutation_response.errors is None
+
+        appointment_id = mutation_response.data["createAppointment"]["id"]
+
+        query_response = appointment(user=self.external_member, appointment_id=appointment_id)
+
+        assert query_response.errors is None
+        assert query_response.data["appointment"]["id"] == appointment_id
+
+    def test_can_query_appointment_if_admin(self):
+        mutation_response = create_appointment(self.admin, self.past_appointment_input_data)
+        assert mutation_response.errors is None
+
+        appointment_id = mutation_response.data["createAppointment"]["id"]
+
+        query_response = appointment(user=self.admin, appointment_id=appointment_id)
+
+        assert query_response.errors is None
+        assert query_response.data["appointment"]["id"] == appointment_id
+
+    def test_can_query_appointment_if_member(self):
+        mutation_response = create_appointment(self.admin, self.upcoming_appointment_input_data)
+        assert mutation_response.errors is None
+
+        appointment_id = mutation_response.data["createAppointment"]["id"]
+
+        query_response = appointment(user=self.user_member, appointment_id=appointment_id)
+
+        assert query_response.errors is None
+        assert query_response.data["appointment"]["id"] == appointment_id
