@@ -22,6 +22,7 @@ class VideoCallLink:
 class Appointment:
     id: strawberry.auto
     title: strawberry.auto
+    slug: strawberry.auto
     invite_only: strawberry.auto
     participants: Optional[List[User]]
     start_date_time: strawberry.auto
