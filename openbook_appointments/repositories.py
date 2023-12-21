@@ -1,6 +1,7 @@
 from django.db.models import Q
 from django.utils import timezone
 
+from openbook_common.utils.helpers import is_uuid
 from .enums import StatusType
 from .models import Appointment, VideoCallLink
 
@@ -58,8 +59,10 @@ class AppointmentRepository:
 
         return appointments
 
-    def get_appointment(self, appointment_id):
-        return Appointment.objects.get(id=appointment_id)
+    def get_appointment(self, id_or_slug):
+        if is_uuid(id_or_slug):
+            return Appointment.objects.get(id=id_or_slug)
+        return Appointment.objects.get(slug=id_or_slug)
 
 
 class VideoCallLinkRepository:
