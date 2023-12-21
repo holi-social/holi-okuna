@@ -12,6 +12,7 @@ def create_appointment(user, input):
             createAppointment(input: $input) {
                 id
                 title
+                slug
                 inviteOnly
                 participants {
                     fullName
@@ -45,6 +46,7 @@ def appointments(user, space_id, status_type: StatusType):
                 data {
                     id
                     title
+                    slug
                     inviteOnly
                     participants {
                         fullName
@@ -73,13 +75,14 @@ def appointments(user, space_id, status_type: StatusType):
     )
 
 
-def appointment(user, appointment_id):
+def appointment(user, id_or_slug):
     return async_to_sync(schema.execute)(
         """
-        query($appointmentId: UUID!){
-            appointment(appointmentId: $appointmentId) {
+        query($idOrSlug: String!){
+            appointment(idOrSlug: $idOrSlug) {
                     id
                     title
+                    slug
                     inviteOnly
                     participants {
                         fullName
@@ -101,6 +104,6 @@ def appointment(user, appointment_id):
         """,
         context_value=benedict({"request": {"user": user}}),
         variable_values={
-            "appointmentId": str(appointment_id),
+            "idOrSlug": id_or_slug,
         },
     )
