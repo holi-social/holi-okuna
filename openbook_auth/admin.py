@@ -1,8 +1,14 @@
+import traceback
+
 from django.contrib import admin
 from rangefilter.filters import DateRangeQuickSelectListFilterBuilder
 
+from openbook.helpers import publish_user_name_updated_event
 from openbook_auth.forms import UserProfileFormSet
 from openbook_auth.models import User, UserProfile
+import structlog
+
+logger = structlog.get_logger(__name__)
 
 
 class UserProfileInline(admin.TabularInline):
@@ -44,6 +50,17 @@ class UserAdmin(admin.ModelAdmin):
     @admin.display(ordering="profile__location", description="Location")
     def get_location(self, obj):
         return obj.profile.location if hasattr(obj, "profile") else None
+
+    @admin.action(description="Resend UserNameUpdatedEvent")
+    def resend_user_name_updated_event(self, request, queryset):
+        for user in queryset.all():
+            if user.identity and user.profile:
+                try:
+                    publish_user_name_updated_event(user)
+                except Exception as e:
+                    logger.warning(traceback.format_exc())
+
+    actions = [resend_user_name_updated_event]
 
     def has_add_permission(self, request, obj=None):
         return False
