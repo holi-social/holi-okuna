@@ -1,3 +1,6 @@
+import uuid
+
+from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from django.core.files.storage import default_storage
 from django.contrib.gis.db import models
@@ -16,6 +19,8 @@ from openbook_communities.models import Community
 
 class Appointment(ModelWithUUID):
     title = models.CharField(max_length=settings.APPOINTMENT_TITLE_MAX_LENGTH, blank=False, null=False)
+
+    slug = models.SlugField(max_length=settings.APPOINTMENT_SLUG_MAX_LENGTH, blank=False, null=False, unique=True)
 
     invite_only = models.BooleanField(default=True)
 
@@ -90,6 +95,11 @@ class Appointment(ModelWithUUID):
     def save(self, *args, **kwargs):
         if self.thumbnail:
             self.thumbnail_blurhash = generate_blurhash(self.thumbnail)
+
+        if not self.slug:
+            base_slug = slugify(self.title)
+            suffix = str(uuid.uuid4())[:8]
+            self.slug = f"{base_slug}-{suffix}"
 
         super().save(*args, **kwargs)
 
