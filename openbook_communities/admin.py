@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from openbook.helpers import publish_space_created_event, publish_space_user_added_event
+from openbook.helpers import publish_space_created_event, publish_space_user_added_event, publish_space_updated_event
 from openbook_communities.models import (
     CollaborationTool,
     Community,
@@ -47,14 +47,23 @@ class CommunityAdmin(admin.ModelAdmin):
             logger.info("Resending SpaceCreatedEvent: " + str(community))
             try:
                 publish_space_created_event(community)
-                time.sleep(5)
+                time.sleep(2)
                 for membership in community.memberships.all():
                     logger.info("Adding user: " + str(membership.user))
                     publish_space_user_added_event(membership.user.username, community)
             except Exception as e:
                 logger.warning(traceback.format_exc())
 
-    actions = [resend_space_created_event]
+    @admin.action(description="Resend SpaceUpdatedEvent")
+    def resend_space_updated_event(self, request, queryset):
+        for community in queryset.all():
+            logger.info("Resending SpaceUpdatedEvent: " + str(community))
+            try:
+                publish_space_updated_event(community)
+            except Exception as e:
+                logger.warning(traceback.format_exc())
+
+    actions = [resend_space_created_event, resend_space_updated_event]
 
 
 @admin.register(CommunityMembership)
