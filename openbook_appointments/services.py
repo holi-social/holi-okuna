@@ -69,10 +69,10 @@ class AppointmentService:
 
     def get_appointment(
         self,
-        appointment_id,
+        id_or_slug,
         user,
     ):
-        appointment = self.repository.get_appointment(appointment_id=appointment_id)
+        appointment = self.repository.get_appointment(id_or_slug=id_or_slug)
         self.checker.check_can_query_invite_only_appointment(user=user, appointment=appointment)
 
         return appointment

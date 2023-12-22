@@ -270,7 +270,7 @@ class TestAppointments(TestCase):
 
         appointment_id = mutation_response.data["createAppointment"]["id"]
 
-        query_response = appointment(user=AnonymousUser, appointment_id=appointment_id)
+        query_response = appointment(user=AnonymousUser, id_or_slug=str(appointment_id))
 
         assert query_response.errors is not None
         assert query_response.data is None
@@ -286,7 +286,7 @@ class TestAppointments(TestCase):
 
         appointment_id = mutation_response.data["createAppointment"]["id"]
 
-        query_response = appointment(user=self.external_member, appointment_id=appointment_id)
+        query_response = appointment(user=self.external_member, id_or_slug=str(appointment_id))
 
         assert query_response.errors is not None
         assert query_response.data is None
@@ -302,7 +302,7 @@ class TestAppointments(TestCase):
 
         appointment_id = mutation_response.data["createAppointment"]["id"]
 
-        query_response = appointment(user=AnonymousUser, appointment_id=appointment_id)
+        query_response = appointment(user=AnonymousUser, id_or_slug=str(appointment_id))
 
         assert query_response.errors is None
         assert query_response.data["appointment"]["id"] == appointment_id
@@ -313,7 +313,7 @@ class TestAppointments(TestCase):
 
         appointment_id = mutation_response.data["createAppointment"]["id"]
 
-        query_response = appointment(user=self.external_member, appointment_id=appointment_id)
+        query_response = appointment(user=self.external_member, id_or_slug=str(appointment_id))
 
         assert query_response.errors is None
         assert query_response.data["appointment"]["id"] == appointment_id
@@ -324,7 +324,7 @@ class TestAppointments(TestCase):
 
         appointment_id = mutation_response.data["createAppointment"]["id"]
 
-        query_response = appointment(user=self.admin, appointment_id=appointment_id)
+        query_response = appointment(user=self.admin, id_or_slug=str(appointment_id))
 
         assert query_response.errors is None
         assert query_response.data["appointment"]["id"] == appointment_id
@@ -335,7 +335,24 @@ class TestAppointments(TestCase):
 
         appointment_id = mutation_response.data["createAppointment"]["id"]
 
-        query_response = appointment(user=self.user_member, appointment_id=appointment_id)
+        query_response = appointment(user=self.user_member, id_or_slug=str(appointment_id))
 
         assert query_response.errors is None
         assert query_response.data["appointment"]["id"] == appointment_id
+
+    def test_can_query_appointment_with_id_or_slug(self):
+        mutation_response = create_appointment(self.admin, self.public_appointment_input_data)
+        assert mutation_response.errors is None
+
+        appointment_id = mutation_response.data["createAppointment"]["id"]
+        appointment_slug = mutation_response.data["createAppointment"]["slug"]
+
+        query_by_id_response = appointment(user=self.user_member, id_or_slug=str(appointment_id))
+
+        assert query_by_id_response.errors is None
+        assert query_by_id_response.data["appointment"]["id"] == appointment_id
+
+        query_by_slug_response = appointment(user=self.user_member, id_or_slug=appointment_slug)
+
+        assert query_by_slug_response.errors is None
+        assert query_by_slug_response.data["appointment"]["slug"] == appointment_slug

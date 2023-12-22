@@ -36,11 +36,11 @@ class Query:
     def appointment(
         self,
         info,
-        appointment_id: uuid.UUID,
+        id_or_slug: str,
     ) -> Appointment:
         user = info.context.request.user
 
         return AppointmentService().get_appointment(
-            appointment_id=appointment_id,
+            id_or_slug=id_or_slug,
             user=user,
         )
