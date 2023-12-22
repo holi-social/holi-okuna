@@ -1,3 +1,5 @@
+import uuid
+
 import strawberry
 import structlog
 from asgiref.sync import sync_to_async
@@ -10,6 +12,7 @@ from openbook_appointments.serializers import CreateAppointmentSerializer
 from openbook_appointments.services import AppointmentService
 from openbook_auth.utils import verify_authorized_user
 from openbook_common.helpers import to_input_dict
+from openbook_common.schema.types import Result
 
 logger = structlog.get_logger(__name__)
 
@@ -41,3 +44,12 @@ class Mutation:
             video_call_link=data.get("video_call_link"),
             video_call_info=data.get("video_call_info"),
         )
+
+    @strawberry.mutation
+    @sync_to_async
+    def delete_appointment(self, info, appointment_id: uuid.UUID) -> Result:
+        user = verify_authorized_user(info)
+
+        AppointmentService().delete_appointment(appointment_id=appointment_id, user=user)
+
+        return Result(success=True)
