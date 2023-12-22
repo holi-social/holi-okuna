@@ -107,3 +107,17 @@ def appointment(user, id_or_slug):
             "idOrSlug": id_or_slug,
         },
     )
+
+
+def delete_appointment(user, appointment_id):
+    return async_to_sync(schema.execute)(
+        """
+        mutation test($appointmentId: UUID!){
+            deleteAppointment(appointmentId: $appointmentId) {
+                success
+            }
+        }
+        """,
+        context_value=benedict({"request": {"user": user}}),
+        variable_values={"appointmentId": str(appointment_id)},
+    )
