@@ -1,8 +1,16 @@
 from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import ValidationError
 
+from openbook_appointments.enums import PermissionType
+
 
 class AppointmentChecker:
+    def _has_admin_permission(self, user, space_id, creator_id):
+        return user.is_administrator_of_community_with_id(community_id=space_id) or creator_id == user.id
+
+    def _has_participant_permission(self, user, space_id, participants):
+        return user.is_member_of_community_with_id(community_id=space_id) or participants.filter(id=user.id).exists()
+
     def check_can_create_appointment(self, user, invite_only, space_id):
         if not user.is_member_of_community_with_id(community_id=space_id):
             raise ValidationError(
@@ -17,7 +25,32 @@ class AppointmentChecker:
     def check_can_query_invite_only_appointment(self, user, appointment):
         space_id = appointment.space.id
 
-        if appointment.invite_only and (user.is_anonymous or not user.is_member_of_community_with_id(space_id)):
+        if appointment.invite_only and (
+            user.is_anonymous or not user.is_member_of_community_with_id(community_id=space_id)
+        ):
             raise ValidationError(
                 _("You cannot query invite only appointments of a space you are not a member of"),
             )
+
+    def check_can_delete_appointment(self, user, appointment):
+        space_id = appointment.space.id
+
+        if not user.is_member_of_community_with_id(community_id=space_id):
+            raise ValidationError(
+                _("You cannot delete appointments of a space you are not a member of"),
+            )
+
+        has_permission = False
+
+        if appointment.permission == PermissionType.ADMINS:
+            has_permission = self._has_admin_permission(
+                user=user, space_id=space_id, creator_id=appointment.creator.id
+            )
+
+        elif appointment.permission == PermissionType.PARTICIPANTS:
+            has_permission = self._has_admin_permission(
+                user=user, space_id=space_id, creator_id=appointment.creator.id
+            ) or self._has_participant_permission(user=user, space_id=space_id, participants=appointment.participants)
+
+        if not has_permission:
+            raise ValidationError(_("You do not have the permission to delete the appointment"))

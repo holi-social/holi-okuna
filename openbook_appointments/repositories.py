@@ -64,6 +64,9 @@ class AppointmentRepository:
             return Appointment.objects.get(id=id_or_slug)
         return Appointment.objects.get(slug=id_or_slug)
 
+    def delete_appointment(self, appointment_id):
+        Appointment.objects.get(id=appointment_id).delete()
+
 
 class VideoCallLinkRepository:
     def create_video_call_link(self, url, additional_info=None):

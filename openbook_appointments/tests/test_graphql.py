@@ -14,7 +14,7 @@ from django.test import AsyncClient, TestCase
 
 from openbook import settings
 from openbook_appointments.enums import PermissionType, StatusType
-from openbook_appointments.tests.helpers import create_appointment, appointments, appointment
+from openbook_appointments.tests.helpers import create_appointment, appointments, appointment, delete_appointment
 from openbook_common.tests.helpers import (
     make_community,
     make_user,
@@ -40,11 +40,13 @@ class TestAppointments(TestCase):
         cls.admin = make_user()
         cls.participant = make_user()
         cls.external_member = make_user()
+        cls.another_user_member = make_user()
 
         cls.space = make_community()
         cls.space.add_member(cls.admin)
         cls.space.add_member(cls.user_member)
         cls.space.add_member(cls.participant)
+        cls.space.add_member(cls.another_user_member)
         cls.space.add_administrator(cls.admin)
 
         cls.public_appointment_input_data = {
@@ -71,6 +73,20 @@ class TestAppointments(TestCase):
             "location": fake.text(max_nb_chars=settings.APPOINTMENT_LOCATION_MAX_LENGTH),
             "description": fake.text(max_nb_chars=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH),
             "permission": PermissionType.ADMINS,
+            "videoCallLink": "https://zoom.us/j/615887136",
+            "videoCallInfo": fake.text(max_nb_chars=settings.VIDEO_CALL_LINK_DESCRIPTION_MAX_LENGTH),
+        }
+
+        cls.another_invite_only_appointment_input_data = {
+            "spaceId": str(cls.space.id),
+            "title": fake.text(max_nb_chars=settings.APPOINTMENT_TITLE_MAX_LENGTH),
+            "inviteOnly": True,
+            "participantIds": [str(cls.participant.username)],
+            "startDateTime": fake.future_datetime().isoformat(),
+            "endDateTime": fake.future_datetime().isoformat(),
+            "location": fake.text(max_nb_chars=settings.APPOINTMENT_LOCATION_MAX_LENGTH),
+            "description": fake.text(max_nb_chars=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH),
+            "permission": PermissionType.PARTICIPANTS,
             "videoCallLink": "https://zoom.us/j/615887136",
             "videoCallInfo": fake.text(max_nb_chars=settings.VIDEO_CALL_LINK_DESCRIPTION_MAX_LENGTH),
         }
@@ -356,3 +372,86 @@ class TestAppointments(TestCase):
 
         assert query_by_slug_response.errors is None
         assert query_by_slug_response.data["appointment"]["slug"] == appointment_slug
+
+    def test_can_delete_appointment_if_admin(self):
+        create_mutation_response = create_appointment(self.user_member, self.invite_only_appointment_input_data)
+        assert create_mutation_response.errors is None
+
+        appointment_id = create_mutation_response.data["createAppointment"]["id"]
+
+        delete_mutation_response = delete_appointment(user=self.admin, appointment_id=appointment_id)
+
+        assert delete_mutation_response.errors is None
+        assert delete_mutation_response.data["deleteAppointment"]["success"] == True
+
+    def test_can_delete_invite_only_appointment_if_creator(self):
+        create_mutation_response = create_appointment(self.user_member, self.invite_only_appointment_input_data)
+        assert create_mutation_response.errors is None
+
+        appointment_id = create_mutation_response.data["createAppointment"]["id"]
+
+        delete_mutation_response = delete_appointment(self.user_member, appointment_id=appointment_id)
+
+        assert delete_mutation_response.errors is None
+        assert delete_mutation_response.data["deleteAppointment"]["success"] == True
+
+    def test_can_delete_invite_only_appointment_if_participant(self):
+        create_mutation_response = create_appointment(
+            self.user_member, self.another_invite_only_appointment_input_data
+        )
+        assert create_mutation_response.errors is None
+
+        appointment_id = create_mutation_response.data["createAppointment"]["id"]
+
+        delete_mutation_response = delete_appointment(self.participant, appointment_id=appointment_id)
+
+        assert delete_mutation_response.errors is None
+        assert delete_mutation_response.data["deleteAppointment"]["success"] == True
+
+    def test_can_not_delete_appointment_if_not_member(self):
+        create_mutation_response = create_appointment(self.user_member, self.invite_only_appointment_input_data)
+        assert create_mutation_response.errors is None
+
+        appointment_id = create_mutation_response.data["createAppointment"]["id"]
+
+        delete_mutation_response = delete_appointment(self.external_member, appointment_id=appointment_id)
+
+        assert delete_mutation_response.errors is not None
+        assert delete_mutation_response.data is None
+
+        assert (
+            "You cannot delete appointments of a space you are not a member of"
+            in delete_mutation_response.errors[0].extensions["errors"]
+        )
+
+    def test_can_not_delete_appointment_with_admins_permission_if_participant(self):
+        create_mutation_response = create_appointment(self.user_member, self.invite_only_appointment_input_data)
+        assert create_mutation_response.errors is None
+
+        appointment_id = create_mutation_response.data["createAppointment"]["id"]
+
+        delete_mutation_response = delete_appointment(self.participant, appointment_id=appointment_id)
+
+        assert delete_mutation_response.errors is not None
+        assert delete_mutation_response.data is None
+
+        assert (
+            "You do not have the permission to delete the appointment"
+            in delete_mutation_response.errors[0].extensions["errors"]
+        )
+
+    def test_can_not_delete_appointment_with_participants_permission_if_not_participant(self):
+        create_mutation_response = create_appointment(self.user_member, self.invite_only_appointment_input_data)
+        assert create_mutation_response.errors is None
+
+        appointment_id = create_mutation_response.data["createAppointment"]["id"]
+
+        delete_mutation_response = delete_appointment(self.another_user_member, appointment_id=appointment_id)
+
+        assert delete_mutation_response.errors is not None
+        assert delete_mutation_response.data is None
+
+        assert (
+            "You do not have the permission to delete the appointment"
+            in delete_mutation_response.errors[0].extensions["errors"]
+        )

@@ -77,6 +77,11 @@ class AppointmentService:
 
         return appointment
 
+    def delete_appointment(self, user, appointment_id):
+        appointment = self.repository.get_appointment(id_or_slug=str(appointment_id))
+        self.checker.check_can_delete_appointment(user=user, appointment=appointment)
+        self.repository.delete_appointment(appointment_id=appointment_id)
+
 
 class VideoCallLinkService:
     def __init__(self):
