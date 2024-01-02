@@ -12,7 +12,7 @@ from openbook_appointments.serializers import CreateAppointmentSerializer
 from openbook_appointments.services import AppointmentService
 from openbook_auth.utils import verify_authorized_user
 from openbook_common.helpers import to_input_dict
-from openbook_common.schema.types import Result
+from openbook_common.schema.types import Result, GeolocationPointInput
 
 logger = structlog.get_logger(__name__)
 
@@ -36,7 +36,7 @@ class Mutation:
             start_date_time=data.get("start_date_time"),
             end_date_time=data.get("end_date_time"),
             location=data.get("location"),
-            geolocation=data.get("geolocation"),
+            geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
             description=data.get("description"),
             permission=data.get("permission"),
             thumbnail=data.get("thumbnail"),
