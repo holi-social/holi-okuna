@@ -56,6 +56,50 @@ class AppointmentService:
             creator=creator,
         )
 
+    def update_appointment(
+        self,
+        appointment_id,
+        user,
+        title=None,
+        invite_only=None,
+        start_date_time=None,
+        end_date_time=None,
+        permission=None,
+        participant_ids=None,
+        location=None,
+        geolocation=None,
+        video_call_link=None,
+        video_call_info=None,
+        description=None,
+        thumbnail=None,
+    ):
+        appointment = self.repository.get_appointment(id_or_slug=str(appointment_id))
+        self.checker.check_can_update_appointment(user=user, appointment=appointment)
+
+        user_model = get_user_model()
+        participants = user_model.objects.filter(username__in=participant_ids) if participant_ids else []
+
+        video_call_link = (
+            self.video_call_link_service.create_video_call_link(url=video_call_link, additional_info=video_call_info)
+            if video_call_link
+            else None
+        )
+
+        return self.repository.update_appointment(
+            appointment_id=appointment_id,
+            title=title,
+            invite_only=invite_only,
+            participants=participants,
+            start_date_time=start_date_time,
+            end_date_time=end_date_time,
+            location=location,
+            geolocation=geolocation,
+            video_call_link=video_call_link,
+            description=description,
+            thumbnail=thumbnail,
+            permission=permission,
+        )
+
     def get_appointments(
         self,
         user,
@@ -81,6 +125,9 @@ class AppointmentService:
         appointment = self.repository.get_appointment(id_or_slug=str(appointment_id))
         self.checker.check_can_delete_appointment(user=user, appointment=appointment)
         self.repository.delete_appointment(appointment_id=appointment_id)
+
+    def exists(self, appointment_id):
+        return self.repository.exists(appointment_id=appointment_id)
 
 
 class VideoCallLinkService:
