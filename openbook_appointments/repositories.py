@@ -1,7 +1,7 @@
 from django.db.models import Q
 from django.utils import timezone
 
-from openbook_common.utils.helpers import is_uuid
+from openbook_common.utils.helpers import is_uuid, delete_file_field
 from .enums import StatusType
 from .models import Appointment, VideoCallLink
 
@@ -59,6 +59,62 @@ class AppointmentRepository:
 
         return appointments
 
+    def update_appointment(
+        self,
+        appointment_id,
+        title=None,
+        invite_only=None,
+        start_date_time=None,
+        end_date_time=None,
+        location=None,
+        geolocation=None,
+        video_call_link=None,
+        description=None,
+        thumbnail=None,
+        permission=None,
+        participants=None,
+    ):
+        appointment = Appointment.objects.get(id=appointment_id)
+
+        if title is not None:
+            appointment.title = title
+
+        if invite_only is not None:
+            appointment.invite_only = invite_only
+
+        if start_date_time is not None:
+            appointment.start_date_time = start_date_time
+
+        if end_date_time is not None:
+            appointment.end_date_time = end_date_time
+
+        if location is not None:
+            appointment.location = location
+
+        if geolocation is not None:
+            appointment.geolocation = geolocation
+
+        if video_call_link is not None:
+            appointment.video_call_link = video_call_link
+
+        if description is not None:
+            appointment.description = description
+
+        if thumbnail is None:
+            appointment.delete_thumbnail()
+        else:
+            appointment.update_thumbnail(thumbnail)
+
+        if permission is not None:
+            appointment.permission = permission
+
+        if participants is not None:
+            appointment.participants.set(participants)
+
+        appointment.save()
+
+        return appointment
+
     def get_appointment(self, id_or_slug):
         if is_uuid(id_or_slug):
             return Appointment.objects.get(id=id_or_slug)
@@ -66,6 +122,9 @@ class AppointmentRepository:
 
     def delete_appointment(self, appointment_id):
         Appointment.objects.get(id=appointment_id).delete()
+
+    def exists(self, appointment_id):
+        return Appointment.objects.filter(id=appointment_id).exists()
 
 
 class VideoCallLinkRepository:
