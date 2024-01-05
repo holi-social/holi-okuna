@@ -73,6 +73,23 @@ class CreateAppointmentInput:
 
 
 @strawberry.input
+class UpdateAppointmentInput:
+    appointment_id: uuid.UUID
+    title: Optional[str] = strawberry.UNSET
+    invite_only: Optional[bool] = strawberry.UNSET
+    participant_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    start_date_time: Optional[str] = strawberry.UNSET
+    end_date_time: Optional[str] = strawberry.UNSET
+    location: Optional[str] = strawberry.UNSET
+    description: Optional[str] = strawberry.UNSET
+    permission: Optional[PermissionType] = strawberry.UNSET
+    video_call_link: Optional[str] = strawberry.UNSET
+    video_call_info: Optional[str] = strawberry.UNSET
+    thumbnail: Optional[Upload] = strawberry.UNSET
+    geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
+
+
+@strawberry.input
 class CreateVideoCallLinkInput:
     url: str
     additional_info: Optional[str] = strawberry.UNSET
