@@ -14,6 +14,7 @@ from openbook_appointments.helpers import upload_to_space_appointment_thumbnail_
 from openbook_auth.models import User
 from openbook_common.helpers import ExifRotate, generate_blurhash
 from openbook_common.models import ModelWithUUID
+from openbook_common.utils.helpers import delete_file_field
 from openbook_communities.models import Community
 
 
@@ -102,6 +103,21 @@ class Appointment(ModelWithUUID):
             self.slug = f"{base_slug}-{suffix}"
 
         super().save(*args, **kwargs)
+
+    def delete_thumbnail(self):
+        if self.thumbnail:
+            delete_file_field(self.thumbnail)
+            self.thumbnail_blurhash = None
+            self.thumbnail = None
+            self.thumbnail.delete()
+
+    def update_thumbnail(self, thumbnail):
+        if self.thumbnail:
+            self.delete_thumbnail()
+
+        self.thumbnail = thumbnail
+
+        return self.thumbnail
 
 
 class VideoCallLink(ModelWithUUID):
