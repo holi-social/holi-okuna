@@ -116,7 +116,7 @@ Use `python3 okuna-cli.py clean` to reset all local state, including database an
 
    \
    You now need to fill some values in the created `.env` file.
-   In particular, you need to replace all values set to "unknown".\
+   In particular, you need to fill all values that are left empty.\
    If you are on an ARM Mac, you should also uncomment the POSTGRES_IMAGE entry.\
    \
    Then, run all the database migrations
