@@ -37,6 +37,38 @@ def create_appointment(user, input):
     )
 
 
+def update_appointment(user, input):
+    return async_to_sync(schema.execute)(
+        """
+        mutation test($input: UpdateAppointmentInput!){
+            updateAppointment(input: $input) {
+                id
+                title
+                slug
+                inviteOnly
+                participants {
+                    fullName
+                }
+                startDateTime
+                endDateTime
+                location
+                description
+                permission
+                videoCallLink {
+                    url
+                    additionalInfo
+                }
+                creator {
+                    fullName
+                }
+            }
+        }
+        """,
+        context_value=benedict({"request": {"user": user}}),
+        variable_values={"input": input},
+    )
+
+
 def appointments(user, space_id, status_type: StatusType):
     return async_to_sync(schema.execute)(
         """
@@ -121,3 +153,10 @@ def delete_appointment(user, appointment_id):
         context_value=benedict({"request": {"user": user}}),
         variable_values={"appointmentId": str(appointment_id)},
     )
+
+
+def update_input_data(appointment_id, input_data):
+    data = input_data.copy()
+    data.pop("spaceId", None)
+    data["appointmentId"] = appointment_id
+    return data

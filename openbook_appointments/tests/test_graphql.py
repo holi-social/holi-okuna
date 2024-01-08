@@ -14,7 +14,14 @@ from django.test import AsyncClient, TestCase
 
 from openbook import settings
 from openbook_appointments.enums import PermissionType, StatusType
-from openbook_appointments.tests.helpers import create_appointment, appointments, appointment, delete_appointment
+from openbook_appointments.tests.helpers import (
+    create_appointment,
+    appointments,
+    appointment,
+    delete_appointment,
+    update_appointment,
+    update_input_data,
+)
 from openbook_common.tests.helpers import (
     make_community,
     make_user,
@@ -126,7 +133,7 @@ class TestAppointments(TestCase):
         assert response.data is None
 
         assert (
-            "You cannot create an appointment for a space you are not a member of"
+            "You cannot create appointments of a space you are not a member of"
             in response.errors[0].extensions["errors"]
         )
 
@@ -441,7 +448,9 @@ class TestAppointments(TestCase):
         )
 
     def test_can_not_delete_appointment_with_participants_permission_if_not_participant(self):
-        create_mutation_response = create_appointment(self.user_member, self.invite_only_appointment_input_data)
+        create_mutation_response = create_appointment(
+            self.user_member, self.another_invite_only_appointment_input_data
+        )
         assert create_mutation_response.errors is None
 
         appointment_id = create_mutation_response.data["createAppointment"]["id"]
@@ -455,3 +464,190 @@ class TestAppointments(TestCase):
             "You do not have the permission to delete the appointment"
             in delete_mutation_response.errors[0].extensions["errors"]
         )
+
+    def test_can_not_update_appointment_if_not_member(self):
+        create_mutation_response = create_appointment(self.user_member, self.invite_only_appointment_input_data)
+        assert create_mutation_response.errors is None
+
+        appointment_id = create_mutation_response.data["createAppointment"]["id"]
+
+        input_data = update_input_data(
+            appointment_id=appointment_id, input_data=self.invite_only_appointment_input_data
+        )
+
+        update_mutation_response = update_appointment(self.external_member, input_data)
+
+        assert update_mutation_response.errors is not None
+        assert update_mutation_response.data is None
+
+        assert (
+            "You cannot update appointments of a space you are not a member of"
+            in update_mutation_response.errors[0].extensions["errors"]
+        )
+
+    def test_can_not_update_appointment_with_admins_permission_if_participant(self):
+        create_mutation_response = create_appointment(self.user_member, self.invite_only_appointment_input_data)
+        assert create_mutation_response.errors is None
+
+        appointment_id = create_mutation_response.data["createAppointment"]["id"]
+
+        input_data = update_input_data(
+            appointment_id=appointment_id, input_data=self.another_invite_only_appointment_input_data
+        )
+
+        update_mutation_response = update_appointment(self.participant, input_data)
+
+        assert update_mutation_response.errors is not None
+        assert update_mutation_response.data is None
+
+        assert (
+            "You do not have the permission to update the appointment"
+            in update_mutation_response.errors[0].extensions["errors"]
+        )
+
+    def test_can_not_update_appointment_with_participants_permission_if_not_participant(self):
+        create_mutation_response = create_appointment(
+            self.user_member, self.another_invite_only_appointment_input_data
+        )
+        assert create_mutation_response.errors is None
+
+        appointment_id = create_mutation_response.data["createAppointment"]["id"]
+
+        input_data = update_input_data(
+            appointment_id=appointment_id, input_data=self.invite_only_appointment_input_data
+        )
+
+        update_mutation_response = update_appointment(self.another_user_member, input_data)
+
+        assert update_mutation_response.errors is not None
+        assert update_mutation_response.data is None
+
+        assert (
+            "You do not have the permission to update the appointment"
+            in update_mutation_response.errors[0].extensions["errors"]
+        )
+
+    def test_can_update_public_appointment_if_admin(self):
+        create_mutation_response = create_appointment(self.admin, self.public_appointment_input_data)
+        appointment_id = create_mutation_response.data["createAppointment"]["id"]
+
+        input_data = update_input_data(
+            appointment_id=appointment_id, input_data=self.invite_only_appointment_input_data
+        )
+
+        update_mutation_response = update_appointment(self.admin, input_data)
+
+        data = update_mutation_response.data["updateAppointment"]
+
+        expected_start_date_time = tz.localize(
+            datetime.fromisoformat(self.invite_only_appointment_input_data["startDateTime"])
+        ).isoformat()
+        expected_end_date_time = tz.localize(
+            datetime.fromisoformat(self.invite_only_appointment_input_data["endDateTime"])
+        ).isoformat()
+
+        assert data["title"] == self.invite_only_appointment_input_data["title"]
+        assert data["inviteOnly"]
+        assert data["participants"] == [{"fullName": self.participant.profile.full_name()}]
+        assert data["startDateTime"] == expected_start_date_time
+        assert data["endDateTime"] == expected_end_date_time
+        assert data["location"] == self.invite_only_appointment_input_data["location"]
+        assert data["description"] == self.invite_only_appointment_input_data["description"]
+        assert data["permission"] == self.invite_only_appointment_input_data["permission"]
+        assert data["videoCallLink"]["url"] == self.invite_only_appointment_input_data["videoCallLink"]
+        assert data["videoCallLink"]["additionalInfo"] == self.invite_only_appointment_input_data["videoCallInfo"]
+
+    def test_can_update_invite_only_appointment_if_admin(self):
+        create_mutation_response = create_appointment(self.admin, self.invite_only_appointment_input_data)
+
+        appointment_id = create_mutation_response.data["createAppointment"]["id"]
+
+        input_data = update_input_data(appointment_id=appointment_id, input_data=self.public_appointment_input_data)
+
+        update_mutation_response = update_appointment(self.admin, input_data)
+
+        data = update_mutation_response.data["updateAppointment"]
+
+        expected_start_date_time = tz.localize(
+            datetime.fromisoformat(self.public_appointment_input_data["startDateTime"])
+        ).isoformat()
+        expected_end_date_time = tz.localize(
+            datetime.fromisoformat(self.public_appointment_input_data["endDateTime"])
+        ).isoformat()
+
+        assert data["title"] == self.public_appointment_input_data["title"]
+        assert not data["inviteOnly"]
+        assert data["participants"] == []
+        assert data["startDateTime"] == expected_start_date_time
+        assert data["endDateTime"] == expected_end_date_time
+        assert data["location"] == self.public_appointment_input_data["location"]
+        assert data["description"] == self.public_appointment_input_data["description"]
+        assert data["permission"] == self.public_appointment_input_data["permission"]
+        assert data["videoCallLink"]["url"] == self.public_appointment_input_data["videoCallLink"]
+        assert data["videoCallLink"]["additionalInfo"] == self.public_appointment_input_data["videoCallInfo"]
+
+    def test_can_up_invite_only_appointment_if_creator(self):
+        create_mutation_response = create_appointment(self.user_member, self.invite_only_appointment_input_data)
+
+        appointment_id = create_mutation_response.data["createAppointment"]["id"]
+
+        input_data = update_input_data(
+            appointment_id=appointment_id, input_data=self.another_invite_only_appointment_input_data
+        )
+
+        update_mutation_response = update_appointment(self.user_member, input_data)
+
+        data = update_mutation_response.data["updateAppointment"]
+
+        expected_start_date_time = tz.localize(
+            datetime.fromisoformat(self.another_invite_only_appointment_input_data["startDateTime"])
+        ).isoformat()
+        expected_end_date_time = tz.localize(
+            datetime.fromisoformat(self.another_invite_only_appointment_input_data["endDateTime"])
+        ).isoformat()
+
+        assert data["title"] == self.another_invite_only_appointment_input_data["title"]
+        assert data["inviteOnly"]
+        assert data["participants"] == [{"fullName": self.participant.profile.full_name()}]
+        assert data["startDateTime"] == expected_start_date_time
+        assert data["endDateTime"] == expected_end_date_time
+        assert data["location"] == self.another_invite_only_appointment_input_data["location"]
+        assert data["description"] == self.another_invite_only_appointment_input_data["description"]
+        assert data["permission"] == self.another_invite_only_appointment_input_data["permission"]
+        assert data["videoCallLink"]["url"] == self.another_invite_only_appointment_input_data["videoCallLink"]
+        assert (
+            data["videoCallLink"]["additionalInfo"] == self.another_invite_only_appointment_input_data["videoCallInfo"]
+        )
+
+    def test_can_update_invite_only_appointment_if_participant(self):
+        create_mutation_response = create_appointment(
+            self.user_member, self.another_invite_only_appointment_input_data
+        )
+
+        appointment_id = create_mutation_response.data["createAppointment"]["id"]
+
+        input_data = update_input_data(
+            appointment_id=appointment_id, input_data=self.invite_only_appointment_input_data
+        )
+
+        update_mutation_response = update_appointment(self.participant, input_data)
+
+        data = update_mutation_response.data["updateAppointment"]
+
+        expected_start_date_time = tz.localize(
+            datetime.fromisoformat(self.invite_only_appointment_input_data["startDateTime"])
+        ).isoformat()
+        expected_end_date_time = tz.localize(
+            datetime.fromisoformat(self.invite_only_appointment_input_data["endDateTime"])
+        ).isoformat()
+
+        assert data["title"] == self.invite_only_appointment_input_data["title"]
+        assert data["inviteOnly"]
+        assert data["participants"] == [{"fullName": self.participant.profile.full_name()}]
+        assert data["startDateTime"] == expected_start_date_time
+        assert data["endDateTime"] == expected_end_date_time
+        assert data["location"] == self.invite_only_appointment_input_data["location"]
+        assert data["description"] == self.invite_only_appointment_input_data["description"]
+        assert data["permission"] == self.invite_only_appointment_input_data["permission"]
+        assert data["videoCallLink"]["url"] == self.invite_only_appointment_input_data["videoCallLink"]
+        assert data["videoCallLink"]["additionalInfo"] == self.invite_only_appointment_input_data["videoCallInfo"]
