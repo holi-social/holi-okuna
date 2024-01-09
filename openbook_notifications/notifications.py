@@ -352,7 +352,7 @@ class SpaceMembershipInviteApprovalUserNotification(Notification):
     def __init__(
         self,
         recipient: str,
-        payload: SpaceMembershipInvitePayload,
+        payload: SpaceMembershipInviteApprovalPayload,
         transaction_id: str | None = None,
     ):
         super().__init__(
@@ -368,7 +368,7 @@ class SpaceMembershipInviteApprovalAdminNotification(Notification):
     def __init__(
         self,
         recipients: str | List[str],
-        payload: SpaceMembershipInvitePayload,
+        payload: SpaceMembershipInviteApprovalPayload,
         transaction_id: str | None = None,
     ):
         super().__init__(
@@ -384,7 +384,7 @@ class SpaceMembershipInviteDeclineUserNotification(Notification):
     def __init__(
         self,
         recipient: str,
-        payload: SpaceMembershipInvitePayload,
+        payload: SpaceMembershipInviteDeclinePayload,
         transaction_id: str | None = None,
     ):
         super().__init__(
@@ -400,7 +400,7 @@ class SpaceMembershipInviteDeclineAdminNotification(Notification):
     def __init__(
         self,
         recipient: str,
-        payload: SpaceMembershipInvitePayload,
+        payload: SpaceMembershipInviteDeclinePayload,
         transaction_id: str | None = None,
     ):
         super().__init__(
