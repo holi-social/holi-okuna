@@ -12,6 +12,7 @@ class PostCommentUserMentionNotification(ModelWithUUID):
     post_comment_user_mention = models.ForeignKey(PostCommentUserMention, on_delete=models.CASCADE)
 
     @classmethod
+    @mute_notifications
     def create_post_comment_user_mention_notification(cls, post_comment_user_mention_id, owner_id):
         post_comment_user_mention_notification = cls.objects.create(
             post_comment_user_mention_id=post_comment_user_mention_id
@@ -24,6 +25,7 @@ class PostCommentUserMentionNotification(ModelWithUUID):
         return post_comment_user_mention_notification
 
     @classmethod
+    @mute_notifications
     def delete_post_comment_user_mention_notification(cls, post_comment_user_mention_id, owner_id):
         cls.objects.filter(
             post_comment_user_mention_id=post_comment_user_mention_id,
