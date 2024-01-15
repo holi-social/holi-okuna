@@ -130,3 +130,14 @@ class AppointmentRepository:
 class VideoCallLinkRepository:
     def create_video_call_link(self, url, additional_info=None):
         return VideoCallLink.objects.create(url=url, additional_info=additional_info)
+
+    def update_video_call_link(self, video_call_link_id, url, additional_info=None):
+        video_call_link = VideoCallLink.objects.get(id=video_call_link_id)
+        video_call_link.url = url
+        if additional_info is not None:
+            video_call_link.additional_info = additional_info
+        video_call_link.save()
+        return video_call_link
+
+    def delete_video_call_link(self, video_call_link_id):
+        VideoCallLink.objects.get(id=video_call_link_id).delete()
