@@ -1,3 +1,6 @@
+from typing import Optional
+from uuid import UUID
+
 from django.db.models import Q
 from django.utils import timezone
 
