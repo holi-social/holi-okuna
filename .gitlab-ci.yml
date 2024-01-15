@@ -7,6 +7,7 @@ cache:
     files:
       - requirements.txt # hashes this file so cache content depends on files content
   paths:
+    - /root/.cache/pip
     - .cache/pip
     - venv/
 
@@ -34,7 +35,7 @@ setup:
     - pip install --upgrade pip
     - pip install -r requirements.txt --exists-action s
 
-test:
+unit-test:
   image: "gitlab.holi.team:5050/app/holi-docker/holi-okuna-builder"
   services:
     - name: postgis/postgis:12-3.3-alpine
@@ -49,14 +50,32 @@ test:
   script:
     - /etc/init.d/redis-server start
     - source venv/bin/activate
-    - black --check .
     - python -m pytest --cov
   tags:
     - holi-big # more cpu, quicker testing
 
-# separate stage?: code climate test-reporter
-# separate stage?: bandit -r .
-# separate stage?: safety check
+lint:
+  image: "gitlab.holi.team:5050/app/holi-docker/holi-okuna-builder"
+  stage: test
+  variables:
+    GIT_STRATEGY: clone
+    GIT_CHECKOUT: "false"
+  before_script:
+    - git fetch --all
+    - git checkout $CI_COMMIT_REF_NAME
+    - export COMPARISON_SHA=$(git merge-base $CI_COMMIT_REF_NAME origin/$CI_DEFAULT_BRANCH)
+    - export FILES_TO_CHECK=$(git diff --name-only -z --diff-filter=d $COMPARISON_SHA..$CI_COMMIT_SHA -- '*.py')
+    - source venv/bin/activate
+  script:
+    # runs ruff (linter and formatter) on all changed files, excluding deleted files.
+    # this will also force changes on offending unchanged lines in changed files, but we accept that in the spirit of
+    # leaving every file better than we found it.
+    - '[[ -z "$FILES_TO_CHECK" ]] || echo -n "$FILES_TO_CHECK" | xargs -0 ruff check --output-format=gitlab > .gl-lint-report.json'
+    - '[[ -z "$FILES_TO_CHECK" ]] || echo -n "$FILES_TO_CHECK" | xargs -0 ruff format --diff'
+  artifacts:
+    reports:
+      codequality:
+        - .gl-lint-report.json
 
 build_docker:
   image: docker:20.10
