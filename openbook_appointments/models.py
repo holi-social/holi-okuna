@@ -46,7 +46,7 @@ class Appointment(ModelWithUUID):
     video_call_link = models.OneToOneField(
         "VideoCallLink",
         related_name="appointment",
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         blank=True,
         null=True,
     )

@@ -79,11 +79,7 @@ class AppointmentService:
         user_model = get_user_model()
         participants = user_model.objects.filter(username__in=participant_ids) if participant_ids else []
 
-        video_call_link = (
-            self.video_call_link_service.create_video_call_link(url=video_call_link, additional_info=video_call_info)
-            if video_call_link
-            else None
-        )
+        video_call_link = self._update_video_call_link(appointment, video_call_info, video_call_link)
 
         return self.repository.update_appointment(
             appointment_id=appointment_id,
@@ -98,6 +94,22 @@ class AppointmentService:
             description=description,
             thumbnail=thumbnail,
             permission=permission,
+        )
+
+    def _update_video_call_link(self, appointment, video_call_info, video_call_link):
+        if not video_call_link and appointment.video_call_link:
+            self.video_call_link_service.delete_video_call_link(video_call_link_id=appointment.video_call_link.id)
+            return None
+
+        if not appointment.video_call_link:
+            return self.video_call_link_service.create_video_call_link(
+                url=video_call_link, additional_info=video_call_info
+            )
+
+        return self.video_call_link_service.update_video_call_link(
+            video_call_link_id=appointment.video_call_link.id,
+            url=video_call_link,
+            additional_info=video_call_info,
         )
 
     def get_appointments(
@@ -136,3 +148,11 @@ class VideoCallLinkService:
 
     def create_video_call_link(self, url, additional_info=None):
         return self.repository.create_video_call_link(url=url, additional_info=additional_info)
+
+    def update_video_call_link(self, video_call_link_id, url, additional_info=None):
+        return self.repository.update_video_call_link(
+            video_call_link_id=video_call_link_id, url=url, additional_info=additional_info
+        )
+
+    def delete_video_call_link(self, video_call_link_id):
+        return self.repository.delete_video_call_link(video_call_link_id=video_call_link_id)
