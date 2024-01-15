@@ -97,22 +97,20 @@ class AppointmentService:
         )
 
     def _update_video_call_link(self, appointment, video_call_info, video_call_link):
-        if not video_call_link:
-            if appointment.video_call_link:
-                self.video_call_link_service.delete_video_call_link(video_call_link_id=appointment.video_call_link.id)
-            video_call_link = None
-        else:
-            if not appointment.video_call_link:
-                video_call_link = self.video_call_link_service.create_video_call_link(
-                    url=video_call_link, additional_info=video_call_info
-                )
-            else:
-                video_call_link = self.video_call_link_service.update_video_call_link(
-                    video_call_link_id=appointment.video_call_link.id,
-                    url=video_call_link,
-                    additional_info=video_call_info,
-                )
-        return video_call_link
+        if not video_call_link and appointment.video_call_link:
+            self.video_call_link_service.delete_video_call_link(video_call_link_id=appointment.video_call_link.id)
+            return None
+            
+        if not appointment.video_call_link:
+            return self.video_call_link_service.create_video_call_link(
+                url=video_call_link, additional_info=video_call_info
+            )
+
+        return self.video_call_link_service.update_video_call_link(
+            video_call_link_id=appointment.video_call_link.id,
+            url=video_call_link,
+            additional_info=video_call_info,
+        )
 
     def get_appointments(
         self,
