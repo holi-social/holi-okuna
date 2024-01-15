@@ -93,6 +93,8 @@ class UpdateAppointmentSerializer(serializers.Serializer):
     location = serializers.CharField(
         max_length=settings.APPOINTMENT_LOCATION_MAX_LENGTH,
         required=False,
+        allow_null=True,
+        allow_blank=True,
     )
 
     geolocation = GeolocationPointSerializer(required=False)
@@ -114,9 +116,13 @@ class UpdateAppointmentSerializer(serializers.Serializer):
         min_length=settings.VIDEO_CALL_LINK_URL_MIN_LENGTH,
         max_length=settings.VIDEO_CALL_LINK_URL_MAX_LENGTH,
         required=False,
+        allow_null=True,
+        allow_blank=True,
     )
 
     video_call_info = serializers.CharField(
         max_length=settings.VIDEO_CALL_LINK_DESCRIPTION_MAX_LENGTH,
         required=False,
+        allow_null=True,
+        allow_blank=True,
     )
