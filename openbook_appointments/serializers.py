@@ -35,7 +35,7 @@ class CreateAppointmentSerializer(serializers.Serializer):
     geolocation = GeolocationPointSerializer(required=False, allow_null=True)
 
     description = serializers.CharField(
-        max_length=settings.TASK_DESCRIPTION_MAX_LENGTH,
+        max_length=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH,
         required=False,
         allow_blank=True,
     )
@@ -43,7 +43,7 @@ class CreateAppointmentSerializer(serializers.Serializer):
     thumbnail = RestrictedImageFileSizeField(
         allow_empty_file=False,
         required=False,
-        max_upload_size=settings.TASK_THUMBNAIL_MAX_SIZE,
+        max_upload_size=settings.APPOINTMENT_THUMBNAIL_MAX_SIZE,
     )
 
     permission = serializers.ChoiceField(required=True, choices=PermissionType.choices)
@@ -100,14 +100,14 @@ class UpdateAppointmentSerializer(serializers.Serializer):
     geolocation = GeolocationPointSerializer(required=False)
 
     description = serializers.CharField(
-        max_length=settings.TASK_DESCRIPTION_MAX_LENGTH,
+        max_length=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH,
         required=False,
     )
 
     thumbnail = RestrictedImageFileSizeField(
         allow_empty_file=False,
         required=False,
-        max_upload_size=settings.TASK_THUMBNAIL_MAX_SIZE,
+        max_upload_size=settings.APPOINTMENT_THUMBNAIL_MAX_SIZE,
     )
 
     permission = serializers.ChoiceField(required=False, choices=PermissionType.choices)
