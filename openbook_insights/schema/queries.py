@@ -40,7 +40,7 @@ class Query:
             InsightModel.objects.filter(
                 Q(creator__isnull=True) | UserModel.is_visible_ignore_blocked_query("creator"),
                 # resolution in cache and DB is day, so result will be cached until midnight
-                date_published__lte=datetime.now(),
+                date_published__lte=datetime.now(),  # timezone...
             )
             .select_related("creator", "creator__profile", "topic")
             .prefetch_related(

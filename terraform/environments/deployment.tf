@@ -36,6 +36,154 @@ variable "image_tag" {
   nullable = false
 }
 
+### MIGRATION start
+# In order to keep container startup time to a minimum, we perform migration steps in a job running before the deployment.
+# This way, migrations are not executed on scaling up container count.
+# We are using cloud run jobs for running the migration. We are using the same container, but a different entrypoint
+# This alternative entrypoint script is added to the container in the Dockerfile.
+# The job deployed by this resource is then triggered using the following null_resource definition every time a new image
+# will be deployed.
+resource "google_cloud_run_v2_job" "okuna_migration" {
+  project  = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
+  name     = "${random_id.main.hex}-migration"
+  location = "europe-north1" # finland, low CO2 emissions
+  # https://github.com/hashicorp/terraform-provider-google/issues/5898
+
+  template {
+    task_count = 1
+    template {
+      max_retries     = 1
+      service_account = data.terraform_remote_state.holi_okuna_common_state.outputs.cloud_run_service_account_email
+      containers {
+        image   = "${data.terraform_remote_state.holi_infra_state.outputs.artifact_registry_location}/holi-okuna:${var.image_tag}"
+        command = ["/migration-entrypoint.sh"]
+        env {
+          name  = "GOOGLE_CLOUD_PROJECT_ID"
+          value = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
+        }
+        env {
+          name  = "ENVIRONMENT"
+          value = local.environment
+        }
+        env {
+          name  = "ENVIRONMENT_ID"
+          value = local.environment_name
+        }
+        env {
+          name = "SECRET_KEY"
+          value_source {
+            secret_key_ref {
+              version = "latest"
+              secret  = local.environment_name == "production" ? "OKUNA_SECRET_KEY_PRODUCTION" : "OKUNA_SECRET_KEY_DEVELOPMENT"
+            }
+          }
+        }
+        env {
+          name = "ALLOWED_HOSTS"
+          # TODO This could break the admin interface, we need to check it after deployment
+          value = local.dns_name
+        }
+        env {
+          name  = "RDS_DB_NAME"
+          value = random_id.main.hex
+        }
+        env {
+          name = "RDS_USERNAME"
+          value_source {
+            secret_key_ref {
+              version = "latest"
+              secret  = local.environment_name == "production" ? "OKUNA_DB_USERNAME_PRODUCTION" : "OKUNA_DB_USERNAME_DEVELOPMENT"
+            }
+          }
+        }
+        env {
+          name = "RDS_PASSWORD"
+          value_source {
+            secret_key_ref {
+              version = "latest"
+              secret  = local.environment_name == "production" ? "OKUNA_DB_PASSWORD_PRODUCTION" : "OKUNA_DB_PASSWORD_DEVELOPMENT"
+            }
+          }
+        }
+        env {
+          name  = "RDS_PORT"
+          value = "5432"
+        }
+        env {
+          name  = "RDS_HOSTNAME"
+          value = local.environment_name == "production" ? data.terraform_remote_state.holi_infra_state.outputs.database_ip_address_production : data.terraform_remote_state.holi_infra_state.outputs.database_ip_address_development
+        }
+        env {
+          name  = "REDIS_HOST"
+          value = data.terraform_remote_state.holi_infra_state.outputs.redis_host_development
+        }
+        env {
+          name  = "REDIS_PORT"
+          value = data.terraform_remote_state.holi_infra_state.outputs.redis_port_development
+        }
+        env {
+          name = "REDIS_PASSWORD"
+          value_source {
+            secret_key_ref {
+              version = "latest"
+              secret  = "REDIS_PASSWORD"
+            }
+          }
+        }
+        env {
+          name  = "IMAGEKIT_URL"
+          value = local.environment_name == "https://ik.imagekit.io/holi"
+        }
+        env {
+          name = "IMAGEKIT_PUBLIC_KEY"
+          value_source {
+            secret_key_ref {
+              version = "latest"
+              secret  = "OKUNA_IMAGEKIT_PUBLIC_KEY_PRODUCTION"
+            }
+          }
+        }
+        env {
+          name = "IMAGEKIT_PRIVATE_KEY"
+          value_source {
+            secret_key_ref {
+              version = "latest"
+              secret  = "OKUNA_IMAGEKIT_PRIVATE_KEY_PRODUCTION"
+            }
+          }
+        }
+        resources {
+          limits = {
+            cpu    = 1
+            memory = "1024Mi" # 512Mi is too little when applying all migrations
+          }
+        }
+      }
+      vpc_access {
+        connector = data.terraform_remote_state.holi_infra_state.outputs.vpc_access_connector_id
+        egress    = "PRIVATE_RANGES_ONLY"
+      }
+    }
+  }
+
+  depends_on = [google_project_service.service]
+}
+
+# This null resource triggers running the job every time the image tag changes, e.g. on every deployment, and waits for completion.
+# It uses the gloud command to start the job, because terraform can't start it and could probably not wait for it.
+resource "null_resource" "migrate" {
+  triggers = {
+    "image_tag" = var.image_tag
+    # maybe add more trigger values for also redeploying on changes to the cloud run definition outside of image redeployments
+  }
+
+  provisioner "local-exec" {
+    command = "gcloud --project=${data.terraform_remote_state.holi_infra_state.outputs.shared_project_id} run jobs execute ${google_cloud_run_v2_job.okuna_migration.name} --wait --region=europe-north1"
+  }
+
+}
+### MIGRATION end
+
 resource "google_cloud_run_service" "okuna" {
   project  = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
   name     = random_id.main.hex
@@ -276,7 +424,7 @@ resource "google_cloud_run_service" "okuna" {
     latest_revision = true
   }
 
-  depends_on = [google_project_service.service]
+  depends_on = [google_project_service.service, null_resource.migrate]
 }
 
 resource "google_cloud_run_domain_mapping" "holi_social_okuna" {
