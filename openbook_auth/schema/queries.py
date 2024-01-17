@@ -41,7 +41,7 @@ class Query:
     def user_by_id(self, info, id: uuid.UUID) -> Optional[User]:
         try:
             current_user = info.context.request.user
-            user = UserModel.objects.filter(UserModel.is_visible_ignore_blocked_query()).cache().get(username=id)
+            user = UserModel.objects.filter(UserModel.is_visible_ignore_blocked_query()).get(username=id)
             return UserBlockModel.filter_single_object(current_user, user, lambda u: u.id)
         except UserModel.DoesNotExist:
             raise GraphQLError("User not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
