@@ -348,7 +348,7 @@ def check_can_update_list_with_id(user, list_id):
 
 
 def check_can_delete_community_with_name(user, community_name):
-    if not user.is_creator_of_community_with_name(community_name):
+    if not user.is_administrator_of_community_with_name(community_name):
         raise ValidationError(
             _("Can't delete a community that you do not administrate."),
         )
