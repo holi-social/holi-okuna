@@ -106,6 +106,7 @@ class UpdateAppointmentSerializer(serializers.Serializer):
 
     thumbnail = RestrictedImageFileSizeField(
         allow_empty_file=False,
+        allow_null=True,
         required=False,
         max_upload_size=settings.APPOINTMENT_THUMBNAIL_MAX_SIZE,
     )
