@@ -131,6 +131,10 @@ resource "google_cloud_run_v2_job" "okuna_migration" {
           }
         }
         env {
+          name  = "SENTRY_DSN"
+          value = "https://41084c0584d04b38a27d49fab9591b42@o949544.ingest.sentry.io/6421964"
+        }
+        env {
           name  = "IMAGEKIT_URL"
           value = local.environment_name == "https://ik.imagekit.io/holi"
         }
