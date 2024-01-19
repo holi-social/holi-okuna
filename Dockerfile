@@ -12,20 +12,17 @@ RUN apt-get -y update && \
 
 COPY requirements.txt /requirements.txt
 
-RUN pip install --upgrade pip && \
-    pip install --cache-dir=/root/.cache/pip -r /requirements.txt && \
-    rm -rf /root/.cache/pip/*
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r /requirements.txt
 
 COPY . /opt/okuna-api
 
 # Copy any files over
-COPY .docker/api/wait-for-it.sh .docker/api/entrypoint.sh /
+COPY .docker/api/wait-for-it.sh .docker/api/entrypoint.sh .docker/api/migration-entrypoint.sh /
 #COPY .docker/api/bootstrap_development_data.sh /bootstrap_development_data.sh
 
 # Change permissions
-RUN chmod +x /entrypoint.sh
-#RUN chmod +x /bootstrap_development_data.sh
-RUN chmod +x /wait-for-it.sh
+RUN chmod +x /entrypoint.sh /wait-for-it.sh /migration-entrypoint.sh
 
 WORKDIR /opt/okuna-api
 # SECRET_KEY must be set, but the value is never used
