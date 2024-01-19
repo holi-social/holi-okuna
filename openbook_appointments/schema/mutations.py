@@ -12,7 +12,7 @@ from openbook_appointments.schema.types import (
 from openbook_appointments.serializers import CreateAppointmentSerializer, UpdateAppointmentSerializer
 from openbook_appointments.services import AppointmentService
 from openbook_auth.utils import verify_authorized_user
-from openbook_common.helpers import to_input_dict
+from openbook_common.helpers import to_input_dict, is_parameter_null
 from openbook_common.schema.types import Result, GeolocationPointInput
 
 logger = structlog.get_logger(__name__)
@@ -68,6 +68,7 @@ class Mutation:
             description=data.get("description"),
             permission=data.get("permission"),
             thumbnail=data.get("thumbnail"),
+            remove_thumbnail=is_parameter_null(data, "thumbnail"),
             video_call_link=data.get("video_call_link"),
             video_call_info=data.get("video_call_info"),
         )

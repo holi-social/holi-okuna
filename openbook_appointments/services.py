@@ -72,6 +72,7 @@ class AppointmentService:
         video_call_info=None,
         description=None,
         thumbnail=None,
+        remove_thumbnail=False,
     ):
         appointment = self.repository.get_appointment(id_or_slug=str(appointment_id))
         self.checker.check_can_update_appointment(user=user, appointment=appointment)
@@ -93,6 +94,7 @@ class AppointmentService:
             video_call_link=video_call_link,
             description=description,
             thumbnail=thumbnail,
+            remove_thumbnail=remove_thumbnail,
             permission=permission,
         )
 

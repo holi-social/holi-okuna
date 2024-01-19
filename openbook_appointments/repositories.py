@@ -74,6 +74,7 @@ class AppointmentRepository:
         video_call_link=None,
         description=None,
         thumbnail=None,
+        remove_thumbnail=False,
         permission=None,
         participants=None,
     ):
@@ -103,9 +104,9 @@ class AppointmentRepository:
         if description is not None:
             appointment.description = description
 
-        if thumbnail is None:
+        if remove_thumbnail:
             appointment.delete_thumbnail()
-        else:
+        elif thumbnail:
             appointment.update_thumbnail(thumbnail)
 
         if permission is not None:
