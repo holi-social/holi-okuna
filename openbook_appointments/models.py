@@ -1,5 +1,6 @@
 import uuid
 
+from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from django.core.files.storage import default_storage
@@ -118,6 +119,14 @@ class Appointment(ModelWithUUID):
         self.thumbnail = thumbnail
 
         return self.thumbnail
+
+    @property
+    def ends_in_future(self):
+        return self.end_date_time > timezone.now()
+
+    @property
+    def starts_in_future(self):
+        return self.start_date_time > timezone.now()
 
 
 class VideoCallLink(ModelWithUUID):

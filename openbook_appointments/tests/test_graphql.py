@@ -1,16 +1,14 @@
-from datetime import datetime
-
-from django.contrib.auth.models import AnonymousUser
-from django.utils import timezone
-
 import logging
-from unittest.mock import patch
+from datetime import datetime
+from unittest import mock
+from unittest.mock import patch, Mock
 
 import pytest
 import pytz
-
-from faker import Faker
+from django.contrib.auth.models import AnonymousUser
 from django.test import AsyncClient, TestCase
+from django.utils import timezone
+from faker import Faker
 
 from openbook import settings
 from openbook_appointments.enums import PermissionType, StatusType
@@ -26,6 +24,12 @@ from openbook_common.tests.helpers import (
     make_community,
     make_user,
 )
+from openbook_notifications.notifications import (
+    SpaceAppointmentCreationNotification,
+    SpaceAppointmentUpdateNotification,
+    SpaceAppointmentDeletionNotification,
+    Notification,
+)
 
 logger = logging.getLogger(__name__)
 fake = Faker()
@@ -40,6 +44,12 @@ def client():
 @pytest.mark.django_db
 class TestAppointments(TestCase):
     mock_current_datetime = timezone.datetime(2024, 1, 1, 12, 0, 0)
+
+    # prevent sending novu notifications
+    @pytest.fixture(scope="class", autouse=True)
+    def setup(self):
+        with mock.patch.object(Notification, "send"):
+            yield
 
     @classmethod
     def setUpTestData(cls):
@@ -102,7 +112,7 @@ class TestAppointments(TestCase):
             "spaceId": str(cls.space.id),
             "title": fake.text(max_nb_chars=settings.APPOINTMENT_TITLE_MAX_LENGTH),
             "inviteOnly": True,
-            "participantIds": [],
+            "participantIds": [str(cls.participant.username)],
             "startDateTime": "2023-12-02T08:00:00",
             "endDateTime": "2023-12-02T10:00:00",
             "location": fake.text(max_nb_chars=settings.APPOINTMENT_LOCATION_MAX_LENGTH),
@@ -586,7 +596,7 @@ class TestAppointments(TestCase):
         assert data["videoCallLink"]["url"] == self.public_appointment_input_data["videoCallLink"]
         assert data["videoCallLink"]["additionalInfo"] == self.public_appointment_input_data["videoCallInfo"]
 
-    def test_can_up_invite_only_appointment_if_creator(self):
+    def test_can_update_invite_only_appointment_if_creator(self):
         create_mutation_response = create_appointment(self.user_member, self.invite_only_appointment_input_data)
 
         appointment_id = create_mutation_response.data["createAppointment"]["id"]
@@ -651,3 +661,75 @@ class TestAppointments(TestCase):
         assert data["permission"] == self.invite_only_appointment_input_data["permission"]
         assert data["videoCallLink"]["url"] == self.invite_only_appointment_input_data["videoCallLink"]
         assert data["videoCallLink"]["additionalInfo"] == self.invite_only_appointment_input_data["videoCallInfo"]
+
+    @patch.object(SpaceAppointmentCreationNotification, "send")
+    def test_public_appointment_creation_notifies(self, mock_space_appointment_creation_notification_send: Mock):
+        create_appointment(self.admin, self.public_appointment_input_data)
+
+        mock_space_appointment_creation_notification_send.assert_called_once()
+
+    @patch.object(SpaceAppointmentCreationNotification, "send")
+    def test_private_appointment_creation_notifies(self, mock_space_appointment_creation_notification_send: Mock):
+        create_appointment(self.admin, self.invite_only_appointment_input_data)
+
+        mock_space_appointment_creation_notification_send.assert_called_once()
+
+    @patch.object(SpaceAppointmentCreationNotification, "send")
+    def test_past_appointment_creation_doesnt_notify(self, mock_space_appointment_creation_notification_send: Mock):
+        create_appointment(self.admin, self.past_appointment_input_data)
+
+        mock_space_appointment_creation_notification_send.assert_not_called()
+
+    @patch.object(SpaceAppointmentUpdateNotification, "send")
+    def test_updating_public_appointment_to_be_private_notifies(
+        self, mock_space_appointment_update_notification_send: Mock
+    ):
+        create_mutation_response = create_appointment(self.admin, self.public_appointment_input_data)
+        appointment_id = create_mutation_response.data["createAppointment"]["id"]
+
+        input_data = update_input_data(
+            appointment_id=appointment_id, input_data=self.invite_only_appointment_input_data
+        )
+
+        update_appointment(self.admin, input_data)
+
+        mock_space_appointment_update_notification_send.assert_called_once()
+
+    @patch.object(SpaceAppointmentUpdateNotification, "send")
+    def test_updating_appointment_to_be_in_past_doesnt_notify(
+        self, mock_space_appointment_update_notification_send: Mock
+    ):
+        create_mutation_response = create_appointment(self.admin, self.upcoming_appointment_input_data)
+        appointment_id = create_mutation_response.data["createAppointment"]["id"]
+
+        input_data = update_input_data(appointment_id=appointment_id, input_data=self.past_appointment_input_data)
+
+        update_appointment(self.admin, input_data)
+
+        mock_space_appointment_update_notification_send.assert_not_called()
+
+    @patch.object(SpaceAppointmentDeletionNotification, "send")
+    def test_deleting_private_appointment_in_future_notifies(
+        self, mock_space_appointment_deletion_notification_send: Mock
+    ):
+        create_mutation_response = create_appointment(self.user_member, self.invite_only_appointment_input_data)
+        assert create_mutation_response.errors is None
+
+        appointment_id = create_mutation_response.data["createAppointment"]["id"]
+
+        delete_appointment(user=self.admin, appointment_id=appointment_id)
+
+        mock_space_appointment_deletion_notification_send.assert_called_once()
+
+    @patch.object(SpaceAppointmentDeletionNotification, "send")
+    def test_deleting_private_appointment_in_past_doesnt_notify(
+        self, mock_space_appointment_deletion_notification_send: Mock
+    ):
+        create_mutation_response = create_appointment(self.user_member, self.past_appointment_input_data)
+        assert create_mutation_response.errors is None
+
+        appointment_id = create_mutation_response.data["createAppointment"]["id"]
+
+        delete_appointment(user=self.admin, appointment_id=appointment_id)
+
+        mock_space_appointment_deletion_notification_send.assert_not_called()

@@ -1,4 +1,12 @@
+from datetime import datetime
+from uuid import UUID
+
+from django.db.models import QuerySet
+
+from openbook_auth.models import User
 from openbook_common.utils.model_loaders import get_community_model, get_user_model
+from openbook_communities.models import Community
+from openbook_notifications.notifications import Notifications
 from .checkers import AppointmentChecker
 from .repositories import AppointmentRepository, VideoCallLinkRepository
 
@@ -11,13 +19,13 @@ class AppointmentService:
 
     def create_appointment(
         self,
-        title,
-        invite_only,
-        start_date_time,
-        end_date_time,
-        permission,
-        space_id,
-        creator,
+        title: str,
+        invite_only: bool,
+        start_date_time: datetime,
+        end_date_time: datetime,
+        permission: str,
+        space_id: UUID,
+        creator: User,
         participant_ids=None,
         location=None,
         geolocation=None,
@@ -29,10 +37,13 @@ class AppointmentService:
         self.checker.check_can_create_appointment(user=creator, space_id=space_id, invite_only=invite_only)
 
         space_model = get_community_model()
-        space = space_model.objects.get(id=space_id)
+        space: Community = space_model.objects.get(id=space_id)
 
         user_model = get_user_model()
-        participants = user_model.objects.filter(username__in=participant_ids) if participant_ids else []
+
+        participants = (
+            user_model.objects.filter(username__in=participant_ids) if participant_ids else User.objects.none()
+        )
 
         video_call_link = (
             self.video_call_link_service.create_video_call_link(url=video_call_link, additional_info=video_call_info)
@@ -40,7 +51,7 @@ class AppointmentService:
             else None
         )
 
-        return self.repository.create_appointment(
+        appointment = self.repository.create_appointment(
             title=title,
             invite_only=invite_only,
             participants=participants,
@@ -55,6 +66,17 @@ class AppointmentService:
             space=space,
             creator=creator,
         )
+
+        if appointment.ends_in_future:
+            recipients = self.determine_recipients(invite_only, participants, space, creator)
+
+            Notifications.send_space_appointment_creation_notification(
+                space=space,
+                appointment=appointment,
+                recipients=recipients,
+            )
+
+        return appointment
 
     def update_appointment(
         self,
@@ -82,7 +104,7 @@ class AppointmentService:
 
         video_call_link = self._update_video_call_link(appointment, video_call_info, video_call_link)
 
-        return self.repository.update_appointment(
+        updated_appointment = self.repository.update_appointment(
             appointment_id=appointment_id,
             title=title,
             invite_only=invite_only,
@@ -97,6 +119,34 @@ class AppointmentService:
             remove_thumbnail=remove_thumbnail,
             permission=permission,
         )
+
+        space_model = get_community_model()
+        space: Community = space_model.objects.get(id=updated_appointment.space.id)
+
+        if appointment.ends_in_future:
+            recipients = self.determine_recipients(invite_only, participants, space, user)
+
+            Notifications.send_space_appointment_update_notification(
+                space=space,
+                appointment=appointment,
+                recipients=recipients,
+            )
+
+        return updated_appointment
+
+    def determine_recipients(self, invite_only, participants: QuerySet[User], space: Community, user: User):
+        if invite_only:
+            # private
+            recipients = participants
+        else:
+            # public
+            recipients = space.get_staff_and_subscribers()
+
+        # don't notify the creator
+        if recipients.contains(user):
+            recipients = recipients.exclude(id__exact=user.id)
+
+        return recipients
 
     def _update_video_call_link(self, appointment, video_call_info, video_call_link):
         if not video_call_link and appointment.video_call_link:
@@ -139,6 +189,22 @@ class AppointmentService:
         appointment = self.repository.get_appointment(id_or_slug=str(appointment_id))
         self.checker.check_can_delete_appointment(user=user, appointment=appointment)
         self.repository.delete_appointment(appointment_id=appointment_id)
+
+        space_model = get_community_model()
+        space: Community = space_model.objects.get(id=appointment.space.id)
+
+        if appointment.starts_in_future:
+            recipients = space.get_staff_and_subscribers()
+
+            # don't notify the creator
+            if recipients.contains(user):
+                recipients = recipients.exclude(id__exact=user.id)
+
+            Notifications.send_space_appointment_deletion_notification(
+                space=space,
+                appointment=appointment,
+                recipients=recipients,
+            )
 
     def exists(self, appointment_id):
         return self.repository.exists(appointment_id=appointment_id)
