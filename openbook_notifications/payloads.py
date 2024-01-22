@@ -5,6 +5,7 @@ from enum import Enum
 from datetime import datetime
 from django.conf import settings
 
+from openbook_appointments.models import Appointment
 from openbook_notifications.helpers import replace_mentions_with_full_names
 
 if TYPE_CHECKING:
@@ -27,6 +28,9 @@ class NotificationType(Enum):
     POST_COMMENT_MENTION = "POST_COMMENT_MENTION"
     POST_COMMENT_AUTHOR = "POST_COMMENT_AUTHOR"
     SPACE_NEW_POST = "SPACE_NEW_POST"
+    SPACE_APPOINTMENT_CREATION = "SPACE_APPOINTMENT_CREATION"
+    SPACE_APPOINTMENT_UPDATE = "SPACE_APPOINTMENT_UPDATE"
+    SPACE_APPOINTMENT_DELETION = "SPACE_APPOINTMENT_DELETION"
 
 
 class UserData:
@@ -337,4 +341,66 @@ class SpaceNewPostPayload(Payload):
             },
             notification_type=notification_type,
             notification_version=SpaceNewPostPayload.NOTIFICATION_VERSION,
+        )
+
+
+class SpaceAppointmentCreationPayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, space: Community, appointment: Appointment):
+        super().__init__(
+            data={
+                "space": SpaceData.from_community(space).to_dict(),
+                "appointment": {
+                    "id": str(appointment.id),
+                    "title": appointment.title,
+                    "description": appointment.description,
+                    "location": appointment.location,
+                    "startDateTime": appointment.start_date_time.isoformat(),
+                    "endDateTime": appointment.start_date_time.isoformat(),
+                },
+                "link": f"{settings.APP_URL}/spaces/{space.name}/appointments/{appointment.slug}",
+            },
+            notification_type=NotificationType.SPACE_APPOINTMENT_CREATION.value,
+            notification_version=SpaceAppointmentCreationPayload.NOTIFICATION_VERSION,
+        )
+
+
+class SpaceAppointmentUpdatePayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, space: Community, appointment: Appointment):
+        super().__init__(
+            data={
+                "space": SpaceData.from_community(space).to_dict(),
+                "appointment": {
+                    "id": str(appointment.id),
+                    "title": appointment.title,
+                    "description": appointment.description,
+                    "location": appointment.location,
+                    "startDateTime": appointment.start_date_time.isoformat(),
+                    "endDateTime": appointment.start_date_time.isoformat(),
+                },
+                "link": f"{settings.APP_URL}/spaces/{space.name}/appointments/{appointment.slug}",
+            },
+            notification_type=NotificationType.SPACE_APPOINTMENT_UPDATE.value,
+            notification_version=SpaceAppointmentUpdatePayload.NOTIFICATION_VERSION,
+        )
+
+
+class SpaceAppointmentDeletionPayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, space: Community, appointment: Appointment):
+        super().__init__(
+            data={
+                "space": SpaceData.from_community(space).to_dict(),
+                "appointment": {
+                    "id": str(appointment.id),
+                    "title": appointment.title,
+                    "description": appointment.description,
+                },
+            },
+            notification_type=NotificationType.SPACE_APPOINTMENT_DELETION.value,
+            notification_version=SpaceAppointmentDeletionPayload.NOTIFICATION_VERSION,
         )

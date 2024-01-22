@@ -1,14 +1,17 @@
 import uuid
 from enum import Enum
-from requests import Session
-from requests.adapters import HTTPAdapter, Retry
-
 from typing import List
 from typing import Optional
 
+import sentry_sdk
+from novu.api import EventApi
+from requests import Session
+from requests.adapters import HTTPAdapter, Retry
+from requests.exceptions import ConnectionError
+
+from openbook_appointments.models import Appointment
 from openbook_auth.models import User
 from openbook_communities.models import Community, CommunityMembershipRequest, CommunityInvite
-
 from openbook_notifications.helpers import flatten_payload
 from openbook_notifications.payloads import (
     SpaceMembershipRequestPayload,
@@ -22,11 +25,11 @@ from openbook_notifications.payloads import (
     PostCommentMentionPayload,
     PostCommentAuthorPayload,
     SpaceNewPostPayload,
+    SpaceAppointmentCreationPayload,
+    SpaceAppointmentUpdatePayload,
+    SpaceAppointmentDeletionPayload,
 )
 from openbook_notifications.toggles import notifications_toggle
-
-from novu.api import EventApi
-
 from openbook_posts.models import Post, PostComment
 
 
@@ -44,6 +47,9 @@ class Workflow(Enum):
     POST_COMMENT_MENTION = "post-comment-mention"
     POST_COMMENT_AUTHOR = "post-comment-author"
     SPACE_NEW_POST = "space-new-post"
+    SPACE_APPOINTMENT_CREATION = "space-appointment-creation"
+    SPACE_APPOINTMENT_UPDATE = "space-appointment-update"
+    SPACE_APPOINTMENT_DELETION = "space-appointment-deletion"
 
 
 # Use this classes static methods to trigger notifications via the Notifications system (novu)
@@ -222,7 +228,7 @@ class Notifications:
         notification.send()
 
     @staticmethod
-    def send_space_new_post_notification(post: Post, collaborators=List[User]):
+    def send_space_new_post_notification(post: Post, collaborators: List[User]):
         notification = SpaceNewPostNotification(
             collaborators=[str(collaborator.username) for collaborator in collaborators],
             payload=SpaceNewPostPayload(
@@ -232,15 +238,55 @@ class Notifications:
         )
         notification.send()
 
+    @staticmethod
+    def send_space_appointment_creation_notification(
+        space: Community,
+        appointment: Appointment,
+        recipients: List[User],
+    ):
+        notification = SpaceAppointmentCreationNotification(
+            recipients=[str(recipient.username) for recipient in recipients],
+            payload=SpaceAppointmentCreationPayload(space=space, appointment=appointment),
+        )
+        notification.send()
+
+    @staticmethod
+    def send_space_appointment_update_notification(
+        space: Community,
+        appointment: Appointment,
+        recipients: List[User],
+    ):
+        notification = SpaceAppointmentUpdateNotification(
+            recipients=[str(recipient.username) for recipient in recipients],
+            payload=SpaceAppointmentUpdatePayload(space=space, appointment=appointment),
+        )
+
+        notification.send()
+
+    @staticmethod
+    def send_space_appointment_deletion_notification(
+        space: Community,
+        appointment: Appointment,
+        recipients: List[User],
+    ):
+        notification = SpaceAppointmentDeletionNotification(
+            recipients=[str(recipient.username) for recipient in recipients],
+            payload=SpaceAppointmentDeletionPayload(space=space, appointment=appointment),
+        )
+        notification.send()
+
 
 # INTERNAL USE ONLY, use Notifications instead to trigger notifications
 class Notification:
+    class DeliveryError(Exception):
+        pass
+
     def __init__(self, workflow: str, recipients: str | List[str], payload: dict, transaction_id: str):
         session = Session()
         retries = Retry(
-            total=5,  # Number of retries
-            backoff_factor=1,  # Delay between retries (exponential backoff)
-            status_forcelist=[502, 503, 504],  # Include common error codes
+            total=3,
+            backoff_factor=0.1,
+            status_forcelist=[502, 503, 504],
         )
         adapter = HTTPAdapter(max_retries=retries)
         session.mount("https://", adapter)
@@ -259,13 +305,28 @@ class Notification:
 
     @notifications_toggle
     def send(self):
-        return EventApi(session=self.session).trigger(
-            name=self.workflow,
-            recipients=self.recipients,
-            payload=self.payload,
-            overrides=self.overrides,
-            transaction_id=self.transaction_id,
-        )
+        if not self.recipients:
+            return
+
+        try:
+            return EventApi(session=self.session).trigger(
+                name=self.workflow,
+                recipients=self.recipients,
+                payload=self.payload,
+                overrides=self.overrides,
+                transaction_id=self.transaction_id,
+            )
+        except TypeError:
+            # Novu sdk raises a type error when a workflow is inactive
+            # as the response does not contain a transaction_id but its response model requires it
+            return None
+        except ConnectionError:
+            # retries exceeded
+            sentry_sdk.capture_exception(Notification.DeliveryError("Can't connect to Novu"))
+            return None
+        except (Exception,) as e:
+            sentry_sdk.capture_exception(Notification.DeliveryError("Novu SDK failed"))
+            return None
 
 
 # INTERNAL USE ONLY, use Notifications instead to trigger notifications
@@ -454,6 +515,51 @@ class SpaceNewPostNotification(Notification):
         super().__init__(
             workflow=Workflow.SPACE_NEW_POST.value,
             recipients=collaborators,
+            payload=payload.to_dict(),
+            transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
+        )
+
+
+class SpaceAppointmentCreationNotification(Notification):
+    def __init__(
+        self,
+        recipients: List[str],
+        payload: SpaceAppointmentCreationPayload,
+        transaction_id: Optional[str] = None,
+    ):
+        super().__init__(
+            workflow=Workflow.SPACE_APPOINTMENT_CREATION.value,
+            recipients=recipients,
+            payload=payload.to_dict(),
+            transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
+        )
+
+
+class SpaceAppointmentUpdateNotification(Notification):
+    def __init__(
+        self,
+        recipients: List[str],
+        payload: SpaceAppointmentUpdatePayload,
+        transaction_id: Optional[str] = None,
+    ):
+        super().__init__(
+            workflow=Workflow.SPACE_APPOINTMENT_UPDATE.value,
+            recipients=recipients,
+            payload=payload.to_dict(),
+            transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
+        )
+
+
+class SpaceAppointmentDeletionNotification(Notification):
+    def __init__(
+        self,
+        recipients: List[str],
+        payload: SpaceAppointmentDeletionPayload,
+        transaction_id: Optional[str] = None,
+    ):
+        super().__init__(
+            workflow=Workflow.SPACE_APPOINTMENT_DELETION.value,
+            recipients=recipients,
             payload=payload.to_dict(),
             transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
         )

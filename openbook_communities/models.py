@@ -524,6 +524,15 @@ class Community(ModelWithUUID):
         )
         return User.objects.filter(staff_members_query)
 
+    def get_staff_and_subscribers(self):
+        # covers all moderators because new joiners are subscribed automatically
+        # also includes requestors that have pending join requests
+        # admins aren't technically subscribing to a community, so they need to be queried
+        return User.objects.filter(
+            Q(community_notifications_subscriptions__community_id=self.pk)
+            | Q(communities_memberships__community_id=self.pk, communities_memberships__is_administrator=True)
+        ).distinct()
+
     def is_private(self):
         return self.type == self.COMMUNITY_TYPE_PRIVATE
 

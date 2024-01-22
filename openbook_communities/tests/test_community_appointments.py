@@ -1,15 +1,18 @@
+from unittest import mock
 from unittest.mock import patch
 
 import pytest
 import logging
 from django.test import AsyncClient, TestCase
 from django.utils import timezone
+import datetime
 
 from django.contrib.auth.models import AnonymousUser
 
 from openbook_appointments.services import AppointmentService
 from openbook_common.tests.helpers import make_user, make_community
 from openbook_communities.tests.helpers import get_space_by_id_with_appointments
+from openbook_notifications.notifications import Notification
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +26,12 @@ def client():
 class TestSpaceAppointments(TestCase):
     mock_current_datetime = timezone.datetime(2024, 6, 14, 12, 0, 0)
 
+    # prevent sending novu notifications
+    @pytest.fixture(scope="class", autouse=True)
+    def setup(self):
+        with mock.patch.object(Notification, "send"):
+            yield
+
     @classmethod
     def setUpTestData(cls):
         cls.anonymous_user = AnonymousUser()
@@ -34,12 +43,12 @@ class TestSpaceAppointments(TestCase):
         cls.space.add_member(cls.member_user)
 
         cls.old_public_appointment = AppointmentService().create_appointment(
-            space_id=str(cls.space.id),
+            space_id=cls.space.id,
             title="Public Appointment",
             invite_only=False,
             participant_ids=[],
-            start_date_time="2023-12-16T08:00:00",
-            end_date_time="2023-12-16T10:00:00",
+            start_date_time=timezone.make_aware(datetime.datetime(2023, 1, 15, 12)),
+            end_date_time=timezone.make_aware(datetime.datetime(2023, 1, 15, 13)),
             location="Hamburg, Germany",
             description="This is an old public appointment",
             permission="ADMINS",
@@ -48,12 +57,12 @@ class TestSpaceAppointments(TestCase):
         )
 
         cls.public_appointment = AppointmentService().create_appointment(
-            space_id=str(cls.space.id),
+            space_id=cls.space.id,
             title="Public Appointment",
             invite_only=False,
             participant_ids=[],
-            start_date_time="2024-06-16T08:00:00",
-            end_date_time="2024-06-16T10:00:00",
+            start_date_time=timezone.make_aware(datetime.datetime(2024, 6, 16, 8)),
+            end_date_time=timezone.make_aware(datetime.datetime(2024, 6, 16, 10)),
             location="Hamburg, Germany",
             description="This is a public appointment where everybody is welcome",
             permission="ADMINS",
@@ -62,12 +71,12 @@ class TestSpaceAppointments(TestCase):
         )
 
         cls.another_public_appointment = AppointmentService().create_appointment(
-            space_id=str(cls.space.id),
+            space_id=cls.space.id,
             title="Public Appointment",
             invite_only=False,
             participant_ids=[],
-            start_date_time="2024-06-17T08:00:00",
-            end_date_time="2024-06-17T10:00:00",
+            start_date_time=timezone.make_aware(datetime.datetime(2024, 6, 17, 8)),
+            end_date_time=timezone.make_aware(datetime.datetime(2024, 6, 18, 10)),
             location="Hamburg, Germany",
             description="This is a another public appointment where everybody is welcome",
             permission="ADMINS",
@@ -76,12 +85,12 @@ class TestSpaceAppointments(TestCase):
         )
 
         cls.invite_only_appointment = AppointmentService().create_appointment(
-            space_id=str(cls.space.id),
+            space_id=cls.space.id,
             title="Public Appointment",
             invite_only=True,
             participant_ids=[],
-            start_date_time="2024-06-18T08:00:00",
-            end_date_time="2024-06-18T10:00:00",
+            start_date_time=timezone.make_aware(datetime.datetime(2024, 6, 18, 8)),
+            end_date_time=timezone.make_aware(datetime.datetime(2024, 6, 18, 10)),
             location="Munich, Germany",
             description="This is a invite_only appointment where only invited people are welcome",
             permission="PARTICIPANTS",

@@ -4,11 +4,11 @@ from rest_framework.exceptions import NotFound
 from openbook_appointments.services import AppointmentService
 
 
-def space_member_exists(creator_id):
+def space_member_exists(username):
     from openbook_auth.models import User
 
-    if not User.user_with_username_exists(username=creator_id):
-        raise NotFound(_(f"Space member with username {creator_id} not found"))
+    if not User.user_with_username_exists(username=username):
+        raise NotFound(_(f"Space member with username {username} not found"))
 
 
 def appointment_exists(appointment_id):
