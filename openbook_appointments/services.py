@@ -4,17 +4,19 @@ from uuid import UUID
 from django.db.models import QuerySet
 
 from openbook_auth.models import User
+from openbook_common.schema.types import GeolocationPointInput
 from openbook_common.utils.model_loaders import get_community_model, get_user_model
 from openbook_communities.models import Community
 from openbook_notifications.notifications import Notifications
 from .checkers import AppointmentChecker
-from .repositories import AppointmentRepository, VideoCallLinkRepository
+from .repositories import AppointmentRepository, VideoCallLinkRepository, LocationRepository
 
 
 class AppointmentService:
     def __init__(self):
         self.repository = AppointmentRepository()
         self.video_call_link_service = VideoCallLinkService()
+        self.location_service = LocationService()
         self.checker = AppointmentChecker()
 
     def create_appointment(
@@ -28,7 +30,6 @@ class AppointmentService:
         creator: User,
         participant_ids=None,
         location=None,
-        geolocation=None,
         video_call_link=None,
         video_call_info=None,
         description=None,
@@ -51,6 +52,8 @@ class AppointmentService:
             else None
         )
 
+        location = self.location_service.create_location(location) if location else None
+
         appointment = self.repository.create_appointment(
             title=title,
             invite_only=invite_only,
@@ -58,7 +61,6 @@ class AppointmentService:
             start_date_time=start_date_time,
             end_date_time=end_date_time,
             location=location,
-            geolocation=geolocation,
             video_call_link=video_call_link,
             description=description,
             thumbnail=thumbnail,
@@ -89,7 +91,6 @@ class AppointmentService:
         permission=None,
         participant_ids=None,
         location=None,
-        geolocation=None,
         video_call_link=None,
         video_call_info=None,
         description=None,
@@ -103,6 +104,7 @@ class AppointmentService:
         participants = user_model.objects.filter(username__in=participant_ids) if participant_ids else []
 
         video_call_link = self._update_video_call_link(appointment, video_call_info, video_call_link)
+        location = self._update_location(appointment, location)
 
         updated_appointment = self.repository.update_appointment(
             appointment_id=appointment_id,
@@ -112,7 +114,6 @@ class AppointmentService:
             start_date_time=start_date_time,
             end_date_time=end_date_time,
             location=location,
-            geolocation=geolocation,
             video_call_link=video_call_link,
             description=description,
             thumbnail=thumbnail,
@@ -162,6 +163,22 @@ class AppointmentService:
             video_call_link_id=appointment.video_call_link.id,
             url=video_call_link,
             additional_info=video_call_info,
+        )
+
+    def _update_location(self, appointment, location_data):
+        appointment_location = appointment.location
+
+        if not location_data:
+            if appointment_location:
+                self.location_service.delete_location(location_id=appointment_location.id)
+            return None
+
+        if not appointment_location:
+            return self.location_service.create_location(location_data=location_data)
+
+        return self.location_service.update_location(
+            location_id=appointment_location.id,
+            location_data=location_data,
         )
 
     def get_appointments(
@@ -224,3 +241,30 @@ class VideoCallLinkService:
 
     def delete_video_call_link(self, video_call_link_id):
         return self.repository.delete_video_call_link(video_call_link_id=video_call_link_id)
+
+
+class LocationService:
+    def __init__(self):
+        self.repository = LocationRepository()
+
+    def create_location(self, location_data):
+        return self.repository.create_location(
+            complete_address=location_data.get("complete_address"),
+            city=location_data.get("city"),
+            state=location_data.get("state"),
+            country=location_data.get("country"),
+            geolocation=GeolocationPointInput.to_point(location_data.get("geolocation")),
+        )
+
+    def update_location(self, location_id, location_data):
+        return self.repository.update_location(
+            location_id=location_id,
+            complete_address=location_data.get("complete_address"),
+            city=location_data.get("city"),
+            state=location_data.get("state"),
+            country=location_data.get("country"),
+            geolocation=GeolocationPointInput.to_point(location_data.get("geolocation")),
+        )
+
+    def delete_location(self, location_id):
+        return self.repository.delete_location(location_id)
