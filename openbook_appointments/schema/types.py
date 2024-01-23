@@ -6,7 +6,7 @@ import strawberry_django
 from strawberry.file_uploads import Upload
 
 from openbook_appointments.enums import PermissionType
-from openbook_appointments.models import Appointment, VideoCallLink
+from openbook_appointments.models import Appointment, VideoCallLink, Location
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import GeolocationPoint, GeolocationPointInput
 
@@ -14,8 +14,34 @@ from openbook_common.schema.types import GeolocationPoint, GeolocationPointInput
 @strawberry_django.type(VideoCallLink)
 class VideoCallLink:
     id: strawberry.auto
-    url: str
+    url: strawberry.auto
     additional_info: strawberry.auto
+
+
+@strawberry_django.type(Location)
+class Location:
+    city: strawberry.auto
+    state: strawberry.auto
+    country: strawberry.auto
+
+    @strawberry_django.field()
+    def complete_address(self, info) -> Optional[str]:
+        user = info.context.request.user
+        if user.is_anonymous:
+            if self.city:
+                return f"{self.city}, {self.country}"
+            if self.state:
+                return f"{self.state}, {self.country}"
+            return self.country
+
+        return self.complete_address
+
+    @strawberry_django.field()
+    def geolocation(self, info) -> Optional[GeolocationPoint]:
+        user = info.context.request.user
+        if user.is_anonymous:
+            return None
+        return GeolocationPoint.from_point(self.geolocation)
 
 
 @strawberry_django.type(Appointment)
@@ -27,24 +53,14 @@ class Appointment:
     participants: Optional[List[User]]
     start_date_time: strawberry.auto
     end_date_time: strawberry.auto
+    location: Optional[Location]
     video_call_link: Optional[VideoCallLink]
     description: strawberry.auto
     thumbnail: Optional[str]
     thumbnail_blurhash: Optional[str]
     permission: PermissionType
     creator: User
-
-    @strawberry_django.field()
-    def location(self, info) -> Optional[str]:
-        user = info.context.request.user
-        if user.is_anonymous:
-            return None
-
-        return self.location
-
-    @strawberry_django.field()
-    def geolocation(self) -> Optional[GeolocationPoint]:
-        return GeolocationPoint.from_point(self.geolocation)
+    is_hybrid: Optional[bool]
 
     @strawberry_django.field()
     def video_call_link(self, info) -> Optional[VideoCallLink]:
@@ -56,6 +72,15 @@ class Appointment:
 
 
 @strawberry.input
+class LocationInput:
+    complete_address: Optional[str]
+    city: Optional[str]
+    state: Optional[str]
+    country: Optional[str]
+    geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
+
+
+@strawberry.input
 class CreateAppointmentInput:
     space_id: uuid.UUID
     title: str
@@ -63,13 +88,12 @@ class CreateAppointmentInput:
     participant_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     start_date_time: str
     end_date_time: str
-    location: Optional[str] = strawberry.UNSET
+    location: Optional[LocationInput] = strawberry.UNSET
     description: Optional[str] = strawberry.UNSET
     permission: PermissionType
     video_call_link: Optional[str] = strawberry.UNSET
     video_call_info: Optional[str] = strawberry.UNSET
     thumbnail: Optional[Upload] = strawberry.UNSET
-    geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
 
 
 @strawberry.input
@@ -80,13 +104,12 @@ class UpdateAppointmentInput:
     participant_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     start_date_time: Optional[str] = strawberry.UNSET
     end_date_time: Optional[str] = strawberry.UNSET
-    location: Optional[str] = strawberry.UNSET
+    location: Optional[LocationInput] = strawberry.UNSET
     description: Optional[str] = strawberry.UNSET
     permission: Optional[PermissionType] = strawberry.UNSET
     video_call_link: Optional[str] = strawberry.UNSET
     video_call_info: Optional[str] = strawberry.UNSET
     thumbnail: Optional[Upload] = strawberry.UNSET
-    geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
 
 
 @strawberry.input
