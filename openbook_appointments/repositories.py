@@ -4,9 +4,9 @@ from uuid import UUID
 from django.db.models import Q
 from django.utils import timezone
 
-from openbook_common.utils.helpers import is_uuid, delete_file_field
+from openbook_common.utils.helpers import is_uuid
 from .enums import StatusType
-from .models import Appointment, VideoCallLink
+from .models import Appointment, VideoCallLink, Location
 
 
 class AppointmentRepository:
@@ -17,7 +17,6 @@ class AppointmentRepository:
         start_date_time,
         end_date_time,
         location,
-        geolocation,
         video_call_link,
         description,
         thumbnail,
@@ -32,7 +31,6 @@ class AppointmentRepository:
             start_date_time=start_date_time,
             end_date_time=end_date_time,
             location=location,
-            geolocation=geolocation,
             video_call_link=video_call_link,
             description=description,
             thumbnail=thumbnail,
@@ -70,7 +68,6 @@ class AppointmentRepository:
         start_date_time=None,
         end_date_time=None,
         location=None,
-        geolocation=None,
         video_call_link=None,
         description=None,
         thumbnail=None,
@@ -94,9 +91,6 @@ class AppointmentRepository:
 
         if location is not None:
             appointment.location = location
-
-        if geolocation is not None:
-            appointment.geolocation = geolocation
 
         if video_call_link is not None:
             appointment.video_call_link = video_call_link
@@ -145,3 +139,23 @@ class VideoCallLinkRepository:
 
     def delete_video_call_link(self, video_call_link_id):
         VideoCallLink.objects.get(id=video_call_link_id).delete()
+
+
+class LocationRepository:
+    def create_location(self, complete_address, city, state, country, geolocation):
+        return Location.objects.create(
+            complete_address=complete_address, city=city, state=state, country=country, geolocation=geolocation
+        )
+
+    def update_location(self, location_id, complete_address, city, state, country, geolocation):
+        location = Location.objects.get(id=location_id)
+        location.complete_address = complete_address
+        location.city = city
+        location.state = state
+        location.country = country
+        location.geolocation = geolocation
+        location.save()
+        return location
+
+    def delete_location(self, location_id):
+        return Location.objects.get(id=location_id).delete()
