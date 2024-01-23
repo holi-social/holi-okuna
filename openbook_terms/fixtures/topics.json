@@ -205,10 +205,10 @@
     "fields": {
       "title_hu": "WARNING: There is a hidden ASCII character before the titles to force this topic to be the first alphabetically. This title is duplicated in order to ignore this message and use null for title_hu.",
       "slug": "democracy-human-rights",
-      "title": "​Democracy & Human Rights",
+      "title": " Democracy & Human Rights",
       "title_es": null,
-      "title_en": "​Democracy & Human Rights",
-      "title_de": "​Demokratie & Menschenrechte",
+      "title_en": " Democracy & Human Rights",
+      "title_de": " Demokratie & Menschenrechte",
       "title_nl": null,
       "title_da": null,
       "title_hu": null,
