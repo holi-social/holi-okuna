@@ -35,14 +35,13 @@ class Appointment(ModelWithUUID):
 
     end_date_time = models.DateTimeField(blank=False)
 
-    location = models.CharField(
-        max_length=settings.TASK_LOCATION_MAX_LENGTH,
+    location = models.OneToOneField(
+        "Location",
+        related_name="appointment",
+        on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        db_index=True,
     )
-
-    geolocation = models.PointField(blank=True, null=True, spatial_index=True)
 
     video_call_link = models.OneToOneField(
         "VideoCallLink",
@@ -128,6 +127,10 @@ class Appointment(ModelWithUUID):
     def starts_in_future(self):
         return self.start_date_time > timezone.now()
 
+    @property
+    def is_hybrid(self) -> bool:
+        return bool(self.video_call_link and self.location)
+
 
 class VideoCallLink(ModelWithUUID):
     url = models.URLField(blank=False, max_length=settings.VIDEO_CALL_LINK_URL_MAX_LENGTH)
@@ -135,3 +138,20 @@ class VideoCallLink(ModelWithUUID):
     additional_info = models.TextField(
         max_length=settings.VIDEO_CALL_LINK_DESCRIPTION_MAX_LENGTH, blank=True, null=True
     )
+
+
+class Location(ModelWithUUID):
+    complete_address = models.CharField(
+        max_length=settings.APPOINTMENT_LOCATION_MAX_LENGTH,
+        blank=True,
+        null=True,
+        db_index=True,
+    )
+
+    geolocation = models.PointField(blank=True, null=True, spatial_index=True)
+
+    city = models.CharField(max_length=settings.APPOINTMENT_LOCATION_MAX_LENGTH, blank=True, null=True)
+
+    state = models.CharField(max_length=settings.APPOINTMENT_LOCATION_MAX_LENGTH, blank=True, null=True)
+
+    country = models.CharField(max_length=settings.APPOINTMENT_LOCATION_MAX_LENGTH, blank=True, null=True)
