@@ -19,7 +19,16 @@ def create_appointment(user, input):
                 }
                 startDateTime
                 endDateTime
-                location
+                locationDetails {
+                    completeAddress
+                    city
+                    state
+                    country
+                    geolocation {
+                        latitude
+                        longitude
+                    }
+                }
                 description
                 permission
                 videoCallLink {
@@ -29,6 +38,7 @@ def create_appointment(user, input):
                 creator {
                     fullName
                 }
+                isHybrid
             }
         }
         """,
@@ -51,7 +61,16 @@ def update_appointment(user, input):
                 }
                 startDateTime
                 endDateTime
-                location
+                locationDetails {
+                    completeAddress
+                    city
+                    state
+                    country
+                    geolocation {
+                        latitude
+                        longitude
+                    }
+                }
                 description
                 permission
                 videoCallLink {
@@ -61,6 +80,7 @@ def update_appointment(user, input):
                 creator {
                     fullName
                 }
+                isHybrid
             }
         }
         """,
@@ -85,7 +105,16 @@ def appointments(user, space_id, status_type: StatusType):
                     }
                     startDateTime
                     endDateTime
-                    location
+                    locationDetails {
+                        completeAddress
+                        city
+                        state
+                        country
+                        geolocation {
+                            latitude
+                            longitude
+                        }
+                    }
                     description
                     permission
                     videoCallLink {
@@ -95,6 +124,7 @@ def appointments(user, space_id, status_type: StatusType):
                     creator {
                         fullName
                     }
+                    isHybrid
                 }
             }
         }
@@ -121,7 +151,16 @@ def appointment(user, id_or_slug):
                     }
                     startDateTime
                     endDateTime
-                    location
+                    locationDetails {
+                        completeAddress
+                        city
+                        state
+                        country
+                        geolocation {
+                            latitude
+                            longitude
+                        }
+                    }
                     description
                     permission
                     videoCallLink {
@@ -131,6 +170,7 @@ def appointment(user, id_or_slug):
                     creator {
                         fullName
                     }
+                    isHybrid
             }
         }
         """,

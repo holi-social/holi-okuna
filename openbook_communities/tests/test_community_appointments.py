@@ -41,6 +41,16 @@ class TestSpaceAppointments(TestCase):
         cls.space = make_community(creator=cls.admin_user)
 
         cls.space.add_member(cls.member_user)
+        cls.location_details = {
+            "completeAddress": "Munich, Bavaria, Germany",
+            "city": "Munich",
+            "state": "Bavaria",
+            "country": "Germany",
+            "geolocation": {
+                "latitude": 48.1371079,
+                "longitude": 11.5753822,
+            },
+        }
 
         cls.old_public_appointment = AppointmentService().create_appointment(
             space_id=cls.space.id,
@@ -49,7 +59,7 @@ class TestSpaceAppointments(TestCase):
             participant_ids=[],
             start_date_time=timezone.make_aware(datetime.datetime(2023, 1, 15, 12)),
             end_date_time=timezone.make_aware(datetime.datetime(2023, 1, 15, 13)),
-            location="Hamburg, Germany",
+            location_details=cls.location_details,
             description="This is an old public appointment",
             permission="ADMINS",
             creator=cls.admin_user,
@@ -63,7 +73,7 @@ class TestSpaceAppointments(TestCase):
             participant_ids=[],
             start_date_time=timezone.make_aware(datetime.datetime(2024, 6, 16, 8)),
             end_date_time=timezone.make_aware(datetime.datetime(2024, 6, 16, 10)),
-            location="Hamburg, Germany",
+            location_details=cls.location_details,
             description="This is a public appointment where everybody is welcome",
             permission="ADMINS",
             creator=cls.admin_user,
@@ -77,7 +87,7 @@ class TestSpaceAppointments(TestCase):
             participant_ids=[],
             start_date_time=timezone.make_aware(datetime.datetime(2024, 6, 17, 8)),
             end_date_time=timezone.make_aware(datetime.datetime(2024, 6, 18, 10)),
-            location="Hamburg, Germany",
+            location_details=cls.location_details,
             description="This is a another public appointment where everybody is welcome",
             permission="ADMINS",
             creator=cls.admin_user,
@@ -91,7 +101,7 @@ class TestSpaceAppointments(TestCase):
             participant_ids=[],
             start_date_time=timezone.make_aware(datetime.datetime(2024, 6, 18, 8)),
             end_date_time=timezone.make_aware(datetime.datetime(2024, 6, 18, 10)),
-            location="Munich, Germany",
+            location_details=cls.location_details,
             description="This is a invite_only appointment where only invited people are welcome",
             permission="PARTICIPANTS",
             creator=cls.admin_user,
@@ -132,16 +142,25 @@ class TestSpaceAppointments(TestCase):
     def test_member_users_can_retrieve_all_appointments_details(self, mock_current_datetime):
         response = get_space_by_id_with_appointments(self.space.id, self.member_user)
         assert response["appointments"]["totalResults"] == 3
-        assert response["appointments"]["data"][0]["location"] == self.public_appointment.location
+        assert (
+            response["appointments"]["data"][0]["locationDetails"]["completeAddress"]
+            == self.public_appointment.location_details.complete_address
+        )
         assert (
             response["appointments"]["data"][0]["videoCallLink"]["url"] == self.public_appointment.video_call_link.url
         )
-        assert response["appointments"]["data"][1]["location"] == self.another_public_appointment.location
+        assert (
+            response["appointments"]["data"][1]["locationDetails"]["completeAddress"]
+            == self.another_public_appointment.location_details.complete_address
+        )
         assert (
             response["appointments"]["data"][1]["videoCallLink"]["url"]
             == self.another_public_appointment.video_call_link.url
         )
-        assert response["appointments"]["data"][2]["location"] == self.invite_only_appointment.location
+        assert (
+            response["appointments"]["data"][2]["locationDetails"]["completeAddress"]
+            == self.invite_only_appointment.location_details.complete_address
+        )
         assert (
             response["appointments"]["data"][2]["videoCallLink"]["url"]
             == self.invite_only_appointment.video_call_link.url
@@ -159,11 +178,17 @@ class TestSpaceAppointments(TestCase):
     def test_external_users_can_retrieve_public_appointments_details(self, mock_current_datetime):
         response = get_space_by_id_with_appointments(self.space.id, self.external_user)
         assert response["appointments"]["totalResults"] == 2
-        assert response["appointments"]["data"][0]["location"] == self.public_appointment.location
+        assert (
+            response["appointments"]["data"][0]["locationDetails"]["completeAddress"]
+            == self.public_appointment.location_details.complete_address
+        )
         assert (
             response["appointments"]["data"][0]["videoCallLink"]["url"] == self.public_appointment.video_call_link.url
         )
-        assert response["appointments"]["data"][1]["location"] == self.another_public_appointment.location
+        assert (
+            response["appointments"]["data"][1]["locationDetails"]["completeAddress"]
+            == self.another_public_appointment.location_details.complete_address
+        )
         assert (
             response["appointments"]["data"][1]["videoCallLink"]["url"]
             == self.another_public_appointment.video_call_link.url
@@ -181,7 +206,24 @@ class TestSpaceAppointments(TestCase):
     def test_anonymous_users_can_not_retrieve_public_appointments_details(self, mock_current_datetime):
         response = get_space_by_id_with_appointments(self.space.id, self.anonymous_user)
         assert response["appointments"]["totalResults"] == 2
-        assert response["appointments"]["data"][0]["location"] is None
+        assert (
+            not response["appointments"]["data"][0]["locationDetails"]["completeAddress"]
+            == self.public_appointment.location_details.complete_address
+        )
+        assert (
+            response["appointments"]["data"][0]["locationDetails"]["completeAddress"]
+            == f"{self.public_appointment.location_details.city}, {self.public_appointment.location_details.country}"
+        )
+        assert response["appointments"]["data"][0]["locationDetails"]["geolocation"] is None
         assert response["appointments"]["data"][0]["videoCallLink"] is None
-        assert response["appointments"]["data"][1]["location"] is None
+
+        assert (
+            not response["appointments"]["data"][1]["locationDetails"]["completeAddress"]
+            == self.another_public_appointment.location_details.complete_address
+        )
+        assert (
+            response["appointments"]["data"][1]["locationDetails"]["completeAddress"]
+            == f"{self.another_public_appointment.location_details.city}, {self.another_public_appointment.location_details.country}"
+        )
         assert response["appointments"]["data"][1]["videoCallLink"] is None
+        assert response["appointments"]["data"][1]["locationDetails"]["geolocation"] is None

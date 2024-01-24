@@ -65,6 +65,16 @@ class TestAppointments(TestCase):
         cls.space.add_member(cls.participant)
         cls.space.add_member(cls.another_user_member)
         cls.space.add_administrator(cls.admin)
+        cls.location_details = {
+            "completeAddress": "Munich, Bavaria, Germany",
+            "city": "Munich",
+            "state": "Bavaria",
+            "country": "Germany",
+            "geolocation": {
+                "latitude": 48.1371079,
+                "longitude": 11.5753822,
+            },
+        }
 
         cls.public_appointment_input_data = {
             "spaceId": str(cls.space.id),
@@ -73,7 +83,7 @@ class TestAppointments(TestCase):
             "participantIds": [],
             "startDateTime": fake.future_datetime().isoformat(),
             "endDateTime": fake.future_datetime().isoformat(),
-            "location": fake.text(max_nb_chars=settings.APPOINTMENT_LOCATION_MAX_LENGTH),
+            "locationDetails": cls.location_details,
             "description": fake.text(max_nb_chars=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH),
             "permission": PermissionType.ADMINS,
             "videoCallLink": "https://zoom.us/j/712889134",
@@ -87,7 +97,7 @@ class TestAppointments(TestCase):
             "participantIds": [str(cls.participant.username)],
             "startDateTime": fake.future_datetime().isoformat(),
             "endDateTime": fake.future_datetime().isoformat(),
-            "location": fake.text(max_nb_chars=settings.APPOINTMENT_LOCATION_MAX_LENGTH),
+            "locationDetails": cls.location_details,
             "description": fake.text(max_nb_chars=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH),
             "permission": PermissionType.ADMINS,
             "videoCallLink": "https://zoom.us/j/615887136",
@@ -101,7 +111,7 @@ class TestAppointments(TestCase):
             "participantIds": [str(cls.participant.username)],
             "startDateTime": fake.future_datetime().isoformat(),
             "endDateTime": fake.future_datetime().isoformat(),
-            "location": fake.text(max_nb_chars=settings.APPOINTMENT_LOCATION_MAX_LENGTH),
+            "locationDetails": cls.location_details,
             "description": fake.text(max_nb_chars=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH),
             "permission": PermissionType.PARTICIPANTS,
             "videoCallLink": "https://zoom.us/j/615887136",
@@ -115,7 +125,7 @@ class TestAppointments(TestCase):
             "participantIds": [str(cls.participant.username)],
             "startDateTime": "2023-12-02T08:00:00",
             "endDateTime": "2023-12-02T10:00:00",
-            "location": fake.text(max_nb_chars=settings.APPOINTMENT_LOCATION_MAX_LENGTH),
+            "locationDetails": cls.location_details,
             "description": fake.text(max_nb_chars=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH),
             "permission": PermissionType.ADMINS,
             "videoCallLink": "https://zoom.us/j/712889134",
@@ -129,7 +139,7 @@ class TestAppointments(TestCase):
             "participantIds": [],
             "startDateTime": "2024-01-02T08:00:00",
             "endDateTime": "2024-01-02T10:00:00",
-            "location": fake.text(max_nb_chars=settings.APPOINTMENT_LOCATION_MAX_LENGTH),
+            "locationDetails": cls.location_details,
             "description": fake.text(max_nb_chars=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH),
             "permission": PermissionType.ADMINS,
             "videoCallLink": "https://zoom.us/j/712889134",
@@ -164,12 +174,16 @@ class TestAppointments(TestCase):
         assert data["participants"] == []
         assert data["startDateTime"] == expected_start_date_time
         assert data["endDateTime"] == expected_end_date_time
-        assert data["location"] == self.public_appointment_input_data["location"]
+        assert (
+            data["locationDetails"]["completeAddress"]
+            == self.public_appointment_input_data["locationDetails"]["completeAddress"]
+        )
         assert data["description"] == self.public_appointment_input_data["description"]
         assert data["permission"] == self.public_appointment_input_data["permission"]
         assert data["videoCallLink"]["url"] == self.public_appointment_input_data["videoCallLink"]
         assert data["videoCallLink"]["additionalInfo"] == self.public_appointment_input_data["videoCallInfo"]
         assert data["creator"]["fullName"] == self.admin.profile.full_name()
+        assert data["isHybrid"]
 
     def test_can_create_invite_only_appointment_if_admin(self):
         response = create_appointment(self.admin, self.invite_only_appointment_input_data)
@@ -188,12 +202,16 @@ class TestAppointments(TestCase):
         assert data["participants"] == [{"fullName": self.participant.profile.full_name()}]
         assert data["startDateTime"] == expected_start_date_time
         assert data["endDateTime"] == expected_end_date_time
-        assert data["location"] == self.invite_only_appointment_input_data["location"]
+        assert (
+            data["locationDetails"]["completeAddress"]
+            == self.public_appointment_input_data["locationDetails"]["completeAddress"]
+        )
         assert data["description"] == self.invite_only_appointment_input_data["description"]
         assert data["permission"] == self.invite_only_appointment_input_data["permission"]
         assert data["videoCallLink"]["url"] == self.invite_only_appointment_input_data["videoCallLink"]
         assert data["videoCallLink"]["additionalInfo"] == self.invite_only_appointment_input_data["videoCallInfo"]
         assert data["creator"]["fullName"] == self.admin.profile.full_name()
+        assert data["isHybrid"]
 
     def test_can_not_create_public_appointment_if_member(self):
         response = create_appointment(self.user_member, self.public_appointment_input_data)
@@ -223,12 +241,16 @@ class TestAppointments(TestCase):
         assert data["participants"] == [{"fullName": self.participant.profile.full_name()}]
         assert data["startDateTime"] == expected_start_date_time
         assert data["endDateTime"] == expected_end_date_time
-        assert data["location"] == self.invite_only_appointment_input_data["location"]
+        assert (
+            data["locationDetails"]["completeAddress"]
+            == self.public_appointment_input_data["locationDetails"]["completeAddress"]
+        )
         assert data["description"] == self.invite_only_appointment_input_data["description"]
         assert data["permission"] == self.invite_only_appointment_input_data["permission"]
         assert data["videoCallLink"]["url"] == self.invite_only_appointment_input_data["videoCallLink"]
         assert data["videoCallLink"]["additionalInfo"] == self.invite_only_appointment_input_data["videoCallInfo"]
         assert data["creator"]["fullName"] == self.user_member.profile.full_name()
+        assert data["isHybrid"]
 
     @patch("django.utils.timezone.now", return_value=mock_current_datetime)
     def test_can_query_all_appointments_if_admin(self, mock_current_datetime):
@@ -561,11 +583,15 @@ class TestAppointments(TestCase):
         assert data["participants"] == [{"fullName": self.participant.profile.full_name()}]
         assert data["startDateTime"] == expected_start_date_time
         assert data["endDateTime"] == expected_end_date_time
-        assert data["location"] == self.invite_only_appointment_input_data["location"]
+        assert (
+            data["locationDetails"]["completeAddress"]
+            == self.public_appointment_input_data["locationDetails"]["completeAddress"]
+        )
         assert data["description"] == self.invite_only_appointment_input_data["description"]
         assert data["permission"] == self.invite_only_appointment_input_data["permission"]
         assert data["videoCallLink"]["url"] == self.invite_only_appointment_input_data["videoCallLink"]
         assert data["videoCallLink"]["additionalInfo"] == self.invite_only_appointment_input_data["videoCallInfo"]
+        assert data["isHybrid"]
 
     def test_can_update_invite_only_appointment_if_admin(self):
         create_mutation_response = create_appointment(self.admin, self.invite_only_appointment_input_data)
@@ -590,11 +616,15 @@ class TestAppointments(TestCase):
         assert data["participants"] == []
         assert data["startDateTime"] == expected_start_date_time
         assert data["endDateTime"] == expected_end_date_time
-        assert data["location"] == self.public_appointment_input_data["location"]
+        assert (
+            data["locationDetails"]["completeAddress"]
+            == self.public_appointment_input_data["locationDetails"]["completeAddress"]
+        )
         assert data["description"] == self.public_appointment_input_data["description"]
         assert data["permission"] == self.public_appointment_input_data["permission"]
         assert data["videoCallLink"]["url"] == self.public_appointment_input_data["videoCallLink"]
         assert data["videoCallLink"]["additionalInfo"] == self.public_appointment_input_data["videoCallInfo"]
+        assert data["isHybrid"]
 
     def test_can_update_invite_only_appointment_if_creator(self):
         create_mutation_response = create_appointment(self.user_member, self.invite_only_appointment_input_data)
@@ -621,13 +651,17 @@ class TestAppointments(TestCase):
         assert data["participants"] == [{"fullName": self.participant.profile.full_name()}]
         assert data["startDateTime"] == expected_start_date_time
         assert data["endDateTime"] == expected_end_date_time
-        assert data["location"] == self.another_invite_only_appointment_input_data["location"]
+        assert (
+            data["locationDetails"]["completeAddress"]
+            == self.public_appointment_input_data["locationDetails"]["completeAddress"]
+        )
         assert data["description"] == self.another_invite_only_appointment_input_data["description"]
         assert data["permission"] == self.another_invite_only_appointment_input_data["permission"]
         assert data["videoCallLink"]["url"] == self.another_invite_only_appointment_input_data["videoCallLink"]
         assert (
             data["videoCallLink"]["additionalInfo"] == self.another_invite_only_appointment_input_data["videoCallInfo"]
         )
+        assert data["isHybrid"]
 
     def test_can_update_invite_only_appointment_if_participant(self):
         create_mutation_response = create_appointment(
@@ -656,7 +690,10 @@ class TestAppointments(TestCase):
         assert data["participants"] == [{"fullName": self.participant.profile.full_name()}]
         assert data["startDateTime"] == expected_start_date_time
         assert data["endDateTime"] == expected_end_date_time
-        assert data["location"] == self.invite_only_appointment_input_data["location"]
+        assert (
+            data["locationDetails"]["completeAddress"]
+            == self.public_appointment_input_data["locationDetails"]["completeAddress"]
+        )
         assert data["description"] == self.invite_only_appointment_input_data["description"]
         assert data["permission"] == self.invite_only_appointment_input_data["permission"]
         assert data["videoCallLink"]["url"] == self.invite_only_appointment_input_data["videoCallLink"]

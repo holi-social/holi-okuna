@@ -8,6 +8,22 @@ from openbook_common.serializers_fields.request import RestrictedImageFileSizeFi
 from openbook_communities.validators import community_id_exists
 
 
+class LocationDetailsSerializer(serializers.Serializer):
+    complete_address = serializers.CharField(
+        max_length=settings.COMPLETE_ADDRESS_MAX_LENGTH, required=False, allow_null=True, allow_blank=True
+    )
+    city = serializers.CharField(
+        max_length=settings.CITY_MAX_LENGTH, required=False, allow_null=True, allow_blank=True
+    )
+    state = serializers.CharField(
+        max_length=settings.STATE_MAX_LENGTH, required=False, allow_null=True, allow_blank=True
+    )
+    country = serializers.CharField(
+        max_length=settings.COUNTRY_MAX_LENGTH, required=False, allow_null=True, allow_blank=True
+    )
+    geolocation = GeolocationPointSerializer(required=False)
+
+
 class CreateAppointmentSerializer(serializers.Serializer):
     title = serializers.CharField(
         min_length=settings.APPOINTMENT_TITLE_MIN_LENGTH,
@@ -29,10 +45,13 @@ class CreateAppointmentSerializer(serializers.Serializer):
     location = serializers.CharField(
         max_length=settings.APPOINTMENT_LOCATION_MAX_LENGTH,
         required=False,
+        allow_null=True,
         allow_blank=True,
     )
 
-    geolocation = GeolocationPointSerializer(required=False, allow_null=True)
+    geolocation = GeolocationPointSerializer(required=False)
+
+    location_details = LocationDetailsSerializer(required=False)
 
     description = serializers.CharField(
         max_length=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH,
@@ -98,6 +117,8 @@ class UpdateAppointmentSerializer(serializers.Serializer):
     )
 
     geolocation = GeolocationPointSerializer(required=False)
+
+    location_details = LocationDetailsSerializer(required=False, allow_null=True)
 
     description = serializers.CharField(
         max_length=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH,

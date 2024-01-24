@@ -4,17 +4,19 @@ from uuid import UUID
 from django.db.models import QuerySet
 
 from openbook_auth.models import User
+from openbook_common.schema.types import GeolocationPointInput
 from openbook_common.utils.model_loaders import get_community_model, get_user_model
 from openbook_communities.models import Community
 from openbook_notifications.notifications import Notifications
 from .checkers import AppointmentChecker
-from .repositories import AppointmentRepository, VideoCallLinkRepository
+from .repositories import AppointmentRepository, VideoCallLinkRepository, LocationDetailsRepository
 
 
 class AppointmentService:
     def __init__(self):
         self.repository = AppointmentRepository()
         self.video_call_link_service = VideoCallLinkService()
+        self.location_service = LocationDetailsService()
         self.checker = AppointmentChecker()
 
     def create_appointment(
@@ -29,6 +31,7 @@ class AppointmentService:
         participant_ids=None,
         location=None,
         geolocation=None,
+        location_details=None,
         video_call_link=None,
         video_call_info=None,
         description=None,
@@ -51,6 +54,9 @@ class AppointmentService:
             else None
         )
 
+        # TODO: Replace it with create_location_details once the application no longer supports deprecated location and geolocation fields.
+        location_details = self._create_location_details(geolocation, location, location_details)
+
         appointment = self.repository.create_appointment(
             title=title,
             invite_only=invite_only,
@@ -58,7 +64,8 @@ class AppointmentService:
             start_date_time=start_date_time,
             end_date_time=end_date_time,
             location=location,
-            geolocation=geolocation,
+            geolocation=GeolocationPointInput.to_point(geolocation),
+            location_details=location_details,
             video_call_link=video_call_link,
             description=description,
             thumbnail=thumbnail,
@@ -78,6 +85,24 @@ class AppointmentService:
 
         return appointment
 
+    # TODO: This function is here just for backward compatibility purposes. Remove it once the application no longer supports deprecated location and geolocation fields.
+    def _create_location_details(self, geolocation, location, location_details):
+        if location_details:
+            location_details = self.location_service.create_location_details(location_details)
+
+        elif location and geolocation:
+            location_details = self.location_service.create_location_details(
+                {
+                    "complete_address": location,
+                    "city": None,
+                    "state": None,
+                    "country": [part.strip() for part in location.split(",")][-1],
+                    "geolocation": geolocation,
+                }
+            )
+
+        return location_details
+
     def update_appointment(
         self,
         appointment_id,
@@ -90,6 +115,7 @@ class AppointmentService:
         participant_ids=None,
         location=None,
         geolocation=None,
+        location_details=None,
         video_call_link=None,
         video_call_info=None,
         description=None,
@@ -104,6 +130,9 @@ class AppointmentService:
 
         video_call_link = self._update_video_call_link(appointment, video_call_info, video_call_link)
 
+        # TODO: Replace it with _manage_location_details once the application no longer supports deprecated location and geolocation fields.
+        location_details = self._manage_appointment_location_info(appointment, geolocation, location, location_details)
+
         updated_appointment = self.repository.update_appointment(
             appointment_id=appointment_id,
             title=title,
@@ -112,7 +141,8 @@ class AppointmentService:
             start_date_time=start_date_time,
             end_date_time=end_date_time,
             location=location,
-            geolocation=geolocation,
+            geolocation=GeolocationPointInput.to_point(geolocation),
+            location_details=location_details,
             video_call_link=video_call_link,
             description=description,
             thumbnail=thumbnail,
@@ -133,6 +163,32 @@ class AppointmentService:
             )
 
         return updated_appointment
+
+    # TODO: This function is here just for backward compatibility purposes. Remove it once the application no longer supports deprecated location and geolocation fields.
+    def _manage_appointment_location_info(self, appointment, geolocation, location, location_details):
+        if location_details:
+            if appointment.location_details:
+                location_details = self._manage_location_details(appointment, location_details)
+            else:
+                location_details = self._create_location_details(geolocation, location, location_details)
+        elif location and geolocation:
+            location_details = self.location_service.update_location_details(
+                location_id=appointment.location_details.id,
+                location_details={
+                    "complete_address": location,
+                    "city": None,
+                    "state": None,
+                    "country": [part.strip() for part in location.split(",")][-1],
+                    "geolocation": geolocation,
+                },
+            )
+        else:
+            if appointment.location_details:
+                self.location_service.delete_location_details(location_id=appointment.location_details.id)
+
+            location_details = None
+
+        return location_details
 
     def determine_recipients(self, invite_only, participants: QuerySet[User], space: Community, user: User):
         if invite_only:
@@ -162,6 +218,22 @@ class AppointmentService:
             video_call_link_id=appointment.video_call_link.id,
             url=video_call_link,
             additional_info=video_call_info,
+        )
+
+    def _manage_location_details(self, appointment, location_details):
+        appointment_location = appointment.location_details
+
+        if not location_details:
+            if appointment_location:
+                self.location_service.delete_location_details(location_id=appointment_location.id)
+            return None
+
+        if not appointment_location:
+            return self.location_service.create_location_details(location_details=location_details)
+
+        return self.location_service.update_location_details(
+            location_id=appointment_location.id,
+            location_details=location_details,
         )
 
     def get_appointments(
@@ -224,3 +296,30 @@ class VideoCallLinkService:
 
     def delete_video_call_link(self, video_call_link_id):
         return self.repository.delete_video_call_link(video_call_link_id=video_call_link_id)
+
+
+class LocationDetailsService:
+    def __init__(self):
+        self.repository = LocationDetailsRepository()
+
+    def create_location_details(self, location_details):
+        return self.repository.create_location_details(
+            complete_address=location_details.get("complete_address"),
+            city=location_details.get("city"),
+            state=location_details.get("state"),
+            country=location_details.get("country"),
+            geolocation=GeolocationPointInput.to_point(location_details.get("geolocation")),
+        )
+
+    def update_location_details(self, location_id, location_details):
+        return self.repository.update_location_details(
+            location_id=location_id,
+            complete_address=location_details.get("complete_address"),
+            city=location_details.get("city"),
+            state=location_details.get("state"),
+            country=location_details.get("country"),
+            geolocation=GeolocationPointInput.to_point(location_details.get("geolocation")),
+        )
+
+    def delete_location_details(self, location_id):
+        return self.repository.delete_location_details(location_id)
