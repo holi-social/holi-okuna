@@ -1,19 +1,20 @@
-FROM python:3.11.0-slim
+FROM python:3.11-slim
 
-RUN apt-get -y update && apt-get -y upgrade && apt-get install -y \
-    ffmpeg \
-    binutils \
-    libproj-dev \
-    libgdal-dev \
-    libgeos-dev \
-    && rm -rf /var/lib/apt/lists/* && apt-get clean
+RUN apt-get -y update && \
+    apt-get -y upgrade && \
+    apt-get install -y \
+        ffmpeg \
+        binutils \
+        libproj-dev \
+        libgdal-dev \
+        libgeos-dev && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean
 
-# Copy any files over
+# Copy necessary scripts
 COPY wait-for-it.sh entrypoint.sh bootstrap_development_data.sh /
-
-# Change permissions
+# Change permissions for scripts
 RUN chmod +x /entrypoint.sh /bootstrap_development_data.sh /wait-for-it.sh
-
 ENTRYPOINT ["/entrypoint.sh"]
 
 COPY requirements.txt /requirements.txt
