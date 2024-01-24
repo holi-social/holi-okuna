@@ -59,7 +59,7 @@ class TestSpaceAppointments(TestCase):
             participant_ids=[],
             start_date_time=timezone.make_aware(datetime.datetime(2023, 1, 15, 12)),
             end_date_time=timezone.make_aware(datetime.datetime(2023, 1, 15, 13)),
-            location=cls.location,
+            location_details=cls.location,
             description="This is an old public appointment",
             permission="ADMINS",
             creator=cls.admin_user,
@@ -73,7 +73,7 @@ class TestSpaceAppointments(TestCase):
             participant_ids=[],
             start_date_time=timezone.make_aware(datetime.datetime(2024, 6, 16, 8)),
             end_date_time=timezone.make_aware(datetime.datetime(2024, 6, 16, 10)),
-            location=cls.location,
+            location_details=cls.location,
             description="This is a public appointment where everybody is welcome",
             permission="ADMINS",
             creator=cls.admin_user,
@@ -87,7 +87,7 @@ class TestSpaceAppointments(TestCase):
             participant_ids=[],
             start_date_time=timezone.make_aware(datetime.datetime(2024, 6, 17, 8)),
             end_date_time=timezone.make_aware(datetime.datetime(2024, 6, 18, 10)),
-            location=cls.location,
+            location_details=cls.location,
             description="This is a another public appointment where everybody is welcome",
             permission="ADMINS",
             creator=cls.admin_user,
@@ -101,7 +101,7 @@ class TestSpaceAppointments(TestCase):
             participant_ids=[],
             start_date_time=timezone.make_aware(datetime.datetime(2024, 6, 18, 8)),
             end_date_time=timezone.make_aware(datetime.datetime(2024, 6, 18, 10)),
-            location=cls.location,
+            location_details=cls.location,
             description="This is a invite_only appointment where only invited people are welcome",
             permission="PARTICIPANTS",
             creator=cls.admin_user,
@@ -144,14 +144,14 @@ class TestSpaceAppointments(TestCase):
         assert response["appointments"]["totalResults"] == 3
         assert (
             response["appointments"]["data"][0]["location"]["completeAddress"]
-            == self.public_appointment.location.complete_address
+            == self.public_appointment.location_details.complete_address
         )
         assert (
             response["appointments"]["data"][0]["videoCallLink"]["url"] == self.public_appointment.video_call_link.url
         )
         assert (
             response["appointments"]["data"][1]["location"]["completeAddress"]
-            == self.another_public_appointment.location.complete_address
+            == self.another_public_appointment.location_details.complete_address
         )
         assert (
             response["appointments"]["data"][1]["videoCallLink"]["url"]
@@ -159,7 +159,7 @@ class TestSpaceAppointments(TestCase):
         )
         assert (
             response["appointments"]["data"][2]["location"]["completeAddress"]
-            == self.invite_only_appointment.location.complete_address
+            == self.invite_only_appointment.location_details.complete_address
         )
         assert (
             response["appointments"]["data"][2]["videoCallLink"]["url"]
@@ -180,14 +180,14 @@ class TestSpaceAppointments(TestCase):
         assert response["appointments"]["totalResults"] == 2
         assert (
             response["appointments"]["data"][0]["location"]["completeAddress"]
-            == self.public_appointment.location.complete_address
+            == self.public_appointment.location_details.complete_address
         )
         assert (
             response["appointments"]["data"][0]["videoCallLink"]["url"] == self.public_appointment.video_call_link.url
         )
         assert (
             response["appointments"]["data"][1]["location"]["completeAddress"]
-            == self.another_public_appointment.location.complete_address
+            == self.another_public_appointment.location_details.complete_address
         )
         assert (
             response["appointments"]["data"][1]["videoCallLink"]["url"]
@@ -208,22 +208,22 @@ class TestSpaceAppointments(TestCase):
         assert response["appointments"]["totalResults"] == 2
         assert (
             not response["appointments"]["data"][0]["location"]["completeAddress"]
-            == self.public_appointment.location.complete_address
+            == self.public_appointment.location_details.complete_address
         )
         assert (
             response["appointments"]["data"][0]["location"]["completeAddress"]
-            == f"{self.public_appointment.location.city}, {self.public_appointment.location.country}"
+            == f"{self.public_appointment.location_details.city}, {self.public_appointment.location_details.country}"
         )
         assert response["appointments"]["data"][0]["location"]["geolocation"] is None
         assert response["appointments"]["data"][0]["videoCallLink"] is None
 
         assert (
             not response["appointments"]["data"][1]["location"]["completeAddress"]
-            == self.another_public_appointment.location.complete_address
+            == self.another_public_appointment.location_details.complete_address
         )
         assert (
             response["appointments"]["data"][1]["location"]["completeAddress"]
-            == f"{self.another_public_appointment.location.city}, {self.another_public_appointment.location.country}"
+            == f"{self.another_public_appointment.location_details.city}, {self.another_public_appointment.location_details.country}"
         )
         assert response["appointments"]["data"][1]["videoCallLink"] is None
         assert response["appointments"]["data"][1]["location"]["geolocation"] is None

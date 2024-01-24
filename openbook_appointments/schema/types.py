@@ -6,7 +6,7 @@ import strawberry_django
 from strawberry.file_uploads import Upload
 
 from openbook_appointments.enums import PermissionType
-from openbook_appointments.models import Appointment, VideoCallLink, Location
+from openbook_appointments.models import Appointment, VideoCallLink, LocationDetails
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import GeolocationPoint, GeolocationPointInput
 
@@ -18,8 +18,8 @@ class VideoCallLink:
     additional_info: strawberry.auto
 
 
-@strawberry_django.type(Location)
-class Location:
+@strawberry_django.type(LocationDetails)
+class LocationDetails:
     city: strawberry.auto
     state: strawberry.auto
     country: strawberry.auto
@@ -53,7 +53,7 @@ class Appointment:
     participants: Optional[List[User]]
     start_date_time: strawberry.auto
     end_date_time: strawberry.auto
-    location: Optional[Location]
+    location_details: Optional[LocationDetails]
     video_call_link: Optional[VideoCallLink]
     description: strawberry.auto
     thumbnail: Optional[str]
@@ -61,6 +61,22 @@ class Appointment:
     permission: PermissionType
     creator: User
     is_hybrid: Optional[bool]
+
+    @strawberry_django.field(deprecation_reason="Use `location_details` instead")
+    def location(self, info) -> Optional[str]:
+        user = info.context.request.user
+        if user.is_anonymous:
+            return None
+
+        return self.location
+
+    @strawberry_django.field(deprecation_reason="Use `location_details` instead")
+    def geolocation(self, info) -> Optional[GeolocationPoint]:
+        user = info.context.request.user
+        if user.is_anonymous:
+            return None
+
+        return GeolocationPoint.from_point(self.geolocation)
 
     @strawberry_django.field()
     def video_call_link(self, info) -> Optional[VideoCallLink]:
@@ -72,7 +88,7 @@ class Appointment:
 
 
 @strawberry.input
-class LocationInput:
+class LocationDetailsInput:
     complete_address: Optional[str]
     city: Optional[str]
     state: Optional[str]
@@ -88,7 +104,9 @@ class CreateAppointmentInput:
     participant_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     start_date_time: str
     end_date_time: str
-    location: Optional[LocationInput] = strawberry.UNSET
+    location: Optional[str] = strawberry.UNSET
+    geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
+    location_details: Optional[LocationDetailsInput] = strawberry.UNSET
     description: Optional[str] = strawberry.UNSET
     permission: PermissionType
     video_call_link: Optional[str] = strawberry.UNSET
@@ -104,7 +122,9 @@ class UpdateAppointmentInput:
     participant_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     start_date_time: Optional[str] = strawberry.UNSET
     end_date_time: Optional[str] = strawberry.UNSET
-    location: Optional[LocationInput] = strawberry.UNSET
+    location: Optional[str] = strawberry.UNSET
+    geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
+    location_details: Optional[LocationDetailsInput] = strawberry.UNSET
     description: Optional[str] = strawberry.UNSET
     permission: Optional[PermissionType] = strawberry.UNSET
     video_call_link: Optional[str] = strawberry.UNSET

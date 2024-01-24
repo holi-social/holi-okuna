@@ -35,8 +35,17 @@ class Appointment(ModelWithUUID):
 
     end_date_time = models.DateTimeField(blank=False)
 
-    location = models.OneToOneField(
-        "Location",
+    location = models.CharField(
+        max_length=settings.APPOINTMENT_LOCATION_MAX_LENGTH,
+        blank=True,
+        null=True,
+        db_index=True,
+    )
+
+    geolocation = models.PointField(blank=True, null=True, spatial_index=True)
+
+    location_details = models.OneToOneField(
+        "LocationDetails",
         related_name="appointment",
         on_delete=models.SET_NULL,
         blank=True,
@@ -140,7 +149,7 @@ class VideoCallLink(ModelWithUUID):
     )
 
 
-class Location(ModelWithUUID):
+class LocationDetails(ModelWithUUID):
     complete_address = models.CharField(
         max_length=settings.APPOINTMENT_LOCATION_MAX_LENGTH,
         blank=True,
