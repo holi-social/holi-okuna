@@ -19,7 +19,7 @@ def create_appointment(user, input):
                 }
                 startDateTime
                 endDateTime
-                location {
+                locationDetails {
                     completeAddress
                     city
                     state
@@ -61,7 +61,7 @@ def update_appointment(user, input):
                 }
                 startDateTime
                 endDateTime
-                location {
+                locationDetails {
                     completeAddress
                     city
                     state
@@ -105,7 +105,7 @@ def appointments(user, space_id, status_type: StatusType):
                     }
                     startDateTime
                     endDateTime
-                    location {
+                    locationDetails {
                         completeAddress
                         city
                         state
@@ -151,7 +151,7 @@ def appointment(user, id_or_slug):
                     }
                     startDateTime
                     endDateTime
-                    location {
+                    locationDetails {
                         completeAddress
                         city
                         state

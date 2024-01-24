@@ -138,7 +138,7 @@ class Appointment(ModelWithUUID):
 
     @property
     def is_hybrid(self) -> bool:
-        return bool(self.video_call_link and self.location)
+        return bool(self.video_call_link and self.location_details)
 
 
 class VideoCallLink(ModelWithUUID):

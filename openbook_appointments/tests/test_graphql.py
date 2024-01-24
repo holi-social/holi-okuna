@@ -65,7 +65,7 @@ class TestAppointments(TestCase):
         cls.space.add_member(cls.participant)
         cls.space.add_member(cls.another_user_member)
         cls.space.add_administrator(cls.admin)
-        cls.location = {
+        cls.location_details = {
             "completeAddress": "Munich, Bavaria, Germany",
             "city": "Munich",
             "state": "Bavaria",
@@ -83,7 +83,7 @@ class TestAppointments(TestCase):
             "participantIds": [],
             "startDateTime": fake.future_datetime().isoformat(),
             "endDateTime": fake.future_datetime().isoformat(),
-            "location": cls.location,
+            "locationDetails": cls.location_details,
             "description": fake.text(max_nb_chars=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH),
             "permission": PermissionType.ADMINS,
             "videoCallLink": "https://zoom.us/j/712889134",
@@ -97,7 +97,7 @@ class TestAppointments(TestCase):
             "participantIds": [str(cls.participant.username)],
             "startDateTime": fake.future_datetime().isoformat(),
             "endDateTime": fake.future_datetime().isoformat(),
-            "location": cls.location,
+            "locationDetails": cls.location_details,
             "description": fake.text(max_nb_chars=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH),
             "permission": PermissionType.ADMINS,
             "videoCallLink": "https://zoom.us/j/615887136",
@@ -111,7 +111,7 @@ class TestAppointments(TestCase):
             "participantIds": [str(cls.participant.username)],
             "startDateTime": fake.future_datetime().isoformat(),
             "endDateTime": fake.future_datetime().isoformat(),
-            "location": cls.location,
+            "locationDetails": cls.location_details,
             "description": fake.text(max_nb_chars=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH),
             "permission": PermissionType.PARTICIPANTS,
             "videoCallLink": "https://zoom.us/j/615887136",
@@ -125,7 +125,7 @@ class TestAppointments(TestCase):
             "participantIds": [str(cls.participant.username)],
             "startDateTime": "2023-12-02T08:00:00",
             "endDateTime": "2023-12-02T10:00:00",
-            "location": cls.location,
+            "locationDetails": cls.location_details,
             "description": fake.text(max_nb_chars=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH),
             "permission": PermissionType.ADMINS,
             "videoCallLink": "https://zoom.us/j/712889134",
@@ -139,7 +139,7 @@ class TestAppointments(TestCase):
             "participantIds": [],
             "startDateTime": "2024-01-02T08:00:00",
             "endDateTime": "2024-01-02T10:00:00",
-            "location": cls.location,
+            "locationDetails": cls.location_details,
             "description": fake.text(max_nb_chars=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH),
             "permission": PermissionType.ADMINS,
             "videoCallLink": "https://zoom.us/j/712889134",
@@ -174,7 +174,10 @@ class TestAppointments(TestCase):
         assert data["participants"] == []
         assert data["startDateTime"] == expected_start_date_time
         assert data["endDateTime"] == expected_end_date_time
-        assert data["location"]["completeAddress"] == self.public_appointment_input_data["location"]["completeAddress"]
+        assert (
+            data["locationDetails"]["completeAddress"]
+            == self.public_appointment_input_data["locationDetails"]["completeAddress"]
+        )
         assert data["description"] == self.public_appointment_input_data["description"]
         assert data["permission"] == self.public_appointment_input_data["permission"]
         assert data["videoCallLink"]["url"] == self.public_appointment_input_data["videoCallLink"]
@@ -199,7 +202,10 @@ class TestAppointments(TestCase):
         assert data["participants"] == [{"fullName": self.participant.profile.full_name()}]
         assert data["startDateTime"] == expected_start_date_time
         assert data["endDateTime"] == expected_end_date_time
-        assert data["location"]["completeAddress"] == self.public_appointment_input_data["location"]["completeAddress"]
+        assert (
+            data["locationDetails"]["completeAddress"]
+            == self.public_appointment_input_data["locationDetails"]["completeAddress"]
+        )
         assert data["description"] == self.invite_only_appointment_input_data["description"]
         assert data["permission"] == self.invite_only_appointment_input_data["permission"]
         assert data["videoCallLink"]["url"] == self.invite_only_appointment_input_data["videoCallLink"]
@@ -235,7 +241,10 @@ class TestAppointments(TestCase):
         assert data["participants"] == [{"fullName": self.participant.profile.full_name()}]
         assert data["startDateTime"] == expected_start_date_time
         assert data["endDateTime"] == expected_end_date_time
-        assert data["location"]["completeAddress"] == self.public_appointment_input_data["location"]["completeAddress"]
+        assert (
+            data["locationDetails"]["completeAddress"]
+            == self.public_appointment_input_data["locationDetails"]["completeAddress"]
+        )
         assert data["description"] == self.invite_only_appointment_input_data["description"]
         assert data["permission"] == self.invite_only_appointment_input_data["permission"]
         assert data["videoCallLink"]["url"] == self.invite_only_appointment_input_data["videoCallLink"]
@@ -574,7 +583,10 @@ class TestAppointments(TestCase):
         assert data["participants"] == [{"fullName": self.participant.profile.full_name()}]
         assert data["startDateTime"] == expected_start_date_time
         assert data["endDateTime"] == expected_end_date_time
-        assert data["location"]["completeAddress"] == self.public_appointment_input_data["location"]["completeAddress"]
+        assert (
+            data["locationDetails"]["completeAddress"]
+            == self.public_appointment_input_data["locationDetails"]["completeAddress"]
+        )
         assert data["description"] == self.invite_only_appointment_input_data["description"]
         assert data["permission"] == self.invite_only_appointment_input_data["permission"]
         assert data["videoCallLink"]["url"] == self.invite_only_appointment_input_data["videoCallLink"]
@@ -604,7 +616,10 @@ class TestAppointments(TestCase):
         assert data["participants"] == []
         assert data["startDateTime"] == expected_start_date_time
         assert data["endDateTime"] == expected_end_date_time
-        assert data["location"]["completeAddress"] == self.public_appointment_input_data["location"]["completeAddress"]
+        assert (
+            data["locationDetails"]["completeAddress"]
+            == self.public_appointment_input_data["locationDetails"]["completeAddress"]
+        )
         assert data["description"] == self.public_appointment_input_data["description"]
         assert data["permission"] == self.public_appointment_input_data["permission"]
         assert data["videoCallLink"]["url"] == self.public_appointment_input_data["videoCallLink"]
@@ -636,7 +651,10 @@ class TestAppointments(TestCase):
         assert data["participants"] == [{"fullName": self.participant.profile.full_name()}]
         assert data["startDateTime"] == expected_start_date_time
         assert data["endDateTime"] == expected_end_date_time
-        assert data["location"]["completeAddress"] == self.public_appointment_input_data["location"]["completeAddress"]
+        assert (
+            data["locationDetails"]["completeAddress"]
+            == self.public_appointment_input_data["locationDetails"]["completeAddress"]
+        )
         assert data["description"] == self.another_invite_only_appointment_input_data["description"]
         assert data["permission"] == self.another_invite_only_appointment_input_data["permission"]
         assert data["videoCallLink"]["url"] == self.another_invite_only_appointment_input_data["videoCallLink"]
@@ -672,7 +690,10 @@ class TestAppointments(TestCase):
         assert data["participants"] == [{"fullName": self.participant.profile.full_name()}]
         assert data["startDateTime"] == expected_start_date_time
         assert data["endDateTime"] == expected_end_date_time
-        assert data["location"]["completeAddress"] == self.public_appointment_input_data["location"]["completeAddress"]
+        assert (
+            data["locationDetails"]["completeAddress"]
+            == self.public_appointment_input_data["locationDetails"]["completeAddress"]
+        )
         assert data["description"] == self.invite_only_appointment_input_data["description"]
         assert data["permission"] == self.invite_only_appointment_input_data["permission"]
         assert data["videoCallLink"]["url"] == self.invite_only_appointment_input_data["videoCallLink"]
