@@ -102,6 +102,9 @@ class Appointment(ModelWithUUID):
         null=True,
     )
 
+    created = models.DateTimeField(editable=False, auto_now_add=True)
+    modified = models.DateTimeField(null=True, auto_now=True)
+
     def save(self, *args, **kwargs):
         if self.thumbnail:
             self.thumbnail_blurhash = generate_blurhash(self.thumbnail)
