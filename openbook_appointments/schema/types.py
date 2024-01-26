@@ -61,6 +61,7 @@ class Appointment:
     permission: PermissionType
     creator: User
     is_hybrid: Optional[bool]
+    has_video_call_link: Optional[bool]
 
     @strawberry_django.field(deprecation_reason="Use `location_details` instead")
     def location(self, info) -> Optional[str]:
