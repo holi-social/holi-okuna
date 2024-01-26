@@ -39,6 +39,7 @@ def create_appointment(user, input):
                     fullName
                 }
                 isHybrid
+                hasVideoCallLink
             }
         }
         """,
@@ -81,6 +82,7 @@ def update_appointment(user, input):
                     fullName
                 }
                 isHybrid
+                hasVideoCallLink
             }
         }
         """,
@@ -125,6 +127,7 @@ def appointments(user, space_id, status_type: StatusType):
                         fullName
                     }
                     isHybrid
+                    hasVideoCallLink
                 }
             }
         }
@@ -171,6 +174,7 @@ def appointment(user, id_or_slug):
                         fullName
                     }
                     isHybrid
+                    hasVideoCallLink
             }
         }
         """,
