@@ -143,6 +143,10 @@ class Appointment(ModelWithUUID):
     def is_hybrid(self) -> bool:
         return bool(self.video_call_link and self.location_details)
 
+    @property
+    def has_video_call_link(self) -> bool:
+        return bool(self.video_call_link)
+
 
 class VideoCallLink(ModelWithUUID):
     url = models.URLField(blank=False, max_length=settings.VIDEO_CALL_LINK_URL_MAX_LENGTH)
