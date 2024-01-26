@@ -183,7 +183,8 @@ class TestAppointments(TestCase):
         assert data["videoCallLink"]["url"] == self.public_appointment_input_data["videoCallLink"]
         assert data["videoCallLink"]["additionalInfo"] == self.public_appointment_input_data["videoCallInfo"]
         assert data["creator"]["fullName"] == self.admin.profile.full_name()
-        assert data["isHybrid"]
+        assert data["isHybrid"] is True
+        assert data["hasVideoCallLink"] is True
 
     def test_can_create_invite_only_appointment_if_admin(self):
         response = create_appointment(self.admin, self.invite_only_appointment_input_data)
@@ -211,7 +212,8 @@ class TestAppointments(TestCase):
         assert data["videoCallLink"]["url"] == self.invite_only_appointment_input_data["videoCallLink"]
         assert data["videoCallLink"]["additionalInfo"] == self.invite_only_appointment_input_data["videoCallInfo"]
         assert data["creator"]["fullName"] == self.admin.profile.full_name()
-        assert data["isHybrid"]
+        assert data["isHybrid"] is True
+        assert data["hasVideoCallLink"] is True
 
     def test_can_not_create_public_appointment_if_member(self):
         response = create_appointment(self.user_member, self.public_appointment_input_data)
@@ -250,7 +252,8 @@ class TestAppointments(TestCase):
         assert data["videoCallLink"]["url"] == self.invite_only_appointment_input_data["videoCallLink"]
         assert data["videoCallLink"]["additionalInfo"] == self.invite_only_appointment_input_data["videoCallInfo"]
         assert data["creator"]["fullName"] == self.user_member.profile.full_name()
-        assert data["isHybrid"]
+        assert data["isHybrid"] is True
+        assert data["hasVideoCallLink"] is True
 
     @patch("django.utils.timezone.now", return_value=mock_current_datetime)
     def test_can_query_all_appointments_if_admin(self, mock_current_datetime):
@@ -591,7 +594,8 @@ class TestAppointments(TestCase):
         assert data["permission"] == self.invite_only_appointment_input_data["permission"]
         assert data["videoCallLink"]["url"] == self.invite_only_appointment_input_data["videoCallLink"]
         assert data["videoCallLink"]["additionalInfo"] == self.invite_only_appointment_input_data["videoCallInfo"]
-        assert data["isHybrid"]
+        assert data["isHybrid"] is True
+        assert data["hasVideoCallLink"] is True
 
     def test_can_update_invite_only_appointment_if_admin(self):
         create_mutation_response = create_appointment(self.admin, self.invite_only_appointment_input_data)
@@ -624,7 +628,8 @@ class TestAppointments(TestCase):
         assert data["permission"] == self.public_appointment_input_data["permission"]
         assert data["videoCallLink"]["url"] == self.public_appointment_input_data["videoCallLink"]
         assert data["videoCallLink"]["additionalInfo"] == self.public_appointment_input_data["videoCallInfo"]
-        assert data["isHybrid"]
+        assert data["isHybrid"] is True
+        assert data["hasVideoCallLink"] is True
 
     def test_can_update_invite_only_appointment_if_creator(self):
         create_mutation_response = create_appointment(self.user_member, self.invite_only_appointment_input_data)
@@ -661,7 +666,8 @@ class TestAppointments(TestCase):
         assert (
             data["videoCallLink"]["additionalInfo"] == self.another_invite_only_appointment_input_data["videoCallInfo"]
         )
-        assert data["isHybrid"]
+        assert data["isHybrid"] is True
+        assert data["hasVideoCallLink"] is True
 
     def test_can_update_invite_only_appointment_if_participant(self):
         create_mutation_response = create_appointment(
