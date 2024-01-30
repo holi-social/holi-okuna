@@ -394,8 +394,8 @@ resource "google_cloud_run_service" "okuna" {
             memory = local.environment == "production" ? "2048Mi" : "2048Mi"
           }
           requests = {
-            cpu    = local.environment == "production" ? "1000m" : "10m"
-            memory = local.environment == "production" ? "1024Mi" : "512Mi"
+            cpu    = local.environment == "production" ? "1000m" : "2000m"
+            memory = local.environment == "production" ? "1024Mi" : "1024Mi"
           }
         }
       }
