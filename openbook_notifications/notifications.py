@@ -254,11 +254,18 @@ class Notifications:
     def send_space_appointment_update_notification(
         space: Community,
         appointment: Appointment,
+        location_changed: bool,
+        date_time_changed: bool,
         recipients: List[User],
     ):
         notification = SpaceAppointmentUpdateNotification(
             recipients=[str(recipient.username) for recipient in recipients],
-            payload=SpaceAppointmentUpdatePayload(space=space, appointment=appointment),
+            payload=SpaceAppointmentUpdatePayload(
+                space=space,
+                appointment=appointment,
+                location_changed=location_changed,
+                date_time_changed=date_time_changed,
+            ),
         )
 
         notification.send()

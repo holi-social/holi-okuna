@@ -125,6 +125,10 @@ class AppointmentService:
         appointment = self.repository.get_appointment(id_or_slug=str(appointment_id))
         self.checker.check_can_update_appointment(user=user, appointment=appointment)
 
+        current_location = appointment.location_details.complete_address if appointment.location_details else None
+        current_start_date_time = appointment.start_date_time
+        current_end_date_time = appointment.end_date_time
+
         user_model = get_user_model()
         participants = user_model.objects.filter(username__in=participant_ids) if participant_ids else []
 
@@ -154,11 +158,21 @@ class AppointmentService:
         space: Community = space_model.objects.get(id=updated_appointment.space.id)
 
         if appointment.ends_in_future:
+            updated_location = (
+                updated_appointment.location_details.complete_address if updated_appointment.location_details else None
+            )
+            location_changed = current_location != updated_location
+            date_time_changed = (
+                current_start_date_time != updated_appointment.start_date_time
+                or current_end_date_time != updated_appointment.end_date_time
+            )
             recipients = self.determine_recipients(invite_only, participants, space, user)
 
             Notifications.send_space_appointment_update_notification(
                 space=space,
                 appointment=updated_appointment,
+                location_changed=location_changed,
+                date_time_changed=date_time_changed,
                 recipients=recipients,
             )
 

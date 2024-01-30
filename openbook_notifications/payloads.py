@@ -402,11 +402,13 @@ class SpaceAppointmentCreationPayload(Payload):
 class SpaceAppointmentUpdatePayload(Payload):
     NOTIFICATION_VERSION = "1.0.0"
 
-    def __init__(self, space: Community, appointment: Appointment):
+    def __init__(self, space: Community, appointment: Appointment, location_changed: bool, date_time_changed: bool):
         super().__init__(
             data={
                 "space": SpaceData.from_community(space).to_dict(),
                 "appointment": AppointmentData.from_appointment(appointment).to_dict(),
+                "locationChanged": location_changed,
+                "dateTimeChanged": date_time_changed,
                 "link": f"{settings.APP_URL}/spaces/{space.name}/appointments/{appointment.slug}",
                 "spaceLink": f"{settings.APP_URL}/spaces/{space.name}",
             },
