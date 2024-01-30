@@ -111,6 +111,45 @@ class SpaceData:
         )
 
 
+class AppointmentData:
+    def __init__(
+        self,
+        id: str,
+        title: str,
+        description: str,
+        location: str,
+        start_date_time: datetime,
+        end_date_time: datetime,
+    ):
+        self.id = id
+        self.title = title
+        self.description = description
+        self.location = location
+        self.start_date_time = start_date_time
+        self.end_date_time = end_date_time
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "description": self.description,
+            "location": self.location,
+            "startDateTime": self.start_date_time,
+            "endDateTime": self.end_date_time,
+        }
+
+    @classmethod
+    def from_appointment(cls, appointment: Appointment):
+        return cls(
+            id=str(appointment.id),
+            title=appointment.title,
+            description=appointment.description,
+            location=appointment.location_details.complete_address if appointment.location_details else "",
+            start_date_time=appointment.start_date_time.isoformat(),
+            end_date_time=appointment.end_date_time.isoformat(),
+        )
+
+
 class PostData:
     def __init__(self, id: str, title: str, text: str, context: str, is_public: bool):
         self.id = id
@@ -351,14 +390,7 @@ class SpaceAppointmentCreationPayload(Payload):
         super().__init__(
             data={
                 "space": SpaceData.from_community(space).to_dict(),
-                "appointment": {
-                    "id": str(appointment.id),
-                    "title": appointment.title,
-                    "description": appointment.description,
-                    "location": appointment.location,
-                    "startDateTime": appointment.start_date_time.isoformat(),
-                    "endDateTime": appointment.start_date_time.isoformat(),
-                },
+                "appointment": AppointmentData.from_appointment(appointment).to_dict(),
                 "link": f"{settings.APP_URL}/spaces/{space.name}/appointments/{appointment.slug}",
             },
             notification_type=NotificationType.SPACE_APPOINTMENT_CREATION.value,
@@ -373,14 +405,7 @@ class SpaceAppointmentUpdatePayload(Payload):
         super().__init__(
             data={
                 "space": SpaceData.from_community(space).to_dict(),
-                "appointment": {
-                    "id": str(appointment.id),
-                    "title": appointment.title,
-                    "description": appointment.description,
-                    "location": appointment.location,
-                    "startDateTime": appointment.start_date_time.isoformat(),
-                    "endDateTime": appointment.start_date_time.isoformat(),
-                },
+                "appointment": AppointmentData.from_appointment(appointment).to_dict(),
                 "link": f"{settings.APP_URL}/spaces/{space.name}/appointments/{appointment.slug}",
             },
             notification_type=NotificationType.SPACE_APPOINTMENT_UPDATE.value,
@@ -395,11 +420,7 @@ class SpaceAppointmentDeletionPayload(Payload):
         super().__init__(
             data={
                 "space": SpaceData.from_community(space).to_dict(),
-                "appointment": {
-                    "id": str(appointment.id),
-                    "title": appointment.title,
-                    "description": appointment.description,
-                },
+                "appointment": AppointmentData.from_appointment(appointment).to_dict(),
             },
             notification_type=NotificationType.SPACE_APPOINTMENT_DELETION.value,
             notification_version=SpaceAppointmentDeletionPayload.NOTIFICATION_VERSION,
