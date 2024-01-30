@@ -390,8 +390,8 @@ resource "google_cloud_run_service" "okuna" {
         resources {
           limits = {
             # cpu can only be scaled down to 1000m as long as container_concurrency is set to != 1
-            cpu    = local.environment == "production" ? "1000m" : "1000m"
-            memory = local.environment == "production" ? "2048Mi" : "1024Mi"
+            cpu    = local.environment == "production" ? "1000m" : "4000m"
+            memory = local.environment == "production" ? "2048Mi" : "1536Mi"
           }
           requests = {
             cpu    = local.environment == "production" ? "1000m" : "10m"
