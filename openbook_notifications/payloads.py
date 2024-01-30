@@ -392,6 +392,7 @@ class SpaceAppointmentCreationPayload(Payload):
                 "space": SpaceData.from_community(space).to_dict(),
                 "appointment": AppointmentData.from_appointment(appointment).to_dict(),
                 "link": f"{settings.APP_URL}/spaces/{space.name}/appointments/{appointment.slug}",
+                "spaceLink": f"{settings.APP_URL}/spaces/{space.name}",
             },
             notification_type=NotificationType.SPACE_APPOINTMENT_CREATION.value,
             notification_version=SpaceAppointmentCreationPayload.NOTIFICATION_VERSION,
@@ -407,6 +408,7 @@ class SpaceAppointmentUpdatePayload(Payload):
                 "space": SpaceData.from_community(space).to_dict(),
                 "appointment": AppointmentData.from_appointment(appointment).to_dict(),
                 "link": f"{settings.APP_URL}/spaces/{space.name}/appointments/{appointment.slug}",
+                "spaceLink": f"{settings.APP_URL}/spaces/{space.name}",
             },
             notification_type=NotificationType.SPACE_APPOINTMENT_UPDATE.value,
             notification_version=SpaceAppointmentUpdatePayload.NOTIFICATION_VERSION,
@@ -421,6 +423,7 @@ class SpaceAppointmentDeletionPayload(Payload):
             data={
                 "space": SpaceData.from_community(space).to_dict(),
                 "appointment": AppointmentData.from_appointment(appointment).to_dict(),
+                "spaceLink": f"{settings.APP_URL}/spaces/{space.name}",
             },
             notification_type=NotificationType.SPACE_APPOINTMENT_DELETION.value,
             notification_version=SpaceAppointmentDeletionPayload.NOTIFICATION_VERSION,
