@@ -158,7 +158,7 @@ class AppointmentService:
 
             Notifications.send_space_appointment_update_notification(
                 space=space,
-                appointment=appointment,
+                appointment=updated_appointment,
                 recipients=recipients,
             )
 
