@@ -59,7 +59,7 @@ class Appointment:
     thumbnail: Optional[str]
     thumbnail_blurhash: Optional[str]
     permission: PermissionType
-    creator: User
+    creator: Optional[User]
     is_hybrid: Optional[bool]
     has_video_call_link: Optional[bool]
 

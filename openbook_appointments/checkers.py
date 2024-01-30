@@ -5,7 +5,7 @@ from openbook_appointments.enums import PermissionType
 
 
 class AppointmentChecker:
-    def _has_admin_permission(self, user, space_id, creator_id):
+    def _has_admin_permission(self, user, space_id, creator_id=None):
         return user.is_administrator_of_community_with_id(community_id=space_id) or creator_id == user.id
 
     def _has_participant_permission(self, user, space_id, participants):
@@ -16,16 +16,15 @@ class AppointmentChecker:
             raise ValidationError(_(f"You cannot {action} appointments of a space you are not a member of"))
 
     def _check_permission(self, user, appointment):
+        creator_id = appointment.creator.id if appointment.creator else None
         space_id = appointment.space.id
         has_permission = False
 
         if appointment.permission == PermissionType.ADMINS:
-            has_permission = self._has_admin_permission(
-                user=user, space_id=space_id, creator_id=appointment.creator.id
-            )
+            has_permission = self._has_admin_permission(user=user, space_id=space_id, creator_id=creator_id)
         elif appointment.permission == PermissionType.PARTICIPANTS:
             has_permission = self._has_admin_permission(
-                user=user, space_id=space_id, creator_id=appointment.creator.id
+                user=user, space_id=space_id, creator_id=creator_id
             ) or self._has_participant_permission(user=user, space_id=space_id, participants=appointment.participants)
 
         return has_permission
