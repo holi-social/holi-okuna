@@ -158,7 +158,10 @@ class AppointmentService:
         space: Community = space_model.objects.get(id=updated_appointment.space.id)
 
         if appointment.ends_in_future:
-            location_changed = current_location != updated_appointment.location_details.complete_address
+            updated_location = (
+                updated_appointment.location_details.complete_address if updated_appointment.location_details else None
+            )
+            location_changed = current_location != updated_location
             date_time_changed = (
                 current_start_date_time != updated_appointment.start_date_time
                 or current_end_date_time != updated_appointment.end_date_time
