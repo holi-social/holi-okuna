@@ -8,7 +8,6 @@ import imagekit.models.fields
 import openbook_posts.helpers
 import openbook_posts.validators
 import uuid
-import video_encoding.fields
 
 
 class Migration(migrations.Migration):
@@ -17,229 +16,469 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('openbook_communities', '0001_initial'),
-        ('contenttypes', '0002_remove_content_type_name'),
-        ('openbook_common', '0001_initial'),
+        ("openbook_communities", "0001_initial"),
+        ("contenttypes", "0002_remove_content_type_name"),
+        ("openbook_common", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Post',
+            name="Post",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('uuid', models.UUIDField(db_index=True, default=uuid.uuid4, editable=False, unique=True)),
-                ('text', models.TextField(max_length=5000, null=True, validators=[openbook_posts.validators.post_text_hashtags_validator], verbose_name='text')),
-                ('created', models.DateTimeField(db_index=True, editable=False)),
-                ('modified', models.DateTimeField(db_index=True, default=django.utils.timezone.now)),
-                ('comments_enabled', models.BooleanField(default=True, editable=False, verbose_name='comments enabled')),
-                ('public_reactions', models.BooleanField(default=True, editable=False, verbose_name='public reactions')),
-                ('is_edited', models.BooleanField(default=False)),
-                ('is_closed', models.BooleanField(default=False)),
-                ('is_deleted', models.BooleanField(default=False)),
-                ('status', models.CharField(choices=[('D', 'Draft'), ('PG', 'Processing'), ('P', 'Published')], default='D', max_length=2)),
-                ('media_height', models.PositiveSmallIntegerField(null=True, verbose_name='media height')),
-                ('media_width', models.PositiveSmallIntegerField(null=True, verbose_name='media width')),
-                ('media_thumbnail', imagekit.models.fields.ProcessedImageField(max_length=500, null=True, upload_to=openbook_posts.helpers.upload_to_post_directory, verbose_name='thumbnail')),
-                ('community', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='posts', to='openbook_communities.community')),
-                ('creator', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='posts', to=settings.AUTH_USER_MODEL)),
-                ('language', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='posts', to='openbook_common.language')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("uuid", models.UUIDField(db_index=True, default=uuid.uuid4, editable=False, unique=True)),
+                (
+                    "text",
+                    models.TextField(
+                        max_length=5000,
+                        null=True,
+                        validators=[openbook_posts.validators.post_text_hashtags_validator],
+                        verbose_name="text",
+                    ),
+                ),
+                ("created", models.DateTimeField(db_index=True, editable=False)),
+                ("modified", models.DateTimeField(db_index=True, default=django.utils.timezone.now)),
+                (
+                    "comments_enabled",
+                    models.BooleanField(default=True, editable=False, verbose_name="comments enabled"),
+                ),
+                (
+                    "public_reactions",
+                    models.BooleanField(default=True, editable=False, verbose_name="public reactions"),
+                ),
+                ("is_edited", models.BooleanField(default=False)),
+                ("is_closed", models.BooleanField(default=False)),
+                ("is_deleted", models.BooleanField(default=False)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[("D", "Draft"), ("PG", "Processing"), ("P", "Published")], default="D", max_length=2
+                    ),
+                ),
+                ("media_height", models.PositiveSmallIntegerField(null=True, verbose_name="media height")),
+                ("media_width", models.PositiveSmallIntegerField(null=True, verbose_name="media width")),
+                (
+                    "media_thumbnail",
+                    imagekit.models.fields.ProcessedImageField(
+                        max_length=500,
+                        null=True,
+                        upload_to=openbook_posts.helpers.upload_to_post_directory,
+                        verbose_name="thumbnail",
+                    ),
+                ),
+                (
+                    "community",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="posts",
+                        to="openbook_communities.community",
+                    ),
+                ),
+                (
+                    "creator",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="posts", to=settings.AUTH_USER_MODEL
+                    ),
+                ),
+                (
+                    "language",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="posts",
+                        to="openbook_common.language",
+                    ),
+                ),
             ],
             options={
-                'index_together': {('creator', 'community')},
+                "index_together": {("creator", "community")},
             },
         ),
         migrations.CreateModel(
-            name='PostComment',
+            name="PostComment",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created', models.DateTimeField(db_index=True, editable=False)),
-                ('modified', models.DateTimeField(db_index=True, default=django.utils.timezone.now)),
-                ('text', models.TextField(max_length=1500, validators=[openbook_posts.validators.post_comment_text_hashtags_validator], verbose_name='text')),
-                ('is_edited', models.BooleanField(default=False)),
-                ('is_deleted', models.BooleanField(default=False)),
-                ('commenter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='posts_comments', to=settings.AUTH_USER_MODEL)),
-                ('language', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='post_comments', to='openbook_common.language')),
-                ('parent_comment', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='replies', to='openbook_posts.postcomment')),
-                ('post', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comments', to='openbook_posts.post')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("created", models.DateTimeField(db_index=True, editable=False)),
+                ("modified", models.DateTimeField(db_index=True, default=django.utils.timezone.now)),
+                (
+                    "text",
+                    models.TextField(
+                        max_length=1500,
+                        validators=[openbook_posts.validators.post_comment_text_hashtags_validator],
+                        verbose_name="text",
+                    ),
+                ),
+                ("is_edited", models.BooleanField(default=False)),
+                ("is_deleted", models.BooleanField(default=False)),
+                (
+                    "commenter",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="posts_comments",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "language",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="post_comments",
+                        to="openbook_common.language",
+                    ),
+                ),
+                (
+                    "parent_comment",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="replies",
+                        to="openbook_posts.postcomment",
+                    ),
+                ),
+                (
+                    "post",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="comments", to="openbook_posts.post"
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='TrendingPost',
+            name="TrendingPost",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created', models.DateTimeField(db_index=True, editable=False)),
-                ('post', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='trending_post', to='openbook_posts.post')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("created", models.DateTimeField(db_index=True, editable=False)),
+                (
+                    "post",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="trending_post",
+                        to="openbook_posts.post",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='TopPost',
+            name="TopPost",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created', models.DateTimeField(db_index=True, editable=False)),
-                ('post', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='top_post', to='openbook_posts.post')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("created", models.DateTimeField(db_index=True, editable=False)),
+                (
+                    "post",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="top_post", to="openbook_posts.post"
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='PostVideo',
+            name="PostMedia",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('hash', models.CharField(max_length=64, null=True, verbose_name='hash')),
-                ('width', models.PositiveIntegerField(editable=False, null=True)),
-                ('height', models.PositiveIntegerField(editable=False, null=True)),
-                ('duration', models.FloatField(editable=False, null=True)),
-                ('file', video_encoding.fields.VideoField(height_field='height', max_length=500, null=True, upload_to=openbook_posts.helpers.upload_to_post_video_directory, width_field='width')),
-                ('thumbnail', imagekit.models.fields.ProcessedImageField(height_field='thumbnail_height', max_length=500, null=True, upload_to=openbook_posts.helpers.upload_to_post_image_directory, verbose_name='thumbnail', width_field='thumbnail_width')),
-                ('thumbnail_width', models.PositiveIntegerField(editable=False)),
-                ('thumbnail_height', models.PositiveIntegerField(editable=False)),
-                ('post', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='videos', to='openbook_posts.post')),
+                ("order", models.PositiveIntegerField(db_index=True, editable=False, verbose_name="order")),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("type", models.CharField(choices=[("V", "Video"), ("I", "Image")], max_length=5)),
+                ("object_id", models.CharField(max_length=36)),
+                (
+                    "content_type",
+                    models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="contenttypes.contenttype"),
+                ),
+                (
+                    "post",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="media", to="openbook_posts.post"
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='PostMedia',
+            name="PostLink",
             fields=[
-                ('order', models.PositiveIntegerField(db_index=True, editable=False, verbose_name='order')),
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('type', models.CharField(choices=[('V', 'Video'), ('I', 'Image')], max_length=5)),
-                ('object_id', models.CharField(max_length=36)),
-                ('content_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='contenttypes.contenttype')),
-                ('post', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='media', to='openbook_posts.post')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("uuid", models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
+                ("link", models.TextField(max_length=5000)),
+                ("has_preview", models.BooleanField(default=False)),
+                (
+                    "post",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="links", to="openbook_posts.post"
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='PostLink',
+            name="PostImage",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
-                ('link', models.TextField(max_length=5000)),
-                ('has_preview', models.BooleanField(default=False)),
-                ('post', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='links', to='openbook_posts.post')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (
+                    "image",
+                    imagekit.models.fields.ProcessedImageField(
+                        height_field="height",
+                        max_length=500,
+                        null=True,
+                        upload_to=openbook_posts.helpers.upload_to_post_image_directory,
+                        verbose_name="image",
+                        width_field="width",
+                    ),
+                ),
+                ("width", models.PositiveIntegerField(editable=False)),
+                ("height", models.PositiveIntegerField(editable=False)),
+                ("hash", models.CharField(max_length=64, null=True, verbose_name="hash")),
+                (
+                    "thumbnail",
+                    imagekit.models.fields.ProcessedImageField(
+                        max_length=500,
+                        null=True,
+                        upload_to=openbook_posts.helpers.upload_to_post_image_directory,
+                        verbose_name="thumbnail",
+                    ),
+                ),
+                (
+                    "post",
+                    models.OneToOneField(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="image",
+                        to="openbook_posts.post",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='PostImage',
+            name="TopPostCommunityExclusion",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('image', imagekit.models.fields.ProcessedImageField(height_field='height', max_length=500, null=True, upload_to=openbook_posts.helpers.upload_to_post_image_directory, verbose_name='image', width_field='width')),
-                ('width', models.PositiveIntegerField(editable=False)),
-                ('height', models.PositiveIntegerField(editable=False)),
-                ('hash', models.CharField(max_length=64, null=True, verbose_name='hash')),
-                ('thumbnail', imagekit.models.fields.ProcessedImageField(max_length=500, null=True, upload_to=openbook_posts.helpers.upload_to_post_image_directory, verbose_name='thumbnail')),
-                ('post', models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='image', to='openbook_posts.post')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("created", models.DateTimeField(db_index=True, editable=False)),
+                (
+                    "community",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="top_posts_community_exclusions",
+                        to="openbook_communities.community",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="top_posts_community_exclusions",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "unique_together": {("user", "community")},
             },
         ),
         migrations.CreateModel(
-            name='TopPostCommunityExclusion',
+            name="ProfilePostsCommunityExclusion",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created', models.DateTimeField(db_index=True, editable=False)),
-                ('community', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='top_posts_community_exclusions', to='openbook_communities.community')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='top_posts_community_exclusions', to=settings.AUTH_USER_MODEL)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("created", models.DateTimeField(db_index=True, editable=False)),
+                (
+                    "community",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="profile_posts_community_exclusions",
+                        to="openbook_communities.community",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="profile_posts_community_exclusions",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('user', 'community')},
+                "unique_together": {("user", "community")},
             },
         ),
         migrations.CreateModel(
-            name='ProfilePostsCommunityExclusion',
+            name="PostUserMention",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created', models.DateTimeField(db_index=True, editable=False)),
-                ('community', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='profile_posts_community_exclusions', to='openbook_communities.community')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='profile_posts_community_exclusions', to=settings.AUTH_USER_MODEL)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (
+                    "post",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="user_mentions",
+                        to="openbook_posts.post",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="post_mentions",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('user', 'community')},
+                "unique_together": {("user", "post")},
             },
         ),
         migrations.CreateModel(
-            name='PostUserMention',
+            name="PostReaction",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('post', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_mentions', to='openbook_posts.post')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='post_mentions', to=settings.AUTH_USER_MODEL)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("created", models.DateTimeField(editable=False)),
+                (
+                    "emoji",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="post_reactions",
+                        to="openbook_common.emoji",
+                    ),
+                ),
+                (
+                    "post",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="reactions", to="openbook_posts.post"
+                    ),
+                ),
+                (
+                    "reactor",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="post_reactions",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('user', 'post')},
+                "unique_together": {("reactor", "post")},
             },
         ),
         migrations.CreateModel(
-            name='PostReaction',
+            name="PostMute",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created', models.DateTimeField(editable=False)),
-                ('emoji', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='post_reactions', to='openbook_common.emoji')),
-                ('post', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reactions', to='openbook_posts.post')),
-                ('reactor', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='post_reactions', to=settings.AUTH_USER_MODEL)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (
+                    "muter",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="post_mutes",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "post",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="mutes", to="openbook_posts.post"
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('reactor', 'post')},
+                "unique_together": {("post", "muter")},
             },
         ),
         migrations.CreateModel(
-            name='PostMute',
+            name="PostCommentUserMention",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('muter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='post_mutes', to=settings.AUTH_USER_MODEL)),
-                ('post', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='mutes', to='openbook_posts.post')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (
+                    "post_comment",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="user_mentions",
+                        to="openbook_posts.postcomment",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="post_comment_mentions",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('post', 'muter')},
+                "unique_together": {("user", "post_comment")},
             },
         ),
         migrations.CreateModel(
-            name='PostCommentUserMention',
+            name="PostCommentReaction",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('post_comment', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_mentions', to='openbook_posts.postcomment')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='post_comment_mentions', to=settings.AUTH_USER_MODEL)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("created", models.DateTimeField(editable=False)),
+                (
+                    "emoji",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="post_comment_reactions",
+                        to="openbook_common.emoji",
+                    ),
+                ),
+                (
+                    "post_comment",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="reactions",
+                        to="openbook_posts.postcomment",
+                    ),
+                ),
+                (
+                    "reactor",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="post_comment_reactions",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('user', 'post_comment')},
+                "unique_together": {("reactor", "post_comment")},
             },
         ),
         migrations.CreateModel(
-            name='PostCommentReaction',
+            name="PostCommentMute",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created', models.DateTimeField(editable=False)),
-                ('emoji', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='post_comment_reactions', to='openbook_common.emoji')),
-                ('post_comment', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reactions', to='openbook_posts.postcomment')),
-                ('reactor', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='post_comment_reactions', to=settings.AUTH_USER_MODEL)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (
+                    "muter",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="post_comment_mutes",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "post_comment",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="mutes",
+                        to="openbook_posts.postcomment",
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('reactor', 'post_comment')},
-            },
-        ),
-        migrations.CreateModel(
-            name='PostCommentMute',
-            fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('muter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='post_comment_mutes', to=settings.AUTH_USER_MODEL)),
-                ('post_comment', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='mutes', to='openbook_posts.postcomment')),
-            ],
-            options={
-                'unique_together': {('post_comment', 'muter')},
+                "unique_together": {("post_comment", "muter")},
             },
         ),
     ]

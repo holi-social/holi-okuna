@@ -82,8 +82,6 @@ def _generate_redis_password():
 
 def _copy_requirements_txt_to_docker_images_dir():
     copyfile(REQUIREMENTS_TXT_FILE, DOCKER_API_IMAGE_REQUIREMENTS_TXT_FILE)
-    copyfile(REQUIREMENTS_TXT_FILE, DOCKER_WORKER_IMAGE_REQUIREMENTS_TXT_FILE)
-    copyfile(REQUIREMENTS_TXT_FILE, DOCKER_SCHEDULER_IMAGE_REQUIREMENTS_TXT_FILE)
 
 
 def _check_okuna_api_is_running(address, port):

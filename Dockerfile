@@ -3,7 +3,6 @@ FROM python:3.11-slim
 RUN apt-get -y update && \
     apt-get -y upgrade && \
     apt-get install -y \
-        ffmpeg \
         binutils \
         libproj-dev \
         libgdal-dev \
