@@ -120,7 +120,7 @@ class AppointmentData:
         location: str,
         start_date_time: datetime,
         end_date_time: datetime,
-        is_same_day: bool,
+        starts_and_ends_on_same_day: bool,
     ):
         self.id = id
         self.title = title
@@ -128,7 +128,7 @@ class AppointmentData:
         self.location = location
         self.start_date_time = start_date_time
         self.end_date_time = end_date_time
-        self.is_same_day = is_same_day
+        self.starts_and_ends_on_same_day = starts_and_ends_on_same_day
 
     def to_dict(self):
         return {
@@ -138,7 +138,7 @@ class AppointmentData:
             "location": self.location,
             "startDateTime": self.start_date_time,
             "endDateTime": self.end_date_time,
-            "isSameDay": self.is_same_day,
+            "startsAndEndsOnSameDay": self.starts_and_ends_on_same_day,
         }
 
     @classmethod
@@ -150,7 +150,7 @@ class AppointmentData:
             location=appointment.location_details.complete_address if appointment.location_details else "",
             start_date_time=appointment.start_date_time.isoformat(),
             end_date_time=appointment.end_date_time.isoformat(),
-            is_same_day=appointment.is_same_day,
+            starts_and_ends_on_same_day=appointment.starts_and_ends_on_same_day,
         )
 
 

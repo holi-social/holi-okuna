@@ -148,7 +148,7 @@ class Appointment(ModelWithUUID):
         return bool(self.video_call_link)
 
     @property
-    def is_same_day(self) -> bool:
+    def starts_and_ends_on_same_day(self) -> bool:
         return self.start_date_time.date() == self.end_date_time.date()
 
 
