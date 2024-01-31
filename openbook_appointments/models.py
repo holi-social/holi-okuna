@@ -147,6 +147,10 @@ class Appointment(ModelWithUUID):
     def has_video_call_link(self) -> bool:
         return bool(self.video_call_link)
 
+    @property
+    def is_same_day(self) -> bool:
+        return self.start_date_time.date() == self.end_date_time.date()
+
 
 class VideoCallLink(ModelWithUUID):
     url = models.URLField(blank=False, max_length=settings.VIDEO_CALL_LINK_URL_MAX_LENGTH)
