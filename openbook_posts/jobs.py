@@ -16,7 +16,6 @@ from openbook_common.utils.model_loaders import (
     get_top_post_model,
     get_trending_post_model,
 )
-from video_encoding import tasks
 
 logger = logging.getLogger(__name__)
 
@@ -54,17 +53,9 @@ def process_post_media(post_id):
     except PostMedia.DoesNotExist:
         logger.warning("Post with id %d not found for postprocessing media", post_id)
         return
-    logger.info("Processing media of post with id: %d", post_id)
-
-    post_media_videos = post.media.filter(type=PostMedia.MEDIA_TYPE_VIDEO)
-
-    for post_media_video in post_media_videos.iterator():
-        post_video = post_media_video.content_object
-        tasks.convert_video(post_video.file)
 
     # This updates the status and created attributes
     post._publish()
-    logger.info("Processed media of post with id: %d", post_id)
 
 
 @job("low")

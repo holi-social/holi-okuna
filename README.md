@@ -206,12 +206,6 @@ Xcode issues - Error: python@3.9: the bottle needs the Apple Command Line Tools 
  xcode-select --install
 ```
 
-ffpmeg is missing?
-
-```sh
-brew install ffmpeg
-```
-
 ## CI/CD
 
 The CI/CD pipeline follows our normal flow, deploying branch environments and deploying main to staging automatically

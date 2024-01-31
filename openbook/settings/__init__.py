@@ -84,7 +84,6 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "pytest_django",
     "ordered_model",
-    "video_encoding",
     "imagekit",
     "cacheops",
     "rangefilter",
@@ -482,43 +481,6 @@ MEDIA_URL = os.environ.get("MEDIA_URL", "/media/")
 # STATICFILES_DIRS = (os.path.join(BASE_DIR, "openbook/static"),) only needed for additions static files directories
 
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
-
-# Video encoding
-
-VIDEO_ENCODING_FORMATS = {
-    "FFmpeg": [
-        {
-            "name": "mp4_sd",
-            "extension": "mp4",
-            "params": [
-                "-codec:v",
-                "libx264",
-                "-crf",
-                "20",
-                "-preset",
-                "medium",
-                "-b:v",
-                "1000k",
-                "-maxrate",
-                "1000k",
-                "-bufsize",
-                "2000k",
-                "-vf",
-                "scale=-2:480",  # http://superuser.com/a/776254
-                "-codec:a",
-                "aac",
-                "-b:a",
-                "128k",
-                "-strict",
-                "-2",
-                "-preset",
-                "veryfast",
-                "-loglevel",
-                "quiet",
-            ],
-        },
-    ]
-}
 
 PROXY_URL = os.environ.get("PROXY_URL", "")
 
