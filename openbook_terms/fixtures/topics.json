@@ -203,7 +203,7 @@
     "model": "openbook_terms.topic",
     "pk": "9adbef9c-17ad-43fb-ba21-549be1b979a9",
     "fields": {
-      "title_hu": "WARNING: There is a hidden ASCII character before the titles to force this topic to be the first alphabetically. This title is duplicated in order to ignore this message and use null for title_hu.",
+      "title_hu": "WARNING: There is a non-breaking space ASCII character before the titles to force this topic to be the first alphabetically. This title is duplicated in order to ignore this message and use null for title_hu.",
       "slug": "democracy-human-rights",
       "title": " Democracy & Human Rights",
       "title_es": null,
