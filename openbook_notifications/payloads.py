@@ -4,7 +4,6 @@ from typing import Optional, TYPE_CHECKING
 from enum import Enum
 from datetime import datetime
 
-import pytz
 from django.conf import settings
 
 from openbook_appointments.models import Appointment
