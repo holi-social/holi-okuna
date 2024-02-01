@@ -122,7 +122,8 @@ def slow_log_middleware(get_response):
                 path=path,
                 stats=stats,
                 queries=query_count,
-                request_body=initial_http_body,
+                # image uploads have big bodies, we need to truncate them to not overwhelm logging.
+                request_body=initial_http_body[:4096],
             )
         return response
 

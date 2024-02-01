@@ -5,7 +5,6 @@ from rest_framework import serializers
 from openbook_common.serializers_fields.request import RestrictedFileSizeField
 from openbook_posts.models import PostMedia, PostImage, PostVideo
 from openbook_posts.validators import post_id_exists
-from video_encoding.models import Format
 
 
 class AddPostMediaSerializer(serializers.Serializer):
@@ -37,42 +36,10 @@ class PostImageSerializer(serializers.ModelSerializer):
         fields = ("image", "width", "height")
 
 
-class PostVideoFormatSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Format
-        fields = (
-            "id",
-            "duration",
-            "progress",
-            "format",
-            "file",
-            "width",
-            "height",
-        )
-
-
-class PostVideoSerializer(serializers.ModelSerializer):
-    format_set = PostVideoFormatSerializer(many=True)
-
-    class Meta:
-        model = PostVideo
-        fields = (
-            "file",
-            "format_set",
-            "width",
-            "height",
-            "duration",
-            "thumbnail",
-            "thumbnail_width",
-            "thumbnail_height",
-        )
-
-
 class PostMediaSerializer(serializers.ModelSerializer):
     content_object = GenericRelatedField(
         {
             PostImage: PostImageSerializer(),
-            PostVideo: PostVideoSerializer(),
         }
     )
 

@@ -251,7 +251,7 @@ class Query:
                 CommunityModel.objects.prefetch_related(
                     "links",
                     "memberships__user__profile",
-                    Prefetch("tasks", queryset=TaskModel.objects.filter(tasks_query)),
+                    Prefetch("tasks", queryset=TaskModel.objects.filter(tasks_query).order_by("-created")),
                 )
                 .filter(is_deleted=False)
                 .get(query)

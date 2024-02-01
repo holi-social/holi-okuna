@@ -109,7 +109,9 @@ class Mutation:
                     return current_user.disable_new_post_notifications_for_community_with_name(space.name)
                 # user leaves space or is removed by space admin
                 case (ConnectionType.MEMBER | ConnectionType.ADMINISTRATOR, Action.LEAVE_SPACE):
-                    community_to_leave = current_user.leave_community_with_name(space.name)
+                    community_to_leave: CommunityModel = current_user.leave_community_with_name(space.name)
+                    # Remove the user as the organizer of the appointments they have created in this space
+                    community_to_leave.appointments.filter(creator=current_user).update(creator=None)
                     community_to_leave.delete_pending_notifications_for_user(current_user.username)
                     publish_space_user_left_event(user=current_user, community=community_to_leave)
                     return community_to_leave

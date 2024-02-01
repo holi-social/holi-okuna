@@ -50,13 +50,17 @@ class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
                         )
                         cache.set(cache_key, user, timeout=CACHE_TIMEOUT)
                     except Exception as ex:
-                        logger.info("Could not create user with id %s. Parallel creation? Retrying get.", ex)
+                        logger.info(
+                            "Could not create user with id %s. Parallel creation? Retrying get. Exception: %s",
+                            user_id,
+                            ex,
+                        )
                         retry_get = True  # retry needs to be done outside the broken transaction
             if retry_get:
                 try:
                     user = cache.get_or_set(cache_key, default=lambda: self._get_user(user_id), timeout=CACHE_TIMEOUT)
                 except User.DoesNotExist:
-                    logger.exception("Could not create user with id %s. Failing.", user_id)
+                    logger.exception("Could not create user with id %s. Retrying get failed. Failing finally", user_id)
                     # when we can't create the user, the app stays most functional if we just continue anonymously
                     return AnonymousUser(), None
 

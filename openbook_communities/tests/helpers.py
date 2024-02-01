@@ -225,11 +225,22 @@ def get_space_by_id_with_appointments(space_id, user):
                         inviteOnly
                         title
                         description
-                        location
+                        locationDetails {
+                            completeAddress
+                            city
+                            state
+                            country
+                            geolocation {
+                                latitude
+                                longitude
+                            }
+                        }
                         videoCallLink {
                             url
                             additionalInfo
                         }
+                        isHybrid
+                        hasVideoCallLink
                     }
                 }
             }

@@ -31,7 +31,7 @@ setup:
   script:
     - python3 -m venv venv
     - source venv/bin/activate
-    - pip install --upgrade pip
+    #- pip install --upgrade pip
     - pip install -r requirements.txt --exists-action s
 
 test:
@@ -73,13 +73,14 @@ build_docker:
     - docker build --cache-from $GCR_IMAGE -t $GCR_IMAGE:latest -t $GCR_IMAGE:$CI_COMMIT_SHA -t $GCR_IMAGE:$CI_COMMIT_REF_SLUG .
     - docker push $GCR_IMAGE:$CI_COMMIT_SHA # this is the tag that is used for deployment
     - docker push $GCR_IMAGE:$CI_COMMIT_REF_SLUG # just for easily knowing which is the last image for a branch
+    - docker push $GCR_IMAGE:latest # for caching the build
 
 .deploy:
   stage: "deploy"
   image:
-    name: "hashicorp/terraform:1.6.1"
+    name: "gitlab.holi.team:5050/app/holi-docker/terraform-gcloud"
     # default entrypoint is terraform command, but we want to run shell scripts
-    entrypoint: ["/bin/sh", "-c"]
+    # entrypoint: ["/bin/sh", "-c"]
   variables:
     ENVIRONMENT_ID: $CI_ENVIRONMENT_SLUG
   artifacts:
@@ -91,9 +92,9 @@ build_docker:
     #when: on_failure # can't do that for api base url, but can't define multiple artifacts
     expire_in: 1 month
   script:
-    - export GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_CLOUD_SERVICE_ACCOUNT}
+    - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
     - terraform/environments/scripts/create-or-update-env.sh $ENVIRONMENT_ID $CI_COMMIT_SHA
-    - echo "$(terraform/scripts/get-api-domain.sh)" > $API_BASE_URL_PATH
+    - echo "$(terraform/environments/scripts/get-api-domain.sh)" > $API_BASE_URL_PATH
   resource_group: $ENVIRONMENT_ID # never execute terraform in parallel on the same environment
   interruptible: false
 
@@ -103,7 +104,7 @@ build_docker:
   script:
     - API_BASE_URL=`cat $API_BASE_URL_PATH`
     - echo "e2e tests against $CI_ENVIRONMENT_SLUG environment go here and against $API_BASE_URL"
-    - terraform/scripts/wait-for-ssl.sh "https://${API_BASE_URL}"
+    - terraform/environments/scripts/wait-for-ssl.sh "https://${API_BASE_URL}"
 
 review_deploy:
   extends: .deploy

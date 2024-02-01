@@ -84,7 +84,6 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "pytest_django",
     "ordered_model",
-    "video_encoding",
     "imagekit",
     "cacheops",
     "rangefilter",
@@ -483,43 +482,6 @@ MEDIA_URL = os.environ.get("MEDIA_URL", "/media/")
 
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
-# Video encoding
-
-VIDEO_ENCODING_FORMATS = {
-    "FFmpeg": [
-        {
-            "name": "mp4_sd",
-            "extension": "mp4",
-            "params": [
-                "-codec:v",
-                "libx264",
-                "-crf",
-                "20",
-                "-preset",
-                "medium",
-                "-b:v",
-                "1000k",
-                "-maxrate",
-                "1000k",
-                "-bufsize",
-                "2000k",
-                "-vf",
-                "scale=-2:480",  # http://superuser.com/a/776254
-                "-codec:a",
-                "aac",
-                "-b:a",
-                "128k",
-                "-strict",
-                "-2",
-                "-preset",
-                "veryfast",
-                "-loglevel",
-                "quiet",
-            ],
-        },
-    ]
-}
-
 PROXY_URL = os.environ.get("PROXY_URL", "")
 
 # Openbook config
@@ -720,8 +682,9 @@ CHAT_ADMIN_ACCESS_TOKEN = os.environ.get("CHAT_ADMIN_ACCESS_TOKEN")
 
 # Appointments
 APPOINTMENT_TITLE_MIN_LENGTH = 2
-APPOINTMENT_TITLE_MAX_LENGTH = 40
-APPOINTMENT_DESCRIPTION_MAX_LENGTH = 600
+APPOINTMENT_TITLE_MAX_LENGTH = 128
+APPOINTMENT_SLUG_MAX_LENGTH = 300
+APPOINTMENT_DESCRIPTION_MAX_LENGTH = 5000
 APPOINTMENT_LOCATION_MAX_LENGTH = COMMUNITY_LOCATION_MAX_LENGTH
 APPOINTMENT_THUMBNAIL_MAX_SIZE = COMMUNITY_COVER_MAX_SIZE
 
@@ -729,3 +692,9 @@ APPOINTMENT_THUMBNAIL_MAX_SIZE = COMMUNITY_COVER_MAX_SIZE
 VIDEO_CALL_LINK_DESCRIPTION_MAX_LENGTH = 100
 VIDEO_CALL_LINK_URL_MAX_LENGTH = 500
 VIDEO_CALL_LINK_URL_MIN_LENGTH = 3
+
+# Location
+COMPLETE_ADDRESS_MAX_LENGTH = 255
+CITY_MAX_LENGTH = 100
+STATE_MAX_LENGTH = 50
+COUNTRY_MAX_LENGTH = 50

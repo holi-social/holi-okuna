@@ -2,10 +2,26 @@ from rest_framework import serializers
 
 from openbook import settings
 from openbook_appointments.enums import PermissionType
-from openbook_appointments.validators import space_member_exists
+from openbook_appointments.validators import space_member_exists, appointment_exists
 from openbook_common.serializers import GeolocationPointSerializer
 from openbook_common.serializers_fields.request import RestrictedImageFileSizeField
 from openbook_communities.validators import community_id_exists
+
+
+class LocationDetailsSerializer(serializers.Serializer):
+    complete_address = serializers.CharField(
+        max_length=settings.COMPLETE_ADDRESS_MAX_LENGTH, required=False, allow_null=True, allow_blank=True
+    )
+    city = serializers.CharField(
+        max_length=settings.CITY_MAX_LENGTH, required=False, allow_null=True, allow_blank=True
+    )
+    state = serializers.CharField(
+        max_length=settings.STATE_MAX_LENGTH, required=False, allow_null=True, allow_blank=True
+    )
+    country = serializers.CharField(
+        max_length=settings.COUNTRY_MAX_LENGTH, required=False, allow_null=True, allow_blank=True
+    )
+    geolocation = GeolocationPointSerializer(required=False)
 
 
 class CreateAppointmentSerializer(serializers.Serializer):
@@ -29,13 +45,16 @@ class CreateAppointmentSerializer(serializers.Serializer):
     location = serializers.CharField(
         max_length=settings.APPOINTMENT_LOCATION_MAX_LENGTH,
         required=False,
+        allow_null=True,
         allow_blank=True,
     )
 
-    geolocation = GeolocationPointSerializer(required=False, allow_null=True)
+    geolocation = GeolocationPointSerializer(required=False)
+
+    location_details = LocationDetailsSerializer(required=False)
 
     description = serializers.CharField(
-        max_length=settings.TASK_DESCRIPTION_MAX_LENGTH,
+        max_length=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH,
         required=False,
         allow_blank=True,
     )
@@ -43,7 +62,7 @@ class CreateAppointmentSerializer(serializers.Serializer):
     thumbnail = RestrictedImageFileSizeField(
         allow_empty_file=False,
         required=False,
-        max_upload_size=settings.TASK_THUMBNAIL_MAX_SIZE,
+        max_upload_size=settings.APPOINTMENT_THUMBNAIL_MAX_SIZE,
     )
 
     permission = serializers.ChoiceField(required=True, choices=PermissionType.choices)
@@ -63,5 +82,69 @@ class CreateAppointmentSerializer(serializers.Serializer):
     video_call_info = serializers.CharField(
         max_length=settings.VIDEO_CALL_LINK_DESCRIPTION_MAX_LENGTH,
         required=False,
+        allow_blank=True,
+    )
+
+
+class UpdateAppointmentSerializer(serializers.Serializer):
+    appointment_id = serializers.UUIDField(
+        validators=[appointment_exists],
+        required=True,
+    )
+
+    title = serializers.CharField(
+        min_length=settings.APPOINTMENT_TITLE_MIN_LENGTH,
+        max_length=settings.APPOINTMENT_TITLE_MAX_LENGTH,
+        required=False,
+    )
+
+    invite_only = serializers.BooleanField(required=False)
+
+    participant_ids = serializers.ListField(
+        required=False,
+        child=serializers.UUIDField(validators=[space_member_exists]),
+    )
+
+    start_date_time = serializers.DateTimeField(required=False)
+
+    end_date_time = serializers.DateTimeField(required=False)
+
+    location = serializers.CharField(
+        max_length=settings.APPOINTMENT_LOCATION_MAX_LENGTH,
+        required=False,
+        allow_null=True,
+        allow_blank=True,
+    )
+
+    geolocation = GeolocationPointSerializer(required=False)
+
+    location_details = LocationDetailsSerializer(required=False, allow_null=True)
+
+    description = serializers.CharField(
+        max_length=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH,
+        required=False,
+    )
+
+    thumbnail = RestrictedImageFileSizeField(
+        allow_empty_file=False,
+        allow_null=True,
+        required=False,
+        max_upload_size=settings.APPOINTMENT_THUMBNAIL_MAX_SIZE,
+    )
+
+    permission = serializers.ChoiceField(required=False, choices=PermissionType.choices)
+
+    video_call_link = serializers.URLField(
+        min_length=settings.VIDEO_CALL_LINK_URL_MIN_LENGTH,
+        max_length=settings.VIDEO_CALL_LINK_URL_MAX_LENGTH,
+        required=False,
+        allow_null=True,
+        allow_blank=True,
+    )
+
+    video_call_info = serializers.CharField(
+        max_length=settings.VIDEO_CALL_LINK_DESCRIPTION_MAX_LENGTH,
+        required=False,
+        allow_null=True,
         allow_blank=True,
     )

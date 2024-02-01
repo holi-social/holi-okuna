@@ -1,10 +1,6 @@
 # Create your models here.
-import os
-import tempfile
-import uuid
 from datetime import timedelta
 
-import ffmpy
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -15,7 +11,7 @@ from django.core.files.uploadedfile import (
     SimpleUploadedFile,
     TemporaryUploadedFile,
 )
-from django.db import IntegrityError, models
+from django.db import models
 from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -87,9 +83,6 @@ from openbook_posts.helpers import (
 from openbook_posts.jobs import process_post_media
 from openbook_posts.validators import post_comment_text_validators, post_text_validators
 from openbook_terms.models import InspirationPostCategory
-from video_encoding.backends import get_backend
-from video_encoding.fields import VideoField
-from video_encoding.models import Format
 
 from sortedm2m.fields import SortedManyToManyField
 
@@ -570,38 +563,14 @@ class Post(ModelWithUUID):
         file_mime_types = file_mime.split("/")
 
         file_mime_type = file_mime_types[0]
-        file_mime_subtype = file_mime_types[1]
-
-        temp_files_to_close = []
-        if file_mime_subtype == "gif":
-            if is_in_memory_file:
-                file = write_in_memory_file_to_disk(file)
-
-            temp_dir = tempfile.gettempdir()
-            converted_gif_file_name = os.path.join(temp_dir, str(uuid.uuid4()) + ".mp4")
-
-            ff = ffmpy.FFmpeg(
-                inputs={file.temporary_file_path() if hasattr(file, "temporary_file_path") else file.name: None},
-                outputs={converted_gif_file_name: None},
-                global_options="-loglevel quiet",
-            )
-            ff.run()
-            converted_gif_file = open(converted_gif_file_name, "rb")
-            temp_files_to_close.append(converted_gif_file)
-            file = File(file=converted_gif_file)
-            file_mime_type = "video"
-
-        has_other_media = self.media.exists()
 
         if file_mime_type == "image":
             self._add_media_image(image=file, order=order)
-        elif file_mime_type == "video":
-            self._add_media_video(video=file, order=order)
+        # Here, we could support video posts. We removed existing okuna code using FFMPEG for encoding. To restore,
+        # revert the commit containing this comment. This commit also contains some code for treating GIFs as video.
         else:
             raise ValidationError(_("Unsupported media file type"))
 
-        for file_to_close in temp_files_to_close:
-            file_to_close.close()
         self.save()
 
     def get_first_media(self):
@@ -621,9 +590,6 @@ class Post(ModelWithUUID):
     def _update_image(self, image):
         self._delete_media_image()
         self._add_media_image(image=image)
-
-    def _add_media_video(self, video, order):
-        return PostVideo.create_post_media_video(file=video, post_id=self.pk, order=order)
 
     def count_media(self):
         return self.media.count()
@@ -1086,80 +1052,6 @@ class PostImage(ModelWithUUID):
             order=order,
         )
         return post_image
-
-
-class PostVideo(ModelWithUUID):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="videos", null=True)
-
-    hash = models.CharField(_("hash"), max_length=64, blank=False, null=True)
-
-    media = GenericRelation(PostMedia)
-
-    width = models.PositiveIntegerField(editable=False, null=True)
-    height = models.PositiveIntegerField(editable=False, null=True)
-    duration = models.FloatField(editable=False, null=True)
-
-    file = VideoField(
-        width_field="width",
-        height_field="height",
-        duration_field="duration",
-        storage=post_image_storage,
-        upload_to=upload_to_post_video_directory,
-        blank=False,
-        null=True,
-        max_length=settings.IMAGE_URL_MAX_LENGTH,
-    )
-
-    format_set = GenericRelation(Format)
-
-    thumbnail = ProcessedImageField(
-        verbose_name=_("thumbnail"),
-        storage=post_image_storage,
-        upload_to=upload_to_post_image_directory,
-        width_field="thumbnail_width",
-        height_field="thumbnail_height",
-        blank=False,
-        null=True,
-        processors=[
-            ExifRotate(),
-            ResizeToFit(
-                width=settings.CONTENT_IMAGE_MAX_DIMENSION,
-                height=settings.CONTENT_IMAGE_MAX_DIMENSION,
-                upscale=False,
-            ),
-        ],
-        max_length=settings.IMAGE_URL_MAX_LENGTH,
-    )
-
-    thumbnail_width = models.PositiveIntegerField(editable=False, null=False, blank=False)
-    thumbnail_height = models.PositiveIntegerField(editable=False, null=False, blank=False)
-
-    @classmethod
-    def create_post_media_video(cls, file, post_id, order):
-        hash = sha256sum(file=file.file)
-        video_backend = get_backend()
-
-        if isinstance(file, InMemoryUploadedFile):
-            # If it's in memory, doing read shouldn't be an issue as the file should be small.
-            in_disk_file = write_in_memory_file_to_disk(file)
-            thumbnail_path = video_backend.get_thumbnail(video_path=in_disk_file.name, at_time=0.0)
-        else:
-            thumbnail_path = video_backend.get_thumbnail(video_path=file.file.name, at_time=0.0)
-
-        with open(thumbnail_path, "rb+") as thumbnail_file:
-            post_video = cls.objects.create(
-                file=file,
-                post_id=post_id,
-                hash=hash,
-                thumbnail=File(thumbnail_file),
-            )
-        PostMedia.create_post_media(
-            type=PostMedia.MEDIA_TYPE_VIDEO,
-            content_object=post_video,
-            post_id=post_id,
-            order=order,
-        )
-        return post_video
 
 
 class PostComment(ModelWithUUID):

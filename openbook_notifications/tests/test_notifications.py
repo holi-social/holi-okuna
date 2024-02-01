@@ -1,14 +1,19 @@
 import uuid
+from unittest.mock import patch
+
 import pytest
-
-from unittest.mock import call, patch
+import sentry_sdk
 from django.test import TestCase
-
-from requests import Session
-from requests.adapters import HTTPAdapter
-
 from novu.api import EventApi
 
+from openbook_common.enums import FeatureToggleName, FeatureToggleType
+from openbook_common.models import FeatureToggle as FeatureToggleModel
+from openbook_common.tests.helpers import (
+    make_community,
+    make_user,
+    make_post_comment,
+    make_community_post,
+)
 from openbook_common.utils.model_loaders import get_community_model
 from openbook_notifications.notifications import (
     Notification,
@@ -40,14 +45,6 @@ from openbook_notifications.payloads import (
     PostCommentAuthorPayload,
     SpaceNewPostPayload,
 )
-from openbook_common.tests.helpers import (
-    make_community,
-    make_user,
-    make_post_comment,
-    make_community_post,
-)
-from openbook_common.enums import FeatureToggleName, FeatureToggleType
-from openbook_common.models import FeatureToggle as FeatureToggleModel
 
 
 @pytest.mark.django_db
@@ -85,51 +82,18 @@ class NotificationTestCase(TestCase):
 
         self.assertEqual(result, mock_event_api_trigger.return_value)
 
-    def test_notification_session_setup(self):
-        # Test that the session is set up correctly
-        self.assertIsInstance(self.notification_instance.session, Session)
-
-        # Check the session's mounted adapter
-        self.assertIsInstance(self.notification_instance.session.adapters["https://"], HTTPAdapter)
-
-        # Check the adapter's attributes
-        self.assertEqual(self.notification_instance.session.adapters["https://"].max_retries.total, 5)
-        self.assertEqual(self.notification_instance.session.adapters["https://"].max_retries.backoff_factor, 1)
-        self.assertEqual(
-            self.notification_instance.session.adapters["https://"].max_retries.status_forcelist, [502, 503, 504]
-        )
-
     @patch.object(EventApi, "trigger")
-    def test_notification_send_with_retry(self, mock_event_api_trigger):
-        # Simulate a failing first call
-        mock_event_api_trigger.side_effect = [Exception("Failed"), {"status": "503"}]
+    @patch.object(sentry_sdk, "capture_exception")
+    def test_notification_delivery_fails_without_raising(self, mock_sentry_sdk_capture, mock_event_api_trigger):
+        mock_event_api_trigger.side_effect = [ConnectionError("Novu down")]
 
-        with self.assertRaises(Exception):
+        try:
             self.notification_instance.send()
+        except:
+            pytest.fail("Notification sending has not failed gracefully")
 
-        self.notification_instance.send()
-
-        # Assert that the EventApi trigger was called twice with the expected arguments
-        assert mock_event_api_trigger.call_count == 2
-
-        mock_event_api_trigger.assert_has_calls(
-            [
-                call(
-                    name="test-workflow",
-                    recipients=["user-id"],
-                    payload={"data": {"key": "value"}},
-                    overrides=self.overrides,
-                    transaction_id="test-transaction-id",
-                ),
-                call(
-                    name="test-workflow",
-                    recipients=["user-id"],
-                    payload={"data": {"key": "value"}},
-                    overrides=self.overrides,
-                    transaction_id="test-transaction-id",
-                ),
-            ]
-        )
+        assert mock_event_api_trigger.call_count == 1
+        assert mock_sentry_sdk_capture.call_count == 1
 
 
 @pytest.mark.django_db

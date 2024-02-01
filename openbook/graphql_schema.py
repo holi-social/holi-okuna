@@ -24,6 +24,7 @@ from openbook_posts.schema import mutations as posts_mutations
 from openbook_posts.schema import queries as posts_queries
 from openbook_terms.schema import queries as terms_queries
 from openbook_appointments.schema import mutations as appointments_mutations
+from openbook_appointments.schema import queries as appointments_queries
 
 logger = structlog.get_logger(__name__)
 
@@ -62,6 +63,7 @@ Query = merge_types(
         insights_queries.Query,
         notifications_queries.Query,
         commons_queries.Query,
+        appointments_queries.Query,
     ),
 )
 

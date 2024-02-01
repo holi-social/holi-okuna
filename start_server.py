@@ -32,6 +32,7 @@ def main():
         reload=args.reload,
         reload_dirs=[
             "./openbook",
+            "./openbook_appointments",
             "./openbook_auth",
             "./openbook_categories",
             "./openbook_circles",

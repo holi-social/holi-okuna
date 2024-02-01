@@ -1,3 +1,7 @@
+import uuid
+
+from django.utils import timezone
+from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from django.core.files.storage import default_storage
 from django.contrib.gis.db import models
@@ -11,11 +15,14 @@ from openbook_appointments.helpers import upload_to_space_appointment_thumbnail_
 from openbook_auth.models import User
 from openbook_common.helpers import ExifRotate, generate_blurhash
 from openbook_common.models import ModelWithUUID
+from openbook_common.utils.helpers import delete_file_field
 from openbook_communities.models import Community
 
 
 class Appointment(ModelWithUUID):
     title = models.CharField(max_length=settings.APPOINTMENT_TITLE_MAX_LENGTH, blank=False, null=False)
+
+    slug = models.SlugField(max_length=settings.APPOINTMENT_SLUG_MAX_LENGTH, blank=False, null=False, unique=True)
 
     invite_only = models.BooleanField(default=True)
 
@@ -29,7 +36,7 @@ class Appointment(ModelWithUUID):
     end_date_time = models.DateTimeField(blank=False)
 
     location = models.CharField(
-        max_length=settings.TASK_LOCATION_MAX_LENGTH,
+        max_length=settings.APPOINTMENT_LOCATION_MAX_LENGTH,
         blank=True,
         null=True,
         db_index=True,
@@ -37,10 +44,18 @@ class Appointment(ModelWithUUID):
 
     geolocation = models.PointField(blank=True, null=True, spatial_index=True)
 
+    location_details = models.OneToOneField(
+        "LocationDetails",
+        related_name="appointment",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
+
     video_call_link = models.OneToOneField(
         "VideoCallLink",
         related_name="appointment",
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         blank=True,
         null=True,
     )
@@ -87,11 +102,54 @@ class Appointment(ModelWithUUID):
         null=True,
     )
 
+    created = models.DateTimeField(editable=False, auto_now_add=True)
+    modified = models.DateTimeField(null=True, auto_now=True)
+
     def save(self, *args, **kwargs):
         if self.thumbnail:
             self.thumbnail_blurhash = generate_blurhash(self.thumbnail)
 
+        if not self.slug:
+            base_slug = slugify(self.title)
+            suffix = str(uuid.uuid4())[:8]
+            self.slug = f"{base_slug}-{suffix}"
+
         super().save(*args, **kwargs)
+
+    def delete_thumbnail(self):
+        if self.thumbnail:
+            delete_file_field(self.thumbnail)
+            self.thumbnail_blurhash = None
+            self.thumbnail = None
+            self.thumbnail.delete()
+
+    def update_thumbnail(self, thumbnail):
+        if self.thumbnail:
+            self.delete_thumbnail()
+
+        self.thumbnail = thumbnail
+
+        return self.thumbnail
+
+    @property
+    def ends_in_future(self):
+        return self.end_date_time > timezone.now()
+
+    @property
+    def starts_in_future(self):
+        return self.start_date_time > timezone.now()
+
+    @property
+    def is_hybrid(self) -> bool:
+        return bool(self.video_call_link and self.location_details)
+
+    @property
+    def has_video_call_link(self) -> bool:
+        return bool(self.video_call_link)
+
+    @property
+    def starts_and_ends_on_same_day(self) -> bool:
+        return self.start_date_time.date() == self.end_date_time.date()
 
 
 class VideoCallLink(ModelWithUUID):
@@ -100,3 +158,20 @@ class VideoCallLink(ModelWithUUID):
     additional_info = models.TextField(
         max_length=settings.VIDEO_CALL_LINK_DESCRIPTION_MAX_LENGTH, blank=True, null=True
     )
+
+
+class LocationDetails(ModelWithUUID):
+    complete_address = models.CharField(
+        max_length=settings.APPOINTMENT_LOCATION_MAX_LENGTH,
+        blank=True,
+        null=True,
+        db_index=True,
+    )
+
+    geolocation = models.PointField(blank=True, null=True, spatial_index=True)
+
+    city = models.CharField(max_length=settings.APPOINTMENT_LOCATION_MAX_LENGTH, blank=True, null=True)
+
+    state = models.CharField(max_length=settings.APPOINTMENT_LOCATION_MAX_LENGTH, blank=True, null=True)
+
+    country = models.CharField(max_length=settings.APPOINTMENT_LOCATION_MAX_LENGTH, blank=True, null=True)

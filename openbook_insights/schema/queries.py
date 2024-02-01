@@ -4,7 +4,7 @@ from typing import Optional
 
 import strawberry
 import strawberry_django
-from asgiref.sync import sync_to_async
+from strawberry.types import Info
 from django.db.models import Q
 from graphql import GraphQLError
 
@@ -18,7 +18,7 @@ from openbook_insights.schema.types import Insight
 @strawberry.type
 class Query:
     @strawberry_django.field()
-    def insights_by_user_id(self, info, id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Insight]:
+    def insights_by_user_id(self, info: Info, id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         current_user = info.context.request.user
         try:
             user = UserModel.objects.filter(UserModel.is_visible_ignore_blocked_query()).get(username=id)
@@ -39,7 +39,8 @@ class Query:
             lambda insight: None if insight.creator is None else insight.creator.id,
             InsightModel.objects.filter(
                 Q(creator__isnull=True) | UserModel.is_visible_ignore_blocked_query("creator"),
-                date_published__lte=datetime.now(),
+                # resolution in cache and DB is day, so result will be cached until midnight
+                date_published__lte=datetime.now(),  # timezone...
             )
             .select_related("creator", "creator__profile", "topic")
             .prefetch_related(
