@@ -3,6 +3,8 @@ from typing import Optional, TYPE_CHECKING
 
 from enum import Enum
 from datetime import datetime
+
+import pytz
 from django.conf import settings
 
 from openbook_appointments.models import Appointment
@@ -120,6 +122,9 @@ class AppointmentData:
         location: str,
         start_date_time: datetime,
         end_date_time: datetime,
+        start_date_time_utc: datetime,
+        end_date_time_utc: datetime,
+        timezone: str,
         starts_and_ends_on_same_day: bool,
     ):
         self.id = id
@@ -128,6 +133,9 @@ class AppointmentData:
         self.location = location
         self.start_date_time = start_date_time
         self.end_date_time = end_date_time
+        self.start_date_time_utc = start_date_time_utc
+        self.end_date_time_utc = end_date_time_utc
+        self.timezone = timezone
         self.starts_and_ends_on_same_day = starts_and_ends_on_same_day
 
     def to_dict(self):
@@ -138,18 +146,39 @@ class AppointmentData:
             "location": self.location,
             "startDateTime": self.start_date_time,
             "endDateTime": self.end_date_time,
+            "startDateTimeUTC": self.start_date_time_utc,
+            "endDateTimeUTC": self.end_date_time_utc,
+            "timezone": self.timezone,
             "startsAndEndsOnSameDay": self.starts_and_ends_on_same_day,
         }
 
     @classmethod
     def from_appointment(cls, appointment: Appointment):
+        start_date_time = appointment.start_date_time
+        end_date_time = appointment.end_date_time
+
+        start_date_time_utc = start_date_time.replace(tzinfo=None)
+        end_date_time_utc = end_date_time.replace(tzinfo=None)
+
+        utc_offset = start_date_time.utcoffset()
+
+        # Convert the UTC offset to hours and format as GMT±H
+        timezone = (
+            "GMT"
+            if utc_offset.total_seconds() == 0
+            else f"GMT{'+' if utc_offset.total_seconds() >= 0 else '-'}{int(abs(utc_offset.total_seconds() // 3600))}"
+        )
+
         return cls(
             id=str(appointment.id),
             title=appointment.title,
             description=appointment.description,
             location=appointment.location_details.complete_address if appointment.location_details else "",
-            start_date_time=appointment.start_date_time.isoformat(),
-            end_date_time=appointment.end_date_time.isoformat(),
+            start_date_time=start_date_time.isoformat(),
+            end_date_time=end_date_time.isoformat(),
+            start_date_time_utc=start_date_time_utc,
+            end_date_time_utc=end_date_time_utc,
+            timezone=timezone,
             starts_and_ends_on_same_day=appointment.starts_and_ends_on_same_day,
         )
 
