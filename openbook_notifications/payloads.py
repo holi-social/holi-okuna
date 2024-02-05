@@ -175,8 +175,8 @@ class AppointmentData:
             location=appointment.location_details.complete_address if appointment.location_details else "",
             start_date_time=start_date_time.isoformat(),
             end_date_time=end_date_time.isoformat(),
-            start_date_time_utc=start_date_time_utc,
-            end_date_time_utc=end_date_time_utc,
+            start_date_time_utc=start_date_time_utc.isoformat(),
+            end_date_time_utc=end_date_time_utc.isoformat(),
             timezone=timezone,
             starts_and_ends_on_same_day=appointment.starts_and_ends_on_same_day,
         )
