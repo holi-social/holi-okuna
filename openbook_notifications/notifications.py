@@ -326,6 +326,9 @@ class Notification:
         except TypeError:
             # Novu sdk raises a type error when a workflow is inactive
             # as the response does not contain a transaction_id but its response model requires it
+            sentry_sdk.capture_exception(
+                Notification.DeliveryError("Error between Okuna and Novu while sending Notification")
+            )
             return None
         except ConnectionError:
             # retries exceeded
