@@ -83,3 +83,9 @@ class Mutation:
         AppointmentService().delete_appointment(appointment_id=appointment_id, user=user)
 
         return Result(success=True)
+
+    @strawberry.mutation
+    @sync_to_async
+    def generate_appointment_ics_file(self, info, appointment_id: uuid.UUID) -> str:
+        user = verify_authorized_user(info)
+        return AppointmentService().generate_appointment_ics_file(user=user, appointment_id=appointment_id)
