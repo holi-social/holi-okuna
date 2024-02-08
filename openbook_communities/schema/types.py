@@ -1,31 +1,30 @@
 import logging
 import uuid
-from typing import Annotated, List, Optional, TypeVar
-from django.utils import timezone
+from typing import Annotated, List, Optional, TypeVar, Any
 
 import strawberry
 import strawberry_django
+from django.db.models import QuerySet
+from django.utils import timezone
+from strawberry.django.context import StrawberryDjangoContext
 from strawberry.file_uploads import Upload
+from strawberry.types import Info
 
 from openbook_appointments.schema.types import Appointment
 from openbook_auth.models import User as UserModel
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import GeolocationPoint, GeolocationPointInput, Paged
-from openbook_communities.models import CollaborationTool as CollaborationToolModel
-from openbook_communities.models import Community as CommunityModel
-from openbook_communities.models import CommunityMembership as CommunityMembershipModel
-from openbook_communities.models import CommunityMembershipRequest as CommunityMembershipRequestModel
-from openbook_communities.models import CommunityInvite as CommunityInviteModel
-from openbook_communities.models import ExternalLink as ExternalLinkModel
-from openbook_communities.models import ExternalLinkType
-from openbook_communities.models import OnboardingStep as OnboardingStepModel
-from openbook_communities.models import SpaceUserConnectionType
-from openbook_communities.models import Task as TaskModel
-from openbook_communities.models import VisibilityType
+from openbook_communities.models import CollaborationTool as CollaborationToolModel, \
+    Community as CommunityModel, CommunityMembership as CommunityMembershipModel, \
+    CommunityMembershipRequest as CommunityMembershipRequestModel, \
+    CommunityInvite as CommunityInviteModel, ExternalLink as ExternalLinkModel, \
+    ExternalLinkType, OnboardingStep as OnboardingStepModel, SpaceUserConnectionType, \
+    Task as TaskModel, VisibilityType
+from openbook_connections.schema.types import Connection
 from openbook_posts.enums import VisibilityFilter
 from openbook_posts.models import Post as PostModel
-from openbook_terms.schema.types import SDG, Skill, Topic
 from openbook_posts.schema.types import Post
+from openbook_terms.schema.types import SDG, Skill, Topic
 
 logger = logging.getLogger(__name__)
 
@@ -367,6 +366,26 @@ class Space:
         appointments = self.appointments.all().filter(end_date_time__gte=current_datetime).order_by("start_date_time")
 
         return Paged.of(appointments, offset, limit)
+
+    @strawberry_django.field()
+    def common_connections(
+        self,
+        info: Info[StrawberryDjangoContext, Any],
+        offset: int = 0,
+        limit: int = 10,
+    ) -> Paged[Connection]:
+        current_user: UserModel = info.context.request.user
+        if current_user.is_anonymous:
+            return Paged()
+
+        space_memberships: QuerySet[CommunityMembershipModel] = self.memberships
+        space_member_ids = [m.user.id for m in space_memberships.only("user")]
+
+        common_connection = current_user.connections.filter(
+            target_user__id__in=space_member_ids
+        )
+
+        return Paged.of(common_connection, offset=offset, limit=limit)
 
 
 @strawberry.type
