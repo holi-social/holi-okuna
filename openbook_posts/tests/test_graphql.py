@@ -205,6 +205,22 @@ class TestPosts(TestCase):
         assert post_data["creator"]["id"] == str(posting_user.uuid)
         assert post_data["created"] is not None
 
+    def test_cant_fetch_deleted_post(self):
+        posting_user = make_user()
+
+        post = posting_user.create_post(
+            text=make_fake_post_text(),
+            is_public=True,
+        )
+        post_id = post.id
+        post.delete()
+
+        response = get_post_with_id_raw(post_id)
+
+        post_data = response.data["postById"]
+        assert post_data is None
+        assert "Post not found" in response.errors[0].message
+
     def test_cant_fetch_post_draft(self):
         posting_user = make_user()
 
@@ -213,11 +229,79 @@ class TestPosts(TestCase):
 
         post = posting_user.create_post(text=post_text, title=post_title, is_draft=True, is_public=True)
 
-        response = get_post_with_id_raw(post)
+        response = get_post_with_id_raw(post.id)
 
         post_data = response.data["postById"]
         assert post_data is None
-        assert "Post not found" in response.errors[0].message
+        assert "Unauthorized" in response.errors[0].message
+
+    def test_can_fetch_own_post_draft(self):
+        posting_user = make_user()
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_post(text=post_text, title=post_title, is_draft=True, is_public=True)
+
+        response = get_post_with_id_raw(post.id, posting_user)
+
+        post_data = response.data["postById"]
+        assert post_data["text"] == post_text
+        assert response.errors is None
+
+    def test_can_fetch_public_space_post(self):
+        posting_user = make_user()
+        space = make_community(creator=posting_user)
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_community_post(
+            space_id=space.id, text=post_text, title=post_title, visibility=VisibilityType.PUBLIC.value
+        )
+
+        response = get_post_with_id_raw(post.id)
+
+        post_data = response.data["postById"]
+        assert post_data["text"] == post_text
+        assert response.errors is None
+
+    def test_can_fetch_space_collaborators_post_as_member(self):
+        member = make_user()
+        posting_user = make_user()
+        space = make_community(creator=posting_user)
+        space.add_member(member)
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_community_post(
+            space_id=space.id, text=post_text, title=post_title, visibility=VisibilityType.MEMBERS.value
+        )
+
+        response = get_post_with_id_raw(post.id, member)
+
+        post_data = response.data["postById"]
+        assert post_data["text"] == post_text
+        assert response.errors is None
+
+    def test_cant_fetch_space_collaborators_post_if_not_member(self):
+        user = make_user()
+        posting_user = make_user()
+        space = make_community(creator=posting_user)
+
+        post_text = make_fake_post_text()
+        post_title = make_fake_post_title()
+
+        post = posting_user.create_community_post(
+            space_id=space.id, text=post_text, title=post_title, visibility=VisibilityType.MEMBERS.value
+        )
+
+        response = get_post_with_id_raw(post.id, user)
+
+        post_data = response.data["postById"]
+        assert post_data is None
+        assert "Unauthorized" in response.errors[0].message
 
     def test_can_delete_post_comment(self):
         posting_user = make_user()
