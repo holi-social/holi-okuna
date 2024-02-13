@@ -233,7 +233,7 @@ class TestPosts(TestCase):
 
         post_data = response.data["postById"]
         assert post_data is None
-        assert "Unauthorized" in response.errors[0].message
+        assert "Forbidden" in response.errors[0].message
 
     def test_can_fetch_own_post_draft(self):
         posting_user = make_user()
@@ -301,7 +301,7 @@ class TestPosts(TestCase):
 
         post_data = response.data["postById"]
         assert post_data is None
-        assert "Unauthorized" in response.errors[0].message
+        assert "Forbidden" in response.errors[0].message
 
     def test_can_delete_post_comment(self):
         posting_user = make_user()

@@ -18,6 +18,6 @@ def resolve_post(current_user, post_id):
             # Check if post is visible => return 403 otherwise
             return PostModel.objects.filter(PostModel.is_visible_query(current_user)).distinct().get(id=post_id)
         except PostModel.DoesNotExist:
-            raise GraphQLError("Unauthorized", extensions={"code": GraphQLErrorCodes.UNAUTHORIZED})
+            raise GraphQLError("Forbidden", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
     except PostModel.DoesNotExist:
         raise GraphQLError("Post not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
