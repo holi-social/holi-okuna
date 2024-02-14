@@ -14,16 +14,16 @@ def private_post_ids(posts_data):
 
 
 def get_post_with_id_data(post, user=None):
-    response = get_post_with_id_raw(post, user)
+    response = get_post_with_id_raw(post.id, user)
     assert response.errors is None
     return response.data["postById"]
 
 
-def get_post_with_id_raw(post, user=None):
+def get_post_with_id_raw(post_id, user=None):
     return async_to_sync(schema.execute)(
         f"""
         query {{
-            postById(id: "{post.id}") {{
+            postById(id: "{post_id}") {{
                 id
                 text
                 title

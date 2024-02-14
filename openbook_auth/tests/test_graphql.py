@@ -795,7 +795,7 @@ class TestUsers:
             ),
         )
 
-        blocked_post_raw = get_post_with_id_raw(blocked_post, blocking_user)
+        blocked_post_raw = get_post_with_id_raw(blocked_post.id, blocking_user)
         assert blocked_post_raw.data["postById"] is None
         other_post_data = get_post_with_id_data(other_post, blocking_user)
         assert other_post_data["involvedUsers"]["totalResults"] == 2  # does include blocked users
