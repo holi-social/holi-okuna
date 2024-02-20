@@ -39,6 +39,7 @@ from openbook_common.tests.helpers import (
     make_fake_post_title,
     make_user,
     assert_paged_results_equal,
+    assert_is_forbidden,
 )
 from openbook_communities.enums import UpdateConnectionAction
 from openbook_communities.models import SpaceUserConnectionType
@@ -817,7 +818,7 @@ class TestUsers:
         response = async_to_sync(schema.execute)(
             """
             query {
-                userSuggestions(limit:100) {
+                userSuggestions(limit:20) {
                     totalResults
                     data {
                         fullName
@@ -1089,3 +1090,79 @@ class TestUsers:
     def test_cannot_retrieve_connected_users_if_not_logged_in(self):
         response = get_connected_users_raw()
         assert_is_unauthorized(response)
+
+    def test_user_suggestions_only_accessible_when_logged_in(self):
+        response = async_to_sync(schema.execute)(
+            """
+            query {
+                userSuggestions {
+                    totalResults
+                    data {
+                        id
+                        fullName
+                    }
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": AnonymousUser}}),
+        )
+        assert_is_unauthorized(response)
+
+    def test_user_suggestions_limited(self):
+        user = make_user()
+        response = async_to_sync(schema.execute)(
+            """
+            query {
+                userSuggestions(offset: 20) {
+                    totalResults
+                    data {
+                        id
+                        fullName
+                    }
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": user}}),
+        )
+        assert_is_forbidden(response)
+
+    def test_user_suggestions(self):
+        user = make_user()
+        for x in range(0, 25):
+            make_user(name="A", last_name="B" + str(x), date_joined=datetime.now() - timedelta(hours=2))
+        response = async_to_sync(schema.execute)(
+            """
+            query {
+                userSuggestions {
+                    totalResults
+                    data {
+                        id
+                        fullName
+                    }
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": user}}),
+        )
+        assert response.errors is None
+        assert response.data["userSuggestions"]["totalResults"] == 25
+        assert len(response.data["userSuggestions"]["data"]) == 10
+
+        # A maximum of 20 user suggestions may be requested
+        response = async_to_sync(schema.execute)(
+            """
+            query {
+                userSuggestions(offset:15, limit: 25) {
+                    totalResults
+                    data {
+                        id
+                        fullName
+                    }
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": user}}),
+        )
+        assert response.errors is None
+        assert response.data["userSuggestions"]["totalResults"] == 25
+        assert len(response.data["userSuggestions"]["data"]) == 5

@@ -13,7 +13,7 @@ from graphql import GraphQLError
 
 from openbook_auth.models import User as UserModel, UserBlock as UserBlockModel
 from openbook_auth.schema.types import User
-from openbook_auth.utils import verify_authorized_user
+from openbook_auth.utils import verify_authorized_user, check_max_limit
 from openbook_common.validators import string_not_empty
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.schema.types import Paged
@@ -104,7 +104,8 @@ class Query:
 
     @strawberry_django.field()
     def user_suggestions(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
-        current_user = info.context.request.user
+        current_user = verify_authorized_user(info)
+        limit = check_max_limit(20, offset, limit)
         query = (
             UserModel.objects.select_related("profile")
             .filter(UserModel.is_visible_ignore_blocked_query())

@@ -585,6 +585,12 @@ def assert_is_unauthorized(response):
     assert "UNAUTHORIZED" == str(response.errors[0].extensions["code"])
 
 
+def assert_is_forbidden(response):
+    assert response.data is None
+    assert "Forbidden" in str(response.errors[0].message)
+    assert "FORBIDDEN" == str(response.errors[0].extensions["code"])
+
+
 def create_large_image_file():
     test_image = get_test_images()[-1]
 
