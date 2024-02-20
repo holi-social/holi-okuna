@@ -39,6 +39,10 @@ class AppointmentService:
         description=None,
         thumbnail=None,
     ):
+        self.checker.check_has_location_or_video_call_link(
+            location_details=location_details, video_call_link=video_call_link
+        )
+
         self.checker.check_can_create_appointment(user=creator, space_id=space_id, invite_only=invite_only)
 
         space_model = get_community_model()
@@ -138,6 +142,10 @@ class AppointmentService:
 
         # TODO: Replace it with _manage_location_details once the application no longer supports deprecated location and geolocation fields.
         location_details = self._manage_appointment_location_info(appointment, geolocation, location, location_details)
+
+        self.checker.check_has_location_or_video_call_link(
+            location_details=location_details, video_call_link=video_call_link
+        )
 
         updated_appointment = self.repository.update_appointment(
             appointment_id=appointment_id,
