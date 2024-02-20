@@ -90,6 +90,20 @@ class TestAppointments(TestCase):
             "videoCallInfo": fake.text(max_nb_chars=settings.VIDEO_CALL_LINK_DESCRIPTION_MAX_LENGTH),
         }
 
+        cls.public_appointment_with_missing_required_input_data = {
+            "spaceId": str(cls.space.id),
+            "title": fake.text(max_nb_chars=settings.APPOINTMENT_TITLE_MAX_LENGTH),
+            "inviteOnly": False,
+            "participantIds": [],
+            "startDateTime": fake.future_datetime().isoformat(),
+            "endDateTime": fake.future_datetime().isoformat(),
+            "locationDetails": None,
+            "description": fake.text(max_nb_chars=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH),
+            "permission": PermissionType.ADMINS,
+            "videoCallLink": None,
+            "videoCallInfo": None,
+        }
+
         cls.invite_only_appointment_input_data = {
             "spaceId": str(cls.space.id),
             "title": fake.text(max_nb_chars=settings.APPOINTMENT_TITLE_MAX_LENGTH),
@@ -156,6 +170,14 @@ class TestAppointments(TestCase):
             "You cannot create appointments of a space you are not a member of"
             in response.errors[0].extensions["errors"]
         )
+
+    def test_can_not_create_appointment_if_location_details_and_video_call_link_are_missing(self):
+        response = create_appointment(self.admin, self.public_appointment_with_missing_required_input_data)
+
+        assert response.errors is not None
+        assert response.data is None
+
+        assert "You must provide a location or a video call link" in response.errors[0].extensions["errors"]
 
     def test_can_create_public_appointment_if_admin(self):
         response = create_appointment(self.admin, self.public_appointment_input_data)
