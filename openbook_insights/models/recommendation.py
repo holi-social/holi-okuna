@@ -39,4 +39,8 @@ class Recommendation(ModelWithUUID):
         if not self.link_preview:
             self.link_preview = LinkPreview.from_url(self.link)
 
+        if self.link != self.link_preview.requested_url:
+            self.link_preview.delete()
+            self.link_preview = LinkPreview.from_url(self.link)
+
         return super().save(*args, **kwargs)
