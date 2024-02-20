@@ -29,6 +29,8 @@ class Migration(migrations.Migration):
                             ("DONATION_PROJECT", "Donation Project"),
                             ("VOLUNTEERING", "Volunteering"),
                             ("TIP", "Tip"),
+                            ("SPACE", "Space"),
+                            ("EVENT", "Event"),
                         ],
                         max_length=255,
                     ),

@@ -25,6 +25,8 @@ class RecommendationCategory(TextChoices):
     DONATION_PROJECT = auto()
     VOLUNTEERING = auto()
     TIP = auto()
+    SPACE = auto()
+    EVENT = auto()
 
 
 class Recommendation(ModelWithUUID):
