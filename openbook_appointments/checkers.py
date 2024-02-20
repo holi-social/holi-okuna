@@ -37,6 +37,10 @@ class AppointmentChecker:
                 _("You cannot create a public appointment if you are not an administrator of a space"),
             )
 
+    def check_has_location_or_video_call_link(self, location_details, video_call_link):
+        if not location_details and not video_call_link:
+            raise ValidationError(_("You must provide a location or a video call link"))
+
     def check_can_query_invite_only_appointment(self, user, appointment):
         space_id = appointment.space.id
 
