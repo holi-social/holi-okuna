@@ -163,7 +163,7 @@ class VideoCallLinkRepository:
         return video_call_link
 
     def delete_video_call_link(self, video_call_link_id):
-        VideoCallLink.objects.get(id=video_call_link_id).delete()
+        return VideoCallLink.objects.get(id=video_call_link_id).delete()
 
 
 class LocationDetailsRepository:
