@@ -45,4 +45,4 @@ class Recommendation(ModelWithUUID):
             self.link_preview.delete()
             self.link_preview = LinkPreview.from_url(self.link)
 
-        return super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
