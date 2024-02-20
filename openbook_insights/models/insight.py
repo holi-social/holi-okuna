@@ -5,7 +5,6 @@ from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFit
 
-# Create your models here.
 from openbook_auth.models import User
 from openbook_common.helpers import ExifRotate, generate_blurhash
 from openbook_common.models import ModelWithUUID
