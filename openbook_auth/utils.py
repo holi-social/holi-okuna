@@ -18,6 +18,6 @@ def check_max_limit(maximum: int, offset: int, limit: int):
     if offset >= maximum:
         raise GraphQLError("Forbidden", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
 
+    # we return a new limit that ensures: offset + new limit <= maximum
+    # eg. maximum=20, offset=15, limit=10, then the new limit is 5.
     return min(maximum, offset + limit) - offset
-    # if offset > maximum:
-    #     raise GraphQLError("Forbidden", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
