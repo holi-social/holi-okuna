@@ -35,7 +35,7 @@ class Recommendation(ModelWithUUID):
     category = CharField(choices=RecommendationCategory.choices, max_length=255, null=False, blank=False)
     link = URLField(null=False, blank=False, validators=[url_safety_validator])
     link_preview = ForeignKey(LinkPreview, on_delete=SET_NULL, null=True)
-    comment = TextField(null=False, blank=False)
+    comment = TextField(null=False, blank=False, verbose_name="Why I recommend this content")
 
     def save(self, *args, **kwargs):
         if not self.link_preview:
