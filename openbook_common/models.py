@@ -193,7 +193,7 @@ class LinkPreview(ModelWithUUID):
             if value is not None:
                 setattr(preview, field[3:], value)
 
-        preview.icon = LinkPreview._fetch_icon(html)
+        preview.icon = LinkPreview._fetch_icon(html, url=normalized_url)
 
         preview.save()
         return preview
@@ -232,10 +232,10 @@ class LinkPreview(ModelWithUUID):
             return og
 
     @staticmethod
-    def _fetch_icon(html: BeautifulSoup) -> str | None:
+    def _fetch_icon(html: BeautifulSoup, url: str) -> str | None:
         icon = html.find("link", rel="icon")
         if icon is not None and "href" in icon.attrs:
-            return icon["href"]
+            return urljoin(url, icon["href"])
 
         return None
 
