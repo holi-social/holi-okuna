@@ -9,6 +9,7 @@ from openbook_auth.models import User as UserModel, UserBlock
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import Paged
 from openbook_insights.models import Insight as InsightModel
+from openbook_insights.schema.types.quote import Quote
 from openbook_insights.schema.types.recommendation import Recommendation
 from openbook_posts.models import Post as PostModel
 from openbook_posts.models import PostComment as PostCommentModel
@@ -65,3 +66,7 @@ class Insight:
     @strawberry_django.field()
     def recommendations(self) -> list[Recommendation]:
         return self.recommendations.all()
+
+    @strawberry_django.field()
+    def quotes(self) -> list[Quote]:
+        return self.quotes.all()
