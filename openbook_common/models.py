@@ -152,6 +152,7 @@ class LinkPreview(ModelWithUUID):
     type = models.TextField()
     image = models.TextField()
     site_name = models.TextField()
+    icon = models.URLField(null=True, blank=True)
     fetched_at = models.DateTimeField(default=timezone.now, editable=False)
 
     fields = [
@@ -182,26 +183,36 @@ class LinkPreview(ModelWithUUID):
             hours=settings.LINK_PREVIEW_CACHE_TIME_H
         ):
             return preview
-        og = cls.get_opengraph(normalized_url)
+
+        html = LinkPreview._fetch_html_of_url(normalized_url)
+        og = cls.get_opengraph(html, url=normalized_url)
         preview.fetched_at = timezone.now()
+
         for field in cls.fields:
             value = og.get(field[3:])
             if value is not None:
                 setattr(preview, field[3:], value)
+
+        preview.icon = LinkPreview._fetch_icon(html)
+
         preview.save()
         return preview
 
+    @staticmethod
+    def _fetch_html_of_url(url: str) -> BeautifulSoup:
+        response = requests.get(url=url)
+        if hasattr(response, "apparent_encoding") and response.apparent_encoding:
+            response.encoding = response.apparent_encoding
+        else:
+            response.encoding = "utf-8"  # Set to utf-8 by default if apparent_encoding is not found
+
+        return BeautifulSoup(response.text, "html.parser")
+
     @classmethod
-    def get_opengraph(cls, url):
+    def get_opengraph(cls, html: BeautifulSoup, url: str) -> dict[str, str]:
         og = {}
         try:
-            response = requests.get(url=url)
-            if hasattr(response, "apparent_encoding") and response.apparent_encoding:
-                response.encoding = response.apparent_encoding
-            else:
-                response.encoding = "utf-8"  # Set to utf-8 by default if apparent_encoding is not found
-            soup = BeautifulSoup(response.text, "html.parser")
-            for m in soup.find_all("meta"):
+            for m in html.find_all("meta"):
                 meta_property = m.get("property", None)
                 if meta_property in cls.fields:
                     og[meta_property[3:]] = m.get("content", None)
@@ -213,12 +224,20 @@ class LinkPreview(ModelWithUUID):
                     og["image"] = urljoin(url, og["image"])
 
             if not og.get("title"):
-                title = soup.find("title")
+                title = html.find("title")
                 if title and title.string:
                     og["title"] = title.string
             return og
         except RequestException:
             return og
+
+    @staticmethod
+    def _fetch_icon(html: BeautifulSoup) -> str | None:
+        icon = html.find("link", rel="icon")
+        if icon is not None and "href" in icon.attrs:
+            return icon["href"]
+
+        return None
 
     def has_data(self):
         return any(attr_filled(self, field[3:]) for field in self.fields)
