@@ -8,10 +8,10 @@ from openbook_posts.schema.types import LinkPreview
 @strawberry_django.type(QuoteModel)
 class Quote:
     id: strawberry.auto
-    quote: strawberry.auto
+    text: strawberry.auto
 
-    quote_author: strawberry.auto
-    quote_author_profession: strawberry.auto
+    author: strawberry.auto
+    author_profession: strawberry.auto
 
     link: strawberry.auto
     link_preview: LinkPreview

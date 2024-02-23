@@ -9,10 +9,10 @@ from openbook_insights.models.external_content import ExternalContentCategory
 class Quote(ModelWithUUID):
     insight = models.ForeignKey(Insight, on_delete=models.CASCADE, related_name="quotes")
 
-    quote = models.TextField(blank=False, null=False)
+    text = models.TextField(blank=False, null=False)
 
-    quote_author = models.CharField(max_length=255, blank=False, null=False)
-    quote_author_profession = models.CharField(max_length=255, blank=False, null=False)
+    author = models.CharField(max_length=255, blank=False, null=False)
+    author_profession = models.CharField(max_length=255, blank=False, null=False)
 
     link = models.URLField(blank=False, null=False, validators=[url_safety_validator])
     link_preview = models.ForeignKey(LinkPreview, on_delete=models.SET_NULL, null=True)
