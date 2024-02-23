@@ -1,4 +1,7 @@
-from .external_content import *  # noqa: F403
-from .insight import *  # noqa: F403
-from .quote import *  # noqa: F403
-from .recommendation import *  # noqa: F403
+# order of imports matters here, Insight needs to be imported first
+from .insight import Insight  # noqa: F401
+
+from .external_content import ExternalContentCategory  # noqa: F401
+from .initiative import Initiative  # noqa: F401
+from .quote import Quote  # noqa: F401
+from .recommendation import Recommendation  # noqa: F401
