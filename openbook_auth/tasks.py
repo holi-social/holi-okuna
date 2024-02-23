@@ -41,6 +41,8 @@ def update_ory_user_identity(user: User) -> bool:
 
 
 def update_ory(user_id, data):
+    logger.error(settings.ORY_ACCESS_TOKEN)
+    logger.error(settings.ORY_BASE_URL)
     if settings.ORY_ACCESS_TOKEN == "unknown":  # default in templates/.env
         logger.error("ory access token is unknown, can't update ory. Will skip call to ory API!")
         return
