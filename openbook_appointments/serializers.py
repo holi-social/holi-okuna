@@ -51,12 +51,16 @@ class CreateAppointmentSerializer(serializers.Serializer):
 
     geolocation = GeolocationPointSerializer(required=False)
 
-    location_details = LocationDetailsSerializer(required=False)
+    location_details = LocationDetailsSerializer(
+        required=False,
+        allow_null=True,
+    )
 
     description = serializers.CharField(
         max_length=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH,
         required=False,
         allow_blank=True,
+        allow_null=True,
     )
 
     thumbnail = RestrictedImageFileSizeField(
@@ -77,12 +81,14 @@ class CreateAppointmentSerializer(serializers.Serializer):
         max_length=settings.VIDEO_CALL_LINK_URL_MAX_LENGTH,
         required=False,
         allow_blank=True,
+        allow_null=True,
     )
 
     video_call_info = serializers.CharField(
         max_length=settings.VIDEO_CALL_LINK_DESCRIPTION_MAX_LENGTH,
         required=False,
         allow_blank=True,
+        allow_null=True,
     )
 
 
@@ -123,6 +129,8 @@ class UpdateAppointmentSerializer(serializers.Serializer):
     description = serializers.CharField(
         max_length=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH,
         required=False,
+        allow_blank=True,
+        allow_null=True,
     )
 
     thumbnail = RestrictedImageFileSizeField(
