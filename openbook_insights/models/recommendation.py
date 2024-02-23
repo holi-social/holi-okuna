@@ -1,8 +1,5 @@
-from enum import auto
-
 from django.db.models import (
     URLField,
-    TextChoices,
     TextField,
     CASCADE,
     CharField,
@@ -12,27 +9,14 @@ from django.db.models import (
 
 from openbook_common.models import ModelWithUUID, LinkPreview
 from openbook_common.validators import url_safety_validator
+from openbook_insights.models.external_content import ExternalContentCategory
 from openbook_insights.models.insight import Insight
-
-
-class RecommendationCategory(TextChoices):
-    ARTICLE = auto()
-    VIDEO = auto()
-    AUDIO = auto()
-    SOCIAL_MEDIA = auto()
-    POST = auto()
-    STUDY = auto()
-    DONATION_PROJECT = auto()
-    VOLUNTEERING = auto()
-    TIP = auto()
-    SPACE = auto()
-    EVENT = auto()
 
 
 class Recommendation(ModelWithUUID):
     insight = ForeignKey(Insight, on_delete=CASCADE, related_name="recommendations")
 
-    category = CharField(choices=RecommendationCategory.choices, max_length=255, null=False, blank=False)
+    category = CharField(choices=ExternalContentCategory.choices, max_length=255, null=False, blank=False)
     link = URLField(null=False, blank=False, validators=[url_safety_validator])
     link_preview = ForeignKey(LinkPreview, on_delete=SET_NULL, null=True)
     comment = TextField(null=False, blank=False, verbose_name="Why I recommend this content")

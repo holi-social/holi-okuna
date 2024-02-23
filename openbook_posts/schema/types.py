@@ -74,6 +74,7 @@ class LinkPreview:
     image: strawberry.auto
     site_name: strawberry.auto
     fetched_at: strawberry.auto
+    icon: strawberry.auto
 
     @strawberry_django.field()
     def origin(self) -> str:
