@@ -1236,4 +1236,3 @@ class TestUsers:
 
         assert response.data["removeInsightBookmark"]["success"]
         assert user.profile.favorite_insights.count() == 0
-
