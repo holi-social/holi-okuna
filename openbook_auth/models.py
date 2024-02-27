@@ -83,6 +83,7 @@ from openbook_common.utils.model_loaders import (
     get_user_notifications_subscription_model,
     get_notification_model,
     get_task_model,
+    get_insight_model,
 )
 from openbook_common.validators import name_characters_validator
 from openbook_hashtags.queries import (
@@ -99,8 +100,6 @@ from openbook_posts.query_collections import get_posts_for_user_collection
 from openbook_terms.models import Topic, SDG, Skill
 from openbook_translation import translation_strategy
 from openbook.utils import DEFAULT_EMAIL_LANGUAGE, generate_hash, get_supported_language_for_email
-
-from openbook_notifications.api import NotificationApi
 
 from django.core.cache import caches
 from openbook.settings import USERBLOCK
@@ -692,6 +691,26 @@ class User(ModelWithUUID, AbstractUser):
         password_reset_token = self._make_password_reset_verification_token()
         self._send_password_reset_email_with_token(password_reset_token)
         return password_reset_token
+
+    def bookmark_insight(self, insight_id):
+        Insight = get_insight_model()
+        insight = Insight.objects.get(pk=insight_id)
+
+        if not insight:
+            raise ValidationError(_("Insight does not exist"))
+
+        self.profile.favorite_insights.add(insight)
+        self.save()
+
+    def remove_insight_bookmark(self, insight_id):
+        Insight = get_insight_model()
+        insight = Insight.objects.get(pk=insight_id)
+
+        if not insight:
+            raise ValidationError(_("Insight does not exist"))
+
+        self.profile.favorite_insights.remove(insight)
+        self.save()
 
     @classmethod
     def sanitize_identity_input(cls, identity):
@@ -5329,6 +5348,7 @@ class UserProfile(ModelWithUUID):
     followers_count_visible = models.BooleanField(_("followers count visible"), blank=False, null=False, default=False)
     community_posts_visible = models.BooleanField(_("community posts visible"), blank=False, null=False, default=True)
     badges = models.ManyToManyField(Badge, related_name="users_profiles")
+    favorite_insights = models.ManyToManyField(to="openbook_insights.insight", blank=True)
 
     class Meta:
         verbose_name = _("user profile")
