@@ -1,6 +1,6 @@
 import logging
 import uuid
-from typing import List, Optional
+from typing import List, Optional, Annotated
 
 import strawberry
 import strawberry_django
@@ -117,6 +117,12 @@ class User:
     def connection_status_to_space(self, info, space_id: uuid.UUID) -> List[Optional[SpaceUserConnectionType]]:
         space = CommunityModel.objects.get(id=space_id)
         return space.connection_status_to_user(self)
+
+    @strawberry_django.field(select_related=["profile__favorite_insights"])
+    def favorite_insights(
+        self,
+    ) -> Optional[List[Annotated["Insight", strawberry.lazy("openbook_insights.schema.types")]]]:
+        return self.profile.favorite_insights.all()
 
 
 @strawberry.input
