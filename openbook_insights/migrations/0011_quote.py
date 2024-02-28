@@ -9,6 +9,7 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
+        ("openbook_common", "0002_linkpreview"),
         ("openbook_common", "0009_linkpreview_icon"),
         ("openbook_insights", "0010_alter_recommendation_comment"),
     ]

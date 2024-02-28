@@ -70,3 +70,8 @@ class Insight:
     @strawberry_django.field()
     def quotes(self) -> list[Quote]:
         return self.quotes.all()
+
+    @strawberry_django.field()
+    def is_bookmarked(self, info) -> bool:
+        current_user = info.context.request.user
+        return current_user.profile.favorite_insights.filter(id=self.id).exists()
