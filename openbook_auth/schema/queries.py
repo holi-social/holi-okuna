@@ -17,6 +17,7 @@ from openbook_auth.utils import verify_authorized_user, check_max_limit
 from openbook_common.validators import string_not_empty
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.schema.types import Paged
+from openbook_insights.schema.types import Insight
 from openbook_notifications.api import NotificationApi
 
 logger = structlog.get_logger(__name__)
@@ -122,3 +123,9 @@ class Query:
         current_user = verify_authorized_user(info)
 
         return Paged.of(current_user.connected_users(), offset, limit)
+
+    @strawberry_django.field()
+    def favorite_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
+        current_user = verify_authorized_user(info)
+
+        return Paged.of(current_user.profile.favorite_insights.all(), offset, limit)
