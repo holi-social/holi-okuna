@@ -74,4 +74,7 @@ class Insight:
     @strawberry_django.field()
     def is_bookmarked(self, info) -> bool:
         current_user = info.context.request.user
+        if current_user.is_anonymous:
+            return False
+
         return current_user.profile.favorite_insights.filter(id=self.id).exists()
