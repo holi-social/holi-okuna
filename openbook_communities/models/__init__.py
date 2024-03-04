@@ -107,7 +107,7 @@ class Community(ModelWithUUID):
     avatar = ProcessedImageField(
         storage=community_image_storage,
         verbose_name=_("avatar"),
-        blank=False,
+        blank=True,
         null=True,
         processors=[
             ExifRotate(),
@@ -1664,3 +1664,6 @@ class OnboardingStep(ModelWithUUID):
                 old_steps[index].delete()
 
         return community
+
+
+from .network_relationship import SpacesRelationship  # noqa: F401
