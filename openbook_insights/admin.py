@@ -36,7 +36,8 @@ class InsightAdmin(admin.ModelAdmin):
     # This filter makes the admin UI slow when there is a lot of users
     # list_filter = ("creator",)
 
-    inlines = [InsightRecommendationInline, InsightQuoteInline, InsightInitiativeInline]
+    # TODO: enable again after insights_v2 release
+    # inlines = [InsightRecommendationInline, InsightQuoteInline, InsightInitiativeInline]
 
     @admin.display(description="Description Preview")
     def description_preview(self, obj):
