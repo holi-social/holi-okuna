@@ -1,13 +1,16 @@
 import uuid
-from typing import Annotated, List, Optional
+from typing import Annotated, List, Optional, Any, TypeAlias
 
 import strawberry
 import strawberry_django
 from asgiref.sync import async_to_sync, sync_to_async
+from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Prefetch, F, Q
 from django.db.models.lookups import IContains
 from django.utils.translation import gettext_lazy as _
 from graphql import GraphQLError
+from strawberry.django.context import StrawberryDjangoContext
+from strawberry.types import Info as StrawberryInfo
 
 from openbook_auth.models import User as UserModel
 from openbook_auth.utils import verify_authorized_user
@@ -27,6 +30,8 @@ from openbook_communities.schema.types import (
     Space,
     Task,
 )
+
+Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
 
 
 @sync_to_async
@@ -275,7 +280,13 @@ class Query:
             raise GraphQLError("Task not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
 
     @strawberry_django.field()
-    def collaboration_tools(self, space_id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[CollaborationTool]:
+    def collaboration_tools(
+        self, info: Info, space_id: uuid.UUID, offset: int = 0, limit: int = 10
+    ) -> Paged[CollaborationTool]:
+        user: UserModel = info.context.request.user
+        if user.is_anonymous or not user.is_member_of_community_with_id(space_id):
+            raise PermissionDenied("Forbidden")
+
         return Paged.of(
             CollaborationToolModel.objects.filter(community__id=space_id).order_by("-created_at"),
             offset,
