@@ -77,7 +77,7 @@ class TestModeration:
 
         approve_verify_moderated_object(post.id, posting_user)
 
-        response = get_post_with_id_raw(post, other_user)
+        response = get_post_with_id_raw(post.id, other_user)
         assert other_user.can_see_post(post) is False
         assert response.data["postById"] is None
 

@@ -3,7 +3,10 @@ import logging
 from datetime import datetime, timedelta
 from unittest import mock
 from unittest.mock import call
+
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import HttpRequest
+from django.utils import timezone
 from structlog.testing import capture_logs
 
 import pytest
@@ -28,6 +31,8 @@ from openbook_auth.tests.helpers import (
     get_users_by_chat_identities,
     get_connected_users,
     get_connected_users_raw,
+    bookmark_insight,
+    remove_insight_bookmark,
 )
 from openbook_common.enums import FeatureToggleName, FeatureToggleType
 from openbook_common.models import FeatureToggle
@@ -40,7 +45,9 @@ from openbook_common.tests.helpers import (
     make_user,
     assert_paged_results_equal,
     assert_is_forbidden,
+    simple_jpeg_bytes,
 )
+from openbook_common.utils.model_loaders import get_insight_model
 from openbook_communities.enums import UpdateConnectionAction
 from openbook_communities.models import SpaceUserConnectionType
 from openbook_communities.tests.helpers import (
@@ -796,7 +803,7 @@ class TestUsers:
             ),
         )
 
-        blocked_post_raw = get_post_with_id_raw(blocked_post, blocking_user)
+        blocked_post_raw = get_post_with_id_raw(blocked_post.id, blocking_user)
         assert blocked_post_raw.data["postById"] is None
         other_post_data = get_post_with_id_data(other_post, blocking_user)
         assert other_post_data["involvedUsers"]["totalResults"] == 2  # does include blocked users
@@ -1166,3 +1173,66 @@ class TestUsers:
         assert response.errors is None
         assert response.data["userSuggestions"]["totalResults"] == 25
         assert len(response.data["userSuggestions"]["data"]) == 5
+
+    def test_cannot_bookmark_insight_if_anonymous(self):
+        insight_author = make_user()
+        Insight = get_insight_model()
+        insight = Insight.objects.create(
+            creator=insight_author,
+            title="Insight",
+            header_image=SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes),
+            date_published=timezone.now(),
+        )
+
+        response = bookmark_insight(AnonymousUser, insight_id=insight.id)
+
+        assert_is_unauthorized(response)
+
+    def test_cannot_remove_insight_bookmark_if_anonymous(self):
+        insight_author = make_user()
+        Insight = get_insight_model()
+        insight = Insight.objects.create(
+            creator=insight_author,
+            title="Insight",
+            header_image=SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes),
+            date_published=timezone.now(),
+        )
+
+        response = remove_insight_bookmark(AnonymousUser, insight_id=insight.id)
+
+        assert_is_unauthorized(response)
+
+    def test_can_bookmark_insight_if_authenticated(self):
+        user = make_user()
+        insight_author = make_user()
+        Insight = get_insight_model()
+        insight = Insight.objects.create(
+            creator=insight_author,
+            title="Insight",
+            header_image=SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes),
+            date_published=timezone.now(),
+        )
+
+        response = bookmark_insight(user, insight_id=insight.id)
+
+        assert response.data["bookmarkInsight"]["success"]
+        assert user.profile.favorite_insights.count() == 1
+
+    def test_can_remove_insight_bookmark_if_authenticated(self):
+        user = make_user()
+        insight_author = make_user()
+        Insight = get_insight_model()
+        insight = Insight.objects.create(
+            creator=insight_author,
+            title="Insight",
+            header_image=SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes),
+            date_published=timezone.now(),
+        )
+
+        bookmark_insight(user, insight_id=insight.id)
+        assert user.profile.favorite_insights.count() == 1
+
+        response = remove_insight_bookmark(user, insight_id=insight.id)
+
+        assert response.data["removeInsightBookmark"]["success"]
+        assert user.profile.favorite_insights.count() == 0

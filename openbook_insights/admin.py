@@ -1,6 +1,29 @@
 from django.contrib import admin
 
-from openbook_insights.models import Insight
+from openbook_insights.models import Insight, Recommendation, Quote, Initiative
+
+
+class InsightRecommendationInline(admin.TabularInline):
+    model = Recommendation
+    readonly_fields = ["id"]
+    exclude = ["link_preview"]
+    extra = 0
+
+
+class InsightQuoteInline(admin.StackedInline):
+    model = Quote
+    readonly_fields = ["id"]
+    exclude = ["link_preview"]
+    extra = 0
+    min_num = 2
+    max_num = 4
+
+
+class InsightInitiativeInline(admin.TabularInline):
+    model = Initiative
+    readonly_fields = ["id"]
+    exclude = ["link_preview"]
+    extra = 0
 
 
 @admin.register(Insight)
@@ -9,9 +32,12 @@ class InsightAdmin(admin.ModelAdmin):
     search_fields = ("title", "description")
     date_hierarchy = "date_published"
     filter_horizontal = ("posts",)
-    list_display = ("title", "description_preview", "creator", "header_image", "header_image_blurhash")
+    list_display = ("title", "description_preview", "creator", "header_image", "recommendations_count")
     # This filter makes the admin UI slow when there is a lot of users
     # list_filter = ("creator",)
+
+    # TODO: enable again after insights_v2 release
+    # inlines = [InsightRecommendationInline, InsightQuoteInline, InsightInitiativeInline]
 
     @admin.display(description="Description Preview")
     def description_preview(self, obj):
@@ -19,3 +45,11 @@ class InsightAdmin(admin.ModelAdmin):
             return obj.description[0:100] + "..."
         else:
             return obj.description
+
+    @admin.display(description="Number of recommendations")
+    def recommendations_count(self, obj: Insight) -> str:
+        recommendations_count = obj.recommendations.count()
+        if recommendations_count == 1:
+            return "1 recommendation"
+
+        return f"{recommendations_count} recommendations"

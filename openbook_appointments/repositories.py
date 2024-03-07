@@ -1,6 +1,7 @@
 from typing import Optional
 from uuid import UUID
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.utils import timezone
 
@@ -47,18 +48,24 @@ class AppointmentRepository:
 
         return appointment
 
-    def get_appointments(self, space_id, status_type, invite_only=None):
+    def get_appointments(
+        self, space_id, status_type: StatusType, invite_only: bool = None, include_deleted: bool = False
+    ) -> list[Appointment]:
         current_datetime = timezone.now()
 
         query = Q(space__id=space_id)
 
-        if status_type == StatusType.UPCOMING:
-            query.add(Q(end_date_time__gte=current_datetime), Q.AND)
-        elif status_type == StatusType.PAST:
-            query.add(Q(end_date_time__lt=current_datetime), Q.AND)
+        match status_type:
+            case StatusType.UPCOMING:
+                query.add(Q(end_date_time__gte=current_datetime), Q.AND)
+            case StatusType.PAST:
+                query.add(Q(end_date_time__lt=current_datetime), Q.AND)
 
         if invite_only is not None:
             query.add(Q(invite_only=invite_only), Q.AND)
+
+        if not include_deleted:
+            query.add(Q(is_deleted=False), Q.AND)
 
         appointments = Appointment.objects.filter(query).order_by("start_date_time")
 
@@ -125,10 +132,16 @@ class AppointmentRepository:
 
         return appointment
 
-    def get_appointment(self, id_or_slug):
+    def get_appointment(self, id_or_slug: str, allow_deleted: bool = False) -> Appointment:
         if is_uuid(id_or_slug):
-            return Appointment.objects.get(id=id_or_slug)
-        return Appointment.objects.get(slug=id_or_slug)
+            appointment = Appointment.objects.get(id=id_or_slug)
+        else:
+            appointment = Appointment.objects.get(slug=id_or_slug)
+
+        if appointment.is_deleted and not allow_deleted:
+            raise ObjectDoesNotExist()
+
+        return appointment
 
     def delete_appointment(self, appointment_id):
         Appointment.objects.get(id=appointment_id).delete()

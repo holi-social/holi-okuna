@@ -1,6 +1,6 @@
 import logging
 import uuid
-from typing import List, Optional
+from typing import List, Optional, Annotated
 
 import strawberry
 import strawberry_django

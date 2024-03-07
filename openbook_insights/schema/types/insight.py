@@ -3,13 +3,14 @@ from typing import Annotated, List, Optional
 
 import strawberry
 import strawberry_django
-from asgiref.sync import sync_to_async
 from django.db.models import Q
 
 from openbook_auth.models import User as UserModel, UserBlock
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import Paged
 from openbook_insights.models import Insight as InsightModel
+from openbook_insights.schema.types.quote import Quote
+from openbook_insights.schema.types.recommendation import Recommendation
 from openbook_posts.models import Post as PostModel
 from openbook_posts.models import PostComment as PostCommentModel
 from openbook_terms.schema.types import Topic
@@ -61,3 +62,19 @@ class Insight:
         ).distinct()
         query = query.select_related("profile").cache(ops=["fetch", "count"], timeout=300)
         return UserBlock.paged(current_user, lambda user: user.id, query, offset, limit)
+
+    @strawberry_django.field()
+    def recommendations(self) -> list[Recommendation]:
+        return self.recommendations.all()
+
+    @strawberry_django.field()
+    def quotes(self) -> list[Quote]:
+        return self.quotes.all()
+
+    @strawberry_django.field()
+    def is_bookmarked(self, info) -> bool:
+        current_user = info.context.request.user
+        if current_user.is_anonymous:
+            return False
+
+        return current_user.profile.favorite_insights.filter(id=self.id).exists()

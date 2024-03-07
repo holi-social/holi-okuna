@@ -1,3 +1,4 @@
+import datetime
 import uuid
 
 from django.utils import timezone
@@ -105,6 +106,9 @@ class Appointment(ModelWithUUID):
     created = models.DateTimeField(editable=False, auto_now_add=True)
     modified = models.DateTimeField(null=True, auto_now=True)
 
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True, default=None)
+
     def save(self, *args, **kwargs):
         if self.thumbnail:
             self.thumbnail_blurhash = generate_blurhash(self.thumbnail)
@@ -115,6 +119,21 @@ class Appointment(ModelWithUUID):
             self.slug = f"{base_slug}-{suffix}"
 
         super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs) -> None:
+        self.soft_delete()
+
+    def soft_delete(self, deleted_at: datetime.datetime | None = None) -> None:
+        self.is_deleted = True
+        self.deleted_at = deleted_at or timezone.now()
+
+        self.save()
+
+    def restore_deleted(self) -> None:
+        self.is_deleted = False
+        self.deleted_at = None
+
+        self.save()
 
     def delete_thumbnail(self):
         if self.thumbnail:

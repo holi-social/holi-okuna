@@ -1,7 +1,9 @@
+import base64
 from datetime import datetime
 from uuid import UUID
 
 from django.db.models import QuerySet
+from icalendar import Calendar, Event
 
 from openbook_auth.models import User
 from openbook_common.schema.types import GeolocationPointInput
@@ -296,6 +298,35 @@ class AppointmentService:
 
     def exists(self, appointment_id):
         return self.repository.exists(appointment_id=appointment_id)
+
+    def generate_appointment_ics_file(self, user, appointment_id) -> str:
+        appointment = self.get_appointment(user=user, id_or_slug=str(appointment_id))
+
+        # Create a Calendar
+        cal = Calendar()
+
+        # Create an Event
+        event = Event()
+
+        # Set the properties for the event
+        event.add("summary", appointment.title)
+        event.add("description", appointment.description)
+        event.add("dtstart", appointment.start_date_time)
+        event.add("dtend", appointment.end_date_time)
+        event.add("location", appointment.location_details.complete_address if appointment.location_details else None)
+        event.add("uid", f"appointment_{appointment.id}")
+        event.add("url", appointment.video_call_link.url if appointment.video_call_link else None)
+
+        # Add the event to the calendar
+        cal.add_component(event)
+
+        # Convert the calendar to bytes
+        ics_data = cal.to_ical()
+
+        # Encode bytes into base64
+        ics_data_encoded = base64.b64encode(ics_data).decode("utf-8")
+
+        return ics_data_encoded
 
 
 class VideoCallLinkService:

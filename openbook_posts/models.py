@@ -904,6 +904,12 @@ class Post(ModelWithUUID):
         return f"{self.__class__.__name__}: {self.title}"
 
     @staticmethod
+    def does_exist_query(prefix=None):
+        pQ = PrefixedQ(prefix)
+
+        return pQ(is_deleted=False)
+
+    @staticmethod
     def is_visible_query(user, prefix=None):
         pQ = PrefixedQ(prefix)
 

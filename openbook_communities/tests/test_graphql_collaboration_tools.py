@@ -1,5 +1,6 @@
 import json
 import logging
+import uuid
 from uuid import uuid4
 
 import pytest
@@ -8,6 +9,7 @@ from benedict import benedict
 from django.contrib.auth.models import AnonymousUser
 from django.core.management import call_command
 from django.test import AsyncClient
+from strawberry.types import ExecutionResult
 
 from openbook.graphql_schema import schema
 from openbook_common.tests.helpers import (
@@ -583,3 +585,50 @@ class TestCollaborationTools:
             else:
                 assert testCase["expected_error"] in str(response.errors[0].message)
             assert (response.data["addCollaborationTool"] if response.data else response.data) is None
+
+    def test_cannot_list_collaboration_tools_if_not_logged_in(self) -> None:
+        space = make_community()
+
+        response: ExecutionResult = self._query_collaboration_tools(space.id)
+
+        assert response.data is None
+        assert len(response.errors) > 0
+
+    def test_cannot_list_collaboration_tools_if_not_member_of_space(self) -> None:
+        user = make_user()
+        space = make_community()
+
+        response: ExecutionResult = self._query_collaboration_tools(space.id, user)
+
+        assert response.data is None
+        assert len(response.errors) > 0
+
+    def test_can_list_collaboration_tools_if_member_of_space(self) -> None:
+        user = make_user()
+        space = make_community()
+        space.add_member(user)
+
+        make_collaboration_tool(community=space)
+
+        response: ExecutionResult = self._query_collaboration_tools(space.id, user)
+
+        assert response.errors is None
+        assert isinstance(response.data, dict)
+        assert len(response.data["collaborationTools"]["data"]) > 0
+
+    def _query_collaboration_tools(self, space_id: uuid.UUID, user=None) -> ExecutionResult:
+        query = """
+            query CollaborationTools($spaceId: UUID!) {
+                collaborationTools(spaceId: $spaceId) {
+                    data {
+                        id
+                    }
+                }
+            }
+        """
+
+        return async_to_sync(schema.execute)(
+            query,
+            context_value=benedict({"request": {"user": user or AnonymousUser}}),
+            variable_values={"spaceId": str(space_id)},
+        )

@@ -271,3 +271,7 @@ def get_external_link_model():
 
 def get_onboarding_step_model():
     return apps.get_model("openbook_communities.OnboardingStep")
+
+
+def get_insight_model():
+    return apps.get_model("openbook_insights.Insight")
