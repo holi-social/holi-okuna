@@ -163,7 +163,7 @@ class TestInsights:
 
         assert response.data is None
         assert len(response.errors) == 1
-        assert "User not found" == str(response.errors[0].message)
+        assert "Object not found" == str(response.errors[0].message)
 
     def test_select_last_insights(self):
         insight_user = make_user()

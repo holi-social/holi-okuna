@@ -219,7 +219,7 @@ class TestPosts(TestCase):
 
         post_data = response.data["postById"]
         assert post_data is None
-        assert "Post not found" in response.errors[0].message
+        assert "Object not found" in response.errors[0].message
 
     def test_cant_fetch_post_draft(self):
         posting_user = make_user()

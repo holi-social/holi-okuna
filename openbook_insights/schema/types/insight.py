@@ -5,9 +5,7 @@ from typing import Annotated, List, Optional
 import strawberry
 import strawberry_django
 from django.db.models import Q
-from graphql import GraphQLError
 
-from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_auth.models import User as UserModel, UserBlock
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import Paged
@@ -84,7 +82,4 @@ class Insight:
 
     @strawberry_django.field()
     def quote(self, id: uuid.UUID) -> Quote:
-        try:
-            return self.quotes.get(id=id)
-        except QuoteModel.DoesNotExist:
-            raise GraphQLError("Quote not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
+        return self.quotes.get(id=id)
