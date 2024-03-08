@@ -1,14 +1,17 @@
 import logging
+import uuid
 from typing import Annotated, List, Optional
 
 import strawberry
 import strawberry_django
 from django.db.models import Q
+from graphql import GraphQLError
 
+from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_auth.models import User as UserModel, UserBlock
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import Paged
-from openbook_insights.models import Insight as InsightModel
+from openbook_insights.models import Insight as InsightModel, Quote as QuoteModel
 from openbook_insights.schema.types.quote import Quote
 from openbook_insights.schema.types.recommendation import Recommendation
 from openbook_posts.models import Post as PostModel
@@ -78,3 +81,10 @@ class Insight:
             return False
 
         return current_user.profile.favorite_insights.filter(id=self.id).exists()
+
+    @strawberry_django.field()
+    def quote(self, id: uuid.UUID) -> Quote:
+        try:
+            return self.quotes.get(id=id)
+        except QuoteModel.DoesNotExist:
+            raise GraphQLError("Quote not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
