@@ -8,13 +8,11 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Prefetch, F, Q
 from django.db.models.lookups import IContains
 from django.utils.translation import gettext_lazy as _
-from graphql import GraphQLError
 from strawberry.django.context import StrawberryDjangoContext
 from strawberry.types import Info as StrawberryInfo
 
 from openbook_auth.models import User as UserModel
 from openbook_auth.utils import verify_authorized_user
-from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.schema.types import GeoJSON, Paged
 from openbook_common.types import GeolocationFeature
 from openbook_common.utils.helpers import is_uuid
@@ -251,18 +249,15 @@ class Query:
         if not is_member:
             tasks_query.add(Q(visibility="PUBLIC"), Q.AND)
 
-        try:
-            return (
-                CommunityModel.objects.prefetch_related(
-                    "links",
-                    "memberships__user__profile",
-                    Prefetch("tasks", queryset=TaskModel.objects.filter(tasks_query).order_by("-created")),
-                )
-                .filter(is_deleted=False)
-                .get(query)
+        return (
+            CommunityModel.objects.prefetch_related(
+                "links",
+                "memberships__user__profile",
+                Prefetch("tasks", queryset=TaskModel.objects.filter(tasks_query).order_by("-created")),
             )
-        except CommunityModel.DoesNotExist:
-            raise GraphQLError("Space not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
+            .filter(is_deleted=False)
+            .get(query)
+        )
 
     @strawberry_django.field()
     def tasks_by_space_id(self, space_id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Task]:
@@ -274,10 +269,7 @@ class Query:
 
     @strawberry_django.field()
     def task_by_id(self, id: uuid.UUID) -> Optional[Task]:
-        try:
-            return TaskModel.objects.get(id=id)
-        except TaskModel.DoesNotExist:
-            raise GraphQLError("Task not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
+        return TaskModel.objects.get(id=id)
 
     @strawberry_django.field()
     def collaboration_tools(

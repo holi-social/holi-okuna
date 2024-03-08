@@ -3076,7 +3076,7 @@ class TestCommunities(TestCase):
             {
                 "field": "user_id",
                 "value": invalid_uuid,
-                "expected_error": "User matching query does not exist.",
+                "expected_error": "Object not found",
             },
             {
                 "field": "user_id",

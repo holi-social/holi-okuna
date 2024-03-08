@@ -9,13 +9,11 @@ import structlog
 from django.db.models import F, Q, Value
 from django.db.models.functions import Concat
 from django.db.models.lookups import IContains
-from graphql import GraphQLError
 
 from openbook_auth.models import User as UserModel, UserBlock as UserBlockModel
 from openbook_auth.schema.types import User
 from openbook_auth.utils import verify_authorized_user, check_max_limit
 from openbook_common.validators import string_not_empty
-from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.schema.types import Paged
 from openbook_insights.schema.types import Insight
 from openbook_notifications.api import NotificationApi
@@ -40,12 +38,9 @@ class Query:
 
     @strawberry_django.field()
     def user_by_id(self, info, id: uuid.UUID) -> Optional[User]:
-        try:
-            current_user = info.context.request.user
-            user = UserModel.objects.filter(UserModel.is_visible_ignore_blocked_query()).get(username=id)
-            return UserBlockModel.filter_single_object(current_user, user, lambda u: u.id)
-        except UserModel.DoesNotExist:
-            raise GraphQLError("User not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
+        current_user = info.context.request.user
+        user = UserModel.objects.filter(UserModel.is_visible_ignore_blocked_query()).get(username=id)
+        return UserBlockModel.filter_single_object(current_user, user, lambda u: u.id)
 
     @strawberry_django.field()
     def users_by_chat_identities(self, info, identities: List[str], offset: int = 0, limit: int = 10) -> Paged[User]:
