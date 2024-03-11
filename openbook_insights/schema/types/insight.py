@@ -83,8 +83,7 @@ class Insight:
     @strawberry_django.field()
     def quote(self, id: uuid.UUID) -> Quote:
         return self.quotes.get(id=id)
-    
+
     @strawberry_django.field()
     def recommendation(self, id: uuid.UUID) -> Recommendation:
         return self.recommendations.get(id=id)
-
