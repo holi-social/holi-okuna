@@ -5,7 +5,6 @@ from openbook_auth.models import User
 from django.utils import timezone
 
 from openbook_common.models import (
-
     ModelWithUUID,
     OrderedModelWithUUID,
 )
