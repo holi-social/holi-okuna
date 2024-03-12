@@ -15,7 +15,7 @@ class InsightQuoteInline(admin.StackedInline):
     readonly_fields = ["id"]
     exclude = ["link_preview"]
     extra = 0
-    min_num = 2
+    min_num = 0
     max_num = 4
 
 
@@ -36,8 +36,7 @@ class InsightAdmin(admin.ModelAdmin):
     # This filter makes the admin UI slow when there is a lot of users
     # list_filter = ("creator",)
 
-    # TODO: enable again after insights_v2 release
-    # inlines = [InsightRecommendationInline, InsightQuoteInline, InsightInitiativeInline]
+    inlines = [InsightRecommendationInline, InsightQuoteInline, InsightInitiativeInline]
 
     @admin.display(description="Description Preview")
     def description_preview(self, obj):
