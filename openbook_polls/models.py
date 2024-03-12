@@ -4,8 +4,14 @@ from django.db import models
 from openbook_auth.models import User
 from django.utils import timezone
 
+from openbook_common.models import (
 
-class Question(models.Model):
+    ModelWithUUID,
+    OrderedModelWithUUID,
+)
+
+
+class Question(ModelWithUUID):
     question_text = models.CharField(max_length=200)
     pub_date = models.DateTimeField("date published")
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="polls", null=True)
@@ -17,8 +23,8 @@ class Question(models.Model):
         return self.pub_date >= timezone.now() - datetime.timedelta(days=1)
 
 
-class Choice(models.Model):
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+class Choice(ModelWithUUID):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="polls")
     choice_text = models.CharField(max_length=200)
     votes = models.IntegerField(default=0)
 

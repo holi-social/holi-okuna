@@ -58,6 +58,7 @@ Query = merge_types(
     (
         auth_queries.Query,
         posts_queries.Query,
+        #polls_queries.Query,
         communities_queries.Query,
         terms_queries.Query,
         insights_queries.Query,
