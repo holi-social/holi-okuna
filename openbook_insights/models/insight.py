@@ -11,6 +11,7 @@ from openbook_common.models import ModelWithUUID
 from openbook_insights.helpers import upload_to_insight_directory
 from openbook_posts.models import Post
 from openbook_terms.models import Topic
+from openbook_polls.models import Question
 
 insight_image_storage = default_storage
 
@@ -45,6 +46,7 @@ class Insight(ModelWithUUID):
     )
     header_image_blurhash = models.CharField(max_length=50, blank=True, null=True)
     posts = models.ManyToManyField(Post, related_name="insights")
+    polls = models.ManyToManyField(Question, related_name="insights", null=True, blank=True)
     topic = models.ForeignKey(
         Topic,
         on_delete=models.SET_NULL,

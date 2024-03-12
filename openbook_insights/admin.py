@@ -31,7 +31,7 @@ class InsightAdmin(admin.ModelAdmin):
     model = Insight
     search_fields = ("title", "description")
     date_hierarchy = "date_published"
-    filter_horizontal = ("posts",)
+    filter_horizontal = ("posts", "polls")
     list_display = ("title", "description_preview", "creator", "header_image", "recommendations_count")
     # This filter makes the admin UI slow when there is a lot of users
     # list_filter = ("creator",)
