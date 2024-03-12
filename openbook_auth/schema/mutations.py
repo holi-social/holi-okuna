@@ -230,17 +230,3 @@ class Mutation:
             current_user.create_device(token=token, device_type=device_type)
 
         return Result(success=True)
-
-    @strawberry.mutation
-    @sync_to_async
-    def bookmark_insight(self, info, insight_id: uuid.UUID) -> Result:
-        current_user = verify_authorized_user(info)
-        current_user.bookmark_insight(insight_id)
-        return Result(success=True)
-
-    @strawberry.mutation
-    @sync_to_async
-    def remove_insight_bookmark(self, info, insight_id: uuid.UUID) -> Result:
-        current_user = verify_authorized_user(info)
-        current_user.remove_insight_bookmark(insight_id)
-        return Result(success=True)
