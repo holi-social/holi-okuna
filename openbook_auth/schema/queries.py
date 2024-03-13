@@ -118,3 +118,9 @@ class Query:
         current_user = verify_authorized_user(info)
 
         return Paged.of(current_user.connected_users(), offset, limit)
+
+    @strawberry_django.field()
+    def favorite_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
+        current_user = verify_authorized_user(info)
+
+        return Paged.of(current_user.profile.favorite_insights.all(), offset, limit)

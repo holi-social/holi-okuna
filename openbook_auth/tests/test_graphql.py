@@ -31,6 +31,8 @@ from openbook_auth.tests.helpers import (
     get_users_by_chat_identities,
     get_connected_users,
     get_connected_users_raw,
+    bookmark_insight,
+    remove_insight_bookmark,
 )
 from openbook_common.enums import FeatureToggleName, FeatureToggleType
 from openbook_common.models import FeatureToggle
@@ -1171,3 +1173,66 @@ class TestUsers:
         assert response.errors is None
         assert response.data["userSuggestions"]["totalResults"] == 25
         assert len(response.data["userSuggestions"]["data"]) == 5
+
+    def test_cannot_bookmark_insight_if_anonymous(self):
+        insight_author = make_user()
+        Insight = get_insight_model()
+        insight = Insight.objects.create(
+            creator=insight_author,
+            title="Insight",
+            header_image=SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes),
+            date_published=timezone.now(),
+        )
+
+        response = bookmark_insight(AnonymousUser, insight_id=insight.id)
+
+        assert_is_unauthorized(response)
+
+    def test_cannot_remove_insight_bookmark_if_anonymous(self):
+        insight_author = make_user()
+        Insight = get_insight_model()
+        insight = Insight.objects.create(
+            creator=insight_author,
+            title="Insight",
+            header_image=SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes),
+            date_published=timezone.now(),
+        )
+
+        response = remove_insight_bookmark(AnonymousUser, insight_id=insight.id)
+
+        assert_is_unauthorized(response)
+
+    def test_can_bookmark_insight_if_authenticated(self):
+        user = make_user()
+        insight_author = make_user()
+        Insight = get_insight_model()
+        insight = Insight.objects.create(
+            creator=insight_author,
+            title="Insight",
+            header_image=SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes),
+            date_published=timezone.now(),
+        )
+
+        response = bookmark_insight(user, insight_id=insight.id)
+
+        assert response.data["bookmarkInsight"]["success"]
+        assert user.profile.favorite_insights.count() == 1
+
+    def test_can_remove_insight_bookmark_if_authenticated(self):
+        user = make_user()
+        insight_author = make_user()
+        Insight = get_insight_model()
+        insight = Insight.objects.create(
+            creator=insight_author,
+            title="Insight",
+            header_image=SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes),
+            date_published=timezone.now(),
+        )
+
+        bookmark_insight(user, insight_id=insight.id)
+        assert user.profile.favorite_insights.count() == 1
+
+        response = remove_insight_bookmark(user, insight_id=insight.id)
+
+        assert response.data["removeInsightBookmark"]["success"]
+        assert user.profile.favorite_insights.count() == 0
