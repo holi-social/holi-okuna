@@ -76,6 +76,10 @@ lint:
     reports:
       codequality:
         - .gl-lint-report.json
+  except:
+    - main
+    - production
+    - release/*
 
 build_docker:
   image: docker:20.10
