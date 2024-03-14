@@ -24,7 +24,7 @@ from openbook_common.models import (
     ProxyBlacklistedDomain,
 )
 from openbook_common.utils.helpers import get_random_pastel_color
-from openbook_communities.models import CollaborationTool, Community, ExternalLink, Task
+from openbook_communities.models import CollaborationTool, Community, ExternalLink, Task, SpacesRelationship
 from openbook_devices.models import Device
 from openbook_hashtags.models import Hashtag
 from openbook_lists.models import List as ListModel
@@ -307,6 +307,7 @@ def make_community(
     geolocation=None,
     admins: List[User] = None,
     moderators: List[User] = None,
+    relationships: list[SpacesRelationship] = None,
 ) -> Community:
     if not creator:
         creator = make_user()
@@ -342,6 +343,10 @@ def make_community(
         for moderator in moderators:
             community.add_member(moderator)
             community.add_moderator(moderator)
+
+    if relationships:
+        community.network_relationships.set(relationships)
+
     community.save()
 
     return community

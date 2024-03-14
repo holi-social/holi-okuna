@@ -11,7 +11,14 @@ from openbook_appointments.schema.types import Appointment
 from openbook_auth.models import User as UserModel
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import GeolocationPoint, GeolocationPointInput, Paged
-from openbook_communities.models import CollaborationTool as CollaborationToolModel
+from openbook_communities.models import (
+    CollaborationTool as CollaborationToolModel,
+    Community,
+)
+from openbook_communities.models.network_relationship import (
+    SpacesRelationship as SpacesRelationshipModel,
+    SpacesRelationshipType,
+)
 from openbook_communities.models import Community as CommunityModel
 from openbook_communities.models import CommunityMembership as CommunityMembershipModel
 from openbook_communities.models import CommunityMembershipRequest as CommunityMembershipRequestModel
@@ -213,6 +220,14 @@ class SpaceInvite:
     creator: User
 
 
+@strawberry_django.type(SpacesRelationshipModel)
+class SpacesRelationship:
+    id: strawberry.auto
+    from_space: "Space"
+    relationship_type: strawberry.auto
+    to_space: "Space"
+
+
 @strawberry_django.type(OnboardingStepModel)
 class OnboardingStep:
     text: Optional[str]
@@ -367,6 +382,17 @@ class Space:
         appointments = self.appointments.all().filter(end_date_time__gte=current_datetime).order_by("start_date_time")
 
         return Paged.of(appointments, offset, limit)
+
+    @strawberry_django.field()
+    def child_spaces(self, info, offset: int = 0, limit: int = 10) -> Paged["Space"]:
+        return Paged.of(
+            Community.objects.filter(
+                space_relationships__to_space=self,
+                space_relationships__relationship_type=SpacesRelationshipType.PART_OF,
+            ),
+            offset,
+            limit,
+        )
 
 
 @strawberry.type
