@@ -64,14 +64,15 @@ lint:
     - git fetch --all
     - git checkout $CI_COMMIT_REF_NAME
     - export COMPARISON_SHA=$(git merge-base $CI_COMMIT_REF_NAME origin/$CI_DEFAULT_BRANCH)
-    - export FILES_TO_CHECK=$(git diff --name-only -z --diff-filter=d $COMPARISON_SHA..$CI_COMMIT_SHA -- '*.py')
     - source venv/bin/activate
   script:
+    # exit early if there are no files to check
+    - '[[ -z "$(git diff --name-only --diff-filter=d $COMPARISON_SHA..$CI_COMMIT_SHA -- "*.py")" ]] && exit 0'
     # runs ruff (linter and formatter) on all changed files, excluding deleted files.
     # this will also force changes on offending unchanged lines in changed files, but we accept that in the spirit of
     # leaving every file better than we found it.
-    - '[[ -z "$FILES_TO_CHECK" ]] || echo -n "$FILES_TO_CHECK" | xargs -0 ruff check --output-format=gitlab > .gl-lint-report.json'
-    - '[[ -z "$FILES_TO_CHECK" ]] || echo -n "$FILES_TO_CHECK" | xargs -0 ruff format --diff'
+    - 'git diff --name-only -z --diff-filter=d $COMPARISON_SHA..$CI_COMMIT_SHA -- "*.py" | xargs -0 ruff check --output-format=gitlab > .gl-lint-report.json'
+    - 'git diff --name-only -z --diff-filter=d $COMPARISON_SHA..$CI_COMMIT_SHA -- "*.py" | xargs -0 ruff format --diff'
   artifacts:
     reports:
       codequality:
