@@ -16,7 +16,7 @@ from openbook_common.schema import queries as commons_queries
 from openbook_communities.schema import mutations as communities_mutations
 from openbook_communities.schema import queries as communities_queries
 from openbook_connections.schema import mutations as connections_mutations
-from openbook_insights.schema import queries as insights_queries
+from openbook_insights.schema import queries as insights_queries, mutations as insights_mutations
 from openbook_moderation.schema import mutations as moderation_mutations
 from openbook_notifications.schema import mutations as notifications_mutations
 from openbook_notifications.schema import queries as notifications_queries
@@ -77,6 +77,7 @@ Mutation = merge_types(
         notifications_mutations.Mutation,
         moderation_mutations.Mutation,
         appointments_mutations.Mutation,
+        insights_mutations.Mutation,
     ),
 )
 
