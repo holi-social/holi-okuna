@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 . "$(dirname -- "$0")/_/husky.sh"
 
 debug () {
@@ -19,5 +19,7 @@ debug "changed files: ${CHANGED_PYTHON_FILES}"
 # if we don't have any changed python files, exit with a success
 [[ -n "${CHANGED_PYTHON_FILES}" ]] || exit 0
 
-echo -n "${CHANGED_PYTHON_FILES}" | xargs -0 ruff check
-echo -n "${CHANGED_PYTHON_FILES}" | xargs -0 ruff format --check
+for file in ${CHANGED_PYTHON_FILES}; do
+  ruff check $file
+  ruff format --check $file
+done
