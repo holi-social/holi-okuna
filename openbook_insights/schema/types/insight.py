@@ -1,6 +1,6 @@
 import logging
 import uuid
-from typing import Annotated, List, Optional
+from typing import List, Optional
 
 import strawberry
 import strawberry_django
@@ -9,11 +9,13 @@ from django.db.models import Q
 from openbook_auth.models import User as UserModel, UserBlock
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import Paged
-from openbook_insights.models import Insight as InsightModel, Quote as QuoteModel
+from openbook_insights.models import Insight as InsightModel
+from openbook_insights.schema.types import Initiative
 from openbook_insights.schema.types.quote import Quote
 from openbook_insights.schema.types.recommendation import Recommendation
 from openbook_posts.models import Post as PostModel
 from openbook_posts.models import PostComment as PostCommentModel
+from openbook_posts.schema.types import Post
 from openbook_terms.schema.types import Topic
 
 logger = logging.getLogger(__name__)
@@ -31,7 +33,7 @@ class Insight:
     topic: Optional[Topic]
 
     @strawberry_django.field()
-    def posts(self, info) -> List[Annotated["Post", strawberry.lazy("openbook_posts.schema.types")]]:
+    def posts(self, info) -> List[Post]:
         current_user = info.context.request.user
         return UserBlock.filter_blocked_objects(
             current_user,
@@ -73,6 +75,10 @@ class Insight:
         return self.quotes.all()
 
     @strawberry_django.field()
+    def initiatives(self) -> list[Initiative]:
+        return self.initiatives.all()
+
+    @strawberry_django.field()
     def is_bookmarked(self, info) -> bool:
         current_user = info.context.request.user
         if current_user.is_anonymous:
@@ -87,3 +93,7 @@ class Insight:
     @strawberry_django.field()
     def recommendation(self, id: uuid.UUID) -> Recommendation:
         return self.recommendations.get(id=id)
+
+    @strawberry_django.field()
+    def initiative(self, id: uuid.UUID) -> Initiative:
+        return self.initiatives.get(id=id)
