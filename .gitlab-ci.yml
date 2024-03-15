@@ -98,6 +98,8 @@ build_docker:
     - docker push $GCR_IMAGE:$CI_COMMIT_SHA # this is the tag that is used for deployment
     - docker push $GCR_IMAGE:$CI_COMMIT_REF_SLUG # just for easily knowing which is the last image for a branch
     - docker push $GCR_IMAGE:latest # for caching the build
+  tags:
+    - holi-big # more cpu, quicker image build
 
 .deploy:
   stage: "deploy"
