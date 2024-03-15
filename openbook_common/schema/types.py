@@ -107,3 +107,8 @@ class Paged(Generic[T]):
             data = []
         self.data = data
         self.total_results = max(total_results, len(data))
+
+
+@strawberry.type
+class ReactionCounts:
+    HEART: int = 0
