@@ -1,3 +1,5 @@
+import uuid
+
 from django.db.models import (
     URLField,
     TextField,
@@ -74,20 +76,22 @@ class RecommendationReaction(ModelWithUUID):
         )
 
     @classmethod
-    def create_reaction(cls, reactor, reaction_type, recommendation):
+    def create_reaction(cls, reactor: User, reaction_type: ReactionType, recommendation: Recommendation):
         RecommendationReaction.objects.filter(reactor=reactor, recommendation=recommendation).delete()
         return RecommendationReaction.objects.create(
             reactor=reactor, reaction_type=reaction_type, recommendation=recommendation
         )
 
     @classmethod
-    def remove_reaction(cls, reactor, reaction_type, recommendation):
+    def remove_reaction(cls, reactor: User, reaction_type: ReactionType, recommendation: Recommendation):
         return RecommendationReaction.objects.filter(
             reactor=reactor, reaction_type=reaction_type, recommendation=recommendation
         ).delete()
 
     @classmethod
-    def count_reactions(cls, recommendation_id, reactor_id=None, reaction_type=None):
+    def count_reactions(
+        cls, recommendation_id: uuid.UUID, reactor_id: uuid.UUID = None, reaction_type: ReactionType = None
+    ):
         count_query = Q(recommendation_id=recommendation_id, reactor__is_deleted=False)
 
         if reactor_id:

@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -68,16 +70,16 @@ class QuoteReaction(ModelWithUUID):
         )
 
     @classmethod
-    def create_reaction(cls, reactor, reaction_type, quote):
+    def create_reaction(cls, reactor: User, reaction_type: ReactionType, quote: Quote):
         QuoteReaction.objects.filter(reactor=reactor, quote=quote).delete()
         return QuoteReaction.objects.create(reactor=reactor, reaction_type=reaction_type, quote=quote)
 
     @classmethod
-    def remove_reaction(cls, reactor, reaction_type, quote):
+    def remove_reaction(cls, reactor: User, reaction_type: ReactionType, quote: Quote):
         return QuoteReaction.objects.filter(reactor=reactor, reaction_type=reaction_type, quote=quote).delete()
 
     @classmethod
-    def count_reactions(cls, quote_id, reactor_id=None, reaction_type=None):
+    def count_reactions(cls, quote_id: uuid.UUID, reactor_id: uuid.UUID = None, reaction_type: ReactionType = None):
         count_query = Q(quote_id=quote_id, reactor__is_deleted=False)
 
         if reactor_id:

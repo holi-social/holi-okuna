@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -61,18 +63,20 @@ class InitiativeReaction(ModelWithUUID):
         )
 
     @classmethod
-    def create_reaction(cls, reactor, reaction_type, initiative):
+    def create_reaction(cls, reactor: User, reaction_type: ReactionType, initiative: Initiative):
         InitiativeReaction.objects.filter(reactor=reactor, initiative=initiative).delete()
         return InitiativeReaction.objects.create(reactor=reactor, reaction_type=reaction_type, initiative=initiative)
 
     @classmethod
-    def remove_reaction(cls, reactor, reaction_type, initiative):
+    def remove_reaction(cls, reactor: User, reaction_type: ReactionType, initiative: Initiative):
         return InitiativeReaction.objects.filter(
             reactor=reactor, reaction_type=reaction_type, initiative=initiative
         ).delete()
 
     @classmethod
-    def count_reactions(cls, initiative_id, reactor_id=None, reaction_type=None):
+    def count_reactions(
+        cls, initiative_id: uuid.UUID, reactor_id: uuid.UUID = None, reaction_type: ReactionType = None
+    ):
         count_query = Q(initiative_id=initiative_id, reactor__is_deleted=False)
 
         if reactor_id:
