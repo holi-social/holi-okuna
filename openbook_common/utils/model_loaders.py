@@ -275,3 +275,27 @@ def get_onboarding_step_model():
 
 def get_insight_model():
     return apps.get_model("openbook_insights.Insight")
+
+
+def get_quote_model():
+    return apps.get_model("openbook_insights.Quote")
+
+
+def get_quote_reaction_model():
+    return apps.get_model("openbook_insights.QuoteReaction")
+
+
+def get_recommendation_model():
+    return apps.get_model("openbook_insights.Recommendation")
+
+
+def get_recommendation_reaction_model():
+    return apps.get_model("openbook_insights.RecommendationReaction")
+
+
+def get_initiative_model():
+    return apps.get_model("openbook_insights.Initiative")
+
+
+def get_initiative_reaction_model():
+    return apps.get_model("openbook_insights.InitiativeReaction")

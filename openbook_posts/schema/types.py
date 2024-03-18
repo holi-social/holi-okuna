@@ -11,7 +11,7 @@ from openbook_auth.models import User as UserModel
 from openbook_auth.models import UserBlock as UserBlockModel
 from openbook_auth.schema.types import User
 from openbook_common.models import LinkPreview as LinkPreviewModel
-from openbook_common.schema.types import Paged
+from openbook_common.schema.types import Paged, ReactionCounts
 from openbook_communities.models import VisibilityType
 from openbook_posts.models import Post as PostModel
 from openbook_posts.models import PostComment as PostCommentModel
@@ -56,11 +56,6 @@ class UpdatePostInput:
     text: Optional[str] = strawberry.UNSET
     image: Optional[Upload] = strawberry.UNSET
     visibility: Optional[VisibilityType] = strawberry.UNSET
-
-
-@strawberry.type
-class ReactionCounts:
-    HEART: int = 0
 
 
 @strawberry_django.type(LinkPreviewModel)

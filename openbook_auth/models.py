@@ -1,3 +1,4 @@
+# ruff: noqa
 import logging
 import re
 import secrets
@@ -37,7 +38,7 @@ from openbook_auth.helpers import (
 from openbook_common.helpers import get_supported_translation_language, PQ, PrefixedQ
 from openbook_common.models import Badge, ModelWithUUID
 from openbook_common.schema.types import Paged
-from openbook_common.types import GeolocationFeature
+from openbook_common.types import GeolocationFeature, ReactableType
 from openbook_common.enums import VisibilityType
 from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import (
@@ -84,6 +85,9 @@ from openbook_common.utils.model_loaders import (
     get_notification_model,
     get_task_model,
     get_insight_model,
+    get_quote_reaction_model,
+    get_recommendation_reaction_model,
+    get_initiative_reaction_model,
 )
 from openbook_common.validators import name_characters_validator
 from openbook_hashtags.queries import (
@@ -1371,6 +1375,26 @@ class User(ModelWithUUID, AbstractUser):
             reactions_query.add(blocked_users_query, Q.AND)
 
         return get_reactions(get_post_reaction_model(), reactions_query)
+
+    def get_reactions_count(self, reactable_type: ReactableType, reactable_id, reaction_type=None):
+        if reactable_type == ReactableType.QUOTE:
+            model = get_quote_reaction_model()
+            field_name = "quote_id"
+        elif reactable_type == ReactableType.RECOMMENDATION:
+            model = get_recommendation_reaction_model()
+            field_name = "recommendation_id"
+        elif reactable_type == ReactableType.INITIATIVE:
+            model = get_initiative_reaction_model()
+            field_name = "initiative_id"
+        else:
+            raise ValueError("Invalid reactable type")
+
+        reactions_query = Q(**{field_name: reactable_id})
+
+        if reaction_type:
+            reactions_query.add(Q(reaction_type=reaction_type), Q.AND)
+
+        return get_reactions(model, reactions_query)
 
     def get_reaction_counts_for_post_comment_with_id(self, post_comment_id, reaction_type=None):
         PostComment = get_post_comment_model()
