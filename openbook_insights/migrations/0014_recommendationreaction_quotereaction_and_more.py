@@ -7,7 +7,6 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ("openbook_insights", "0013_initiative"),
