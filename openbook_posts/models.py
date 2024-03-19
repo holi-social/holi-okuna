@@ -4,7 +4,6 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
-from django.core.files import File
 from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import (
     InMemoryUploadedFile,
@@ -18,6 +17,7 @@ from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFit
 from rest_framework.exceptions import ValidationError
+from sortedm2m.fields import SortedManyToManyField
 
 from openbook_auth.models import User, get_reactions
 from openbook_common.enums import ReactionType
@@ -40,11 +40,8 @@ from openbook_common.utils.helpers import (
     extract_hashtags_from_string,
     extract_usernames_from_string,
     get_magic,
-    sha256sum,
-    write_in_memory_file_to_disk,
 )
 from openbook_common.utils.model_loaders import (
-    get_circle_model,
     get_community_model,
     get_community_new_post_notification_model,
     get_community_notifications_subscription_model,
@@ -78,13 +75,10 @@ from openbook_posts.checkers import (
 )
 from openbook_posts.helpers import (
     upload_to_post_image_directory,
-    upload_to_post_video_directory,
 )
 from openbook_posts.jobs import process_post_media
 from openbook_posts.validators import post_comment_text_validators, post_text_validators
 from openbook_terms.models import InspirationPostCategory
-
-from sortedm2m.fields import SortedManyToManyField
 
 magic = get_magic()
 post_image_storage = default_storage
@@ -1062,7 +1056,11 @@ class PostImage(ModelWithUUID):
 
 class PostComment(ModelWithUUID):
     moderated_object = GenericRelation(ModeratedObject, related_query_name="post_comments")
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
+
+    commentable_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    commentable_id = models.UUIDField()
+    commentable = GenericForeignKey("commentable_type", "commentable_id")
+
     parent_comment = models.ForeignKey("self", on_delete=models.CASCADE, related_name="replies", null=True, blank=True)
     created = models.DateTimeField(editable=False, db_index=True)
     modified = models.DateTimeField(db_index=True, default=timezone.now)
@@ -1085,6 +1083,11 @@ class PostComment(ModelWithUUID):
         blank=True,
         through="PostCommentUserMention",
     )
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["commentable_type", "commentable_id"]),
+        ]
 
     @classmethod
     def create_comment(cls, text, commenter, post, parent_comment=None):

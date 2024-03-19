@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.contenttypes.admin import GenericTabularInline
 from rangefilter.filters import DateRangeQuickSelectListFilterBuilder
 
 from openbook_circles.models import Circle
@@ -12,8 +13,10 @@ class PostImageInline(admin.TabularInline):
         return False
 
 
-class PostCommentInline(admin.TabularInline):
+class PostCommentInline(GenericTabularInline):
     model = PostComment
+    ct_field = "commentable_type"
+    ct_fk_field = "commentable_id"
 
     readonly_fields = ("commenter", "text", "created")
 
@@ -100,7 +103,7 @@ class PostCommentAdmin(admin.ModelAdmin):
         "count_mentions",
         "count_links",
         "is_deleted",
-        "post",
+        "commentable",
     )
     list_filter = (("created", DateRangeQuickSelectListFilterBuilder(title="Created")),)
     search_fields = ("text", "commenter")
