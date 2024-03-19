@@ -1,4 +1,6 @@
+
 repos:
+# see https://github.com/dorschw/riff/issues/106
 #-   repo: https://github.com/dorschw/riff
 #    rev: main
 #    hooks:
