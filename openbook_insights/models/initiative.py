@@ -12,7 +12,7 @@ from openbook_insights.models import Insight, ExternalContentCategory
 
 
 class Initiative(ModelWithUUID):
-    insight = models.ForeignKey(Insight, on_delete=models.CASCADE)
+    insight = models.ForeignKey(Insight, on_delete=models.CASCADE, related_name="initiatives")
 
     category = models.CharField(max_length=255, choices=ExternalContentCategory.choices)
 
