@@ -4424,15 +4424,6 @@ class User(ModelWithUUID, AbstractUser):
 
         return User.objects.filter(search_users_query)
 
-    def get_participants_for_post_with_id(self, post_id):
-        Post = get_post_model()
-        post = Post.objects.get(id=post_id)
-        return self.get_participants_for_post(post=post)
-
-    def get_participants_for_post(self, post):
-        self.can_see_post(post=post)
-        return post.get_participants()
-
     def _generate_password_reset_link(self, token):
         return f"{settings.EMAIL_HOST}/api/auth/password/verify?token={token}"
 

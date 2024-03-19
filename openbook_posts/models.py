@@ -780,27 +780,6 @@ class Post(ModelWithUUID):
             notification__owner_id__in=excluded_ids
         ).delete()
 
-    def get_participants(self):
-        User = get_user_model()
-
-        # Add post creator
-        post_creator = User.objects.filter(pk=self.creator_id)
-
-        # Add post commentators
-        post_commenters = User.objects.filter(posts_comments__post_id=self.pk, is_deleted=False)
-
-        # If community post, add community members
-        if self.community:
-            community_members = User.objects.filter(
-                communities_memberships__community_id=self.community_id,
-                is_deleted=False,
-            )
-            result = post_creator.union(post_commenters, community_members)
-        else:
-            result = post_creator.union(post_commenters)
-
-        return result
-
     def _process_post_mentions(self):
         if not self.text:
             self.mentions.clear()
