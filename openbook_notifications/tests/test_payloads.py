@@ -1,29 +1,28 @@
 import pytest
-
 from django.test import TestCase
+
 from openbook_common.tests.helpers import (
     make_community,
-    make_user,
-    make_post_comment,
     make_community_post,
+    make_post_comment,
+    make_user,
 )
 from openbook_notifications.helpers import replace_mentions_with_full_names
-
 from openbook_notifications.payloads import (
-    UserData,
-    SpaceData,
-    Payload,
     NotificationType,
-    SpaceMembershipRequestPayload,
-    SpaceMembershipRequestApprovalUserPayload,
-    SpaceMembershipRequestApprovalAdminPayload,
-    SpaceMembershipRequestDeclinePayload,
-    SpaceMembershipInvitePayload,
+    Payload,
+    PostCommentAuthorPayload,
+    PostCommentMentionPayload,
+    SpaceData,
     SpaceMembershipInviteApprovalPayload,
     SpaceMembershipInviteDeclinePayload,
-    PostCommentMentionPayload,
-    PostCommentAuthorPayload,
+    SpaceMembershipInvitePayload,
+    SpaceMembershipRequestApprovalAdminPayload,
+    SpaceMembershipRequestApprovalUserPayload,
+    SpaceMembershipRequestDeclinePayload,
+    SpaceMembershipRequestPayload,
     SpaceNewPostPayload,
+    UserData,
 )
 
 
@@ -273,9 +272,9 @@ class TestPayloads(TestCase):
                 text=self.post_comment.text, mentioned_users=self.post_comment.mentions.all()
             ),
         )
-        self.assertEqual(data_dict["data"]["post"]["id"], str(self.post_comment.post_id))
-        self.assertEqual(data_dict["data"]["post"]["title"], self.post_comment.post.title)
-        self.assertEqual(data_dict["data"]["post"]["context"], self.post_comment.post.community.title)
+        self.assertEqual(data_dict["data"]["post"]["id"], str(self.post_comment.commentable_id))
+        self.assertEqual(data_dict["data"]["post"]["title"], self.post_comment.commentable.title)
+        self.assertEqual(data_dict["data"]["post"]["context"], self.post_comment.commentable.community.title)
         self.assertIsNotNone(data_dict["data"]["commentDatetime"])
 
     def test_post_comment_author_payload(self):
@@ -287,7 +286,7 @@ class TestPayloads(TestCase):
         data_dict = payload.to_dict()
         self.assertEqual(data_dict["notificationType"], "POST_COMMENT_AUTHOR")
         self.assertEqual(data_dict["notificationVersion"], "1.0.0")
-        self.assertEqual(data_dict["data"]["user"]["id"], str(self.post_comment.post.creator.username))
+        self.assertEqual(data_dict["data"]["user"]["id"], str(self.post_comment.commentable.creator.username))
         self.assertEqual(data_dict["data"]["commenter"]["id"], str(self.post_comment.commenter.username))
         self.assertEqual(data_dict["data"]["comment"]["id"], str(self.post_comment.id))
         self.assertEqual(
@@ -296,8 +295,8 @@ class TestPayloads(TestCase):
                 text=self.post_comment.text, mentioned_users=self.post_comment.mentions.all()
             ),
         )
-        self.assertEqual(data_dict["data"]["post"]["id"], str(self.post_comment.post_id))
-        self.assertEqual(data_dict["data"]["post"]["title"], self.post_comment.post.title)
+        self.assertEqual(data_dict["data"]["post"]["id"], str(self.post_comment.commentable_id))
+        self.assertEqual(data_dict["data"]["post"]["title"], self.post_comment.commentable.title)
         self.assertIsNotNone(data_dict["data"]["commentDatetime"])
 
     def test_space_new_post_payload(self):

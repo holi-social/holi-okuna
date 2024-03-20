@@ -2,31 +2,31 @@ from django.conf import settings
 from generic_relations.relations import GenericRelatedField
 from rest_framework import serializers
 
-from openbook_auth.models import UserProfile, User
-from openbook_common.models import Language, Badge
+from openbook_auth.models import User, UserProfile
+from openbook_common.models import Badge, Language
 from openbook_common.serializers import (
     CommonEmojiSerializer,
     CommonPublicUserSerializer,
-)
-from openbook_moderation.models import (
-    ModeratedObject,
-    ModeratedObjectLog,
-    ModeratedObjectCategoryChangedLog,
-    ModeratedObjectDescriptionChangedLog,
-    ModeratedObjectStatusChangedLog,
-    ModeratedObjectVerifiedChangedLog,
-    ModerationCategory,
-    ModerationReport,
 )
 from openbook_common.serializers_fields.hashtag import HashtagPostsCountField
 from openbook_common.serializers_fields.post import IsEncircledField
 from openbook_communities.models import Community
 from openbook_hashtags.models import Hashtag
-from openbook_posts.models import Post, PostComment, PostImage
+from openbook_moderation.models import (
+    ModeratedObject,
+    ModeratedObjectCategoryChangedLog,
+    ModeratedObjectDescriptionChangedLog,
+    ModeratedObjectLog,
+    ModeratedObjectStatusChangedLog,
+    ModeratedObjectVerifiedChangedLog,
+    ModerationCategory,
+    ModerationReport,
+)
 from openbook_moderation.serializers.validators import (
     moderated_object_id_exists,
     moderation_category_id_exists,
 )
+from openbook_posts.models import Post, PostComment, PostImage
 
 
 class ModeratedObjectUserProfileBadgeSerializer(serializers.ModelSerializer):
@@ -286,8 +286,8 @@ class ModeratedObjectPostCommentSerializer(serializers.ModelSerializer):
             "commenter",
             "commenter",
             "created",
-            "post_id",
-            "post",
+            "commentable_id",
+            "commentable",
             "is_edited",
         )
 

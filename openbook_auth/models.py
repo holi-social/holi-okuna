@@ -1290,7 +1290,7 @@ class User(ModelWithUUID, AbstractUser):
         return Hashtag.objects.filter(query).exists()
 
     def can_see_post_comment(self, post_comment):
-        post = post_comment.post
+        post = post_comment.commentable
         if not self.can_see_post(post=post):
             return False
         post_comment_query = self._make_get_post_comment_with_id_query(
@@ -1411,7 +1411,7 @@ class User(ModelWithUUID, AbstractUser):
         if reaction_type:
             reactions_query.add(Q(reaction_type=reaction_type), Q.AND)
 
-        post_comment_community = post_comment.post.community
+        post_comment_community = post_comment.commentable.community
 
         if post_comment_community:
             if not self.is_staff_of_community_with_name(community_name=post_comment_community.name):
@@ -1595,7 +1595,7 @@ class User(ModelWithUUID, AbstractUser):
             post_notification_target_user_is_post_creator = post_notification_target_user.id == post.creator.id
             post_notification_target_has_comment_notifications_enabled = (
                 post_notification_target_user.has_comment_notifications_enabled_for_post_with_id(
-                    post_id=post_comment.post_id
+                    post_id=post_comment.commentable_id
                 )
             )
 
@@ -1727,7 +1727,9 @@ class User(ModelWithUUID, AbstractUser):
     def delete_comment_with_id(self, post_comment_id):
         PostComment = get_post_comment_model()
         post_comment = PostComment.objects.get(pk=post_comment_id)
-        check_can_delete_comment_with_id_for_post(user=self, post_comment_id=post_comment_id, post=post_comment.post)
+        check_can_delete_comment_with_id_for_post(
+            user=self, post_comment_id=post_comment_id, post=post_comment.commentable
+        )
         post_comment.delete()
 
     def delete_comment_with_id_for_post_with_id(self, post_comment_id, post_id):
@@ -4163,7 +4165,7 @@ class User(ModelWithUUID, AbstractUser):
     def report_comment_with_id(self, post_comment_id, category_id, description=None):
         PostComment = get_post_comment_model()
         post_comment = PostComment.objects.get(id=post_comment_id)
-        self.report_comment_for_post(post_comment, post_comment.post, category_id, description)
+        self.report_comment_for_post(post_comment, post_comment.commentable, category_id, description)
 
     def report_comment_with_id_for_post_with_id(self, post_comment_id, post_id, category_id, description=None):
         PostComment = get_post_comment_model()
@@ -4761,7 +4763,7 @@ class User(ModelWithUUID, AbstractUser):
 
     def _make_get_comments_for_post_query(self, post, post_comment_parent_id=None, max_id=None, min_id=None):
         # Comments from the post
-        comments_query = Q(post_id=post.pk)
+        comments_query = Q(commentable_id=post.pk)
 
         # If we are retrieving replies, add the parent_comment to the query
         if post_comment_parent_id is None:

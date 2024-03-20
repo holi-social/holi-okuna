@@ -1076,7 +1076,7 @@ def check_can_delete_comment_with_id_for_post(user, post_comment_id, post):
     # Check that the comment belongs to the post
     PostComment = get_post_comment_model()
 
-    if not PostComment.objects.filter(id=post_comment_id, post_id=post.pk).exists():
+    if not PostComment.objects.filter(id=post_comment_id, commentable_id=post.pk).exists():
         raise ValidationError(_("The comment does not belong to the specified post."))
     is_comment_creator = user.posts_comments.filter(id=post_comment_id).exists()
 
@@ -1145,7 +1145,7 @@ def check_can_get_reactions_for_post(user, post):
 
 
 def check_can_get_reactions_for_post_comment(user, post_comment):
-    return check_can_get_reactions_for_post(user=user, post=post_comment.post)
+    return check_can_get_reactions_for_post(user=user, post=post_comment.commentable)
 
 
 def check_can_react_to_post(user, post):

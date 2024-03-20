@@ -24,7 +24,7 @@ from openbook_common.models import (
     ProxyBlacklistedDomain,
 )
 from openbook_common.utils.helpers import get_random_pastel_color
-from openbook_communities.models import CollaborationTool, Community, ExternalLink, Task, SpacesRelationship
+from openbook_communities.models import CollaborationTool, Community, ExternalLink, SpacesRelationship, Task
 from openbook_devices.models import Device
 from openbook_hashtags.models import Hashtag
 from openbook_lists.models import List as ListModel
@@ -635,6 +635,8 @@ def make_post_comment():
     mentioned_user = make_user()
     text = fake.paragraph()
 
-    post_comment = mixer.blend(PostComment, commenter=commenter, post=post, text=f"@{mentioned_user.username} {text}")
+    post_comment = mixer.blend(
+        PostComment, commenter=commenter, commentable=post, text=f"@{mentioned_user.username} {text}"
+    )
 
     return post_comment

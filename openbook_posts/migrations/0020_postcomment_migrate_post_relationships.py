@@ -2,7 +2,7 @@
 
 from django.db import migrations
 
-def add_comentable_type(apps, _schema_editor):
+def add_commentable_type(apps, _schema_editor):
     Post = apps.get_model("openbook_posts", "Post")
     PostComment = apps.get_model("openbook_posts", "PostComment")
     ContentType = apps.get_model('contenttypes', 'ContentType')
@@ -20,5 +20,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(code=add_comentable_type, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(code=add_commentable_type, reverse_code=migrations.RunPython.noop),
     ]
