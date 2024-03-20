@@ -9,20 +9,20 @@ from rest_framework.exceptions import (
     PermissionDenied,
     ValidationError,
 )
-from openbook_common.enums import VisibilityType
 
+from openbook.utils import generate_hash
+from openbook_common.enums import VisibilityType
 from openbook_common.utils.model_loaders import (
+    get_community_membership_model,
     get_community_model,
+    get_community_pending_invite_model,
     get_language_model,
     get_post_comment_model,
     get_post_model,
     get_post_reaction_model,
     get_user_invite_model,
     get_user_model,
-    get_community_membership_model,
-    get_community_pending_invite_model,
 )
-from openbook.utils import generate_hash
 
 
 def check_follow_lists_ids(user, lists_ids):
@@ -1104,10 +1104,6 @@ def check_can_delete_comment_with_id_for_post(user, post_comment_id, post):
         raise ValidationError(_("You cannot remove a comment that does not belong to you"))
 
 
-def check_can_get_comments_for_post(user, post):
-    check_can_see_post(user=user, post=post)
-
-
 def check_can_get_comment_replies_for_post_and_comment(user, post, post_comment):
     if post_comment.post_id != post.id:
         raise ValidationError(_("No comment found with given id for post with given id"))
@@ -1390,10 +1386,6 @@ def check_can_add_media_to_post(user, post):
 
 
 def check_can_publish_post(user, post):
-    check_has_post(user=user, post=post)
-
-
-def check_can_get_status_for_post(user, post):
     check_has_post(user=user, post=post)
 
 

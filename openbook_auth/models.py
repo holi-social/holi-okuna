@@ -1521,26 +1521,10 @@ class User(ModelWithUUID, AbstractUser):
 
         return post_comment_reaction
 
-    def delete_post_comment_reaction_with_id(self, post_comment_reaction_id):
-        PostCommentReaction = get_post_comment_reaction_model()
-        post_comment_reaction = PostCommentReaction.objects.filter(pk=post_comment_reaction_id).get()
-        return self.delete_post_comment_reaction(post_comment_reaction=post_comment_reaction)
-
     def delete_post_comment_reaction(self, post_comment_reaction):
         check_can_delete_post_comment_reaction(user=self, post_comment_reaction=post_comment_reaction)
         self._delete_post_comment_reaction_notification(post_comment_reaction=post_comment_reaction)
         post_comment_reaction.delete()
-
-    def get_comments_for_post_with_id(self, post_id, min_id=None, max_id=None):
-        Post = get_post_model()
-        post = Post.objects.get(pk=post_id)
-
-        check_can_get_comments_for_post(user=self, post=post)
-
-        comments_query = self._make_get_comments_for_post_query(post=post, max_id=max_id, min_id=min_id)
-
-        PostComment = get_post_comment_model()
-        return PostComment.objects.filter(comments_query)
 
     def get_comment_replies_for_comment_with_id_with_post_with_id(
         self, post_comment_id, post_id, min_id=None, max_id=None
@@ -1570,45 +1554,6 @@ class User(ModelWithUUID, AbstractUser):
 
     def get_replies_count_for_post_comment(self, post_comment):
         return post_comment.count_replies_with_user(user=self)
-
-    def get_status_for_post_with_id(self, post_id):
-        Post = get_post_model()
-        post = Post.objects.get(id=post_id)
-        return self.get_status_for_post(post=post)
-
-    def get_status_for_post(self, post):
-        check_can_get_status_for_post(user=self, post=post)
-        return post.status
-
-    def enable_comments_for_post_with_id(self, post_id):
-        Post = get_post_model()
-        if not Post.is_post_with_id_a_community_post(post_id):
-            raise ValidationError("Post is not a community post")
-
-        post = Post.objects.select_related("community").get(pk=post_id)
-        check_can_enable_disable_comments_for_post_in_community_with_name(
-            user=self, community_name=post.community.name
-        )
-        post.community.create_enable_post_comments_log(source_user=self, target_user=post.creator, post=post)
-        post.comments_enabled = True
-        post.save()
-
-        return post
-
-    def disable_comments_for_post_with_id(self, post_id):
-        Post = get_post_model()
-        if not Post.is_post_with_id_a_community_post(post_id):
-            raise ValidationError("Post is not a community post")
-
-        post = Post.objects.select_related("community").get(pk=post_id)
-        check_can_enable_disable_comments_for_post_in_community_with_name(
-            user=self, community_name=post.community.name
-        )
-        post.community.create_disable_post_comments_log(source_user=self, target_user=post.creator, post=post)
-        post.comments_enabled = False
-        post.save()
-
-        return post
 
     def comment_post_with_id(self, post_id, text):
         Post = get_post_model()
