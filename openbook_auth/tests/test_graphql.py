@@ -516,14 +516,8 @@ class TestUsers:
 
         with capture_logs() as cap_logs:
             result = api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
-            print("cap_logs ===========================================================")
-            for e in cap_logs:
-                print(e)
-            print("cap_logs ===========================================================")
-            log_entry = next(e for e in cap_logs if "MANUAL INTERVENTION NEEDED!" in e["event"])
+            log_entry = next(e for e in cap_logs if e.get("event") is not None and "MANUAL INTERVENTION NEEDED!" in e.get("event"))
             assert log_entry["log_level"] == "error"
-
-            # assert "MANUAL INTERVENTION NEEDED!" in caplog.text
 
         assert result.errors is None
         assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.hansen"
