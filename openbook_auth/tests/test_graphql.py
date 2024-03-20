@@ -516,7 +516,9 @@ class TestUsers:
 
         with capture_logs() as cap_logs:
             result = api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
-            log_entry = next(e for e in cap_logs if e.get("event") is not None and "MANUAL INTERVENTION NEEDED!" in e.get("event"))
+            log_entry = next(
+                e for e in cap_logs if e.get("event") is not None and "MANUAL INTERVENTION NEEDED!" in e.get("event")
+            )
             assert log_entry["log_level"] == "error"
 
         assert result.errors is None
