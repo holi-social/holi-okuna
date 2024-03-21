@@ -3,7 +3,10 @@ import strawberry_django
 
 from openbook_common.schema.types import ReactionCounts
 from openbook_common.types import ReactableType
-from openbook_insights.models import Recommendation as RecommendationModel
+from openbook_insights.models import (
+    Recommendation as RecommendationModel,
+    RecommendationReaction as RecommendationReactionModel,
+)
 from openbook_posts.schema.types import LinkPreview
 
 
@@ -31,9 +34,11 @@ class Recommendation:
         current_user = info.context.request.user
         if not current_user.is_anonymous:
             try:
-                reaction = RecommendationModel.objects.filter(recommendation=self, reactor=current_user).first()
+                reaction = RecommendationReactionModel.objects.filter(
+                    recommendation=self, reactor=current_user
+                ).first()
                 if reaction:
                     return ReactionCounts(**{reaction.reaction_type: 1})
-            except RecommendationModel.DoesNotExist:
+            except RecommendationReactionModel.DoesNotExist:
                 return ReactionCounts()
         return ReactionCounts()

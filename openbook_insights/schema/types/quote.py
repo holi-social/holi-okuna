@@ -3,7 +3,7 @@ import strawberry_django
 
 from openbook_common.schema.types import ReactionCounts
 from openbook_common.types import ReactableType
-from openbook_insights.models import Quote as QuoteModel
+from openbook_insights.models import Quote as QuoteModel, QuoteReaction as QuoteReactionModel
 from openbook_posts.schema.types import LinkPreview
 
 
@@ -35,9 +35,9 @@ class Quote:
         current_user = info.context.request.user
         if not current_user.is_anonymous:
             try:
-                reaction = QuoteModel.objects.filter(quote=self, reactor=current_user).first()
+                reaction = QuoteReactionModel.objects.filter(quote=self, reactor=current_user).first()
                 if reaction:
                     return ReactionCounts(**{reaction.reaction_type: 1})
-            except QuoteModel.DoesNotExist:
+            except QuoteReactionModel.DoesNotExist:
                 return ReactionCounts()
         return ReactionCounts()
