@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("openbook_insights", "0014_recommendationreaction_quotereaction_and_more"),
     ]
