@@ -3,7 +3,7 @@ import strawberry_django
 
 from openbook_common.schema.types import ReactionCounts
 from openbook_common.types import ReactableType
-from openbook_insights.models import Initiative as InitiativeModel
+from openbook_insights.models import Initiative as InitiativeModel, InitiativeReaction as InitiativeReactionModel
 from openbook_posts.schema.types import LinkPreview
 
 
@@ -28,9 +28,9 @@ class Initiative:
         current_user = info.context.request.user
         if not current_user.is_anonymous:
             try:
-                reaction = InitiativeModel.objects.filter(initiative=self, reactor=current_user).first()
+                reaction = InitiativeReactionModel.objects.filter(initiative=self, reactor=current_user).first()
                 if reaction:
                     return ReactionCounts(**{reaction.reaction_type: 1})
-            except InitiativeModel.DoesNotExist:
+            except InitiativeReactionModel.DoesNotExist:
                 return ReactionCounts()
         return ReactionCounts()
