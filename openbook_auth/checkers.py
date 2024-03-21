@@ -825,7 +825,7 @@ def check_has_muted_post_comment_with_id(user, post_comment_id):
 def check_can_translate_comment_with_id(user, post_comment_id):
     PostComment = get_post_comment_model()
     post_comment = PostComment.objects.get(pk=post_comment_id)
-    if not post_comment.post.is_public:
+    if not post_comment.commentable.is_public:
         raise ValidationError(_("Only public post comments can be translated"))
     if post_comment.text is None:
         raise ValidationError(_("Post comment has no text to be translated"))
@@ -1054,7 +1054,7 @@ def check_can_edit_comment_with_id_for_post(user, post_comment_id, post):
     # Check that the comment belongs to the post
     PostComment = get_post_comment_model()
 
-    if not PostComment.objects.filter(id=post_comment_id, post_id=post.pk).exists():
+    if not PostComment.objects.filter(id=post_comment_id, commentable_id=post.pk).exists():
         raise ValidationError(_("The comment does not belong to the specified post."))
 
     if post.community and post.is_closed:
@@ -1105,9 +1105,9 @@ def check_can_delete_comment_with_id_for_post(user, post_comment_id, post):
 
 
 def check_can_get_comment_replies_for_post_and_comment(user, post, post_comment):
-    if post_comment.post_id != post.id:
+    if post_comment.commentable_id != post.id:
         raise ValidationError(_("No comment found with given id for post with given id"))
-    check_can_see_post(user=user, post=post_comment.post)
+    check_can_see_post(user=user, post=post_comment.commentable)
 
 
 def check_can_comment_in_post(user, post):
@@ -1116,7 +1116,7 @@ def check_can_comment_in_post(user, post):
 
 
 def check_can_reply_to_post_comment_for_post(user, post_comment, post):
-    if post_comment.post_id != post.id:
+    if post_comment.commentable_id != post.id:
         raise ValidationError(_("No comment found with given id for post with given id"))
 
     check_can_comment_in_post(user=user, post=post)
@@ -1169,7 +1169,7 @@ def check_can_see_hashtag(user, hashtag):
 def check_can_react_to_post_comment(user, post_comment):
     check_can_see_post_comment(user=user, post_comment=post_comment)
 
-    if post_comment.post.is_closed:
+    if post_comment.commentable.is_closed:
         raise ValidationError(
             _("Cant react to comments on a closed post."),
         )
@@ -1185,7 +1185,7 @@ def check_can_delete_post_comment_reaction(user, post_comment_reaction):
 
 
 def check_can_see_post_comment(user, post_comment):
-    check_can_see_post(user=user, post=post_comment.post)
+    check_can_see_post(user=user, post=post_comment.commentable)
 
     if not user.can_see_post_comment(post_comment=post_comment):
         raise ValidationError(
@@ -1281,8 +1281,8 @@ def check_can_moderate_moderated_object(user, moderated_object):
         else:
             raise ValidationError(_("Only global moderators can moderate non-community posts"))
     elif isinstance(content_object, PostComment):
-        if content_object.post.community:
-            if not user.is_staff_of_community_with_name(community_name=content_object.post.community.name):
+        if content_object.commentable.community:
+            if not user.is_staff_of_community_with_name(community_name=content_object.commentable.community.name):
                 raise ValidationError(_("Only community staff can moderate community post comments"))
         else:
             raise ValidationError(_("Only global moderators can moderate non-community post comments"))

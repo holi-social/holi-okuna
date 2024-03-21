@@ -130,7 +130,7 @@ class Post(ModelWithUUID):
         "PostComment",
         content_type_field="commentable_type",
         object_id_field="commentable_id",
-        related_query_name="posts",
+        related_query_name="post",
     )
 
     class Meta:
@@ -400,7 +400,7 @@ class Post(ModelWithUUID):
         post_comment_creator = User.objects.filter(pk=parent_post_comment.commenter_id)
 
         # Add post creator
-        post = parent_post_comment.post
+        post = parent_post_comment.commentable
         post_creator = User.objects.filter(pk=post.creator.id)
         return other_repliers.union(post_comment_creator, post_creator)
 
@@ -1128,11 +1128,11 @@ class PostComment(ModelWithUUID):
             Q(commenter__blocked_by_users__blocker_id=user.pk) | Q(commenter__user_blocks__blocked_user_id=user.pk)
         )
 
-        if self.post.community:
-            if not user.is_staff_of_community_with_name(community_name=self.post.community.name):
+        if self.commentable.community:
+            if not user.is_staff_of_community_with_name(community_name=self.commentable.community.name):
                 # Don't retrieve comments except from staff members
                 blocked_users_query_staff_members = Q(
-                    commenter__communities_memberships__community_id=self.post.community.pk
+                    commenter__communities_memberships__community_id=self.commentable.community.pk
                 )
                 blocked_users_query_staff_members.add(
                     Q(commenter__communities_memberships__is_administrator=True)

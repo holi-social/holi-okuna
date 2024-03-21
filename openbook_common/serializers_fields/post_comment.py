@@ -14,7 +14,7 @@ class PostCommenterField(Field):
 
     def to_representation(self, post_comment):
         request = self.context.get("request")
-        post = post_comment.post
+        post = post_comment.commentable
         post_commenter = post_comment.commenter
         post_community = post.community
 

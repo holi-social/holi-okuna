@@ -1154,7 +1154,7 @@ class User(ModelWithUUID, AbstractUser):
         return self.post_comment_reactions.filter(has_reacted_query).exists()
 
     def has_commented_post_with_id(self, post_id):
-        return self.posts_comments.filter(post_id=post_id).exists()
+        return self.posts_comments.filter(commentable_id=post_id).exists()
 
     def has_notification_with_id(self, notification_id):
         return self.notifications.filter(pk=notification_id).exists()
@@ -1182,7 +1182,7 @@ class User(ModelWithUUID, AbstractUser):
     def has_reaction_notifications_enabled_for_post_comment(self, post_comment):
         return (
             self.notifications_settings.post_comment_reaction_notifications
-            and not self.has_muted_post_with_id(post_id=post_comment.post_id)
+            and not self.has_muted_post_with_id(post_id=post_comment.commentable_id)
             and not self.has_muted_post_comment_with_id(post_comment_id=post_comment.id)
         )
 
@@ -1194,7 +1194,7 @@ class User(ModelWithUUID, AbstractUser):
     def has_reply_notifications_enabled_for_post_comment(self, post_comment):
         return (
             self.notifications_settings.post_comment_reply_notifications
-            and not self.has_muted_post_with_id(post_id=post_comment.post_id)
+            and not self.has_muted_post_with_id(post_id=post_comment.commentable_id)
             and not self.has_muted_post_comment_with_id(post_comment_id=post_comment.id)
         )
 
@@ -1649,7 +1649,7 @@ class User(ModelWithUUID, AbstractUser):
         comment_creator = post_comment.commenter.id
         post_creator = post.creator
         replier = self
-        post = post_comment.post
+        post = post_comment.commentable
 
         Post = get_post_model()
 
@@ -4414,7 +4414,7 @@ class User(ModelWithUUID, AbstractUser):
         if post_comment.parent_comment is not None:
             PostCommentNotification = get_post_comment_notification_model()
             PostCommentNotification.delete_post_comment_notification(
-                post_comment_id=post_comment.pk, owner_id=post_comment.post.creator_id
+                post_comment_id=post_comment.pk, owner_id=post_comment.commentable.creator_id
             )
         else:
             # Comment is a reply
@@ -4423,7 +4423,7 @@ class User(ModelWithUUID, AbstractUser):
     def _delete_post_comment_reply_notification(self, post_comment):
         PostCommentReplyNotification = get_post_comment_notification_model()
         PostCommentReplyNotification.delete_post_comment_notification(
-            post_comment_id=post_comment.pk, owner_id=post_comment.post.creator_id
+            post_comment_id=post_comment.pk, owner_id=post_comment.commentable.creator_id
         )
 
     def _create_post_reaction_notification(self, post_reaction):
@@ -4721,7 +4721,7 @@ class User(ModelWithUUID, AbstractUser):
     def _make_get_reactions_for_post_comment_query(self, post_comment, reaction_type=None):
         reactions_query = Q(post_comment_id=post_comment.pk)
 
-        post_comment_community = post_comment.post.community
+        post_comment_community = post_comment.commentable.community
 
         if post_comment_community:
             if not self.is_staff_of_community_with_name(community_name=post_comment_community.name):

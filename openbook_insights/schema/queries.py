@@ -4,10 +4,11 @@ from typing import Optional
 
 import strawberry
 import strawberry_django
-from strawberry.types import Info
 from django.db.models import Q
+from strawberry.types import Info
 
-from openbook_auth.models import User as UserModel, UserBlock
+from openbook_auth.models import User as UserModel
+from openbook_auth.models import UserBlock
 from openbook_common.schema.types import Paged
 from openbook_insights.models import Insight as InsightModel
 from openbook_insights.schema.types import Insight
