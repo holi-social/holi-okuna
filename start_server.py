@@ -52,6 +52,7 @@ def main():
             "./openbook_tags",
             "./openbook_terms",
             "./openbook_translation",
+            "./comments",
         ],
     )
 
