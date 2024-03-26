@@ -26,7 +26,8 @@ from openbook_moderation.serializers.validators import (
     moderated_object_id_exists,
     moderation_category_id_exists,
 )
-from openbook_posts.models import Post, PostComment, PostImage
+from openbook_posts.models import Post, PostImage
+from comments.models import Comment
 
 
 class ModeratedObjectUserProfileBadgeSerializer(serializers.ModelSerializer):
@@ -272,7 +273,7 @@ class ModeratedObjectPostCommentSerializer(serializers.ModelSerializer):
     language = LanguageSerializer()
 
     class Meta:
-        model = PostComment
+        model = Comment
         fields = (
             "id",
             "text",
@@ -303,7 +304,7 @@ class ModeratedObjectSerializer(serializers.ModelSerializer):
     content_object = GenericRelatedField(
         {
             Post: ModeratedObjectPostSerializer(),
-            PostComment: ModeratedObjectPostCommentSerializer(),
+            Comment: ModeratedObjectPostCommentSerializer(),
             Community: ModeratedObjectCommunitySerializer(),
             User: CommonPublicUserSerializer(),
             Hashtag: ModeratedObjectHashtagSerializer(),

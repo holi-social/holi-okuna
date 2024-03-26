@@ -13,11 +13,11 @@ from rest_framework.exceptions import (
 from openbook.utils import generate_hash
 from openbook_common.enums import VisibilityType
 from openbook_common.utils.model_loaders import (
+    get_comment_model,
     get_community_membership_model,
     get_community_model,
     get_community_pending_invite_model,
     get_language_model,
-    get_post_comment_model,
     get_post_model,
     get_post_reaction_model,
     get_user_invite_model,
@@ -808,8 +808,8 @@ def check_has_muted_post_comment_with_id(user, post_comment_id):
 
 
 def check_can_translate_comment_with_id(user, post_comment_id):
-    PostComment = get_post_comment_model()
-    post_comment = PostComment.objects.get(pk=post_comment_id)
+    Comment = get_comment_model()
+    post_comment = Comment.objects.get(pk=post_comment_id)
     if not post_comment.commentable.is_public:
         raise ValidationError(_("Only public post comments can be translated"))
     if post_comment.text is None:
@@ -1037,9 +1037,9 @@ def check_username_not_taken(user, username):
 def check_can_edit_comment_with_id_for_post(user, post_comment_id, post):
     check_can_see_post(user=user, post=post)
     # Check that the comment belongs to the post
-    PostComment = get_post_comment_model()
+    Comment = get_comment_model()
 
-    if not PostComment.objects.filter(id=post_comment_id, commentable_id=post.pk).exists():
+    if not Comment.objects.filter(id=post_comment_id, commentable_id=post.pk).exists():
         raise ValidationError(_("The comment does not belong to the specified post."))
 
     if post.community and post.is_closed:
@@ -1059,9 +1059,9 @@ def check_can_delete_comment_with_id_for_post(user, post_comment_id, post):
     check_can_see_post(user=user, post=post)
 
     # Check that the comment belongs to the post
-    PostComment = get_post_comment_model()
+    Comment = get_comment_model()
 
-    if not PostComment.objects.filter(id=post_comment_id, commentable_id=post.pk).exists():
+    if not Comment.objects.filter(id=post_comment_id, commentable_id=post.pk).exists():
         raise ValidationError(_("The comment does not belong to the specified post."))
     is_comment_creator = user.posts_comments.filter(id=post_comment_id).exists()
 
@@ -1077,7 +1077,7 @@ def check_can_delete_comment_with_id_for_post(user, post_comment_id, post):
                 raise ValidationError(_("You cannot remove a comment that does not belong to you"))
         else:
             # is admin or mod
-            post_comment = PostComment.objects.select_related("commenter").get(pk=post_comment_id)
+            post_comment = Comment.objects.select_related("commenter").get(pk=post_comment_id)
             if post_comment.parent_comment is not None:
                 post.community.create_remove_post_comment_reply_log(
                     source_user=user, target_user=post_comment.commenter
@@ -1256,7 +1256,7 @@ def check_can_moderate_moderated_object(user, moderated_object):
     if is_global_moderator:
         return
 
-    PostComment = get_post_comment_model()
+    Comment = get_comment_model()
     Post = get_post_model()
 
     if isinstance(content_object, Post):
@@ -1265,7 +1265,7 @@ def check_can_moderate_moderated_object(user, moderated_object):
                 raise ValidationError(_("Only community staff can moderate community posts"))
         else:
             raise ValidationError(_("Only global moderators can moderate non-community posts"))
-    elif isinstance(content_object, PostComment):
+    elif isinstance(content_object, Comment):
         if content_object.commentable.community:
             if not user.is_staff_of_community_with_name(community_name=content_object.commentable.community.name):
                 raise ValidationError(_("Only community staff can moderate community post comments"))

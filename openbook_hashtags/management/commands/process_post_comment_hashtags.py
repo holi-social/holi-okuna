@@ -1,22 +1,21 @@
-from django.core.management.base import BaseCommand
 import logging
 
-from django.db import transaction
+from django.core.management.base import BaseCommand
 
-from openbook_common.utils.model_loaders import get_post_comment_model
+from openbook_common.utils.model_loaders import get_comment_model
 from openbook_posts.jobs import _chunked_queryset_iterator
 
 logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = "Process the PostComments's hashtags"
+    help = "Process the Comments's hashtags"
 
     def handle(self, *args, **options):
-        PostComment = get_post_comment_model()
+        Comment = get_comment_model()
 
         comments_to_process = (
-            PostComment.objects.filter(hashtags__isnull=True, text__icontains="#").only("id", "text").all()
+            Comment.objects.filter(hashtags__isnull=True, text__icontains="#").only("id", "text").all()
         )
         migrated_postComments = 0
 

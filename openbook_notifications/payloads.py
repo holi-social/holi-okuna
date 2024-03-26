@@ -12,7 +12,8 @@ from openbook_notifications.helpers import replace_mentions_with_full_names
 if TYPE_CHECKING:
     from openbook_auth.models import User
     from openbook_communities.models import Community
-    from openbook_posts.models import Post, PostComment
+    from openbook_posts.models import Post
+    from comments.models import Comment
 
 
 class NotificationType(Enum):
@@ -224,7 +225,7 @@ class PostCommentData:
         return {"id": self.id, "text": self.text}
 
     @classmethod
-    def from_post_comment(cls, post_comment: PostComment):
+    def from_post_comment(cls, post_comment: Comment):
         mentioned_users = post_comment.mentions.all()
         text = replace_mentions_with_full_names(text=post_comment.text, mentioned_users=mentioned_users)
 
@@ -357,7 +358,7 @@ class PostCommentMentionPayload(Payload):
 
     def __init__(
         self,
-        post_comment: PostComment,
+        post_comment: Comment,
         notification_type: NotificationType,
     ):
         super().__init__(
@@ -378,7 +379,7 @@ class PostCommentAuthorPayload(Payload):
 
     def __init__(
         self,
-        post_comment: PostComment,
+        post_comment: Comment,
         notification_type: NotificationType,
     ):
         super().__init__(

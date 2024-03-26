@@ -14,7 +14,7 @@ from openbook_communities.models import Community as CommunityModel
 from openbook_communities.schema.types import Space
 from openbook_notifications.models import Notification as NotificationModel
 from openbook_posts.models import Post as PostModel
-from openbook_posts.models import PostComment as PostCommentModel
+from comments.models import Comment as CommentModel
 from openbook_posts.schema.types import (
     CreatePostCommentInput,
     CreatePostCommentOutput,
@@ -135,7 +135,7 @@ class Mutation:
         reaction_action: ReactionAction,
     ) -> PostComment:
         current_user = verify_authorized_user(info)
-        post_comment = PostCommentModel.objects.get(id=id)
+        post_comment = CommentModel.objects.get(id=id)
         if reaction_action == ReactionAction.SET:
             post_comment.react(current_user, reaction_type)
         else:

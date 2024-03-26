@@ -6,6 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.test import AsyncClient
 
+from comments.models import Comment, CommentReaction
 from openbook_common.enums import FeatureToggleName, FeatureToggleType, VisibilityType
 from openbook_common.models import FeatureToggle as FeatureToggleModel
 from openbook_common.tests.helpers import (
@@ -19,8 +20,6 @@ from openbook_communities.models import CommunityNotificationsSubscription
 from openbook_notifications.models import CommunityNewPostNotification
 from openbook_posts.models import (
     Post,
-    PostComment,
-    PostCommentReaction,
     PostImage,
     PostUserMention,
 )
@@ -85,7 +84,7 @@ class TestPosts(TestCase):
         assert response.errors is None
 
         post_comment_data = response.data["updatePostComment"]["postComment"]
-        post_comment = PostComment.objects.get(id=post_comment_data["id"])
+        post_comment = Comment.objects.get(id=post_comment_data["id"])
 
         mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=post_comment)
         mock_send_post_comment_author_notification.assert_called_once_with(post_comment=post_comment)
@@ -112,7 +111,7 @@ class TestPosts(TestCase):
         assert response.errors is None
 
         post_comment_data = response.data["updatePostComment"]["postComment"]
-        post_comment = PostComment.objects.get(id=post_comment_data["id"])
+        post_comment = Comment.objects.get(id=post_comment_data["id"])
 
         mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=post_comment)
         mock_send_post_comment_author_notification.assert_not_called()
@@ -139,7 +138,7 @@ class TestPosts(TestCase):
         assert response.errors is None
 
         post_comment_data = response.data["updatePostComment"]["postComment"]
-        post_comment = PostComment.objects.get(id=post_comment_data["id"])
+        post_comment = Comment.objects.get(id=post_comment_data["id"])
 
         mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=post_comment)
         mock_send_post_comment_author_notification.assert_not_called()
@@ -317,7 +316,7 @@ class TestPosts(TestCase):
         assert response.data["deletePostComment"]["success"] is True
         assert post.comments.count() == 1
         assert comment.id not in post.comments.values_list("id", flat=True)
-        assert reaction.id not in PostCommentReaction.objects.filter(post_comment=comment).values_list("id", flat=True)
+        assert reaction.id not in CommentReaction.objects.filter(post_comment=comment).values_list("id", flat=True)
 
     def test_cant_delete_post_comment_of_other_user(self):
         posting_user = make_user()
@@ -338,7 +337,7 @@ class TestPosts(TestCase):
 
         assert post.comments.count() == 2
         assert comment.id in post.comments.values_list("id", flat=True)
-        assert reaction.id in PostCommentReaction.objects.filter(post_comment=comment).values_list("id", flat=True)
+        assert reaction.id in CommentReaction.objects.filter(post_comment=comment).values_list("id", flat=True)
 
     def test_cant_delete_post_comment_not_exist(self):
         posting_user = make_user()
@@ -359,7 +358,7 @@ class TestPosts(TestCase):
 
         assert post.comments.count() == 2
         assert comment.id in post.comments.values_list("id", flat=True)
-        assert reaction.id in PostCommentReaction.objects.filter(post_comment=comment).values_list("id", flat=True)
+        assert reaction.id in CommentReaction.objects.filter(post_comment=comment).values_list("id", flat=True)
 
     def test_react_to_post(self):
         posting_user = make_user()
@@ -846,7 +845,7 @@ class TestPosts(TestCase):
             visibility=VisibilityType.MEMBERS.value,
         )
         PostUserMention.create_post_user_mention(user=space_admin, post=post)
-        PostComment.create_comment(text=make_fake_post_text(), post=post, commenter=posting_user)
+        Comment.create_comment(text=make_fake_post_text(), post=post, commenter=posting_user)
 
         response = delete_space_post(post.id, posting_user)
 
@@ -855,7 +854,7 @@ class TestPosts(TestCase):
 
         assert CommunityNewPostNotification.objects.filter(post=post).count() == 0
         assert PostUserMention.objects.filter(post=post).count() == 0
-        assert PostComment.objects.filter(post=post).count() == 0
+        assert Comment.objects.filter(post=post).count() == 0
         assert PostImage.objects.filter(post=post).count() == 0
 
     def test_can_not_delete_space_post(self):
@@ -874,7 +873,7 @@ class TestPosts(TestCase):
             visibility=VisibilityType.MEMBERS.value,
         )
         PostUserMention.create_post_user_mention(user=space_admin, post=post)
-        PostComment.create_comment(text=make_fake_post_text(), post=post, commenter=posting_user)
+        Comment.create_comment(text=make_fake_post_text(), post=post, commenter=posting_user)
 
         response = delete_space_post(post.id, space_admin)
 
@@ -887,5 +886,5 @@ class TestPosts(TestCase):
         assert query_post.title == post.title
 
         assert PostUserMention.objects.filter(post=post).count() == 1
-        assert PostComment.objects.filter(post=post).count() == 1
+        assert Comment.objects.filter(post=post).count() == 1
         assert PostImage.objects.filter(post=post).count() == 1

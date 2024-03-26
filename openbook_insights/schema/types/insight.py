@@ -16,7 +16,7 @@ from openbook_insights.schema.types.initiative import Initiative
 from openbook_insights.schema.types.quote import Quote
 from openbook_insights.schema.types.recommendation import Recommendation
 from openbook_posts.models import Post as PostModel
-from openbook_posts.models import PostComment as PostCommentModel
+from comments.models import Comment as CommentModel
 from openbook_posts.schema.types import Post
 from openbook_terms.schema.types import Topic
 
@@ -60,7 +60,7 @@ class Insight:
                 | (Q(posts__insights=self) & PostModel.is_visible_query(current_user, "posts"))
                 | (
                     Q(posts_comments__post__insights=self)
-                    & PostCommentModel.is_visible_query(current_user, "posts_comments")
+                    & CommentModel.is_visible_query(current_user, "posts_comments")
                 )
             ),
             is_deleted=False,

@@ -8,6 +8,7 @@ from requests import Session
 from requests.adapters import HTTPAdapter, Retry
 from requests.exceptions import ConnectionError
 
+from comments.models import Comment
 from openbook_appointments.models import Appointment
 from openbook_auth.models import User
 from openbook_communities.models import Community, CommunityInvite, CommunityMembershipRequest
@@ -29,7 +30,7 @@ from openbook_notifications.payloads import (
     SpaceNewPostPayload,
 )
 from openbook_notifications.toggles import notifications_toggle
-from openbook_posts.models import Post, PostComment
+from openbook_posts.models import Post
 
 
 class Workflow(Enum):
@@ -205,7 +206,7 @@ class Notifications:
         notification.send()
 
     @staticmethod
-    def send_post_comment_mention_notification(post_comment: PostComment):
+    def send_post_comment_mention_notification(post_comment: Comment):
         notification = PostCommentMentionNotification(
             mentions=[str(mentioned_user.username) for mentioned_user in post_comment.mentions.all()],
             payload=PostCommentMentionPayload(
@@ -216,7 +217,7 @@ class Notifications:
         notification.send()
 
     @staticmethod
-    def send_post_comment_author_notification(post_comment: PostComment):
+    def send_post_comment_author_notification(post_comment: Comment):
         notification = PostCommentAuthorNotification(
             author=str(post_comment.commentable.creator.username),
             payload=PostCommentAuthorPayload(

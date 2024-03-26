@@ -14,7 +14,7 @@ from openbook_common.tests.helpers import (
     make_user,
 )
 from openbook_notifications.models import Notification
-from openbook_posts.models import PostComment
+from comments.models import Comment
 from openbook_connections.tests.helpers import connect_to_user
 
 
@@ -144,7 +144,7 @@ class UserModelTest(TestAssertionsMixin, TransactionTestCase):
         post.comment(text=f"comment text 2", commenter=comment_user)
         self.assertEqual(post.comments.count(), 2)
 
-        with self.assertRaises(PostComment.DoesNotExist):
+        with self.assertRaises(Comment.DoesNotExist):
             comment_user.delete_comment_with_id(uuid.uuid4())
 
         self.assertEqual(post.comments.count(), 2)

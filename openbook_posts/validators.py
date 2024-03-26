@@ -4,8 +4,8 @@ from rest_framework.exceptions import ValidationError
 
 from openbook_common.utils.helpers import extract_hashtags_from_string
 from openbook_common.utils.model_loaders import (
-    get_post_comment_model,
-    get_post_comment_reaction_model,
+    get_comment_model,
+    get_comment_reaction_model,
     get_post_model,
     get_post_reaction_model,
 )
@@ -22,18 +22,18 @@ def post_id_exists(post_id):
 
 
 def post_comment_id_exists(post_comment_id):
-    PostComment = get_post_comment_model()
+    Comment = get_comment_model()
 
-    if not PostComment.objects.filter(id=post_comment_id).exists():
+    if not Comment.objects.filter(id=post_comment_id).exists():
         raise ValidationError(
             _("The post comment does not exist."),
         )
 
 
 def post_comment_id_exists_for_post_with_id(post_comment_id, post_id):
-    PostComment = get_post_comment_model()
+    Comment = get_comment_model()
 
-    if not PostComment.objects.filter(id=post_comment_id, commentable__id=post_id).exists():
+    if not Comment.objects.filter(id=post_comment_id, commentable__id=post_id).exists():
         raise ValidationError(
             _("The post comment does not exist."),
         )
@@ -42,9 +42,9 @@ def post_comment_id_exists_for_post_with_id(post_comment_id, post_id):
 def post_comment_reaction_id_exists_for_post_with_id_and_comment_with_id(
     post_comment_reaction_id, post_comment_id, post_id
 ):
-    PostCommentReaction = get_post_comment_reaction_model()
+    CommentReaction = get_comment_reaction_model()
 
-    if not PostCommentReaction.objects.filter(
+    if not CommentReaction.objects.filter(
         id=post_comment_reaction_id,
         post_comment_id=post_comment_id,
         post_comment__commentable__id=post_id,
@@ -64,9 +64,9 @@ def post_reaction_id_exists(post_reaction_id):
 
 
 def post_comment_reaction_id_exists(post_comment_reaction_id):
-    PostCommentReaction = get_post_comment_reaction_model()
+    CommentReaction = get_comment_reaction_model()
 
-    if not PostCommentReaction.objects.filter(id=post_comment_reaction_id).exists():
+    if not CommentReaction.objects.filter(id=post_comment_reaction_id).exists():
         raise ValidationError(
             _("The post comment reaction does not exist."),
         )

@@ -36,7 +36,8 @@ from openbook_moderation.models import (
     ModerationReport,
 )
 from openbook_notifications.models import Notification
-from openbook_posts.models import Post, PostComment
+from openbook_posts.models import Post
+from comments.models import Comment
 from openbook_terms.models import SDG, Skill, Topic
 
 fake = Faker()
@@ -632,7 +633,7 @@ def make_post_comment():
     text = fake.paragraph()
 
     post_comment = mixer.blend(
-        PostComment, commenter=commenter, commentable=post, text=f"@{mentioned_user.username} {text}"
+        Comment, commenter=commenter, commentable=post, text=f"@{mentioned_user.username} {text}"
     )
 
     return post_comment

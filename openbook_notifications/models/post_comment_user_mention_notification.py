@@ -1,15 +1,15 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 
+from comments.models import CommentUserMention
 from openbook_common.models import ModelWithUUID
 from openbook_notifications.models.notification import Notification
 from openbook_notifications.toggles import mute_notifications
-from openbook_posts.models import PostCommentUserMention
 
 
 class PostCommentUserMentionNotification(ModelWithUUID):
     notification = GenericRelation(Notification, related_name="post_comment_user_mention_notifications")
-    post_comment_user_mention = models.ForeignKey(PostCommentUserMention, on_delete=models.CASCADE)
+    post_comment_user_mention = models.ForeignKey(CommentUserMention, on_delete=models.CASCADE)
 
     @classmethod
     @mute_notifications

@@ -10,10 +10,10 @@ from django.utils.translation import gettext_lazy as _
 from openbook_auth.models import User
 from openbook_common.models import ModelWithUUID
 from openbook_common.utils.model_loaders import (
+    get_comment_model,
     get_community_model,
     get_hashtag_model,
     get_moderation_penalty_model,
-    get_post_comment_model,
     get_post_model,
     get_user_model,
 )
@@ -236,7 +236,7 @@ class ModeratedObject(ModelWithUUID):
 
         Post = get_post_model()
         Hashtag = get_hashtag_model()
-        PostComment = get_post_comment_model()
+        Comment = get_comment_model()
         Community = get_community_model()
         User = get_user_model()
         ModerationPenalty = get_moderation_penalty_model()
@@ -250,7 +250,7 @@ class ModeratedObject(ModelWithUUID):
                 penalty_targets = [content_object]
             elif isinstance(content_object, Post):
                 penalty_targets = [content_object.creator]
-            elif isinstance(content_object, PostComment):
+            elif isinstance(content_object, Comment):
                 penalty_targets = [content_object.commenter]
             elif isinstance(content_object, Community):
                 penalty_targets = content_object.get_staff_members()
@@ -287,7 +287,7 @@ class ModeratedObject(ModelWithUUID):
 
             if (
                 isinstance(content_object, Post)
-                or isinstance(content_object, PostComment)
+                or isinstance(content_object, Comment)
                 or isinstance(content_object, Community)
             ) or (isinstance(content_object, User) and moderation_severity == ModerationCategory.SEVERITY_CRITICAL):
                 content_object.soft_delete()
@@ -312,13 +312,13 @@ class ModeratedObject(ModelWithUUID):
         content_object = self.content_object
 
         Post = get_post_model()
-        PostComment = get_post_comment_model()
+        Comment = get_comment_model()
         Community = get_community_model()
         moderation_severity = self.category.severity
 
         if (
             isinstance(content_object, Post)
-            or isinstance(content_object, PostComment)
+            or isinstance(content_object, Comment)
             or isinstance(content_object, Community)
         ) or (isinstance(content_object, User) and moderation_severity == ModerationCategory.SEVERITY_CRITICAL):
             content_object.unsoft_delete()
@@ -327,7 +327,7 @@ class ModeratedObject(ModelWithUUID):
 
     def approve_with_actor_with_id(self, actor_id):
         Post = get_post_model()
-        PostComment = get_post_comment_model()
+        Comment = get_comment_model()
         Community = get_community_model()
         User = get_user_model()
 
@@ -344,7 +344,7 @@ class ModeratedObject(ModelWithUUID):
 
         if (
             isinstance(content_object, Post)
-            or isinstance(content_object, PostComment)
+            or isinstance(content_object, Comment)
             or isinstance(content_object, Community)
         ):
             content_object.delete_notifications()

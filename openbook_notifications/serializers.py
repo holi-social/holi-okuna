@@ -1,28 +1,33 @@
 from generic_relations.relations import GenericRelatedField
 from rest_framework import serializers
 
-from openbook_common.models import Emoji, Language, Badge
+from comments.models import (
+    CommentReaction,
+    CommentUserMention,
+    Comment,
+)
+from openbook_common.models import Badge, Language
 from openbook_common.serializers import (
-    CommonHashtagSerializer,
     CommonFollowRequestSerializer,
     CommonFollowSerializer,
+    CommonHashtagSerializer,
     CommonPublicUserSerializer,
 )
 from openbook_common.serializers_fields.post import IsEncircledField
 from openbook_common.serializers_fields.post_comment import PostCommentIsMutedField
 from openbook_communities.models import Community, CommunityInvite
 from openbook_notifications.models import (
+    CommunityInviteNotification,
+    CommunityNewPostNotification,
+    ConnectionConfirmedNotification,
+    ConnectionRequestNotification,
+    FollowNotification,
     Notification,
     PostCommentNotification,
-    ConnectionRequestNotification,
-    ConnectionConfirmedNotification,
-    FollowNotification,
-    CommunityInviteNotification,
-    PostCommentReplyNotification,
     PostCommentReactionNotification,
+    PostCommentReplyNotification,
     PostCommentUserMentionNotification,
     PostUserMentionNotification,
-    CommunityNewPostNotification,
 )
 from openbook_notifications.models.follow_request_approved_notification import (
     FollowRequestApprovedNotification,
@@ -37,16 +42,13 @@ from openbook_notifications.models.user_new_post_notification import (
     UserNewPostNotification,
 )
 from openbook_notifications.serializer_fields import ParentCommentField
+from openbook_notifications.validators import notification_id_exists
 from openbook_posts.models import (
-    PostComment,
-    PostReaction,
     Post,
     PostImage,
-    PostCommentReaction,
+    PostReaction,
     PostUserMention,
-    PostCommentUserMention,
 )
-from openbook_notifications.validators import notification_id_exists
 
 
 class ReadNotificationsSerializer(serializers.Serializer):
@@ -147,7 +149,7 @@ class NotificationPostCommentParentSerializer(serializers.ModelSerializer):
     language = PostCommentLanguageSerializer()
 
     class Meta:
-        model = PostComment
+        model = Comment
         fields = (
             "id",
             "commenter",
@@ -168,7 +170,7 @@ class NotificationPostCommentSerializer(serializers.ModelSerializer):
     hashtags = CommonHashtagSerializer(many=True)
 
     class Meta:
-        model = PostComment
+        model = Comment
         fields = (
             "id",
             "commenter",
@@ -206,7 +208,7 @@ class PostCommentReactionSerializer(serializers.ModelSerializer):
     post_comment = NotificationPostCommentSerializer()
 
     class Meta:
-        model = PostCommentReaction
+        model = CommentReaction
         fields = ("id", "reactor", "reaction_type", "post_comment", "created")
 
 
@@ -344,7 +346,7 @@ class PostCommentUserMentionSerializer(serializers.ModelSerializer):
     user = CommonPublicUserSerializer()
 
     class Meta:
-        model = PostCommentUserMention
+        model = CommentUserMention
         fields = (
             "id",
             "post_comment",

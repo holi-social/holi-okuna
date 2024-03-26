@@ -49,16 +49,16 @@ def get_post_user_mention_model():
     return apps.get_model("openbook_posts.PostUserMention")
 
 
-def get_post_comment_user_mention_model():
-    return apps.get_model("openbook_posts.PostCommentUserMention")
+def get_comment_user_mention_model():
+    return apps.get_model("comments.CommentUserMention")
 
 
 def get_post_mute_model():
     return apps.get_model("openbook_posts.PostMute")
 
 
-def get_post_comment_mute_model():
-    return apps.get_model("openbook_posts.PostCommentMute")
+def get_comment_mute_model():
+    return apps.get_model("comments.CommentMute")
 
 
 def get_user_block_model():
@@ -89,16 +89,16 @@ def get_community_log_model():
     return apps.get_model("openbook_communities.CommunityLog")
 
 
-def get_post_comment_model():
-    return apps.get_model("openbook_posts.PostComment")
+def get_comment_model():
+    return apps.get_model("comments.Comment")
 
 
 def get_post_reaction_model():
     return apps.get_model("openbook_posts.PostReaction")
 
 
-def get_post_comment_reaction_model():
-    return apps.get_model("openbook_posts.PostCommentReaction")
+def get_comment_reaction_model():
+    return apps.get_model("comments.CommentReaction")
 
 
 def get_emoji_model():

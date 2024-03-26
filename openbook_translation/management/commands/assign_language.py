@@ -2,13 +2,11 @@ from django.core.management.base import BaseCommand
 from langdetect.lang_detect_exception import LangDetectException
 
 from openbook_common.helpers import get_language_for_text
-from openbook_common.utils.model_loaders import get_post_model, get_post_comment_model
+from openbook_common.utils.model_loaders import get_comment_model, get_post_model
 
 
 class Command(BaseCommand):
-    help = (
-        "Assigns Language to Post and PostComment models, usage python manage.py assign_language --type posts|comments"
-    )
+    help = "Assigns Language to Post and Comment models, usage python manage.py assign_language --type posts|comments"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -30,7 +28,7 @@ class Command(BaseCommand):
         for post in posts:
             try:
                 language = get_language_for_text(post.text)
-            except LangDetectException as e:
+            except LangDetectException:
                 print("Caught exception while detecting language, skipping")
 
             if language:
@@ -40,12 +38,12 @@ class Command(BaseCommand):
                 print("Could not detect language for id", post.id)
 
     def assign_language_comments(self):
-        PostComment = get_post_comment_model()
-        post_comments = PostComment.objects.filter(text__isnull=False)
+        Comment = get_comment_model()
+        post_comments = Comment.objects.filter(text__isnull=False)
         for post_comment in post_comments:
             try:
                 language = get_language_for_text(post_comment.text)
-            except LangDetectException as e:
+            except LangDetectException:
                 print("Caught exception while detecting language, skipping")
 
             if language:
