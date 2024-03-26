@@ -18,7 +18,7 @@ class Query:
         return resolve_post(info.context.request.user, id)
 
     @strawberry_django.field()
-    def inspiration_posts(self, info, offset: int = 0, limit: int = 10) -> Paged[Poll]:
+    def inspiration_poll(self, info, offset: int = 0, limit: int = 10) -> Paged[Poll]:
         current_user: UserModel = info.context.request.user
         query = QuestionModel.objects.filter(
             QuestionModel.is_visible_query(current_user),
