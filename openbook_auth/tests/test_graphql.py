@@ -15,17 +15,25 @@ from benedict import benedict
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis import geos
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
+from django.http import HttpRequest
 from django.test import AsyncClient
 from django.urls import reverse
+from django.utils import timezone
 from requests.models import Response
 from rest_framework import status
+from structlog.testing import capture_logs
 
+from comments.tests.helpers import get_post
 from openbook.graphql_schema import schema
 from openbook.tests.test_data import geolocation, geolocation_geometry, geolocation_id
 from openbook_auth.models import EngagementLevelChoice, User
 from openbook_auth.tests.helpers import (
     api_update_authenticated_user_names,
+    bookmark_insight,
+    get_connected_users,
+    get_connected_users_raw,
     get_user_connection_status_to_space_data,
     get_user_with_id_raw,
     get_users_by_chat_identities,
@@ -35,7 +43,9 @@ from openbook_auth.tests.helpers import (
 from openbook_common.enums import FeatureToggleName, FeatureToggleType
 from openbook_common.models import FeatureToggle
 from openbook_common.tests.helpers import (
+    assert_is_forbidden,
     assert_is_unauthorized,
+    assert_paged_results_equal,
     make_authentication_headers_for_user,
     make_community,
     make_fake_post_text,
@@ -49,9 +59,9 @@ from openbook_communities.models import SpaceUserConnectionType
 from openbook_communities.tests.helpers import (
     mutate_update_space_user_connection_data,
 )
-from openbook_notifications.enums import NotificationProvider
-from openbook_posts.tests.helpers import get_post_with_id_data, get_post_with_id_raw
 from openbook_connections.tests.helpers import connect_to_user
+from openbook_notifications.enums import NotificationProvider
+from openbook_posts.tests.helpers import get_post_with_id_raw
 
 logger = logging.getLogger(__name__)
 
@@ -801,7 +811,7 @@ class TestUsers:
 
         blocked_post_raw = get_post_with_id_raw(blocked_post.id, blocking_user)
         assert blocked_post_raw.data["postById"] is None
-        other_post_data = get_post_with_id_data(other_post, blocking_user)
+        other_post_data = get_post(other_post, blocking_user)
         assert other_post_data["involvedUsers"]["totalResults"] == 2  # does include blocked users
         assert len(other_post_data["involvedUsers"]["data"]) == 1  # does not include blocked users
         assert other_post_data["numberOfComments"] == 1  # does include blocked users

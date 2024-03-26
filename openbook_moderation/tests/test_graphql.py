@@ -6,6 +6,7 @@ from benedict import benedict
 from django.core.management import call_command
 from django.test import AsyncClient
 
+from comments.tests.helpers import get_post
 from openbook.graphql_schema import schema
 from openbook_auth.tests.helpers import get_user_with_id_data, get_user_with_id_raw
 from openbook_common.tests.helpers import (
@@ -114,12 +115,12 @@ class TestModeration:
         assert response.errors is None
         assert response.data["reportContent"]["success"] is True
 
-        post_data = get_post_with_id_data(post, reporting_user)
+        post_data = get_post(post, reporting_user)
         assert len(post_data["comments"]) == 1
 
         approve_verify_moderated_object(comment.id, posting_user)
 
-        post_data = get_post_with_id_data(post, other_user)
+        post_data = get_post(post, other_user)
         assert len(post_data["comments"]) == 0
 
     @pytest.mark.skip("Fundamentally broken on Postgres, even though this test would work")
