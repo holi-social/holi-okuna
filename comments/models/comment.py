@@ -206,9 +206,9 @@ class Comment(ModelWithUUID):
                         user_can_see_post_comment = user.can_see_post_comment(post_comment=self)
                         user_is_commenter = user.pk == self.commenter_id
                         if not user_is_commenter:
-                            CommentUserMention.create_post_comment_user_mention(
+                            CommentUserMention.create_comment_user_mention(
                                 user=user,
-                                post_comment=self,
+                                comment=self,
                                 notify=user_can_see_post_comment,
                             )
                             existing_mention_usernames.append(username)

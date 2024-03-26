@@ -13,7 +13,7 @@ from openbook_notifications.helpers import (
 
 
 class CommentUserMention(ModelWithUUID):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="post_comment_mentions")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comment_mentions")
     post_comment = models.ForeignKey("Comment", on_delete=models.CASCADE, related_name="user_mentions")
 
     class Meta:
@@ -24,8 +24,8 @@ class CommentUserMention(ModelWithUUID):
         db_table = "openbook_posts_postcommentusermention"
 
     @classmethod
-    def create_post_comment_user_mention(cls, user, post_comment, notify=True):
-        post_comment_user_mention = cls.objects.create(user=user, post_comment=post_comment)
+    def create_comment_user_mention(cls, user, comment, notify=True):
+        post_comment_user_mention = cls.objects.create(user=user, post_comment=comment)
         if notify:
             PostCommentUserMentionNotification = get_post_comment_user_mention_notification_model()
             PostCommentUserMentionNotification.create_post_comment_user_mention_notification(
