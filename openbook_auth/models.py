@@ -1030,7 +1030,7 @@ class User(ModelWithUUID, AbstractUser):
         return self.post_mutes.filter(post_id=post_id).exists()
 
     def has_muted_post_comment_with_id(self, post_comment_id):
-        return self.post_comment_mutes.filter(post_comment_id=post_comment_id).exists()
+        return self.comment_mutes.filter(post_comment_id=post_comment_id).exists()
 
     def has_blocked_user_with_id(self, user_id):
         return self.user_blocks.filter(blocked_user_id=user_id).exists()
@@ -4062,7 +4062,7 @@ class User(ModelWithUUID, AbstractUser):
     def mute_post_comment(self, post_comment):
         check_can_mute_post_comment(user=self, post_comment=post_comment)
         CommentMute = get_comment_mute_model()
-        CommentMute.create_post_comment_mute(post_comment_id=post_comment.pk, muter_id=self.pk)
+        CommentMute.create_comment_mute(comment_id=post_comment.pk, muter_id=self.pk)
         return post_comment
 
     def unmute_post_comment_with_id(self, post_comment_id):
@@ -4070,7 +4070,7 @@ class User(ModelWithUUID, AbstractUser):
         post_comment = Post_comment.objects.get(pk=post_comment_id)
 
         check_can_unmute_post_comment(user=self, post_comment=post_comment)
-        self.post_comment_mutes.filter(post_comment_id=post_comment_id).delete()
+        self.comment_mutes.filter(post_comment_id=post_comment_id).delete()
         return post_comment
 
     def translate_post_comment_with_id(self, post_comment_id):

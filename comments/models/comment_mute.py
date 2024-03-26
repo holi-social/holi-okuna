@@ -8,7 +8,7 @@ from openbook_common.models import (
 
 class CommentMute(ModelWithUUID):
     post_comment = models.ForeignKey("Comment", on_delete=models.CASCADE, related_name="mutes")
-    muter = models.ForeignKey(User, on_delete=models.CASCADE, related_name="post_comment_mutes")
+    muter = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comment_mutes")
 
     class Meta:
         unique_together = (
@@ -20,5 +20,5 @@ class CommentMute(ModelWithUUID):
         db_table = "openbook_posts_postcommentmute"
 
     @classmethod
-    def create_post_comment_mute(cls, post_comment_id, muter_id):
-        return cls.objects.create(post_comment_id=post_comment_id, muter_id=muter_id)
+    def create_comment_mute(cls, comment_id, muter_id):
+        return cls.objects.create(post_comment_id=comment_id, muter_id=muter_id)
