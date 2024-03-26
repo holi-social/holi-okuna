@@ -365,8 +365,8 @@ class Post(ModelWithUUID):
         # Add other post commenters, exclude replies to comments, the post commenter
         other_commenters = User.objects.filter(
             Q(
-                posts_comments__commentable_id=post.pk,
-                posts_comments__parent_comment_id=None,
+                comments__commentable_id=post.pk,
+                comments__parent_comment_id=None,
             )
             & ~Q(id=post_commenter.pk)
         )
@@ -385,7 +385,7 @@ class Post(ModelWithUUID):
         # Add other post commenters, exclude non replies, the post commenter
         other_repliers = User.objects.filter(
             Q(
-                posts_comments__parent_comment_id=parent_post_comment.pk,
+                comments__parent_comment_id=parent_post_comment.pk,
             )
             & ~Q(id=post_commenter.pk)
         )
@@ -464,7 +464,7 @@ class Post(ModelWithUUID):
         return target_subscriptions
 
     def count_comments(self):
-        return Comment.count_comments_for_post_with_id(self.pk)
+        return Comment.count_comments_for_commentable(self.pk)
 
     def count_comments_with_user(self, user):
         # Count comments excluding users blocked by authenticated user
@@ -510,7 +510,7 @@ class Post(ModelWithUUID):
         return self.links.exists()
 
     def comment(self, text, commenter):
-        return Comment.create_comment(text=text, commenter=commenter, post=self)
+        return Comment.create_comment(text=text, commenter=commenter, commentable=self)
 
     def react(self, reactor, reaction_type):
         return PostReaction.create_reaction(reactor=reactor, reaction_type=reaction_type, post=self)

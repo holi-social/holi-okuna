@@ -135,7 +135,7 @@ class Post:
             .filter(UserModel.is_visible_ignore_blocked_query())
             .filter(
                 (Q(posts=self) & PostModel.is_visible_query(current_user, "posts"))
-                | (Q(posts_comments__post=self) & CommentModel.is_visible_query(current_user, "posts_comments"))
+                | (Q(comments__post=self) & CommentModel.is_visible_query(current_user, "comments"))
             )
             .distinct()
         )
@@ -147,7 +147,7 @@ class Post:
         commenters = (
             UserModel.objects.select_related("profile")
             .filter(UserModel.is_visible_ignore_blocked_query())
-            .filter(Q(posts_comments__post=self) & CommentModel.is_visible_query(current_user, "posts_comments"))
+            .filter(Q(comments__post=self) & CommentModel.is_visible_query(current_user, "comments"))
             .distinct()
         )
         return UserBlockModel.paged(current_user, lambda user: user.id, commenters, offset, limit)
@@ -189,7 +189,7 @@ class PostComment:
     def reactions(self, info) -> ReactionCounts:
         current_user = info.context.request.user
         if current_user.is_anonymous:
-            reactions = CommentModel.get_reaction_counts_for_post_comment_with_id(self.pk)
+            reactions = CommentModel.get_reaction_counts(self.pk)
         else:
             reactions = current_user.get_reaction_counts_for_post_comment_with_id(self.pk)
         return ReactionCounts(**reactions)

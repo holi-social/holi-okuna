@@ -1147,7 +1147,7 @@ class User(ModelWithUUID, AbstractUser):
         return self.comment_reactions.filter(has_reacted_query).exists()
 
     def has_commented_post_with_id(self, post_id):
-        return self.posts_comments.filter(commentable_id=post_id).exists()
+        return self.comments.filter(commentable_id=post_id).exists()
 
     def has_notification_with_id(self, notification_id):
         return self.notifications.filter(pk=notification_id).exists()

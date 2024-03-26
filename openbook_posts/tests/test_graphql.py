@@ -651,7 +651,7 @@ class TestPosts(TestCase):
             visibility=VisibilityType.MEMBERS.value,
         )
         PostUserMention.create_post_user_mention(user=space_admin, post=post)
-        Comment.create_comment(text=make_fake_post_text(), post=post, commenter=posting_user)
+        Comment.create_comment(text=make_fake_post_text(), commentable=post, commenter=posting_user)
 
         response = delete_space_post(post.id, posting_user)
 
@@ -679,7 +679,7 @@ class TestPosts(TestCase):
             visibility=VisibilityType.MEMBERS.value,
         )
         PostUserMention.create_post_user_mention(user=space_admin, post=post)
-        Comment.create_comment(text=make_fake_post_text(), post=post, commenter=posting_user)
+        Comment.create_comment(text=make_fake_post_text(), commentable=post, commenter=posting_user)
 
         response = delete_space_post(post.id, space_admin)
 

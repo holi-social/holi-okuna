@@ -60,7 +60,7 @@ class PostCommentReactionsEmojiCountField(Field):
 
         if request_user.is_anonymous:
             Comment = get_comment_model()
-            reaction_emoji_count = Comment.get_reaction_counts_for_post_comment_with_id(post_comment.pk)
+            reaction_emoji_count = Comment.get_reaction_counts(post_comment.pk)
         else:
             reaction_emoji_count = request_user.get_reaction_counts_for_post_comment(post_comment=post_comment)
 

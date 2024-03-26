@@ -47,7 +47,7 @@ class Comment(ModelWithUUID):
     parent_comment = models.ForeignKey("self", on_delete=models.CASCADE, related_name="replies", null=True, blank=True)
     created = models.DateTimeField(editable=False, db_index=True)
     modified = models.DateTimeField(db_index=True, default=timezone.now)
-    commenter = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts_comments")
+    commenter = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
     text = models.TextField(
         _("text"),
         max_length=settings.POST_COMMENT_MAX_LENGTH,
@@ -75,27 +75,27 @@ class Comment(ModelWithUUID):
         db_table = "openbook_posts_postcomment"
 
     @classmethod
-    def create_comment(cls, text, commenter, post, parent_comment=None):
-        post_comment = Comment.objects.create(
+    def create_comment(cls, text, commenter, commentable, parent_comment=None):
+        comment = Comment.objects.create(
             text=text,
             commenter=commenter,
-            commentable=post,
+            commentable=commentable,
             parent_comment=parent_comment,
             language=get_language_for_text(text),
         )
 
-        return post_comment
+        return comment
 
     @classmethod
-    def count_comments_for_post_with_id(cls, post_id):
-        count_query = Q(commentable_id=post_id, parent_comment__isnull=True, is_deleted=False)
+    def count_comments_for_commentable(cls, commentable_id):
+        count_query = Q(commentable_id=commentable_id, parent_comment__isnull=True, is_deleted=False)
 
         return cls.objects.filter(count_query).count()
 
     @classmethod
-    def get_reaction_counts_for_post_comment_with_id(cls, post_comment_id, reaction_type=None, reactor_id=None):
+    def get_reaction_counts(cls, comment_id, reaction_type=None, reactor_id=None):
         reactions_query = Q(
-            post_comment_id=post_comment_id,
+            post_comment_id=comment_id,
         )
 
         if reaction_type:
@@ -151,7 +151,7 @@ class Comment(ModelWithUUID):
         post_comment = Comment.create_comment(
             text=text,
             commenter=commenter,
-            post=self.post,
+            commentable=self.commentable,
             parent_comment=self,
         )
 

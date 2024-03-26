@@ -1050,7 +1050,7 @@ def check_can_edit_comment_with_id_for_post(user, post_comment_id, post):
 
 
 def check_has_post_comment_with_id(user, post_comment_id):
-    if not user.posts_comments.filter(id=post_comment_id).exists():
+    if not user.comments.filter(id=post_comment_id).exists():
         # The comment is not ours
         raise ValidationError(_("You cannot edit a comment that does not belong to you"))
 
@@ -1063,7 +1063,7 @@ def check_can_delete_comment_with_id_for_post(user, post_comment_id, post):
 
     if not Comment.objects.filter(id=post_comment_id, commentable_id=post.pk).exists():
         raise ValidationError(_("The comment does not belong to the specified post."))
-    is_comment_creator = user.posts_comments.filter(id=post_comment_id).exists()
+    is_comment_creator = user.comments.filter(id=post_comment_id).exists()
 
     if post.community:
         is_moderator = user.is_moderator_of_community_with_name(post.community.name)

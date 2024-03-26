@@ -58,10 +58,7 @@ class Insight:
             Q(
                 Q(curated_insights=self)
                 | (Q(posts__insights=self) & PostModel.is_visible_query(current_user, "posts"))
-                | (
-                    Q(posts_comments__post__insights=self)
-                    & CommentModel.is_visible_query(current_user, "posts_comments")
-                )
+                | (Q(comments__post__insights=self) & CommentModel.is_visible_query(current_user, "comments"))
             ),
             is_deleted=False,
         ).distinct()
