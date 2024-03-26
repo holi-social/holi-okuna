@@ -2,10 +2,9 @@
 import logging
 import re
 import secrets
-from collections import defaultdict
 from datetime import datetime, timedelta
 from itertools import chain
-from typing import Iterable, List, Set, Callable
+from typing import Iterable, Set, Callable
 from enum import Enum
 from uuid import UUID
 
@@ -35,7 +34,7 @@ from openbook_auth.helpers import (
     upload_to_user_avatar_directory,
     upload_to_user_cover_directory,
 )
-from openbook_common.helpers import get_supported_translation_language, PQ, PrefixedQ
+from openbook_common.helpers import get_supported_translation_language, PrefixedQ
 from openbook_common.models import Badge, ModelWithUUID
 from openbook_common.schema.types import Paged
 from openbook_common.types import GeolocationFeature, ReactableType
@@ -271,19 +270,12 @@ class User(ModelWithUUID, AbstractUser):
 
     @property
     def avatar_default_color(self):
-        color_count = len(User.DEFAULT_AVATAR_COLORS) - 1
-        color = sum(list(self.username.encode("utf8"))) % color_count
+        color = sum(list(self.profile.full_name().encode("utf8"))) % len(User.DEFAULT_AVATAR_COLORS)
         return User.DEFAULT_AVATAR_COLORS[color]
 
     @property
     def avatar_label(self):
-        if self.profile.name is None:
-            return self.email[0].upper()
-        else:
-            if self.profile.last_name is None or self.profile.last_name == "":
-                return self.profile.name[0].upper()
-            else:
-                return self.profile.name[0].upper() + self.profile.last_name[0].upper()
+        return "".join(map(lambda s: s[0], self.profile.full_name().split()))[:2].upper()
 
     @property
     def geolocation(self):

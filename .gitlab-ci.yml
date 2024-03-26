@@ -71,8 +71,8 @@ lint:
     # runs ruff (linter and formatter) on all changed files, excluding deleted files.
     # this will also force changes on offending unchanged lines in changed files, but we accept that in the spirit of
     # leaving every file better than we found it.
-    - 'git diff --name-only -z --diff-filter=d $COMPARISON_SHA..$CI_COMMIT_SHA -- "*.py" | xargs -0 ruff check --output-format=gitlab > .gl-lint-report.json'
-    - 'git diff --name-only -z --diff-filter=d $COMPARISON_SHA..$CI_COMMIT_SHA -- "*.py" | xargs -0 ruff format --diff'
+    - 'git diff --name-only -z --diff-filter=d $COMPARISON_SHA..$CI_COMMIT_SHA -- "*.py" | xargs -0 ruff check --force-exclude --output-format=gitlab > .gl-lint-report.json'
+    - 'git diff --name-only -z --diff-filter=d $COMPARISON_SHA..$CI_COMMIT_SHA -- "*.py" | xargs -0 ruff format --force-exclude --diff'
   artifacts:
     reports:
       codequality:

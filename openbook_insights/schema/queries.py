@@ -9,6 +9,7 @@ from strawberry.types import Info
 
 from openbook_auth.models import User as UserModel
 from openbook_auth.models import UserBlock
+from openbook_auth.schema.types import User
 from openbook_common.schema.types import Paged
 from openbook_insights.models import Insight as InsightModel
 from openbook_insights.schema.types import Insight
@@ -64,4 +65,14 @@ class Query:
             current_user,
             insight,
             lambda i: None if i.creator is None else i.creator.id,
+        )
+
+    @strawberry_django.field()
+    def insight_authors(self, limit: int = 10, offset: int = 0) -> Paged[User]:
+        return Paged.of(
+            UserModel.objects.filter(curated_insights__isnull=False)
+            .order_by("profile__name", "profile__last_name")
+            .distinct(),
+            limit=limit,
+            offset=offset,
         )
