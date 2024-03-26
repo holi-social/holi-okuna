@@ -1144,7 +1144,7 @@ class User(ModelWithUUID, AbstractUser):
         if emoji_id:
             has_reacted_query.add(Q(emoji_id=emoji_id), Q.AND)
 
-        return self.post_comment_reactions.filter(has_reacted_query).exists()
+        return self.comment_reactions.filter(has_reacted_query).exists()
 
     def has_commented_post_with_id(self, post_id):
         return self.posts_comments.filter(commentable_id=post_id).exists()
@@ -1433,7 +1433,7 @@ class User(ModelWithUUID, AbstractUser):
         return get_reactions(get_comment_reaction_model(), reactions_query)
 
     def get_reaction_for_post_comment_with_id(self, post_comment_id):
-        return self.post_comment_reactions.filter(post_comment_id=post_comment_id).get()
+        return self.comment_reactions.filter(post_comment_id=post_comment_id).get()
 
     def get_reactions_for_post_comment_with_id(self, post_comment_id, reaction_type=None):
         Post_comment = get_comment_model()
@@ -1496,7 +1496,7 @@ class User(ModelWithUUID, AbstractUser):
         post_comment_id = post_comment.pk
 
         if self.has_reacted_to_post_comment_with_id(post_comment_id):
-            post_comment_reaction = self.post_comment_reactions.get(post_comment_id=post_comment_id)
+            post_comment_reaction = self.comment_reactions.get(post_comment_id=post_comment_id)
             post_comment_reaction.reaction_type = reaction_type
             post_comment_reaction.save()
         else:

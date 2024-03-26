@@ -158,10 +158,10 @@ class Comment(ModelWithUUID):
         return post_comment
 
     def react(self, reactor, reaction_type):
-        return CommentReaction.create_reaction(reactor=reactor, reaction_type=reaction_type, post_comment=self)
+        return CommentReaction.create_reaction(reactor=reactor, reaction_type=reaction_type, comment=self)
 
     def clear_reaction(self, reactor, reaction_type):
-        return CommentReaction.remove_reaction(reactor=reactor, reaction_type=reaction_type, post_comment=self)
+        return CommentReaction.remove_reaction(reactor=reactor, reaction_type=reaction_type, comment=self)
 
     def save(self, *args, **kwargs):
         """On save, update timestamps"""
