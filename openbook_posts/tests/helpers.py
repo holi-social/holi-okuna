@@ -36,34 +36,6 @@ def get_post_with_id_raw(post_id, user=None):
                 creator {{
                     id
                 }}
-                comments {{
-                    text
-                    mentions {{
-                        fullName
-                    }}
-                    myReaction {{
-                        HEART
-                    }}
-                    reactions {{
-                        HEART
-                    }}
-                }}
-                mentions {{
-                    fullName
-                }}
-                numberOfComments
-                involvedUsers {{
-                    totalResults
-                    data {{
-                        firstName
-                    }}
-                }}
-                commenters {{
-                    totalResults
-                    data {{
-                        firstName
-                    }}
-                }}
                 myReaction {{
                     HEART
                 }}
@@ -180,22 +152,6 @@ def update_space_post(user, info):
     )
 
 
-def delete_post_comment(post_comment_id, user):
-    return async_to_sync(schema.execute)(
-        """
-        mutation test($id: UUID!) {
-            deletePostComment(id: $id) {
-                success
-            }
-        }
-        """,
-        context_value=benedict({"request": {"user": user}}),
-        variable_values={
-            "id": str(post_comment_id),
-        },
-    )
-
-
 def delete_space_post(post_id, user):
     return async_to_sync(schema.execute)(
         """
@@ -236,44 +192,4 @@ def react_to_post(post, action, posting_user):
             "reactionType": "HEART",
             "reactionAction": action,
         },
-    )
-
-
-def react_to_post_comment(post_comment, action, posting_user):
-    return async_to_sync(schema.execute)(
-        """
-        mutation test($id: UUID!, $reactionType: ReactionType!, $reactionAction: ReactionAction!) {
-            updatePostCommentReaction(id: $id, reactionType: $reactionType, reactionAction: $reactionAction) {
-                myReaction {
-                    HEART
-                }
-                reactions {
-                    HEART
-                }
-            }
-        }
-        """,
-        context_value=benedict({"request": {"user": posting_user}}),
-        variable_values={
-            "id": str(post_comment.id),
-            "reactionType": "HEART",
-            "reactionAction": action,
-        },
-    )
-
-
-def update_post_comment(user, info):
-    return async_to_sync(schema.execute)(
-        """
-        mutation test($input: CreatePostCommentInput!){
-            updatePostComment(input: $input) {
-                postComment {
-                        id
-                        text
-                }
-            }
-        }
-        """,
-        context_value=benedict({"request": {"user": user}}),
-        variable_values={"input": info},
     )

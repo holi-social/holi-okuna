@@ -6,7 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.test import AsyncClient
 
-from comments.models import Comment, CommentReaction
+from comments.models import Comment
 from openbook_common.enums import FeatureToggleName, FeatureToggleType, VisibilityType
 from openbook_common.models import FeatureToggle as FeatureToggleModel
 from openbook_common.tests.helpers import (
@@ -26,13 +26,10 @@ from openbook_posts.models import (
 from openbook_posts.tests.helpers import (
     create_space_post,
     create_space_post_2,
-    delete_post_comment,
     delete_space_post,
     get_post_with_id_data,
     get_post_with_id_raw,
     react_to_post,
-    react_to_post_comment,
-    update_post_comment,
     update_space_post,
 )
 
@@ -61,106 +58,12 @@ class TestPosts(TestCase):
         if self.notifications_toggle.id is not None:
             self.notifications_toggle.delete()
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
-    def test_can_mention_user_in_post_comment(
-        self, mock_send_post_comment_author_notification, mock_send_post_comment_mention_notification
-    ):
-        posting_user = make_user()
-        mentioned_user = make_user(name="Mentioned")
-        commenter = make_user(name="Commenter")
-
-        post_text = make_fake_post_text()
-        post_title = make_fake_post_title()
-
-        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
-
-        input_data = {
-            "postId": str(post.id),
-            "text": f"comment text 1 @{mentioned_user.username}",
-        }
-
-        response = update_post_comment(commenter, input_data)
-        assert response.errors is None
-
-        post_comment_data = response.data["updatePostComment"]["postComment"]
-        post_comment = Comment.objects.get(id=post_comment_data["id"])
-
-        mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=post_comment)
-        mock_send_post_comment_author_notification.assert_called_once_with(post_comment=post_comment)
-
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
-    def test_skip_post_comment_author_notification_if_author_is_commenter(
-        self, mock_send_post_comment_author_notification, mock_send_post_comment_mention_notification
-    ):
-        posting_user = make_user()
-        mentioned_user = make_user(name="Mentioned")
-
-        post_text = make_fake_post_text()
-        post_title = make_fake_post_title()
-
-        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
-
-        input_data = {
-            "postId": str(post.id),
-            "text": f"comment text 1 @{mentioned_user.username}",
-        }
-
-        response = update_post_comment(posting_user, input_data)
-        assert response.errors is None
-
-        post_comment_data = response.data["updatePostComment"]["postComment"]
-        post_comment = Comment.objects.get(id=post_comment_data["id"])
-
-        mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=post_comment)
-        mock_send_post_comment_author_notification.assert_not_called()
-
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
-    def test_skip_post_comment_author_notification_if_author_is_mentioned(
-        self, mock_send_post_comment_author_notification, mock_send_post_comment_mention_notification
-    ):
-        posting_user = make_user()
-        commenter = make_user(name="Commenter")
-
-        post_text = make_fake_post_text()
-        post_title = make_fake_post_title()
-
-        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
-
-        input_data = {
-            "postId": str(post.id),
-            "text": f"comment text 1 @{posting_user.username}",
-        }
-
-        response = update_post_comment(commenter, input_data)
-        assert response.errors is None
-
-        post_comment_data = response.data["updatePostComment"]["postComment"]
-        post_comment = Comment.objects.get(id=post_comment_data["id"])
-
-        mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=post_comment)
-        mock_send_post_comment_author_notification.assert_not_called()
-
     def test_can_fetch_post(self):
         posting_user = make_user()
-        mentioned_user = make_user(name="Mentioned")
-        other_user = make_user(name="Other")
-
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
         post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
-        post.comment(text=f"comment text 1 @{posting_user.username}", commenter=other_user)
-        post.comment(
-            text=f"comment text 2 @{mentioned_user.username} @{posting_user.username}",
-            commenter=other_user,
-        )
-        post.comment(
-            text=f"comment text 3 @{mentioned_user.username} @{posting_user.username}",
-            commenter=other_user,
-        )
 
         post_data = get_post_with_id_data(post)
 
@@ -169,12 +72,6 @@ class TestPosts(TestCase):
         assert post_data["image"] is None
         assert post_data["creator"]["id"] == str(posting_user.uuid)
         assert post_data["created"] is not None
-        assert post_data["numberOfComments"] == 3
-        assert post_data["involvedUsers"]["totalResults"] == 2
-        assert len(post_data["comments"]) == 3
-        assert post_data["comments"][0]["text"] == f"comment text 1 @{posting_user.username}"
-        assert post_data["commenters"]["totalResults"] == 1
-        assert post_data["commenters"]["data"][0]["firstName"] == other_user.name
 
     def test_can_fetch_post_with_image(self):
         posting_user = make_user()
@@ -298,68 +195,6 @@ class TestPosts(TestCase):
         assert post_data is None
         assert "Forbidden" in response.errors[0].message
 
-    def test_can_delete_post_comment(self):
-        posting_user = make_user()
-        comment_user = make_user()
-
-        post_text = make_fake_post_text()
-        post_title = make_fake_post_title()
-
-        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
-        comment = post.comment(text="comment text", commenter=comment_user)
-        reaction = comment.react(posting_user, "HEART")
-        post.comment(text="comment text 2", commenter=comment_user)
-
-        assert post.comments.count() == 2
-        response = delete_post_comment(comment.id, comment_user)
-        assert response.errors is None
-        assert response.data["deletePostComment"]["success"] is True
-        assert post.comments.count() == 1
-        assert comment.id not in post.comments.values_list("id", flat=True)
-        assert reaction.id not in CommentReaction.objects.filter(post_comment=comment).values_list("id", flat=True)
-
-    def test_cant_delete_post_comment_of_other_user(self):
-        posting_user = make_user()
-        comment_user = make_user()
-        other_user = make_user()
-
-        post_text = make_fake_post_text()
-        post_title = make_fake_post_title()
-
-        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
-        comment = post.comment(text="comment text", commenter=comment_user)
-        reaction = comment.react(posting_user, "HEART")
-        post.comment(text="comment text 2", commenter=comment_user)
-
-        assert post.comments.count() == 2
-        response = delete_post_comment(comment.id, other_user)
-        assert response.data is None
-
-        assert post.comments.count() == 2
-        assert comment.id in post.comments.values_list("id", flat=True)
-        assert reaction.id in CommentReaction.objects.filter(post_comment=comment).values_list("id", flat=True)
-
-    def test_cant_delete_post_comment_not_exist(self):
-        posting_user = make_user()
-        comment_user = make_user()
-        make_user()
-
-        post_text = make_fake_post_text()
-        post_title = make_fake_post_title()
-
-        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
-        comment = post.comment(text="comment text", commenter=comment_user)
-        reaction = comment.react(posting_user, "HEART")
-        post.comment(text="comment text 2", commenter=comment_user)
-
-        assert post.comments.count() == 2
-        response = delete_post_comment("00000000-0000-0000-0000-000000000000", comment_user)
-        assert response.data is None
-
-        assert post.comments.count() == 2
-        assert comment.id in post.comments.values_list("id", flat=True)
-        assert reaction.id in CommentReaction.objects.filter(post_comment=comment).values_list("id", flat=True)
-
     def test_react_to_post(self):
         posting_user = make_user()
         other_user = make_user(name="Other")
@@ -385,35 +220,6 @@ class TestPosts(TestCase):
         updated_post = executed.data["updatePostReaction"]
         assert updated_post["myReaction"]["HEART"] == 0
         assert updated_post["reactions"]["HEART"] == 0
-
-    def test_react_to_post_comment(self):
-        posting_user = make_user()
-        other_user = make_user(name="Other")
-
-        post_text = make_fake_post_text()
-        post_title = make_fake_post_title()
-
-        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
-        comment = post.comment(text="comment text", commenter=other_user)
-
-        react_to_post_comment(comment, "SET", posting_user)
-        executed = react_to_post_comment(comment, "SET", posting_user)  # setting twice is same as setting once
-        updated_post_comment = executed.data["updatePostCommentReaction"]
-
-        assert updated_post_comment["myReaction"]["HEART"] == 1
-        assert updated_post_comment["reactions"]["HEART"] == 1
-
-        post_data = get_post_with_id_data(post, other_user)
-        assert post_data["myReaction"]["HEART"] == 0
-        assert post_data["reactions"]["HEART"] == 0
-        assert post_data["comments"][0]["myReaction"]["HEART"] == 0
-        assert post_data["comments"][0]["reactions"]["HEART"] == 1
-
-        react_to_post_comment(comment, "REMOVE", posting_user)
-        executed = react_to_post_comment(comment, "REMOVE", posting_user)  # setting twice is same as setting once
-        updated_post_comment = executed.data["updatePostCommentReaction"]
-        assert updated_post_comment["myReaction"]["HEART"] == 0
-        assert updated_post_comment["reactions"]["HEART"] == 0
 
     def test_space_user_can_create_space_post(self):
         space_admin = make_user()
