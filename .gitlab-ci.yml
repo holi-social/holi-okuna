@@ -24,7 +24,7 @@ default:
     - env
   interruptible: true
   tags:
-    - holi-small # build on smaller machine
+    - 1cpu-4gb # build on smaller machine
 
 setup:
   image: "gitlab.holi.team:5050/app/holi-docker/holi-okuna-builder"
@@ -52,7 +52,7 @@ unit-test:
     - source venv/bin/activate
     - python -m pytest --cov
   tags:
-    - holi-big # more cpu, quicker testing
+    - 4cpu-4gb # more cpu, quicker testing
 
 lint:
   image: "gitlab.holi.team:5050/app/holi-docker/holi-okuna-builder"
@@ -99,7 +99,7 @@ build_docker:
     - docker push $GCR_IMAGE:$CI_COMMIT_REF_SLUG # just for easily knowing which is the last image for a branch
     - docker push $GCR_IMAGE:latest # for caching the build
   tags:
-    - holi-big # more cpu, quicker image build
+    - 4cpu-4gb # more cpu, quicker image build
 
 .deploy:
   stage: "deploy"
