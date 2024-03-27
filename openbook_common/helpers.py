@@ -1,4 +1,3 @@
-import os
 import tempfile
 from json import dumps
 from urllib.parse import urlparse
@@ -45,12 +44,16 @@ def get_supported_translation_language(language_code):
 
     return Language.objects.get(code=supported_translation_code)
 
+
 # lazy initialization for faster startup
 extractor = None
+
+
 def get_extractor():
-    if extractor == None
+    if extractor == None:
         extractor = URLExtract()
     return extractor
+
 
 def extract_urls_from_string(text):
     """
@@ -139,7 +142,7 @@ class PrefixedQ:
 class ExifRotate:
     def process(self, img):
         exif = img.getexif()
-        if not exif or not ExifTags.Base.Orientation in exif:
+        if not exif or ExifTags.Base.Orientation not in exif:
             return img
 
         orientation = exif[ExifTags.Base.Orientation]
