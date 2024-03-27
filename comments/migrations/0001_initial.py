@@ -16,6 +16,8 @@ class Migration(migrations.Migration):
         ("contenttypes", "0002_remove_content_type_name"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ("openbook_common", "0009_linkpreview_icon"),
+        ("openbook_auth", "0022_userprofile_favorite_insights"),
+        ("openbook_posts", "0022_postcomment_remove_post_id"),
     ]
 
     operations = [
