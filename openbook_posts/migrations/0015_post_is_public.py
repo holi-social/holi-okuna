@@ -13,6 +13,7 @@ def migrate_circles_to_post_is_public(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
+        ("openbook_circles", "0002_initial"),
         ("openbook_posts", "0014_alter_postmedia_options"),
     ]
 
