@@ -6,9 +6,15 @@ from django.core.management import call_command
 from django.test import AsyncClient
 
 from comments.models import Comment, CommentReaction
-from openbook_common.enums import FeatureToggleName, FeatureToggleType
+from openbook_common.enums import FeatureToggleName, FeatureToggleType, ReactionType
 from openbook_common.models import FeatureToggle as FeatureToggleModel
-from openbook_common.tests.helpers import make_fake_post_text, make_fake_post_title, make_post, make_user
+from openbook_common.tests.helpers import (
+    make_fake_post_text,
+    make_fake_post_title,
+    make_post,
+    make_post_comment,
+    make_user,
+)
 
 from .helpers import add_comment, delete_comment, react_to_comment
 from .post_comment_helpers import (
@@ -355,46 +361,43 @@ class TestDeletingComments(TestCase):
             self.notifications_toggle.delete()
 
     def test_should_delete_own_comment(self):
-        post = make_post()
-        commenter = make_user(name="Commenter")
-        comment = post.comment(text="comment text", commenter=commenter)
-        comment.react(post.creator, "HEART")
+        comment = make_post_comment()
+        commenter = comment.commenter
+        comment.react(commenter, "HEART")
 
         response = delete_comment(commenter, comment.id)
 
         assert response.errors is None
         assert response.data["deleteComment"]["success"] is True
-        assert post.comments.exists() is False
+        assert Comment.objects.filter(pk=comment.id).exists() is False
         assert CommentReaction.objects.filter(post_comment=comment).exists() is False
 
     def test_should_not_be_able_to_delete_others_comments(self):
-        post = make_post()
-        commenter = make_user(name="Commenter")
         other_user = make_user(name="Other")
-        comment = post.comment(text="comment text", commenter=commenter)
-        comment.react(post.creator, "HEART")
+        comment = make_post_comment()
+        commenter = comment.commenter
+        comment.react(commenter, "HEART")
 
         response = delete_comment(other_user, comment.id)
 
         assert response.data is None
         assert response.errors is not None
-        assert post.comments.count() == 1
+        assert Comment.objects.filter(pk=comment.id).exists() is True
         assert CommentReaction.objects.filter(post_comment=comment).count() == 1
 
     def test_should_not_be_able_to_delete_a_comment_that_does_not_exist(self):
-        post = make_post()
-        commenter = make_user(name="Commenter")
-        post.comment(text="comment text", commenter=commenter)
+        comment = make_post_comment()
+        commenter = comment.commenter
 
         response = delete_comment(commenter, "00000000-0000-0000-0000-000000000000")
 
         assert response.data is None
         assert response.errors is not None
-        assert post.comments.count() == 1
+        assert Comment.objects.filter(pk=comment.id).exists() is True
 
 
 @pytest.mark.django_db
-class TestComments(TestCase):
+class TestReactingToComments(TestCase):
     def setup(self):
         self.notifications_toggle = FeatureToggleModel.objects.create(
             name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
@@ -405,28 +408,28 @@ class TestComments(TestCase):
             self.notifications_toggle.delete()
 
     def test_should_be_able_to_react_to_a_comment(self):
-        posting_user = make_user()
+        comment = make_post_comment()
+        commenter = comment.commenter
         other_user = make_user(name="Other")
 
-        post_text = make_fake_post_text()
-        post_title = make_fake_post_title()
+        react_to_comment(comment, "SET", other_user)
+        response = react_to_comment(comment, "SET", commenter)
 
-        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
-        comment = post.comment(text="comment text", commenter=other_user)
+        assert response.errors is None
+        updated_comment = response.data["reactToComment"]
+        assert updated_comment["myReaction"]["HEART"] == 1
+        assert updated_comment["reactions"]["HEART"] == 2
 
-        react_to_comment(comment, "SET", posting_user)
-        executed = react_to_comment(comment, "SET", posting_user)  # setting twice is same as setting once
-        updated_post_comment = executed.data["updatePostCommentReaction"]
+    def test_should_be_able_to_remove_a_reaction_to_a_comment(self):
+        comment = make_post_comment()
+        commenter = comment.commenter
+        other_user = make_user(name="Other")
+        comment.react(other_user, ReactionType.HEART)
+        comment.react(commenter, ReactionType.HEART)
 
-        assert updated_post_comment["myReaction"]["HEART"] == 1
-        assert updated_post_comment["reactions"]["HEART"] == 1
+        response = react_to_comment(comment, "REMOVE", commenter)
 
-        post_data = get_post(post, other_user)
-        assert post_data["comments"][0]["myReaction"]["HEART"] == 0
-        assert post_data["comments"][0]["reactions"]["HEART"] == 1
-
-        react_to_comment(comment, "REMOVE", posting_user)
-        executed = react_to_comment(comment, "REMOVE", posting_user)  # setting twice is same as setting once
-        updated_post_comment = executed.data["updatePostCommentReaction"]
-        assert updated_post_comment["myReaction"]["HEART"] == 0
-        assert updated_post_comment["reactions"]["HEART"] == 0
+        assert response.errors is None
+        updated_comment = response.data["reactToComment"]
+        assert updated_comment["myReaction"]["HEART"] == 0
+        assert updated_comment["reactions"]["HEART"] == 1

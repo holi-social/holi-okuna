@@ -39,7 +39,7 @@ def react_to_comment(post_comment, action, posting_user):
     return async_to_sync(schema.execute)(
         """
         mutation test($id: UUID!, $reactionType: ReactionType!, $reactionAction: ReactionAction!) {
-            updatePostCommentReaction(id: $id, reactionType: $reactionType, reactionAction: $reactionAction) {
+            reactToComment(id: $id, reactionType: $reactionType, reactionAction: $reactionAction) {
                 myReaction {
                     HEART
                 }

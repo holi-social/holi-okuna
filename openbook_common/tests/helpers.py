@@ -11,6 +11,7 @@ from faker import Faker
 from mixer.backend.django import mixer
 from PIL import Image
 
+from comments.models import Comment
 from openbook.graphql_schema import schema
 from openbook_auth.models import EngagementLevelChoice, User, UserProfile
 from openbook_categories.models import Category
@@ -37,7 +38,6 @@ from openbook_moderation.models import (
 )
 from openbook_notifications.models import Notification
 from openbook_posts.models import Post
-from comments.models import Comment
 from openbook_terms.models import SDG, Skill, Topic
 
 fake = Faker()
@@ -627,7 +627,7 @@ def check_app_version(version: str, build_number: str):
 def make_post_comment():
     space = make_community()
     post_author = make_user()
-    post = mixer.blend(Post, creator=post_author, community=space)
+    post = mixer.blend(Post, creator=post_author, community=space, is_public=True, status=Post.STATUS_PUBLISHED)
     commenter = make_user()
     mentioned_user = make_user()
     text = fake.paragraph()

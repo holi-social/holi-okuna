@@ -9,6 +9,7 @@ from comments.models import Comment as CommentModel
 from comments.schema.serializers import CommentSerializer
 from comments.schema.types.comment import Comment, CreateCommentInput
 from openbook_auth.utils import verify_authorized_user
+from openbook_common.enums import ReactionAction, ReactionType
 from openbook_common.helpers import to_input_dict
 from openbook_common.schema.types import Result
 
@@ -45,3 +46,21 @@ class Mutation:
         comment.commentable.delete_comment(current_user, id)
 
         return Result(success=True)
+
+    @strawberry.mutation
+    @sync_to_async
+    def react_to_comment(
+        self,
+        info,
+        id: uuid.UUID,
+        reaction_type: ReactionType,
+        reaction_action: ReactionAction,
+    ) -> Comment:
+        current_user = verify_authorized_user(info)
+
+        comment = CommentModel.objects.get(pk=id)
+        if reaction_action == ReactionAction.SET:
+            comment.react(current_user, reaction_type)
+        else:
+            comment.clear_reaction(current_user, reaction_type)
+        return comment
