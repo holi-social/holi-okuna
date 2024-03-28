@@ -1,6 +1,5 @@
 from asgiref.sync import async_to_sync
 from benedict import benedict
-from django.contrib.auth.models import AnonymousUser
 
 from openbook.graphql_schema import schema
 
@@ -20,64 +19,18 @@ def add_comment(user, info):
     )
 
 
-def get_post(post, user=None):
-    response = get_post_with_id_raw(post.id, user)
-    assert response.errors is None
-    return response.data["postById"]
-
-
-def get_post_with_id_raw(post_id, user=None):
-    return async_to_sync(schema.execute)(
-        f"""
-        query {{
-            postById(id: "{post_id}") {{
-                comments {{
-                    text
-                    mentions {{
-                        fullName
-                    }}
-                    myReaction {{
-                        HEART
-                    }}
-                    reactions {{
-                        HEART
-                    }}
-                }}
-                mentions {{
-                    fullName
-                }}
-                numberOfComments
-                involvedUsers {{
-                    totalResults
-                    data {{
-                        firstName
-                    }}
-                }}
-                commenters {{
-                    totalResults
-                    data {{
-                        firstName
-                    }}
-                }}
-            }}
-        }}
-        """,
-        context_value=benedict({"request": {"user": user or AnonymousUser}}),
-    )
-
-
-def delete_comment(post_comment_id, user):
+def delete_comment(user, comment_id):
     return async_to_sync(schema.execute)(
         """
         mutation test($id: UUID!) {
-            deletePostComment(id: $id) {
+            deleteComment(id: $id) {
                 success
             }
         }
         """,
         context_value=benedict({"request": {"user": user}}),
         variable_values={
-            "id": str(post_comment_id),
+            "id": str(comment_id),
         },
     )
 

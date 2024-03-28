@@ -1,3 +1,5 @@
+import uuid
+
 import strawberry
 import structlog
 from asgiref.sync import sync_to_async
@@ -8,6 +10,7 @@ from comments.schema.serializers import CommentSerializer
 from comments.schema.types.comment import Comment, CreateCommentInput
 from openbook_auth.utils import verify_authorized_user
 from openbook_common.helpers import to_input_dict
+from openbook_common.schema.types import Result
 
 logger = structlog.get_logger(__name__)
 
@@ -29,6 +32,16 @@ class Mutation:
 
         with transaction.atomic():
             commentable = CommentModel.get_commentable(commentable_type, commentable_id)
-            comment = commentable.comment_on(text=comment_text, commenter=current_user)
+            comment = commentable.comment_on(current_user, comment_text)
 
         return comment
+
+    @strawberry.mutation
+    @sync_to_async
+    def delete_comment(self, info, id: uuid.UUID) -> Result:
+        current_user = verify_authorized_user(info)
+
+        comment = CommentModel.objects.get(pk=id)
+        comment.commentable.delete_comment(current_user, id)
+
+        return Result(success=True)

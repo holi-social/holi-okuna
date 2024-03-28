@@ -344,7 +344,7 @@ class TestAddingComments(TestCase):
 
 
 @pytest.mark.django_db
-class TestComments(TestCase):
+class TestDeletingComments(TestCase):
     def setup(self):
         self.notifications_toggle = FeatureToggleModel.objects.create(
             name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
@@ -354,64 +354,55 @@ class TestComments(TestCase):
         if self.notifications_toggle.id is not None:
             self.notifications_toggle.delete()
 
-    def test_should_delete_comment(self):
-        posting_user = make_user()
-        comment_user = make_user()
+    def test_should_delete_own_comment(self):
+        post = make_post()
+        commenter = make_user(name="Commenter")
+        comment = post.comment(text="comment text", commenter=commenter)
+        comment.react(post.creator, "HEART")
 
-        post_text = make_fake_post_text()
-        post_title = make_fake_post_title()
-
-        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
-        comment = post.comment(text="comment text", commenter=comment_user)
-        reaction = comment.react(posting_user, "HEART")
-        post.comment(text="comment text 2", commenter=comment_user)
-
-        response = delete_comment(comment.id, comment_user)
+        response = delete_comment(commenter, comment.id)
 
         assert response.errors is None
-        assert response.data["deletePostComment"]["success"] is True
-        assert post.comments.count() == 1
-        assert comment.id not in post.comments.values_list("id", flat=True)
-        assert reaction.id not in CommentReaction.objects.filter(post_comment=comment).values_list("id", flat=True)
+        assert response.data["deleteComment"]["success"] is True
+        assert post.comments.exists() is False
+        assert CommentReaction.objects.filter(post_comment=comment).exists() is False
 
     def test_should_not_be_able_to_delete_others_comments(self):
-        posting_user = make_user()
-        comment_user = make_user()
-        other_user = make_user()
+        post = make_post()
+        commenter = make_user(name="Commenter")
+        other_user = make_user(name="Other")
+        comment = post.comment(text="comment text", commenter=commenter)
+        comment.react(post.creator, "HEART")
 
-        post_text = make_fake_post_text()
-        post_title = make_fake_post_title()
+        response = delete_comment(other_user, comment.id)
 
-        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
-        comment = post.comment(text="comment text", commenter=comment_user)
-        reaction = comment.react(posting_user, "HEART")
-        post.comment(text="comment text 2", commenter=comment_user)
-
-        response = delete_comment(comment.id, other_user)
         assert response.data is None
-
-        assert post.comments.count() == 2
-        assert comment.id in post.comments.values_list("id", flat=True)
-        assert reaction.id in CommentReaction.objects.filter(post_comment=comment).values_list("id", flat=True)
+        assert response.errors is not None
+        assert post.comments.count() == 1
+        assert CommentReaction.objects.filter(post_comment=comment).count() == 1
 
     def test_should_not_be_able_to_delete_a_comment_that_does_not_exist(self):
-        posting_user = make_user()
-        comment_user = make_user()
+        post = make_post()
+        commenter = make_user(name="Commenter")
+        post.comment(text="comment text", commenter=commenter)
 
-        post_text = make_fake_post_text()
-        post_title = make_fake_post_title()
+        response = delete_comment(commenter, "00000000-0000-0000-0000-000000000000")
 
-        post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
-        comment = post.comment(text="comment text", commenter=comment_user)
-        reaction = comment.react(posting_user, "HEART")
-        post.comment(text="comment text 2", commenter=comment_user)
-
-        response = delete_comment("00000000-0000-0000-0000-000000000000", comment_user)
         assert response.data is None
+        assert response.errors is not None
+        assert post.comments.count() == 1
 
-        assert post.comments.count() == 2
-        assert comment.id in post.comments.values_list("id", flat=True)
-        assert reaction.id in CommentReaction.objects.filter(post_comment=comment).values_list("id", flat=True)
+
+@pytest.mark.django_db
+class TestComments(TestCase):
+    def setup(self):
+        self.notifications_toggle = FeatureToggleModel.objects.create(
+            name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
+        )
+
+    def teardown(self):
+        if self.notifications_toggle.id is not None:
+            self.notifications_toggle.delete()
 
     def test_should_be_able_to_react_to_a_comment(self):
         posting_user = make_user()

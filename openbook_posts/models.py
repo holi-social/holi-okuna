@@ -1,4 +1,5 @@
 # Create your models here.
+import uuid
 from datetime import timedelta
 
 from django.conf import settings
@@ -512,8 +513,11 @@ class Post(ModelWithUUID):
     def comment(self, text, commenter):
         return Comment.create_comment(text=text, commenter=commenter, commentable=self)
 
-    def comment_on(self, text, commenter):
+    def comment_on(self, commenter: User, text: str):
         return commenter.comment_post_with_id(post_id=self.pk, text=text)
+
+    def delete_comment(self, commenter: User, id: uuid.UUID):
+        commenter.delete_comment_with_id(post_comment_id=id)
 
     def react(self, reactor, reaction_type):
         return PostReaction.create_reaction(reactor=reactor, reaction_type=reaction_type, post=self)
