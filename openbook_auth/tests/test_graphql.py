@@ -25,7 +25,6 @@ from requests.models import Response
 from rest_framework import status
 from structlog.testing import capture_logs
 
-from comments.tests.helpers import get_post
 from openbook.graphql_schema import schema
 from openbook.tests.test_data import geolocation, geolocation_geometry, geolocation_id
 from openbook_auth.models import EngagementLevelChoice, User
@@ -61,7 +60,7 @@ from openbook_communities.tests.helpers import (
 )
 from openbook_connections.tests.helpers import connect_to_user
 from openbook_notifications.enums import NotificationProvider
-from openbook_posts.tests.helpers import get_post_with_id_raw
+from openbook_posts.tests.helpers import get_post_with_id_data, get_post_with_id_raw
 
 logger = logging.getLogger(__name__)
 
@@ -811,7 +810,7 @@ class TestUsers:
 
         blocked_post_raw = get_post_with_id_raw(blocked_post.id, blocking_user)
         assert blocked_post_raw.data["postById"] is None
-        other_post_data = get_post(other_post, blocking_user)
+        other_post_data = get_post_with_id_data(other_post, blocking_user)
         assert other_post_data["involvedUsers"]["totalResults"] == 2  # does include blocked users
         assert len(other_post_data["involvedUsers"]["data"]) == 1  # does not include blocked users
         assert other_post_data["numberOfComments"] == 1  # does include blocked users
