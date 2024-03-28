@@ -512,6 +512,9 @@ class Post(ModelWithUUID):
     def comment(self, text, commenter):
         return Comment.create_comment(text=text, commenter=commenter, commentable=self)
 
+    def comment_on(self, text, commenter):
+        return commenter.comment_post_with_id(post_id=self.pk, text=text)
+
     def react(self, reactor, reaction_type):
         return PostReaction.create_reaction(reactor=reactor, reaction_type=reaction_type, post=self)
 

@@ -257,7 +257,7 @@ class TestAddingComments(TestCase):
         commenter = make_user(name="Commenter")
 
         input_data = {
-            "commentableType": "post",
+            "commentableType": "POST",
             "commentableId": str(post.id),
             "text": "test approved",
         }

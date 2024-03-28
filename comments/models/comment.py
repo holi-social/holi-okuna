@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -6,6 +8,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from comments.enums import CommentableType
 from comments.validators import comment_text_validators
 from openbook_auth.models import User, get_reactions
 from openbook_common.helpers import (
@@ -73,6 +76,15 @@ class Comment(ModelWithUUID):
             models.Index(fields=["commentable_type", "commentable_id"]),
         ]
         db_table = "openbook_posts_postcomment"
+
+    @staticmethod
+    def get_commentable(
+        commentable_type: CommentableType,
+        commentable_id: uuid.UUID,
+    ):
+        commentable_content_type = ContentType.objects.get(model=commentable_type.value)
+        commentable = commentable_content_type.get_object_for_this_type(pk=commentable_id)
+        return commentable
 
     @classmethod
     def create_comment(cls, text, commenter, commentable, parent_comment=None):
