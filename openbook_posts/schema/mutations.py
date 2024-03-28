@@ -6,15 +6,14 @@ from asgiref.sync import sync_to_async
 from django.db import transaction
 from strawberry.types import Info
 
+from comments.models import Comment as CommentModel
 from openbook_auth.utils import verify_authorized_user
 from openbook_common.enums import ReactionAction, ReactionType
 from openbook_common.helpers import is_parameter_null, to_input_dict
 from openbook_common.schema.types import Result
 from openbook_communities.models import Community as CommunityModel
 from openbook_communities.schema.types import Space
-from openbook_notifications.models import Notification as NotificationModel
 from openbook_posts.models import Post as PostModel
-from comments.models import Comment as CommentModel
 from openbook_posts.schema.types import (
     CreatePostCommentInput,
     CreatePostCommentOutput,
@@ -33,7 +32,7 @@ logger = structlog.get_logger(__name__)
 
 @strawberry.type
 class Mutation:
-    @strawberry.mutation
+    @strawberry.mutation(deprecation_reason="Comments can be added to other objects. Use updateComment mutation.")
     @sync_to_async
     def update_post_comment(self, info, input: CreatePostCommentInput) -> CreatePostCommentOutput:
         current_user = verify_authorized_user(info)
@@ -50,7 +49,7 @@ class Mutation:
 
         return CreatePostCommentOutput(post_comment=post_comment, post_by_id=resolve_post(current_user, post_id))
 
-    @strawberry.mutation
+    @strawberry.mutation(deprecation_reason="Comments can be deleted from other objects. Use deleteComment mutation.")
     @sync_to_async
     def delete_post_comment(self, info, id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
@@ -125,7 +124,9 @@ class Mutation:
             post.clear_reaction(current_user, reaction_type)
         return post
 
-    @strawberry.mutation
+    @strawberry.mutation(
+        deprecation_reason="Comment reactions can be added to other objects. Use updateCommentReaction mutation."
+    )
     @sync_to_async
     def update_post_comment_reaction(
         self,

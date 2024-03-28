@@ -5,6 +5,21 @@ from django.contrib.auth.models import AnonymousUser
 from openbook.graphql_schema import schema
 
 
+def add_comment(user, info):
+    return async_to_sync(schema.execute)(
+        """
+        mutation test($input: CreateCommentInput!){
+            addComment(input: $input) {
+                id
+                text
+            }
+        }
+        """,
+        context_value=benedict({"request": {"user": user}}),
+        variable_values={"input": info},
+    )
+
+
 def get_post(post, user=None):
     response = get_post_with_id_raw(post.id, user)
     assert response.errors is None
@@ -87,21 +102,4 @@ def react_to_comment(post_comment, action, posting_user):
             "reactionType": "HEART",
             "reactionAction": action,
         },
-    )
-
-
-def update_comment(user, info):
-    return async_to_sync(schema.execute)(
-        """
-        mutation test($input: CreatePostCommentInput!){
-            updatePostComment(input: $input) {
-                postComment {
-                        id
-                        text
-                }
-            }
-        }
-        """,
-        context_value=benedict({"request": {"user": user}}),
-        variable_values={"input": info},
     )
