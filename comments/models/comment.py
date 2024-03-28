@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from comments.validators import comment_text_validators
 from openbook_auth.models import User, get_reactions
 from openbook_common.helpers import (
     PQ,
@@ -32,7 +33,6 @@ from openbook_common.utils.model_loaders import (
     get_user_model,
 )
 from openbook_moderation.models import ModeratedObject
-from openbook_posts.validators import post_comment_text_validators
 
 from .comment_reaction import CommentReaction
 
@@ -53,7 +53,7 @@ class Comment(ModelWithUUID):
         max_length=settings.POST_COMMENT_MAX_LENGTH,
         blank=False,
         null=False,
-        validators=post_comment_text_validators,
+        validators=comment_text_validators,
     )
     language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, related_name="post_comments")
     is_edited = models.BooleanField(default=False, null=False, blank=False)

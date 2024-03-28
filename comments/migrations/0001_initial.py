@@ -4,9 +4,8 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 import django.utils.timezone
-import openbook_posts.validators
 import uuid
-
+from comments.validators import comment_text_hashtags_validator
 
 class Migration(migrations.Migration):
 
@@ -34,7 +33,7 @@ class Migration(migrations.Migration):
                             "text",
                             models.TextField(
                                 max_length=1500,
-                                validators=[openbook_posts.validators.post_comment_text_hashtags_validator],
+                                validators=[comment_text_hashtags_validator],
                                 verbose_name="text",
                             ),
                         ),

@@ -2,6 +2,7 @@ from django.conf import settings
 from rest_framework import serializers
 
 from comments.models import Comment, CommentReaction
+from comments.validators import comment_text_validators
 from openbook_common.models import Emoji
 from openbook_common.serializers import CommonHashtagSerializer
 from openbook_common.serializers_fields.post_comment import (
@@ -17,7 +18,6 @@ from openbook_posts.serializers.post_comments_serializers import (
 )
 from openbook_posts.validators import (
     post_comment_id_exists,
-    post_comment_text_validators,
     post_id_exists,
 )
 
@@ -35,7 +35,7 @@ class CommentRepliesPostSerializer(serializers.Serializer):
         max_length=settings.POST_COMMENT_MAX_LENGTH,
         required=True,
         allow_blank=False,
-        validators=post_comment_text_validators,
+        validators=comment_text_validators,
     )
 
 
