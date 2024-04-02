@@ -40,9 +40,3 @@ class Poll:
     #choice_text: strawberry.auto
     choice: List[Optional[Choice]]
     votes: strawberry.auto
-
-
-
-
-
-
