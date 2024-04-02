@@ -6,6 +6,7 @@ import strawberry
 import strawberry_django
 from django.db.models import Q
 
+from favorites.models import UserFavorite
 from openbook_auth.models import User as UserModel
 from openbook_auth.models import UserBlock
 from openbook_auth.schema.types import User
@@ -75,17 +76,27 @@ class Insight:
     def quotes(self) -> list[Quote]:
         return self.quotes.all()
 
-    @strawberry_django.field()
-    def initiatives(self) -> list[Initiative]:
-        return self.initiatives.all()
-
-    @strawberry_django.field()
+    @strawberry_django.field(
+        deprecation_reason="This type has been renamed. Keep for backwards compatibility. Versions 1.14.XX"
+    )
     def is_bookmarked(self, info) -> bool:
         current_user = info.context.request.user
         if current_user.is_anonymous:
             return False
 
-        return current_user.profile.favorite_insights.filter(id=self.id).exists()
+        return UserFavorite.objects.filter(user=current_user, bookmark_id=self.id).exists()
+
+    @strawberry_django.field()
+    def is_favorite(self, info) -> bool:
+        current_user = info.context.request.user
+        if current_user.is_anonymous:
+            return False
+
+        return UserFavorite.objects.filter(user=current_user, bookmark_id=self.id).exists()
+
+    @strawberry_django.field()
+    def initiatives(self) -> list[Initiative]:
+        return self.initiatives.all()
 
     @strawberry_django.field()
     def quote(self, id: uuid.UUID) -> Quote:

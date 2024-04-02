@@ -11,6 +11,7 @@ from uuid import UUID
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models
 from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
@@ -5302,6 +5303,7 @@ class UserProfile(ModelWithUUID):
     followers_count_visible = models.BooleanField(_("followers count visible"), blank=False, null=False, default=False)
     community_posts_visible = models.BooleanField(_("community posts visible"), blank=False, null=False, default=True)
     badges = models.ManyToManyField(Badge, related_name="users_profiles")
+    # gregor: deprecated - remove after new favorites package is used everywhere
     favorite_insights = models.ManyToManyField(to="openbook_insights.insight", blank=True)
 
     class Meta:
