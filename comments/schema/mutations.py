@@ -7,9 +7,9 @@ from django.db import transaction
 
 from comments.models import Comment as CommentModel
 from comments.schema.serializers import CommentSerializer
-from comments.schema.types.comment import Comment, CreateCommentInput
+from comments.schema.types.comment import Comment, CommentReactionInput, CreateCommentInput
 from openbook_auth.utils import verify_authorized_user
-from openbook_common.enums import ReactionAction, ReactionType
+from openbook_common.enums import ReactionAction
 from openbook_common.helpers import to_input_dict
 from openbook_common.schema.types import Result
 
@@ -52,15 +52,13 @@ class Mutation:
     def react_to_comment(
         self,
         info,
-        id: uuid.UUID,
-        reaction_type: ReactionType,
-        reaction_action: ReactionAction,
+        input: CommentReactionInput,
     ) -> Comment:
         current_user = verify_authorized_user(info)
 
-        comment = CommentModel.objects.get(pk=id)
-        if reaction_action == ReactionAction.SET:
-            comment.react(current_user, reaction_type)
+        comment = CommentModel.objects.get(pk=input.comment_id)
+        if input.reaction_action == ReactionAction.SET:
+            comment.react(current_user, input.reaction_type)
         else:
-            comment.clear_reaction(current_user, reaction_type)
+            comment.clear_reaction(current_user, input.reaction_type)
         return comment
