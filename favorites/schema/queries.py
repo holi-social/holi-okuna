@@ -2,7 +2,8 @@ import strawberry
 import strawberry_django
 import structlog
 
-from favorites.models import UserFavorite as UserFavoriteModel, UserFavorite
+from favorites.models import UserFavorite as UserFavoriteModel
+from favorites.schema.types import UserFavorite
 from openbook_auth.utils import verify_authorized_user
 from openbook_common.schema.types import Paged
 

@@ -7,6 +7,7 @@ from strawberry.tools import merge_types
 from strawberry.types import ExecutionContext
 from strawberry_django.optimizer import DjangoOptimizerExtension
 
+
 from openbook.middleware.graphql_error_extension import GraphQLErrorExtension
 from openbook.settings.sentry_config import HoliSentryTracingExtension
 from openbook_auth.schema import mutations as auth_mutations
@@ -25,6 +26,8 @@ from openbook_posts.schema import queries as posts_queries
 from openbook_terms.schema import queries as terms_queries
 from openbook_appointments.schema import mutations as appointments_mutations
 from openbook_appointments.schema import queries as appointments_queries
+from favorites.schema import queries as favorites_queries
+from favorites.schema import mutations as favorites_mutations
 
 logger = structlog.get_logger(__name__)
 
@@ -64,6 +67,7 @@ Query = merge_types(
         notifications_queries.Query,
         commons_queries.Query,
         appointments_queries.Query,
+        favorites_queries.Query,
     ),
 )
 
@@ -78,6 +82,7 @@ Mutation = merge_types(
         moderation_mutations.Mutation,
         appointments_mutations.Mutation,
         insights_mutations.Mutation,
+        favorites_mutations.Mutation,
     ),
 )
 
