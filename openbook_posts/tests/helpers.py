@@ -36,6 +36,22 @@ def get_post_with_id_raw(post_id, user=None):
                 creator {{
                     id
                 }}
+                comments {{
+                    id
+                }}
+                numberOfComments
+                involvedUsers {{
+                    totalResults
+                    data {{
+                        firstName
+                    }}
+                }}
+                commenters {{
+                    totalResults
+                    data {{
+                        firstName
+                    }}
+                }}
                 myReaction {{
                     HEART
                 }}
