@@ -16,10 +16,10 @@ logger = structlog.get_logger(__name__)
 
 
 @strawberry.type
-class Mutation:
+class CommentMutations:
     @strawberry.mutation
     @sync_to_async
-    def add_comment(self, info, input: CreateCommentInput) -> Comment:
+    def add(self, info, input: CreateCommentInput) -> Comment:
         current_user = verify_authorized_user(info)
 
         serializer = CommentSerializer(data=to_input_dict(input))
@@ -38,7 +38,7 @@ class Mutation:
 
     @strawberry.mutation
     @sync_to_async
-    def delete_comment(self, info, id: uuid.UUID) -> Result:
+    def delete(self, info, id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
 
         comment = CommentModel.objects.get(pk=id)
@@ -48,7 +48,7 @@ class Mutation:
 
     @strawberry.mutation
     @sync_to_async
-    def add_reaction_to_comment(
+    def add_reaction(
         self,
         info,
         input: CommentReactionInput,
@@ -61,7 +61,7 @@ class Mutation:
 
     @strawberry.mutation
     @sync_to_async
-    def remove_reaction_from_comment(
+    def remove_reaction(
         self,
         info,
         input: CommentReactionInput,
@@ -71,3 +71,10 @@ class Mutation:
         comment = CommentModel.objects.get(pk=input.comment_id)
         comment.clear_reaction(current_user, input.reaction_type)
         return comment
+
+
+@strawberry.type
+class Mutation:
+    @strawberry.field
+    def comments(self) -> CommentMutations:
+        return CommentMutations()
