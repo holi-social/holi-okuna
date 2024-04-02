@@ -35,11 +35,11 @@ def delete_comment(user, comment_id):
     )
 
 
-def react_to_comment(comment, action, posting_user):
+def add_reaction_to_comment(comment, posting_user):
     return async_to_sync(schema.execute)(
         """
         mutation test($input: CommentReactionInput!) {
-            reactToComment(input: $input) {
+            addReactionToComment(input: $input) {
                 myReaction {
                     HEART
                 }
@@ -54,7 +54,30 @@ def react_to_comment(comment, action, posting_user):
             "input": {
                 "commentId": str(comment.id),
                 "reactionType": "HEART",
-                "reactionAction": action,
+            }
+        },
+    )
+
+
+def remove_reaction_from_comment(comment, posting_user):
+    return async_to_sync(schema.execute)(
+        """
+        mutation test($input: CommentReactionInput!) {
+            removeReactionFromComment(input: $input) {
+                myReaction {
+                    HEART
+                }
+                reactions {
+                    HEART
+                }
+            }
+        }
+        """,
+        context_value=benedict({"request": {"user": posting_user}}),
+        variable_values={
+            "input": {
+                "commentId": str(comment.id),
+                "reactionType": "HEART",
             }
         },
     )

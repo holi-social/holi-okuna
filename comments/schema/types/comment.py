@@ -9,7 +9,7 @@ from comments.enums import CommentableType
 from comments.models import Comment as CommentModel
 from comments.models import CommentReaction as CommentReactionModel
 from openbook_auth.schema.types import User
-from openbook_common.enums import ReactionAction, ReactionType
+from openbook_common.enums import ReactionType
 from openbook_common.schema.types import ReactionCounts
 from openbook_posts.schema.types import LinkPreview
 
@@ -27,7 +27,6 @@ class CreateCommentInput:
 class CommentReactionInput:
     comment_id: uuid.UUID
     reaction_type: ReactionType
-    reaction_action: ReactionAction
 
 
 @strawberry_django.type(CommentModel)

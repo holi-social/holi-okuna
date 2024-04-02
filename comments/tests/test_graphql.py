@@ -16,7 +16,7 @@ from openbook_common.tests.helpers import (
     make_user,
 )
 
-from .helpers import add_comment, delete_comment, react_to_comment
+from .helpers import add_comment, add_reaction_to_comment, delete_comment, remove_reaction_from_comment
 from .post_comment_helpers import (
     delete_post_comment,
     get_post,
@@ -412,11 +412,11 @@ class TestReactingToComments(TestCase):
         commenter = comment.commenter
         other_user = make_user(name="Other")
 
-        react_to_comment(comment, "SET", other_user)
-        response = react_to_comment(comment, "SET", commenter)
+        add_reaction_to_comment(comment, other_user)
+        response = add_reaction_to_comment(comment, commenter)
 
         assert response.errors is None
-        updated_comment = response.data["reactToComment"]
+        updated_comment = response.data["addReactionToComment"]
         assert updated_comment["myReaction"]["HEART"] == 1
         assert updated_comment["reactions"]["HEART"] == 2
 
@@ -427,9 +427,9 @@ class TestReactingToComments(TestCase):
         comment.react(other_user, ReactionType.HEART)
         comment.react(commenter, ReactionType.HEART)
 
-        response = react_to_comment(comment, "REMOVE", commenter)
+        response = remove_reaction_from_comment(comment, commenter)
 
         assert response.errors is None
-        updated_comment = response.data["reactToComment"]
+        updated_comment = response.data["removeReactionFromComment"]
         assert updated_comment["myReaction"]["HEART"] == 0
         assert updated_comment["reactions"]["HEART"] == 1
