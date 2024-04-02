@@ -516,10 +516,10 @@ class TestUsers:
 
         with capture_logs() as cap_logs:
             result = api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
-            log_entry = next(e for e in cap_logs if "MANUAL INTERVENTION NEEDED!" in e["event"])
+            log_entry = next(
+                e for e in cap_logs if e.get("event") is not None and "MANUAL INTERVENTION NEEDED!" in e.get("event")
+            )
             assert log_entry["log_level"] == "error"
-
-            # assert "MANUAL INTERVENTION NEEDED!" in caplog.text
 
         assert result.errors is None
         assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.hansen"
@@ -765,12 +765,12 @@ class TestUsers:
         other_post = other_user.create_post(
             text=(make_fake_post_text()), title=(make_fake_post_title()), is_public=True
         )
-        other_post.comment(text=f"comment text 1", commenter=blocked_user)
+        other_post.comment(text="comment text 1", commenter=blocked_user)
 
         blocked_post = blocked_user.create_post(
             text=(make_fake_post_text()), title=(make_fake_post_title()), is_public=True
         )
-        blocked_post.comment(text=f"comment text 1", commenter=other_user)
+        blocked_post.comment(text="comment text 1", commenter=other_user)
 
         response = async_to_sync(schema.execute)(
             """
