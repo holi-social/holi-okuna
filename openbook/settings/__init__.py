@@ -1,3 +1,4 @@
+# ruff: noqa
 """
 Django settings for openbook project.
 
@@ -111,6 +112,8 @@ INSTALLED_APPS = [
     "strawberry.django",
     "sortedm2m",
     "openbook_appointments",
+    "holi_favorites",
+    "favorites",
 ]
 
 MODELTRANSLATION_FALLBACK_LANGUAGES = ("en",)

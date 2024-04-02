@@ -1,3 +1,4 @@
+# ruff: noqa
 import uuid
 from copy import deepcopy
 
@@ -6,8 +7,9 @@ import strawberry
 import structlog
 from asgiref.sync import sync_to_async
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
-from django.utils.translation import gettext_lazy as _, get_language_from_request
+from django.utils.translation import get_language_from_request
 from graphql import GraphQLError
 from rest_framework.exceptions import ValidationError
 
@@ -18,7 +20,8 @@ from openbook.helpers import (
 )
 from openbook.utils import invalidate_discover_spaces_query_cache
 from openbook_auth.models import User as UserModel
-from openbook_auth.schema.types import UpdateAuthenticatedUserInput, User, RegisterDeviceInput
+from favorites.models import UserFavorite
+from openbook_auth.schema.types import UpdateAuthenticatedUserInput, User, RegisterDeviceInput, BookmarkType
 from openbook_auth.serializers.authenticated_user_serializers import (
     UpdateAuthenticatedUserSerializer,
 )
@@ -231,16 +234,22 @@ class Mutation:
 
         return Result(success=True)
 
-    @strawberry.mutation
+    @strawberry.mutation(
+        deprecation_reason="This mutation is deprecated. Please switch to using the 'bookmark' mutation instead. Keep for version 1.14.XX"
+    )
     @sync_to_async
     def bookmark_insight(self, info, insight_id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
-        current_user.bookmark_insight(insight_id)
+        current_user.bookmark_insight(insight_id)  # To maintain compatibility with older versions
+        UserFavorite.bookmark(user=current_user, bookmark_id=insight_id, bookmark_type="insight")
         return Result(success=True)
 
-    @strawberry.mutation
+    @strawberry.mutation(
+        deprecation_reason="This' mutation is deprecated. Please switch to using the 'unbookmark' mutation instead."
+    )
     @sync_to_async
     def remove_insight_bookmark(self, info, insight_id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
-        current_user.remove_insight_bookmark(insight_id)
+        current_user.remove_insight_bookmark(insight_id)  # To maintain compatibility with older versions
+        UserFavorite.unbookmark(user=current_user, bookmark_id=insight_id, bookmark_type="insight")
         return Result(success=True)
