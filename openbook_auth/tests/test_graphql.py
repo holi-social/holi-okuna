@@ -30,7 +30,6 @@ from openbook.tests.test_data import geolocation, geolocation_geometry, geolocat
 from openbook_auth.models import EngagementLevelChoice, User
 from openbook_auth.tests.helpers import (
     api_update_authenticated_user_names,
-    bookmark_insight,
     get_connected_users,
     get_connected_users_raw,
     get_user_connection_status_to_space_data,
