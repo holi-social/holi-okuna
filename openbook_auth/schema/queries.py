@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime, timedelta
-from typing import Generic, List, Optional, TypeVar
+from typing import List, Optional
+
 from django.utils.translation import get_language_from_request
 
 import strawberry
@@ -119,7 +120,9 @@ class Query:
 
         return Paged.of(current_user.connected_users(), offset, limit)
 
-    @strawberry_django.field()
+    @strawberry_django.field(
+        deprecation_reason="This query is deprecated. Please switch to using the 'favorites' query instead."
+    )
     def favorite_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         current_user = verify_authorized_user(info)
 

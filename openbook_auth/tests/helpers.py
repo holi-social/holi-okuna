@@ -98,41 +98,15 @@ def get_connected_users(calling_user=None):
 
 def get_connected_users_raw(calling_user=None):
     return async_to_sync(schema.execute)(
-        f"""
-        query {{
-            connectedUsers {{
+        """
+        query {
+            connectedUsers {
                 totalResults
-                data {{
+                data {
                     id
-                }}
-            }}
-        }}
+                }
+            }
+        }
         """,
         context_value=benedict({"request": {"user": calling_user or AnonymousUser}}),
-    )
-
-
-def bookmark_insight(user, insight_id):
-    return async_to_sync(schema.execute)(
-        f"""
-        mutation {{
-            bookmarkInsight(insightId: "{insight_id}") {{
-                success
-            }}
-        }}
-        """,
-        context_value=benedict({"request": {"user": user}}),
-    )
-
-
-def remove_insight_bookmark(user, insight_id):
-    return async_to_sync(schema.execute)(
-        f"""
-        mutation {{
-            removeInsightBookmark(insightId: "{insight_id}") {{
-                success
-            }}
-        }}
-        """,
-        context_value=benedict({"request": {"user": user}}),
     )

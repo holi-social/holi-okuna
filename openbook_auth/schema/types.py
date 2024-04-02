@@ -1,9 +1,10 @@
 import logging
 import uuid
-from typing import List, Optional, Annotated
+from typing import List, Optional, TYPE_CHECKING
 
 import strawberry
 import strawberry_django
+from django.db.models import TextChoices
 from strawberry.file_uploads import Upload
 
 from openbook_auth.models import User as UserModel
@@ -12,8 +13,12 @@ from openbook_common.schema.types import GeoJSONInput, GeolocationPoint
 from openbook_communities.enums import UpdateConnectionAction
 from openbook_communities.models import Community as CommunityModel
 from openbook_communities.models import SpaceUserConnectionType
+
 from openbook_terms.schema.types import SDG, Skill, Topic
 from openbook_devices.models import Device
+
+if TYPE_CHECKING:
+    pass
 
 logger = logging.getLogger(__name__)
 
@@ -83,10 +88,6 @@ class User:
     def geolocation(self) -> Optional[GeolocationPoint]:
         return None
 
-    # @strawberry_django.field(select_related=["profile"])
-    # def geolocation_new(self) -> Optional[GeoJSON]:
-    #     return self.geolocation
-
     @strawberry_django.field(select_related=["profile"])
     def geolocation_id(self) -> Optional[str]:
         return self.profile.geolocation_id
@@ -123,3 +124,11 @@ class User:
 class RegisterDeviceInput:
     token: str
     device_type: Device.DeviceType
+
+
+@strawberry.enum
+class BookmarkType(TextChoices):
+    INSIGHT = ("insight",)
+    QUOTE = ("quote",)
+    RECOMMENDATION = ("recommendation",)
+    INITIATIVE = ("initiative",)
