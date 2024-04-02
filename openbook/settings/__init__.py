@@ -112,7 +112,6 @@ INSTALLED_APPS = [
     "strawberry.django",
     "sortedm2m",
     "openbook_appointments",
-    "holi_favorites",
     "favorites",
 ]
 
