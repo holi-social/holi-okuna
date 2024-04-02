@@ -1,6 +1,11 @@
 from django.contrib import admin
 
-from openbook_insights.models import Insight, Recommendation, Quote, Initiative
+from openbook_insights.models import Discussion, Initiative, Insight, Quote, Recommendation
+
+
+class DiscussionInline(admin.TabularInline):
+    model = Discussion
+    extra = 0
 
 
 class InsightRecommendationInline(admin.TabularInline):
@@ -36,7 +41,7 @@ class InsightAdmin(admin.ModelAdmin):
     # This filter makes the admin UI slow when there is a lot of users
     # list_filter = ("creator",)
 
-    inlines = [InsightRecommendationInline, InsightQuoteInline, InsightInitiativeInline]
+    inlines = [InsightRecommendationInline, InsightQuoteInline, InsightInitiativeInline, DiscussionInline]
 
     @admin.display(description="Description Preview")
     def description_preview(self, obj):

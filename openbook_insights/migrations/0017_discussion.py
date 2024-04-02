@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             name="Discussion",
             fields=[
                 ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ("question", models.TextField(verbose_name="Question or point for discussion")),
+                ("question", models.TextField(verbose_name="Question or talking point for discussion")),
                 (
                     "insight",
                     models.ForeignKey(
