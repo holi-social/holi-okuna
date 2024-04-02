@@ -212,12 +212,6 @@ class ModeratedObjectReportSerializer(serializers.ModelSerializer):
         )
 
 
-class ModeratedObjectHashtagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Hashtag
-        fields = ("id", "name", "posts_count")
-
-
 class ModeratedObjectCommunitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Community

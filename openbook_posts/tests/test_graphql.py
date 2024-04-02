@@ -314,7 +314,7 @@ class TestPosts(TestCase):
         assert post.comments.count() == 2
         response = delete_post_comment(comment.id, comment_user)
         assert response.errors is None
-        assert response.data["deletePostComment"]["success"] == True
+        assert response.data["deletePostComment"]["success"] is True
         assert post.comments.count() == 1
         assert comment.id not in post.comments.values_list("id", flat=True)
         assert reaction.id not in PostCommentReaction.objects.filter(post_comment=comment).values_list("id", flat=True)
@@ -343,7 +343,7 @@ class TestPosts(TestCase):
     def test_cant_delete_post_comment_not_exist(self):
         posting_user = make_user()
         comment_user = make_user()
-        other_user = make_user()
+        make_user()
 
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
@@ -613,7 +613,7 @@ class TestPosts(TestCase):
         data = response.data["createSpacePost2"]
 
         assert data["text"] == input_data["text"]
-        assert data["isPublic"] == False
+        assert data["isPublic"] is False
 
         post_id = data["id"]
         post = Post.objects.get(id=post_id)

@@ -160,7 +160,7 @@ def make_user_pronouns():
 
 def make_user_engagement_level():
     engagement_level_list = list(EngagementLevelChoice)
-    return random.choice(engagement_level_list)
+    return random.choice(engagement_level_list)  # noqa: S311
 
 
 def make_user_avatar():
@@ -169,10 +169,6 @@ def make_user_avatar():
     image.save(tmp_file)
     tmp_file.seek(0)
     return tmp_file
-
-
-def make_category():
-    return mixer.blend(Category)
 
 
 def make_user_cover():
@@ -276,7 +272,7 @@ def make_sdg():
 def make_community_topics():
     community_topics = []
 
-    for i in range(0, settings.COMMUNITY_TOPICS_MAX_AMOUNT):
+    for _ in range(0, settings.COMMUNITY_TOPICS_MAX_AMOUNT):
         topic = make_topic()
         community_topics.append(topic.id)
 

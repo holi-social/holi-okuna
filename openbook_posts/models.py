@@ -164,9 +164,6 @@ class Post(ModelWithUUID):
         if not community_name and not community_id and not circles_ids and not is_public:
             raise ValidationError(_("A post requires circles or a community or to be public to be posted to."))
 
-        # if not is_draft and not title:
-        #     raise ValidationError("Non-draft posts must have a title")
-
         if image and video:
             raise ValidationError(_("A post must have an image or a video, not both."))
 
@@ -626,7 +623,7 @@ class Post(ModelWithUUID):
 
         self.modified = timezone.now()
 
-        post = super(Post, self).save(*args, **kwargs)
+        super(Post, self).save(*args, **kwargs)
 
         self._process_post_mentions()
         self._process_post_hashtags()

@@ -89,7 +89,7 @@ class NotificationTestCase(TestCase):
 
         try:
             self.notification_instance.send()
-        except:
+        except:  # noqa: E722
             pytest.fail("Notification sending has not failed gracefully")
 
         assert mock_event_api_trigger.call_count == 1

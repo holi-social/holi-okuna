@@ -382,21 +382,6 @@ def check_can_get_closed_posts_for_community_with_name(user, community_name):
 
 
 def check_can_enable_new_post_notifications_for_community(user, community):
-    # Non-members can follow a community.
-    # is_member = user.is_member_of_community_with_name(community_name=community.name)
-    #
-    # if not is_member:
-    #     raise ValidationError(
-    #         _("Only members can enable new post notifications"),
-    #     )
-
-    # If notifications are already enabled, it does not matter to "enable" them again
-    # new_post_notifications_enabled = user.are_new_post_notifications_enabled_for_community(community=community)
-    # if new_post_notifications_enabled:
-    #     raise ValidationError(
-    #         _("New post notifications are already enabled"),
-    #     )
-
     check_is_not_banned_from_community_with_name(user=user, community_name=community.name)
 
 
@@ -979,14 +964,14 @@ def check_password_reset_verification_token_is_valid(user, password_verification
         if token_user_id != user.pk:
             raise ValidationError(_("Token user id does not match"))
         return token_user_id
-    except jwt.InvalidSignatureError:
-        raise ValidationError(_("Invalid token signature"))
-    except jwt.ExpiredSignatureError:
-        raise ValidationError(_("Token expired"))
-    except jwt.DecodeError:
-        raise ValidationError(_("Failed to decode token"))
-    except KeyError:
-        raise ValidationError(_("Invalid token"))
+    except jwt.InvalidSignatureError as e:
+        raise ValidationError(_("Invalid token signature")) from e
+    except jwt.ExpiredSignatureError as e:
+        raise ValidationError(_("Token expired")) from e
+    except jwt.DecodeError as e:
+        raise ValidationError(_("Failed to decode token")) from e
+    except KeyError as e:
+        raise ValidationError(_("Invalid token")) from e
 
 
 def check_email_verification_token_is_valid_for_email(user, email_verification_token):
@@ -1010,14 +995,14 @@ def check_email_verification_token_is_valid_for_email(user, email_verification_t
         if token_user_id != user.pk:
             raise ValidationError(_("Token user id does not match"))
         return new_email
-    except jwt.InvalidSignatureError:
-        raise ValidationError(_("Invalid token signature"))
-    except jwt.ExpiredSignatureError:
-        raise ValidationError(_("Token expired"))
-    except jwt.DecodeError:
-        raise ValidationError(_("Failed to decode token"))
-    except KeyError:
-        raise ValidationError(_("Invalid token"))
+    except jwt.InvalidSignatureError as e:
+        raise ValidationError(_("Invalid token signature")) from e
+    except jwt.ExpiredSignatureError as e:
+        raise ValidationError(_("Token expired")) from e
+    except jwt.DecodeError as e:
+        raise ValidationError(_("Failed to decode token")) from e
+    except KeyError as e:
+        raise ValidationError(_("Invalid token")) from e
 
 
 def check_connection_circles_ids(user, circles_ids):
