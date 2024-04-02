@@ -7,6 +7,7 @@ from asgiref.sync import async_to_sync
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.utils import timezone
 from faker import Faker
 from mixer.backend.django import mixer
 from PIL import Image
@@ -28,6 +29,7 @@ from openbook_common.utils.helpers import get_random_pastel_color
 from openbook_communities.models import CollaborationTool, Community, ExternalLink, SpacesRelationship, Task
 from openbook_devices.models import Device
 from openbook_hashtags.models import Hashtag
+from openbook_insights.models.insight import Insight
 from openbook_lists.models import List as ListModel
 from openbook_moderation.models import (
     ModeratedObject,
@@ -637,3 +639,9 @@ def make_post_comment():
     )
 
     return post_comment
+
+
+def make_insight():
+    author = make_user()
+    insight = mixer.blend(Insight, creator=author, date_published=timezone.now())
+    return insight

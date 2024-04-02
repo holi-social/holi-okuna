@@ -2,22 +2,23 @@ import logging
 
 import pytest
 from asgiref.sync import async_to_sync
-from django.test import AsyncClient
-
 from benedict import benedict
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.management import call_command
+from django.test import AsyncClient
 from django.utils import timezone
 
 from openbook.graphql_schema import schema
 from openbook_common.tests.helpers import (
     make_fake_post_text,
     make_fake_post_title,
+    make_insight,
     make_user,
     simple_jpeg_bytes,
 )
 from openbook_insights.models import Insight
-from django.core.management import call_command
+from openbook_insights.tests.helpers import get_insight
 
 logger = logging.getLogger(__name__)
 
@@ -221,24 +222,24 @@ class TestInsights:
         )
 
         response = async_to_sync(schema.execute)(
-            f"""
-            query {{
-                lastInsights {{
-                    data {{
+            """
+            query {
+                lastInsights {
+                    data {
                         title
                         numberOfPosts
-                        posts {{
+                        posts {
                             title
-                        }}
-                        involvedUsers {{
+                        }
+                        involvedUsers {
                             totalResults
-                            data {{
+                            data {
                               fullName
-                            }}
-                        }}
-                    }}
-                }}
-            }}
+                            }
+                        }
+                    }
+                }
+            }
             """,
             context_value=benedict({"request": {"user": AnonymousUser}}),
         )
@@ -290,27 +291,27 @@ class TestInsights:
         )
 
         response = async_to_sync(schema.execute)(
-            f"""
-            query {{
-                lastInsights {{
-                    data {{
+            """
+            query {
+                lastInsights {
+                    data {
                         title
                         numberOfPosts
-                        posts {{
+                        posts {
                             title
-                            creator {{
+                            creator {
                                 fullName
-                            }}
-                        }}
-                        involvedUsers {{
+                            }
+                        }
+                        involvedUsers {
                             totalResults
-                            data {{
+                            data {
                               fullName
-                            }}
-                        }}
-                    }}
-                }}
-            }}
+                            }
+                        }
+                    }
+                }
+            }
             """,
             context_value=benedict({"request": {"user": query_user}}),
         )
@@ -319,3 +320,19 @@ class TestInsights:
         insight1_result = insights[0]
         assert insight1_result["title"] == insight1.title
         assert len(insight1_result["posts"]) == 1
+
+
+@pytest.mark.django_db
+class TestInsightDiscussions:
+    def test_lists_discussions(self):
+        user = make_user(name="InsightUser")
+        insight = make_insight()
+        insight.discussions.create(question="What do you think?")
+
+        response = get_insight(user, insight.id)
+
+        assert response.errors is None
+        insight_data = response.data["insightById"]
+        assert insight_data["id"] == str(insight.id)
+        assert len(insight_data["discussions"]) == 1
+        assert insight_data["discussions"][0]["question"] == "What do you think?"

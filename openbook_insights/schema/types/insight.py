@@ -6,17 +6,18 @@ import strawberry
 import strawberry_django
 from django.db.models import Q
 
+from comments.models import Comment as CommentModel
 from favorites.models import UserFavorite
 from openbook_auth.models import User as UserModel
 from openbook_auth.models import UserBlock
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import Paged
 from openbook_insights.models import Insight as InsightModel
+from openbook_insights.schema.types.discussion import Discussion
 from openbook_insights.schema.types.initiative import Initiative
 from openbook_insights.schema.types.quote import Quote
 from openbook_insights.schema.types.recommendation import Recommendation
 from openbook_posts.models import Post as PostModel
-from comments.models import Comment as CommentModel
 from openbook_posts.schema.types import Post
 from openbook_terms.schema.types import Topic
 
@@ -94,6 +95,10 @@ class Insight:
     @strawberry_django.field()
     def initiatives(self) -> list[Initiative]:
         return self.initiatives.all()
+
+    @strawberry_django.field()
+    def discussions(self) -> list[Discussion]:
+        return self.discussions.all()
 
     @strawberry_django.field()
     def quote(self, id: uuid.UUID) -> Quote:
