@@ -34,7 +34,6 @@ class Question(ModelWithUUID):
 
         poll = super(Question, self).save(*args, **kwargs)
 
-
         return self
     
     @classmethod
