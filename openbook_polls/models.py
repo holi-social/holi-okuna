@@ -36,6 +36,30 @@ class Question(ModelWithUUID):
 
 
         return self
+    
+    @classmethod
+    def create_question(
+        creator, 
+        created=None,
+        question_text=None,
+        choice_text=None,
+        votes=None
+        ) -> "Question":
+
+        poll = Question.objects.create(creator=creator, created=created, question_text=question_text)
+
+        if question_text:
+            poll.question_text=question_text
+        
+        if choice_text:
+            poll.choice_text=choice_text
+
+        if votes:
+            poll.votes=votes
+        
+        poll.save()
+        
+        return poll
 
 
 class Choice(ModelWithUUID):

@@ -25,4 +25,4 @@ class Mutation:
           serializer.is_valid(raise_exception=True)
           data = serializer.validated_data
 
-          return current_user.create_poll(**data)
+          return current_user.create_question(**data)

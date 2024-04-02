@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING, Annotated, List, Optional, TypeVar
 class CreatePollInput:
     id: uuid.UUID
     question_text: str
-    pub_date: timezone.now
     creator: uuid.UUID
     #choice_text:str
     #votes: Optional[int]
@@ -35,7 +34,8 @@ class Choice:
 class Poll:
     id: strawberry.auto
     question_text: strawberry.auto
-    pub_date: strawberry.auto
+    modified: strawberry.auto
+    created: strawberry.auto
     creator: strawberry.auto
     #choice_text: strawberry.auto
     choice: List[Optional[Choice]]
