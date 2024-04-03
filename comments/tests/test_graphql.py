@@ -270,7 +270,7 @@ class TestAddingComments(TestCase):
         response = add_comment(commenter, input_data)
         assert response.errors is None
 
-        comment_data = response.data["comments"]["add"]
+        comment_data = response.data["addComment"]
         comment = Comment.objects.get(pk=comment_data["id"])
         assert comment.commenter == commenter
         assert comment.text == "test approved"
@@ -294,7 +294,7 @@ class TestAddingComments(TestCase):
         response = add_comment(commenter, input_data)
         assert response.errors is None
 
-        comment_data = response.data["comments"]["add"]
+        comment_data = response.data["addComment"]
         comment = Comment.objects.get(pk=comment_data["id"])
 
         mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=comment)
@@ -318,7 +318,7 @@ class TestAddingComments(TestCase):
         response = add_comment(post_author, input_data)
         assert response.errors is None
 
-        comment_data = response.data["comments"]["add"]
+        comment_data = response.data["addComment"]
         comment = Comment.objects.get(pk=comment_data["id"])
 
         mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=comment)
@@ -342,7 +342,7 @@ class TestAddingComments(TestCase):
         response = add_comment(commenter, input_data)
         assert response.errors is None
 
-        comment_data = response.data["comments"]["add"]
+        comment_data = response.data["addComment"]
         comment = Comment.objects.get(pk=comment_data["id"])
 
         mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=comment)
@@ -368,7 +368,7 @@ class TestDeletingComments(TestCase):
         response = delete_comment(commenter, comment.id)
 
         assert response.errors is None
-        assert response.data["comments"]["delete"]["success"] is True
+        assert response.data["deleteComment"]["success"] is True
         assert Comment.objects.filter(pk=comment.id).exists() is False
         assert CommentReaction.objects.filter(post_comment=comment).exists() is False
 
@@ -416,7 +416,7 @@ class TestReactingToComments(TestCase):
         response = add_reaction_to_comment(comment, commenter)
 
         assert response.errors is None
-        updated_comment = response.data["comments"]["addReaction"]
+        updated_comment = response.data["addReactionToComment"]
         assert updated_comment["myReaction"]["HEART"] == 1
         assert updated_comment["reactions"]["HEART"] == 2
 
@@ -430,6 +430,6 @@ class TestReactingToComments(TestCase):
         response = remove_reaction_from_comment(comment, commenter)
 
         assert response.errors is None
-        updated_comment = response.data["comments"]["removeReaction"]
+        updated_comment = response.data["removeReactionFromComment"]
         assert updated_comment["myReaction"]["HEART"] == 0
         assert updated_comment["reactions"]["HEART"] == 1
