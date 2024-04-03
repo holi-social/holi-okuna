@@ -23,6 +23,7 @@ select = [
 
 extend-ignore = [
     "E501",  # "line too long" - only triggers in edge cases of the formatter
+    "N806",  # "non-lowercase-variable-in-function" - we use that to reference model classes in functions
 ]
 
 [tool.ruff.extend-per-file-ignores]

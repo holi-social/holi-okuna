@@ -1,13 +1,13 @@
 from generic_relations.relations import GenericRelatedField
 from rest_framework import serializers
 
-from openbook_auth.models import UserProfile, User
+from openbook_auth.models import User, UserProfile
 from openbook_common.serializers_fields.community import CommunityPostsCountField
 from openbook_communities.models import Community
 from openbook_moderation.models import (
-    ModerationPenalty,
     ModeratedObject,
     ModerationCategory,
+    ModerationPenalty,
 )
 from openbook_moderation.serializers import (
     LanguageSerializer,
@@ -123,8 +123,8 @@ class ModerationPenaltyModeratedObjectPostCommentSerializer(serializers.ModelSer
             "commenter",
             "commenter",
             "created",
-            "post_id",
-            "post",
+            "commentable_id",
+            "commentable",
             "is_edited",
         )
 

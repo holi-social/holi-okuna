@@ -1147,7 +1147,7 @@ class User(ModelWithUUID, AbstractUser):
         return self.post_comment_reactions.filter(has_reacted_query).exists()
 
     def has_commented_post_with_id(self, post_id):
-        return self.posts_comments.filter(post_id=post_id).exists()
+        return self.posts_comments.filter(commentable_id=post_id).exists()
 
     def has_notification_with_id(self, notification_id):
         return self.notifications.filter(pk=notification_id).exists()
@@ -1175,7 +1175,7 @@ class User(ModelWithUUID, AbstractUser):
     def has_reaction_notifications_enabled_for_post_comment(self, post_comment):
         return (
             self.notifications_settings.post_comment_reaction_notifications
-            and not self.has_muted_post_with_id(post_id=post_comment.post_id)
+            and not self.has_muted_post_with_id(post_id=post_comment.commentable_id)
             and not self.has_muted_post_comment_with_id(post_comment_id=post_comment.id)
         )
 
@@ -1187,7 +1187,7 @@ class User(ModelWithUUID, AbstractUser):
     def has_reply_notifications_enabled_for_post_comment(self, post_comment):
         return (
             self.notifications_settings.post_comment_reply_notifications
-            and not self.has_muted_post_with_id(post_id=post_comment.post_id)
+            and not self.has_muted_post_with_id(post_id=post_comment.commentable_id)
             and not self.has_muted_post_comment_with_id(post_comment_id=post_comment.id)
         )
 
@@ -1283,7 +1283,7 @@ class User(ModelWithUUID, AbstractUser):
         return Hashtag.objects.filter(query).exists()
 
     def can_see_post_comment(self, post_comment):
-        post = post_comment.post
+        post = post_comment.commentable
         if not self.can_see_post(post=post):
             return False
         post_comment_query = self._make_get_post_comment_with_id_query(
@@ -1404,7 +1404,7 @@ class User(ModelWithUUID, AbstractUser):
         if reaction_type:
             reactions_query.add(Q(reaction_type=reaction_type), Q.AND)
 
-        post_comment_community = post_comment.post.community
+        post_comment_community = post_comment.commentable.community
 
         if post_comment_community:
             if not self.is_staff_of_community_with_name(community_name=post_comment_community.name):
@@ -1514,26 +1514,10 @@ class User(ModelWithUUID, AbstractUser):
 
         return post_comment_reaction
 
-    def delete_post_comment_reaction_with_id(self, post_comment_reaction_id):
-        PostCommentReaction = get_post_comment_reaction_model()
-        post_comment_reaction = PostCommentReaction.objects.filter(pk=post_comment_reaction_id).get()
-        return self.delete_post_comment_reaction(post_comment_reaction=post_comment_reaction)
-
     def delete_post_comment_reaction(self, post_comment_reaction):
         check_can_delete_post_comment_reaction(user=self, post_comment_reaction=post_comment_reaction)
         self._delete_post_comment_reaction_notification(post_comment_reaction=post_comment_reaction)
         post_comment_reaction.delete()
-
-    def get_comments_for_post_with_id(self, post_id, min_id=None, max_id=None):
-        Post = get_post_model()
-        post = Post.objects.get(pk=post_id)
-
-        check_can_get_comments_for_post(user=self, post=post)
-
-        comments_query = self._make_get_comments_for_post_query(post=post, max_id=max_id, min_id=min_id)
-
-        PostComment = get_post_comment_model()
-        return PostComment.objects.filter(comments_query)
 
     def get_comment_replies_for_comment_with_id_with_post_with_id(
         self, post_comment_id, post_id, min_id=None, max_id=None
@@ -1563,45 +1547,6 @@ class User(ModelWithUUID, AbstractUser):
 
     def get_replies_count_for_post_comment(self, post_comment):
         return post_comment.count_replies_with_user(user=self)
-
-    def get_status_for_post_with_id(self, post_id):
-        Post = get_post_model()
-        post = Post.objects.get(id=post_id)
-        return self.get_status_for_post(post=post)
-
-    def get_status_for_post(self, post):
-        check_can_get_status_for_post(user=self, post=post)
-        return post.status
-
-    def enable_comments_for_post_with_id(self, post_id):
-        Post = get_post_model()
-        if not Post.is_post_with_id_a_community_post(post_id):
-            raise ValidationError("Post is not a community post")
-
-        post = Post.objects.select_related("community").get(pk=post_id)
-        check_can_enable_disable_comments_for_post_in_community_with_name(
-            user=self, community_name=post.community.name
-        )
-        post.community.create_enable_post_comments_log(source_user=self, target_user=post.creator, post=post)
-        post.comments_enabled = True
-        post.save()
-
-        return post
-
-    def disable_comments_for_post_with_id(self, post_id):
-        Post = get_post_model()
-        if not Post.is_post_with_id_a_community_post(post_id):
-            raise ValidationError("Post is not a community post")
-
-        post = Post.objects.select_related("community").get(pk=post_id)
-        check_can_enable_disable_comments_for_post_in_community_with_name(
-            user=self, community_name=post.community.name
-        )
-        post.community.create_disable_post_comments_log(source_user=self, target_user=post.creator, post=post)
-        post.comments_enabled = False
-        post.save()
-
-        return post
 
     def comment_post_with_id(self, post_id, text):
         Post = get_post_model()
@@ -1643,7 +1588,7 @@ class User(ModelWithUUID, AbstractUser):
             post_notification_target_user_is_post_creator = post_notification_target_user.id == post.creator.id
             post_notification_target_has_comment_notifications_enabled = (
                 post_notification_target_user.has_comment_notifications_enabled_for_post_with_id(
-                    post_id=post_comment.post_id
+                    post_id=post_comment.commentable_id
                 )
             )
 
@@ -1697,7 +1642,7 @@ class User(ModelWithUUID, AbstractUser):
         comment_creator = post_comment.commenter.id
         post_creator = post.creator
         replier = self
-        post = post_comment.post
+        post = post_comment.commentable
 
         Post = get_post_model()
 
@@ -1775,7 +1720,9 @@ class User(ModelWithUUID, AbstractUser):
     def delete_comment_with_id(self, post_comment_id):
         PostComment = get_post_comment_model()
         post_comment = PostComment.objects.get(pk=post_comment_id)
-        check_can_delete_comment_with_id_for_post(user=self, post_comment_id=post_comment_id, post=post_comment.post)
+        check_can_delete_comment_with_id_for_post(
+            user=self, post_comment_id=post_comment_id, post=post_comment.commentable
+        )
         post_comment.delete()
 
     def delete_comment_with_id_for_post_with_id(self, post_comment_id, post_id):
@@ -4211,7 +4158,7 @@ class User(ModelWithUUID, AbstractUser):
     def report_comment_with_id(self, post_comment_id, category_id, description=None):
         PostComment = get_post_comment_model()
         post_comment = PostComment.objects.get(id=post_comment_id)
-        self.report_comment_for_post(post_comment, post_comment.post, category_id, description)
+        self.report_comment_for_post(post_comment, post_comment.commentable, category_id, description)
 
     def report_comment_with_id_for_post_with_id(self, post_comment_id, post_id, category_id, description=None):
         PostComment = get_post_comment_model()
@@ -4417,15 +4364,6 @@ class User(ModelWithUUID, AbstractUser):
 
         return User.objects.filter(search_users_query)
 
-    def get_participants_for_post_with_id(self, post_id):
-        Post = get_post_model()
-        post = Post.objects.get(id=post_id)
-        return self.get_participants_for_post(post=post)
-
-    def get_participants_for_post(self, post):
-        self.can_see_post(post=post)
-        return post.get_participants()
-
     def _generate_password_reset_link(self, token):
         return f"{settings.EMAIL_HOST}/api/auth/password/verify?token={token}"
 
@@ -4469,7 +4407,7 @@ class User(ModelWithUUID, AbstractUser):
         if post_comment.parent_comment is not None:
             PostCommentNotification = get_post_comment_notification_model()
             PostCommentNotification.delete_post_comment_notification(
-                post_comment_id=post_comment.pk, owner_id=post_comment.post.creator_id
+                post_comment_id=post_comment.pk, owner_id=post_comment.commentable.creator_id
             )
         else:
             # Comment is a reply
@@ -4478,7 +4416,7 @@ class User(ModelWithUUID, AbstractUser):
     def _delete_post_comment_reply_notification(self, post_comment):
         PostCommentReplyNotification = get_post_comment_notification_model()
         PostCommentReplyNotification.delete_post_comment_notification(
-            post_comment_id=post_comment.pk, owner_id=post_comment.post.creator_id
+            post_comment_id=post_comment.pk, owner_id=post_comment.commentable.creator_id
         )
 
     def _create_post_reaction_notification(self, post_reaction):
@@ -4776,7 +4714,7 @@ class User(ModelWithUUID, AbstractUser):
     def _make_get_reactions_for_post_comment_query(self, post_comment, reaction_type=None):
         reactions_query = Q(post_comment_id=post_comment.pk)
 
-        post_comment_community = post_comment.post.community
+        post_comment_community = post_comment.commentable.community
 
         if post_comment_community:
             if not self.is_staff_of_community_with_name(community_name=post_comment_community.name):
@@ -4818,7 +4756,7 @@ class User(ModelWithUUID, AbstractUser):
 
     def _make_get_comments_for_post_query(self, post, post_comment_parent_id=None, max_id=None, min_id=None):
         # Comments from the post
-        comments_query = Q(post_id=post.pk)
+        comments_query = Q(commentable_id=post.pk)
 
         # If we are retrieving replies, add the parent_comment to the query
         if post_comment_parent_id is None:

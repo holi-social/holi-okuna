@@ -2,22 +2,20 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from openbook_auth.models import User
-from django.db.models import Q
-from openbook_common.helpers import PQ
 from openbook_common.models import ModelWithUUID
 from openbook_common.utils.model_loaders import (
-    get_post_model,
-    get_post_comment_model,
     get_community_model,
-    get_user_model,
-    get_moderation_penalty_model,
     get_hashtag_model,
+    get_moderation_penalty_model,
+    get_post_comment_model,
+    get_post_model,
+    get_user_model,
 )
 
 
@@ -156,8 +154,8 @@ class ModeratedObject(ModelWithUUID):
     def get_or_create_moderated_object_for_post_comment(cls, post_comment, category_id):
         community_id = None
 
-        if post_comment.post.community:
-            community_id = post_comment.post.community.pk
+        if post_comment.commentable.community:
+            community_id = post_comment.commentable.community.pk
 
         return cls._get_or_create_moderated_object(
             object_type=cls.OBJECT_TYPE_POST_COMMENT,

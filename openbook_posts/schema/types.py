@@ -184,7 +184,7 @@ class PostComment:
     modified: strawberry.auto
     mentions: List[Optional[User]]
     links: List[Optional[LinkPreview]]
-    post: Post
+    post: Post = strawberry_django.field(field_name="commentable")
     creator: User = strawberry_django.field(field_name="commenter", select_related="commenter__profile")
 
     @strawberry_django.field()

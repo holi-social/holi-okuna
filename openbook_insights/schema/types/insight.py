@@ -6,8 +6,9 @@ import strawberry
 import strawberry_django
 from django.db.models import Q
 
-from openbook_auth.models import User as UserModel, UserBlock
 from favorites.models import UserFavorite
+from openbook_auth.models import User as UserModel
+from openbook_auth.models import UserBlock
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import Paged
 from openbook_insights.models import Insight as InsightModel

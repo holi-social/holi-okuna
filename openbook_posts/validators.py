@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
-from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.exceptions import ValidationError
 
 from openbook_common.utils.helpers import extract_hashtags_from_string
 from openbook_common.utils.model_loaders import (
@@ -33,7 +33,7 @@ def post_comment_id_exists(post_comment_id):
 def post_comment_id_exists_for_post_with_id(post_comment_id, post_id):
     PostComment = get_post_comment_model()
 
-    if not PostComment.objects.filter(id=post_comment_id, post__id=post_id).exists():
+    if not PostComment.objects.filter(id=post_comment_id, commentable__id=post_id).exists():
         raise ValidationError(
             _("The post comment does not exist."),
         )
@@ -47,7 +47,7 @@ def post_comment_reaction_id_exists_for_post_with_id_and_comment_with_id(
     if not PostCommentReaction.objects.filter(
         id=post_comment_reaction_id,
         post_comment_id=post_comment_id,
-        post_comment__post__id=post_id,
+        post_comment__commentable__id=post_id,
     ).exists():
         raise ValidationError(
             _("The post comment reaction does not exist."),

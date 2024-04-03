@@ -107,7 +107,7 @@ def curate_top_posts():
         total_checked_posts = total_checked_posts + 1
         if not post.reactions_count >= settings.MIN_UNIQUE_TOP_POST_REACTIONS_COUNT:
             unique_comments_count = (
-                PostComment.objects.filter(post=post)
+                PostComment.objects.filter(commentable=post)
                 .values("commenter_id")
                 .annotate(user_comments_count=Count("commenter_id"))
                 .count()
@@ -221,7 +221,7 @@ def clean_top_posts():
     for top_post in _chunked_queryset_iterator(top_posts, 1000):
         if not top_post.reactions_count >= settings.MIN_UNIQUE_TOP_POST_REACTIONS_COUNT:
             unique_comments_count = (
-                PostComment.objects.filter(post=top_post.post)
+                PostComment.objects.filter(commentable=top_post.post)
                 .values("commenter_id")
                 .annotate(user_comments_count=Count("commenter_id"))
                 .count()

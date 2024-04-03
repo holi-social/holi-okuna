@@ -1,7 +1,6 @@
 import uuid
 from enum import Enum
-from typing import List
-from typing import Optional
+from typing import List, Optional
 
 import sentry_sdk
 from novu.api import EventApi
@@ -11,23 +10,23 @@ from requests.exceptions import ConnectionError
 
 from openbook_appointments.models import Appointment
 from openbook_auth.models import User
-from openbook_communities.models import Community, CommunityMembershipRequest, CommunityInvite
+from openbook_communities.models import Community, CommunityInvite, CommunityMembershipRequest
 from openbook_notifications.helpers import flatten_payload
 from openbook_notifications.payloads import (
-    SpaceMembershipRequestPayload,
-    SpaceMembershipRequestApprovalUserPayload,
-    SpaceMembershipRequestApprovalAdminPayload,
-    SpaceMembershipRequestDeclinePayload,
     NotificationType,
-    SpaceMembershipInvitePayload,
+    PostCommentAuthorPayload,
+    PostCommentMentionPayload,
+    SpaceAppointmentCreationPayload,
+    SpaceAppointmentDeletionPayload,
+    SpaceAppointmentUpdatePayload,
     SpaceMembershipInviteApprovalPayload,
     SpaceMembershipInviteDeclinePayload,
-    PostCommentMentionPayload,
-    PostCommentAuthorPayload,
+    SpaceMembershipInvitePayload,
+    SpaceMembershipRequestApprovalAdminPayload,
+    SpaceMembershipRequestApprovalUserPayload,
+    SpaceMembershipRequestDeclinePayload,
+    SpaceMembershipRequestPayload,
     SpaceNewPostPayload,
-    SpaceAppointmentCreationPayload,
-    SpaceAppointmentUpdatePayload,
-    SpaceAppointmentDeletionPayload,
 )
 from openbook_notifications.toggles import notifications_toggle
 from openbook_posts.models import Post, PostComment
@@ -219,7 +218,7 @@ class Notifications:
     @staticmethod
     def send_post_comment_author_notification(post_comment: PostComment):
         notification = PostCommentAuthorNotification(
-            author=str(post_comment.post.creator.username),
+            author=str(post_comment.commentable.creator.username),
             payload=PostCommentAuthorPayload(
                 post_comment=post_comment,
                 notification_type=NotificationType.POST_COMMENT_AUTHOR.value,
@@ -334,7 +333,7 @@ class Notification:
             # retries exceeded
             sentry_sdk.capture_exception(Notification.DeliveryError("Can't connect to Novu"))
             return None
-        except (Exception,) as e:
+        except Exception:
             sentry_sdk.capture_exception(Notification.DeliveryError("Novu SDK failed"))
             return None
 

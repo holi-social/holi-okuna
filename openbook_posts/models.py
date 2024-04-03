@@ -4,7 +4,6 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
-from django.core.files import File
 from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import (
     InMemoryUploadedFile,
@@ -18,6 +17,7 @@ from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFit
 from rest_framework.exceptions import ValidationError
+from sortedm2m.fields import SortedManyToManyField
 
 from openbook_auth.models import User, get_reactions
 from openbook_common.enums import ReactionType
@@ -40,11 +40,8 @@ from openbook_common.utils.helpers import (
     extract_hashtags_from_string,
     extract_usernames_from_string,
     get_magic,
-    sha256sum,
-    write_in_memory_file_to_disk,
 )
 from openbook_common.utils.model_loaders import (
-    get_circle_model,
     get_community_model,
     get_community_new_post_notification_model,
     get_community_notifications_subscription_model,
@@ -78,13 +75,10 @@ from openbook_posts.checkers import (
 )
 from openbook_posts.helpers import (
     upload_to_post_image_directory,
-    upload_to_post_video_directory,
 )
 from openbook_posts.jobs import process_post_media
 from openbook_posts.validators import post_comment_text_validators, post_text_validators
 from openbook_terms.models import InspirationPostCategory
-
-from sortedm2m.fields import SortedManyToManyField
 
 magic = get_magic()
 post_image_storage = default_storage
@@ -132,6 +126,12 @@ class Post(ModelWithUUID):
     inspiration_post_category = models.ForeignKey(
         InspirationPostCategory, on_delete=models.CASCADE, null=True, blank=True
     )
+    comments = GenericRelation(
+        "PostComment",
+        content_type_field="commentable_type",
+        object_id_field="commentable_id",
+        related_query_name="post",
+    )
 
     class Meta:
         index_together = [
@@ -163,9 +163,6 @@ class Post(ModelWithUUID):
     ) -> "Post":
         if not community_name and not community_id and not circles_ids and not is_public:
             raise ValidationError(_("A post requires circles or a community or to be public to be posted to."))
-
-        # if not is_draft and not title:
-        #     raise ValidationError("Non-draft posts must have a title")
 
         if image and video:
             raise ValidationError(_("A post must have an image or a video, not both."))
@@ -371,7 +368,7 @@ class Post(ModelWithUUID):
         # Add other post commenters, exclude replies to comments, the post commenter
         other_commenters = User.objects.filter(
             Q(
-                posts_comments__post_id=post.pk,
+                posts_comments__commentable_id=post.pk,
                 posts_comments__parent_comment_id=None,
             )
             & ~Q(id=post_commenter.pk)
@@ -400,7 +397,7 @@ class Post(ModelWithUUID):
         post_comment_creator = User.objects.filter(pk=parent_post_comment.commenter_id)
 
         # Add post creator
-        post = parent_post_comment.post
+        post = parent_post_comment.commentable
         post_creator = User.objects.filter(pk=post.creator.id)
         return other_repliers.union(post_comment_creator, post_creator)
 
@@ -626,7 +623,7 @@ class Post(ModelWithUUID):
 
         self.modified = timezone.now()
 
-        post = super(Post, self).save(*args, **kwargs)
+        super(Post, self).save(*args, **kwargs)
 
         self._process_post_mentions()
         self._process_post_hashtags()
@@ -666,20 +663,22 @@ class Post(ModelWithUUID):
 
         # Remove all post comment notifications
         PostCommentNotification = get_post_comment_notification_model()
-        PostCommentNotification.objects.filter(post_comment__post_id=self.pk).delete()
+        PostCommentNotification.objects.filter(post_comment__commentable_id=self.pk).delete()
 
         # Remove all post comment reply notifications
         PostCommentReplyNotification = get_post_comment_reply_notification_model()
-        PostCommentReplyNotification.objects.filter(post_comment__post_id=self.pk).delete()
+        PostCommentReplyNotification.objects.filter(post_comment__commentable_id=self.pk).delete()
 
         # Remove all post comment reaction notifications
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
-        PostCommentReactionNotification.objects.filter(post_comment_reaction__post_comment__post_id=self.pk).delete()
+        PostCommentReactionNotification.objects.filter(
+            post_comment_reaction__post_comment__commentable_id=self.pk
+        ).delete()
 
         # Remove all post comment user mention notifications
         PostCommentUserMentionNotification = get_post_comment_user_mention_notification_model()
         PostCommentUserMentionNotification.objects.filter(
-            post_comment_user_mention__post_comment__post_id=self.pk
+            post_comment_user_mention__post_comment__commentable_id=self.pk
         ).delete()
 
         # Remove all community new post notifications
@@ -705,26 +704,28 @@ class Post(ModelWithUUID):
 
         # Remove all post comment notifications
         PostCommentNotification = get_post_comment_notification_model()
-        PostCommentNotification.objects.filter(post_comment__post_id=self.pk, notification__owner_id=user.pk).delete()
+        PostCommentNotification.objects.filter(
+            post_comment__commentable_id=self.pk, notification__owner_id=user.pk
+        ).delete()
 
         # Remove all post comment reply notifications
         PostCommentReplyNotification = get_post_comment_reply_notification_model()
         PostCommentReplyNotification.objects.filter(
-            post_comment__post_id=self.pk, notification__owner_id=user.pk
+            post_comment__commentable_id=self.pk, notification__owner_id=user.pk
         ).delete()
 
         # Remove all post comment user mention notifications
         PostCommentUserMentionNotification = get_post_comment_user_mention_notification_model()
         PostCommentUserMentionNotification.objects.filter(
             notification__owner_id=user.pk,
-            post_comment_user_mention__post_comment__post_id=self.pk,
+            post_comment_user_mention__post_comment__commentable_id=self.pk,
         ).delete()
 
         # Remove all post comment reaction notifications
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
         PostCommentReactionNotification.objects.filter(
             notification__owner_id=user.pk,
-            post_comment_reaction__post_comment__post_id=self.pk,
+            post_comment_reaction__post_comment__commentable_id=self.pk,
         ).delete()
 
         # Remove all community new post notifications
@@ -746,7 +747,7 @@ class Post(ModelWithUUID):
 
         # Remove all post comment notifications
         PostCommentNotification = get_post_comment_notification_model()
-        PostCommentNotification.objects.filter(post_comment__post_id=self.pk).exclude(
+        PostCommentNotification.objects.filter(post_comment__commentable_id=self.pk).exclude(
             notification__owner_id__in=excluded_ids
         ).delete()
 
@@ -758,20 +759,20 @@ class Post(ModelWithUUID):
 
         # Remove all post comment reply notifications
         PostCommentReplyNotification = get_post_comment_reply_notification_model()
-        PostCommentReplyNotification.objects.filter(post_comment__post_id=self.pk).exclude(
+        PostCommentReplyNotification.objects.filter(post_comment__commentable_id=self.pk).exclude(
             notification__owner_id__in=excluded_ids
         ).delete()
 
         # Remove all post comment reaction notifications
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
-        PostCommentReactionNotification.objects.filter(post_comment_reaction__post_comment__post_id=self.pk).exclude(
-            notification__owner_id__in=excluded_ids
-        ).delete()
+        PostCommentReactionNotification.objects.filter(
+            post_comment_reaction__post_comment__commentable_id=self.pk
+        ).exclude(notification__owner_id__in=excluded_ids).delete()
 
         # Remove all post comment user mention notifications
         PostCommentUserMentionNotification = get_post_comment_user_mention_notification_model()
         PostCommentUserMentionNotification.objects.filter(
-            post_comment_user_mention__post_comment__post_id=self.pk
+            post_comment_user_mention__post_comment__commentable_id=self.pk
         ).exclude(notification__owner_id__in=excluded_ids).delete()
 
         # Remove all community new post notifications
@@ -785,27 +786,6 @@ class Post(ModelWithUUID):
         UserNewPostNotification.objects.filter(post_id=self.pk).exclude(
             notification__owner_id__in=excluded_ids
         ).delete()
-
-    def get_participants(self):
-        User = get_user_model()
-
-        # Add post creator
-        post_creator = User.objects.filter(pk=self.creator_id)
-
-        # Add post commentators
-        post_commenters = User.objects.filter(posts_comments__post_id=self.pk, is_deleted=False)
-
-        # If community post, add community members
-        if self.community:
-            community_members = User.objects.filter(
-                communities_memberships__community_id=self.community_id,
-                is_deleted=False,
-            )
-            result = post_creator.union(post_commenters, community_members)
-        else:
-            result = post_creator.union(post_commenters)
-
-        return result
 
     def _process_post_mentions(self):
         if not self.text:
@@ -1062,7 +1042,11 @@ class PostImage(ModelWithUUID):
 
 class PostComment(ModelWithUUID):
     moderated_object = GenericRelation(ModeratedObject, related_query_name="post_comments")
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
+
+    commentable_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    commentable_id = models.UUIDField()
+    commentable = GenericForeignKey("commentable_type", "commentable_id")
+
     parent_comment = models.ForeignKey("self", on_delete=models.CASCADE, related_name="replies", null=True, blank=True)
     created = models.DateTimeField(editable=False, db_index=True)
     modified = models.DateTimeField(db_index=True, default=timezone.now)
@@ -1086,12 +1070,17 @@ class PostComment(ModelWithUUID):
         through="PostCommentUserMention",
     )
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["commentable_type", "commentable_id"]),
+        ]
+
     @classmethod
     def create_comment(cls, text, commenter, post, parent_comment=None):
         post_comment = PostComment.objects.create(
             text=text,
             commenter=commenter,
-            post=post,
+            commentable=post,
             parent_comment=parent_comment,
             language=get_language_for_text(text),
         )
@@ -1100,7 +1089,7 @@ class PostComment(ModelWithUUID):
 
     @classmethod
     def count_comments_for_post_with_id(cls, post_id):
-        count_query = Q(post_id=post_id, parent_comment__isnull=True, is_deleted=False)
+        count_query = Q(commentable_id=post_id, parent_comment__isnull=True, is_deleted=False)
 
         return cls.objects.filter(count_query).count()
 
@@ -1136,11 +1125,11 @@ class PostComment(ModelWithUUID):
             Q(commenter__blocked_by_users__blocker_id=user.pk) | Q(commenter__user_blocks__blocked_user_id=user.pk)
         )
 
-        if self.post.community:
-            if not user.is_staff_of_community_with_name(community_name=self.post.community.name):
+        if self.commentable.community:
+            if not user.is_staff_of_community_with_name(community_name=self.commentable.community.name):
                 # Don't retrieve comments except from staff members
                 blocked_users_query_staff_members = Q(
-                    commenter__communities_memberships__community_id=self.post.community.pk
+                    commenter__communities_memberships__community_id=self.commentable.community.pk
                 )
                 blocked_users_query_staff_members.add(
                     Q(commenter__communities_memberships__is_administrator=True)
@@ -1293,7 +1282,7 @@ class PostComment(ModelWithUUID):
         # Delete all post comment user mention notifications
         PostCommentUserMentionNotification = get_post_comment_user_mention_notification_model()
         PostCommentUserMentionNotification.objects.filter(
-            post_comment_user_mention__post_comment__post_id=self.pk
+            post_comment_user_mention__post_comment__commentable_id=self.pk
         ).delete()
 
     def delete_notifications_for_user(self, user):
@@ -1324,7 +1313,7 @@ class PostComment(ModelWithUUID):
         # Delete all post comment user mention notifications
         PostCommentUserMentionNotification = get_post_comment_user_mention_notification_model()
         PostCommentUserMentionNotification.objects.filter(
-            post_comment_user_mention__post_comment__post_id=self.pk,
+            post_comment_user_mention__post_comment__commentable_id=self.pk,
             notification__owner_id=user.pk,
         ).delete()
 

@@ -1,13 +1,13 @@
 import logging
-from unittest import mock, TestCase
+from unittest import TestCase, mock
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.test import AsyncClient
 
-from openbook_auth.models import User
-from openbook_common.enums import VisibilityType
+from openbook_common.enums import FeatureToggleName, FeatureToggleType, VisibilityType
+from openbook_common.models import FeatureToggle as FeatureToggleModel
 from openbook_common.tests.helpers import (
     make_community,
     make_fake_post_text,
@@ -15,7 +15,6 @@ from openbook_common.tests.helpers import (
     make_user,
     simple_jpeg_bytes,
 )
-from openbook_common.utils.model_loaders import get_community_model
 from openbook_communities.models import CommunityNotificationsSubscription
 from openbook_notifications.models import CommunityNewPostNotification
 from openbook_posts.models import (
@@ -34,12 +33,9 @@ from openbook_posts.tests.helpers import (
     get_post_with_id_raw,
     react_to_post,
     react_to_post_comment,
-    update_space_post,
     update_post_comment,
+    update_space_post,
 )
-
-from openbook_common.enums import FeatureToggleName, FeatureToggleType
-from openbook_common.models import FeatureToggle as FeatureToggleModel
 
 logger = logging.getLogger(__name__)
 
@@ -311,14 +307,14 @@ class TestPosts(TestCase):
         post_title = make_fake_post_title()
 
         post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
-        comment = post.comment(text=f"comment text", commenter=comment_user)
+        comment = post.comment(text="comment text", commenter=comment_user)
         reaction = comment.react(posting_user, "HEART")
-        post.comment(text=f"comment text 2", commenter=comment_user)
+        post.comment(text="comment text 2", commenter=comment_user)
 
         assert post.comments.count() == 2
         response = delete_post_comment(comment.id, comment_user)
         assert response.errors is None
-        assert response.data["deletePostComment"]["success"] == True
+        assert response.data["deletePostComment"]["success"] is True
         assert post.comments.count() == 1
         assert comment.id not in post.comments.values_list("id", flat=True)
         assert reaction.id not in PostCommentReaction.objects.filter(post_comment=comment).values_list("id", flat=True)
@@ -332,9 +328,9 @@ class TestPosts(TestCase):
         post_title = make_fake_post_title()
 
         post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
-        comment = post.comment(text=f"comment text", commenter=comment_user)
+        comment = post.comment(text="comment text", commenter=comment_user)
         reaction = comment.react(posting_user, "HEART")
-        post.comment(text=f"comment text 2", commenter=comment_user)
+        post.comment(text="comment text 2", commenter=comment_user)
 
         assert post.comments.count() == 2
         response = delete_post_comment(comment.id, other_user)
@@ -347,15 +343,15 @@ class TestPosts(TestCase):
     def test_cant_delete_post_comment_not_exist(self):
         posting_user = make_user()
         comment_user = make_user()
-        other_user = make_user()
+        make_user()
 
         post_text = make_fake_post_text()
         post_title = make_fake_post_title()
 
         post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
-        comment = post.comment(text=f"comment text", commenter=comment_user)
+        comment = post.comment(text="comment text", commenter=comment_user)
         reaction = comment.react(posting_user, "HEART")
-        post.comment(text=f"comment text 2", commenter=comment_user)
+        post.comment(text="comment text 2", commenter=comment_user)
 
         assert post.comments.count() == 2
         response = delete_post_comment("00000000-0000-0000-0000-000000000000", comment_user)
@@ -399,7 +395,7 @@ class TestPosts(TestCase):
         post_title = make_fake_post_title()
 
         post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
-        comment = post.comment(text=f"comment text", commenter=other_user)
+        comment = post.comment(text="comment text", commenter=other_user)
 
         react_to_post_comment(comment, "SET", posting_user)
         executed = react_to_post_comment(comment, "SET", posting_user)  # setting twice is same as setting once
@@ -617,7 +613,7 @@ class TestPosts(TestCase):
         data = response.data["createSpacePost2"]
 
         assert data["text"] == input_data["text"]
-        assert data["isPublic"] == False
+        assert data["isPublic"] is False
 
         post_id = data["id"]
         post = Post.objects.get(id=post_id)
