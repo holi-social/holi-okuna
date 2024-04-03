@@ -8,7 +8,8 @@ from strawberry.types import ExecutionContext
 from strawberry_django.optimizer import DjangoOptimizerExtension
 
 from comments.schema import mutations as comments_mutations
-from openbook.graphql_errors import GraphQLErrorCodes
+from favorites.schema import mutations as favorites_mutations
+from favorites.schema import queries as favorites_queries
 from openbook.middleware.graphql_error_extension import GraphQLErrorExtension
 from openbook.settings.sentry_config import HoliSentryTracingExtension
 from openbook_appointments.schema import mutations as appointments_mutations
@@ -66,6 +67,7 @@ Query = merge_types(
         notifications_queries.Query,
         commons_queries.Query,
         appointments_queries.Query,
+        favorites_queries.Query,
     ),
 )
 
@@ -80,6 +82,7 @@ Mutation = merge_types(
         moderation_mutations.Mutation,
         appointments_mutations.Mutation,
         insights_mutations.Mutation,
+        favorites_mutations.Mutation,
         comments_mutations.Mutation,
     ),
 )
