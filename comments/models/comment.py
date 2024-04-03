@@ -79,8 +79,8 @@ class Comment(ModelWithUUID):
 
     @staticmethod
     def get_commentable(
-        commentable_type: CommentableType,
         commentable_id: uuid.UUID,
+        commentable_type: CommentableType,
     ):
         commentable_content_type = ContentType.objects.get(model=commentable_type.value)
         commentable = commentable_content_type.get_object_for_this_type(pk=commentable_id)

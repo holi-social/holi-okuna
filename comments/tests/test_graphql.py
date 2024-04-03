@@ -16,7 +16,7 @@ from openbook_common.tests.helpers import (
     make_user,
 )
 
-from .helpers import add_comment, add_reaction_to_comment, delete_comment, remove_reaction_from_comment
+from .helpers import add_comment, add_reaction_to_comment, delete_comment, get_commenters, remove_reaction_from_comment
 from .post_comment_helpers import (
     delete_post_comment,
     get_post,
@@ -433,3 +433,42 @@ class TestReactingToComments(TestCase):
         updated_comment = response.data["comments"]["removeReaction"]
         assert updated_comment["myReaction"]["HEART"] == 0
         assert updated_comment["reactions"]["HEART"] == 1
+
+
+@pytest.mark.django_db
+class TestCommenters(TestCase):
+    def setup(self):
+        self.notifications_toggle = FeatureToggleModel.objects.create(
+            name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
+        )
+
+    def teardown(self):
+        if self.notifications_toggle.id is not None:
+            self.notifications_toggle.delete()
+
+    def test_should_list_people_who_are_commenting_on_the_content(self):
+        post = make_post()
+        commenter = make_user(name="Commenter")
+        another_commenter = make_user(name="Another Commenter")
+
+        Comment.create_comment("It's greeeaat!", commenter, post)
+        Comment.create_comment("Just ok", another_commenter, post)
+
+        response = get_commenters(post.id, "POST")
+
+        assert response.errors is None
+        commenters_data = response.data["comments"]["commentable"]["commenters"]
+        assert commenters_data["totalResults"] == 2
+        assert len(commenters_data["data"]) == 2
+        assert commenters_data["data"][0]["firstName"] == "Another Commenter"
+
+        ## UI need
+        # - Latest comment... or most liked commented on or most liked commented on by a connected person
+        #     - most_relevant_comment = latest -> most liked/commented on (anonymous) or connected person if logged-in
+
+        # assert post_data["numberOfComments"] == 3
+        # assert post_data["involvedUsers"]["totalResults"] == 2
+        # assert len(post_data["comments"]) == 3
+        # assert post_data["comments"][0]["text"] == f"comment text 1 @{posting_user.username}"
+        # assert post_data["commenters"]["totalResults"] == 1
+        # assert post_data["commenters"]["data"][0]["firstName"] == other_user.name
