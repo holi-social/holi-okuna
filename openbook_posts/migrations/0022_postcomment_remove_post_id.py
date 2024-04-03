@@ -21,7 +21,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='postcomment',
             name='post',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to="openbook_posts.post"),
+            preserve_default=False,
+            field=models.ForeignKey(null=True, default=1, on_delete=django.db.models.deletion.CASCADE, to="openbook_posts.post"),
         ),
         migrations.RemoveField(
             model_name="postcomment",
