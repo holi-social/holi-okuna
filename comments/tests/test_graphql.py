@@ -448,19 +448,22 @@ class TestCommenters(TestCase):
 
     def test_should_list_people_who_are_commenting_on_the_content(self):
         post = make_post()
+        another_post = make_post()
         commenter = make_user(name="Commenter")
-        another_commenter = make_user(name="Another Commenter")
+        last_commenter = make_user(name="Last Commenter")
+        yet_another_commenter = make_user(name="Yet Another Commenter")
 
         Comment.create_comment("It's greeeaat!", commenter, post)
-        Comment.create_comment("Just ok", another_commenter, post)
-
+        Comment.create_comment("Just ok", last_commenter, post)
+        Comment.create_comment("You didn't see me, right!", last_commenter, another_post)
+        Comment.create_comment("Nor me!", yet_another_commenter, another_post)
         response = get_commenters(post.id, "POST")
 
         assert response.errors is None
         commenters_data = response.data["comments"]["commentable"]["commenters"]
         assert commenters_data["totalResults"] == 2
         assert len(commenters_data["data"]) == 2
-        assert commenters_data["data"][0]["firstName"] == "Another Commenter"
+        assert commenters_data["data"][0]["firstName"] == "Last Commenter"
 
         ## UI need
         # - Latest comment... or most liked commented on or most liked commented on by a connected person
