@@ -8,14 +8,7 @@ from comments.schema.types.commentable import Commentable
 
 
 @strawberry.type
-class CommentQuery:
+class Query:
     @strawberry_django.field()
     def commentable(self, info, id: uuid.UUID, type: CommentableType) -> Commentable:
         return Commentable(id=id, type=type)
-
-
-@strawberry.type
-class Query:
-    @strawberry.field
-    def comments(self) -> CommentQuery:
-        return CommentQuery()

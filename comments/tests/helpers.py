@@ -9,14 +9,28 @@ def get_commenters(commentable_id, commentable_type, user=None):
     return async_to_sync(schema.execute)(
         """
         query test($commentable_id: UUID!, $commentable_type: CommentableType!) {
-            comments {
-                commentable(id: $commentable_id, type: $commentable_type) {
-                    commenters{
-                        totalResults
-                        data {
-                            firstName
-                        }
+            commentable(id: $commentable_id, type: $commentable_type) {
+                commenters{
+                    totalResults
+                    data {
+                        firstName
                     }
+                }
+            }
+        }
+        """,
+        context_value=benedict({"request": {"user": user or AnonymousUser}}),
+        variable_values={"commentable_id": str(commentable_id), "commentable_type": commentable_type},
+    )
+
+
+def get_top_comment(commentable_id, commentable_type, user=None):
+    return async_to_sync(schema.execute)(
+        """
+        query test($commentable_id: UUID!, $commentable_type: CommentableType!) {
+            commentable(id: $commentable_id, type: $commentable_type) {
+                topComment{
+                    text
                 }
             }
         }

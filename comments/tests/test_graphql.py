@@ -16,7 +16,14 @@ from openbook_common.tests.helpers import (
     make_user,
 )
 
-from .helpers import add_comment, add_reaction_to_comment, delete_comment, get_commenters, remove_reaction_from_comment
+from .helpers import (
+    add_comment,
+    add_reaction_to_comment,
+    delete_comment,
+    get_commenters,
+    get_top_comment,
+    remove_reaction_from_comment,
+)
 from .post_comment_helpers import (
     delete_post_comment,
     get_post,
@@ -436,7 +443,7 @@ class TestReactingToComments(TestCase):
 
 
 @pytest.mark.django_db
-class TestCommenters(TestCase):
+class TestComments(TestCase):
     def setup(self):
         self.notifications_toggle = FeatureToggleModel.objects.create(
             name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
@@ -460,18 +467,23 @@ class TestCommenters(TestCase):
         response = get_commenters(post.id, "POST")
 
         assert response.errors is None
-        commenters_data = response.data["comments"]["commentable"]["commenters"]
+        commenters_data = response.data["commentable"]["commenters"]
         assert commenters_data["totalResults"] == 2
         assert len(commenters_data["data"]) == 2
         assert commenters_data["data"][0]["firstName"] == "Last Commenter"
 
-        ## UI need
-        # - Latest comment... or most liked commented on or most liked commented on by a connected person
-        #     - most_relevant_comment = latest -> most liked/commented on (anonymous) or connected person if logged-in
+    def test_should_get_the_most_interesting_comment_for_the_content(self):
+        post = make_post()
+        another_post = make_post()
+        commenter = make_user(name="Commenter")
+        last_commenter = make_user(name="Last Commenter")
 
-        # assert post_data["numberOfComments"] == 3
-        # assert post_data["involvedUsers"]["totalResults"] == 2
-        # assert len(post_data["comments"]) == 3
-        # assert post_data["comments"][0]["text"] == f"comment text 1 @{posting_user.username}"
-        # assert post_data["commenters"]["totalResults"] == 1
-        # assert post_data["commenters"]["data"][0]["firstName"] == other_user.name
+        Comment.create_comment("It's greeeaat!", commenter, post)
+        Comment.create_comment("Latest comment", last_commenter, post)
+        Comment.create_comment("You didn't see me, right!", last_commenter, another_post)
+        # For now, this is the last comment. It will evolve to be the most relevant to the user.
+        response = get_top_comment(post.id, "POST")
+
+        assert response.errors is None
+        top_comment_data = response.data["commentable"]["topComment"]
+        assert top_comment_data["text"] == "Latest comment"

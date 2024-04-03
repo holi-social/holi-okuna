@@ -118,6 +118,20 @@ class Comment(ModelWithUUID):
 
         return get_reactions(CommentReaction, reactions_query)
 
+    @classmethod
+    def get_top_comment(
+        cls,
+        commentable_id: uuid.UUID,
+        commentable_type: CommentableType,
+    ):
+        return (
+            cls.objects.filter(commentable_id=commentable_id)
+            .filter(commentable_type__model=commentable_type.value)
+            .filter(is_deleted=False)
+            .order_by("-created")
+            .first()
+        )
+
     def count_replies(self):
         return self.replies.count()
 
