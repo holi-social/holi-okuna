@@ -10,6 +10,7 @@ from strawberry_django.optimizer import DjangoOptimizerExtension
 from comments.schema import mutations as comments_mutations
 from favorites.schema import mutations as favorites_mutations
 from favorites.schema import queries as favorites_queries
+from openbook.graphql_errors import GraphQLErrorCodes
 from openbook.middleware.graphql_error_extension import GraphQLErrorExtension
 from openbook.settings.sentry_config import HoliSentryTracingExtension
 from openbook_appointments.schema import mutations as appointments_mutations
