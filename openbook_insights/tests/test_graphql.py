@@ -135,16 +135,16 @@ class TestInsights:
         insight_user_2.block_user_with_id(insight_user.id)
 
         now = timezone.now()
-        insight1 = Insight.objects.create(
+        Insight.objects.create(
             creator=insight_user,
             title="Insight  Foo",
             header_image=SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes),
             date_published=now,
         )
-        insight2 = Insight.objects.create(
+        Insight.objects.create(
             creator=insight_user, title="Insight 2", date_published=now - timezone.timedelta(days=1)
         )
-        insight3 = Insight.objects.create(creator=insight_user_2, title="Insight 3", date_published=now)
+        Insight.objects.create(creator=insight_user_2, title="Insight 3", date_published=now)
 
         response = async_to_sync(schema.execute)(
             f"""
@@ -286,7 +286,7 @@ class TestInsights:
         )
         insight1.posts.add(post1, post2)
 
-        insight2 = Insight.objects.create(
+        Insight.objects.create(
             creator=blocked_user, title="Insight 2 Blocked", date_published=now - timezone.timedelta(days=1)
         )
 
@@ -323,8 +323,8 @@ class TestInsights:
 
 
 @pytest.mark.django_db
-class TestInsightDiscussions:
-    def test_lists_discussions(self):
+class TestDiscussions:
+    def test_should_list_discussions(self):
         user = make_user(name="InsightUser")
         insight = make_insight()
         insight.discussions.create(question="What do you think?")
