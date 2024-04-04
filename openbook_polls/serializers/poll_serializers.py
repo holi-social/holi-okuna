@@ -15,10 +15,8 @@ class CreatePollSerializer(serializers.Serializer):
         allow_blank=False
     )
     votes = serializers.IntegerField(
-        required=False,
-        allow_blank=True
+        required=False
     )
     creator=serializers.UUIDField(
-        required=True,
-        allow_blank=False
+        required=True
     )

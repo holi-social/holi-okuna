@@ -23,13 +23,6 @@ class CreateChoiceInput:
     choice_text: str
     votes: int
 
-@strawberry_django.type(ChoiceModel)
-class Choice:
-    id: strawberry.auto
-    choice_text: strawberry.auto
-    votes: strawberry.auto
-    question: Poll
-
 @strawberry_django.type(PollModel)
 class Poll:
     id: strawberry.auto
@@ -38,5 +31,17 @@ class Poll:
     created: strawberry.auto
     creator: strawberry.auto
     #choice_text: strawberry.auto
-    choice: List[Optional[Choice]]
+    #choice: List[Optional[Choice]]
+    #votes: strawberry.auto
+
+    @strawberry_django.field()
+    def choices(self, info)-> List["Choice"]:
+        return ChoiceModel.objects.filter(question=self)
+
+
+@strawberry_django.type(ChoiceModel)
+class Choice:
+    id: strawberry.auto
+    choice_text: strawberry.auto
     votes: strawberry.auto
+    question: Poll
