@@ -246,8 +246,7 @@ class TestInsights:
 
         insights = response.data["lastInsights"]["data"]
         assert len(insights) == 4
-        # insight1 = next(i for i in insights if i["title"] == insight1_title)
-        # insight2 = next(i for i in insights if i["title"] == insight2_title)
+
         insight1_result = insights[0]
         assert insight1_result["title"] == insight1.title
         assert insight1_result["numberOfPosts"] == 2
