@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 
 import strawberry
 import strawberry_django
@@ -46,5 +47,5 @@ class Commentable:
         return UserBlockModel.paged(current_user, lambda user: user.id, commenters, offset, limit)
 
     @strawberry_django.field()
-    def top_comment(self, info) -> Comment:
+    def top_comment(self, info) -> Optional[Comment]:
         return CommentModel.get_top_comment(self.id, self.type)
