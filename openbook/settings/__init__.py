@@ -16,13 +16,12 @@ import os
 import sys
 
 import structlog
-from dotenv import load_dotenv, find_dotenv
 from django.utils.translation import gettext_lazy as _
+from dotenv import find_dotenv, load_dotenv
+from novu.config import NovuConfig
 
 from openbook.settings import sentry_config
 from openbook_common.utils.environment import EnvironmentChecker
-
-from novu.config import NovuConfig
 
 # Python 3.10 moved collections.Callable to collections.abc.Callable. This is a patch to make old libs work (in particular nose)
 collections.Callable = collections.abc.Callable
@@ -113,6 +112,7 @@ INSTALLED_APPS = [
     "sortedm2m",
     "openbook_appointments",
     "favorites",
+    "comments",
 ]
 
 MODELTRANSLATION_FALLBACK_LANGUAGES = ("en",)

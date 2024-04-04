@@ -16,7 +16,8 @@ from openbook_moderation.serializers import (
 from openbook_moderation.serializers_fields.community import (
     CommunityPendingModeratedObjectsCountField,
 )
-from openbook_posts.models import Post, PostComment, PostImage
+from openbook_posts.models import Post, PostImage
+from comments.models import Comment
 
 
 class PendingModeratedObjectsCommunitySerializer(serializers.ModelSerializer):
@@ -115,7 +116,7 @@ class ModerationPenaltyModeratedObjectPostCommentSerializer(serializers.ModelSer
     language = LanguageSerializer()
 
     class Meta:
-        model = PostComment
+        model = Comment
         fields = (
             "id",
             "text",
@@ -146,7 +147,7 @@ class ModerationPenaltyModeratedObjectSerializer(serializers.ModelSerializer):
     content_object = GenericRelatedField(
         {
             Post: ModerationPenaltyModeratedObjectPostSerializer(),
-            PostComment: ModerationPenaltyModeratedObjectPostCommentSerializer(),
+            Comment: ModerationPenaltyModeratedObjectPostCommentSerializer(),
             Community: ModerationPenaltyModeratedObjectCommunitySerializer(),
             User: ModerationPenaltyModeratedObjectUserSerializer(),
         }

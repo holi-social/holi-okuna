@@ -7,27 +7,28 @@ from strawberry.tools import merge_types
 from strawberry.types import ExecutionContext
 from strawberry_django.optimizer import DjangoOptimizerExtension
 
-
+from comments.schema import mutations as comments_mutations
+from favorites.schema import mutations as favorites_mutations
+from favorites.schema import queries as favorites_queries
+from openbook.graphql_errors import GraphQLErrorCodes
 from openbook.middleware.graphql_error_extension import GraphQLErrorExtension
 from openbook.settings.sentry_config import HoliSentryTracingExtension
+from openbook_appointments.schema import mutations as appointments_mutations
+from openbook_appointments.schema import queries as appointments_queries
 from openbook_auth.schema import mutations as auth_mutations
 from openbook_auth.schema import queries as auth_queries
-from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.schema import queries as commons_queries
 from openbook_communities.schema import mutations as communities_mutations
 from openbook_communities.schema import queries as communities_queries
 from openbook_connections.schema import mutations as connections_mutations
-from openbook_insights.schema import queries as insights_queries, mutations as insights_mutations
+from openbook_insights.schema import mutations as insights_mutations
+from openbook_insights.schema import queries as insights_queries
 from openbook_moderation.schema import mutations as moderation_mutations
 from openbook_notifications.schema import mutations as notifications_mutations
 from openbook_notifications.schema import queries as notifications_queries
 from openbook_posts.schema import mutations as posts_mutations
 from openbook_posts.schema import queries as posts_queries
 from openbook_terms.schema import queries as terms_queries
-from openbook_appointments.schema import mutations as appointments_mutations
-from openbook_appointments.schema import queries as appointments_queries
-from favorites.schema import queries as favorites_queries
-from favorites.schema import mutations as favorites_mutations
 
 logger = structlog.get_logger(__name__)
 
@@ -83,6 +84,7 @@ Mutation = merge_types(
         appointments_mutations.Mutation,
         insights_mutations.Mutation,
         favorites_mutations.Mutation,
+        comments_mutations.Mutation,
     ),
 )
 

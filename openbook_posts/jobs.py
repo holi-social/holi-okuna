@@ -8,9 +8,9 @@ from django.utils import timezone
 from django_rq import job
 
 from openbook_common.utils.model_loaders import (
+    get_comment_model,
     get_community_model,
     get_moderated_object_model,
-    get_post_comment_model,
     get_post_media_model,
     get_post_model,
     get_top_post_model,
@@ -66,7 +66,7 @@ def curate_top_posts():
     """
     Post = get_post_model()
     Community = get_community_model()
-    PostComment = get_post_comment_model()
+    Comment = get_comment_model()
     ModeratedObject = get_moderated_object_model()
     TopPost = get_top_post_model()
     logger.info(f"Processing top posts at {timezone.now()}...")
@@ -107,7 +107,7 @@ def curate_top_posts():
         total_checked_posts = total_checked_posts + 1
         if not post.reactions_count >= settings.MIN_UNIQUE_TOP_POST_REACTIONS_COUNT:
             unique_comments_count = (
-                PostComment.objects.filter(commentable=post)
+                Comment.objects.filter(commentable=post)
                 .values("commenter_id")
                 .annotate(user_comments_count=Count("commenter_id"))
                 .count()
@@ -142,7 +142,7 @@ def clean_top_posts():
     Post = get_post_model()
     Community = get_community_model()
     TopPost = get_top_post_model()
-    PostComment = get_post_comment_model()
+    Comment = get_comment_model()
     ModeratedObject = get_moderated_object_model()
 
     # if any of these is true, we will remove the top post
@@ -221,7 +221,7 @@ def clean_top_posts():
     for top_post in _chunked_queryset_iterator(top_posts, 1000):
         if not top_post.reactions_count >= settings.MIN_UNIQUE_TOP_POST_REACTIONS_COUNT:
             unique_comments_count = (
-                PostComment.objects.filter(commentable=top_post.post)
+                Comment.objects.filter(commentable=top_post.post)
                 .values("commenter_id")
                 .annotate(user_comments_count=Count("commenter_id"))
                 .count()

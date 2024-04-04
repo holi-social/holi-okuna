@@ -63,8 +63,8 @@ from openbook_common.utils.model_loaders import (
     get_moderated_object_model,
     get_moderation_report_model,
     get_moderation_penalty_model,
-    get_post_comment_mute_model,
-    get_post_comment_reaction_model,
+    get_comment_mute_model,
+    get_comment_reaction_model,
     get_post_comment_reaction_notification_model,
     get_top_post_model,
     get_top_post_community_exclusion_model,
@@ -1030,7 +1030,7 @@ class User(ModelWithUUID, AbstractUser):
         return self.post_mutes.filter(post_id=post_id).exists()
 
     def has_muted_post_comment_with_id(self, post_comment_id):
-        return self.post_comment_mutes.filter(post_comment_id=post_comment_id).exists()
+        return self.comment_mutes.filter(post_comment_id=post_comment_id).exists()
 
     def has_blocked_user_with_id(self, user_id):
         return self.user_blocks.filter(blocked_user_id=user_id).exists()
@@ -1144,10 +1144,10 @@ class User(ModelWithUUID, AbstractUser):
         if emoji_id:
             has_reacted_query.add(Q(emoji_id=emoji_id), Q.AND)
 
-        return self.post_comment_reactions.filter(has_reacted_query).exists()
+        return self.comment_reactions.filter(has_reacted_query).exists()
 
     def has_commented_post_with_id(self, post_id):
-        return self.posts_comments.filter(commentable_id=post_id).exists()
+        return self.comments.filter(commentable_id=post_id).exists()
 
     def has_notification_with_id(self, notification_id):
         return self.notifications.filter(pk=notification_id).exists()
@@ -1291,8 +1291,8 @@ class User(ModelWithUUID, AbstractUser):
             post_comment_parent_id=post_comment.parent_comment_id,
             post=post,
         )
-        PostComment = get_post_comment_model()
-        return PostComment.objects.filter(post_comment_query).exists()
+        Comment = get_comment_model()
+        return Comment.objects.filter(post_comment_query).exists()
 
     def get_lists_for_follow_for_user_with_id(self, user_id):
         check_is_following_user_with_id(user=self, user_id=user_id)
@@ -1390,8 +1390,8 @@ class User(ModelWithUUID, AbstractUser):
         return get_reactions(model, reactions_query)
 
     def get_reaction_counts_for_post_comment_with_id(self, post_comment_id, reaction_type=None):
-        PostComment = get_post_comment_model()
-        post_comment = PostComment.objects.get(pk=post_comment_id)
+        Comment = get_comment_model()
+        post_comment = Comment.objects.get(pk=post_comment_id)
         return self.get_reaction_counts_for_post_comment(post_comment=post_comment, reaction_type=reaction_type)
 
     def get_reaction_counts_for_post_comment(self, post_comment, reaction_type=None):
@@ -1430,13 +1430,13 @@ class User(ModelWithUUID, AbstractUser):
             )
             reactions_query.add(blocked_users_query, Q.AND)
 
-        return get_reactions(get_post_comment_reaction_model(), reactions_query)
+        return get_reactions(get_comment_reaction_model(), reactions_query)
 
     def get_reaction_for_post_comment_with_id(self, post_comment_id):
-        return self.post_comment_reactions.filter(post_comment_id=post_comment_id).get()
+        return self.comment_reactions.filter(post_comment_id=post_comment_id).get()
 
     def get_reactions_for_post_comment_with_id(self, post_comment_id, reaction_type=None):
-        Post_comment = get_post_comment_model()
+        Post_comment = get_comment_model()
         post_comment = Post_comment.objects.get(pk=post_comment_id)
 
         return self.get_reactions_for_post_comment(post_comment=post_comment, reaction_type=reaction_type)
@@ -1448,8 +1448,8 @@ class User(ModelWithUUID, AbstractUser):
             post_comment=post_comment, reaction_type=reaction_type
         )
 
-        PostCommentReaction = get_post_comment_reaction_model()
-        return PostCommentReaction.objects.filter(reactions_query)
+        CommentReaction = get_comment_reaction_model()
+        return CommentReaction.objects.filter(reactions_query)
 
     def react_to_post_with_id(self, post_id, reaction_type):
         Post = get_post_model()
@@ -1486,8 +1486,8 @@ class User(ModelWithUUID, AbstractUser):
         post_reaction.delete()
 
     def react_to_post_comment_with_id(self, post_comment_id, reaction_type):
-        PostComment = get_post_comment_model()
-        post_comment = PostComment.objects.get(pk=post_comment_id)
+        Comment = get_comment_model()
+        post_comment = Comment.objects.get(pk=post_comment_id)
         return self.react_to_post_comment(post_comment=post_comment, reaction_type=reaction_type)
 
     def react_to_post_comment(self, post_comment, reaction_type):
@@ -1496,7 +1496,7 @@ class User(ModelWithUUID, AbstractUser):
         post_comment_id = post_comment.pk
 
         if self.has_reacted_to_post_comment_with_id(post_comment_id):
-            post_comment_reaction = self.post_comment_reactions.get(post_comment_id=post_comment_id)
+            post_comment_reaction = self.comment_reactions.get(post_comment_id=post_comment_id)
             post_comment_reaction.reaction_type = reaction_type
             post_comment_reaction.save()
         else:
@@ -1522,9 +1522,9 @@ class User(ModelWithUUID, AbstractUser):
     def get_comment_replies_for_comment_with_id_with_post_with_id(
         self, post_comment_id, post_id, min_id=None, max_id=None
     ):
-        PostComment = get_post_comment_model()
+        Comment = get_comment_model()
         Post = get_post_model()
-        post_comment = PostComment.objects.get(pk=post_comment_id)
+        post_comment = Comment.objects.get(pk=post_comment_id)
         post = Post.objects.get(id=post_id)
         return self.get_comment_replies_for_comment_with_post(
             post=post, post_comment=post_comment, min_id=min_id, max_id=max_id
@@ -1539,8 +1539,8 @@ class User(ModelWithUUID, AbstractUser):
             max_id=max_id,
             min_id=min_id,
         )
-        PostComment = get_post_comment_model()
-        return PostComment.objects.filter(comment_replies_query)
+        Comment = get_comment_model()
+        return Comment.objects.filter(comment_replies_query)
 
     def get_comments_count_for_post(self, post):
         return post.count_comments_with_user(user=self)
@@ -1630,10 +1630,10 @@ class User(ModelWithUUID, AbstractUser):
         return post_comment
 
     def reply_to_comment_with_id_for_post_with_id(self, post_comment_id, post_id, text):
-        PostComment = get_post_comment_model()
+        Comment = get_comment_model()
         Post = get_post_model()
         post = Post.objects.get(id=post_id)
-        post_comment = PostComment.objects.get(pk=post_comment_id)
+        post_comment = Comment.objects.get(pk=post_comment_id)
         return self.reply_to_comment_for_post(post_comment=post_comment, text=text, post=post)
 
     def reply_to_comment_for_post(self, post_comment, post, text):
@@ -1718,8 +1718,8 @@ class User(ModelWithUUID, AbstractUser):
         return post_comment_reply
 
     def delete_comment_with_id(self, post_comment_id):
-        PostComment = get_post_comment_model()
-        post_comment = PostComment.objects.get(pk=post_comment_id)
+        Comment = get_comment_model()
+        post_comment = Comment.objects.get(pk=post_comment_id)
         check_can_delete_comment_with_id_for_post(
             user=self, post_comment_id=post_comment_id, post=post_comment.commentable
         )
@@ -1729,8 +1729,8 @@ class User(ModelWithUUID, AbstractUser):
         Post = get_post_model()
         post = Post.objects.get(pk=post_id)
         check_can_delete_comment_with_id_for_post(user=self, post_comment_id=post_comment_id, post=post)
-        PostComment = get_post_comment_model()
-        post_comment = PostComment.objects.get(pk=post_comment_id)
+        Comment = get_comment_model()
+        post_comment = Comment.objects.get(pk=post_comment_id)
         self._delete_post_comment_notification(post_comment=post_comment)
         post_comment.delete()
 
@@ -1741,8 +1741,8 @@ class User(ModelWithUUID, AbstractUser):
         post = Post.objects.get(pk=post_id)
         check_can_edit_comment_with_id_for_post(user=self, post_comment_id=post_comment_id, post=post)
 
-        PostComment = get_post_comment_model()
-        post_comment = PostComment.objects.get(pk=post_comment_id)
+        Comment = get_comment_model()
+        post_comment = Comment.objects.get(pk=post_comment_id)
         post_comment.update_comment(text)
         return post_comment
 
@@ -1750,8 +1750,8 @@ class User(ModelWithUUID, AbstractUser):
         Post = get_post_model()
         post = Post.objects.get(id=post_id)
 
-        PostComment = get_post_comment_model()
-        post_comment = PostComment.objects.get(pk=post_comment_id)
+        Comment = get_comment_model()
+        post_comment = Comment.objects.get(pk=post_comment_id)
         return self.get_comment_for_post(post_comment=post_comment, post=post)
 
     def get_comment_for_post(self, post, post_comment):
@@ -4055,28 +4055,28 @@ class User(ModelWithUUID, AbstractUser):
         return post
 
     def mute_post_comment_with_id(self, post_comment_id):
-        PostComment = get_post_comment_model()
-        post_comment = PostComment.objects.get(pk=post_comment_id)
+        Comment = get_comment_model()
+        post_comment = Comment.objects.get(pk=post_comment_id)
         return self.mute_post_comment(post_comment=post_comment)
 
     def mute_post_comment(self, post_comment):
         check_can_mute_post_comment(user=self, post_comment=post_comment)
-        PostCommentMute = get_post_comment_mute_model()
-        PostCommentMute.create_post_comment_mute(post_comment_id=post_comment.pk, muter_id=self.pk)
+        CommentMute = get_comment_mute_model()
+        CommentMute.create_comment_mute(comment_id=post_comment.pk, muter_id=self.pk)
         return post_comment
 
     def unmute_post_comment_with_id(self, post_comment_id):
-        Post_comment = get_post_comment_model()
+        Post_comment = get_comment_model()
         post_comment = Post_comment.objects.get(pk=post_comment_id)
 
         check_can_unmute_post_comment(user=self, post_comment=post_comment)
-        self.post_comment_mutes.filter(post_comment_id=post_comment_id).delete()
+        self.comment_mutes.filter(post_comment_id=post_comment_id).delete()
         return post_comment
 
     def translate_post_comment_with_id(self, post_comment_id):
         check_can_translate_comment_with_id(user=self, post_comment_id=post_comment_id)
-        PostComment = get_post_comment_model()
-        post_comment = PostComment.objects.get(pk=post_comment_id)
+        Comment = get_comment_model()
+        post_comment = Comment.objects.get(pk=post_comment_id)
         result = translation_strategy.translate_text(
             source_language_code=post_comment.language.code,
             target_language_code=self.translation_language.code,
@@ -4156,13 +4156,13 @@ class User(ModelWithUUID, AbstractUser):
         return User.objects.get(pk=user_id)
 
     def report_comment_with_id(self, post_comment_id, category_id, description=None):
-        PostComment = get_post_comment_model()
-        post_comment = PostComment.objects.get(id=post_comment_id)
+        Comment = get_comment_model()
+        post_comment = Comment.objects.get(id=post_comment_id)
         self.report_comment_for_post(post_comment, post_comment.commentable, category_id, description)
 
     def report_comment_with_id_for_post_with_id(self, post_comment_id, post_id, category_id, description=None):
-        PostComment = get_post_comment_model()
-        post_comment = PostComment.objects.get(id=post_comment_id)
+        Comment = get_comment_model()
+        post_comment = Comment.objects.get(id=post_comment_id)
 
         Post = get_post_model()
         post = Post.objects.get(id=post_id)
