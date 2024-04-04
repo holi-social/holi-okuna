@@ -65,34 +65,6 @@ def get_post_with_id_raw(post_id, user=None):
     )
 
 
-def update_space_post(user, info):
-    return async_to_sync(schema.execute)(
-        """
-        mutation test($input: UpdatePostInput!){
-            updateSpacePost(input: $input) {
-                id
-                title
-                space {
-                  id
-                  posts {
-                    totalResults
-                  }
-                }
-                text
-                isPublic
-                created
-                image {
-                    url
-                    blurhash
-                }
-            }
-        }
-        """,
-        context_value=benedict({"request": {"user": user}}),
-        variable_values={"input": info},
-    )
-
-
 def create_space_post(user, info):
     return async_to_sync(schema.execute)(
         """
