@@ -29,13 +29,13 @@ class Command(BaseCommand):
             try:
                 language = get_language_for_text(post.text)
             except LangDetectException:
-                print("Caught exception while detecting language, skipping")
+                print("Caught exception while detecting language, skipping")  # noqa: T201
 
             if language:
                 post.language = language
                 post.save()
             else:
-                print("Could not detect language for id", post.id)
+                print("Could not detect language for id", post.id)  # noqa: T201
 
     def assign_language_comments(self):
         Comment = get_comment_model()
@@ -44,10 +44,10 @@ class Command(BaseCommand):
             try:
                 language = get_language_for_text(post_comment.text)
             except LangDetectException:
-                print("Caught exception while detecting language, skipping")
+                print("Caught exception while detecting language, skipping")  # noqa: T201
 
             if language:
                 post_comment.language = language
                 post_comment.save()
             else:
-                print("Could not detect language for id", post_comment.id)
+                print("Could not detect language for id", post_comment.id)  # noqa: T201
