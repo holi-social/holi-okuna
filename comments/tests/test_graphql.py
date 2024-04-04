@@ -21,6 +21,7 @@ from .helpers import (
     add_reaction_to_comment,
     delete_comment,
     get_commenters,
+    get_comments,
     get_top_comment,
     remove_reaction_from_comment,
 )
@@ -452,6 +453,24 @@ class TestComments(TestCase):
     def teardown(self):
         if self.notifications_toggle.id is not None:
             self.notifications_toggle.delete()
+
+    def test_should_list_comments(self):
+        post = make_post()
+        another_post = make_post()
+        commenter = make_user(name="Commenter")
+        another_commenter = make_user(name="Another Commenter")
+
+        Comment.create_comment("It's greeeaat!", commenter, post)
+        Comment.create_comment("Just ok", another_commenter, post)
+        Comment.create_comment("You didn't see me, right!", another_commenter, another_post)
+        response = get_comments(post.id, "POST")
+
+        assert response.errors is None
+        commenters_data = response.data["commentable"]["comments"]
+        assert commenters_data["totalResults"] == 2
+        assert len(commenters_data["data"]) == 2
+        assert commenters_data["data"][0]["text"] == "It's greeeaat!"
+        assert commenters_data["data"][1]["text"] == "Just ok"
 
     def test_should_list_people_who_are_commenting_on_the_content(self):
         post = make_post()
