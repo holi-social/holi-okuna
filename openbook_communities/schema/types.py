@@ -1,38 +1,39 @@
 import logging
 import uuid
 from typing import Annotated, List, Optional, TypeVar
-from django.utils import timezone
 
 import strawberry
 import strawberry_django
+from django.db.models import Q
+from django.utils import timezone
 from strawberry.file_uploads import Upload
 
 from openbook_appointments.schema.types import Appointment
 from openbook_auth.models import User as UserModel
 from openbook_auth.schema.types import User
-from openbook_common.schema.types import GeolocationPoint, GeolocationPointInput, Paged
+from openbook_common.schema.types import GeolocationPoint, GeolocationPointInput, Paged, GeoJSON
 from openbook_communities.models import (
     CollaborationTool as CollaborationToolModel,
     Community,
+    Community as CommunityModel,
+    CommunityMembership as CommunityMembershipModel,
+    CommunityMembershipRequest as CommunityMembershipRequestModel,
+    CommunityInvite as CommunityInviteModel,
+    ExternalLink as ExternalLinkModel,
+    ExternalLinkType,
+    OnboardingStep as OnboardingStepModel,
+    SpaceUserConnectionType,
+    Task as TaskModel,
+    VisibilityType,
 )
 from openbook_communities.models.network_relationship import (
     SpacesRelationship as SpacesRelationshipModel,
     SpacesRelationshipType,
 )
-from openbook_communities.models import Community as CommunityModel
-from openbook_communities.models import CommunityMembership as CommunityMembershipModel
-from openbook_communities.models import CommunityMembershipRequest as CommunityMembershipRequestModel
-from openbook_communities.models import CommunityInvite as CommunityInviteModel
-from openbook_communities.models import ExternalLink as ExternalLinkModel
-from openbook_communities.models import ExternalLinkType
-from openbook_communities.models import OnboardingStep as OnboardingStepModel
-from openbook_communities.models import SpaceUserConnectionType
-from openbook_communities.models import Task as TaskModel
-from openbook_communities.models import VisibilityType
 from openbook_posts.enums import VisibilityFilter
 from openbook_posts.models import Post as PostModel
-from openbook_terms.schema.types import SDG, Skill, Topic
 from openbook_posts.schema.types import Post
+from openbook_terms.schema.types import SDG, Skill, Topic
 
 logger = logging.getLogger(__name__)
 
@@ -384,12 +385,18 @@ class Space:
         return Paged.of(appointments, offset, limit)
 
     @strawberry_django.field()
-    def child_spaces(self, info, offset: int = 0, limit: int = 10) -> Paged["Space"]:
+    def child_spaces(
+        self, info, geolocation: Optional[GeoJSON] = None, offset: int = 0, limit: int = 10
+    ) -> Paged["Space"]:
+        query = Q(
+            space_relationships__to_space=self, space_relationships__relationship_type=SpacesRelationshipType.PART_OF
+        )
+
+        if geolocation is not None:
+            query.add(Q(geolocation__within=geolocation.geometry), Q.AND)
+
         return Paged.of(
-            Community.objects.filter(
-                space_relationships__to_space=self,
-                space_relationships__relationship_type=SpacesRelationshipType.PART_OF,
-            ),
+            Community.objects.filter(query),
             offset,
             limit,
         )
@@ -414,12 +421,6 @@ class MySpaces:
 
     @strawberry_django.field()
     def spaces(self, offset: int = 0, limit: int = 10) -> Paged[Space]:
-        """
-        When spaces are already resolved, they are returned.
-        Otherwise: When a query is provided, it is used to create a paged result.
-        """
-        # if self.spaces is not None:
-        #     return self.spaces
         if hasattr(self, "query"):
             return Paged.of(self.query, offset, limit)
         return Paged()
