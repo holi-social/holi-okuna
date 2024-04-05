@@ -25,6 +25,22 @@ class Question(ModelWithUUID):
     modified = models.DateTimeField(db_index=True, default=timezone.now)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="polls", null=True)
 
+    is_edited = models.BooleanField(default=False)
+    is_closed = models.BooleanField(default=False)
+    is_deleted = models.BooleanField(default=False)
+    STATUS_DRAFT = "D"
+    STATUS_PROCESSING = "PG"
+    STATUS_PUBLISHED = "P"
+    STATUSES = (
+        (STATUS_DRAFT, "Draft"),
+        (STATUS_PROCESSING, "Processing"),
+        (STATUS_PUBLISHED, "Published"),
+    )
+    status = models.CharField(blank=False, null=False, choices=STATUSES, default=STATUS_DRAFT, max_length=2)
+
+    is_public = models.BooleanField(default=False, db_index=True)
+
+
     def save(self, *args, **kwargs):
         """On create, update timestamps"""
         if not self.created:
@@ -59,6 +75,24 @@ class Question(ModelWithUUID):
         poll.save()
         
         return poll
+    
+    @staticmethod
+    def does_exist_query(prefix=None):
+        pQ = PrefixedQ(prefix)
+
+        return pQ(is_deleted=False)
+    
+    @staticmethod
+    def is_visible_query(user, prefix=None):
+        pQ = PrefixedQ(prefix)
+
+        if user.is_anonymous:
+            return pQ(is_deleted=False, status=Question.STATUS_PUBLISHED, is_public=True)
+
+        return pQ(is_deleted=False) & (
+            (pQ(creator=user) & (pQ(community__isnull=True) | pQ(community__memberships__user__id=user.id)))
+            | (pQ(status=Question.STATUS_PUBLISHED) & (pQ(is_public=True) | pQ(community__memberships__user__id=user.id)))
+        )
 
 
 class Choice(ModelWithUUID):
