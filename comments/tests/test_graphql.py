@@ -16,7 +16,15 @@ from openbook_common.tests.helpers import (
     make_user,
 )
 
-from .helpers import add_comment, add_reaction_to_comment, delete_comment, remove_reaction_from_comment
+from .helpers import (
+    add_comment,
+    add_reaction_to_comment,
+    delete_comment,
+    get_commenters,
+    get_comments,
+    get_top_comment,
+    remove_reaction_from_comment,
+)
 from .post_comment_helpers import (
     delete_post_comment,
     get_post,
@@ -433,3 +441,68 @@ class TestReactingToComments(TestCase):
         updated_comment = response.data["removeReactionFromComment"]
         assert updated_comment["myReaction"]["HEART"] == 0
         assert updated_comment["reactions"]["HEART"] == 1
+
+
+@pytest.mark.django_db
+class TestComments(TestCase):
+    def setup(self):
+        self.notifications_toggle = FeatureToggleModel.objects.create(
+            name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
+        )
+
+    def teardown(self):
+        if self.notifications_toggle.id is not None:
+            self.notifications_toggle.delete()
+
+    def test_should_list_comments(self):
+        post = make_post()
+        another_post = make_post()
+        commenter = make_user(name="Commenter")
+        another_commenter = make_user(name="Another Commenter")
+
+        Comment.create_comment("It's greeeaat!", commenter, post)
+        Comment.create_comment("Just ok", another_commenter, post)
+        Comment.create_comment("You didn't see me, right!", another_commenter, another_post)
+        response = get_comments(post.id, "POST")
+
+        assert response.errors is None
+        commenters_data = response.data["commentable"]["comments"]
+        assert commenters_data["totalResults"] == 2
+        assert len(commenters_data["data"]) == 2
+        assert commenters_data["data"][0]["text"] == "It's greeeaat!"
+        assert commenters_data["data"][1]["text"] == "Just ok"
+
+    def test_should_list_people_who_are_commenting_on_the_content(self):
+        post = make_post()
+        another_post = make_post()
+        commenter = make_user(name="Commenter")
+        last_commenter = make_user(name="Last Commenter")
+        yet_another_commenter = make_user(name="Yet Another Commenter")
+
+        Comment.create_comment("It's greeeaat!", commenter, post)
+        Comment.create_comment("Just ok", last_commenter, post)
+        Comment.create_comment("You didn't see me, right!", last_commenter, another_post)
+        Comment.create_comment("Nor me!", yet_another_commenter, another_post)
+        response = get_commenters(post.id, "POST")
+
+        assert response.errors is None
+        commenters_data = response.data["commentable"]["commenters"]
+        assert commenters_data["totalResults"] == 2
+        assert len(commenters_data["data"]) == 2
+        assert commenters_data["data"][0]["firstName"] == "Last Commenter"
+
+    def test_should_get_the_most_interesting_comment_for_the_content(self):
+        post = make_post()
+        another_post = make_post()
+        commenter = make_user(name="Commenter")
+        last_commenter = make_user(name="Last Commenter")
+
+        Comment.create_comment("It's greeeaat!", commenter, post)
+        Comment.create_comment("Latest comment", last_commenter, post)
+        Comment.create_comment("You didn't see me, right!", last_commenter, another_post)
+        # For now, this is the last comment. It will evolve to be the most relevant to the user.
+        response = get_top_comment(post.id, "POST")
+
+        assert response.errors is None
+        top_comment_data = response.data["commentable"]["topComment"]
+        assert top_comment_data["text"] == "Latest comment"

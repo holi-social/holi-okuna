@@ -79,8 +79,8 @@ class Comment(ModelWithUUID):
 
     @staticmethod
     def get_commentable(
-        commentable_type: CommentableType,
         commentable_id: uuid.UUID,
+        commentable_type: CommentableType,
     ):
         commentable_content_type = ContentType.objects.get(model=commentable_type.value)
         commentable = commentable_content_type.get_object_for_this_type(pk=commentable_id)
@@ -117,6 +117,20 @@ class Comment(ModelWithUUID):
             reactions_query.add(Q(reactor__id=reactor_id), Q.AND)
 
         return get_reactions(CommentReaction, reactions_query)
+
+    @classmethod
+    def get_top_comment(
+        cls,
+        commentable_id: uuid.UUID,
+        commentable_type: CommentableType,
+    ):
+        return (
+            cls.objects.filter(commentable_id=commentable_id)
+            .filter(commentable_type__model=commentable_type.value)
+            .filter(is_deleted=False)
+            .order_by("-created")
+            .first()
+        )
 
     def count_replies(self):
         return self.replies.count()

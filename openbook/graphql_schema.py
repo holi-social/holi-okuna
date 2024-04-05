@@ -8,6 +8,7 @@ from strawberry.types import ExecutionContext
 from strawberry_django.optimizer import DjangoOptimizerExtension
 
 from comments.schema import mutations as comments_mutations
+from comments.schema import queries as comments_queries
 from favorites.schema import mutations as favorites_mutations
 from favorites.schema import queries as favorites_queries
 from openbook.graphql_errors import GraphQLErrorCodes
@@ -69,6 +70,7 @@ Query = merge_types(
         commons_queries.Query,
         appointments_queries.Query,
         favorites_queries.Query,
+        comments_queries.Query,
     ),
 )
 
