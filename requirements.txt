@@ -3,7 +3,7 @@ adrf==0.1.6
 ASGIMiddlewareStaticFile==0.6.1
 bandit==1.7.8
 beautifulsoup4==4.12.3
-black[d]==24.3.0 # can not bump due to conflict with safety
+black[d]==24.3.0
 blurhash-python==1.2.1
 boto3==1.34.79
 botocore==1.34.79
