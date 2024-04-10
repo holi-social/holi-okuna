@@ -49,14 +49,13 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 @pytest.mark.django_db
 class TestPosts(TestCase):
+    @pytest.fixture(autouse=True)
     def setup(self):
-        self.notifications_toggle = FeatureToggleModel.objects.create(
+        notifications_toggle = FeatureToggleModel.objects.create(
             name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
         )
-
-    def teardown(self):
-        if self.notifications_toggle.id is not None:
-            self.notifications_toggle.delete()
+        yield
+        notifications_toggle.delete()
 
     def test_can_fetch_post(self):
         posting_user = make_user()

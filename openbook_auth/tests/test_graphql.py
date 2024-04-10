@@ -77,14 +77,14 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 @pytest.mark.django_db
 class TestUsers:
+
+    @pytest.fixture(autouse=True)
     def setup(self):
-        self.notifications_toggle = FeatureToggle.objects.create(
+        notifications_toggle = FeatureToggle.objects.create(
             name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
         )
-
-    def teardown(self):
-        if self.notifications_toggle.id is not None:
-            self.notifications_toggle.delete()
+        yield
+        notifications_toggle.delete()
 
     @pytest.mark.asyncio
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")

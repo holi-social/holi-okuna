@@ -48,14 +48,13 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 @pytest.mark.django_db
 class TestPostComments(TestCase):
+    @pytest.fixture(autouse=True)
     def setup(self):
-        self.notifications_toggle = FeatureToggleModel.objects.create(
+        notifications_toggle = FeatureToggleModel.objects.create(
             name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
         )
-
-    def teardown(self):
-        if self.notifications_toggle.id is not None:
-            self.notifications_toggle.delete()
+        yield
+        notifications_toggle.delete()
 
     @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
     @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
@@ -256,14 +255,13 @@ class TestPostComments(TestCase):
 
 @pytest.mark.django_db
 class TestAddingComments(TestCase):
+    @pytest.fixture(autouse=True)
     def setup(self):
-        self.notifications_toggle = FeatureToggleModel.objects.create(
+        notifications_toggle = FeatureToggleModel.objects.create(
             name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
         )
-
-    def teardown(self):
-        if self.notifications_toggle.id is not None:
-            self.notifications_toggle.delete()
+        yield
+        notifications_toggle.delete()
 
     def test_should_add_a_comment(self):
         post = make_post()
@@ -359,14 +357,13 @@ class TestAddingComments(TestCase):
 
 @pytest.mark.django_db
 class TestDeletingComments(TestCase):
+    @pytest.fixture(autouse=True)
     def setup(self):
-        self.notifications_toggle = FeatureToggleModel.objects.create(
+        notifications_toggle = FeatureToggleModel.objects.create(
             name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
         )
-
-    def teardown(self):
-        if self.notifications_toggle.id is not None:
-            self.notifications_toggle.delete()
+        yield
+        notifications_toggle.delete()
 
     def test_should_delete_own_comment(self):
         comment = make_post_comment()
@@ -406,14 +403,13 @@ class TestDeletingComments(TestCase):
 
 @pytest.mark.django_db
 class TestReactingToComments(TestCase):
+    @pytest.fixture(autouse=True)
     def setup(self):
-        self.notifications_toggle = FeatureToggleModel.objects.create(
+        notifications_toggle = FeatureToggleModel.objects.create(
             name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
         )
-
-    def teardown(self):
-        if self.notifications_toggle.id is not None:
-            self.notifications_toggle.delete()
+        yield
+        notifications_toggle.delete()
 
     def test_should_be_able_to_react_to_a_comment(self):
         comment = make_post_comment()
@@ -445,14 +441,13 @@ class TestReactingToComments(TestCase):
 
 @pytest.mark.django_db
 class TestComments(TestCase):
+    @pytest.fixture(autouse=True)
     def setup(self):
-        self.notifications_toggle = FeatureToggleModel.objects.create(
+        notifications_toggle = FeatureToggleModel.objects.create(
             name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
         )
-
-    def teardown(self):
-        if self.notifications_toggle.id is not None:
-            self.notifications_toggle.delete()
+        yield
+        notifications_toggle.delete()
 
     def test_should_list_comments(self):
         post = make_post()
