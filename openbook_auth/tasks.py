@@ -82,9 +82,9 @@ def send_extend_ory_session(session_id: str):
         if response.status_code != http.HTTPStatus.OK:
             response_data = response.json()
             error = response_data.get("error")
-            logger.warning("Extending the Ory session: %s failed with Error: %s", session_id, error["message"])
+            logger.error("Extending the Ory session: %s failed with Error: %s", session_id, error["message"])
     except Exception as ex:
-        logger.warning("Could not process Session Expiry. Exception: %s", repr(ex))
+        logger.error("Could not process Session Expiry. Exception: %s", repr(ex))
     finally:
         session_ids.remove(session_id)
 
