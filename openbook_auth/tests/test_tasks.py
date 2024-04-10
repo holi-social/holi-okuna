@@ -63,7 +63,7 @@ class TestUpdateOryUser(TestCase):
             f"{settings.ORY_BASE_URL}/admin/identities/{self.user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
             json=json_body,
-            timeout=30
+            timeout=30,
         )
         self.assertFalse(job.is_failed)
         self.assertTrue(job.is_finished)
@@ -94,7 +94,7 @@ class TestUpdateOryUser(TestCase):
             f"{settings.ORY_BASE_URL}/admin/identities/{self.user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
             json=json_body,
-            timeout=30
+            timeout=30,
         )
         self.assertTrue(job.is_failed)
         self.assertFalse(job.is_finished)
@@ -123,7 +123,7 @@ class TestUpdateOryUser(TestCase):
             f"{settings.ORY_BASE_URL}/admin/identities/{self.user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
             json=json_body,
-            timeout=30
+            timeout=30,
         )
         self.assertTrue(job.is_failed)
         self.assertFalse(job.is_finished)
@@ -140,7 +140,7 @@ class TestUpdateOryUser(TestCase):
         mock_patch.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/sessions/{session}/extend",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
-            timeout=30
+            timeout=30,
         )
 
     @mock.patch("requests.patch")
@@ -156,7 +156,7 @@ class TestUpdateOryUser(TestCase):
         mock_patch.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/sessions/{session}/extend",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
-            timeout=30
+            timeout=30,
         )
 
     @mock.patch("requests.patch")
@@ -172,7 +172,7 @@ class TestUpdateOryUser(TestCase):
         mock_patch.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/sessions/{session}/extend",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
-            timeout=30
+            timeout=30,
         )
 
         time.sleep(0.01)  # wait for ory session thread to finish
@@ -183,7 +183,7 @@ class TestUpdateOryUser(TestCase):
         mock_patch.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/sessions/{session}/extend",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
-            timeout=30
+            timeout=30,
         )
 
     def configure_mock_with_delayed_response(self, mock_patch, status_code=200, content=None):

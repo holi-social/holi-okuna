@@ -51,8 +51,9 @@ def update_ory_user_identity(user: User) -> bool:
 
 
 def update_ory(user_id, data):
-    response = requests.patch(f"{settings.ORY_BASE_URL}/admin/identities/{user_id}", headers=ORY_HEADERS, json=data,
-                              timeout=30)
+    response = requests.patch(
+        f"{settings.ORY_BASE_URL}/admin/identities/{user_id}", headers=ORY_HEADERS, json=data, timeout=30
+    )
     if response.status_code != http.HTTPStatus.OK:
         response_data = response.json()
         error = response_data.get("error")
@@ -75,12 +76,13 @@ def send_extend_ory_session(session_id: str):
     if not session_ids.add_if_absent(session_id):
         return  # we already sent an extension request that is still "in flight"
     try:
-        response = requests.patch(f"{settings.ORY_BASE_URL}/admin/sessions/{session_id}/extend", headers=ORY_HEADERS,
-                                  timeout=30)
+        response = requests.patch(
+            f"{settings.ORY_BASE_URL}/admin/sessions/{session_id}/extend", headers=ORY_HEADERS, timeout=30
+        )
         if response.status_code != http.HTTPStatus.OK:
             response_data = response.json()
             error = response_data.get("error")
-            logger.warning("Extending the Ory session: %s failed with Error: %s", session_id, error['message'])
+            logger.warning("Extending the Ory session: %s failed with Error: %s", session_id, error["message"])
     except Exception as ex:
         logger.warning("Could not process Session Expiry. Exception: %s", repr(ex))
     finally:
