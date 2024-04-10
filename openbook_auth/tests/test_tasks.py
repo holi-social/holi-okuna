@@ -175,7 +175,7 @@ class TestUpdateOryUser(TestCase):
             timeout=30
         )
 
-        time.sleep(0.01) # wait for ory session thread to finish, so the session is removed and available for processing again
+        time.sleep(0.01)  # wait for ory session thread to finish
         mock_patch.reset_mock()
         cdl = self.configure_mock_with_delayed_response(mock_patch)
         extend_ory_session(session, expiry)
@@ -186,7 +186,7 @@ class TestUpdateOryUser(TestCase):
             timeout=30
         )
 
-    def configure_mock_with_delayed_response(self, mock_patch, status_code = 200, content=None):
+    def configure_mock_with_delayed_response(self, mock_patch, status_code=200, content=None):
         if content is None:
             content = {}
         cdl = CountDownLatch(1)

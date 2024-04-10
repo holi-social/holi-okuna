@@ -21,11 +21,10 @@ class SynchronizedSet:
         with self.strings_lock:
             self.strings.add(string)
 
-    def remove(self, string: str)-> None:
+    def remove(self, string: str) -> None:
         with self.strings_lock:
             self.strings.discard(string)
 
     def __contains__(self, key) -> bool:
         with self.strings_lock:
             return key in self.strings
-

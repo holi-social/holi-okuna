@@ -21,6 +21,7 @@ ORY_HEADERS = {"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"}
 
 session_ids = SynchronizedSet()
 
+
 @job("default")
 def update_ory_user_names(user_id: int) -> None:
     user = User.objects.get(pk=user_id)
@@ -50,7 +51,8 @@ def update_ory_user_identity(user: User) -> bool:
 
 
 def update_ory(user_id, data):
-    response = requests.patch(f"{settings.ORY_BASE_URL}/admin/identities/{user_id}", headers=ORY_HEADERS, json=data, timeout=30)
+    response = requests.patch(f"{settings.ORY_BASE_URL}/admin/identities/{user_id}", headers=ORY_HEADERS, json=data,
+                              timeout=30)
     if response.status_code != http.HTTPStatus.OK:
         response_data = response.json()
         error = response_data.get("error")
@@ -68,11 +70,13 @@ def create_matrix_user_account(identity: str):
     response = requests.put(url, headers=headers, json={}, timeout=30)
     return response.status_code == 201
 
-def send_extend_ory_session(session_id:str):
-    if not session_ids.add_if_absent(session_id): 
-        return # we already sent an extension request that is still "in flight"
+
+def send_extend_ory_session(session_id: str):
+    if not session_ids.add_if_absent(session_id):
+        return  # we already sent an extension request that is still "in flight"
     try:
-        response = requests.patch(f"{settings.ORY_BASE_URL}/admin/sessions/{session_id}/extend", headers=ORY_HEADERS, timeout=30)
+        response = requests.patch(f"{settings.ORY_BASE_URL}/admin/sessions/{session_id}/extend", headers=ORY_HEADERS,
+                                  timeout=30)
         if response.status_code != http.HTTPStatus.OK:
             response_data = response.json()
             error = response_data.get("error")
@@ -83,7 +87,7 @@ def send_extend_ory_session(session_id:str):
         session_ids.remove(session_id)
 
 
-def extend_ory_session(user_session:str, user_session_expiry:str):
+def extend_ory_session(user_session: str, user_session_expiry: str):
     if user_session and user_session_expiry:
         try:
             if datetime.now(pytz.utc) > parser.parse(user_session_expiry) - timedelta(hours=ORY_SESSION_EXPIRY_IN_H):

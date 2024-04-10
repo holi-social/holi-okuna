@@ -1,5 +1,6 @@
 import threading
 
+
 class CountDownLatch(object):
     def __init__(self, count=1):
         self.count = count

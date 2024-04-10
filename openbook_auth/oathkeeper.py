@@ -28,7 +28,7 @@ class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
         user_session = request.headers.get(HEADER_SESSION, request.META.get(HEADER_SESSION))
         user_session_expiry = request.headers.get(HEADER_SESSION_EXPIRY, request.META.get(HEADER_SESSION_EXPIRY))
         extend_ory_session(user_session, user_session_expiry)
-        
+
         if user_id == "anonymous":
             return AnonymousUser(), None
 
