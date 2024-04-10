@@ -11,8 +11,10 @@ from openbook_auth.models import User as UserModel
 from openbook_auth.models import UserBlock
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import Paged
+from openbook_insights.models import Discussion as DiscussionModel
 from openbook_insights.models import Insight as InsightModel
 from openbook_insights.schema.types import Insight
+from openbook_insights.schema.types.discussion import Discussion
 
 
 @strawberry.type
@@ -76,3 +78,7 @@ class Query:
             limit=limit,
             offset=offset,
         )
+
+    @strawberry_django.field()
+    def discussion_by_id(self, id: uuid.UUID) -> Discussion:
+        return DiscussionModel.objects.get(pk=id)
