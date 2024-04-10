@@ -1404,7 +1404,10 @@ class User(ModelWithUUID, AbstractUser):
         if reaction_type:
             reactions_query.add(Q(reaction_type=reaction_type), Q.AND)
 
-        post_comment_community = post_comment.commentable.community
+        if hasattr(post_comment.commentable, "community"):
+            post_comment_community = post_comment.commentable.community
+        else:
+            post_comment_community = None
 
         if post_comment_community:
             if not self.is_staff_of_community_with_name(community_name=post_comment_community.name):
