@@ -186,16 +186,16 @@ class TestUpdateOryUser(TestCase):
             timeout=30
         )
 
-    def configure_mock_with_delayed_response(self, mock_patch, status_code = 200, content = {}):
+    def configure_mock_with_delayed_response(self, mock_patch, status_code = 200, content=None):
+        if content is None:
+            content = {}
         cdl = CountDownLatch(1)
         response = Response()
         response.status_code = status_code
         response._content = str.encode(json.dumps(content))
 
         def delayed_response(*args, **kwargs):
-            print("wait")
             cdl.wait_for()
-            print("wait DONE")
             return response
 
         mock_patch.side_effect = delayed_response
