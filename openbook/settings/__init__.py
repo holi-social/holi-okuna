@@ -618,6 +618,7 @@ IMAGEKIT_PREFIX = os.environ.get("IMAGEKIT_PREFIX", "")
 # Ory
 ORY_BASE_URL = os.environ.get("ORY_BASE_URL")
 ORY_ACCESS_TOKEN = os.environ.get("ORY_ACCESS_TOKEN")
+ORY_SESSION_EXPIRY_IN_H = int(os.environ.get("ORY_SESSION_EXPIRY_IN_H"))
 
 # HOLI model config settings
 
