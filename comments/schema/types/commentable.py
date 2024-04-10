@@ -40,7 +40,6 @@ class Commentable:
                 Q(comments__commentable_id=self.id, comments__commentable_type__model=self.type.value)
                 & CommentModel.is_visible_query(current_user, "comments")
             )
-            .order_by("-comments__created")
             .distinct()
         )
 
