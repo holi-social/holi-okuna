@@ -315,7 +315,7 @@ class TestTasks:
         assert valid_name == updateTask["name"]
         assert valid_description == updateTask["description"]
         assert valid_visibility == updateTask["visibility"]
-        assert None == updateTask["thumbnail"]
+        assert updateTask["thumbnail"] is None
         assert updateTask["thumbnailBlurhash"] is None
 
     def test_can_update_members_only_task_if_collaborator(self):
@@ -406,7 +406,7 @@ class TestTasks:
         assert valid_name == updateTask["name"]
         assert valid_description == updateTask["description"]
         assert valid_visibility == updateTask["visibility"]
-        assert None == updateTask["thumbnail"]
+        assert updateTask["thumbnail"] is None
         assert updateTask["thumbnailBlurhash"] is None
 
     def test_can_not_update_task_if_not_logged_in(self):
