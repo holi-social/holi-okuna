@@ -1,7 +1,9 @@
+import typing
 import uuid
 
 import jwt
 from django.conf import settings
+from django.db.models import Model
 from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import (
     AuthenticationFailed,
@@ -23,6 +25,9 @@ from openbook_common.utils.model_loaders import (
     get_user_invite_model,
     get_user_model,
 )
+
+if typing.TYPE_CHECKING:
+    from comments.models import Comment
 
 
 def check_follow_lists_ids(user, lists_ids):
@@ -873,18 +878,20 @@ def check_is_not_blocked_with_user_with_id(user, user_id):
         raise PermissionDenied(_("This account is blocked."))
 
 
-def check_can_report_comment_for_post(user, post_comment, post):
-    check_has_not_reported_post_comment_with_id(user=user, post_comment_id=post_comment.pk)
-    check_can_see_post(user=user, post=post)
+def check_can_report_comment(user, comment: "Comment", commented_content: Model):
+    check_has_not_reported_comment_with_id(user=user, comment_id=comment.pk)
 
-    if post_comment.commenter_id == user.pk:
+    if isinstance(comment.commentable, get_post_model()):
+        check_can_see_post(user=user, post=commented_content)
+
+    if comment.commenter_id == user.pk:
         raise ValidationError(
             _("You cannot report your own comment."),
         )
 
 
-def check_has_not_reported_post_comment_with_id(user, post_comment_id):
-    if user.has_reported_post_comment_with_id(post_comment_id=post_comment_id):
+def check_has_not_reported_comment_with_id(user, comment_id: uuid.UUID):
+    if user.has_reported_post_comment_with_id(post_comment_id=comment_id):
         raise ValidationError(
             _("You have already reported the comment."),
         )
