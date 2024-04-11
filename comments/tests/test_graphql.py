@@ -11,10 +11,12 @@ from openbook_common.models import FeatureToggle as FeatureToggleModel
 from openbook_common.tests.helpers import (
     make_fake_post_text,
     make_fake_post_title,
+    make_insight,
     make_post,
     make_post_comment,
     make_user,
 )
+from openbook_insights.models.discussion import Discussion
 
 from .helpers import (
     add_comment,
@@ -389,6 +391,19 @@ class TestDeletingComments(TestCase):
         assert response.errors is not None
         assert Comment.objects.filter(pk=comment.id).exists() is True
         assert CommentReaction.objects.filter(post_comment=comment).count() == 1
+
+    def test_should_not_be_able_to_delete_others_comments_on_discussions(self):
+        other_user = make_user(name="Other")
+        commenter = make_user()
+        insight = make_insight()
+        discussion = Discussion.objects.create(insight=insight, question="Let's discuss")
+        comment = Comment.create_comment(text="This is mine, hans off", commenter=commenter, commentable=discussion)
+
+        response = delete_comment(other_user, comment.id)
+
+        assert response.data is None
+        assert response.errors is not None
+        assert Comment.objects.filter(pk=comment.id).exists() is True
 
     def test_should_not_be_able_to_delete_a_comment_that_does_not_exist(self):
         comment = make_post_comment()
