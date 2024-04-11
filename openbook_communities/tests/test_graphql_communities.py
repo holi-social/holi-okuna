@@ -44,7 +44,6 @@ from openbook_communities.models import (
     Community,
     CommunityNotificationsSubscription,
     SpaceUserConnectionType,
-    CommunityInvite,
 )
 from openbook_communities.tests.helpers import (
     assert_onboarding,
@@ -934,7 +933,6 @@ class TestCommunities(TestCase):
         invitee_email = "test@test.com"
         invitee = make_user(email=invitee_email)
         member = make_user()
-        non_member = make_user()
         space_creator = make_user()
         space = make_community(creator=space_creator)
         space.add_member(member)
@@ -1997,8 +1995,8 @@ class TestCommunities(TestCase):
         data = get_space_by_id_with_posts(user_member, space.id, VisibilityFilter.ALL)
         posts_data = data["posts"]["data"]
         assert data["id"] == str(space.id)
-        assert data["hasPublicPosts"] == True
-        assert data["hasPrivatePosts"] == True
+        assert data["hasPublicPosts"] is True
+        assert data["hasPrivatePosts"] is True
         assert data["posts"]["totalResults"] == len(public_posts) + len(private_posts)
         assert len(private_post_ids(posts_data)) == len(private_ids)
         assert len(public_post_ids(posts_data)) == len(public_ids)
@@ -2871,8 +2869,8 @@ class TestCommunities(TestCase):
 
         updated_space = response.data["updateSpace"]
         assert str(community.id) == updated_space["id"]
-        assert "" == updated_space["cover"]
-        assert "" == updated_space["avatar"]
+        assert updated_space["cover"] is None
+        assert updated_space["avatar"] is None
         assert updated_space["location"] is None
         assert updated_space["coverBlurhash"] is None
         assert updated_space["avatarBlurhash"] is None

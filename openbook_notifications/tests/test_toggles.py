@@ -1,7 +1,6 @@
 import pytest
 
 from django.test import TestCase
-from django.db import IntegrityError
 from openbook_common.enums import FeatureToggleName, FeatureToggleType
 from openbook_common.models import FeatureToggle as FeatureToggleModel
 from openbook_notifications.toggles import notifications_toggle, mute_notifications

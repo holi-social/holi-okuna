@@ -247,10 +247,10 @@ class Space:
     description: strawberry.auto
     creator: Optional[User]
     created: strawberry.auto
-    avatar: str
+    avatar: Optional[str]
     avatar_blurhash: Optional[str]
     avatar_default_color: str
-    cover: str
+    cover: Optional[str]
     cover_blurhash: Optional[str]
     location: strawberry.auto
     links: List[Optional[ExternalLink]]
