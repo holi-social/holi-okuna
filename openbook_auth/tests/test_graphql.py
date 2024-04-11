@@ -77,7 +77,6 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 @pytest.mark.django_db
 class TestUsers:
-
     @pytest.fixture(autouse=True)
     def setup(self):
         notifications_toggle = FeatureToggle.objects.create(
