@@ -10,6 +10,7 @@ extend-exclude = [
     "terraform",
 ]
 
+[lint]
 select = [
     "F",    # pyflakes https://docs.astral.sh/ruff/rules/#pyflakes-f
     "E",    # pycodestyle errors https://docs.astral.sh/ruff/rules/#error-e
@@ -20,13 +21,11 @@ select = [
     "ERA",  # forbid commented out code https://docs.astral.sh/ruff/rules/#eradicate-era
     # "ANN",  # enforce type annotations https://docs.astral.sh/ruff/rules/#flake8-annotations-ann
 ]
-
 extend-ignore = [
     "E501",  # "line too long" - only triggers in edge cases of the formatter
     "N806",  # "non-lowercase-variable-in-function" - we use that to reference model classes in functions
 ]
-
-[tool.ruff.extend-per-file-ignores]
+[extend-per-file-ignores]
 # S101 use of assert - allowed in tests
 "**/test_*.py" = ["S101"]
 "**/tests/*.py" = ["S101"]

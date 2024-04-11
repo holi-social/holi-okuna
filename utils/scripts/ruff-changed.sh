@@ -20,7 +20,6 @@ debug "changed files: ${CHANGED_PYTHON_FILES}"
 [[ -z "${CHANGED_PYTHON_FILES}" ]] || exit 0
  
 for file in ${CHANGED_PYTHON_FILES}; do
-  ruff check $file
-  ruff format --check $file
+  ruff check --force-exclude $file
+  ruff format --check --force-exclude $file
 done
-
