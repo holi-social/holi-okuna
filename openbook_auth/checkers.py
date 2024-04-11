@@ -1130,7 +1130,10 @@ def check_can_get_reactions_for_post(user, post):
 
 
 def check_can_get_reactions_for_post_comment(user, post_comment):
-    return check_can_get_reactions_for_post(user=user, post=post_comment.commentable)
+    if isinstance(post_comment.commentable, get_post_model()):
+        return check_can_get_reactions_for_post(user=user, post=post_comment.commentable)
+    else:
+        return True
 
 
 def check_can_react_to_post(user, post):

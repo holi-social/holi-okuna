@@ -489,7 +489,8 @@ class TestComments(TestCase):
         commenters_data = response.data["commentable"]["commenters"]
         assert commenters_data["totalResults"] == 2
         assert len(commenters_data["data"]) == 2
-        assert commenters_data["data"][0]["firstName"] == "Last Commenter"
+        assert commenters_data["data"][0]["firstName"] == "Commenter"
+        assert commenters_data["data"][1]["firstName"] == "Last Commenter"
 
     def test_should_get_the_most_interesting_comment_for_the_content(self):
         post = make_post()
