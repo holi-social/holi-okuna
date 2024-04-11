@@ -44,7 +44,6 @@ from openbook_communities.models import (
     Community,
     CommunityNotificationsSubscription,
     SpaceUserConnectionType,
-    CommunityInvite,
 )
 from openbook_communities.tests.helpers import (
     assert_onboarding,
@@ -2871,8 +2870,8 @@ class TestCommunities(TestCase):
 
         updated_space = response.data["updateSpace"]
         assert str(community.id) == updated_space["id"]
-        assert "" == updated_space["cover"]
-        assert "" == updated_space["avatar"]
+        assert None == updated_space["cover"]
+        assert None == updated_space["avatar"]
         assert updated_space["location"] is None
         assert updated_space["coverBlurhash"] is None
         assert updated_space["avatarBlurhash"] is None
