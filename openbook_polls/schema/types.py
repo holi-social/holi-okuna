@@ -11,15 +11,15 @@ from typing import TYPE_CHECKING, Annotated, List, Optional, TypeVar
 
 @strawberry.input
 class CreatePollInput:
-    id: uuid.UUID
+    #id: uuid.UUID
     question_text: str
     creator: uuid.UUID
-    #choice_text:str
+    choices: List["CreateChoiceInput"]
     #votes: Optional[int]
 
 @strawberry.input
 class CreateChoiceInput:
-    id:uuid.UUID
+    #id:uuid.UUID
     choice_text: str
     votes: int
 
@@ -30,6 +30,7 @@ class Poll:
     modified: strawberry.auto
     created: strawberry.auto
     creator: strawberry.auto
+    is_public: strawberry.auto
     #choice_text: strawberry.auto
     #choice: List[Optional[Choice]]
     #votes: strawberry.auto
@@ -44,4 +45,4 @@ class Choice:
     id: strawberry.auto
     choice_text: strawberry.auto
     votes: strawberry.auto
-    question: Poll
+    #question: Poll
