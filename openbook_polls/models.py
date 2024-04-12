@@ -2,7 +2,7 @@ import datetime
 from datetime import timedelta
 
 from django.db import models
-from openbook_auth.models import User
+from openbook_auth.models import User, get_reactions
 from django.utils import timezone
 
 from openbook_common.models import (
@@ -10,12 +10,36 @@ from openbook_common.models import (
     OrderedModelWithUUID,
 )
 
+from openbook_common.utils.helpers import (
+    delete_file_field,
+    extract_usernames_from_string,
+    get_magic,
+    sha256sum,
+    write_in_memory_file_to_disk,
+)
+
+from openbook_polls.checkers import (
+    check_can_be_published,
+    check_can_be_updated,
+)
+
+from openbook_common.utils.model_loaders import (
+    get_user_model,
+    get_question_model,
+    get_choice_model,
+)
+
+
+from rest_framework.exceptions import ValidationError
+
 from openbook_common.helpers import (
     PQ,
     ExifRotate,
     PrefixedQ,
+    attr_filled,
 )
 
+magic = get_magic()
 
 
 class Question(ModelWithUUID):
@@ -23,7 +47,7 @@ class Question(ModelWithUUID):
     #pub_date = models.DateTimeField("date published")
     created = models.DateTimeField(editable=False, db_index=True)
     modified = models.DateTimeField(db_index=True, default=timezone.now)
-    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="polls", null=True)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="question", null=True)
 
     is_edited = models.BooleanField(default=False)
     is_closed = models.BooleanField(default=False)
@@ -40,6 +64,54 @@ class Question(ModelWithUUID):
 
     is_public = models.BooleanField(default=False, db_index=True)
 
+    
+    @classmethod
+    def create_question(
+        cls,
+        creator, 
+        question_text=None,
+        created=None,
+        is_draft=False,
+        is_public=False,
+    ) -> "Question":
+        if not is_public:
+            raise ValidationError(_("A poll requires to be public to be posted to."))
+
+        question = Question.objects.create(creator=creator, created=created, question_text=question_text, is_public=is_public)
+
+        if question_text:
+            question.question_text=question_text
+        
+        if not is_draft:
+            question.publish()
+        else:
+            question.save()
+        
+        return question
+    
+    #update_post
+
+    def is_text_only_question(self):
+        return self.has_text() 
+    
+    def has_text(self):
+        return attr_filled(self, "text")
+    
+    def publish(self):
+        check_can_be_published(question=self)
+        self._publish()
+
+    def _publish(self):
+        self.status = Question.STATUS_PUBLISHED
+        self.created = timezone.now()
+        #self._process_quesiton_subscribers()
+        self.save()
+
+    def is_draft(self):
+        return self.status == Question.STATUS_DRAFT
+
+    def is_empty(self):
+        return not self.question_text
 
     def save(self, *args, **kwargs):
         """On create, update timestamps"""
@@ -48,33 +120,12 @@ class Question(ModelWithUUID):
 
         self.modified = timezone.now()
 
-        poll = super(Question, self).save(*args, **kwargs)
+        question = super(Question, self).save(*args, **kwargs)
 
         return self
-    
-    @classmethod
-    def create_question(
-        creator, 
-        created=None,
-        question_text=None,
-        choice_text=None,
-        votes=None
-        ) -> "Question":
 
-        poll = Question.objects.create(creator=creator, created=created, question_text=question_text)
-
-        if question_text:
-            poll.question_text=question_text
-        
-        if choice_text:
-            poll.choice_text=choice_text
-
-        if votes:
-            poll.votes=votes
-        
-        poll.save()
-        
-        return poll
+    def delete(self, *args, **kwargs):
+        super(Question, self).delete(*args, **kwargs)
     
     @staticmethod
     def does_exist_query(prefix=None):
@@ -96,7 +147,7 @@ class Question(ModelWithUUID):
 
 
 class Choice(ModelWithUUID):
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="polls")
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="question")
     choice_text = models.CharField(max_length=200)
     votes = models.IntegerField(default=0)
 

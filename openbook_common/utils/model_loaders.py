@@ -20,6 +20,12 @@ def get_follow_request_model():
 def get_post_model():
     return apps.get_model("openbook_posts.Post")
 
+def get_question_model():
+    return apps.get_model("openbook_polls.Question")
+
+def get_choice_model():
+    return apps.get_model("openbook_polls.Choice")
+
 
 def get_top_post_model():
     return apps.get_model("openbook_posts.TopPost")

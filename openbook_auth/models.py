@@ -84,6 +84,8 @@ from openbook_common.utils.model_loaders import (
     get_notification_model,
     get_task_model,
     get_insight_model,
+    get_question_model,
+    get_choice_model,
 )
 from openbook_common.validators import name_characters_validator
 from openbook_hashtags.queries import (
@@ -2989,6 +2991,22 @@ class User(ModelWithUUID, AbstractUser):
             is_draft=is_draft,
             circles_ids=circles_ids,
         )
+    
+    def create_question(
+        self,
+        question_text=None,
+        created=None,
+        is_draft=False,
+        is_public=None,
+    ):
+        Question = get_question_model()
+        return Question.create_question(
+            question_text=question_text,
+            creator=self,
+            is_public=is_public,
+            created=created,
+            is_draft=is_draft,
+        )
 
     def create_encircled_post(
         self,
@@ -3062,6 +3080,38 @@ class User(ModelWithUUID, AbstractUser):
             Notifications.send_space_new_post_notification(post=post, collaborators=list(collaborators))
 
         return post
+    
+    # def create_community_question(
+    #     self,
+    #     question_text=None,
+    #     created=None,
+    #     is_draft=False,
+    #     is_public=True,
+    #     #visibility=None,
+    # ):
+    #     #check_can_post_to_community_with_id(user=self, community_id=space_id)
+    #     #is_public = self._get_post_visibility_by_community_id(visibility, space_id)
+    #     Question = get_post_model()
+    #     question = Question.create_question(
+    #         question_text=question_text,
+    #         creator=self,
+    #         created=created,
+    #         is_draft=is_draft,
+    #         is_public=is_public,
+    #     )
+
+    #     from openbook_notifications.notifications import Notifications
+
+    #     collaborators = self.get_community_with_name_members(community_name=question.community.name).exclude(
+    #         id=question.creator.id
+    #     )
+
+    #     #if collaborators:
+    #     #    Notifications.send_space_new_post_notification(post=post, collaborators=list(collaborators))
+
+    #     return question
+
+
 
     def update_community_post(
         self,
