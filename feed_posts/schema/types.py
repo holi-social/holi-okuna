@@ -3,11 +3,10 @@ from typing import Optional, List
 
 import strawberry
 import strawberry_django
-from strawberry.file_uploads import Upload
 
-from openbook_auth.schema.types import User
 from feed_posts.enums import VisibilityLevel
 from feed_posts.models import FeedPost
+from openbook_auth.schema.types import User
 from openbook_terms.schema.types import Topic, FeedPostCategory
 
 

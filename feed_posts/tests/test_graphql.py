@@ -3,7 +3,6 @@ import logging
 import pytest
 import pytz
 from django.contrib.auth.models import AnonymousUser
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import AsyncClient, TestCase
 from faker import Faker
 
@@ -13,7 +12,6 @@ from openbook import settings
 from openbook_common.tests.helpers import (
     make_user,
     make_topic,
-    simple_jpeg_bytes,
     make_feed_post_category,
 )
 
