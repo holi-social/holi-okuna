@@ -275,6 +275,7 @@ class TestUsers:
             f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
             json=json_body,
+            timeout=30,
         )
         updated_user = executed.data["updateAuthenticatedUser"]
         graphql_pronouns = updated_user["pronouns"]
@@ -317,6 +318,7 @@ class TestUsers:
             f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
             json=[{"op": "add", "path": "/metadata_public/identity", "value": "fritz.meier"}],
+            timeout=30,
         )
 
         result = result.data["updateAuthenticatedUser"]
@@ -363,6 +365,7 @@ class TestUsers:
             f"{settings.ORY_BASE_URL}/admin/identities/{new_fritz.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
             json=expected_json_body,
+            timeout=30,
         )
 
         mock_create_or_update_subscriber.assert_called_once_with(
@@ -403,6 +406,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen"},
                     ],
+                    timeout=30,
                 ),
                 call(
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
@@ -410,6 +414,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen"},
                     ],
+                    timeout=30,
                 ),
             ]
         )
@@ -452,6 +457,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz"},
                     ],
+                    timeout=30,
                 ),
                 call(
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
@@ -459,6 +465,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz"},
                     ],
+                    timeout=30,
                 ),
             ]
         )
@@ -535,6 +542,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen"},
                     ],
+                    timeout=30,
                 ),
                 call(
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
@@ -542,6 +550,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen"},
                     ],
+                    timeout=30,
                 ),
                 call(
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
@@ -549,6 +558,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen"},
                     ],
+                    timeout=30,
                 ),
             ]
         )
