@@ -136,7 +136,11 @@ resource "google_cloud_run_v2_job" "okuna_migration" {
         }
         env {
           name  = "IMAGEKIT_URL"
-          value = local.environment_name == "https://ik.imagekit.io/holi"
+          value = "https://ik.imagekit.io/holi"
+        }
+        env {
+          name  = "IMAGEKIT_PREFIX"
+          value = local.environment_name == "production" ? "" : "_DEV_/"
         }
         env {
           name = "IMAGEKIT_PUBLIC_KEY"
@@ -282,7 +286,7 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "IMAGEKIT_URL"
-          value = local.environment_name == "https://ik.imagekit.io/holi"
+          value = "https://ik.imagekit.io/holi"
         }
         env {
           name  = "IMAGEKIT_PREFIX"
@@ -352,6 +356,10 @@ resource "google_cloud_run_service" "okuna" {
               name = local.environment_name == "production" ? "ORY_ACCESS_TOKEN_PRODUCTION" : "ORY_ACCESS_TOKEN_DEVELOPMENT"
             }
           }
+        }
+        env {
+          name = "ORY_SESSION_EXPIRY_IN_H"
+          value = local.environment_name == "production" ? "2160" : "600"
         }
         env {
           name  = "NOVU_API_URL"
