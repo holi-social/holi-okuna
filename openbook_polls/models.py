@@ -75,7 +75,7 @@ class Question(ModelWithUUID):
         is_public=False,
     ) -> "Question":
         if not is_public:
-            raise ValidationError(_("A poll requires to be public to be posted to."))
+            raise ValidationError("A poll requires to be public to be posted to.")
 
         question = Question.objects.create(creator=creator, created=created, question_text=question_text, is_public=is_public)
 

@@ -2997,7 +2997,8 @@ class User(ModelWithUUID, AbstractUser):
         question_text=None,
         created=None,
         is_draft=False,
-        is_public=None,
+        is_public=True,  #it should be None, work with visibility
+        #is_public=None,
     ):
         Question = get_question_model()
         return Question.create_question(
