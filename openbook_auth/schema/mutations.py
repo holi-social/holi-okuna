@@ -30,7 +30,6 @@ from openbook_auth.utils import verify_authorized_user
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.helpers import is_parameter_null, to_input_dict
 from openbook_common.schema.types import Result
-from openbook_devices.enums import DeviceType
 from openbook_notifications.api import NotificationApi
 from openbook_notifications.enums import NotificationProvider
 from openbook_devices.serializers import RegisterDeviceSerializer
@@ -221,9 +220,7 @@ class Mutation:
         # a device token can only be in Okuna if it has previously succeeded setting in Novu, so:
         # if a device token is in not in Okuna, it is also (most likely) not in Novu, and we have to update it in both
         if not current_user.has_device_with_token_and_type(token=token, device_type=device_type):
-            provider_id = (
-                NotificationProvider.APNS if device_type == DeviceType.IOS.value else NotificationProvider.FCM
-            )
+            provider_id = NotificationProvider.get_by_device_type(device_type)
             # Create subscriber if it doesn't exist already
             locale = get_language_from_request(info.context.request)
             NotificationApi.find_or_create_subscriber(user=current_user, locale=locale)
