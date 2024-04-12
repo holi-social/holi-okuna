@@ -12,7 +12,7 @@ from openbook import settings
 logger = logging.getLogger(__name__)
 
 
-class IncorrectFilename(Exception):
+class IncorrectFilenameError(Exception):
     pass
 
 
@@ -43,7 +43,7 @@ class ImagekitIoStorage(Storage):
 
     def _save(self, name, content):
         if name.count("/") < 2:
-            raise IncorrectFilename(
+            raise IncorrectFilenameError(
                 "Filenames need to have at least three sections: object_type/object_id/filename.ext[/username] but filename was: "
                 + name
             )
