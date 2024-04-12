@@ -4,7 +4,7 @@ from typing import List, Optional, TYPE_CHECKING
 
 import strawberry
 import strawberry_django
-from django.db.models import TextChoices
+
 from strawberry.file_uploads import Upload
 
 from openbook_auth.models import User as UserModel
@@ -124,11 +124,3 @@ class User:
 class RegisterDeviceInput:
     token: str
     device_type: Device.DeviceType
-
-
-@strawberry.enum
-class BookmarkType(TextChoices):
-    INSIGHT = ("insight",)
-    QUOTE = ("quote",)
-    RECOMMENDATION = ("recommendation",)
-    INITIATIVE = ("initiative",)

@@ -33,9 +33,8 @@ def django_db_setup(django_db_setup, django_db_blocker):
         call_command("loaddata", "openbook_moderation/fixtures/moderation_categories.json")
 
 
-# This tests an older way of bookmarking insights, that uses the openbook_auth package endpoints
-# todo gregor: keep for versions 1.14.XX,
-# todo gregor: add proper tests for the favorites app
+# This tests a deprecated way of bookmarking insights, that uses the openbook_auth package bookmark endpoints
+# keep for versions <= 1.14.5,
 
 
 def bookmark_insight(user, insight_id):
