@@ -3,7 +3,7 @@ import strawberry_django
 
 from openbook_common.schema.types import Paged
 from openbook_terms.models import (
-    SDG as SDGModel,
+    SDG as SDG_MODEL,
     Skill as SkillModel,
     Topic as TopicModel,
     FeedPostCategory as PostCategoryModel,
@@ -20,7 +20,7 @@ class Query:
 
     @strawberry_django.field()
     def sdgs(self, offset: int = 0, limit: int = 50) -> Paged[SDG]:
-        return Paged.of(SDGModel.objects.all().order_by("number"), offset, limit)
+        return Paged.of(SDG_MODEL.objects.all().order_by("number"), offset, limit)
 
     @strawberry_django.field()
     def skills(self, offset: int = 0, limit: int = 50) -> Paged[Skill]:
