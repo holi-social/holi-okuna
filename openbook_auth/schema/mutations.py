@@ -21,7 +21,7 @@ from openbook.helpers import (
 from openbook.utils import invalidate_discover_spaces_query_cache
 from openbook_auth.models import User as UserModel
 from favorites.models import UserFavorite
-from openbook_auth.schema.types import UpdateAuthenticatedUserInput, User, RegisterDeviceInput, BookmarkType
+from openbook_auth.schema.types import UpdateAuthenticatedUserInput, User, RegisterDeviceInput
 from openbook_auth.serializers.authenticated_user_serializers import (
     UpdateAuthenticatedUserSerializer,
 )
@@ -234,22 +234,18 @@ class Mutation:
 
         return Result(success=True)
 
-    @strawberry.mutation(
-        deprecation_reason="This mutation is deprecated. Please switch to using the 'bookmark' mutation instead. Keep for version 1.14.XX"
-    )
+    @strawberry.mutation(deprecation_reason="Use 'favorite' mutation instead. Keep for version <=1.14.5")
     @sync_to_async
     def bookmark_insight(self, info, insight_id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
         current_user.bookmark_insight(insight_id)  # To maintain compatibility with older versions
-        UserFavorite.bookmark(user=current_user, bookmark_id=insight_id, bookmark_type="insight")
+        UserFavorite.favorite(user=current_user, favoritable_id=insight_id, favoritable_type="insight")
         return Result(success=True)
 
-    @strawberry.mutation(
-        deprecation_reason="This' mutation is deprecated. Please switch to using the 'unbookmark' mutation instead."
-    )
+    @strawberry.mutation(deprecation_reason="Use 'unfavorite' mutation instead. Keep for version <=1.14.5")
     @sync_to_async
     def remove_insight_bookmark(self, info, insight_id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
         current_user.remove_insight_bookmark(insight_id)  # To maintain compatibility with older versions
-        UserFavorite.unbookmark(user=current_user, bookmark_id=insight_id, bookmark_type="insight")
+        UserFavorite.unfavorite(user=current_user, favoritable_id=insight_id, favoritable_type="insight")
         return Result(success=True)
