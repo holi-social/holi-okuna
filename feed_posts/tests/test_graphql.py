@@ -35,7 +35,7 @@ class TestFeedPosts(TestCase):
             "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
             "visibility": VisibilityLevel.PUBLIC,
             "categoryId": str(make_feed_post_category().id),
-            "topics": [str(make_topic().id) for _ in range(6)],
+            "topicIds": [str(make_topic().id) for _ in range(6)],
         }
 
     def test_can_not_create_feed_post_if_anonymous_user(self):
@@ -54,5 +54,5 @@ class TestFeedPosts(TestCase):
         assert data["description"] == self.public_feed_post_input_data["description"]
         assert data["visibility"] == self.public_feed_post_input_data["visibility"]
         assert data["category"]["id"] == self.public_feed_post_input_data["categoryId"]
-        assert len(data["topics"]) == len(self.public_feed_post_input_data["topics"])
+        assert len(data["topics"]) == len(self.public_feed_post_input_data["topicIds"])
         assert data["creator"]["id"] == str(self.user.pk)

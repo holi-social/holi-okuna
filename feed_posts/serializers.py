@@ -20,7 +20,7 @@ class CreateFeedPostSerializer(serializers.Serializer):
 
     visibility = serializers.ChoiceField(required=True, choices=VisibilityLevel.choices)
 
-    topics = serializers.ListField(
+    topic_ids = serializers.ListField(
         max_length=settings.FEED_POST_TOPICS_MAX_AMOUNT,
         required=False,
         child=serializers.UUIDField(validators=[validate_topic_exists_by_id]),

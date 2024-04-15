@@ -28,5 +28,5 @@ class CreateFeedPostInput:
     title: str
     description: str
     visibility: VisibilityLevel
-    topics: List[Optional[uuid.UUID]]
+    topic_ids: List[Optional[uuid.UUID]]
     category_id: uuid.UUID

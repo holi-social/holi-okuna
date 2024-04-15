@@ -27,6 +27,6 @@ class Mutation:
             visibility=data.get("visibility"),
             description=data.get("description"),
             category_id=data.get("category_id"),
+            topic_ids=data.get("topic_ids"),
             creator=user,
-            topics=data.get("topics"),
         )

@@ -13,7 +13,7 @@ class FeedPostService:
         description,
         category_id,
         creator,
-        topics=None,
+        topic_ids=None,
     ):
         category = FeedPostCategory.objects.get(id=category_id)
 
@@ -23,5 +23,5 @@ class FeedPostService:
             description=description,
             category=category,
             creator=creator,
-            topics=topics,
+            topics=topic_ids,
         )
