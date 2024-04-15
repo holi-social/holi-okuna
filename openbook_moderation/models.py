@@ -1,3 +1,6 @@
+import typing
+import uuid
+
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -17,6 +20,9 @@ from openbook_common.utils.model_loaders import (
     get_post_model,
     get_user_model,
 )
+
+if typing.TYPE_CHECKING:
+    from comments.models import Comment
 
 
 class ModerationCategory(ModelWithUUID):
@@ -151,15 +157,15 @@ class ModeratedObject(ModelWithUUID):
         )
 
     @classmethod
-    def get_or_create_moderated_object_for_post_comment(cls, post_comment, category_id):
+    def get_or_create_moderated_object_for_comment(cls, comment: "Comment", category_id: uuid.UUID):
         community_id = None
 
-        if post_comment.commentable.community:
-            community_id = post_comment.commentable.community.pk
+        if isinstance(comment.commentable, get_post_model()) and comment.commentable.community is not None:
+            community_id = comment.commentable.community.pk
 
         return cls._get_or_create_moderated_object(
             object_type=cls.OBJECT_TYPE_POST_COMMENT,
-            content_object=post_comment,
+            content_object=comment,
             category_id=category_id,
             community_id=community_id,
         )
@@ -400,17 +406,18 @@ class ModerationReport(ModelWithUUID):
         return post_moderation_report
 
     @classmethod
-    def create_post_comment_moderation_report(cls, reporter_id, post_comment, category_id, description):
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
-            post_comment=post_comment, category_id=category_id
+    def create_comment_moderation_report(
+        cls, reporter_id: uuid.UUID, comment: "Comment", category_id: uuid.UUID, description: str
+    ) -> typing.Self:
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_comment(
+            comment=comment, category_id=category_id
         )
-        post_comment_moderation_report = cls.objects.create(
+        return cls.objects.create(
             reporter_id=reporter_id,
             category_id=category_id,
             description=description,
             moderated_object=moderated_object,
         )
-        return post_comment_moderation_report
 
     @classmethod
     def create_user_moderation_report(cls, reporter_id, user, category_id, description):

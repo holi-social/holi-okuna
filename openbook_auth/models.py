@@ -3,16 +3,19 @@ import logging
 import re
 import secrets
 from datetime import datetime, timedelta
+from enum import Enum
 from itertools import chain
 from typing import Iterable, Set, Callable
-from enum import Enum
 from uuid import UUID
 
+import strawberry
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models
+from django.core import validators
+from django.core.cache import caches
 from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 from django.db.models import Q, F, Count, QuerySet
@@ -21,25 +24,24 @@ from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.utils import timezone, translation
 from django.utils.translation import gettext_lazy as _
-from django.core import validators
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
-import strawberry
 from unidecode import unidecode
-from openbook_auth.utils import normalize_spaces
 
-from openbook_common.helpers import ExifRotate, generate_blurhash
+from openbook.settings import USERBLOCK
+from openbook.utils import DEFAULT_EMAIL_LANGUAGE, get_supported_language_for_email
 from openbook_auth.checkers import *
 from openbook_auth.helpers import (
     upload_to_user_avatar_directory,
     upload_to_user_cover_directory,
 )
-from openbook_common.helpers import get_supported_translation_language, PrefixedQ
+from openbook_auth.utils import normalize_spaces
+from openbook_common.enums import VisibilityType
+from openbook_common.helpers import ExifRotate, generate_blurhash, get_supported_translation_language, PrefixedQ
 from openbook_common.models import Badge, ModelWithUUID
 from openbook_common.schema.types import Paged
 from openbook_common.types import GeolocationFeature, ReactableType
-from openbook_common.enums import VisibilityType
 from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import (
     get_collaboration_tool_model,
@@ -103,10 +105,9 @@ from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
 from openbook_posts.query_collections import get_posts_for_user_collection
 from openbook_terms.models import Topic, SDG, Skill
 from openbook_translation import translation_strategy
-from openbook.utils import DEFAULT_EMAIL_LANGUAGE, generate_hash, get_supported_language_for_email
 
-from django.core.cache import caches
-from openbook.settings import USERBLOCK
+if typing.TYPE_CHECKING:
+    from comments.models import Comment
 
 logger = logging.getLogger(__name__)
 
@@ -4158,10 +4159,10 @@ class User(ModelWithUUID, AbstractUser):
         self.user_blocks.filter(blocked_user_id=user_id).delete()
         return User.objects.get(pk=user_id)
 
-    def report_comment_with_id(self, post_comment_id, category_id, description=None):
-        Comment = get_comment_model()
-        post_comment = Comment.objects.get(id=post_comment_id)
-        self.report_comment_for_post(post_comment, post_comment.commentable, category_id, description)
+    def report_comment_with_id(self, comment_id: UUID, category_id, description=None):
+        CommentModel = get_comment_model()
+        comment = CommentModel.objects.get(id=comment_id)
+        self.report_comment(comment, comment.commentable, category_id, description)
 
     def report_comment_with_id_for_post_with_id(self, post_comment_id, post_id, category_id, description=None):
         Comment = get_comment_model()
@@ -4170,23 +4171,23 @@ class User(ModelWithUUID, AbstractUser):
         Post = get_post_model()
         post = Post.objects.get(id=post_id)
 
-        return self.report_comment_for_post(
-            post_comment=post_comment,
+        return self.report_comment(
+            comment=post_comment,
             category_id=category_id,
             description=description,
-            post=post,
+            commented_content=post,
         )
 
-    def report_comment_for_post(self, post_comment, post, category_id, description=None):
-        check_can_report_comment_for_post(user=self, post_comment=post_comment, post=post)
+    def report_comment(self, comment: "Comment", commented_content: ModelWithUUID, category_id, description=None):
+        check_can_report_comment(user=self, comment=comment, commented_content=commented_content)
         ModerationReport = get_moderation_report_model()
-        ModerationReport.create_post_comment_moderation_report(
-            post_comment=post_comment,
+        ModerationReport.create_comment_moderation_report(
+            comment=comment,
             category_id=category_id,
             reporter_id=self.pk,
             description=description,
         )
-        post_comment.delete_notifications_for_user(user=self)
+        comment.delete_notifications_for_user(user=self)
 
     def report_post_with_id(self, post_id, category_id, description=None):
         Post = get_post_model()
