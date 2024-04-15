@@ -6,7 +6,7 @@ from openbook_terms.models import (
     SDG as SDG_MODEL,
     Skill as SkillModel,
     Topic as TopicModel,
-    FeedPostCategory as PostCategoryModel,
+    FeedPostCategory as FeedPostCategoryModel,
     InspirationPostCategory as InspirationPostCategoryModel,
 )
 from openbook_terms.schema.types import InspirationPostCategory, SDG, Skill, Topic, FeedPostCategory
@@ -31,5 +31,5 @@ class Query:
         return Paged.of(InspirationPostCategoryModel.objects.all().order_by("title"), offset, limit)
 
     @strawberry_django.field()
-    def post_categories(self, offset: int = 0, limit: int = 50) -> Paged[FeedPostCategory]:
-        return Paged.of(PostCategoryModel.objects.all().order_by("title"), offset, limit)
+    def feed_post_categories(self, offset: int = 0, limit: int = 50) -> Paged[FeedPostCategory]:
+        return Paged.of(FeedPostCategoryModel.objects.all().order_by("title"), offset, limit)

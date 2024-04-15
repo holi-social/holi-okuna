@@ -52,5 +52,5 @@ class InspirationPostCategory(Term):
 
 class FeedPostCategory(Term):
     """
-    A skill is something that a user is capable of and that a task can request.
+    Feed Posts have an assigned category that is displayed above the post.
     """
