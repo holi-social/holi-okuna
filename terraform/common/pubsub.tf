@@ -34,8 +34,9 @@ resource "google_pubsub_topic" "okuna_staging" {
 }
 
 resource "google_pubsub_topic" "okuna_production" {
-  project = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
-  name    = "okuna_production"
+  project      = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
+  name         = "okuna_production"
+  kms_key_name = google_kms_crypto_key.pubsub_okuna.id
   message_storage_policy {
     allowed_persistence_regions = ["europe-north1"]
   }
