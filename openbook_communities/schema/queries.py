@@ -40,6 +40,7 @@ def spaces_for_filter(
     geolocation: Optional[GeolocationFeature] = None,
     skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
     topic_slug: Optional[str] = None,
+    topic_slugs: Optional[List[Optional[str]]] = None,
     skill_slugs: Optional[List[Optional[str]]] = None,
     member_id: Optional[uuid.UUID] = None,
 ):
@@ -50,7 +51,11 @@ def spaces_for_filter(
         query.add(Q(geolocation__within=geolocation.geometry), Q.AND)
     if skill_ids:
         query.add(Q(tasks__skills__id__in=skill_ids), Q.AND)
-    if topic_slug is not None:
+    if topic_slugs:
+        if topic_slug is not None:
+            topic_slugs.append(topic_slug)
+        query.add(Q(topics__slug__in=topic_slugs), Q.AND)
+    elif topic_slug is not None:
         query.add(Q(topics__slug__contains=topic_slug), Q.AND)
     if skill_slugs:
         query.add(Q(tasks__skills__slug__in=skill_slugs), Q.AND)
@@ -85,6 +90,7 @@ class Query:
         geolocation: Optional[GeoJSON] = None,
         skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
         topic_slug: Optional[str] = None,
+        topic_slugs: Optional[List[Optional[str]]] = None,
         skill_slugs: Optional[List[Optional[str]]] = None,
         member_id: Optional[uuid.UUID] = None,
         offset: int = 0,
@@ -97,6 +103,7 @@ class Query:
             geolocation,
             skill_ids,
             topic_slug,
+            topic_slugs,
             skill_slugs,
             member_id,
         )
@@ -295,7 +302,8 @@ class Query:
         )
 
         return Paged.of(
-            CommunityModel.objects.annotate(member_count=Count("memberships")).filter(title_query)
+            CommunityModel.objects.annotate(member_count=Count("memberships"))
+            .filter(title_query)
             # Bug HOLI-6780: added created as second order criterion for deterministic order.
             # This still has wrong order if while paging the membership counts change. Signed off by Max.
             .order_by("-member_count", "-created"),

@@ -96,8 +96,8 @@ class TestCommunities(TestCase):
         make_community_task(space3, skills=[skill3])
 
         filter_query = """
-            query($topicId: UUID, $geolocation: GeoJSON, $skillIds: [UUID], $memberId: UUID) {
-                spaces(topicId: $topicId, geolocation: $geolocation, skillIds: $skillIds, memberId: $memberId) {
+            query($topicId: UUID, $geolocation: GeoJSON, $skillIds: [UUID], $memberId: UUID, $topicSlug: String, $topicSlugs: [String]) {
+                spaces(topicId: $topicId, geolocation: $geolocation, skillIds: $skillIds, memberId: $memberId, topicSlug: $topicSlug, topicSlugs: $topicSlugs) {
                     totalResults
                     data {
                         id
@@ -119,6 +119,11 @@ class TestCommunities(TestCase):
 
         # Filter by common topic
         assert_filtered_spaces({"topicId": str(topic1.id)}, [space1, space2])
+        assert_filtered_spaces({"topicSlug": topic1.slug}, [space1, space2])
+        assert_filtered_spaces({"topicSlugs": [topic1.slug]}, [space1, space2])
+        # topicSlug and topicSlugs can be combined
+        assert_filtered_spaces({"topicSlugs": [topic1.slug], "topicSlug": topic2.slug}, [space1, space2, space3])
+        assert_filtered_spaces({"topicSlugs": [topic1.slug, topic2.slug]}, [space1, space2, space3])
 
         # Filter by unique topic
         assert_filtered_spaces({"topicId": str(topic2.id)}, [space1, space3])
