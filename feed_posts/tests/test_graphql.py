@@ -13,7 +13,8 @@ from openbook import settings
 from openbook_common.tests.helpers import (
     make_user,
     make_topic,
-    make_feed_post_category, simple_jpeg_bytes,
+    make_feed_post_category,
+    simple_jpeg_bytes,
 )
 
 logger = logging.getLogger(__name__)
