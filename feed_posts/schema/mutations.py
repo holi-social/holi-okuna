@@ -28,5 +28,6 @@ class Mutation:
             description=data.get("description"),
             category_id=data.get("category_id"),
             topic_ids=data.get("topic_ids"),
+            image=data.get("image"),
             creator=user,
         )
