@@ -9,7 +9,7 @@ from strawberry.file_uploads import Upload
 
 from openbook_auth.models import User as UserModel
 from openbook_auth.models import UserConnectionStatus
-from openbook_common.schema.types import GeoJSONInput, GeolocationPoint
+from openbook_common.schema.types import GeoJSONInput
 from openbook_communities.enums import UpdateConnectionAction
 from openbook_communities.models import Community as CommunityModel
 from openbook_communities.models import SpaceUserConnectionType
@@ -82,11 +82,6 @@ class User:
     @strawberry_django.field(select_related=["profile"])
     def location(self) -> Optional[str]:
         return self.profile.location
-
-    # TODO: Only for temporary backwards compatibility, replace by GeoJSON in HOLI-4353 (see below)
-    @strawberry_django.field(deprecation_reason="Type change to GeoJSON planned, deprecated since version 1.0.16")
-    def geolocation(self) -> Optional[GeolocationPoint]:
-        return None
 
     @strawberry_django.field(select_related=["profile"])
     def geolocation_id(self) -> Optional[str]:

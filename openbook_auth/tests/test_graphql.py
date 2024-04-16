@@ -29,7 +29,7 @@ from openbook.graphql_schema import schema
 from openbook.tests.test_data import geolocation, geolocation_geometry, geolocation_id
 from openbook_auth.models import EngagementLevelChoice, User
 from openbook_auth.tests.helpers import (
-    api_update_authenticated_user_names,
+    api_update_authenticated_user_names_data,
     get_connected_users,
     get_connected_users_raw,
     get_user_connection_status_to_space_data,
@@ -250,10 +250,6 @@ class TestUsers:
                     id
                     pronouns
                     location
-                    geolocation {
-                      latitude
-                      longitude
-                    }
                     geolocationId
                     engagementLevel
                 }
@@ -271,6 +267,9 @@ class TestUsers:
                 }
             },
         )
+
+        assert executed.errors is None
+
         mock_patch.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
@@ -288,8 +287,6 @@ class TestUsers:
         assert persisted_profile.engagement_level == EngagementLevelChoice.INITIATOR
         assert location == persisted_profile.location
         assert geolocation_id == persisted_profile.geolocation_id
-        # TODO: Only for temporary backwards compatibility, adjust in HOLI-4353
-        assert updated_user["geolocation"] is None
         assert persisted_profile.geolocation is not None
         assert geos.GEOSGeometry(json.dumps(geolocation_geometry)) == persisted_profile.geolocation
 
@@ -310,9 +307,7 @@ class TestUsers:
         user = make_user()
         user.identity = None
 
-        result = api_update_authenticated_user_names(user, "Fritz", "Meier")
-
-        assert result.errors is None
+        result = api_update_authenticated_user_names_data(user, "Fritz", "Meier")
 
         ory_patch_mock.assert_any_call(
             f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
@@ -321,18 +316,14 @@ class TestUsers:
             timeout=30,
         )
 
-        result = result.data["updateAuthenticatedUser"]
         persisted_user = User.objects.get(username=user.username)
 
         assert "fritz.meier" == persisted_user.identity
         assert "fritz.meier" == result["identity"]
 
         # test it only registers identity once
-        result = api_update_authenticated_user_names(user, "Hans", "Meier")
+        result = api_update_authenticated_user_names_data(user, "Hans", "Meier")
 
-        assert result.errors is None
-
-        result = result.data["updateAuthenticatedUser"]
         persisted_user = User.objects.get(username=user.username)
         assert "fritz.meier" == persisted_user.identity
         assert "fritz.meier" == result["identity"]
@@ -354,10 +345,9 @@ class TestUsers:
         new_fritz = make_user(name="Fritz", last_name="Hansen", identity="something_to_prevent_collision")
         new_fritz.identity = None
 
-        result = api_update_authenticated_user_names(new_fritz, "Fritz", "Hansen")
+        result = api_update_authenticated_user_names_data(new_fritz, "Fritz", "Hansen")
 
-        assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.hansen1"
+        assert result["identity"] == "fritz.hansen1"
 
         expected_json_body = [{"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen1"}]
 
@@ -393,10 +383,9 @@ class TestUsers:
         new_user = make_user()
         new_user.identity = None
 
-        result = api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
+        result = api_update_authenticated_user_names_data(new_user, "Fritz", "Hansen")
 
-        assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.hansen"
+        assert result["identity"] == "fritz.hansen"
 
         ory_patch_mock.assert_has_calls(
             [
@@ -444,10 +433,9 @@ class TestUsers:
         new_user = make_user()
         new_user.identity = None
 
-        result = api_update_authenticated_user_names(new_user, "Fritz", "")
+        result = api_update_authenticated_user_names_data(new_user, "Fritz", "")
 
-        assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz"
+        assert result["identity"] == "fritz"
 
         ory_patch_mock.assert_has_calls(
             [
@@ -494,10 +482,9 @@ class TestUsers:
         new_user = make_user()
         new_user.identity = None
 
-        result = api_update_authenticated_user_names(new_user, "Fritz", "Fratz")
+        result = api_update_authenticated_user_names_data(new_user, "Fritz", "Fratz")
 
-        assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.fratz1"
+        assert result["identity"] == "fritz.fratz1"
 
         mock_create_or_update_subscriber.assert_called_once_with(
             user=new_user, locale=mock_get_language_from_request.return_value
@@ -525,14 +512,11 @@ class TestUsers:
         new_user.identity = None
 
         with capture_logs() as cap_logs:
-            result = api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
+            result = api_update_authenticated_user_names_data(new_user, "Fritz", "Hansen")
             log_entry = next(e for e in cap_logs if "MANUAL INTERVENTION NEEDED!" in e["event"])
             assert log_entry["log_level"] == "error"
 
-            # assert "MANUAL INTERVENTION NEEDED!" in caplog.text
-
-        assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.hansen"
+        assert result["identity"] == "fritz.hansen"
 
         ory_patch_mock.assert_has_calls(
             [
