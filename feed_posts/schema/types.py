@@ -3,6 +3,7 @@ from typing import Optional, List
 
 import strawberry
 import strawberry_django
+from strawberry.file_uploads import Upload
 
 from feed_posts.enums import VisibilityLevel
 from feed_posts.models import FeedPost
@@ -16,6 +17,8 @@ class FeedPost:
     title: strawberry.auto
     slug: strawberry.auto
     description: strawberry.auto
+    image: Optional[str]
+    image_blurhash: Optional[str]
     visibility: VisibilityLevel
     topics: List[Optional[Topic]]
     category: FeedPostCategory
@@ -27,6 +30,7 @@ class FeedPost:
 class CreateFeedPostInput:
     title: str
     description: str
+    image: Optional[Upload] = strawberry.UNSET
     visibility: VisibilityLevel
     topic_ids: List[Optional[uuid.UUID]]
     category_id: uuid.UUID

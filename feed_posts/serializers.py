@@ -3,6 +3,7 @@ from rest_framework import serializers
 from feed_posts.enums import VisibilityLevel
 from feed_posts.validators import validate_topic_exists_by_id, validate_feed_post_category_exists_by_id
 from openbook import settings
+from openbook_common.serializers_fields.request import RestrictedImageFileSizeField
 
 
 class CreateFeedPostSerializer(serializers.Serializer):
@@ -27,3 +28,9 @@ class CreateFeedPostSerializer(serializers.Serializer):
     )
 
     category_id = serializers.UUIDField(required=True, validators=[validate_feed_post_category_exists_by_id])
+
+    image = RestrictedImageFileSizeField(
+        allow_empty_file=False,
+        required=False,
+        max_upload_size=settings.FEED_POST_IMAGE_MAX_SIZE,
+    )

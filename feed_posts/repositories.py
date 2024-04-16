@@ -10,6 +10,7 @@ class FeedPostRepository:
         topics,
         category,
         creator,
+        image,
     ):
         feed_post = FeedPost.objects.create(
             title=title,
@@ -17,6 +18,7 @@ class FeedPostRepository:
             description=description,
             category=category,
             creator=creator,
+            image=image,
         )
 
         feed_post.topics.set(topics)
