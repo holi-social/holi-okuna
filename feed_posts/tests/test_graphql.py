@@ -3,6 +3,7 @@ import logging
 import pytest
 import pytz
 from django.contrib.auth.models import AnonymousUser
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import AsyncClient, TestCase
 from faker import Faker
 
@@ -12,7 +13,7 @@ from openbook import settings
 from openbook_common.tests.helpers import (
     make_user,
     make_topic,
-    make_feed_post_category,
+    make_feed_post_category, simple_jpeg_bytes,
 )
 
 logger = logging.getLogger(__name__)
@@ -36,6 +37,7 @@ class TestFeedPosts(TestCase):
             "visibility": VisibilityLevel.PUBLIC,
             "categoryId": str(make_feed_post_category().id),
             "topicIds": [str(make_topic().id) for _ in range(6)],
+            "image": SimpleUploadedFile(name="image.jpg", content=simple_jpeg_bytes),
         }
 
     def test_can_not_create_feed_post_if_anonymous_user(self):
@@ -56,3 +58,4 @@ class TestFeedPosts(TestCase):
         assert data["category"]["id"] == self.public_feed_post_input_data["categoryId"]
         assert len(data["topics"]) == len(self.public_feed_post_input_data["topicIds"])
         assert data["creator"]["id"] == str(self.user.pk)
+        assert data["image"]
