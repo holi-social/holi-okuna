@@ -13,6 +13,8 @@ def create_feed_post(user, input):
                 title
                 description
                 visibility
+                image
+                imageBlurhash
                 category {
                     id
                 }

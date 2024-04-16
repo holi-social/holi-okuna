@@ -12,6 +12,7 @@ class FeedPostAdminModel(admin.ModelAdmin):
         "id",
         "title",
         "description",
+        "image",
         "visibility",
         "category",
         "display_topics",
