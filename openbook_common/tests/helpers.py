@@ -40,7 +40,7 @@ from openbook_moderation.models import (
 )
 from openbook_notifications.models import Notification
 from openbook_posts.models import Post
-from openbook_terms.models import SDG, Skill, Topic
+from openbook_terms.models import SDG, Skill, Topic, FeedPostCategory
 
 fake = Faker()
 
@@ -645,3 +645,7 @@ def make_insight():
     author = make_user()
     insight = mixer.blend(Insight, creator=author, date_published=timezone.now())
     return insight
+
+
+def make_feed_post_category():
+    return mixer.blend(FeedPostCategory)
