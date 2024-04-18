@@ -10,22 +10,21 @@ from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFit
 
+from comments.models import Comment
 from openbook_common.helpers import ExifRotate
 from openbook_common.models import Emoji, ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field, get_random_pastel_color
 from openbook_common.validators import hex_color_validator
-from openbook_communities.models import Community
 from openbook_hashtags.helpers import upload_to_hashtags_directory
 from openbook_hashtags.validators import hashtag_name_validator
 from openbook_insights.models import Insight
-from openbook_posts.models import Post, PostComment
+from openbook_posts.models import Post
 from openbook_posts.queries import make_only_public_posts_query
 
 hashtag_image_storage = default_storage
 
 
 class Hashtag(ModelWithUUID):
-
     moderated_object = GenericRelation("openbook_moderation.ModeratedObject", related_query_name="hashtags")
 
     name = models.CharField(
@@ -54,7 +53,7 @@ class Hashtag(ModelWithUUID):
     created = models.DateTimeField(editable=False)
     posts = models.ManyToManyField(Post, related_name="hashtags")
     insights = models.ManyToManyField(Insight, related_name="hashtags", blank=True)
-    post_comments = models.ManyToManyField(PostComment, related_name="hashtags")
+    post_comments = models.ManyToManyField(Comment, related_name="hashtags", through="HashtagComments")
     width = models.PositiveIntegerField(editable=False, null=True, blank=False)
     height = models.PositiveIntegerField(editable=False, null=True, blank=False)
     image = ProcessedImageField(
@@ -137,8 +136,15 @@ class Hashtag(ModelWithUUID):
 
     def has_image(self):
         if hasattr(self, "image"):
-
             if self.image:
                 return True
 
         return False
+
+
+class HashtagComments(models.Model):
+    hashtag = models.ForeignKey(Hashtag, on_delete=models.CASCADE)
+    postcomment = models.ForeignKey(Comment, db_column="postcomment_id", on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = "openbook_hashtags_hashtag_post_comments"

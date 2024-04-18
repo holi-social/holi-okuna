@@ -7,10 +7,12 @@ from asgiref.sync import async_to_sync
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.utils import timezone
 from faker import Faker
 from mixer.backend.django import mixer
 from PIL import Image
 
+from comments.models import Comment
 from openbook.graphql_schema import schema
 from openbook_auth.models import EngagementLevelChoice, User, UserProfile
 from openbook_categories.models import Category
@@ -24,9 +26,10 @@ from openbook_common.models import (
     ProxyBlacklistedDomain,
 )
 from openbook_common.utils.helpers import get_random_pastel_color
-from openbook_communities.models import CollaborationTool, Community, ExternalLink, Task
+from openbook_communities.models import CollaborationTool, Community, ExternalLink, SpacesRelationship, Task
 from openbook_devices.models import Device
 from openbook_hashtags.models import Hashtag
+from openbook_insights.models.insight import Insight
 from openbook_lists.models import List as ListModel
 from openbook_moderation.models import (
     ModeratedObject,
@@ -36,8 +39,8 @@ from openbook_moderation.models import (
     ModerationReport,
 )
 from openbook_notifications.models import Notification
-from openbook_posts.models import Post, PostComment
-from openbook_terms.models import SDG, Skill, Topic
+from openbook_posts.models import Post
+from openbook_terms.models import SDG, Skill, Topic, FeedPostCategory
 
 fake = Faker()
 
@@ -160,7 +163,7 @@ def make_user_pronouns():
 
 def make_user_engagement_level():
     engagement_level_list = list(EngagementLevelChoice)
-    return random.choice(engagement_level_list)
+    return random.choice(engagement_level_list)  # noqa: S311
 
 
 def make_user_avatar():
@@ -169,10 +172,6 @@ def make_user_avatar():
     image.save(tmp_file)
     tmp_file.seek(0)
     return tmp_file
-
-
-def make_category():
-    return mixer.blend(Category)
 
 
 def make_user_cover():
@@ -276,7 +275,7 @@ def make_sdg():
 def make_community_topics():
     community_topics = []
 
-    for i in range(0, settings.COMMUNITY_TOPICS_MAX_AMOUNT):
+    for _ in range(0, settings.COMMUNITY_TOPICS_MAX_AMOUNT):
         topic = make_topic()
         community_topics.append(topic.id)
 
@@ -307,6 +306,7 @@ def make_community(
     geolocation=None,
     admins: List[User] = None,
     moderators: List[User] = None,
+    relationships: list[SpacesRelationship] = None,
 ) -> Community:
     if not creator:
         creator = make_user()
@@ -342,6 +342,10 @@ def make_community(
         for moderator in moderators:
             community.add_member(moderator)
             community.add_moderator(moderator)
+
+    if relationships:
+        community.network_relationships.set(relationships)
+
     community.save()
 
     return community
@@ -625,11 +629,23 @@ def check_app_version(version: str, build_number: str):
 def make_post_comment():
     space = make_community()
     post_author = make_user()
-    post = mixer.blend(Post, creator=post_author, community=space)
+    post = mixer.blend(Post, creator=post_author, community=space, is_public=True, status=Post.STATUS_PUBLISHED)
     commenter = make_user()
     mentioned_user = make_user()
     text = fake.paragraph()
 
-    post_comment = mixer.blend(PostComment, commenter=commenter, post=post, text=f"@{mentioned_user.username} {text}")
+    post_comment = mixer.blend(
+        Comment, commenter=commenter, commentable=post, text=f"@{mentioned_user.username} {text}"
+    )
 
     return post_comment
+
+
+def make_insight():
+    author = make_user()
+    insight = mixer.blend(Insight, creator=author, date_published=timezone.now())
+    return insight
+
+
+def make_feed_post_category():
+    return mixer.blend(FeedPostCategory)

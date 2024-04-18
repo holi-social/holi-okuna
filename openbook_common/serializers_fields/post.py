@@ -3,7 +3,7 @@ from rest_framework.fields import Field
 from openbook_auth.models import to_list_of_dicts
 from openbook_common.utils.model_loaders import get_post_model
 from openbook_communities.models import CommunityMembership
-from openbook_posts.models import PostReaction, PostCommentReaction
+from openbook_posts.models import PostReaction
 
 
 class ReactionField(Field):

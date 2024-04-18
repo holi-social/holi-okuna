@@ -1,8 +1,8 @@
 from __future__ import annotations
-from typing import Optional, TYPE_CHECKING
 
-from enum import Enum
 from datetime import datetime
+from enum import Enum
+from typing import TYPE_CHECKING, Optional
 
 from django.conf import settings
 
@@ -12,7 +12,8 @@ from openbook_notifications.helpers import replace_mentions_with_full_names
 if TYPE_CHECKING:
     from openbook_auth.models import User
     from openbook_communities.models import Community
-    from openbook_posts.models import PostComment, Post
+    from openbook_posts.models import Post
+    from comments.models import Comment
 
 
 class NotificationType(Enum):
@@ -224,7 +225,7 @@ class PostCommentData:
         return {"id": self.id, "text": self.text}
 
     @classmethod
-    def from_post_comment(cls, post_comment: PostComment):
+    def from_post_comment(cls, post_comment: Comment):
         mentioned_users = post_comment.mentions.all()
         text = replace_mentions_with_full_names(text=post_comment.text, mentioned_users=mentioned_users)
 
@@ -357,15 +358,15 @@ class PostCommentMentionPayload(Payload):
 
     def __init__(
         self,
-        post_comment: PostComment,
+        post_comment: Comment,
         notification_type: NotificationType,
     ):
         super().__init__(
             data={
                 "user": UserData.from_user(post_comment.commenter).to_dict(),
-                "post": PostData.from_post(post_comment.post).to_dict(),
+                "post": PostData.from_post(post_comment.commentable).to_dict(),
                 "comment": PostCommentData.from_post_comment(post_comment).to_dict(),
-                "commentLink": f"{settings.APP_URL}/posts/{post_comment.post_id}?commentId={post_comment.id}",
+                "commentLink": f"{settings.APP_URL}/posts/{post_comment.commentable_id}?commentId={post_comment.id}",
                 "commentDatetime": datetime.now().isoformat(),
             },
             notification_type=notification_type,
@@ -378,16 +379,16 @@ class PostCommentAuthorPayload(Payload):
 
     def __init__(
         self,
-        post_comment: PostComment,
+        post_comment: Comment,
         notification_type: NotificationType,
     ):
         super().__init__(
             data={
-                "user": UserData.from_user(post_comment.post.creator).to_dict(),
+                "user": UserData.from_user(post_comment.commentable.creator).to_dict(),
                 "commenter": UserData.from_user(post_comment.commenter).to_dict(),
-                "post": PostData.from_post(post_comment.post).to_dict(),
+                "post": PostData.from_post(post_comment.commentable).to_dict(),
                 "comment": PostCommentData.from_post_comment(post_comment).to_dict(),
-                "commentLink": f"{settings.APP_URL}/posts/{post_comment.post_id}?commentId={post_comment.id}",
+                "commentLink": f"{settings.APP_URL}/posts/{post_comment.commentable_id}?commentId={post_comment.id}",
                 "commentDatetime": datetime.now().isoformat(),
             },
             notification_type=notification_type,

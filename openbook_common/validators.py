@@ -12,6 +12,7 @@ from openbook_common.utils.model_loaders import (
 
 from openbook import settings
 
+# TODO performance this import takes quite some time
 from google.cloud.webrisk_v1 import WebRiskServiceClient, SearchUrisRequest, ThreatType
 import structlog
 

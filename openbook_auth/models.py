@@ -1,17 +1,21 @@
+# ruff: noqa
 import logging
 import re
 import secrets
-from collections import defaultdict
 from datetime import datetime, timedelta
-from itertools import chain
-from typing import Iterable, List, Set, Callable
 from enum import Enum
+from itertools import chain
+from typing import Iterable, Set, Callable
 from uuid import UUID
 
+import strawberry
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models
+from django.core import validators
+from django.core.cache import caches
 from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 from django.db.models import Q, F, Count, QuerySet
@@ -20,25 +24,24 @@ from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.utils import timezone, translation
 from django.utils.translation import gettext_lazy as _
-from django.core import validators
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFill, ResizeToFit
 from rest_framework.authtoken.models import Token
-import strawberry
 from unidecode import unidecode
-from openbook_auth.utils import normalize_spaces
 
-from openbook_common.helpers import ExifRotate, generate_blurhash
+from openbook.settings import USERBLOCK
+from openbook.utils import DEFAULT_EMAIL_LANGUAGE, get_supported_language_for_email
 from openbook_auth.checkers import *
 from openbook_auth.helpers import (
     upload_to_user_avatar_directory,
     upload_to_user_cover_directory,
 )
-from openbook_common.helpers import get_supported_translation_language, PQ, PrefixedQ
+from openbook_auth.utils import normalize_spaces
+from openbook_common.enums import VisibilityType
+from openbook_common.helpers import ExifRotate, generate_blurhash, get_supported_translation_language, PrefixedQ
 from openbook_common.models import Badge, ModelWithUUID
 from openbook_common.schema.types import Paged
-from openbook_common.types import GeolocationFeature
-from openbook_common.enums import VisibilityType
+from openbook_common.types import GeolocationFeature, ReactableType
 from openbook_common.utils.helpers import delete_file_field
 from openbook_common.utils.model_loaders import (
     get_collaboration_tool_model,
@@ -62,8 +65,8 @@ from openbook_common.utils.model_loaders import (
     get_moderated_object_model,
     get_moderation_report_model,
     get_moderation_penalty_model,
-    get_post_comment_mute_model,
-    get_post_comment_reaction_model,
+    get_comment_mute_model,
+    get_comment_reaction_model,
     get_post_comment_reaction_notification_model,
     get_top_post_model,
     get_top_post_community_exclusion_model,
@@ -84,6 +87,9 @@ from openbook_common.utils.model_loaders import (
     get_notification_model,
     get_task_model,
     get_insight_model,
+    get_quote_reaction_model,
+    get_recommendation_reaction_model,
+    get_initiative_reaction_model,
 )
 from openbook_common.validators import name_characters_validator
 from openbook_hashtags.queries import (
@@ -99,10 +105,9 @@ from openbook_posts.queries import make_get_hashtag_posts_for_user_with_id_query
 from openbook_posts.query_collections import get_posts_for_user_collection
 from openbook_terms.models import Topic, SDG, Skill
 from openbook_translation import translation_strategy
-from openbook.utils import DEFAULT_EMAIL_LANGUAGE, generate_hash, get_supported_language_for_email
 
-from django.core.cache import caches
-from openbook.settings import USERBLOCK
+if typing.TYPE_CHECKING:
+    from comments.models import Comment
 
 logger = logging.getLogger(__name__)
 
@@ -267,19 +272,12 @@ class User(ModelWithUUID, AbstractUser):
 
     @property
     def avatar_default_color(self):
-        color_count = len(User.DEFAULT_AVATAR_COLORS) - 1
-        color = sum(list(self.username.encode("utf8"))) % color_count
+        color = sum(list(self.profile.full_name().encode("utf8"))) % len(User.DEFAULT_AVATAR_COLORS)
         return User.DEFAULT_AVATAR_COLORS[color]
 
     @property
     def avatar_label(self):
-        if self.profile.name is None:
-            return self.email[0].upper()
-        else:
-            if self.profile.last_name is None or self.profile.last_name == "":
-                return self.profile.name[0].upper()
-            else:
-                return self.profile.name[0].upper() + self.profile.last_name[0].upper()
+        return "".join(map(lambda s: s[0], self.profile.full_name().split()))[:2].upper()
 
     @property
     def geolocation(self):
@@ -1033,7 +1031,7 @@ class User(ModelWithUUID, AbstractUser):
         return self.post_mutes.filter(post_id=post_id).exists()
 
     def has_muted_post_comment_with_id(self, post_comment_id):
-        return self.post_comment_mutes.filter(post_comment_id=post_comment_id).exists()
+        return self.comment_mutes.filter(post_comment_id=post_comment_id).exists()
 
     def has_blocked_user_with_id(self, user_id):
         return self.user_blocks.filter(blocked_user_id=user_id).exists()
@@ -1147,10 +1145,10 @@ class User(ModelWithUUID, AbstractUser):
         if emoji_id:
             has_reacted_query.add(Q(emoji_id=emoji_id), Q.AND)
 
-        return self.post_comment_reactions.filter(has_reacted_query).exists()
+        return self.comment_reactions.filter(has_reacted_query).exists()
 
     def has_commented_post_with_id(self, post_id):
-        return self.posts_comments.filter(post_id=post_id).exists()
+        return self.comments.filter(commentable_id=post_id).exists()
 
     def has_notification_with_id(self, notification_id):
         return self.notifications.filter(pk=notification_id).exists()
@@ -1178,7 +1176,7 @@ class User(ModelWithUUID, AbstractUser):
     def has_reaction_notifications_enabled_for_post_comment(self, post_comment):
         return (
             self.notifications_settings.post_comment_reaction_notifications
-            and not self.has_muted_post_with_id(post_id=post_comment.post_id)
+            and not self.has_muted_post_with_id(post_id=post_comment.commentable_id)
             and not self.has_muted_post_comment_with_id(post_comment_id=post_comment.id)
         )
 
@@ -1190,7 +1188,7 @@ class User(ModelWithUUID, AbstractUser):
     def has_reply_notifications_enabled_for_post_comment(self, post_comment):
         return (
             self.notifications_settings.post_comment_reply_notifications
-            and not self.has_muted_post_with_id(post_id=post_comment.post_id)
+            and not self.has_muted_post_with_id(post_id=post_comment.commentable_id)
             and not self.has_muted_post_comment_with_id(post_comment_id=post_comment.id)
         )
 
@@ -1286,7 +1284,7 @@ class User(ModelWithUUID, AbstractUser):
         return Hashtag.objects.filter(query).exists()
 
     def can_see_post_comment(self, post_comment):
-        post = post_comment.post
+        post = post_comment.commentable
         if not self.can_see_post(post=post):
             return False
         post_comment_query = self._make_get_post_comment_with_id_query(
@@ -1294,8 +1292,8 @@ class User(ModelWithUUID, AbstractUser):
             post_comment_parent_id=post_comment.parent_comment_id,
             post=post,
         )
-        PostComment = get_post_comment_model()
-        return PostComment.objects.filter(post_comment_query).exists()
+        Comment = get_comment_model()
+        return Comment.objects.filter(post_comment_query).exists()
 
     def get_lists_for_follow_for_user_with_id(self, user_id):
         check_is_following_user_with_id(user=self, user_id=user_id)
@@ -1372,9 +1370,29 @@ class User(ModelWithUUID, AbstractUser):
 
         return get_reactions(get_post_reaction_model(), reactions_query)
 
+    def get_reactions_count(self, reactable_type: ReactableType, reactable_id, reaction_type=None):
+        if reactable_type == ReactableType.QUOTE:
+            model = get_quote_reaction_model()
+            field_name = "quote_id"
+        elif reactable_type == ReactableType.RECOMMENDATION:
+            model = get_recommendation_reaction_model()
+            field_name = "recommendation_id"
+        elif reactable_type == ReactableType.INITIATIVE:
+            model = get_initiative_reaction_model()
+            field_name = "initiative_id"
+        else:
+            raise ValueError("Invalid reactable type")
+
+        reactions_query = Q(**{field_name: reactable_id})
+
+        if reaction_type:
+            reactions_query.add(Q(reaction_type=reaction_type), Q.AND)
+
+        return get_reactions(model, reactions_query)
+
     def get_reaction_counts_for_post_comment_with_id(self, post_comment_id, reaction_type=None):
-        PostComment = get_post_comment_model()
-        post_comment = PostComment.objects.get(pk=post_comment_id)
+        Comment = get_comment_model()
+        post_comment = Comment.objects.get(pk=post_comment_id)
         return self.get_reaction_counts_for_post_comment(post_comment=post_comment, reaction_type=reaction_type)
 
     def get_reaction_counts_for_post_comment(self, post_comment, reaction_type=None):
@@ -1387,7 +1405,10 @@ class User(ModelWithUUID, AbstractUser):
         if reaction_type:
             reactions_query.add(Q(reaction_type=reaction_type), Q.AND)
 
-        post_comment_community = post_comment.post.community
+        if hasattr(post_comment.commentable, "community"):
+            post_comment_community = post_comment.commentable.community
+        else:
+            post_comment_community = None
 
         if post_comment_community:
             if not self.is_staff_of_community_with_name(community_name=post_comment_community.name):
@@ -1413,13 +1434,13 @@ class User(ModelWithUUID, AbstractUser):
             )
             reactions_query.add(blocked_users_query, Q.AND)
 
-        return get_reactions(get_post_comment_reaction_model(), reactions_query)
+        return get_reactions(get_comment_reaction_model(), reactions_query)
 
     def get_reaction_for_post_comment_with_id(self, post_comment_id):
-        return self.post_comment_reactions.filter(post_comment_id=post_comment_id).get()
+        return self.comment_reactions.filter(post_comment_id=post_comment_id).get()
 
     def get_reactions_for_post_comment_with_id(self, post_comment_id, reaction_type=None):
-        Post_comment = get_post_comment_model()
+        Post_comment = get_comment_model()
         post_comment = Post_comment.objects.get(pk=post_comment_id)
 
         return self.get_reactions_for_post_comment(post_comment=post_comment, reaction_type=reaction_type)
@@ -1431,8 +1452,8 @@ class User(ModelWithUUID, AbstractUser):
             post_comment=post_comment, reaction_type=reaction_type
         )
 
-        PostCommentReaction = get_post_comment_reaction_model()
-        return PostCommentReaction.objects.filter(reactions_query)
+        CommentReaction = get_comment_reaction_model()
+        return CommentReaction.objects.filter(reactions_query)
 
     def react_to_post_with_id(self, post_id, reaction_type):
         Post = get_post_model()
@@ -1469,8 +1490,8 @@ class User(ModelWithUUID, AbstractUser):
         post_reaction.delete()
 
     def react_to_post_comment_with_id(self, post_comment_id, reaction_type):
-        PostComment = get_post_comment_model()
-        post_comment = PostComment.objects.get(pk=post_comment_id)
+        Comment = get_comment_model()
+        post_comment = Comment.objects.get(pk=post_comment_id)
         return self.react_to_post_comment(post_comment=post_comment, reaction_type=reaction_type)
 
     def react_to_post_comment(self, post_comment, reaction_type):
@@ -1479,7 +1500,7 @@ class User(ModelWithUUID, AbstractUser):
         post_comment_id = post_comment.pk
 
         if self.has_reacted_to_post_comment_with_id(post_comment_id):
-            post_comment_reaction = self.post_comment_reactions.get(post_comment_id=post_comment_id)
+            post_comment_reaction = self.comment_reactions.get(post_comment_id=post_comment_id)
             post_comment_reaction.reaction_type = reaction_type
             post_comment_reaction.save()
         else:
@@ -1497,33 +1518,17 @@ class User(ModelWithUUID, AbstractUser):
 
         return post_comment_reaction
 
-    def delete_post_comment_reaction_with_id(self, post_comment_reaction_id):
-        PostCommentReaction = get_post_comment_reaction_model()
-        post_comment_reaction = PostCommentReaction.objects.filter(pk=post_comment_reaction_id).get()
-        return self.delete_post_comment_reaction(post_comment_reaction=post_comment_reaction)
-
     def delete_post_comment_reaction(self, post_comment_reaction):
         check_can_delete_post_comment_reaction(user=self, post_comment_reaction=post_comment_reaction)
         self._delete_post_comment_reaction_notification(post_comment_reaction=post_comment_reaction)
         post_comment_reaction.delete()
 
-    def get_comments_for_post_with_id(self, post_id, min_id=None, max_id=None):
-        Post = get_post_model()
-        post = Post.objects.get(pk=post_id)
-
-        check_can_get_comments_for_post(user=self, post=post)
-
-        comments_query = self._make_get_comments_for_post_query(post=post, max_id=max_id, min_id=min_id)
-
-        PostComment = get_post_comment_model()
-        return PostComment.objects.filter(comments_query)
-
     def get_comment_replies_for_comment_with_id_with_post_with_id(
         self, post_comment_id, post_id, min_id=None, max_id=None
     ):
-        PostComment = get_post_comment_model()
+        Comment = get_comment_model()
         Post = get_post_model()
-        post_comment = PostComment.objects.get(pk=post_comment_id)
+        post_comment = Comment.objects.get(pk=post_comment_id)
         post = Post.objects.get(id=post_id)
         return self.get_comment_replies_for_comment_with_post(
             post=post, post_comment=post_comment, min_id=min_id, max_id=max_id
@@ -1538,53 +1543,14 @@ class User(ModelWithUUID, AbstractUser):
             max_id=max_id,
             min_id=min_id,
         )
-        PostComment = get_post_comment_model()
-        return PostComment.objects.filter(comment_replies_query)
+        Comment = get_comment_model()
+        return Comment.objects.filter(comment_replies_query)
 
     def get_comments_count_for_post(self, post):
         return post.count_comments_with_user(user=self)
 
     def get_replies_count_for_post_comment(self, post_comment):
         return post_comment.count_replies_with_user(user=self)
-
-    def get_status_for_post_with_id(self, post_id):
-        Post = get_post_model()
-        post = Post.objects.get(id=post_id)
-        return self.get_status_for_post(post=post)
-
-    def get_status_for_post(self, post):
-        check_can_get_status_for_post(user=self, post=post)
-        return post.status
-
-    def enable_comments_for_post_with_id(self, post_id):
-        Post = get_post_model()
-        if not Post.is_post_with_id_a_community_post(post_id):
-            raise ValidationError("Post is not a community post")
-
-        post = Post.objects.select_related("community").get(pk=post_id)
-        check_can_enable_disable_comments_for_post_in_community_with_name(
-            user=self, community_name=post.community.name
-        )
-        post.community.create_enable_post_comments_log(source_user=self, target_user=post.creator, post=post)
-        post.comments_enabled = True
-        post.save()
-
-        return post
-
-    def disable_comments_for_post_with_id(self, post_id):
-        Post = get_post_model()
-        if not Post.is_post_with_id_a_community_post(post_id):
-            raise ValidationError("Post is not a community post")
-
-        post = Post.objects.select_related("community").get(pk=post_id)
-        check_can_enable_disable_comments_for_post_in_community_with_name(
-            user=self, community_name=post.community.name
-        )
-        post.community.create_disable_post_comments_log(source_user=self, target_user=post.creator, post=post)
-        post.comments_enabled = False
-        post.save()
-
-        return post
 
     def comment_post_with_id(self, post_id, text):
         Post = get_post_model()
@@ -1626,7 +1592,7 @@ class User(ModelWithUUID, AbstractUser):
             post_notification_target_user_is_post_creator = post_notification_target_user.id == post.creator.id
             post_notification_target_has_comment_notifications_enabled = (
                 post_notification_target_user.has_comment_notifications_enabled_for_post_with_id(
-                    post_id=post_comment.post_id
+                    post_id=post_comment.commentable_id
                 )
             )
 
@@ -1668,10 +1634,10 @@ class User(ModelWithUUID, AbstractUser):
         return post_comment
 
     def reply_to_comment_with_id_for_post_with_id(self, post_comment_id, post_id, text):
-        PostComment = get_post_comment_model()
+        Comment = get_comment_model()
         Post = get_post_model()
         post = Post.objects.get(id=post_id)
-        post_comment = PostComment.objects.get(pk=post_comment_id)
+        post_comment = Comment.objects.get(pk=post_comment_id)
         return self.reply_to_comment_for_post(post_comment=post_comment, text=text, post=post)
 
     def reply_to_comment_for_post(self, post_comment, post, text):
@@ -1680,7 +1646,7 @@ class User(ModelWithUUID, AbstractUser):
         comment_creator = post_comment.commenter.id
         post_creator = post.creator
         replier = self
-        post = post_comment.post
+        post = post_comment.commentable
 
         Post = get_post_model()
 
@@ -1756,17 +1722,19 @@ class User(ModelWithUUID, AbstractUser):
         return post_comment_reply
 
     def delete_comment_with_id(self, post_comment_id):
-        PostComment = get_post_comment_model()
-        post_comment = PostComment.objects.get(pk=post_comment_id)
-        check_can_delete_comment_with_id_for_post(user=self, post_comment_id=post_comment_id, post=post_comment.post)
+        Comment = get_comment_model()
+        post_comment = Comment.objects.get(pk=post_comment_id)
+        check_can_delete_comment_with_id_for_post(
+            user=self, post_comment_id=post_comment_id, post=post_comment.commentable
+        )
         post_comment.delete()
 
     def delete_comment_with_id_for_post_with_id(self, post_comment_id, post_id):
         Post = get_post_model()
         post = Post.objects.get(pk=post_id)
         check_can_delete_comment_with_id_for_post(user=self, post_comment_id=post_comment_id, post=post)
-        PostComment = get_post_comment_model()
-        post_comment = PostComment.objects.get(pk=post_comment_id)
+        Comment = get_comment_model()
+        post_comment = Comment.objects.get(pk=post_comment_id)
         self._delete_post_comment_notification(post_comment=post_comment)
         post_comment.delete()
 
@@ -1777,8 +1745,8 @@ class User(ModelWithUUID, AbstractUser):
         post = Post.objects.get(pk=post_id)
         check_can_edit_comment_with_id_for_post(user=self, post_comment_id=post_comment_id, post=post)
 
-        PostComment = get_post_comment_model()
-        post_comment = PostComment.objects.get(pk=post_comment_id)
+        Comment = get_comment_model()
+        post_comment = Comment.objects.get(pk=post_comment_id)
         post_comment.update_comment(text)
         return post_comment
 
@@ -1786,8 +1754,8 @@ class User(ModelWithUUID, AbstractUser):
         Post = get_post_model()
         post = Post.objects.get(id=post_id)
 
-        PostComment = get_post_comment_model()
-        post_comment = PostComment.objects.get(pk=post_comment_id)
+        Comment = get_comment_model()
+        post_comment = Comment.objects.get(pk=post_comment_id)
         return self.get_comment_for_post(post_comment=post_comment, post=post)
 
     def get_comment_for_post(self, post, post_comment):
@@ -4091,28 +4059,28 @@ class User(ModelWithUUID, AbstractUser):
         return post
 
     def mute_post_comment_with_id(self, post_comment_id):
-        PostComment = get_post_comment_model()
-        post_comment = PostComment.objects.get(pk=post_comment_id)
+        Comment = get_comment_model()
+        post_comment = Comment.objects.get(pk=post_comment_id)
         return self.mute_post_comment(post_comment=post_comment)
 
     def mute_post_comment(self, post_comment):
         check_can_mute_post_comment(user=self, post_comment=post_comment)
-        PostCommentMute = get_post_comment_mute_model()
-        PostCommentMute.create_post_comment_mute(post_comment_id=post_comment.pk, muter_id=self.pk)
+        CommentMute = get_comment_mute_model()
+        CommentMute.create_comment_mute(comment_id=post_comment.pk, muter_id=self.pk)
         return post_comment
 
     def unmute_post_comment_with_id(self, post_comment_id):
-        Post_comment = get_post_comment_model()
+        Post_comment = get_comment_model()
         post_comment = Post_comment.objects.get(pk=post_comment_id)
 
         check_can_unmute_post_comment(user=self, post_comment=post_comment)
-        self.post_comment_mutes.filter(post_comment_id=post_comment_id).delete()
+        self.comment_mutes.filter(post_comment_id=post_comment_id).delete()
         return post_comment
 
     def translate_post_comment_with_id(self, post_comment_id):
         check_can_translate_comment_with_id(user=self, post_comment_id=post_comment_id)
-        PostComment = get_post_comment_model()
-        post_comment = PostComment.objects.get(pk=post_comment_id)
+        Comment = get_comment_model()
+        post_comment = Comment.objects.get(pk=post_comment_id)
         result = translation_strategy.translate_text(
             source_language_code=post_comment.language.code,
             target_language_code=self.translation_language.code,
@@ -4191,35 +4159,35 @@ class User(ModelWithUUID, AbstractUser):
         self.user_blocks.filter(blocked_user_id=user_id).delete()
         return User.objects.get(pk=user_id)
 
-    def report_comment_with_id(self, post_comment_id, category_id, description=None):
-        PostComment = get_post_comment_model()
-        post_comment = PostComment.objects.get(id=post_comment_id)
-        self.report_comment_for_post(post_comment, post_comment.post, category_id, description)
+    def report_comment_with_id(self, comment_id: UUID, category_id, description=None):
+        CommentModel = get_comment_model()
+        comment = CommentModel.objects.get(id=comment_id)
+        self.report_comment(comment, comment.commentable, category_id, description)
 
     def report_comment_with_id_for_post_with_id(self, post_comment_id, post_id, category_id, description=None):
-        PostComment = get_post_comment_model()
-        post_comment = PostComment.objects.get(id=post_comment_id)
+        Comment = get_comment_model()
+        post_comment = Comment.objects.get(id=post_comment_id)
 
         Post = get_post_model()
         post = Post.objects.get(id=post_id)
 
-        return self.report_comment_for_post(
-            post_comment=post_comment,
+        return self.report_comment(
+            comment=post_comment,
             category_id=category_id,
             description=description,
-            post=post,
+            commented_content=post,
         )
 
-    def report_comment_for_post(self, post_comment, post, category_id, description=None):
-        check_can_report_comment_for_post(user=self, post_comment=post_comment, post=post)
+    def report_comment(self, comment: "Comment", commented_content: ModelWithUUID, category_id, description=None):
+        check_can_report_comment(user=self, comment=comment, commented_content=commented_content)
         ModerationReport = get_moderation_report_model()
-        ModerationReport.create_post_comment_moderation_report(
-            post_comment=post_comment,
+        ModerationReport.create_comment_moderation_report(
+            comment=comment,
             category_id=category_id,
             reporter_id=self.pk,
             description=description,
         )
-        post_comment.delete_notifications_for_user(user=self)
+        comment.delete_notifications_for_user(user=self)
 
     def report_post_with_id(self, post_id, category_id, description=None):
         Post = get_post_model()
@@ -4400,15 +4368,6 @@ class User(ModelWithUUID, AbstractUser):
 
         return User.objects.filter(search_users_query)
 
-    def get_participants_for_post_with_id(self, post_id):
-        Post = get_post_model()
-        post = Post.objects.get(id=post_id)
-        return self.get_participants_for_post(post=post)
-
-    def get_participants_for_post(self, post):
-        self.can_see_post(post=post)
-        return post.get_participants()
-
     def _generate_password_reset_link(self, token):
         return f"{settings.EMAIL_HOST}/api/auth/password/verify?token={token}"
 
@@ -4452,7 +4411,7 @@ class User(ModelWithUUID, AbstractUser):
         if post_comment.parent_comment is not None:
             PostCommentNotification = get_post_comment_notification_model()
             PostCommentNotification.delete_post_comment_notification(
-                post_comment_id=post_comment.pk, owner_id=post_comment.post.creator_id
+                post_comment_id=post_comment.pk, owner_id=post_comment.commentable.creator_id
             )
         else:
             # Comment is a reply
@@ -4461,7 +4420,7 @@ class User(ModelWithUUID, AbstractUser):
     def _delete_post_comment_reply_notification(self, post_comment):
         PostCommentReplyNotification = get_post_comment_notification_model()
         PostCommentReplyNotification.delete_post_comment_notification(
-            post_comment_id=post_comment.pk, owner_id=post_comment.post.creator_id
+            post_comment_id=post_comment.pk, owner_id=post_comment.commentable.creator_id
         )
 
     def _create_post_reaction_notification(self, post_reaction):
@@ -4759,7 +4718,7 @@ class User(ModelWithUUID, AbstractUser):
     def _make_get_reactions_for_post_comment_query(self, post_comment, reaction_type=None):
         reactions_query = Q(post_comment_id=post_comment.pk)
 
-        post_comment_community = post_comment.post.community
+        post_comment_community = post_comment.commentable.community
 
         if post_comment_community:
             if not self.is_staff_of_community_with_name(community_name=post_comment_community.name):
@@ -4801,7 +4760,7 @@ class User(ModelWithUUID, AbstractUser):
 
     def _make_get_comments_for_post_query(self, post, post_comment_parent_id=None, max_id=None, min_id=None):
         # Comments from the post
-        comments_query = Q(post_id=post.pk)
+        comments_query = Q(commentable_id=post.pk)
 
         # If we are retrieving replies, add the parent_comment to the query
         if post_comment_parent_id is None:
@@ -5348,6 +5307,7 @@ class UserProfile(ModelWithUUID):
     followers_count_visible = models.BooleanField(_("followers count visible"), blank=False, null=False, default=False)
     community_posts_visible = models.BooleanField(_("community posts visible"), blank=False, null=False, default=True)
     badges = models.ManyToManyField(Badge, related_name="users_profiles")
+    # gregor: deprecated - remove after new favorites package is used everywhere
     favorite_insights = models.ManyToManyField(to="openbook_insights.insight", blank=True)
 
     class Meta:

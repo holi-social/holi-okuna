@@ -2,6 +2,8 @@ from enum import Enum
 import strawberry
 from novu.enums import PushProviderIdEnum, EmailProviderIdEnum, Channel
 
+from openbook_devices.enums import DeviceType
+
 
 @strawberry.enum
 class NotificationType(Enum):
@@ -33,6 +35,10 @@ class NotificationProvider(Enum):
     APNS = PushProviderIdEnum.APNS
     FCM = PushProviderIdEnum.FCM
     EMAIL = EmailProviderIdEnum.CUSTOM_SMTP
+
+    @classmethod
+    def get_by_device_type(cls, device_type):
+        return NotificationProvider.APNS if device_type == DeviceType.IOS.value else NotificationProvider.FCM
 
 
 class NotificationChannel(Enum):

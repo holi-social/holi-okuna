@@ -1,26 +1,26 @@
-from rest_framework import serializers
 from django.conf import settings
+from rest_framework import serializers
 
-from openbook_common.models import Language, Emoji
+from comments.models import Comment, CommentReaction
+from openbook_common.models import Emoji, Language
 from openbook_common.serializers import (
     CommonHashtagSerializer,
     CommonPublicUserSerializer,
 )
 from openbook_common.serializers_fields.post_comment import (
     PostCommenterField,
-    PostCommentReactionsEmojiCountField,
-    PostCommentReactionField,
     PostCommentIsMutedField,
+    PostCommentReactionField,
+    PostCommentReactionsEmojiCountField,
     RepliesCountField,
 )
 from openbook_communities.models import CommunityMembership
-from openbook_posts.models import PostComment, PostCommentReaction
+from openbook_posts.serializers.posts_serializers import PostLanguageSerializer
 from openbook_posts.validators import (
     post_comment_id_exists,
-    post_id_exists,
     post_comment_id_exists_for_post_with_id,
+    post_id_exists,
 )
-from openbook_posts.serializers.posts_serializers import PostLanguageSerializer
 
 
 class EditPostCommentSerializer(serializers.ModelSerializer):
@@ -28,7 +28,7 @@ class EditPostCommentSerializer(serializers.ModelSerializer):
     hashtags = CommonHashtagSerializer(many=True)
 
     class Meta:
-        model = PostComment
+        model = Comment
         fields = ("id", "text", "language", "is_edited", "hashtags")
 
 
@@ -122,7 +122,7 @@ class PostCommentRepliesParentCommentSerializer(serializers.ModelSerializer):
     language = PostCommentLanguageSerializer()
 
     class Meta:
-        model = PostComment
+        model = Comment
         fields = (
             "id",
             "language",
@@ -151,7 +151,7 @@ class GetPostCommentReactionSerializer(serializers.ModelSerializer):
     emoji = PostCommentReactionEmojiSerializer(many=False)
 
     class Meta:
-        model = PostCommentReaction
+        model = CommentReaction
         fields = ("emoji", "id")
 
 
@@ -170,7 +170,7 @@ class GetPostCommentSerializer(serializers.ModelSerializer):
     hashtags = CommonHashtagSerializer(many=True)
 
     class Meta:
-        model = PostComment
+        model = Comment
         fields = (
             "commenter",
             "text",

@@ -1,0 +1,116 @@
+[
+  {
+    "model": "openbook_terms.feedpostcategory",
+    "pk": "cf42a976-7d85-49c7-98b6-a59d2b8b63a6",
+    "fields": {
+      "slug": "topic-for-conversation",
+      "title": "Topic for conversation",
+      "title_es": null,
+      "title_en": "Topic for conversation",
+      "title_de": "Gesprächsthema",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+    {
+    "model": "openbook_terms.feedpostcategory",
+    "pk": "1e4b0b27-a013-43fe-8ec2-0f0314c521e3",
+    "fields": {
+      "slug": "personal-experience",
+      "title": "Personal experience",
+      "title_es": null,
+      "title_en": "Personal experience",
+      "title_de": "Persönalische Erfahrung",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.feedpostcategory",
+    "pk": "c6bbd246-1cd3-4fe0-bd1c-63f403609093",
+    "fields": {
+      "slug": "recommendation",
+      "title": "Recommendation",
+      "title_es": null,
+      "title_en": "Recommendation",
+      "title_de": "Empfehlung",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+    {
+    "model": "openbook_terms.feedpostcategory",
+    "pk": "e0ee8820-8c2b-4084-94c6-1b1d6163bd05",
+    "fields": {
+      "slug": "raise-awareness",
+      "title": "Raise awareness",
+      "title_es": null,
+      "title_en": "Raise awareness",
+      "title_de": "Aufmerksam machen auf...",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+      {
+    "model": "openbook_terms.feedpostcategory",
+    "pk": "66efe368-25e6-4dad-9665-298abb2ddb04",
+    "fields": {
+      "slug": "offer-or-search",
+      "title": "Offer or search",
+      "title_es": null,
+      "title_en": "Offer or search",
+      "title_de": "Angebot oder Suche",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+      {
+    "model": "openbook_terms.feedpostcategory",
+    "pk": "aac090da-1355-4fc5-a582-ef359c30b483",
+    "fields": {
+      "slug": "event",
+      "title": "Event",
+      "title_es": null,
+      "title_en": "Event",
+      "title_de": "Event",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  }
+]

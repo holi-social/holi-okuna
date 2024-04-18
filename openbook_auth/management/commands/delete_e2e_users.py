@@ -1,4 +1,7 @@
+# ruff: noqa: T201
+
 import http
+from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 
 import requests
@@ -11,7 +14,6 @@ from openbook_auth.management.common import (
     ory_user_to_str,
     get_ory_error_str,
     for_every_ory_user,
-    user_to_str,
     get_ory_user,
 )
 from openbook_auth.models import User
@@ -45,7 +47,8 @@ class Command(BaseCommand):
                 if user:
                     self._delete_ory_user(user)
             else:
-                for_every_ory_user(self._delete_ory_user)
+                with ThreadPoolExecutor(max_workers=20) as executor:
+                    for_every_ory_user(lambda user: executor.submit(self._delete_ory_user, user))
             print(f"Job completed, {self.users_deleted_count} users deleted in Ory ({self.users_failed_count} failed)")
         if options["okuna"]:
             self._delete_okuna_e2e_users()
@@ -58,7 +61,7 @@ class Command(BaseCommand):
         ):
             print(f"Deleting {ory_user_to_str(user)}")
 
-            response = requests.delete(f"{self.base_url}{user['id']}", headers=self.headers)
+            response = requests.delete(f"{self.base_url}{user['id']}", headers=self.headers, timeout=30)
 
             if response.status_code != http.HTTPStatus.NO_CONTENT:
                 message = get_ory_error_str(response)

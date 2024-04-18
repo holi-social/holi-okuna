@@ -2,22 +2,23 @@ import logging
 
 import pytest
 from asgiref.sync import async_to_sync
-from django.test import AsyncClient
-
 from benedict import benedict
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.management import call_command
+from django.test import AsyncClient
 from django.utils import timezone
 
 from openbook.graphql_schema import schema
 from openbook_common.tests.helpers import (
     make_fake_post_text,
     make_fake_post_title,
+    make_insight,
     make_user,
     simple_jpeg_bytes,
 )
 from openbook_insights.models import Insight
-from django.core.management import call_command
+from openbook_insights.tests.helpers import get_insight
 
 logger = logging.getLogger(__name__)
 
@@ -134,16 +135,16 @@ class TestInsights:
         insight_user_2.block_user_with_id(insight_user.id)
 
         now = timezone.now()
-        insight1 = Insight.objects.create(
+        Insight.objects.create(
             creator=insight_user,
             title="Insight  Foo",
             header_image=SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes),
             date_published=now,
         )
-        insight2 = Insight.objects.create(
+        Insight.objects.create(
             creator=insight_user, title="Insight 2", date_published=now - timezone.timedelta(days=1)
         )
-        insight3 = Insight.objects.create(creator=insight_user_2, title="Insight 3", date_published=now)
+        Insight.objects.create(creator=insight_user_2, title="Insight 3", date_published=now)
 
         response = async_to_sync(schema.execute)(
             f"""
@@ -163,7 +164,7 @@ class TestInsights:
 
         assert response.data is None
         assert len(response.errors) == 1
-        assert "User not found" == str(response.errors[0].message)
+        assert "Object not found" == str(response.errors[0].message)
 
     def test_select_last_insights(self):
         insight_user = make_user()
@@ -221,32 +222,31 @@ class TestInsights:
         )
 
         response = async_to_sync(schema.execute)(
-            f"""
-            query {{
-                lastInsights {{
-                    data {{
+            """
+            query {
+                lastInsights {
+                    data {
                         title
                         numberOfPosts
-                        posts {{
+                        posts {
                             title
-                        }}
-                        involvedUsers {{
+                        }
+                        involvedUsers {
                             totalResults
-                            data {{
+                            data {
                               fullName
-                            }}
-                        }}
-                    }}
-                }}
-            }}
+                            }
+                        }
+                    }
+                }
+            }
             """,
             context_value=benedict({"request": {"user": AnonymousUser}}),
         )
 
         insights = response.data["lastInsights"]["data"]
         assert len(insights) == 4
-        # insight1 = next(i for i in insights if i["title"] == insight1_title)
-        # insight2 = next(i for i in insights if i["title"] == insight2_title)
+
         insight1_result = insights[0]
         assert insight1_result["title"] == insight1.title
         assert insight1_result["numberOfPosts"] == 2
@@ -285,32 +285,32 @@ class TestInsights:
         )
         insight1.posts.add(post1, post2)
 
-        insight2 = Insight.objects.create(
+        Insight.objects.create(
             creator=blocked_user, title="Insight 2 Blocked", date_published=now - timezone.timedelta(days=1)
         )
 
         response = async_to_sync(schema.execute)(
-            f"""
-            query {{
-                lastInsights {{
-                    data {{
+            """
+            query {
+                lastInsights {
+                    data {
                         title
                         numberOfPosts
-                        posts {{
+                        posts {
                             title
-                            creator {{
+                            creator {
                                 fullName
-                            }}
-                        }}
-                        involvedUsers {{
+                            }
+                        }
+                        involvedUsers {
                             totalResults
-                            data {{
+                            data {
                               fullName
-                            }}
-                        }}
-                    }}
-                }}
-            }}
+                            }
+                        }
+                    }
+                }
+            }
             """,
             context_value=benedict({"request": {"user": query_user}}),
         )
@@ -319,3 +319,19 @@ class TestInsights:
         insight1_result = insights[0]
         assert insight1_result["title"] == insight1.title
         assert len(insight1_result["posts"]) == 1
+
+
+@pytest.mark.django_db
+class TestDiscussions:
+    def test_should_list_discussions(self):
+        user = make_user(name="InsightUser")
+        insight = make_insight()
+        insight.discussions.create(question="What do you think?")
+
+        response = get_insight(user, insight.id)
+
+        assert response.errors is None
+        insight_data = response.data["insightById"]
+        assert insight_data["id"] == str(insight.id)
+        assert len(insight_data["discussions"]) == 1
+        assert insight_data["discussions"][0]["question"] == "What do you think?"

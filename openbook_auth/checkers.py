@@ -1,7 +1,9 @@
+import typing
 import uuid
 
 import jwt
 from django.conf import settings
+from django.db.models import Model
 from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import (
     AuthenticationFailed,
@@ -9,20 +11,23 @@ from rest_framework.exceptions import (
     PermissionDenied,
     ValidationError,
 )
-from openbook_common.enums import VisibilityType
 
+from openbook.utils import generate_hash
+from openbook_common.enums import VisibilityType
 from openbook_common.utils.model_loaders import (
+    get_comment_model,
+    get_community_membership_model,
     get_community_model,
+    get_community_pending_invite_model,
     get_language_model,
-    get_post_comment_model,
     get_post_model,
     get_post_reaction_model,
     get_user_invite_model,
     get_user_model,
-    get_community_membership_model,
-    get_community_pending_invite_model,
 )
-from openbook.utils import generate_hash
+
+if typing.TYPE_CHECKING:
+    from comments.models import Comment
 
 
 def check_follow_lists_ids(user, lists_ids):
@@ -382,21 +387,6 @@ def check_can_get_closed_posts_for_community_with_name(user, community_name):
 
 
 def check_can_enable_new_post_notifications_for_community(user, community):
-    # Non-members can follow a community.
-    # is_member = user.is_member_of_community_with_name(community_name=community.name)
-    #
-    # if not is_member:
-    #     raise ValidationError(
-    #         _("Only members can enable new post notifications"),
-    #     )
-
-    # If notifications are already enabled, it does not matter to "enable" them again
-    # new_post_notifications_enabled = user.are_new_post_notifications_enabled_for_community(community=community)
-    # if new_post_notifications_enabled:
-    #     raise ValidationError(
-    #         _("New post notifications are already enabled"),
-    #     )
-
     check_is_not_banned_from_community_with_name(user=user, community_name=community.name)
 
 
@@ -823,9 +813,9 @@ def check_has_muted_post_comment_with_id(user, post_comment_id):
 
 
 def check_can_translate_comment_with_id(user, post_comment_id):
-    PostComment = get_post_comment_model()
-    post_comment = PostComment.objects.get(pk=post_comment_id)
-    if not post_comment.post.is_public:
+    Comment = get_comment_model()
+    post_comment = Comment.objects.get(pk=post_comment_id)
+    if not post_comment.commentable.is_public:
         raise ValidationError(_("Only public post comments can be translated"))
     if post_comment.text is None:
         raise ValidationError(_("Post comment has no text to be translated"))
@@ -888,18 +878,20 @@ def check_is_not_blocked_with_user_with_id(user, user_id):
         raise PermissionDenied(_("This account is blocked."))
 
 
-def check_can_report_comment_for_post(user, post_comment, post):
-    check_has_not_reported_post_comment_with_id(user=user, post_comment_id=post_comment.pk)
-    check_can_see_post(user=user, post=post)
+def check_can_report_comment(user, comment: "Comment", commented_content: Model):
+    check_has_not_reported_comment_with_id(user=user, comment_id=comment.pk)
 
-    if post_comment.commenter_id == user.pk:
+    if isinstance(comment.commentable, get_post_model()):
+        check_can_see_post(user=user, post=commented_content)
+
+    if comment.commenter_id == user.pk:
         raise ValidationError(
             _("You cannot report your own comment."),
         )
 
 
-def check_has_not_reported_post_comment_with_id(user, post_comment_id):
-    if user.has_reported_post_comment_with_id(post_comment_id=post_comment_id):
+def check_has_not_reported_comment_with_id(user, comment_id: uuid.UUID):
+    if user.has_reported_post_comment_with_id(post_comment_id=comment_id):
         raise ValidationError(
             _("You have already reported the comment."),
         )
@@ -979,14 +971,14 @@ def check_password_reset_verification_token_is_valid(user, password_verification
         if token_user_id != user.pk:
             raise ValidationError(_("Token user id does not match"))
         return token_user_id
-    except jwt.InvalidSignatureError:
-        raise ValidationError(_("Invalid token signature"))
-    except jwt.ExpiredSignatureError:
-        raise ValidationError(_("Token expired"))
-    except jwt.DecodeError:
-        raise ValidationError(_("Failed to decode token"))
-    except KeyError:
-        raise ValidationError(_("Invalid token"))
+    except jwt.InvalidSignatureError as e:
+        raise ValidationError(_("Invalid token signature")) from e
+    except jwt.ExpiredSignatureError as e:
+        raise ValidationError(_("Token expired")) from e
+    except jwt.DecodeError as e:
+        raise ValidationError(_("Failed to decode token")) from e
+    except KeyError as e:
+        raise ValidationError(_("Invalid token")) from e
 
 
 def check_email_verification_token_is_valid_for_email(user, email_verification_token):
@@ -1010,14 +1002,14 @@ def check_email_verification_token_is_valid_for_email(user, email_verification_t
         if token_user_id != user.pk:
             raise ValidationError(_("Token user id does not match"))
         return new_email
-    except jwt.InvalidSignatureError:
-        raise ValidationError(_("Invalid token signature"))
-    except jwt.ExpiredSignatureError:
-        raise ValidationError(_("Token expired"))
-    except jwt.DecodeError:
-        raise ValidationError(_("Failed to decode token"))
-    except KeyError:
-        raise ValidationError(_("Invalid token"))
+    except jwt.InvalidSignatureError as e:
+        raise ValidationError(_("Invalid token signature")) from e
+    except jwt.ExpiredSignatureError as e:
+        raise ValidationError(_("Token expired")) from e
+    except jwt.DecodeError as e:
+        raise ValidationError(_("Failed to decode token")) from e
+    except KeyError as e:
+        raise ValidationError(_("Invalid token")) from e
 
 
 def check_connection_circles_ids(user, circles_ids):
@@ -1052,9 +1044,9 @@ def check_username_not_taken(user, username):
 def check_can_edit_comment_with_id_for_post(user, post_comment_id, post):
     check_can_see_post(user=user, post=post)
     # Check that the comment belongs to the post
-    PostComment = get_post_comment_model()
+    Comment = get_comment_model()
 
-    if not PostComment.objects.filter(id=post_comment_id, post_id=post.pk).exists():
+    if not Comment.objects.filter(id=post_comment_id, commentable_id=post.pk).exists():
         raise ValidationError(_("The comment does not belong to the specified post."))
 
     if post.community and post.is_closed:
@@ -1065,7 +1057,7 @@ def check_can_edit_comment_with_id_for_post(user, post_comment_id, post):
 
 
 def check_has_post_comment_with_id(user, post_comment_id):
-    if not user.posts_comments.filter(id=post_comment_id).exists():
+    if not user.comments.filter(id=post_comment_id).exists():
         # The comment is not ours
         raise ValidationError(_("You cannot edit a comment that does not belong to you"))
 
@@ -1074,11 +1066,11 @@ def check_can_delete_comment_with_id_for_post(user, post_comment_id, post):
     check_can_see_post(user=user, post=post)
 
     # Check that the comment belongs to the post
-    PostComment = get_post_comment_model()
+    Comment = get_comment_model()
 
-    if not PostComment.objects.filter(id=post_comment_id, post_id=post.pk).exists():
+    if not Comment.objects.filter(id=post_comment_id, commentable_id=post.pk).exists():
         raise ValidationError(_("The comment does not belong to the specified post."))
-    is_comment_creator = user.posts_comments.filter(id=post_comment_id).exists()
+    is_comment_creator = user.comments.filter(id=post_comment_id).exists()
 
     if post.community:
         is_moderator = user.is_moderator_of_community_with_name(post.community.name)
@@ -1092,7 +1084,7 @@ def check_can_delete_comment_with_id_for_post(user, post_comment_id, post):
                 raise ValidationError(_("You cannot remove a comment that does not belong to you"))
         else:
             # is admin or mod
-            post_comment = PostComment.objects.select_related("commenter").get(pk=post_comment_id)
+            post_comment = Comment.objects.select_related("commenter").get(pk=post_comment_id)
             if post_comment.parent_comment is not None:
                 post.community.create_remove_post_comment_reply_log(
                     source_user=user, target_user=post_comment.commenter
@@ -1104,14 +1096,10 @@ def check_can_delete_comment_with_id_for_post(user, post_comment_id, post):
         raise ValidationError(_("You cannot remove a comment that does not belong to you"))
 
 
-def check_can_get_comments_for_post(user, post):
-    check_can_see_post(user=user, post=post)
-
-
 def check_can_get_comment_replies_for_post_and_comment(user, post, post_comment):
-    if post_comment.post_id != post.id:
+    if post_comment.commentable_id != post.id:
         raise ValidationError(_("No comment found with given id for post with given id"))
-    check_can_see_post(user=user, post=post_comment.post)
+    check_can_see_post(user=user, post=post_comment.commentable)
 
 
 def check_can_comment_in_post(user, post):
@@ -1120,7 +1108,7 @@ def check_can_comment_in_post(user, post):
 
 
 def check_can_reply_to_post_comment_for_post(user, post_comment, post):
-    if post_comment.post_id != post.id:
+    if post_comment.commentable_id != post.id:
         raise ValidationError(_("No comment found with given id for post with given id"))
 
     check_can_comment_in_post(user=user, post=post)
@@ -1149,7 +1137,10 @@ def check_can_get_reactions_for_post(user, post):
 
 
 def check_can_get_reactions_for_post_comment(user, post_comment):
-    return check_can_get_reactions_for_post(user=user, post=post_comment.post)
+    if isinstance(post_comment.commentable, get_post_model()):
+        return check_can_get_reactions_for_post(user=user, post=post_comment.commentable)
+    else:
+        return True
 
 
 def check_can_react_to_post(user, post):
@@ -1173,7 +1164,7 @@ def check_can_see_hashtag(user, hashtag):
 def check_can_react_to_post_comment(user, post_comment):
     check_can_see_post_comment(user=user, post_comment=post_comment)
 
-    if post_comment.post.is_closed:
+    if post_comment.commentable.is_closed:
         raise ValidationError(
             _("Cant react to comments on a closed post."),
         )
@@ -1189,7 +1180,7 @@ def check_can_delete_post_comment_reaction(user, post_comment_reaction):
 
 
 def check_can_see_post_comment(user, post_comment):
-    check_can_see_post(user=user, post=post_comment.post)
+    check_can_see_post(user=user, post=post_comment.commentable)
 
     if not user.can_see_post_comment(post_comment=post_comment):
         raise ValidationError(
@@ -1275,7 +1266,7 @@ def check_can_moderate_moderated_object(user, moderated_object):
     if is_global_moderator:
         return
 
-    PostComment = get_post_comment_model()
+    Comment = get_comment_model()
     Post = get_post_model()
 
     if isinstance(content_object, Post):
@@ -1284,9 +1275,9 @@ def check_can_moderate_moderated_object(user, moderated_object):
                 raise ValidationError(_("Only community staff can moderate community posts"))
         else:
             raise ValidationError(_("Only global moderators can moderate non-community posts"))
-    elif isinstance(content_object, PostComment):
-        if content_object.post.community:
-            if not user.is_staff_of_community_with_name(community_name=content_object.post.community.name):
+    elif isinstance(content_object, Comment):
+        if content_object.commentable.community:
+            if not user.is_staff_of_community_with_name(community_name=content_object.commentable.community.name):
                 raise ValidationError(_("Only community staff can moderate community post comments"))
         else:
             raise ValidationError(_("Only global moderators can moderate non-community post comments"))
@@ -1390,10 +1381,6 @@ def check_can_add_media_to_post(user, post):
 
 
 def check_can_publish_post(user, post):
-    check_has_post(user=user, post=post)
-
-
-def check_can_get_status_for_post(user, post):
     check_has_post(user=user, post=post)
 
 

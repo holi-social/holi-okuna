@@ -1,4 +1,5 @@
 import json
+from enum import Enum
 
 from django.contrib.gis import geos
 
@@ -23,3 +24,9 @@ class GeolocationFeature:
             name=feature["properties"]["formatted"],
             geometry=geos.GEOSGeometry(json.dumps(feature["geometry"])),
         )
+
+
+class ReactableType(Enum):
+    QUOTE = "quote"
+    RECOMMENDATION = "recommendation"
+    INITIATIVE = "initiative"

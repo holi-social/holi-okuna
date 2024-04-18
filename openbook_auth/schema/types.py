@@ -1,19 +1,24 @@
 import logging
 import uuid
-from typing import List, Optional, Annotated
+from typing import List, Optional, TYPE_CHECKING
 
 import strawberry
 import strawberry_django
+
 from strawberry.file_uploads import Upload
 
 from openbook_auth.models import User as UserModel
 from openbook_auth.models import UserConnectionStatus
-from openbook_common.schema.types import GeoJSONInput, GeolocationPoint
+from openbook_common.schema.types import GeoJSONInput
 from openbook_communities.enums import UpdateConnectionAction
 from openbook_communities.models import Community as CommunityModel
 from openbook_communities.models import SpaceUserConnectionType
+
 from openbook_terms.schema.types import SDG, Skill, Topic
 from openbook_devices.models import Device
+
+if TYPE_CHECKING:
+    pass
 
 logger = logging.getLogger(__name__)
 
@@ -77,15 +82,6 @@ class User:
     @strawberry_django.field(select_related=["profile"])
     def location(self) -> Optional[str]:
         return self.profile.location
-
-    # TODO: Only for temporary backwards compatibility, replace by GeoJSON in HOLI-4353 (see below)
-    @strawberry_django.field(deprecation_reason="Type change to GeoJSON planned, deprecated since version 1.0.16")
-    def geolocation(self) -> Optional[GeolocationPoint]:
-        return None
-
-    # @strawberry_django.field(select_related=["profile"])
-    # def geolocation_new(self) -> Optional[GeoJSON]:
-    #     return self.geolocation
 
     @strawberry_django.field(select_related=["profile"])
     def geolocation_id(self) -> Optional[str]:

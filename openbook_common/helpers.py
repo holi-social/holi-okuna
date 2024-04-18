@@ -1,4 +1,3 @@
-import os
 import tempfile
 from json import dumps
 from urllib.parse import urlparse
@@ -136,7 +135,7 @@ class PrefixedQ:
 class ExifRotate:
     def process(self, img):
         exif = img.getexif()
-        if not exif or not ExifTags.Base.Orientation in exif:
+        if not exif or ExifTags.Base.Orientation not in exif:
             return img
 
         orientation = exif[ExifTags.Base.Orientation]

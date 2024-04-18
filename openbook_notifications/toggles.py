@@ -16,7 +16,6 @@ def notifications_toggle(func):
                 return func(*args, **kwargs)
         except FeatureToggleModel.DoesNotExist:
             logger.warning(f"Feature toggle {FeatureToggleName.NOTIFICATIONS.value} does not exist")
-            pass
 
     return wrapper
 

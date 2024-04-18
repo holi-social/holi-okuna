@@ -2,7 +2,6 @@ from rest_framework.fields import Field
 
 
 class RepliesField(Field):
-
     DEFAULT_REPLY_COUNT = 2
 
     def __init__(self, post_comment_reply_serializer=None, **kwargs):
@@ -17,7 +16,7 @@ class RepliesField(Field):
         request_user = request.user
 
         replies = request_user.get_comment_replies_for_comment_with_id_with_post_with_id(
-            post_id=post_comment.post.id, post_comment_id=post_comment.pk
+            post_id=post_comment.commentable_id, post_comment_id=post_comment.pk
         ).order_by(sort_query)[: self.DEFAULT_REPLY_COUNT]
 
         return self.post_comment_reply_serializer(replies, many=True, context={"request": request}).data

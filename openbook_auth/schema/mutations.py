@@ -1,3 +1,4 @@
+# ruff: noqa
 import uuid
 from copy import deepcopy
 
@@ -6,8 +7,9 @@ import strawberry
 import structlog
 from asgiref.sync import sync_to_async
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
-from django.utils.translation import gettext_lazy as _, get_language_from_request
+from django.utils.translation import get_language_from_request
 from graphql import GraphQLError
 from rest_framework.exceptions import ValidationError
 
@@ -18,6 +20,7 @@ from openbook.helpers import (
 )
 from openbook.utils import invalidate_discover_spaces_query_cache
 from openbook_auth.models import User as UserModel
+from favorites.models import UserFavorite
 from openbook_auth.schema.types import UpdateAuthenticatedUserInput, User, RegisterDeviceInput
 from openbook_auth.serializers.authenticated_user_serializers import (
     UpdateAuthenticatedUserSerializer,
@@ -27,7 +30,6 @@ from openbook_auth.utils import verify_authorized_user
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.helpers import is_parameter_null, to_input_dict
 from openbook_common.schema.types import Result
-from openbook_devices.enums import DeviceType
 from openbook_notifications.api import NotificationApi
 from openbook_notifications.enums import NotificationProvider
 from openbook_devices.serializers import RegisterDeviceSerializer
@@ -218,9 +220,7 @@ class Mutation:
         # a device token can only be in Okuna if it has previously succeeded setting in Novu, so:
         # if a device token is in not in Okuna, it is also (most likely) not in Novu, and we have to update it in both
         if not current_user.has_device_with_token_and_type(token=token, device_type=device_type):
-            provider_id = (
-                NotificationProvider.APNS if device_type == DeviceType.IOS.value else NotificationProvider.FCM
-            )
+            provider_id = NotificationProvider.get_by_device_type(device_type)
             # Create subscriber if it doesn't exist already
             locale = get_language_from_request(info.context.request)
             NotificationApi.find_or_create_subscriber(user=current_user, locale=locale)
@@ -231,16 +231,18 @@ class Mutation:
 
         return Result(success=True)
 
-    @strawberry.mutation
+    @strawberry.mutation(deprecation_reason="Use 'favorite' mutation instead. Keep for version <=1.14.5")
     @sync_to_async
     def bookmark_insight(self, info, insight_id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
-        current_user.bookmark_insight(insight_id)
+        current_user.bookmark_insight(insight_id)  # To maintain compatibility with older versions
+        UserFavorite.favorite(user=current_user, favoritable_id=insight_id, favoritable_type="insight")
         return Result(success=True)
 
-    @strawberry.mutation
+    @strawberry.mutation(deprecation_reason="Use 'unfavorite' mutation instead. Keep for version <=1.14.5")
     @sync_to_async
     def remove_insight_bookmark(self, info, insight_id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
-        current_user.remove_insight_bookmark(insight_id)
+        current_user.remove_insight_bookmark(insight_id)  # To maintain compatibility with older versions
+        UserFavorite.unfavorite(user=current_user, favoritable_id=insight_id, favoritable_type="insight")
         return Result(success=True)

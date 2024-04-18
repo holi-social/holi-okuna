@@ -1,12 +1,12 @@
+# ruff: noqa
+
 import json
 import logging
 from datetime import datetime, timedelta
 from unittest import mock
 from unittest.mock import call
 
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import HttpRequest
-from django.utils import timezone
 from structlog.testing import capture_logs
 
 import pytest
@@ -15,29 +15,35 @@ from benedict import benedict
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis import geos
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
+from django.http import HttpRequest
 from django.test import AsyncClient
 from django.urls import reverse
+from django.utils import timezone
 from requests.models import Response
 from rest_framework import status
+from structlog.testing import capture_logs
 
 from openbook.graphql_schema import schema
 from openbook.tests.test_data import geolocation, geolocation_geometry, geolocation_id
 from openbook_auth.models import EngagementLevelChoice, User
 from openbook_auth.tests.helpers import (
-    api_update_authenticated_user_names,
+    api_update_authenticated_user_names_data,
+    get_connected_users,
+    get_connected_users_raw,
     get_user_connection_status_to_space_data,
     get_user_with_id_raw,
     get_users_by_chat_identities,
     get_connected_users,
     get_connected_users_raw,
-    bookmark_insight,
-    remove_insight_bookmark,
 )
 from openbook_common.enums import FeatureToggleName, FeatureToggleType
 from openbook_common.models import FeatureToggle
 from openbook_common.tests.helpers import (
+    assert_is_forbidden,
     assert_is_unauthorized,
+    assert_paged_results_equal,
     make_authentication_headers_for_user,
     make_community,
     make_fake_post_text,
@@ -45,17 +51,15 @@ from openbook_common.tests.helpers import (
     make_user,
     assert_paged_results_equal,
     assert_is_forbidden,
-    simple_jpeg_bytes,
 )
-from openbook_common.utils.model_loaders import get_insight_model
 from openbook_communities.enums import UpdateConnectionAction
 from openbook_communities.models import SpaceUserConnectionType
 from openbook_communities.tests.helpers import (
     mutate_update_space_user_connection_data,
 )
+from openbook_connections.tests.helpers import connect_to_user
 from openbook_notifications.enums import NotificationProvider
 from openbook_posts.tests.helpers import get_post_with_id_data, get_post_with_id_raw
-from openbook_connections.tests.helpers import connect_to_user
 
 logger = logging.getLogger(__name__)
 
@@ -73,14 +77,13 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 @pytest.mark.django_db
 class TestUsers:
+    @pytest.fixture(autouse=True)
     def setup(self):
-        self.notifications_toggle = FeatureToggle.objects.create(
+        notifications_toggle = FeatureToggle.objects.create(
             name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
         )
-
-    def teardown(self):
-        if self.notifications_toggle.id is not None:
-            self.notifications_toggle.delete()
+        yield
+        notifications_toggle.delete()
 
     @pytest.mark.asyncio
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
@@ -247,10 +250,6 @@ class TestUsers:
                     id
                     pronouns
                     location
-                    geolocation {
-                      latitude
-                      longitude
-                    }
                     geolocationId
                     engagementLevel
                 }
@@ -268,10 +267,14 @@ class TestUsers:
                 }
             },
         )
+
+        assert executed.errors is None
+
         mock_patch.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
             json=json_body,
+            timeout=30,
         )
         updated_user = executed.data["updateAuthenticatedUser"]
         graphql_pronouns = updated_user["pronouns"]
@@ -284,8 +287,6 @@ class TestUsers:
         assert persisted_profile.engagement_level == EngagementLevelChoice.INITIATOR
         assert location == persisted_profile.location
         assert geolocation_id == persisted_profile.geolocation_id
-        # TODO: Only for temporary backwards compatibility, adjust in HOLI-4353
-        assert updated_user["geolocation"] is None
         assert persisted_profile.geolocation is not None
         assert geos.GEOSGeometry(json.dumps(geolocation_geometry)) == persisted_profile.geolocation
 
@@ -306,28 +307,23 @@ class TestUsers:
         user = make_user()
         user.identity = None
 
-        result = api_update_authenticated_user_names(user, "Fritz", "Meier")
-
-        assert result.errors is None
+        result = api_update_authenticated_user_names_data(user, "Fritz", "Meier")
 
         ory_patch_mock.assert_any_call(
             f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
             json=[{"op": "add", "path": "/metadata_public/identity", "value": "fritz.meier"}],
+            timeout=30,
         )
 
-        result = result.data["updateAuthenticatedUser"]
         persisted_user = User.objects.get(username=user.username)
 
         assert "fritz.meier" == persisted_user.identity
         assert "fritz.meier" == result["identity"]
 
         # test it only registers identity once
-        result = api_update_authenticated_user_names(user, "Hans", "Meier")
+        result = api_update_authenticated_user_names_data(user, "Hans", "Meier")
 
-        assert result.errors is None
-
-        result = result.data["updateAuthenticatedUser"]
         persisted_user = User.objects.get(username=user.username)
         assert "fritz.meier" == persisted_user.identity
         assert "fritz.meier" == result["identity"]
@@ -349,10 +345,9 @@ class TestUsers:
         new_fritz = make_user(name="Fritz", last_name="Hansen", identity="something_to_prevent_collision")
         new_fritz.identity = None
 
-        result = api_update_authenticated_user_names(new_fritz, "Fritz", "Hansen")
+        result = api_update_authenticated_user_names_data(new_fritz, "Fritz", "Hansen")
 
-        assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.hansen1"
+        assert result["identity"] == "fritz.hansen1"
 
         expected_json_body = [{"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen1"}]
 
@@ -360,6 +355,7 @@ class TestUsers:
             f"{settings.ORY_BASE_URL}/admin/identities/{new_fritz.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
             json=expected_json_body,
+            timeout=30,
         )
 
         mock_create_or_update_subscriber.assert_called_once_with(
@@ -387,10 +383,9 @@ class TestUsers:
         new_user = make_user()
         new_user.identity = None
 
-        result = api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
+        result = api_update_authenticated_user_names_data(new_user, "Fritz", "Hansen")
 
-        assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.hansen"
+        assert result["identity"] == "fritz.hansen"
 
         ory_patch_mock.assert_has_calls(
             [
@@ -400,6 +395,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen"},
                     ],
+                    timeout=30,
                 ),
                 call(
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
@@ -407,6 +403,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen"},
                     ],
+                    timeout=30,
                 ),
             ]
         )
@@ -436,10 +433,9 @@ class TestUsers:
         new_user = make_user()
         new_user.identity = None
 
-        result = api_update_authenticated_user_names(new_user, "Fritz", "")
+        result = api_update_authenticated_user_names_data(new_user, "Fritz", "")
 
-        assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz"
+        assert result["identity"] == "fritz"
 
         ory_patch_mock.assert_has_calls(
             [
@@ -449,6 +445,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz"},
                     ],
+                    timeout=30,
                 ),
                 call(
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
@@ -456,6 +453,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz"},
                     ],
+                    timeout=30,
                 ),
             ]
         )
@@ -484,10 +482,9 @@ class TestUsers:
         new_user = make_user()
         new_user.identity = None
 
-        result = api_update_authenticated_user_names(new_user, "Fritz", "Fratz")
+        result = api_update_authenticated_user_names_data(new_user, "Fritz", "Fratz")
 
-        assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.fratz1"
+        assert result["identity"] == "fritz.fratz1"
 
         mock_create_or_update_subscriber.assert_called_once_with(
             user=new_user, locale=mock_get_language_from_request.return_value
@@ -515,14 +512,11 @@ class TestUsers:
         new_user.identity = None
 
         with capture_logs() as cap_logs:
-            result = api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
+            result = api_update_authenticated_user_names_data(new_user, "Fritz", "Hansen")
             log_entry = next(e for e in cap_logs if "MANUAL INTERVENTION NEEDED!" in e["event"])
             assert log_entry["log_level"] == "error"
 
-            # assert "MANUAL INTERVENTION NEEDED!" in caplog.text
-
-        assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.hansen"
+        assert result["identity"] == "fritz.hansen"
 
         ory_patch_mock.assert_has_calls(
             [
@@ -532,6 +526,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen"},
                     ],
+                    timeout=30,
                 ),
                 call(
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
@@ -539,6 +534,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen"},
                     ],
+                    timeout=30,
                 ),
                 call(
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
@@ -546,6 +542,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen"},
                     ],
+                    timeout=30,
                 ),
             ]
         )
@@ -765,12 +762,12 @@ class TestUsers:
         other_post = other_user.create_post(
             text=(make_fake_post_text()), title=(make_fake_post_title()), is_public=True
         )
-        other_post.comment(text=f"comment text 1", commenter=blocked_user)
+        other_post.comment(text="comment text 1", commenter=blocked_user)
 
         blocked_post = blocked_user.create_post(
             text=(make_fake_post_text()), title=(make_fake_post_title()), is_public=True
         )
-        blocked_post.comment(text=f"comment text 1", commenter=other_user)
+        blocked_post.comment(text="comment text 1", commenter=other_user)
 
         response = async_to_sync(schema.execute)(
             """
@@ -1173,66 +1170,3 @@ class TestUsers:
         assert response.errors is None
         assert response.data["userSuggestions"]["totalResults"] == 25
         assert len(response.data["userSuggestions"]["data"]) == 5
-
-    def test_cannot_bookmark_insight_if_anonymous(self):
-        insight_author = make_user()
-        Insight = get_insight_model()
-        insight = Insight.objects.create(
-            creator=insight_author,
-            title="Insight",
-            header_image=SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes),
-            date_published=timezone.now(),
-        )
-
-        response = bookmark_insight(AnonymousUser, insight_id=insight.id)
-
-        assert_is_unauthorized(response)
-
-    def test_cannot_remove_insight_bookmark_if_anonymous(self):
-        insight_author = make_user()
-        Insight = get_insight_model()
-        insight = Insight.objects.create(
-            creator=insight_author,
-            title="Insight",
-            header_image=SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes),
-            date_published=timezone.now(),
-        )
-
-        response = remove_insight_bookmark(AnonymousUser, insight_id=insight.id)
-
-        assert_is_unauthorized(response)
-
-    def test_can_bookmark_insight_if_authenticated(self):
-        user = make_user()
-        insight_author = make_user()
-        Insight = get_insight_model()
-        insight = Insight.objects.create(
-            creator=insight_author,
-            title="Insight",
-            header_image=SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes),
-            date_published=timezone.now(),
-        )
-
-        response = bookmark_insight(user, insight_id=insight.id)
-
-        assert response.data["bookmarkInsight"]["success"]
-        assert user.profile.favorite_insights.count() == 1
-
-    def test_can_remove_insight_bookmark_if_authenticated(self):
-        user = make_user()
-        insight_author = make_user()
-        Insight = get_insight_model()
-        insight = Insight.objects.create(
-            creator=insight_author,
-            title="Insight",
-            header_image=SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes),
-            date_published=timezone.now(),
-        )
-
-        bookmark_insight(user, insight_id=insight.id)
-        assert user.profile.favorite_insights.count() == 1
-
-        response = remove_insight_bookmark(user, insight_id=insight.id)
-
-        assert response.data["removeInsightBookmark"]["success"]
-        assert user.profile.favorite_insights.count() == 0

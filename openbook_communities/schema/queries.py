@@ -8,13 +8,11 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Prefetch, F, Q
 from django.db.models.lookups import IContains
 from django.utils.translation import gettext_lazy as _
-from graphql import GraphQLError
 from strawberry.django.context import StrawberryDjangoContext
 from strawberry.types import Info as StrawberryInfo
 
 from openbook_auth.models import User as UserModel
 from openbook_auth.utils import verify_authorized_user
-from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.schema.types import GeoJSON, Paged
 from openbook_common.types import GeolocationFeature
 from openbook_common.utils.helpers import is_uuid
@@ -42,6 +40,7 @@ def spaces_for_filter(
     geolocation: Optional[GeolocationFeature] = None,
     skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
     topic_slug: Optional[str] = None,
+    topic_slugs: Optional[List[Optional[str]]] = None,
     skill_slugs: Optional[List[Optional[str]]] = None,
     member_id: Optional[uuid.UUID] = None,
 ):
@@ -52,7 +51,11 @@ def spaces_for_filter(
         query.add(Q(geolocation__within=geolocation.geometry), Q.AND)
     if skill_ids:
         query.add(Q(tasks__skills__id__in=skill_ids), Q.AND)
-    if topic_slug is not None:
+    if topic_slugs:
+        if topic_slug is not None:
+            topic_slugs.append(topic_slug)
+        query.add(Q(topics__slug__in=topic_slugs), Q.AND)
+    elif topic_slug is not None:
         query.add(Q(topics__slug__contains=topic_slug), Q.AND)
     if skill_slugs:
         query.add(Q(tasks__skills__slug__in=skill_slugs), Q.AND)
@@ -87,6 +90,7 @@ class Query:
         geolocation: Optional[GeoJSON] = None,
         skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
         topic_slug: Optional[str] = None,
+        topic_slugs: Optional[List[Optional[str]]] = None,
         skill_slugs: Optional[List[Optional[str]]] = None,
         member_id: Optional[uuid.UUID] = None,
         offset: int = 0,
@@ -99,6 +103,7 @@ class Query:
             geolocation,
             skill_ids,
             topic_slug,
+            topic_slugs,
             skill_slugs,
             member_id,
         )
@@ -251,18 +256,15 @@ class Query:
         if not is_member:
             tasks_query.add(Q(visibility="PUBLIC"), Q.AND)
 
-        try:
-            return (
-                CommunityModel.objects.prefetch_related(
-                    "links",
-                    "memberships__user__profile",
-                    Prefetch("tasks", queryset=TaskModel.objects.filter(tasks_query).order_by("-created")),
-                )
-                .filter(is_deleted=False)
-                .get(query)
+        return (
+            CommunityModel.objects.prefetch_related(
+                "links",
+                "memberships__user__profile",
+                Prefetch("tasks", queryset=TaskModel.objects.filter(tasks_query).order_by("-created")),
             )
-        except CommunityModel.DoesNotExist:
-            raise GraphQLError("Space not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
+            .filter(is_deleted=False)
+            .get(query)
+        )
 
     @strawberry_django.field()
     def tasks_by_space_id(self, space_id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Task]:
@@ -274,10 +276,7 @@ class Query:
 
     @strawberry_django.field()
     def task_by_id(self, id: uuid.UUID) -> Optional[Task]:
-        try:
-            return TaskModel.objects.get(id=id)
-        except TaskModel.DoesNotExist:
-            raise GraphQLError("Task not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
+        return TaskModel.objects.get(id=id)
 
     @strawberry_django.field()
     def collaboration_tools(
@@ -303,7 +302,8 @@ class Query:
         )
 
         return Paged.of(
-            CommunityModel.objects.annotate(member_count=Count("memberships")).filter(title_query)
+            CommunityModel.objects.annotate(member_count=Count("memberships"))
+            .filter(title_query)
             # Bug HOLI-6780: added created as second order criterion for deterministic order.
             # This still has wrong order if while paging the membership counts change. Signed off by Max.
             .order_by("-member_count", "-created"),

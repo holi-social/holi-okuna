@@ -9,6 +9,7 @@ from openbook_communities.models import (
     Task,
     OnboardingStep,
 )
+from openbook_communities.models.network_relationship import SpacesRelationship
 
 import traceback
 import structlog
@@ -17,11 +18,21 @@ import time
 logger = structlog.get_logger(__name__)
 
 
+class CommunityNetworkRelationshipInline(admin.TabularInline):
+    model = SpacesRelationship
+    fk_name = "from_space"
+    min_num = 0
+    max_num = 1
+    extra = 0
+
+
 @admin.register(Community)
 class CommunityAdmin(admin.ModelAdmin):
     readonly_fields = ["name"]
     list_display = ("name", "title", "creator", "created", "get_num_posts", "get_num_members", "is_deleted")
     search_fields = ("title", "creator__email", "creator__profile__name", "creator__profile__last_name")
+
+    inlines = [CommunityNetworkRelationshipInline]
 
     @admin.display(description="Num posts")
     def get_num_posts(self, obj):

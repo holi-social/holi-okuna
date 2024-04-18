@@ -2,31 +2,32 @@ from django.conf import settings
 from generic_relations.relations import GenericRelatedField
 from rest_framework import serializers
 
-from openbook_auth.models import UserProfile, User
-from openbook_common.models import Language, Badge
+from openbook_auth.models import User, UserProfile
+from openbook_common.models import Badge, Language
 from openbook_common.serializers import (
     CommonEmojiSerializer,
     CommonPublicUserSerializer,
-)
-from openbook_moderation.models import (
-    ModeratedObject,
-    ModeratedObjectLog,
-    ModeratedObjectCategoryChangedLog,
-    ModeratedObjectDescriptionChangedLog,
-    ModeratedObjectStatusChangedLog,
-    ModeratedObjectVerifiedChangedLog,
-    ModerationCategory,
-    ModerationReport,
 )
 from openbook_common.serializers_fields.hashtag import HashtagPostsCountField
 from openbook_common.serializers_fields.post import IsEncircledField
 from openbook_communities.models import Community
 from openbook_hashtags.models import Hashtag
-from openbook_posts.models import Post, PostComment, PostImage
+from openbook_moderation.models import (
+    ModeratedObject,
+    ModeratedObjectCategoryChangedLog,
+    ModeratedObjectDescriptionChangedLog,
+    ModeratedObjectLog,
+    ModeratedObjectStatusChangedLog,
+    ModeratedObjectVerifiedChangedLog,
+    ModerationCategory,
+    ModerationReport,
+)
 from openbook_moderation.serializers.validators import (
     moderated_object_id_exists,
     moderation_category_id_exists,
 )
+from openbook_posts.models import Post, PostImage
+from comments.models import Comment
 
 
 class ModeratedObjectUserProfileBadgeSerializer(serializers.ModelSerializer):
@@ -212,12 +213,6 @@ class ModeratedObjectReportSerializer(serializers.ModelSerializer):
         )
 
 
-class ModeratedObjectHashtagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Hashtag
-        fields = ("id", "name", "posts_count")
-
-
 class ModeratedObjectCommunitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Community
@@ -278,7 +273,7 @@ class ModeratedObjectPostCommentSerializer(serializers.ModelSerializer):
     language = LanguageSerializer()
 
     class Meta:
-        model = PostComment
+        model = Comment
         fields = (
             "id",
             "text",
@@ -286,8 +281,8 @@ class ModeratedObjectPostCommentSerializer(serializers.ModelSerializer):
             "commenter",
             "commenter",
             "created",
-            "post_id",
-            "post",
+            "commentable_id",
+            "commentable",
             "is_edited",
         )
 
@@ -309,7 +304,7 @@ class ModeratedObjectSerializer(serializers.ModelSerializer):
     content_object = GenericRelatedField(
         {
             Post: ModeratedObjectPostSerializer(),
-            PostComment: ModeratedObjectPostCommentSerializer(),
+            Comment: ModeratedObjectPostCommentSerializer(),
             Community: ModeratedObjectCommunitySerializer(),
             User: CommonPublicUserSerializer(),
             Hashtag: ModeratedObjectHashtagSerializer(),
