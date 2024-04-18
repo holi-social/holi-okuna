@@ -32,5 +32,5 @@ class Discussion(ModelWithUUID):
         else:
             raise ValidationError(_("You cannot remove a comment that does not belong to you"))
 
-    def can_view(user: User) -> bool:
+    def can_view(self, user: User) -> bool:
         return True
