@@ -31,6 +31,40 @@ from openbook_communities.schema.types import (
 
 Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
 
+@sync_to_async
+def topic_id_geolocation_query(
+    topic_id: Optional[uuid.UUID] = None,
+    geolocation: Optional[GeolocationFeature] = None,
+) -> Q:
+    query = Q()
+    if topic_id is not None:
+        query.add(Q(topics__id__contains=topic_id), Q.AND)
+    if geolocation is not None:
+        query.add(Q(geolocation__within=geolocation.geometry), Q.AND)
+
+    return query
+
+@sync_to_async
+def geolocation_query(
+    geolocation: Optional[GeolocationFeature] = None,
+) -> Q:
+    query = Q()
+    if geolocation is not None:
+        query.add(Q(geolocation__within=geolocation.geometry), Q.AND)
+
+    return query
+
+
+def query_spaces(query: Q):
+    return (
+        CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
+        .filter(query)
+        .annotate(member_count=Count("memberships"))
+        .order_by("-created")
+    )
+
+
+
 
 @sync_to_async
 def spaces_for_filter(
@@ -107,6 +141,27 @@ class Query:
             skill_slugs,
             member_id,
         )
+
+    @strawberry_django.field()
+    def recommend_spaces(
+        self,
+        topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
+        geolocation: Optional[GeoJSON] = None,
+        limit: int = 5,
+        offset: int = 0,
+    ) -> List[Optional[Space]]:
+        spaces: List[Space] = []
+
+        for topic_id in topic_ids:
+            query = async_to_sync(topic_id_geolocation_query)(topic_id=topic_id, geolocation=geolocation)
+            spaces.extend(list(query_spaces(query)))
+            
+        if len(spaces) < limit:
+            query = async_to_sync(geolocation_query)(geolocation=geolocation)
+            dedup_spaces = query_spaces(query).filter(~Q(id__in=[space.id for space in spaces]))
+            spaces.extend(list(dedup_spaces))
+
+        return spaces[:limit] if len(spaces) > limit else spaces
 
     @strawberry_django.field()
     def discover_spaces(
