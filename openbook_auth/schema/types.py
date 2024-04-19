@@ -50,8 +50,7 @@ class User:
     id: uuid.UUID = strawberry_django.field(field_name="username")
     identity: Optional[str]
     avatar_default_color: str
-    avatar_label: str
-    tracking_consent: bool
+    avatar_label: str  # private, must only be serialized to authenticated user retrieving themselves
 
     @strawberry_django.field(description="Can be an empty string", select_related=["profile"])
     def full_name(self) -> str:
@@ -115,6 +114,11 @@ class User:
     def connection_status_to_space(self, info, space_id: uuid.UUID) -> List[Optional[SpaceUserConnectionType]]:
         space = CommunityModel.objects.get(id=space_id)
         return space.connection_status_to_user(self)
+
+
+@strawberry_django.type(UserModel)
+class AuthenticatedUser(User):
+    tracking_consent: Optional[bool]
 
 
 @strawberry.input

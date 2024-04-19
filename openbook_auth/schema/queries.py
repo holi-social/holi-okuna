@@ -12,7 +12,7 @@ from django.db.models.functions import Concat
 from django.db.models.lookups import IContains
 
 from openbook_auth.models import User as UserModel, UserBlock as UserBlockModel
-from openbook_auth.schema.types import User
+from openbook_auth.schema.types import User, AuthenticatedUser
 from openbook_auth.utils import verify_authorized_user, check_max_limit
 from openbook_common.validators import string_not_empty
 from openbook_common.schema.types import Paged
@@ -25,7 +25,7 @@ logger = structlog.get_logger(__name__)
 @strawberry.type
 class Query:
     @strawberry_django.field()
-    def authenticated_user(self, info) -> Optional[User]:
+    def authenticated_user(self, info) -> Optional[AuthenticatedUser]:
         current_user = info.context.request.user
         if current_user.is_anonymous:
             return None

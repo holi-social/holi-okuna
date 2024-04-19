@@ -91,6 +91,7 @@ class GetAuthenticatedUserSerializer(serializers.ModelSerializer):
     pending_communities_moderated_objects_count = UserPendingCommunitiesModeratedObjectsCountField()
     active_moderation_penalties_count = UserActiveModerationPenaltiesCountField()
     language = UserLanguageSerializer()
+    tracking_consent = serializers.BooleanField(allow_null=True)
 
     class Meta:
         model = User

@@ -101,6 +101,7 @@ class TestUsers:
                     id
                     fullName
                     engagementLevel
+                    trackingConsent
                 }
             }
         """
@@ -117,6 +118,7 @@ class TestUsers:
         assert authenticated_user["id"] == str(user.uuid)
         assert authenticated_user["fullName"] == user.profile.full_name()
         assert authenticated_user["engagementLevel"] == user.profile.engagement_level
+        assert authenticated_user["trackingConsent"] == user.tracking_consent
 
         mock_create_or_update_subscriber.assert_called_once_with(
             user=user, locale=mock_get_language_from_request.return_value
@@ -147,6 +149,24 @@ class TestUsers:
             results=executed.data["userByName"],
             expected_data=[{"firstName": u.name, "lastName": u.last_name} for u in expected_users],
         )
+
+    def test_get_user_by_id_returns_no_private_fields(self):
+        user = make_user(name="Peter", last_name="Moser")
+        user.update(tracking_consent=True, save=True)
+        executed = async_to_sync(schema.execute)(
+            """
+            query UserById($userId: UUID!) {
+                userById(id: $userId) {
+                    firstName
+                    lastName
+                    trackingConsent
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": AnonymousUser}}),
+            variable_values={"userId": str(user.id)},
+        )
+        assert "Cannot query field 'trackingConsent' on type 'User'" in str(executed.errors)
 
     def test_get_user_by_name_first_name_matches_first(self):
         make_user(name="Thomas", last_name="Petersen")
