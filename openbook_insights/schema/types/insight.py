@@ -82,7 +82,7 @@ class Insight:
         if current_user.is_anonymous:
             return False
 
-        return UserFavorite.objects.filter(user=current_user, bookmark_id=self.id).exists()
+        return UserFavorite.objects.filter(user=current_user, favoritable_id=self.id).exists()
 
     @strawberry_django.field()
     def is_favorite(self, info) -> bool:
