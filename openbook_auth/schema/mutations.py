@@ -72,6 +72,7 @@ class Mutation:
             skills=data.get("skills"),
             avatar=data.get("avatar"),
             remove_avatar=remove_avatar,
+            tracking_consent=data.get("tracking_consent"),
             save=True,
         )
 

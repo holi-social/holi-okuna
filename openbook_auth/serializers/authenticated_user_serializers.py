@@ -1,6 +1,7 @@
-from rest_framework import serializers
 from django.conf import settings
+from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext as _
+from rest_framework import serializers
 
 from openbook.settings import (
     USERNAME_MAX_LENGTH,
@@ -17,10 +18,7 @@ from openbook_auth.validators import (
     sdg_with_id_exists,
     identity_characters_validator,
 )
-from django.contrib.auth.password_validation import validate_password
-
 from openbook_common.models import Badge, Language
-
 from openbook_common.serializers import GeolocationFeatureSerializer
 from openbook_common.serializers_fields.request import (
     FriendlyUrlField,
@@ -117,6 +115,7 @@ class GetAuthenticatedUserSerializer(serializers.ModelSerializer):
             "pending_communities_moderated_objects_count",
             "active_moderation_penalties_count",
             "visibility",
+            "tracking_consent",
         )
 
 
@@ -241,6 +240,7 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
         required=False,
         allow_blank=True,
     )
+    tracking_consent = serializers.BooleanField(required=False, default=None, allow_null=True)
 
 
 class DeleteAuthenticatedUserSerializer(serializers.Serializer):

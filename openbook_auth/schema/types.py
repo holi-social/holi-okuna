@@ -36,6 +36,7 @@ class UpdateAuthenticatedUserInput:
     interests: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    tracking_consent: Optional[bool] = strawberry.UNSET
 
 
 @strawberry.input
@@ -50,6 +51,7 @@ class User:
     identity: Optional[str]
     avatar_default_color: str
     avatar_label: str
+    tracking_consent: bool
 
     @strawberry_django.field(description="Can be an empty string", select_related=["profile"])
     def full_name(self) -> str:

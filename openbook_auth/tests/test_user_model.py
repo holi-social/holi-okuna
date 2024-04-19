@@ -257,6 +257,15 @@ class UserModelTest(TestAssertionsMixin, TransactionTestCase):
         user.update_engagement_level(EngagementLevelChoice.INTERESTED)
         self.assertEqual(user.profile.engagement_level, EngagementLevelChoice.INTERESTED)
 
+    def test_update_tracking_consent(self):
+        user = make_user()
+
+        user.update(tracking_consent=True)
+        self.assertEqual(user.tracking_consent, True)
+
+        user.update(tracking_consent=False)
+        self.assertEqual(user.tracking_consent, False)
+
     def test_bad_numbers_are_considered_invalid_identities(self):
         self.assertTrue(User.is_invalid_identity("fritz88"))
         self.assertTrue(User.is_invalid_identity("fritz69"))

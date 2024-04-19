@@ -52,6 +52,7 @@ from openbook_common.tests.helpers import (
     assert_paged_results_equal,
     assert_is_forbidden,
 )
+from openbook_common.tests.models import OpenbookAPITestCase
 from openbook_communities.enums import UpdateConnectionAction
 from openbook_communities.models import SpaceUserConnectionType
 from openbook_communities.tests.helpers import (
@@ -232,6 +233,7 @@ class TestUsers:
         first_name = "Peter"
         last_name = "Shaw"
         engagement_level = EngagementLevelChoice.INITIATOR
+        tracking_consent = True
 
         json_body = [
             {"op": "add", "path": "/traits/given_name", "value": f"{first_name}"},
@@ -252,6 +254,7 @@ class TestUsers:
                     location
                     geolocationId
                     engagementLevel
+                    trackingConsent
                 }
             }
             """,
@@ -264,6 +267,7 @@ class TestUsers:
                     "location": location,
                     "geolocation": geolocation,
                     "engagementLevel": engagement_level,
+                    "trackingConsent": tracking_consent,
                 }
             },
         )
@@ -278,17 +282,19 @@ class TestUsers:
         )
         updated_user = executed.data["updateAuthenticatedUser"]
         graphql_pronouns = updated_user["pronouns"]
-        persisted_profile = User.objects.get(username=user.username).profile
 
-        assert graphql_pronouns == persisted_profile.pronouns
+        persisted_user = User.objects.get(username=user.username)
+
+        assert tracking_consent == persisted_user.tracking_consent
+        assert graphql_pronouns == persisted_user.profile.pronouns
         assert graphql_pronouns == pronouns
-        assert last_name == persisted_profile.last_name
-        assert first_name == persisted_profile.name
-        assert persisted_profile.engagement_level == EngagementLevelChoice.INITIATOR
-        assert location == persisted_profile.location
-        assert geolocation_id == persisted_profile.geolocation_id
-        assert persisted_profile.geolocation is not None
-        assert geos.GEOSGeometry(json.dumps(geolocation_geometry)) == persisted_profile.geolocation
+        assert last_name == persisted_user.profile.last_name
+        assert first_name == persisted_user.profile.name
+        assert persisted_user.profile.engagement_level == EngagementLevelChoice.INITIATOR
+        assert location == persisted_user.profile.location
+        assert geolocation_id == persisted_user.profile.geolocation_id
+        assert persisted_user.profile.geolocation is not None
+        assert geos.GEOSGeometry(json.dumps(geolocation_geometry)) == persisted_user.profile.geolocation
 
         mock_publish_user_name_updated_event.assert_called_once_with(user=user)
         mock_create_or_update_subscriber.assert_called_once_with(
