@@ -401,7 +401,6 @@ class Space:
             limit,
         )
 
-
 @strawberry.type
 class DiscoverSpaces:
     spaces: Paged[Space]
@@ -413,6 +412,9 @@ class DiscoverSpaces:
     location_id: Optional[str] = None
     skill_id: Optional[uuid.UUID] = None
 
+@strawberry.type
+class RecommendedSpaces:
+    spaces: List[Space]
 
 @strawberry.type
 class MySpaces:

@@ -25,6 +25,7 @@ from openbook_communities.schema.types import (
     CollaborationTool,
     DiscoverSpaces,
     MySpaces,
+    RecommendedSpaces,
     Space,
     Task,
 )
@@ -148,8 +149,7 @@ class Query:
         topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
         geolocation: Optional[GeoJSON] = None,
         limit: int = 5,
-        offset: int = 0,
-    ) -> List[Optional[Space]]:
+    ) -> RecommendedSpaces:
         spaces: List[Space] = []
 
         for topic_id in topic_ids:
@@ -161,7 +161,9 @@ class Query:
             dedup_spaces = query_spaces(query).filter(~Q(id__in=[space.id for space in spaces]))
             spaces.extend(list(dedup_spaces))
 
-        return spaces[:limit] if len(spaces) > limit else spaces
+        spaces = spaces[:limit] if len(spaces) > limit else spaces
+
+        return RecommendedSpaces(spaces=spaces)
 
     @strawberry_django.field()
     def discover_spaces(
