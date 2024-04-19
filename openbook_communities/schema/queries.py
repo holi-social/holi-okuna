@@ -25,12 +25,14 @@ from openbook_communities.schema.types import (
     CollaborationTool,
     DiscoverSpaces,
     MySpaces,
+    RecommendedSpace,
     RecommendedSpaces,
     Space,
     Task,
 )
 
 Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
+
 
 @sync_to_async
 def topic_id_geolocation_query(
@@ -44,6 +46,7 @@ def topic_id_geolocation_query(
         query.add(Q(geolocation__within=geolocation.geometry), Q.AND)
 
     return query
+
 
 @sync_to_async
 def geolocation_query(
@@ -63,8 +66,6 @@ def query_spaces(query: Q):
         .annotate(member_count=Count("memberships"))
         .order_by("-created")
     )
-
-
 
 
 @sync_to_async
@@ -155,15 +156,15 @@ class Query:
         for topic_id in topic_ids:
             query = async_to_sync(topic_id_geolocation_query)(topic_id=topic_id, geolocation=geolocation)
             spaces.extend(list(query_spaces(query)))
-            
+
         if len(spaces) < limit:
             query = async_to_sync(geolocation_query)(geolocation=geolocation)
             dedup_spaces = query_spaces(query).filter(~Q(id__in=[space.id for space in spaces]))
             spaces.extend(list(dedup_spaces))
 
         spaces = spaces[:limit] if len(spaces) > limit else spaces
-
-        return RecommendedSpaces(spaces=spaces)
+        
+        return RecommendedSpaces(spaces=[RecommendedSpace(space) for space in spaces])
 
     @strawberry_django.field()
     def discover_spaces(
@@ -359,8 +360,7 @@ class Query:
         )
 
         return Paged.of(
-            CommunityModel.objects.annotate(member_count=Count("memberships"))
-            .filter(title_query)
+            CommunityModel.objects.annotate(member_count=Count("memberships")).filter(title_query)
             # Bug HOLI-6780: added created as second order criterion for deterministic order.
             # This still has wrong order if while paging the membership counts change. Signed off by Max.
             .order_by("-member_count", "-created"),
