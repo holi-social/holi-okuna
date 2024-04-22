@@ -35,40 +35,6 @@ Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
 
 
 @sync_to_async
-def topic_id_geolocation_query(
-    topic_id: Optional[uuid.UUID] = None,
-    geolocation: Optional[GeolocationFeature] = None,
-) -> Q:
-    query = Q()
-    if topic_id is not None:
-        query.add(Q(topics__id__contains=topic_id), Q.AND)
-    if geolocation is not None:
-        query.add(Q(geolocation__within=geolocation.geometry), Q.AND)
-
-    return query
-
-
-@sync_to_async
-def geolocation_query(
-    geolocation: Optional[GeolocationFeature] = None,
-) -> Q:
-    query = Q()
-    if geolocation is not None:
-        query.add(Q(geolocation__within=geolocation.geometry), Q.AND)
-
-    return query
-
-
-def query_spaces(query: Q):
-    return (
-        CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
-        .filter(query)
-        .annotate(member_count=Count("memberships"))
-        .order_by("-created")
-    )
-
-
-@sync_to_async
 def spaces_for_filter(
     offset: int,
     limit: int,
@@ -163,7 +129,7 @@ class Query:
             spaces.extend(list(dedup_spaces))
 
         spaces = spaces[:limit] if len(spaces) > limit else spaces
-        
+
         return RecommendedSpaces(spaces=[RecommendedSpace(space) for space in spaces])
 
     @strawberry_django.field()
@@ -360,10 +326,45 @@ class Query:
         )
 
         return Paged.of(
-            CommunityModel.objects.annotate(member_count=Count("memberships")).filter(title_query)
+            CommunityModel.objects.annotate(member_count=Count("memberships"))
+            .filter(title_query)
             # Bug HOLI-6780: added created as second order criterion for deterministic order.
             # This still has wrong order if while paging the membership counts change. Signed off by Max.
             .order_by("-member_count", "-created"),
             offset,
             limit,
         )
+
+
+@sync_to_async
+def topic_id_geolocation_query(
+    topic_id: Optional[uuid.UUID] = None,
+    geolocation: Optional[GeolocationFeature] = None,
+) -> Q:
+    query = Q()
+    if topic_id is not None:
+        query.add(Q(topics__id__contains=topic_id), Q.AND)
+    if geolocation is not None:
+        query.add(Q(geolocation__within=geolocation.geometry), Q.AND)
+
+    return query
+
+
+@sync_to_async
+def geolocation_query(
+    geolocation: Optional[GeolocationFeature] = None,
+) -> Q:
+    query = Q()
+    if geolocation is not None:
+        query.add(Q(geolocation__within=geolocation.geometry), Q.AND)
+
+    return query
+
+
+def query_spaces(query: Q):
+    return (
+        CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
+        .filter(query)
+        .annotate(member_count=Count("memberships"))
+        .order_by("-created")
+    )

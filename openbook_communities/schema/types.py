@@ -434,7 +434,8 @@ class RecommendedSpace:
         self.cover_blurhash = space.cover_blurhash
         self.location = space.location
         self.members = space.memberships.all()
-        
+
+
 @strawberry.type
 class RecommendedSpaces:
     spaces: List[RecommendedSpace]
