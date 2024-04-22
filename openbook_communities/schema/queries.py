@@ -21,6 +21,7 @@ from openbook_communities.models import CollaborationTool as CollaborationToolMo
 from openbook_communities.models import Community as CommunityModel
 from openbook_communities.models import SpaceUserConnectionType
 from openbook_communities.models import Task as TaskModel
+from openbook_communities.schema.helpers import geolocation_query, query_spaces, topic_id_geolocation_query
 from openbook_communities.schema.types import (
     CollaborationTool,
     DiscoverSpaces,
@@ -111,7 +112,7 @@ class Query:
         )
 
     @strawberry_django.field()
-    def recommend_spaces(
+    def recommended_spaces(
         self,
         topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
         geolocation: Optional[GeoJSON] = None,
@@ -334,37 +335,3 @@ class Query:
             offset,
             limit,
         )
-
-
-@sync_to_async
-def topic_id_geolocation_query(
-    topic_id: Optional[uuid.UUID] = None,
-    geolocation: Optional[GeolocationFeature] = None,
-) -> Q:
-    query = Q()
-    if topic_id is not None:
-        query.add(Q(topics__id__contains=topic_id), Q.AND)
-    if geolocation is not None:
-        query.add(Q(geolocation__within=geolocation.geometry), Q.AND)
-
-    return query
-
-
-@sync_to_async
-def geolocation_query(
-    geolocation: Optional[GeolocationFeature] = None,
-) -> Q:
-    query = Q()
-    if geolocation is not None:
-        query.add(Q(geolocation__within=geolocation.geometry), Q.AND)
-
-    return query
-
-
-def query_spaces(query: Q):
-    return (
-        CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
-        .filter(query)
-        .annotate(member_count=Count("memberships"))
-        .order_by("-created")
-    )
