@@ -1390,64 +1390,8 @@ class User(ModelWithUUID, AbstractUser):
 
         return get_reactions(model, reactions_query)
 
-    def get_reaction_counts_for_post_comment_with_id(self, post_comment_id, reaction_type=None):
-        Comment = get_comment_model()
-        post_comment = Comment.objects.get(pk=post_comment_id)
-        return self.get_reaction_counts_for_post_comment(post_comment=post_comment, reaction_type=reaction_type)
-
-    def get_reaction_counts_for_post_comment(self, post_comment, reaction_type=None):
-        check_can_get_reactions_for_post_comment(user=self, post_comment=post_comment)
-
-        reactions_query = Q(
-            post_comment_id=post_comment.pk,
-        )
-
-        if reaction_type:
-            reactions_query.add(Q(reaction_type=reaction_type), Q.AND)
-
-        if hasattr(post_comment.commentable, "community"):
-            post_comment_community = post_comment.commentable.community
-        else:
-            post_comment_community = None
-
-        if post_comment_community:
-            if not self.is_staff_of_community_with_name(community_name=post_comment_community.name):
-                # Exclude blocked users reactions
-                blocked_users_query = ~Q(
-                    Q(reactor__blocked_by_users__blocker_id=self.pk) | Q(reactor__user_blocks__blocked_user_id=self.pk)
-                )
-                blocked_users_query_staff_members = Q(
-                    reactor__communities_memberships__community_id=post_comment_community.pk
-                )
-                blocked_users_query_staff_members.add(
-                    Q(reactor__communities_memberships__is_administrator=True)
-                    | Q(reactor__communities_memberships__is_moderator=True),
-                    Q.AND,
-                )
-
-                blocked_users_query.add(~blocked_users_query_staff_members, Q.AND)
-                reactions_query.add(blocked_users_query, Q.AND)
-        else:
-            # Show all, even blocked users reactions
-            blocked_users_query = ~Q(
-                Q(reactor__blocked_by_users__blocker_id=self.pk) | Q(reactor__user_blocks__blocked_user_id=self.pk)
-            )
-            reactions_query.add(blocked_users_query, Q.AND)
-
-        return get_reactions(get_comment_reaction_model(), reactions_query)
-
     def get_reaction_for_post_comment_with_id(self, post_comment_id):
         return self.comment_reactions.filter(post_comment_id=post_comment_id).get()
-
-    def get_reactions_for_post_comment(self, post_comment, reaction_type=None):
-        check_can_get_reactions_for_post_comment(user=self, post_comment=post_comment)
-
-        reactions_query = self._make_get_reactions_for_post_comment_query(
-            post_comment=post_comment, reaction_type=reaction_type
-        )
-
-        CommentReaction = get_comment_reaction_model()
-        return CommentReaction.objects.filter(reactions_query)
 
     def react_to_post_with_id(self, post_id, reaction_type):
         Post = get_post_model()
@@ -4691,38 +4635,6 @@ class User(ModelWithUUID, AbstractUser):
 
         if emoji_id:
             reactions_query.add(Q(emoji_id=emoji_id), Q.AND)
-
-        return reactions_query
-
-    def _make_get_reactions_for_post_comment_query(self, post_comment, reaction_type=None):
-        reactions_query = Q(post_comment_id=post_comment.pk)
-
-        post_comment_community = post_comment.commentable.community
-
-        if post_comment_community:
-            if not self.is_staff_of_community_with_name(community_name=post_comment_community.name):
-                blocked_users_query = ~Q(
-                    Q(reactor__blocked_by_users__blocker_id=self.pk) | Q(reactor__user_blocks__blocked_user_id=self.pk)
-                )
-                blocked_users_query_staff_members = Q(
-                    reactor__communities_memberships__community_id=post_comment_community.pk
-                )
-                blocked_users_query_staff_members.add(
-                    Q(reactor__communities_memberships__is_administrator=True)
-                    | Q(reactor__communities_memberships__is_moderator=True),
-                    Q.AND,
-                )
-
-                blocked_users_query.add(~blocked_users_query_staff_members, Q.AND)
-                reactions_query.add(blocked_users_query, Q.AND)
-        else:
-            blocked_users_query = ~Q(
-                Q(reactor__blocked_by_users__blocker_id=self.pk) | Q(reactor__user_blocks__blocked_user_id=self.pk)
-            )
-            reactions_query.add(blocked_users_query, Q.AND)
-
-        if reaction_type:
-            reactions_query.add(Q(reaction_type=reaction_type), Q.AND)
 
         return reactions_query
 
