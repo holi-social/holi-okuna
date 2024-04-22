@@ -21,7 +21,6 @@ from openbook_common.utils.model_loaders import (
     get_community_pending_invite_model,
     get_language_model,
     get_post_model,
-    get_post_reaction_model,
     get_user_invite_model,
     get_user_model,
 )
@@ -1114,22 +1113,6 @@ def check_can_reply_to_post_comment_for_post(user, post_comment, post):
     check_can_comment_in_post(user=user, post=post)
     if post_comment.parent_comment is not None:
         raise ValidationError(_("You can post a reply to a comment, not to an existing reply"))
-
-
-def check_can_delete_reaction_with_id_for_post(user, post_reaction_id, post):
-    check_can_see_post(user=user, post=post)
-    # Check if the post belongs to us
-    if user.has_post(post=post):
-        # Check that the comment belongs to the post
-        PostReaction = get_post_reaction_model()
-        if not PostReaction.objects.filter(id=post_reaction_id, post_id=post.pk).exists():
-            raise ValidationError(_("That reaction does not belong to the specified post."))
-        return
-
-    if not user.post_reactions.filter(id=post_reaction_id).exists():
-        raise ValidationError(
-            _("Can't delete a reaction that does not belong to you."),
-        )
 
 
 def check_can_get_reactions_for_post(user, post):

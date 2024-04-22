@@ -1480,15 +1480,6 @@ class User(ModelWithUUID, AbstractUser):
 
         return post_reaction
 
-    def delete_reaction_with_id_for_post_with_id(self, post_reaction_id, post_id):
-        Post = get_post_model()
-        post = Post.objects.get(pk=post_id)
-        check_can_delete_reaction_with_id_for_post(user=self, post_reaction_id=post_reaction_id, post=post)
-        PostReaction = get_post_reaction_model()
-        post_reaction = PostReaction.objects.filter(pk=post_reaction_id).get()
-        self._delete_post_reaction_notification(post_reaction=post_reaction)
-        post_reaction.delete()
-
     def react_to_post_comment_with_id(self, post_comment_id, reaction_type):
         Comment = get_comment_model()
         post_comment = Comment.objects.get(pk=post_comment_id)
@@ -4431,12 +4422,6 @@ class User(ModelWithUUID, AbstractUser):
 
     def _send_post_reaction_push_notification(self, post_reaction):
         helpers.send_post_reaction_push_notification(post_reaction=post_reaction)
-
-    def _delete_post_reaction_notification(self, post_reaction):
-        PostReactionNotification = get_post_reaction_notification_model()
-        PostReactionNotification.delete_post_reaction_notification(
-            post_reaction_id=post_reaction.pk, owner_id=post_reaction.post.creator_id
-        )
 
     def _create_post_comment_reaction_notification(self, post_comment_reaction):
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
