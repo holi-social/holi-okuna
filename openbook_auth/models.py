@@ -1439,12 +1439,6 @@ class User(ModelWithUUID, AbstractUser):
     def get_reaction_for_post_comment_with_id(self, post_comment_id):
         return self.comment_reactions.filter(post_comment_id=post_comment_id).get()
 
-    def get_reactions_for_post_comment_with_id(self, post_comment_id, reaction_type=None):
-        Post_comment = get_comment_model()
-        post_comment = Post_comment.objects.get(pk=post_comment_id)
-
-        return self.get_reactions_for_post_comment(post_comment=post_comment, reaction_type=reaction_type)
-
     def get_reactions_for_post_comment(self, post_comment, reaction_type=None):
         check_can_get_reactions_for_post_comment(user=self, post_comment=post_comment)
 
