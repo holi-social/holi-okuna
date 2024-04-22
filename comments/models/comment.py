@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 
 from comments.enums import CommentableType
 from comments.validators import comment_text_validators
-from openbook_auth.models import User, get_reactions
+from openbook_auth.models import User, UserBlock, get_reactions
 from openbook_common.helpers import (
     PQ,
     attr_filled,
@@ -119,15 +119,12 @@ class Comment(ModelWithUUID):
         return get_reactions(CommentReaction, reactions_query)
 
     @classmethod
-    def get_top_comment(
-        cls,
-        commentable_id: uuid.UUID,
-        commentable_type: CommentableType,
-    ):
+    def get_top_comment(cls, commentable_id: uuid.UUID, commentable_type: CommentableType, user: User):
         return (
             cls.objects.filter(commentable_id=commentable_id)
             .filter(commentable_type__model=commentable_type.value)
             .filter(is_deleted=False)
+            .exclude(commenter_id__in=UserBlock.users_blocking_or_blocked(user))
             .order_by("-created")
             .first()
         )
