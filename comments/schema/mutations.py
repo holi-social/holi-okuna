@@ -3,6 +3,7 @@ import uuid
 import strawberry
 import structlog
 from asgiref.sync import sync_to_async
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 
 from comments.models import Comment as CommentModel
@@ -54,8 +55,11 @@ class Mutation:
         input: CommentReactionInput,
     ) -> Comment:
         current_user = verify_authorized_user(info)
-
         comment = CommentModel.objects.get(pk=input.comment_id)
+
+        if not comment.commentable.can_be_viewed(current_user):
+            raise PermissionDenied()
+
         comment.react(current_user, input.reaction_type)
         return comment
 
@@ -67,7 +71,10 @@ class Mutation:
         input: CommentReactionInput,
     ) -> Comment:
         current_user = verify_authorized_user(info)
-
         comment = CommentModel.objects.get(pk=input.comment_id)
+
+        if not comment.commentable.can_be_viewed(current_user):
+            raise PermissionDenied()
+
         comment.clear_reaction(current_user, input.reaction_type)
         return comment

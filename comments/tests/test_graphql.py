@@ -9,6 +9,7 @@ from comments.models import Comment, CommentReaction
 from openbook_common.enums import FeatureToggleName, FeatureToggleType, ReactionType
 from openbook_common.models import FeatureToggle as FeatureToggleModel
 from openbook_common.tests.helpers import (
+    make_community_post,
     make_fake_post_text,
     make_fake_post_title,
     make_insight,
@@ -476,11 +477,21 @@ class TestComments(TestCase):
         response = get_comments(post.id, "POST")
 
         assert response.errors is None
-        commenters_data = response.data["commentable"]["comments"]
-        assert commenters_data["totalResults"] == 2
-        assert len(commenters_data["data"]) == 2
-        assert commenters_data["data"][0]["text"] == "It's greeeaat!"
-        assert commenters_data["data"][1]["text"] == "Just ok"
+        comments_data = response.data["commentable"]["comments"]
+        assert comments_data["totalResults"] == 2
+        assert len(comments_data["data"]) == 2
+        assert comments_data["data"][0]["text"] == "It's greeeaat!"
+        assert comments_data["data"][1]["text"] == "Just ok"
+
+    def test_should_not_list_comments_for_private_commentables(self):
+        post = make_community_post()
+        non_community_member = make_user()
+        Comment.create_comment("It's greeeaat!", post.creator, post)
+
+        response = get_comments(post.id, "POST", non_community_member)
+
+        assert response.errors is not None
+        assert response.data is None
 
     def test_should_list_people_who_are_commenting_on_the_content(self):
         post = make_post()
