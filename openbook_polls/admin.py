@@ -6,7 +6,9 @@ from .models import Choice, Question
 
 class ChoiceInline(admin.TabularInline):
     model = Choice
-    extra = 2
+    extra = 0
+    min_num = 2
+
 
 
 class QuestionAdmin(admin.ModelAdmin):
