@@ -358,7 +358,7 @@ resource "google_cloud_run_service" "okuna" {
           }
         }
         env {
-          name = "ORY_SESSION_EXPIRY_IN_H"
+          name  = "ORY_SESSION_EXPIRY_IN_H"
           value = local.environment_name == "production" ? "2160" : "600"
         }
         env {
@@ -403,7 +403,7 @@ resource "google_cloud_run_service" "okuna" {
           }
           requests = {
             cpu    = local.environment == "production" ? "2000m" : "2000m"
-            memory = local.environment == "production" ? "1024Mi" : "1024Mi"
+            memory = local.environment == "production" ? "2048Mi" : "2048Mi"
           }
         }
       }
