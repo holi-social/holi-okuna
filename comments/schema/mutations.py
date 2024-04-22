@@ -57,7 +57,7 @@ class Mutation:
         current_user = verify_authorized_user(info)
 
         comment = CommentModel.objects.get(pk=input.comment_id)
-        if comment.commentable.can_view(current_user):
+        if comment.commentable.can_be_viewed(current_user):
             comment.react(current_user, input.reaction_type)
             return comment
         else:
@@ -73,7 +73,7 @@ class Mutation:
         current_user = verify_authorized_user(info)
 
         comment = CommentModel.objects.get(pk=input.comment_id)
-        if comment.commentable.can_view(current_user):
+        if comment.commentable.can_be_viewed(current_user):
             comment.clear_reaction(current_user, input.reaction_type)
             return comment
         else:

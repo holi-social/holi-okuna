@@ -465,7 +465,7 @@ class Post(ModelWithUUID):
 
         return target_subscriptions
 
-    def can_view(self, user: User) -> bool:
+    def can_be_viewed(self, user: User) -> bool:
         UserBlockModel.filter_single_object(
             user,
             self,
