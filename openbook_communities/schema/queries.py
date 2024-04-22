@@ -121,12 +121,12 @@ class Query:
 
         for topic_id in topic_ids:
             query = async_to_sync(topic_id_geolocation_query)(topic_id=topic_id, geolocation=geolocation)
-            spaces.extend(list(query_spaces(query)))
+            spaces.extend(query_spaces(query))
 
         if len(spaces) < limit:
             query = async_to_sync(geolocation_query)(geolocation=geolocation)
             dedup_spaces = query_spaces(query).filter(~Q(id__in=[space.id for space in spaces]))
-            spaces.extend(list(dedup_spaces))
+            spaces.extend(dedup_spaces)
 
         spaces = spaces[:limit] if len(spaces) > limit else spaces
 
