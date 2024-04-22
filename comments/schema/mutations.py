@@ -55,13 +55,13 @@ class Mutation:
         input: CommentReactionInput,
     ) -> Comment:
         current_user = verify_authorized_user(info)
-
         comment = CommentModel.objects.get(pk=input.comment_id)
-        if comment.commentable.can_be_viewed(current_user):
-            comment.react(current_user, input.reaction_type)
-            return comment
-        else:
+
+        if not comment.commentable.can_be_viewed(current_user):
             raise PermissionDenied()
+
+        comment.react(current_user, input.reaction_type)
+        return comment
 
     @strawberry.mutation
     @sync_to_async
@@ -71,10 +71,10 @@ class Mutation:
         input: CommentReactionInput,
     ) -> Comment:
         current_user = verify_authorized_user(info)
-
         comment = CommentModel.objects.get(pk=input.comment_id)
-        if comment.commentable.can_be_viewed(current_user):
-            comment.clear_reaction(current_user, input.reaction_type)
-            return comment
-        else:
+
+        if not comment.commentable.can_be_viewed(current_user):
             raise PermissionDenied()
+
+        comment.clear_reaction(current_user, input.reaction_type)
+        return comment

@@ -14,7 +14,8 @@ class Query:
     @strawberry_django.field()
     def commentable(self, info, id: uuid.UUID, type: CommentableType) -> Commentable:
         commentable = CommentModel.get_commentable(id, type)
-        if commentable.can_be_viewed(info.context.request.user):
-            return Commentable(id=id, type=type)
-        else:
+
+        if not commentable.can_be_viewed(info.context.request.user):
             raise PermissionDenied()
+
+        return Commentable(id=id, type=type)
