@@ -67,7 +67,6 @@ from openbook_common.utils.model_loaders import (
     get_moderation_report_model,
     get_moderation_penalty_model,
     get_comment_mute_model,
-    get_comment_reaction_model,
     get_post_comment_reaction_notification_model,
     get_top_post_model,
     get_top_post_community_exclusion_model,
