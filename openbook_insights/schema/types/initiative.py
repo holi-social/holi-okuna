@@ -13,6 +13,7 @@ class Initiative:
     link: strawberry.auto
     link_preview: LinkPreview
     category: strawberry.auto
+    comment: strawberry.auto
 
     @strawberry_django.field()
     def reactions(self, info) -> ReactionCounts:
