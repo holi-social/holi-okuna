@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 
 from comments.enums import CommentableType
 from comments.validators import comment_text_validators
-from openbook_auth.models import User, UserBlock, get_reactions
+from openbook_auth.models import User, UserBlock
 from openbook_common.helpers import (
     PQ,
     attr_filled,
