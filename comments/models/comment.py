@@ -169,7 +169,7 @@ class Comment(ModelWithUUID):
     def clear_reaction(self, reactor, reaction_type):
         return CommentReaction.remove_reaction(reactor=reactor, reaction_type=reaction_type, comment=self)
 
-    def count_reaction(self):
+    def count_reactions(self):
         return self.reactions.count()
 
     def reaction_counts_by_type(self):
