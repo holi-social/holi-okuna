@@ -30,5 +30,6 @@ class PollModelTest(TestAssertionsMixin, TestCase):
             is_draft=False,
             is_public=True,
         )
+        
         self.assertEqual(question.question_text, question_text)
         self.assertTrue(question.is_public)
