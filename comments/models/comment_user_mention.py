@@ -4,8 +4,7 @@ from openbook_auth.models import User
 from openbook_common.models import (
     ModelWithUUID,
 )
-from openbook_notifications.notifications import PostCommentMentionNotification
-from openbook_notifications.payloads import PostCommentMentionPayload, NotificationType
+from openbook_notifications.notifications import Notifications
 
 
 class CommentUserMention(ModelWithUUID):
@@ -24,13 +23,6 @@ class CommentUserMention(ModelWithUUID):
         post_comment_user_mention = cls.objects.create(user=user, post_comment=comment)
 
         if notify:
-            notification = PostCommentMentionNotification(
-                mentions=[str(mentioned_user.username) for mentioned_user in comment.mentions.all()],
-                payload=PostCommentMentionPayload(
-                    post_comment=comment,
-                    notification_type=NotificationType.POST_COMMENT_MENTION.value,
-                ),
-            )
-            notification.send()
+            Notifications.send_post_comment_mention_notification(comment)
 
         return post_comment_user_mention

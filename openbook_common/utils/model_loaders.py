@@ -133,86 +133,107 @@ def get_community_membership_model():
     return apps.get_model("openbook_communities.CommunityMembership")
 
 
+# deprecated - use novu specific Notifications class
 def get_community_membership_approved_notification_model():
     return apps.get_model("openbook_notifications.CommunityMembershipApprovedNotification")
 
 
+# deprecated - use novu specific Notifications class
 def get_community_membership_request_notification_model():
     return apps.get_model("openbook_notifications.CommunityMembershipRequestNotification")
 
 
+# deprecated - use novu specific Notifications class
 def get_community_membership_revoked_notification_model():
     return apps.get_model("openbook_notifications.CommunityMembershipRevokedNotification")
 
 
+# deprecated - use novu specific Notifications class
 def get_community_invite_declined_notification_model():
     return apps.get_model("openbook_notifications.CommunityInviteDeclinedNotification")
 
 
+# deprecated - use novu specific Notifications class
 def get_community_admin_privileges_granted_notification_model():
     return apps.get_model("openbook_notifications.CommunityAdminPrivilegesGrantedNotification")
 
 
+# deprecated - use novu specific Notifications class
 def get_community_admin_privileges_revoked_notification_model():
     return apps.get_model("openbook_notifications.CommunityAdminPrivilegesRevokedNotification")
 
 
+# deprecated - use novu specific Notifications class
 def get_post_comment_notification_model():
     return apps.get_model("openbook_notifications.PostCommentNotification")
 
 
+# deprecated - use novu specific Notifications class
 def get_post_user_mention_notification_model():
     return apps.get_model("openbook_notifications.PostUserMentionNotification")
 
 
+# deprecated - use novu specific Notifications class
 def get_post_comment_user_mention_notification_model():
     return apps.get_model("openbook_notifications.PostCommentUserMentionNotification")
 
 
+# deprecated - use novu specific Notifications class
 def get_post_comment_reply_notification_model():
     return apps.get_model("openbook_notifications.PostCommentReplyNotification")
 
 
+# deprecated - use novu specific Notifications class
 def get_post_reaction_notification_model():
     return apps.get_model("openbook_notifications.PostReactionNotification")
 
 
+# deprecated - use novu specific Notifications class
 def get_post_comment_reaction_notification_model():
     return apps.get_model("openbook_notifications.PostCommentReactionNotification")
 
 
+# deprecated - use novu specific Notifications class
 def get_follow_notification_model():
     return apps.get_model("openbook_notifications.FollowNotification")
 
 
+# deprecated - use novu specific Notifications class
 def get_follow_request_notification_model():
     return apps.get_model("openbook_notifications.FollowRequestNotification")
 
 
+# deprecated - use novu specific Notifications class
 def get_follow_request_approved_notification_model():
     return apps.get_model("openbook_notifications.FollowRequestApprovedNotification")
 
 
+# deprecated - use novu specific Notifications class
 def get_connection_request_notification_model():
     return apps.get_model("openbook_notifications.ConnectionRequestNotification")
 
 
+# deprecated - use novu specific Notifications class
 def get_connection_confirmed_notification_model():
     return apps.get_model("openbook_notifications.ConnectionConfirmedNotification")
 
 
+# deprecated - use novu specific Notifications class
 def get_community_invite_notification_model():
     return apps.get_model("openbook_notifications.CommunityInviteNotification")
 
 
+# deprecated - use novu specific Notifications class
 def get_community_new_post_notification_model():
     return apps.get_model("openbook_notifications.CommunityNewPostNotification")
 
 
+# deprecated - use novu specific Notifications class
 def get_user_new_post_notification_model():
     return apps.get_model("openbook_notifications.UserNewPostNotification")
 
 
+# deprecated - use novu specific Notifications class
 def get_notification_model():
     return apps.get_model("openbook_notifications.Notification")
 
