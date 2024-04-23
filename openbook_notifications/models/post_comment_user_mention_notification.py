@@ -7,6 +7,7 @@ from openbook_notifications.models.notification import Notification
 from openbook_notifications.toggles import mute_notifications
 
 
+# generally deprecated since novu
 class PostCommentUserMentionNotification(ModelWithUUID):
     notification = GenericRelation(Notification, related_name="post_comment_user_mention_notifications")
     post_comment_user_mention = models.ForeignKey(CommentUserMention, on_delete=models.CASCADE)
