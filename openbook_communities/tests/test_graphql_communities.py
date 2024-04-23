@@ -159,6 +159,89 @@ class TestCommunities(TestCase):
             },
             [],
         )
+    
+    def test_filters_for_recommended_spaces(self):
+        topic1 = make_topic()
+        topic2 = make_topic()
+        topic3 = make_topic()
+
+        # locations inside geolocation filter
+        geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
+        geolocation2 = geos.Point(8.5798387, 53.5590841, srid=4326)
+        # location outside geolocation filter
+        geolocation3 = geos.Point(9.76302, 53.5586627, srid=4326)
+
+        space1 = make_community(topics=[topic1, topic2], location="Location1", geolocation=geolocation1)
+        space2 = make_community(topics=[topic1], location="Location2", geolocation=geolocation2)
+        space3 = make_community(topics=[topic2], location="Location3", geolocation=geolocation3)
+        space4 = make_community(topics=[topic3], location="Location3", geolocation=geolocation3)
+        space5 = make_community(location="Location3", geolocation=geolocation3)
+
+        recommended_spaces_query = """
+            query MyQuery($topicIds: [UUID], $geolocation: GeoJSON, $limit: Int) {
+                recommendedSpaces(topicIds: $topicIds, geolocation: $geolocation, limit: $limit) {
+                    data {
+                    id
+                    title
+                    name
+                    description
+                    location
+                    }
+                }
+            }
+        """
+
+        def transform_space(space):
+            return {"id": str(space.id)}
+
+        def assert_filtered_spaces(filter_options, expected_spaces):
+            filter_response = async_to_sync(schema.execute)(
+                recommended_spaces_query,
+                variable_values=filter_options,
+                context_value=benedict({"request": {"user": AnonymousUser}}),
+            )
+
+            expected_data = list(map(transform_space, expected_spaces))
+            assert_paged_results_equal(
+                filter_response.data["recommendedSpaces"].data,
+                expected_data,
+            )
+
+        # Filter by common topic
+        assert_filtered_spaces({"topicIds": [str(topic1.id)]}, [space1, space2])
+
+        # # Filter by unique topic
+        # assert_filtered_spaces({"topicIds": [str(topic2.id)]}, [space1, space3])
+
+        # filter_response = async_to_sync(schema.execute)(
+        #     recommended_spaces_query,
+        #     variable_values={
+        #         "topicIds": [str(topic1.id), str(topic2.id)],
+        #         "geolocation": geolocation,
+        #     },
+        #     context_value=benedict({"request": {"user": AnonymousUser}}),
+        # )
+        # assert len(filter_response.data["discoverSpaces"]) == 4
+        # location, t1, t2, skill = (
+        #     (0, 1, 2, 3) if filter_response.data["discoverSpaces"][1]["topicId"] == str(topic1.id) else (0, 2, 1, 3)
+        # )
+
+        # assert_paged_results_equal(
+        #     filter_response.data["discoverSpaces"][location]["spaces"],
+        #     list(map(transform_space, [space1, space2])),
+        # )
+        # assert_paged_results_equal(
+        #     filter_response.data["discoverSpaces"][t1]["spaces"],
+        #     list(map(transform_space, [space1, space2])),
+        # )
+        # assert_paged_results_equal(
+        #     filter_response.data["discoverSpaces"][t2]["spaces"],
+        #     list(map(transform_space, [space1, space3])),
+        # )
+        # assert_paged_results_equal(
+        #     filter_response.data["discoverSpaces"][skill]["spaces"],
+        #     list(map(transform_space, [space2])),
+        # )
 
     def test_filters_for_discover_spaces(self):
         topic1 = make_topic()

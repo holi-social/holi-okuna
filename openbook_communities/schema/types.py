@@ -415,33 +415,6 @@ class DiscoverSpaces:
 
 
 @strawberry.type
-class RecommendedSpace:
-    id: uuid.UUID
-    title: str
-    description: str
-    name: str
-    cover: Optional[str]
-    cover_blurhash: Optional[str]
-    location: Optional[str]
-    members: List[SpaceMember]
-
-    def __init__(self, space: Space):
-        self.id = space.id
-        self.title = space.title
-        self.description = space.description
-        self.name = space.name
-        self.cover = space.cover
-        self.cover_blurhash = space.cover_blurhash
-        self.location = space.location
-        self.members = space.memberships.all()
-
-
-@strawberry.type
-class RecommendedSpaces:
-    spaces: List[RecommendedSpace]
-
-
-@strawberry.type
 class MySpaces:
     section: str
     type: SpaceUserConnectionType

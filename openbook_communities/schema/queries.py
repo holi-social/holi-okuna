@@ -20,13 +20,11 @@ from openbook_communities.models import CollaborationTool as CollaborationToolMo
 from openbook_communities.models import Community as CommunityModel
 from openbook_communities.models import SpaceUserConnectionType
 from openbook_communities.models import Task as TaskModel
-from openbook_communities.schema.helpers import filtered_spaces, geolocation_query, query_spaces, topic_id_geolocation_query
+from openbook_communities.schema.helpers import filtered_spaces
 from openbook_communities.schema.types import (
     CollaborationTool,
     DiscoverSpaces,
     MySpaces,
-    RecommendedSpace,
-    RecommendedSpaces,
     Space,
     Task,
 )
@@ -73,22 +71,18 @@ class Query:
         self,
         topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
         geolocation: Optional[GeoJSON] = None,
+        offset: int = 0,
         limit: int = 5,
-    ) -> RecommendedSpaces:
-        spaces: List[Space] = []
+    ) -> Paged[Space]:
+        queryset = None
 
         for topic_id in topic_ids:
-            query = async_to_sync(topic_id_geolocation_query)(topic_id=topic_id, geolocation=geolocation)
-            spaces.extend(query_spaces(query))
+            queryset = queryset | async_to_sync(filtered_spaces)(topic_id=topic_id, geolocation=geolocation)
 
-        if len(spaces) < limit:
-            query = async_to_sync(geolocation_query)(geolocation=geolocation)
-            dedup_spaces = query_spaces(query).filter(~Q(id__in=[space.id for space in spaces]))
-            spaces.extend(dedup_spaces)
+        if queryset.count() < limit:
+            queryset = queryset | async_to_sync(filtered_spaces)(geolocation=geolocation)
 
-        spaces = spaces[:limit] if len(spaces) > limit else spaces
-
-        return RecommendedSpaces(spaces=[RecommendedSpace(space) for space in spaces])
+        return Paged.of(queryset, offset, limit)
 
     @strawberry_django.field()
     def discover_spaces(
@@ -274,7 +268,8 @@ class Query:
         )
 
         return Paged.of(
-            CommunityModel.objects.annotate(member_count=Count("memberships")).filter(title_query)
+            CommunityModel.objects.annotate(member_count=Count("memberships"))
+            .filter(title_query)
             # Bug HOLI-6780: added created as second order criterion for deterministic order.
             # This still has wrong order if while paging the membership counts change. Signed off by Max.
             .order_by("-member_count", "-created"),
