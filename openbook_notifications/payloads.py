@@ -153,7 +153,7 @@ class AppointmentData:
         }
 
     @classmethod
-    def from_appointment(cls, appointment: Appointment):
+    def from_appointment(cls, appointment):
         start_date_time = appointment.start_date_time
         end_date_time = appointment.end_date_time
 

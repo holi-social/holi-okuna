@@ -53,7 +53,6 @@ from openbook_notifications.api import NotificationApi
 
 from openbook_auth.models import User
 from openbook_moderation.models import ModeratedObject
-from openbook_posts.models import Post
 from openbook_terms.models import SDG, Topic, Skill
 from enum import Enum
 
@@ -974,7 +973,8 @@ class CommunityLog(ModelWithUUID):
 
     source_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+", null=False, blank=False)
     target_user = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="+", null=True, blank=False)
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="+", null=True, blank=True)
+
+    post = models.ForeignKey("openbook_posts.Post", on_delete=models.CASCADE, related_name="+", null=True, blank=True)
     community = models.ForeignKey(
         Community,
         on_delete=models.CASCADE,

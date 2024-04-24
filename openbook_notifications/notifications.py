@@ -30,7 +30,6 @@ from openbook_notifications.payloads import (
     SpaceNewPostPayload,
 )
 from openbook_notifications.toggles import notifications_toggle
-from openbook_posts.models import Post
 
 
 class Workflow(Enum):
@@ -228,7 +227,7 @@ class Notifications:
         notification.send()
 
     @staticmethod
-    def send_space_new_post_notification(post: Post, collaborators: List[User]):
+    def send_space_new_post_notification(post, collaborators: List[User]):
         notification = SpaceNewPostNotification(
             collaborators=[str(collaborator.username) for collaborator in collaborators],
             payload=SpaceNewPostPayload(
