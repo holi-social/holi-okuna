@@ -77,13 +77,9 @@ class Query:
         queryset = None
 
         if topic_ids is not None:
-            for topic_id in topic_ids:
-                if queryset is None:
-                    queryset = async_to_sync(filtered_spaces)(topic_id=topic_id, geolocation=geolocation)
-                else:
-                    queryset |= async_to_sync(filtered_spaces)(topic_id=topic_id, geolocation=geolocation)
+            queryset = async_to_sync(filtered_spaces)(topic_ids=topic_ids, geolocation=geolocation)
 
-        if queryset is None or geolocation is not None:
+        if geolocation is not None and topic_ids is None or queryset is None:
             queryset = async_to_sync(filtered_spaces)(geolocation=geolocation)
         elif queryset.count() < limit:
             queryset = queryset.order_by("pk")
@@ -275,8 +271,7 @@ class Query:
         )
 
         return Paged.of(
-            CommunityModel.objects.annotate(member_count=Count("memberships"))
-            .filter(title_query)
+            CommunityModel.objects.annotate(member_count=Count("memberships")).filter(title_query)
             # Bug HOLI-6780: added created as second order criterion for deterministic order.
             # This still has wrong order if while paging the membership counts change. Signed off by Max.
             .order_by("-member_count", "-created"),

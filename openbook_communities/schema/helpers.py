@@ -10,6 +10,7 @@ from openbook_auth.models import User as UserModel
 @sync_to_async
 def filtered_spaces(
     topic_id: Optional[uuid.UUID] = None,
+    topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
     geolocation: Optional[GeolocationFeature] = None,
     skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
     topic_slug: Optional[str] = None,
@@ -20,6 +21,8 @@ def filtered_spaces(
     query = Q()
     if topic_id is not None:
         query.add(Q(topics__id__contains=topic_id), Q.AND)
+    if topic_ids:
+        query.add(Q(topics__id__in=topic_ids), Q.AND)
     if geolocation is not None:
         query.add(Q(geolocation__within=geolocation.geometry), Q.AND)
     if skill_ids:
