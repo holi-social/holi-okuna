@@ -4721,6 +4721,7 @@ class User(ModelWithUUID, AbstractUser):
 
     @staticmethod
     def is_visible_ignore_blocked_query(prefix=None):
+        """Filter blocked (deleted) users as well as users without a profile (Django admin users) or users without an identity"""
         pQ = PrefixedQ(prefix)
         return pQ(is_deleted=False) & pQ(profile__isnull=False) & pQ(identity__isnull=False)
 
