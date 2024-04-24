@@ -81,7 +81,45 @@ class UserLanguageSerializer(serializers.ModelSerializer):
         )
 
 
+# TODO HOLI-8088 remove test once get_authenticated_user is removed
 class GetAuthenticatedUserSerializer(serializers.ModelSerializer):
+    profile = GetAuthenticatedUserProfileSerializer(many=False)
+    unread_notifications_count = UnreadNotificationsCountField()
+    followers_count = FollowersCountField()
+    is_global_moderator = IsGlobalModeratorField()
+    following_count = FollowingCountField()
+    is_member_of_communities = IsMemberOfCommunities()
+    pending_communities_moderated_objects_count = UserPendingCommunitiesModeratedObjectsCountField()
+    active_moderation_penalties_count = UserActiveModerationPenaltiesCountField()
+    language = UserLanguageSerializer()
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "uuid",
+            "email",
+            "username",
+            "avatar_default_color",
+            "avatar_label",
+            "profile",
+            "language",
+            "invite_count",
+            "date_joined",
+            "are_guidelines_accepted",
+            "followers_count",
+            "following_count",
+            "connections_circle_id",
+            "is_member_of_communities",
+            "is_global_moderator",
+            "unread_notifications_count",
+            "pending_communities_moderated_objects_count",
+            "active_moderation_penalties_count",
+            "visibility",
+        )
+
+
+class GetAuthenticatedUserNewSerializer(serializers.ModelSerializer):
     profile = GetAuthenticatedUserProfileSerializer(many=False)
     unread_notifications_count = UnreadNotificationsCountField()
     followers_count = FollowersCountField()

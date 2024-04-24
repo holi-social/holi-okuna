@@ -7,7 +7,6 @@ import strawberry
 import structlog
 from asgiref.sync import sync_to_async
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.utils.translation import get_language_from_request
 from graphql import GraphQLError
@@ -21,7 +20,7 @@ from openbook.helpers import (
 from openbook.utils import invalidate_discover_spaces_query_cache
 from openbook_auth.models import User as UserModel
 from favorites.models import UserFavorite
-from openbook_auth.schema.types import UpdateAuthenticatedUserInput, AuthenticatedUser, RegisterDeviceInput
+from openbook_auth.schema.types import UpdateAuthenticatedUserInput, User, AuthenticatedUser, RegisterDeviceInput
 from openbook_auth.serializers.authenticated_user_serializers import (
     UpdateAuthenticatedUserSerializer,
 )
@@ -39,9 +38,14 @@ logger = structlog.get_logger(__name__)
 
 @strawberry.type
 class Mutation:
+    # TODO HOLI-8088 remove test once get_authenticated_user is removed
+    @strawberry.mutation(deprecation_reason="Deprecated in favor of 'updatedAuthenticatedUserNew'.")
+    def update_authenticated_user(self, info, input: UpdateAuthenticatedUserInput) -> User:
+        return Mutation().update_authenticated_user_new(info, input)
+
     @strawberry.mutation
     @sync_to_async
-    def update_authenticated_user(self, info, input: UpdateAuthenticatedUserInput) -> AuthenticatedUser:
+    def update_authenticated_user_new(self, info, input: UpdateAuthenticatedUserInput) -> AuthenticatedUser:
         current_user = verify_authorized_user(info)
 
         input_dict = to_input_dict(input)
