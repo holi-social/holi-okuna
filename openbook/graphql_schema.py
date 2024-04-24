@@ -73,7 +73,7 @@ Query = merge_types(
         appointments_queries.Query,
         favorites_queries.Query,
         comments_queries.Query,
-        feed_posts_queries.Query
+        feed_posts_queries.Query,
     ),
 )
 
