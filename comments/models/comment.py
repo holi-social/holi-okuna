@@ -217,13 +217,13 @@ class Comment(ModelWithUUID):
                     try:
                         user = User.objects.only("id", "username").get(username__iexact=username)
 
-                        user_can_see_post_comment = user.can_see_post_comment(post_comment=self)
+                        user_can_see_commentable = self.commentable.can_be_viewed(user)
                         user_is_commenter = user.pk == self.commenter_id
                         if not user_is_commenter:
                             CommentUserMention.create_comment_user_mention(
                                 user=user,
                                 comment=self,
-                                notify=user_can_see_post_comment,
+                                notify=user_can_see_commentable,
                             )
                             existing_mention_usernames.append(username)
                     except User.DoesNotExist:
