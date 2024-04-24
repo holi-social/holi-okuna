@@ -203,6 +203,7 @@ class Comment(ModelWithUUID):
         self._process_post_comment_mentions()
         self._process_post_comment_hashtags()
         self._process_post_comment_links()
+        self._notify_post_author()
 
         return post_comment
 
@@ -269,6 +270,20 @@ class Comment(ModelWithUUID):
             self.links.set(LinkPreview.parse_text(self.text))
         else:
             self.links.clear()
+
+    def _notify_post_author(self):
+        from openbook_notifications.notifications import Notifications
+
+        # do we find somebody to notify?
+        # todo gregor: maybe also notify Insight curators
+        author = getattr(self.commentable, "creator", None)
+
+        if author:
+            is_post_author_mentioned = self.mentions.filter(username=author.username).exists()
+            is_post_author_commenter = self.commenter.username == author.username
+
+            if not is_post_author_mentioned and not is_post_author_commenter:
+                Notifications.send_post_comment_author_notification(post_comment=self)
 
     def update_comment(self, text):
         self.text = text
