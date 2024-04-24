@@ -260,11 +260,15 @@ class UserModelTest(TestAssertionsMixin, TransactionTestCase):
     def test_update_tracking_consent(self):
         user = make_user()
 
-        user.update(tracking_consent=True)
-        self.assertEqual(user.tracking_consent, True)
+        user.update(tracking_consent_analytics=True)
+        self.assertEqual(user.tracking_consent_analytics, True)
+        user.update(tracking_consent_personalization=False)
+        self.assertEqual(user.tracking_consent_personalization, False)
 
-        user.update(tracking_consent=False)
-        self.assertEqual(user.tracking_consent, False)
+        user.update(tracking_consent_analytics=False)
+        self.assertEqual(user.tracking_consent_analytics, False)
+        user.update(tracking_consent_personalization=True)
+        self.assertEqual(user.tracking_consent_personalization, True)
 
     def test_bad_numbers_are_considered_invalid_identities(self):
         self.assertTrue(User.is_invalid_identity("fritz88"))

@@ -128,7 +128,8 @@ class TestUsers:
                     id
                     fullName
                     engagementLevel
-                    trackingConsent
+                    trackingConsentAnalytics
+                    trackingConsentPersonalization
                 }
             }
         """
@@ -145,7 +146,8 @@ class TestUsers:
         assert authenticated_user["id"] == str(user.uuid)
         assert authenticated_user["fullName"] == user.profile.full_name()
         assert authenticated_user["engagementLevel"] == user.profile.engagement_level
-        assert authenticated_user["trackingConsent"] == user.tracking_consent
+        assert authenticated_user["trackingConsentAnalytics"] == user.tracking_consent_analytics
+        assert authenticated_user["trackingConsentPersonalization"] == user.tracking_consent_personalization
 
         mock_create_or_update_subscriber.assert_called_once_with(
             user=user, locale=mock_get_language_from_request.return_value
@@ -179,21 +181,22 @@ class TestUsers:
 
     def test_get_user_by_id_returns_no_private_fields(self):
         user = make_user(name="Peter", last_name="Moser")
-        user.update(tracking_consent=True, save=True)
+        user.update(tracking_consent_analytics=True, save=True)
+        user.update(tracking_consent_personalization=False, save=True)
         executed = async_to_sync(schema.execute)(
             """
             query UserById($userId: UUID!) {
                 userById(id: $userId) {
                     firstName
                     lastName
-                    trackingConsent
+                    trackingConsentAnalytics
                 }
             }
             """,
             context_value=benedict({"request": {"user": AnonymousUser}}),
             variable_values={"userId": str(user.id)},
         )
-        assert "Cannot query field 'trackingConsent' on type 'User'" in str(executed.errors)
+        assert "Cannot query field 'trackingConsentAnalytics' on type 'User'" in str(executed.errors)
 
     def test_get_user_by_name_first_name_matches_first(self):
         make_user(name="Thomas", last_name="Petersen")
@@ -367,7 +370,8 @@ class TestUsers:
         first_name = "Peter"
         last_name = "Shaw"
         engagement_level = EngagementLevelChoice.INITIATOR
-        tracking_consent = True
+        tracking_consent_analytics = True
+        tracking_consent_personalization = False
 
         json_body = [
             {"op": "add", "path": "/traits/given_name", "value": f"{first_name}"},
@@ -388,7 +392,8 @@ class TestUsers:
                     location
                     geolocationId
                     engagementLevel
-                    trackingConsent
+                    trackingConsentAnalytics
+                    trackingConsentPersonalization
                 }
             }
             """,
@@ -401,7 +406,8 @@ class TestUsers:
                     "location": location,
                     "geolocation": geolocation,
                     "engagementLevel": engagement_level,
-                    "trackingConsent": tracking_consent,
+                    "trackingConsentAnalytics": tracking_consent_analytics,
+                    "trackingConsentPersonalization": tracking_consent_personalization,
                 }
             },
         )
@@ -419,7 +425,8 @@ class TestUsers:
 
         persisted_user = User.objects.get(username=user.username)
 
-        assert tracking_consent == persisted_user.tracking_consent
+        assert tracking_consent_analytics == persisted_user.tracking_consent_analytics
+        assert tracking_consent_personalization == persisted_user.tracking_consent_personalization
         assert graphql_pronouns == persisted_user.profile.pronouns
         assert graphql_pronouns == pronouns
         assert last_name == persisted_user.profile.last_name

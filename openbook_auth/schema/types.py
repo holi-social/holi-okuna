@@ -36,7 +36,8 @@ class UpdateAuthenticatedUserInput:
     interests: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
-    tracking_consent: Optional[bool] = strawberry.UNSET
+    tracking_consent_analytics: Optional[bool] = strawberry.UNSET
+    tracking_consent_personalization: Optional[bool] = strawberry.UNSET
 
 
 @strawberry.input
@@ -116,10 +117,10 @@ class User:
         return space.connection_status_to_user(self)
 
 
-# TODO introduce new GraphQL function to return this type instead of User, deprecate old function
 @strawberry_django.type(UserModel)
 class AuthenticatedUser(User):
-    tracking_consent: Optional[bool]
+    tracking_consent_analytics: Optional[bool]
+    tracking_consent_personalization: Optional[bool]
 
 
 @strawberry.input
