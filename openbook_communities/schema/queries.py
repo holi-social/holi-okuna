@@ -76,13 +76,20 @@ class Query:
     ) -> Paged[Space]:
         queryset = None
 
-        for topic_id in topic_ids:
-            queryset = queryset | async_to_sync(filtered_spaces)(topic_id=topic_id, geolocation=geolocation)
+        if topic_ids is not None:
+            for topic_id in topic_ids:
+                if queryset is None:
+                    queryset = async_to_sync(filtered_spaces)(topic_id=topic_id, geolocation=geolocation)
+                else:
+                    queryset |= async_to_sync(filtered_spaces)(topic_id=topic_id, geolocation=geolocation)
 
-        if queryset.count() < limit:
+        if queryset is None or geolocation is not None:
+            queryset = async_to_sync(filtered_spaces)(geolocation=geolocation)
+        elif queryset.count() < limit:
+            queryset = queryset.order_by("pk")
             queryset = queryset | async_to_sync(filtered_spaces)(geolocation=geolocation)
 
-        return Paged.of(queryset, offset, limit)
+        return Paged.of(queryset[:limit] if queryset.count() > limit else queryset, offset, limit)
 
     @strawberry_django.field()
     def discover_spaces(
