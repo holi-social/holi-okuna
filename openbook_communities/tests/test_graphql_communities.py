@@ -175,7 +175,7 @@ class TestCommunities(TestCase):
         topic2_inside_space = make_community(topics=[topic2], geolocation=geolocation2)
         uninteresting_topic_inside_space = make_community(topics=[uninteresting_topic], geolocation=geolocation1)
         default_topic_outside_space = make_community(topics=[default_topic], geolocation=geolocation3)
-        uninteresting_topic_outside_space = make_community(topics=[uninteresting_topic], geolocation=geolocation3)
+        make_community(topics=[uninteresting_topic], geolocation=geolocation3)
 
         recommended_spaces_query = """
             query MyQuery($topicIds: [UUID], $geolocation: GeoJSON, $limit: Int, $offset: Int) {
@@ -248,7 +248,7 @@ class TestCommunities(TestCase):
         default_topic_outside_space1 = make_community(topics=[default_topic], geolocation=geolocation3)
         default_topic_outside_space2 = make_community(topics=[default_topic], geolocation=geolocation3)
         default_topic_outside_space3 = make_community(topics=[default_topic], geolocation=geolocation3)
-        uninteresting_topic_outside_space = make_community(topics=[uninteresting_topic], geolocation=geolocation3)
+        make_community(topics=[uninteresting_topic], geolocation=geolocation3)
 
         recommended_spaces_query = """
             query MyQuery($topicIds: [UUID], $geolocation: GeoJSON, $limit: Int, $offset: Int) {
@@ -264,7 +264,7 @@ class TestCommunities(TestCase):
         def transform_space(space):
             return {"id": str(space.id)}
 
-        def assert_filtered_spaces(filter_options, expected_spaces, totalResults):
+        def assert_filtered_spaces(filter_options, expected_spaces, total_results):
             filter_response = async_to_sync(schema.execute)(
                 recommended_spaces_query,
                 variable_values=filter_options,
@@ -273,7 +273,7 @@ class TestCommunities(TestCase):
             assert filter_response.errors is None
             expected_data = list(map(transform_space, expected_spaces))
             assert filter_response.data["recommendedSpaces"]["data"] == expected_data
-            assert filter_response.data["recommendedSpaces"]["totalResults"] == totalResults
+            assert filter_response.data["recommendedSpaces"]["totalResults"] == total_results
 
         assert_filtered_spaces(
             {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 2, "limit": 3},
