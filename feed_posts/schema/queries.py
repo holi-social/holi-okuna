@@ -1,0 +1,25 @@
+import strawberry
+import strawberry_django
+
+from feed_posts.schema.types import FeedPost
+from feed_posts.services import FeedPostService
+from openbook_auth.utils import verify_authorized_user
+from openbook_common.schema.types import Paged
+
+
+@strawberry.type
+class Query:
+    @strawberry_django.field()
+    def my_posts(
+        self,
+        info,
+        offset: int = 0,
+        limit: int = 10,
+    ) -> Paged[FeedPost]:
+        user = verify_authorized_user(info)
+
+        return Paged.of(
+            FeedPostService().get_feed_posts_by_user(user),
+            offset,
+            limit,
+        )

@@ -24,3 +24,6 @@ class FeedPostRepository:
         feed_post.topics.set(topics)
 
         return feed_post
+
+    def get_feed_posts_by_user(self, user):
+        return FeedPost.objects.filter(creator=user)
