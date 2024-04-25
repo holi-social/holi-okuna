@@ -54,3 +54,5 @@ class FeedPostCategory(Term):
     """
     Feed Posts have an assigned category that is displayed above the post.
     """
+
+    is_enabled = models.BooleanField(_("enabled"), default=True)
