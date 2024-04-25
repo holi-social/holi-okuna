@@ -60,6 +60,7 @@ class InspirationPostCategory:
 class FeedPostCategory:
     id: strawberry.auto
     slug: strawberry.auto
+    is_enabled: strawberry.auto
 
     @strawberry_django.field(only=["title"])
     def title(self, info) -> str:
