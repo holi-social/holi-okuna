@@ -96,9 +96,9 @@ class Post:
     mentions: List[Optional[User]]
     links: List[Optional[LinkPreview]]
     is_public: strawberry.auto
-    space: Optional[
-        Annotated["Space", strawberry.lazy("openbook_communities.schema.types")]
-    ] = strawberry_django.field(field_name="community")
+    space: Optional[Annotated["Space", strawberry.lazy("openbook_communities.schema.types")]] = (
+        strawberry_django.field(field_name="community")
+    )
     creator: User = strawberry_django.field(select_related="creator__profile")
     inspiration_post_category: Optional[InspirationPostCategory]
 
