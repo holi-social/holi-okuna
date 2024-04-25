@@ -263,7 +263,7 @@ class Comment(ModelWithUUID):
         from openbook_notifications.notifications import Notifications
 
         # do we find somebody to notify?
-        # todo gregor: maybe also notify Insight curators
+        # Discussions don't have a creator, but its fine for now to not notify Curators.
         author = getattr(self.commentable, "creator", None)
 
         if author:
