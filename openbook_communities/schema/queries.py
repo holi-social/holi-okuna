@@ -20,7 +20,12 @@ from openbook_communities.models import CollaborationTool as CollaborationToolMo
 from openbook_communities.models import Community as CommunityModel
 from openbook_communities.models import SpaceUserConnectionType
 from openbook_communities.models import Task as TaskModel
-from openbook_communities.schema.helpers import filtered_spaces
+from openbook_communities.models import Topic as TopicModel
+from openbook_communities.schema.helpers import (
+    filtered_spaces,
+    create_filtered_spaces_queryset,
+    create_filtered_spaces_query,
+)
 from openbook_communities.schema.types import (
     CollaborationTool,
     DiscoverSpaces,
@@ -30,6 +35,15 @@ from openbook_communities.schema.types import (
 )
 
 Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
+
+
+def add_recommended_spaces_to_result(offset, limit, count, previous_queries, result, query):
+    new_offset = max(0, offset - count)
+    for q in previous_queries:
+        query = query & ~q
+    queryset = create_filtered_spaces_queryset(query)
+    result.extend(list(queryset[new_offset : new_offset + limit - len(result)]))
+    return queryset.count()
 
 
 @strawberry.type
@@ -74,18 +88,28 @@ class Query:
         offset: int = 0,
         limit: int = 5,
     ) -> Paged[Space]:
-        queryset = None
+        result = []
+        count = 0
+        queries = []
 
         if topic_ids is not None:
-            queryset = async_to_sync(filtered_spaces)(topic_ids=topic_ids, geolocation=geolocation)
+            query = create_filtered_spaces_query(topic_ids=topic_ids, geolocation=geolocation)
+            count = add_recommended_spaces_to_result(offset, limit, count, queries, result, query)
+            queries.append(query)
 
-        if geolocation is not None and topic_ids is None or queryset is None:
-            queryset = async_to_sync(filtered_spaces)(geolocation=geolocation)
-        elif queryset.count() < limit:
-            queryset = queryset.order_by("pk")
-            queryset = queryset | async_to_sync(filtered_spaces)(geolocation=geolocation)
+        if len(result) < limit and geolocation is not None:
+            query = create_filtered_spaces_query(geolocation=geolocation)
+            count = count + add_recommended_spaces_to_result(offset, limit, count, queries, result, query)
+            queries.append(query)
 
-        return Paged.of(queryset[:limit] if queryset.count() > limit else queryset, offset, limit)
+        if len(result) < limit:
+            default_topics = list(
+                TopicModel.objects.filter(is_discover_spaces_default=True).values_list("id", flat=True)
+            )
+            query = create_filtered_spaces_query(topic_ids=default_topics)
+            add_recommended_spaces_to_result(offset, limit, count, queries, result, query)
+
+        return Paged(result, 20)
 
     @strawberry_django.field()
     def discover_spaces(
@@ -271,7 +295,8 @@ class Query:
         )
 
         return Paged.of(
-            CommunityModel.objects.annotate(member_count=Count("memberships")).filter(title_query)
+            CommunityModel.objects.annotate(member_count=Count("memberships"))
+            .filter(title_query)
             # Bug HOLI-6780: added created as second order criterion for deterministic order.
             # This still has wrong order if while paging the membership counts change. Signed off by Max.
             .order_by("-member_count", "-created"),

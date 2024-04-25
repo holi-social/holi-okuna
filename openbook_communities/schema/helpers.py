@@ -18,11 +18,39 @@ def filtered_spaces(
     skill_slugs: Optional[List[Optional[str]]] = None,
     member_id: Optional[uuid.UUID] = None,
 ):
+    query = create_filtered_spaces_query(
+        topic_id, topic_ids, geolocation, skill_ids, topic_slug, topic_slugs, skill_slugs, member_id
+    )
+    return create_filtered_spaces_queryset(query)
+
+
+def create_filtered_spaces_queryset(query):
+    return (
+        CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
+        .filter(query)
+        .annotate(member_count=Count("memberships"))
+        .order_by("-created")
+        .cache(ops=["fetch", "count"], timeout=300)
+    )
+
+
+def create_filtered_spaces_query(
+    topic_id: Optional[uuid.UUID] = None,
+    topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
+    geolocation: Optional[GeolocationFeature] = None,
+    skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
+    topic_slug: Optional[str] = None,
+    topic_slugs: Optional[List[Optional[str]]] = None,
+    skill_slugs: Optional[List[Optional[str]]] = None,
+    member_id: Optional[uuid.UUID] = None,
+):
     query = Q()
-    if topic_id is not None:
-        query.add(Q(topics__id__contains=topic_id), Q.AND)
     if topic_ids:
+        if topic_id is not None:
+            topic_ids.append(topic_id)
         query.add(Q(topics__id__in=topic_ids), Q.AND)
+    elif topic_id is not None:
+        query.add(Q(topics__id__contains=topic_id), Q.AND)
     if geolocation is not None:
         query.add(Q(geolocation__within=geolocation.geometry), Q.AND)
     if skill_ids:
@@ -38,11 +66,4 @@ def filtered_spaces(
     if member_id:
         user = UserModel.objects.get(username=member_id)
         query.add(Q(memberships__user=user), Q.AND)
-
-    return (
-        CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
-        .filter(query)
-        .annotate(member_count=Count("memberships"))
-        .order_by("-created")
-        .cache(ops=["fetch", "count"], timeout=300)
-    )
+    return query
