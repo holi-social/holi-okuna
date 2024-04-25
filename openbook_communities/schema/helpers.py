@@ -21,17 +21,7 @@ def filtered_spaces(
     query = create_filtered_spaces_query(
         topic_id, topic_ids, geolocation, skill_ids, topic_slug, topic_slugs, skill_slugs, member_id
     )
-    return create_filtered_spaces_queryset(query)
-
-
-def create_filtered_spaces_queryset(query):
-    return (
-        CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
-        .filter(query)
-        .annotate(member_count=Count("memberships"))
-        .order_by("-created")
-        .cache(ops=["fetch", "count"], timeout=300)
-    )
+    return create_spaces_queryset(query)
 
 
 def create_filtered_spaces_query(
@@ -67,3 +57,13 @@ def create_filtered_spaces_query(
         user = UserModel.objects.get(username=member_id)
         query.add(Q(memberships__user=user), Q.AND)
     return query
+
+
+def create_spaces_queryset(query):
+    return (
+        CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
+        .filter(query)
+        .annotate(member_count=Count("memberships"))
+        .order_by("-created")
+        .cache(ops=["fetch", "count"], timeout=300)
+    )

@@ -23,7 +23,7 @@ from openbook_communities.models import Task as TaskModel
 from openbook_communities.models import Topic as TopicModel
 from openbook_communities.schema.helpers import (
     filtered_spaces,
-    create_filtered_spaces_queryset,
+    create_spaces_queryset,
     create_filtered_spaces_query,
 )
 from openbook_communities.schema.types import (
@@ -40,7 +40,7 @@ Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
 def add_recommended_spaces_to_result(offset, limit, count, previous_queries, result, query):
     for q in previous_queries:
         query = query & ~q
-    queryset = create_filtered_spaces_queryset(query)
+    queryset = create_spaces_queryset(query)
     if len(result) < limit:
         new_offset = max(0, offset - count)
         result.extend(list(queryset[new_offset : new_offset + limit - len(result)]))
