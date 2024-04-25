@@ -264,7 +264,7 @@ class TestCommunities(TestCase):
         def transform_space(space):
             return {"id": str(space.id)}
 
-        def assert_filtered_spaces(filter_options, expected_spaces):
+        def assert_filtered_spaces(filter_options, expected_spaces, totalResults):
             filter_response = async_to_sync(schema.execute)(
                 recommended_spaces_query,
                 variable_values=filter_options,
@@ -273,6 +273,7 @@ class TestCommunities(TestCase):
             assert filter_response.errors is None
             expected_data = list(map(transform_space, expected_spaces))
             assert filter_response.data["recommendedSpaces"]["data"] == expected_data
+            assert filter_response.data["recommendedSpaces"]["totalResults"] == totalResults
 
         assert_filtered_spaces(
             {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 2, "limit": 3},
@@ -281,6 +282,7 @@ class TestCommunities(TestCase):
                 uninteresting_topic_inside_space3,
                 uninteresting_topic_inside_space2,
             ],
+            9,
         )
         assert_filtered_spaces(
             {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 2, "limit": 6},
@@ -292,6 +294,7 @@ class TestCommunities(TestCase):
                 default_topic_outside_space3,
                 default_topic_outside_space2,
             ],
+            9,
         )
         assert_filtered_spaces(
             {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 4, "limit": 3},
@@ -300,6 +303,7 @@ class TestCommunities(TestCase):
                 uninteresting_topic_inside_space1,
                 default_topic_outside_space3,
             ],
+            9,
         )
         assert_filtered_spaces(
             {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 0, "limit": 20},
@@ -314,10 +318,12 @@ class TestCommunities(TestCase):
                 default_topic_outside_space2,
                 default_topic_outside_space1,
             ],
+            9,
         )
         assert_filtered_spaces(
             {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 10, "limit": 20},
             [],
+            9,
         )
 
     def test_filters_for_discover_spaces(self):
