@@ -32,5 +32,5 @@ class CreateFeedPostInput:
     description: str
     image: Optional[Upload] = strawberry.UNSET
     visibility: VisibilityLevel
-    topic_ids: List[Optional[uuid.UUID]]
+    topic_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     category_id: uuid.UUID
