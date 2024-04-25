@@ -867,9 +867,6 @@ class Community(ModelWithUUID):
             if membership.is_administrator:
                 roles.append(SpaceUserConnectionType.ADMINISTRATOR)
 
-            # if membership.is_moderator:
-            #     roles.append(SpaceUserConnectionType.MODERATOR)
-
         return roles
 
     def _update_cover(self, cover, save=True):
@@ -1666,4 +1663,4 @@ class OnboardingStep(ModelWithUUID):
         return community
 
 
-from .network_relationship import SpacesRelationship  # noqa: F401
+from .network_relationship import SpacesRelationship  # noqa: E402

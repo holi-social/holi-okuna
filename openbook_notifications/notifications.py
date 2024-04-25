@@ -311,10 +311,14 @@ class Notification:
 
     @notifications_toggle
     def send(self):
+        print("recipients")
+        print(self.recipients)
         if not self.recipients:
             return
 
         try:
+            print("send")
+            print(self.payload)
             return EventApi(session=self.session).trigger(
                 name=self.workflow,
                 recipients=self.recipients,
