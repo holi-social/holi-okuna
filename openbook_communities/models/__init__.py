@@ -1663,4 +1663,4 @@ class OnboardingStep(ModelWithUUID):
         return community
 
 
-from .network_relationship import SpacesRelationship  # noqa: E402
+from .network_relationship import SpacesRelationship  # noqa: F401, E402

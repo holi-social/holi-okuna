@@ -1,3 +1,5 @@
+# ruff: noqa
+
 from hashlib import sha256
 from django_rq import job
 
