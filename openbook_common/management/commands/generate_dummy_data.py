@@ -10,7 +10,9 @@ from django.utils.timezone import now
 from faker import Faker
 
 from openbook import settings
+from openbook.helpers import publish_user_name_updated_event
 from openbook_auth.models import User
+from openbook_auth.tasks import generate_identity_when_needed
 from openbook_common.tests.helpers import (
     make_community_title,
     make_fake_post_title,
@@ -54,7 +56,6 @@ class Command(BaseCommand):
         # order is important here, there is dependencies. luckily, reverse order currently fulfills all dependencies
         for key, value in options.items().__reversed__():
             if hasattr(self, prefix + key) and value:
-
                 fn = getattr(self, prefix + key)
                 fn(value[0])
 
@@ -65,7 +66,10 @@ class Command(BaseCommand):
     @staticmethod
     def generate_user(nr):
         print(f"generate {nr} users")
-        make_users(nr)
+        users = make_users(nr)
+        for user in users:
+            generate_identity_when_needed(user)
+            publish_user_name_updated_event(user=user)
 
     def generate_post(self, nr):
         print(f"generate {nr} posts")

@@ -41,12 +41,7 @@ class Comment:
 
     @strawberry_django.field()
     def reactions(self, info) -> ReactionCounts:
-        current_user = info.context.request.user
-        if current_user.is_anonymous:
-            reactions = CommentModel.get_reaction_counts(self.pk)
-        else:
-            reactions = current_user.get_reaction_counts_for_post_comment_with_id(self.pk)
-        return ReactionCounts(**reactions)
+        return ReactionCounts(**self.reaction_counts_by_type())
 
     @strawberry_django.field
     def my_reaction(self, info) -> ReactionCounts:

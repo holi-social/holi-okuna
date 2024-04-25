@@ -7,6 +7,7 @@ from django.test import AsyncClient
 from novu.api import EventApi
 
 from comments.models import Comment, CommentReaction
+from openbook_auth.models import UserBlock
 from openbook_common.enums import FeatureToggleName, FeatureToggleType, ReactionType
 from openbook_common.models import FeatureToggle as FeatureToggleModel
 from openbook_common.tests.helpers import (
@@ -535,3 +536,20 @@ class TestComments(TestCase):
         assert response.errors is None
         top_comment_data = response.data["commentable"]["topComment"]
         assert top_comment_data["text"] == "Latest comment"
+
+    def test_should_not_get_the_most_interesting_comment_from_my_blocked_users(self):
+        post = make_post()
+        blocker = make_user(name="Blocker")
+        commenter = make_user(name="Commenter")
+        last_commenter = make_user(name="Last Commenter")
+
+        Comment.create_comment("2nd latest comment", commenter, post)
+        Comment.create_comment("Latest comment by a user I blocked", last_commenter, post)
+
+        UserBlock.create_user_block(blocker.id, last_commenter.id)
+
+        response = get_top_comment(post.id, "POST", blocker)
+
+        assert response.errors is None
+        top_comment_data = response.data["commentable"]["topComment"]
+        assert top_comment_data["text"] == "2nd latest comment"

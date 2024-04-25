@@ -24,7 +24,7 @@ class Commentable:
         current_user = info.context.request.user
         comments = (
             CommentModel.objects.filter(commentable_id=self.id, commentable_type__model=self.type.value)
-            .filter(CommentModel.is_visible_query(current_user))
+            .filter(is_deleted=False)
             .order_by("created")
         )
         return UserBlockModel.paged(current_user, lambda comment: comment.commenter.id, comments, offset, limit)
@@ -47,4 +47,5 @@ class Commentable:
 
     @strawberry_django.field()
     def top_comment(self, info) -> Optional[Comment]:
-        return CommentModel.get_top_comment(self.id, self.type)
+        current_user = info.context.request.user
+        return CommentModel.get_top_comment(self.id, self.type, current_user)

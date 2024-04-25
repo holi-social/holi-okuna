@@ -27,3 +27,6 @@ class FeedPostService:
             image=image,
             topics=topic_ids,
         )
+
+    def get_feed_posts_by_user(self, user):
+        return self.repository.get_feed_posts_by_user(user)

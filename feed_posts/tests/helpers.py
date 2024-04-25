@@ -30,3 +30,33 @@ def create_feed_post(user, input):
         context_value=benedict({"request": {"user": user}}),
         variable_values={"input": input},
     )
+
+
+def my_posts(user):
+    return async_to_sync(schema.execute)(
+        """
+        query {
+            myPosts {
+               totalResults
+               data {
+                    id
+                    title
+                    description
+                    visibility
+                    image
+                    imageBlurhash
+                    category {
+                        id
+                    }
+                    topics {
+                        id
+                    }
+                    creator {
+                        id
+                    }
+                }
+            }
+        }
+        """,
+        context_value=benedict({"request": {"user": user}}),
+    )
