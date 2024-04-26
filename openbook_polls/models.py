@@ -44,7 +44,6 @@ magic = get_magic()
 
 class Question(ModelWithUUID):
     question_text = models.CharField(max_length=200)
-    #pub_date = models.DateTimeField("date published")
     created = models.DateTimeField(editable=False, db_index=True)
     modified = models.DateTimeField(db_index=True, default=timezone.now)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="question", null=True)
@@ -88,8 +87,7 @@ class Question(ModelWithUUID):
             question.save()
         
         return question
-    
-    #update_post
+
 
     def is_text_only_question(self):
         return self.has_text() 
