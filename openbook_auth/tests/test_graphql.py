@@ -116,7 +116,7 @@ class TestUsers:
     @pytest.mark.asyncio
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
-    async def test_get_authenticated_user_new_returns_self_reference(
+    async def test_get_authenticated_user_v2_returns_self_reference(
         self, mock_create_or_update_subscriber, mock_get_language_from_request, client
     ):
         user = await sync_to_async(make_user)(name="John", last_name="Holi New")
@@ -124,7 +124,7 @@ class TestUsers:
         endpoint = reverse("graphql-endpoint")
         graphql_query = """
             query {
-                authenticatedUserNew {
+                authenticatedUserV2 {
                     id
                     fullName
                     engagementLevel
@@ -142,7 +142,7 @@ class TestUsers:
 
         assert response.status_code == status.HTTP_200_OK
 
-        authenticated_user = json.loads(response.content)["data"]["authenticatedUserNew"]
+        authenticated_user = json.loads(response.content)["data"]["authenticatedUserV2"]
         assert authenticated_user["id"] == str(user.uuid)
         assert authenticated_user["fullName"] == user.profile.full_name()
         assert authenticated_user["engagementLevel"] == user.profile.engagement_level
@@ -351,7 +351,7 @@ class TestUsers:
     @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
-    def test_can_update_authenticated_user_new(
+    def test_can_update_authenticated_user_v2(
         self,
         mock_create_or_update_subscriber,
         mock_get_language_from_request,
@@ -386,7 +386,7 @@ class TestUsers:
         executed = async_to_sync(schema.execute)(
             """
             mutation test($input: UpdateAuthenticatedUserInput!) {
-                updateAuthenticatedUserNew(input: $input) {
+                updateAuthenticatedUserV2(input: $input) {
                     id
                     pronouns
                     location
@@ -420,7 +420,7 @@ class TestUsers:
             json=json_body,
             timeout=30,
         )
-        updated_user = executed.data["updateAuthenticatedUserNew"]
+        updated_user = executed.data["updateAuthenticatedUserV2"]
         graphql_pronouns = updated_user["pronouns"]
 
         persisted_user = User.objects.get(username=user.username)

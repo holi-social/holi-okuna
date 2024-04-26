@@ -41,11 +41,11 @@ class Mutation:
     # TODO HOLI-8088 remove test once get_authenticated_user is removed
     @strawberry.mutation(deprecation_reason="Deprecated in favor of 'updatedAuthenticatedUserNew'.")
     def update_authenticated_user(self, info, input: UpdateAuthenticatedUserInput) -> User:
-        return Mutation().update_authenticated_user_new(info, input)
+        return Mutation().update_authenticated_user_v2(info, input)
 
     @strawberry.mutation
     @sync_to_async
-    def update_authenticated_user_new(self, info, input: UpdateAuthenticatedUserInput) -> AuthenticatedUser:
+    def update_authenticated_user_v2(self, info, input: UpdateAuthenticatedUserInput) -> AuthenticatedUser:
         current_user = verify_authorized_user(info)
 
         input_dict = to_input_dict(input)

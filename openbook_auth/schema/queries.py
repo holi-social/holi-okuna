@@ -25,12 +25,12 @@ logger = structlog.get_logger(__name__)
 @strawberry.type
 class Query:
     # TODO HOLI-8088 remove test once get_authenticated_user is removed
-    @strawberry_django.field(deprecation_reason="Deprecated in favor of 'authenticatedUserNew'.")
+    @strawberry_django.field(deprecation_reason="Deprecated in favor of 'authenticatedUserV2'.")
     def authenticated_user(self, info) -> Optional[User]:
-        return Query.authenticated_user_new(self, info)
+        return Query.authenticated_user_v2(self, info)
 
     @strawberry_django.field()
-    def authenticated_user_new(self, info) -> Optional[AuthenticatedUser]:
+    def authenticated_user_v2(self, info) -> Optional[AuthenticatedUser]:
         current_user = info.context.request.user
         if current_user.is_anonymous:
             return None
