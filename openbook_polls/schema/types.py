@@ -13,12 +13,9 @@ from typing import TYPE_CHECKING, Annotated, List, Optional, TypeVar
 @strawberry.input
 class CreateQuestionInput:
     question_text: str
-    #visibility: VisibilityType
-    #choices: List["CreateChoiceInput"]
 
 @strawberry.input
 class CreateChoiceInput:
-    #id:uuid.UUID
     question_id: uuid.UUID
     choice_text: str
     votes: int
@@ -27,7 +24,6 @@ class CreateChoiceInput:
 class UpdateQuestionInput:
     question_id: uuid.UUID
     question_text: Optional[str] = strawberry.UNSET
-    #visibility: Optional[VisibilityType] = strawberry.UNSET
 
 @strawberry_django.type(QuestionModel)
 class Question:
@@ -38,9 +34,6 @@ class Question:
     creator: strawberry.auto
     creator: User = strawberry_django.field(select_related="creator__profile")
     is_public: strawberry.auto
-    #choice_text: strawberry.auto
-    #choice: List[Optional[Choice]]
-    #votes: strawberry.auto
 
     @strawberry_django.field()
     def choices(self, info)-> List["Choice"]:
@@ -52,4 +45,3 @@ class Choice:
     id: strawberry.auto
     choice_text: strawberry.auto
     votes: strawberry.auto
-    #question: Question

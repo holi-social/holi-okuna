@@ -18,6 +18,7 @@ from openbook_common.helpers import to_input_dict
 class Mutation:
     @strawberry.mutation
     @sync_to_async
+    #mutation for creating a new question (so far no frontend design for this! The poll is created via Django UI!)
     def create_question(self, info: Info, input: CreateQuestionInput) -> Question:
           current_user = verify_authorized_user(info)
 
@@ -27,13 +28,3 @@ class Mutation:
 
           return current_user.create_question(**data)
     
-#     @strawberry.mutation
-#     @sync_to_async
-#     def update_space_question(self, info: Info, input: UpdateQuestionInput) -> Question:
-#         current_user = verify_authorized_user(info)
-
-#         serializer = EditQuestionSerializer(data=to_input_dict(input))
-#         serializer.is_valid(raise_exception=True)
-#         data = serializer.validated_data
-
-#         return current_user.update_question(**data)
