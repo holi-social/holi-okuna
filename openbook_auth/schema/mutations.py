@@ -1,3 +1,4 @@
+# ruff: noqa
 import uuid
 from copy import deepcopy
 
@@ -7,7 +8,7 @@ import structlog
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.core.cache import cache
-from django.utils.translation import gettext_lazy as _, get_language_from_request
+from django.utils.translation import get_language_from_request
 from graphql import GraphQLError
 from rest_framework.exceptions import ValidationError
 
@@ -18,16 +19,16 @@ from openbook.helpers import (
 )
 from openbook.utils import invalidate_discover_spaces_query_cache
 from openbook_auth.models import User as UserModel
-from openbook_auth.schema.types import UpdateAuthenticatedUserInput, User, RegisterDeviceInput
+from favorites.models import UserFavorite
+from openbook_auth.schema.types import UpdateAuthenticatedUserInput, User, AuthenticatedUser, RegisterDeviceInput
 from openbook_auth.serializers.authenticated_user_serializers import (
     UpdateAuthenticatedUserSerializer,
 )
-from openbook_auth.tasks import update_ory_user_identity, update_ory_user_names, create_matrix_user_account
+from openbook_auth.tasks import update_ory_user_names, generate_identity_when_needed
 from openbook_auth.utils import verify_authorized_user
 from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.helpers import is_parameter_null, to_input_dict
 from openbook_common.schema.types import Result
-from openbook_devices.enums import DeviceType
 from openbook_notifications.api import NotificationApi
 from openbook_notifications.enums import NotificationProvider
 from openbook_devices.serializers import RegisterDeviceSerializer
@@ -37,9 +38,14 @@ logger = structlog.get_logger(__name__)
 
 @strawberry.type
 class Mutation:
+    # TODO HOLI-8088 remove test once get_authenticated_user is removed
+    @strawberry.mutation(deprecation_reason="Deprecated in favor of 'updatedAuthenticatedUserNew'.")
+    def update_authenticated_user(self, info, input: UpdateAuthenticatedUserInput) -> User:
+        return Mutation().update_authenticated_user_v2(info, input)
+
     @strawberry.mutation
     @sync_to_async
-    def update_authenticated_user(self, info, input: UpdateAuthenticatedUserInput) -> User:
+    def update_authenticated_user_v2(self, info, input: UpdateAuthenticatedUserInput) -> AuthenticatedUser:
         current_user = verify_authorized_user(info)
 
         input_dict = to_input_dict(input)
@@ -70,55 +76,12 @@ class Mutation:
             skills=data.get("skills"),
             avatar=data.get("avatar"),
             remove_avatar=remove_avatar,
+            tracking_consent_analytics=data.get("tracking_consent_analytics"),
+            tracking_consent_personalization=data.get("tracking_consent_personalization"),
             save=True,
         )
 
-        # set identity when needed
-        if not current_user.identity and current_user.profile.full_name():
-            identity_wish = UserModel.sanitize_identity_input(current_user.profile.full_name())
-            current_identity_trial = identity_wish
-            counter = 0
-            taken_identities = []
-
-            if UserModel.is_identity_taken(current_identity_trial):
-                taken_identities = UserModel.get_taken_identities(identity_wish)
-                current_identity_trial, counter = UserModel.next_unique_identity(
-                    identity_wish, taken_identities, counter
-                )
-
-            while True:
-                # find an available matrix identity
-                while not create_matrix_user_account(current_identity_trial):
-                    current_identity_trial, counter = UserModel.next_unique_identity(
-                        identity_wish, taken_identities, counter
-                    )
-                # store the created matrix identity
-                try:
-                    current_user.identity = current_identity_trial
-                    current_user.save()
-                except ValidationError as error:
-                    # somehow we have a collision in Okuna, so we keep trying new identities
-                    if "A user with that identity already exists." in error.message_dict["identity"]:
-                        taken_identities = UserModel.get_taken_identities(identity_wish)
-                        current_identity_trial, counter = UserModel.next_unique_identity(
-                            identity_wish, taken_identities, counter
-                        )
-                        continue
-                    else:
-                        raise error
-                break
-
-            tries = 0
-            while tries < 3:
-                if update_ory_user_identity(current_user):
-                    break  # Ory update was successful, and there was no collision. We are done.
-                tries += 1
-            if tries >= 3:
-                logger.error(
-                    "MANUAL INTERVENTION NEEDED!!! Could not write identity to Ory for user with Ory id: %s to '%s'. Maybe Ory was not reachable? Use the patch_ory admin command to set it manually.",
-                    current_user.username,
-                    current_user.identity,
-                )
+        generate_identity_when_needed(current_user)
 
         if input.first_name or input.last_name or input.avatar or remove_avatar:
             update_ory_user_names(current_user.id)
@@ -218,9 +181,7 @@ class Mutation:
         # a device token can only be in Okuna if it has previously succeeded setting in Novu, so:
         # if a device token is in not in Okuna, it is also (most likely) not in Novu, and we have to update it in both
         if not current_user.has_device_with_token_and_type(token=token, device_type=device_type):
-            provider_id = (
-                NotificationProvider.APNS if device_type == DeviceType.IOS.value else NotificationProvider.FCM
-            )
+            provider_id = NotificationProvider.get_by_device_type(device_type)
             # Create subscriber if it doesn't exist already
             locale = get_language_from_request(info.context.request)
             NotificationApi.find_or_create_subscriber(user=current_user, locale=locale)
@@ -231,16 +192,18 @@ class Mutation:
 
         return Result(success=True)
 
-    @strawberry.mutation
+    @strawberry.mutation(deprecation_reason="Use 'favorite' mutation instead. Keep for version <=1.14.5")
     @sync_to_async
     def bookmark_insight(self, info, insight_id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
-        current_user.bookmark_insight(insight_id)
+        current_user.bookmark_insight(insight_id)  # To maintain compatibility with older versions
+        UserFavorite.favorite(user=current_user, favoritable_id=insight_id, favoritable_type="insight")
         return Result(success=True)
 
-    @strawberry.mutation
+    @strawberry.mutation(deprecation_reason="Use 'unfavorite' mutation instead. Keep for version <=1.14.5")
     @sync_to_async
     def remove_insight_bookmark(self, info, insight_id: uuid.UUID) -> Result:
         current_user = verify_authorized_user(info)
-        current_user.remove_insight_bookmark(insight_id)
+        current_user.remove_insight_bookmark(insight_id)  # To maintain compatibility with older versions
+        UserFavorite.unfavorite(user=current_user, favoritable_id=insight_id, favoritable_type="insight")
         return Result(success=True)

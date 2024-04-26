@@ -1,14 +1,14 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 
+from comments.models import Comment
 from openbook_common.models import ModelWithUUID
 from openbook_notifications.models.notification import Notification
-from openbook_posts.models import PostComment
 
 
 class PostCommentReplyNotification(ModelWithUUID):
     notification = GenericRelation(Notification, related_name="post_comment_reply_notifications")
-    post_comment = models.ForeignKey(PostComment, on_delete=models.CASCADE)
+    post_comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
 
     @classmethod
     def create_post_comment_reply_notification(cls, post_comment_id, owner_id):

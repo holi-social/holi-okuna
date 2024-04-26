@@ -1,9 +1,9 @@
 import uuid
 
-from django.core.exceptions import PermissionDenied
 from django.test import TransactionTestCase
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
+from comments.models import Comment
 from openbook_auth.models import EngagementLevelChoice, User
 from openbook_common.enums import VisibilityType
 from openbook_common.tests.assertions import TestAssertionsMixin
@@ -13,9 +13,8 @@ from openbook_common.tests.helpers import (
     make_fake_post_title,
     make_user,
 )
-from openbook_notifications.models import Notification
-from openbook_posts.models import PostComment
 from openbook_connections.tests.helpers import connect_to_user
+from openbook_notifications.models import Notification
 
 
 class UserModelTest(TestAssertionsMixin, TransactionTestCase):
@@ -95,9 +94,7 @@ class UserModelTest(TestAssertionsMixin, TransactionTestCase):
         # precondition
         self.assertTrue(membership_requestor.is_membership_requestor_of_community_with_name(space.name))
 
-        returned_space = space_creator.revoke_membership_request_to_community_for_username(
-            membership_requestor.username, space.name
-        )
+        space_creator.revoke_membership_request_to_community_for_username(membership_requestor.username, space.name)
 
         # postcondition
         self.assertFalse(membership_requestor.is_member_of_community_with_name(space.name))
@@ -118,8 +115,8 @@ class UserModelTest(TestAssertionsMixin, TransactionTestCase):
             text=post_text,
             title=post_title,
         )
-        comment = post.comment(text=f"comment text", commenter=comment_user)
-        comment2 = post.comment(text=f"comment text 2", commenter=comment_user)
+        comment = post.comment(text="comment text", commenter=comment_user)
+        comment2 = post.comment(text="comment text 2", commenter=comment_user)
         self.assertEqual(post.comments.count(), 2)
 
         comment_user.delete_comment_with_id(comment.id)
@@ -140,11 +137,11 @@ class UserModelTest(TestAssertionsMixin, TransactionTestCase):
             text=post_text,
             title=post_title,
         )
-        comment = post.comment(text=f"comment text", commenter=comment_user)
-        post.comment(text=f"comment text 2", commenter=comment_user)
+        comment = post.comment(text="comment text", commenter=comment_user)
+        post.comment(text="comment text 2", commenter=comment_user)
         self.assertEqual(post.comments.count(), 2)
 
-        with self.assertRaises(PostComment.DoesNotExist):
+        with self.assertRaises(Comment.DoesNotExist):
             comment_user.delete_comment_with_id(uuid.uuid4())
 
         self.assertEqual(post.comments.count(), 2)
@@ -163,8 +160,8 @@ class UserModelTest(TestAssertionsMixin, TransactionTestCase):
             text=post_text,
             title=post_title,
         )
-        comment = post.comment(text=f"comment text", commenter=comment_user)
-        post.comment(text=f"comment text 2", commenter=other_user)
+        comment = post.comment(text="comment text", commenter=comment_user)
+        post.comment(text="comment text 2", commenter=other_user)
         self.assertEqual(post.comments.count(), 2)
 
         with self.assertRaises(ValidationError):
@@ -259,6 +256,19 @@ class UserModelTest(TestAssertionsMixin, TransactionTestCase):
 
         user.update_engagement_level(EngagementLevelChoice.INTERESTED)
         self.assertEqual(user.profile.engagement_level, EngagementLevelChoice.INTERESTED)
+
+    def test_update_tracking_consent(self):
+        user = make_user()
+
+        user.update(tracking_consent_analytics=True)
+        self.assertEqual(user.tracking_consent_analytics, True)
+        user.update(tracking_consent_personalization=False)
+        self.assertEqual(user.tracking_consent_personalization, False)
+
+        user.update(tracking_consent_analytics=False)
+        self.assertEqual(user.tracking_consent_analytics, False)
+        user.update(tracking_consent_personalization=True)
+        self.assertEqual(user.tracking_consent_personalization, True)
 
     def test_bad_numbers_are_considered_invalid_identities(self):
         self.assertTrue(User.is_invalid_identity("fritz88"))

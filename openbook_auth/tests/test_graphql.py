@@ -1,13 +1,10 @@
+# ruff: noqa
+
 import json
 import logging
 from datetime import datetime, timedelta
 from unittest import mock
 from unittest.mock import call
-
-from django.core.files.uploadedfile import SimpleUploadedFile
-from django.http import HttpRequest
-from django.utils import timezone
-from structlog.testing import capture_logs
 
 import pytest
 from asgiref.sync import async_to_sync, sync_to_async
@@ -16,16 +13,18 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis import geos
 from django.core.management import call_command
+from django.http import HttpRequest
 from django.test import AsyncClient
 from django.urls import reverse
 from requests.models import Response
 from rest_framework import status
+from structlog.testing import capture_logs
 
 from openbook.graphql_schema import schema
 from openbook.tests.test_data import geolocation, geolocation_geometry, geolocation_id
 from openbook_auth.models import EngagementLevelChoice, User
 from openbook_auth.tests.helpers import (
-    api_update_authenticated_user_names,
+    api_update_authenticated_user_names_data,
     get_user_connection_status_to_space_data,
     get_user_with_id_raw,
     get_users_by_chat_identities,
@@ -53,9 +52,9 @@ from openbook_communities.models import SpaceUserConnectionType
 from openbook_communities.tests.helpers import (
     mutate_update_space_user_connection_data,
 )
+from openbook_connections.tests.helpers import connect_to_user
 from openbook_notifications.enums import NotificationProvider
 from openbook_posts.tests.helpers import get_post_with_id_data, get_post_with_id_raw
-from openbook_connections.tests.helpers import connect_to_user
 
 logger = logging.getLogger(__name__)
 
@@ -73,15 +72,15 @@ def django_db_setup(django_db_setup, django_db_blocker):
 
 @pytest.mark.django_db
 class TestUsers:
+    @pytest.fixture(autouse=True)
     def setup(self):
-        self.notifications_toggle = FeatureToggle.objects.create(
+        notifications_toggle = FeatureToggle.objects.create(
             name=FeatureToggleName.NOTIFICATIONS.value, status=FeatureToggleType.PRODUCTION
         )
+        yield
+        notifications_toggle.delete()
 
-    def teardown(self):
-        if self.notifications_toggle.id is not None:
-            self.notifications_toggle.delete()
-
+    # TODO HOLI-8088 remove test once get_authenticated_user is removed
     @pytest.mark.asyncio
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
@@ -118,6 +117,46 @@ class TestUsers:
             user=user, locale=mock_get_language_from_request.return_value
         )
 
+    @pytest.mark.asyncio
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
+    async def test_get_authenticated_user_v2_returns_self_reference(
+        self, mock_create_or_update_subscriber, mock_get_language_from_request, client
+    ):
+        user = await sync_to_async(make_user)(name="John", last_name="Holi New")
+        headers = await sync_to_async(make_authentication_headers_for_user)(user)
+        endpoint = reverse("graphql-endpoint")
+        graphql_query = """
+            query {
+                authenticatedUserV2 {
+                    id
+                    fullName
+                    engagementLevel
+                    trackingConsentAnalytics
+                    trackingConsentPersonalization
+                }
+            }
+        """
+        response = await client.post(
+            path=endpoint,
+            data=json.dumps({"query": graphql_query}),
+            content_type="application/json",
+            **headers,
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        authenticated_user = json.loads(response.content)["data"]["authenticatedUserV2"]
+        assert authenticated_user["id"] == str(user.uuid)
+        assert authenticated_user["fullName"] == user.profile.full_name()
+        assert authenticated_user["engagementLevel"] == user.profile.engagement_level
+        assert authenticated_user["trackingConsentAnalytics"] == user.tracking_consent_analytics
+        assert authenticated_user["trackingConsentPersonalization"] == user.tracking_consent_personalization
+
+        mock_create_or_update_subscriber.assert_called_once_with(
+            user=user, locale=mock_get_language_from_request.return_value
+        )
+
     def test_get_user_by_name_returns_only_matching_users_without_logged_in_user(self):
         user = make_user(name="Peter", last_name="Moser")
         user2 = make_user(name="Peter", last_name="Muster")
@@ -143,6 +182,25 @@ class TestUsers:
             results=executed.data["userByName"],
             expected_data=[{"firstName": u.name, "lastName": u.last_name} for u in expected_users],
         )
+
+    def test_get_user_by_id_returns_no_private_fields(self):
+        user = make_user(name="Peter", last_name="Moser")
+        user.update(tracking_consent_analytics=True, save=True)
+        user.update(tracking_consent_personalization=False, save=True)
+        executed = async_to_sync(schema.execute)(
+            """
+            query UserById($userId: UUID!) {
+                userById(id: $userId) {
+                    firstName
+                    lastName
+                    trackingConsentAnalytics
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": AnonymousUser}}),
+            variable_values={"userId": str(user.id)},
+        )
+        assert "Cannot query field 'trackingConsentAnalytics' on type 'User'" in str(executed.errors)
 
     def test_get_user_by_name_first_name_matches_first(self):
         make_user(name="Thomas", last_name="Petersen")
@@ -206,6 +264,7 @@ class TestUsers:
         assert response.errors is not None
         assert response.data is None
 
+    # TODO HOLI-8088 remove test once update_authenticated_user is removed
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
@@ -247,10 +306,6 @@ class TestUsers:
                     id
                     pronouns
                     location
-                    geolocation {
-                      latitude
-                      longitude
-                    }
                     geolocationId
                     engagementLevel
                 }
@@ -268,10 +323,14 @@ class TestUsers:
                 }
             },
         )
+
+        assert executed.errors is None
+
         mock_patch.assert_called_once_with(
             f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
             json=json_body,
+            timeout=30,
         )
         updated_user = executed.data["updateAuthenticatedUser"]
         graphql_pronouns = updated_user["pronouns"]
@@ -284,10 +343,103 @@ class TestUsers:
         assert persisted_profile.engagement_level == EngagementLevelChoice.INITIATOR
         assert location == persisted_profile.location
         assert geolocation_id == persisted_profile.geolocation_id
-        # TODO: Only for temporary backwards compatibility, adjust in HOLI-4353
-        assert updated_user["geolocation"] is None
         assert persisted_profile.geolocation is not None
         assert geos.GEOSGeometry(json.dumps(geolocation_geometry)) == persisted_profile.geolocation
+
+        mock_publish_user_name_updated_event.assert_called_once_with(user=user)
+        mock_create_or_update_subscriber.assert_called_once_with(
+            user=user, locale=mock_get_language_from_request.return_value
+        )
+
+    @mock.patch("openbook_auth.tasks.requests.patch")
+    @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
+    @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
+    @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
+    def test_can_update_authenticated_user_v2(
+        self,
+        mock_create_or_update_subscriber,
+        mock_get_language_from_request,
+        mock_publish_user_name_updated_event,
+        mock_patch,
+    ):
+        response = self.create_response(200)
+        mock_patch.return_value = response
+        user = make_user(name="Fritz", last_name="Meier", identity="fritz")
+        community = make_community()
+        community.add_member(user)
+        pronouns = "She/her"
+        location = "Bremerhaven"
+
+        assert User.objects.get(username=user.username).profile.pronouns != pronouns
+        first_name = "Peter"
+        last_name = "Shaw"
+        engagement_level = EngagementLevelChoice.INITIATOR
+        tracking_consent_analytics = True
+        tracking_consent_personalization = False
+
+        json_body = [
+            {"op": "add", "path": "/traits/given_name", "value": f"{first_name}"},
+            {"op": "add", "path": "/traits/family_name", "value": f"{last_name}"},
+            {"op": "add", "path": "/traits/name", "value": f"{first_name} {last_name}"},
+        ]
+
+        request = HttpRequest()
+        request.COOKIES = {}
+        request.user = user
+
+        executed = async_to_sync(schema.execute)(
+            """
+            mutation test($input: UpdateAuthenticatedUserInput!) {
+                updateAuthenticatedUserV2(input: $input) {
+                    id
+                    pronouns
+                    location
+                    geolocationId
+                    engagementLevel
+                    trackingConsentAnalytics
+                    trackingConsentPersonalization
+                }
+            }
+            """,
+            context_value=benedict({"request": request}),
+            variable_values={
+                "input": {
+                    "pronouns": pronouns,
+                    "firstName": first_name,
+                    "lastName": last_name,
+                    "location": location,
+                    "geolocation": geolocation,
+                    "engagementLevel": engagement_level,
+                    "trackingConsentAnalytics": tracking_consent_analytics,
+                    "trackingConsentPersonalization": tracking_consent_personalization,
+                }
+            },
+        )
+
+        assert executed.errors is None
+
+        mock_patch.assert_called_once_with(
+            f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
+            headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
+            json=json_body,
+            timeout=30,
+        )
+        updated_user = executed.data["updateAuthenticatedUserV2"]
+        graphql_pronouns = updated_user["pronouns"]
+
+        persisted_user = User.objects.get(username=user.username)
+
+        assert tracking_consent_analytics == persisted_user.tracking_consent_analytics
+        assert tracking_consent_personalization == persisted_user.tracking_consent_personalization
+        assert graphql_pronouns == persisted_user.profile.pronouns
+        assert graphql_pronouns == pronouns
+        assert last_name == persisted_user.profile.last_name
+        assert first_name == persisted_user.profile.name
+        assert persisted_user.profile.engagement_level == EngagementLevelChoice.INITIATOR
+        assert location == persisted_user.profile.location
+        assert geolocation_id == persisted_user.profile.geolocation_id
+        assert persisted_user.profile.geolocation is not None
+        assert geos.GEOSGeometry(json.dumps(geolocation_geometry)) == persisted_user.profile.geolocation
 
         mock_publish_user_name_updated_event.assert_called_once_with(user=user)
         mock_create_or_update_subscriber.assert_called_once_with(
@@ -306,28 +458,23 @@ class TestUsers:
         user = make_user()
         user.identity = None
 
-        result = api_update_authenticated_user_names(user, "Fritz", "Meier")
-
-        assert result.errors is None
+        result = api_update_authenticated_user_names_data(user, "Fritz", "Meier")
 
         ory_patch_mock.assert_any_call(
             f"{settings.ORY_BASE_URL}/admin/identities/{user.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
             json=[{"op": "add", "path": "/metadata_public/identity", "value": "fritz.meier"}],
+            timeout=30,
         )
 
-        result = result.data["updateAuthenticatedUser"]
         persisted_user = User.objects.get(username=user.username)
 
         assert "fritz.meier" == persisted_user.identity
         assert "fritz.meier" == result["identity"]
 
         # test it only registers identity once
-        result = api_update_authenticated_user_names(user, "Hans", "Meier")
+        result = api_update_authenticated_user_names_data(user, "Hans", "Meier")
 
-        assert result.errors is None
-
-        result = result.data["updateAuthenticatedUser"]
         persisted_user = User.objects.get(username=user.username)
         assert "fritz.meier" == persisted_user.identity
         assert "fritz.meier" == result["identity"]
@@ -349,10 +496,9 @@ class TestUsers:
         new_fritz = make_user(name="Fritz", last_name="Hansen", identity="something_to_prevent_collision")
         new_fritz.identity = None
 
-        result = api_update_authenticated_user_names(new_fritz, "Fritz", "Hansen")
+        result = api_update_authenticated_user_names_data(new_fritz, "Fritz", "Hansen")
 
-        assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.hansen1"
+        assert result["identity"] == "fritz.hansen1"
 
         expected_json_body = [{"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen1"}]
 
@@ -360,6 +506,7 @@ class TestUsers:
             f"{settings.ORY_BASE_URL}/admin/identities/{new_fritz.username}",
             headers={"Authorization": f"Bearer {settings.ORY_ACCESS_TOKEN}"},
             json=expected_json_body,
+            timeout=30,
         )
 
         mock_create_or_update_subscriber.assert_called_once_with(
@@ -387,10 +534,9 @@ class TestUsers:
         new_user = make_user()
         new_user.identity = None
 
-        result = api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
+        result = api_update_authenticated_user_names_data(new_user, "Fritz", "Hansen")
 
-        assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.hansen"
+        assert result["identity"] == "fritz.hansen"
 
         ory_patch_mock.assert_has_calls(
             [
@@ -400,6 +546,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen"},
                     ],
+                    timeout=30,
                 ),
                 call(
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
@@ -407,6 +554,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen"},
                     ],
+                    timeout=30,
                 ),
             ]
         )
@@ -436,10 +584,9 @@ class TestUsers:
         new_user = make_user()
         new_user.identity = None
 
-        result = api_update_authenticated_user_names(new_user, "Fritz", "")
+        result = api_update_authenticated_user_names_data(new_user, "Fritz", "")
 
-        assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz"
+        assert result["identity"] == "fritz"
 
         ory_patch_mock.assert_has_calls(
             [
@@ -449,6 +596,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz"},
                     ],
+                    timeout=30,
                 ),
                 call(
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
@@ -456,6 +604,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz"},
                     ],
+                    timeout=30,
                 ),
             ]
         )
@@ -484,10 +633,9 @@ class TestUsers:
         new_user = make_user()
         new_user.identity = None
 
-        result = api_update_authenticated_user_names(new_user, "Fritz", "Fratz")
+        result = api_update_authenticated_user_names_data(new_user, "Fritz", "Fratz")
 
-        assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.fratz1"
+        assert result["identity"] == "fritz.fratz1"
 
         mock_create_or_update_subscriber.assert_called_once_with(
             user=new_user, locale=mock_get_language_from_request.return_value
@@ -515,14 +663,11 @@ class TestUsers:
         new_user.identity = None
 
         with capture_logs() as cap_logs:
-            result = api_update_authenticated_user_names(new_user, "Fritz", "Hansen")
-            log_entry = next(
-                e for e in cap_logs if e.get("event") is not None and "MANUAL INTERVENTION NEEDED!" in e.get("event")
-            )
+            result = api_update_authenticated_user_names_data(new_user, "Fritz", "Hansen")
+            log_entry = next(e for e in cap_logs if "MANUAL INTERVENTION NEEDED!" in e["event"])
             assert log_entry["log_level"] == "error"
 
-        assert result.errors is None
-        assert result.data["updateAuthenticatedUser"]["identity"] == "fritz.hansen"
+        assert result["identity"] == "fritz.hansen"
 
         ory_patch_mock.assert_has_calls(
             [
@@ -532,6 +677,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen"},
                     ],
+                    timeout=30,
                 ),
                 call(
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
@@ -539,6 +685,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen"},
                     ],
+                    timeout=30,
                 ),
                 call(
                     f"{settings.ORY_BASE_URL}/admin/identities/{new_user.username}",
@@ -546,6 +693,7 @@ class TestUsers:
                     json=[
                         {"op": "add", "path": "/metadata_public/identity", "value": "fritz.hansen"},
                     ],
+                    timeout=30,
                 ),
             ]
         )

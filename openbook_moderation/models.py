@@ -1,24 +1,28 @@
+import typing
+import uuid
+
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from openbook_auth.models import User
-from django.db.models import Q
-from openbook_common.helpers import PQ
 from openbook_common.models import ModelWithUUID
 from openbook_common.utils.model_loaders import (
-    get_post_model,
-    get_post_comment_model,
+    get_comment_model,
     get_community_model,
-    get_user_model,
-    get_moderation_penalty_model,
     get_hashtag_model,
+    get_moderation_penalty_model,
+    get_post_model,
+    get_user_model,
 )
+
+if typing.TYPE_CHECKING:
+    from comments.models import Comment
 
 
 class ModerationCategory(ModelWithUUID):
@@ -153,15 +157,15 @@ class ModeratedObject(ModelWithUUID):
         )
 
     @classmethod
-    def get_or_create_moderated_object_for_post_comment(cls, post_comment, category_id):
+    def get_or_create_moderated_object_for_comment(cls, comment: "Comment", category_id: uuid.UUID):
         community_id = None
 
-        if post_comment.post.community:
-            community_id = post_comment.post.community.pk
+        if isinstance(comment.commentable, get_post_model()) and comment.commentable.community is not None:
+            community_id = comment.commentable.community.pk
 
         return cls._get_or_create_moderated_object(
             object_type=cls.OBJECT_TYPE_POST_COMMENT,
-            content_object=post_comment,
+            content_object=comment,
             category_id=category_id,
             community_id=community_id,
         )
@@ -238,7 +242,7 @@ class ModeratedObject(ModelWithUUID):
 
         Post = get_post_model()
         Hashtag = get_hashtag_model()
-        PostComment = get_post_comment_model()
+        Comment = get_comment_model()
         Community = get_community_model()
         User = get_user_model()
         ModerationPenalty = get_moderation_penalty_model()
@@ -252,7 +256,7 @@ class ModeratedObject(ModelWithUUID):
                 penalty_targets = [content_object]
             elif isinstance(content_object, Post):
                 penalty_targets = [content_object.creator]
-            elif isinstance(content_object, PostComment):
+            elif isinstance(content_object, Comment):
                 penalty_targets = [content_object.commenter]
             elif isinstance(content_object, Community):
                 penalty_targets = content_object.get_staff_members()
@@ -289,7 +293,7 @@ class ModeratedObject(ModelWithUUID):
 
             if (
                 isinstance(content_object, Post)
-                or isinstance(content_object, PostComment)
+                or isinstance(content_object, Comment)
                 or isinstance(content_object, Community)
             ) or (isinstance(content_object, User) and moderation_severity == ModerationCategory.SEVERITY_CRITICAL):
                 content_object.soft_delete()
@@ -314,13 +318,13 @@ class ModeratedObject(ModelWithUUID):
         content_object = self.content_object
 
         Post = get_post_model()
-        PostComment = get_post_comment_model()
+        Comment = get_comment_model()
         Community = get_community_model()
         moderation_severity = self.category.severity
 
         if (
             isinstance(content_object, Post)
-            or isinstance(content_object, PostComment)
+            or isinstance(content_object, Comment)
             or isinstance(content_object, Community)
         ) or (isinstance(content_object, User) and moderation_severity == ModerationCategory.SEVERITY_CRITICAL):
             content_object.unsoft_delete()
@@ -329,7 +333,7 @@ class ModeratedObject(ModelWithUUID):
 
     def approve_with_actor_with_id(self, actor_id):
         Post = get_post_model()
-        PostComment = get_post_comment_model()
+        Comment = get_comment_model()
         Community = get_community_model()
         User = get_user_model()
 
@@ -346,7 +350,7 @@ class ModeratedObject(ModelWithUUID):
 
         if (
             isinstance(content_object, Post)
-            or isinstance(content_object, PostComment)
+            or isinstance(content_object, Comment)
             or isinstance(content_object, Community)
         ):
             content_object.delete_notifications()
@@ -402,17 +406,18 @@ class ModerationReport(ModelWithUUID):
         return post_moderation_report
 
     @classmethod
-    def create_post_comment_moderation_report(cls, reporter_id, post_comment, category_id, description):
-        moderated_object = ModeratedObject.get_or_create_moderated_object_for_post_comment(
-            post_comment=post_comment, category_id=category_id
+    def create_comment_moderation_report(
+        cls, reporter_id: uuid.UUID, comment: "Comment", category_id: uuid.UUID, description: str
+    ) -> typing.Self:
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_comment(
+            comment=comment, category_id=category_id
         )
-        post_comment_moderation_report = cls.objects.create(
+        return cls.objects.create(
             reporter_id=reporter_id,
             category_id=category_id,
             description=description,
             moderated_object=moderated_object,
         )
-        return post_comment_moderation_report
 
     @classmethod
     def create_user_moderation_report(cls, reporter_id, user, category_id, description):

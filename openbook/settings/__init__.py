@@ -1,3 +1,4 @@
+# ruff: noqa
 """
 Django settings for openbook project.
 
@@ -15,13 +16,12 @@ import os
 import sys
 
 import structlog
-from dotenv import load_dotenv, find_dotenv
 from django.utils.translation import gettext_lazy as _
+from dotenv import find_dotenv, load_dotenv
+from novu.config import NovuConfig
 
 from openbook.settings import sentry_config
 from openbook_common.utils.environment import EnvironmentChecker
-
-from novu.config import NovuConfig
 
 # Python 3.10 moved collections.Callable to collections.abc.Callable. This is a patch to make old libs work (in particular nose)
 collections.Callable = collections.abc.Callable
@@ -112,6 +112,9 @@ INSTALLED_APPS = [
     "strawberry.django",
     "sortedm2m",
     "openbook_appointments",
+    "favorites",
+    "comments",
+    "feed_posts",
 ]
 
 MODELTRANSLATION_FALLBACK_LANGUAGES = ("en",)
@@ -492,6 +495,7 @@ TITLE_MAX_LENGTH = 128
 USERNAME_MAX_LENGTH = 36
 IDENTITY_MAX_LENGTH = 255
 IMAGE_SIZE_10_MB = 10485760
+IMAGE_SIZE_08_MB = 8388608
 FILE_UPLOAD_MAX_MEMORY_SIZE = IMAGE_SIZE_10_MB
 USER_MAX_FOLLOWS = int(os.environ.get("USER_MAX_FOLLOWS", "1500"))
 USER_MAX_CONNECTIONS = int(os.environ.get("USER_MAX_CONNECTIONS", "1500"))
@@ -617,6 +621,7 @@ IMAGEKIT_PREFIX = os.environ.get("IMAGEKIT_PREFIX", "")
 # Ory
 ORY_BASE_URL = os.environ.get("ORY_BASE_URL")
 ORY_ACCESS_TOKEN = os.environ.get("ORY_ACCESS_TOKEN")
+ORY_SESSION_EXPIRY_IN_H = int(os.environ.get("ORY_SESSION_EXPIRY_IN_H", "600"))
 
 # HOLI model config settings
 
@@ -680,7 +685,6 @@ CHAT_SERVER_NAME = os.environ.get("CHAT_SERVER_NAME")
 CHAT_SERVER_URL = os.environ.get("CHAT_SERVER_URL")
 CHAT_ADMIN_ACCESS_TOKEN = os.environ.get("CHAT_ADMIN_ACCESS_TOKEN")
 
-
 # Appointments
 APPOINTMENT_TITLE_MIN_LENGTH = 2
 APPOINTMENT_TITLE_MAX_LENGTH = 128
@@ -699,3 +703,12 @@ COMPLETE_ADDRESS_MAX_LENGTH = 255
 CITY_MAX_LENGTH = 100
 STATE_MAX_LENGTH = 50
 COUNTRY_MAX_LENGTH = 50
+
+# Feed Post
+FEED_POST_TITLE_MIN_LENGTH = 2
+FEED_POST_TITLE_MAX_LENGTH = 128
+FEED_POST_DESCRIPTION_MIN_LENGTH = 2
+FEED_POST_DESCRIPTION_MAX_LENGTH = 5000
+FEED_POST_SLUG_MAX_LENGTH = 300
+FEED_POST_IMAGE_MAX_SIZE = IMAGE_SIZE_08_MB
+FEED_POST_TOPICS_MAX_AMOUNT = 6

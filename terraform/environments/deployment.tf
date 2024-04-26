@@ -115,18 +115,18 @@ resource "google_cloud_run_v2_job" "okuna_migration" {
         }
         env {
           name  = "REDIS_HOST"
-          value = data.terraform_remote_state.holi_infra_state.outputs.redis_host_development
+          value = data.terraform_remote_state.holi_infra_state.outputs.redis_host_cmek_development
         }
         env {
           name  = "REDIS_PORT"
-          value = data.terraform_remote_state.holi_infra_state.outputs.redis_port_development
+          value = data.terraform_remote_state.holi_infra_state.outputs.redis_port_cmek_development
         }
         env {
           name = "REDIS_PASSWORD"
           value_source {
             secret_key_ref {
               version = "latest"
-              secret  = "REDIS_PASSWORD"
+              secret  = "REDIS_CMEK_PASSWORD"
             }
           }
         }
@@ -136,7 +136,11 @@ resource "google_cloud_run_v2_job" "okuna_migration" {
         }
         env {
           name  = "IMAGEKIT_URL"
-          value = local.environment_name == "https://ik.imagekit.io/holi"
+          value = "https://ik.imagekit.io/holi"
+        }
+        env {
+          name  = "IMAGEKIT_PREFIX"
+          value = local.environment_name == "production" ? "" : "_DEV_/"
         }
         env {
           name = "IMAGEKIT_PUBLIC_KEY"
@@ -261,18 +265,18 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "REDIS_HOST"
-          value = data.terraform_remote_state.holi_infra_state.outputs.redis_host_development
+          value = data.terraform_remote_state.holi_infra_state.outputs.redis_host_cmek_development
         }
         env {
           name  = "REDIS_PORT"
-          value = data.terraform_remote_state.holi_infra_state.outputs.redis_port_development
+          value = data.terraform_remote_state.holi_infra_state.outputs.redis_port_cmek_development
         }
         env {
           name = "REDIS_PASSWORD"
           value_from {
             secret_key_ref {
               key  = "latest"
-              name = "REDIS_PASSWORD"
+              name = "REDIS_CMEK_PASSWORD"
             }
           }
         }
@@ -282,7 +286,7 @@ resource "google_cloud_run_service" "okuna" {
         }
         env {
           name  = "IMAGEKIT_URL"
-          value = local.environment_name == "https://ik.imagekit.io/holi"
+          value = "https://ik.imagekit.io/holi"
         }
         env {
           name  = "IMAGEKIT_PREFIX"
@@ -354,6 +358,10 @@ resource "google_cloud_run_service" "okuna" {
           }
         }
         env {
+          name  = "ORY_SESSION_EXPIRY_IN_H"
+          value = local.environment_name == "production" ? "2160" : "600"
+        }
+        env {
           name  = "NOVU_API_URL"
           value = "https://eu.api.novu.co"
         }
@@ -395,7 +403,7 @@ resource "google_cloud_run_service" "okuna" {
           }
           requests = {
             cpu    = local.environment == "production" ? "2000m" : "2000m"
-            memory = local.environment == "production" ? "1024Mi" : "1024Mi"
+            memory = local.environment == "production" ? "2048Mi" : "2048Mi"
           }
         }
       }

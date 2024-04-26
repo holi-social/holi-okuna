@@ -7,6 +7,7 @@ import django.utils.timezone
 import imagekit.models.fields
 import openbook_posts.helpers
 import openbook_posts.validators
+from comments.validators import comment_text_hashtags_validator
 import uuid
 
 
@@ -106,7 +107,7 @@ class Migration(migrations.Migration):
                     "text",
                     models.TextField(
                         max_length=1500,
-                        validators=[openbook_posts.validators.post_comment_text_hashtags_validator],
+                        validators=[comment_text_hashtags_validator],
                         verbose_name="text",
                     ),
                 ),

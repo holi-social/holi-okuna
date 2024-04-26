@@ -51,11 +51,11 @@ def get_users_by_chat_identities(user: User, identities: List[str]):
     return response
 
 
-def api_update_authenticated_user_names(user, first_name, last_name):
+def api_update_authenticated_user_names_data(user, first_name, last_name):
     request = HttpRequest()
     request.COOKIES = {}
     request.user = user
-    return async_to_sync(schema.execute)(
+    response = async_to_sync(schema.execute)(
         """
         mutation test($input: UpdateAuthenticatedUserInput!) {
             updateAuthenticatedUser(input: $input) {
@@ -69,6 +69,8 @@ def api_update_authenticated_user_names(user, first_name, last_name):
         context_value=benedict({"request": request}),
         variable_values={"input": {"firstName": first_name, "lastName": last_name}},
     )
+    assert response.errors is None
+    return response.data["updateAuthenticatedUser"]
 
 
 def get_user_connection_status_to_space_data(user_to_get, space, calling_user=None):
@@ -98,15 +100,15 @@ def get_connected_users(calling_user=None):
 
 def get_connected_users_raw(calling_user=None):
     return async_to_sync(schema.execute)(
-        f"""
-        query {{
-            connectedUsers {{
+        """
+        query {
+            connectedUsers {
                 totalResults
-                data {{
+                data {
                     id
-                }}
-            }}
-        }}
+                }
+            }
+        }
         """,
         context_value=benedict({"request": {"user": calling_user or AnonymousUser}}),
     )

@@ -44,7 +44,6 @@ from openbook_communities.models import (
     Community,
     CommunityNotificationsSubscription,
     SpaceUserConnectionType,
-    CommunityInvite,
 )
 from openbook_communities.tests.helpers import (
     assert_onboarding,
@@ -97,8 +96,8 @@ class TestCommunities(TestCase):
         make_community_task(space3, skills=[skill3])
 
         filter_query = """
-            query($topicId: UUID, $geolocation: GeoJSON, $skillIds: [UUID], $memberId: UUID) {
-                spaces(topicId: $topicId, geolocation: $geolocation, skillIds: $skillIds, memberId: $memberId) {
+            query($topicId: UUID, $geolocation: GeoJSON, $skillIds: [UUID], $memberId: UUID, $topicSlug: String, $topicSlugs: [String]) {
+                spaces(topicId: $topicId, geolocation: $geolocation, skillIds: $skillIds, memberId: $memberId, topicSlug: $topicSlug, topicSlugs: $topicSlugs) {
                     totalResults
                     data {
                         id
@@ -120,6 +119,11 @@ class TestCommunities(TestCase):
 
         # Filter by common topic
         assert_filtered_spaces({"topicId": str(topic1.id)}, [space1, space2])
+        assert_filtered_spaces({"topicSlug": topic1.slug}, [space1, space2])
+        assert_filtered_spaces({"topicSlugs": [topic1.slug]}, [space1, space2])
+        # topicSlug and topicSlugs can be combined
+        assert_filtered_spaces({"topicSlugs": [topic1.slug], "topicSlug": topic2.slug}, [space1, space2, space3])
+        assert_filtered_spaces({"topicSlugs": [topic1.slug, topic2.slug]}, [space1, space2, space3])
 
         # Filter by unique topic
         assert_filtered_spaces({"topicId": str(topic2.id)}, [space1, space3])
@@ -934,7 +938,6 @@ class TestCommunities(TestCase):
         invitee_email = "test@test.com"
         invitee = make_user(email=invitee_email)
         member = make_user()
-        non_member = make_user()
         space_creator = make_user()
         space = make_community(creator=space_creator)
         space.add_member(member)
@@ -1997,8 +2000,8 @@ class TestCommunities(TestCase):
         data = get_space_by_id_with_posts(user_member, space.id, VisibilityFilter.ALL)
         posts_data = data["posts"]["data"]
         assert data["id"] == str(space.id)
-        assert data["hasPublicPosts"] == True
-        assert data["hasPrivatePosts"] == True
+        assert data["hasPublicPosts"] is True
+        assert data["hasPrivatePosts"] is True
         assert data["posts"]["totalResults"] == len(public_posts) + len(private_posts)
         assert len(private_post_ids(posts_data)) == len(private_ids)
         assert len(public_post_ids(posts_data)) == len(public_ids)
@@ -2871,8 +2874,8 @@ class TestCommunities(TestCase):
 
         updated_space = response.data["updateSpace"]
         assert str(community.id) == updated_space["id"]
-        assert "" == updated_space["cover"]
-        assert "" == updated_space["avatar"]
+        assert updated_space["cover"] is None
+        assert updated_space["avatar"] is None
         assert updated_space["location"] is None
         assert updated_space["coverBlurhash"] is None
         assert updated_space["avatarBlurhash"] is None
@@ -3076,7 +3079,7 @@ class TestCommunities(TestCase):
             {
                 "field": "user_id",
                 "value": invalid_uuid,
-                "expected_error": "User matching query does not exist.",
+                "expected_error": "Object not found",
             },
             {
                 "field": "user_id",

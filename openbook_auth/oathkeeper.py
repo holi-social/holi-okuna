@@ -8,10 +8,14 @@ from rest_framework import exceptions
 from django.utils.translation import gettext_lazy as _
 import logging
 
+from openbook_auth.tasks import extend_ory_session
+
 CACHE_TIMEOUT = 300
 
 HEADER_USER_ID = "X-Holi-User-ID"
 HEADER_USER_EMAIL = "X-Holi-User-Email"
+HEADER_SESSION = "X-Holi-Session"
+HEADER_SESSION_EXPIRY = "X-Holi-Session-Expiry"
 
 logger = logging.getLogger("openbook_auth/oathkeeper")
 
@@ -21,6 +25,9 @@ class HoliOathkeeperAuthentication(authentication.BaseAuthentication):
         # in "production" request headers show up in `request.headers`, in unit testing they show up in `request.META`
         user_id = request.headers.get(HEADER_USER_ID, request.META.get(HEADER_USER_ID))
         user_email = request.headers.get(HEADER_USER_EMAIL, request.META.get(HEADER_USER_EMAIL))
+        user_session = request.headers.get(HEADER_SESSION, request.META.get(HEADER_SESSION))
+        user_session_expiry = request.headers.get(HEADER_SESSION_EXPIRY, request.META.get(HEADER_SESSION_EXPIRY))
+        extend_ory_session(user_session, user_session_expiry)
 
         if user_id == "anonymous":
             return AnonymousUser(), None

@@ -7,6 +7,7 @@ cache:
     files:
       - requirements.txt # hashes this file so cache content depends on files content
   paths:
+    - /root/.cache/pip
     - .cache/pip
     - venv/
 
@@ -23,7 +24,7 @@ default:
     - env
   interruptible: true
   tags:
-    - holi-small # build on smaller machine
+    - 1cpu-4gb # build on smaller machine
 
 setup:
   image: "gitlab.holi.team:5050/app/holi-docker/holi-okuna-builder"
@@ -34,7 +35,7 @@ setup:
     #- pip install --upgrade pip
     - pip install -r requirements.txt --exists-action s
 
-test:
+unit-test:
   image: "gitlab.holi.team:5050/app/holi-docker/holi-okuna-builder"
   services:
     - name: postgis/postgis:12-3.3-alpine
@@ -49,14 +50,37 @@ test:
   script:
     - /etc/init.d/redis-server start
     - source venv/bin/activate
-    - black --check .
     - python -m pytest --cov
   tags:
-    - holi-big # more cpu, quicker testing
+    - 4cpu-4gb # more cpu, quicker testing
 
-# separate stage?: code climate test-reporter
-# separate stage?: bandit -r .
-# separate stage?: safety check
+lint:
+  image: "gitlab.holi.team:5050/app/holi-docker/holi-okuna-builder"
+  stage: test
+  variables:
+    GIT_STRATEGY: clone
+    GIT_CHECKOUT: "false"
+  before_script:
+    - git fetch --all
+    - git checkout $CI_COMMIT_REF_NAME
+    - export COMPARISON_SHA=$(git merge-base $CI_COMMIT_REF_NAME origin/$CI_DEFAULT_BRANCH)
+    - source venv/bin/activate
+  script:
+    # exit early if there are no files to check
+    - '[[ -z "$(git diff --name-only --diff-filter=d $COMPARISON_SHA..$CI_COMMIT_SHA -- "*.py")" ]] && exit 0'
+    # runs ruff (linter and formatter) on all changed files, excluding deleted files.
+    # this will also force changes on offending unchanged lines in changed files, but we accept that in the spirit of
+    # leaving every file better than we found it.
+    - 'git diff --name-only -z --diff-filter=d $COMPARISON_SHA..$CI_COMMIT_SHA -- "*.py" | xargs -0 ruff check --force-exclude --output-format=gitlab > .gl-lint-report.json'
+    - 'git diff --name-only -z --diff-filter=d $COMPARISON_SHA..$CI_COMMIT_SHA -- "*.py" | xargs -0 ruff format --force-exclude --diff'
+  artifacts:
+    reports:
+      codequality:
+        - .gl-lint-report.json
+  except:
+    - main
+    - production
+    - release/*
 
 build_docker:
   image: docker:20.10
@@ -74,6 +98,8 @@ build_docker:
     - docker push $GCR_IMAGE:$CI_COMMIT_SHA # this is the tag that is used for deployment
     - docker push $GCR_IMAGE:$CI_COMMIT_REF_SLUG # just for easily knowing which is the last image for a branch
     - docker push $GCR_IMAGE:latest # for caching the build
+  tags:
+    - 4cpu-4gb # more cpu, quicker image build
 
 .deploy:
   stage: "deploy"

@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime, timedelta
-from typing import Generic, List, Optional, TypeVar
+from typing import List, Optional
+
 from django.utils.translation import get_language_from_request
 
 import strawberry
@@ -9,13 +10,11 @@ import structlog
 from django.db.models import F, Q, Value
 from django.db.models.functions import Concat
 from django.db.models.lookups import IContains
-from graphql import GraphQLError
 
 from openbook_auth.models import User as UserModel, UserBlock as UserBlockModel
-from openbook_auth.schema.types import User
+from openbook_auth.schema.types import User, AuthenticatedUser
 from openbook_auth.utils import verify_authorized_user, check_max_limit
 from openbook_common.validators import string_not_empty
-from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.schema.types import Paged
 from openbook_insights.schema.types import Insight
 from openbook_notifications.api import NotificationApi
@@ -25,8 +24,13 @@ logger = structlog.get_logger(__name__)
 
 @strawberry.type
 class Query:
-    @strawberry_django.field()
+    # TODO HOLI-8088 remove test once get_authenticated_user is removed
+    @strawberry_django.field(deprecation_reason="Deprecated in favor of 'authenticatedUserV2'.")
     def authenticated_user(self, info) -> Optional[User]:
+        return Query.authenticated_user_v2(self, info)
+
+    @strawberry_django.field()
+    def authenticated_user_v2(self, info) -> Optional[AuthenticatedUser]:
         current_user = info.context.request.user
         if current_user.is_anonymous:
             return None
@@ -40,12 +44,9 @@ class Query:
 
     @strawberry_django.field()
     def user_by_id(self, info, id: uuid.UUID) -> Optional[User]:
-        try:
-            current_user = info.context.request.user
-            user = UserModel.objects.filter(UserModel.is_visible_ignore_blocked_query()).get(username=id)
-            return UserBlockModel.filter_single_object(current_user, user, lambda u: u.id)
-        except UserModel.DoesNotExist:
-            raise GraphQLError("User not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
+        current_user = info.context.request.user
+        user = UserModel.objects.filter(UserModel.is_visible_ignore_blocked_query()).get(username=id)
+        return UserBlockModel.filter_single_object(current_user, user, lambda u: u.id)
 
     @strawberry_django.field()
     def users_by_chat_identities(self, info, identities: List[str], offset: int = 0, limit: int = 10) -> Paged[User]:
@@ -124,7 +125,9 @@ class Query:
 
         return Paged.of(current_user.connected_users(), offset, limit)
 
-    @strawberry_django.field()
+    @strawberry_django.field(
+        deprecation_reason="This query is deprecated. Please switch to using the 'favorites' query instead."
+    )
     def favorite_insights(self, info, offset: int = 0, limit: int = 10) -> Paged[Insight]:
         current_user = verify_authorized_user(info)
 

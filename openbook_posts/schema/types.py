@@ -7,15 +7,15 @@ import strawberry_django
 from django.db.models import Q
 from strawberry.file_uploads import Upload
 
+from comments.models import Comment as CommentModel
+from comments.models import CommentReaction as CommentReactionModel
 from openbook_auth.models import User as UserModel
 from openbook_auth.models import UserBlock as UserBlockModel
 from openbook_auth.schema.types import User
 from openbook_common.models import LinkPreview as LinkPreviewModel
-from openbook_common.schema.types import Paged
+from openbook_common.schema.types import Paged, ReactionCounts
 from openbook_communities.models import VisibilityType
 from openbook_posts.models import Post as PostModel
-from openbook_posts.models import PostComment as PostCommentModel
-from openbook_posts.models import PostCommentReaction as PostCommentReactionModel
 from openbook_posts.models import PostImage as PostImageModel
 from openbook_posts.models import PostReaction as PostReactionModel
 from openbook_terms.schema.types import InspirationPostCategory
@@ -58,11 +58,6 @@ class UpdatePostInput:
     visibility: Optional[VisibilityType] = strawberry.UNSET
 
 
-@strawberry.type
-class ReactionCounts:
-    HEART: int = 0
-
-
 @strawberry_django.type(LinkPreviewModel)
 class LinkPreview:
     id: strawberry.auto
@@ -101,9 +96,9 @@ class Post:
     mentions: List[Optional[User]]
     links: List[Optional[LinkPreview]]
     is_public: strawberry.auto
-    space: Optional[
-        Annotated["Space", strawberry.lazy("openbook_communities.schema.types")]
-    ] = strawberry_django.field(field_name="community")
+    space: Optional[Annotated["Space", strawberry.lazy("openbook_communities.schema.types")]] = (
+        strawberry_django.field(field_name="community")
+    )
     creator: User = strawberry_django.field(select_related="creator__profile")
     inspiration_post_category: Optional[InspirationPostCategory]
 
@@ -117,8 +112,8 @@ class Post:
     def comments(self, info) -> List[Optional["PostComment"]]:
         current_user = info.context.request.user
         all_comments = (
-            PostCommentModel.objects.filter(post=self)
-            .filter(PostCommentModel.is_visible_query(current_user))
+            CommentModel.objects.filter(post=self)
+            .filter(CommentModel.is_visible_query(current_user))
             .order_by("created")
         )
         blocked_users = UserBlockModel.users_blocking_or_blocked(current_user)
@@ -130,9 +125,7 @@ class Post:
     def number_of_comments(self, info) -> int:
         current_user = info.context.request.user
         # count does not respect userblocks due to caching, this is intended for now
-        return (
-            PostCommentModel.objects.filter(post=self).filter(PostCommentModel.is_visible_query(current_user)).count()
-        )
+        return CommentModel.objects.filter(post=self).filter(CommentModel.is_visible_query(current_user)).count()
 
     @strawberry_django.field(description="A list of all users involved. Author of the post plus all commenters")
     def involved_users(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
@@ -142,7 +135,7 @@ class Post:
             .filter(UserModel.is_visible_ignore_blocked_query())
             .filter(
                 (Q(posts=self) & PostModel.is_visible_query(current_user, "posts"))
-                | (Q(posts_comments__post=self) & PostCommentModel.is_visible_query(current_user, "posts_comments"))
+                | (Q(comments__post=self) & CommentModel.is_visible_query(current_user, "comments"))
             )
             .distinct()
         )
@@ -154,7 +147,7 @@ class Post:
         commenters = (
             UserModel.objects.select_related("profile")
             .filter(UserModel.is_visible_ignore_blocked_query())
-            .filter(Q(posts_comments__post=self) & PostCommentModel.is_visible_query(current_user, "posts_comments"))
+            .filter(Q(comments__post=self) & CommentModel.is_visible_query(current_user, "comments"))
             .distinct()
         )
         return UserBlockModel.paged(current_user, lambda user: user.id, commenters, offset, limit)
@@ -181,7 +174,7 @@ class Post:
         return ReactionCounts()
 
 
-@strawberry_django.type(PostCommentModel)
+@strawberry_django.type(CommentModel)
 class PostComment:
     id: strawberry.auto
     text: strawberry.auto
@@ -189,26 +182,21 @@ class PostComment:
     modified: strawberry.auto
     mentions: List[Optional[User]]
     links: List[Optional[LinkPreview]]
-    post: Post
+    post: Post = strawberry_django.field(field_name="commentable")
     creator: User = strawberry_django.field(field_name="commenter", select_related="commenter__profile")
 
     @strawberry_django.field()
     def reactions(self, info) -> ReactionCounts:
-        current_user = info.context.request.user
-        if current_user.is_anonymous:
-            reactions = PostCommentModel.get_reaction_counts_for_post_comment_with_id(self.pk)
-        else:
-            reactions = current_user.get_reaction_counts_for_post_comment_with_id(self.pk)
-        return ReactionCounts(**reactions)
+        return ReactionCounts(**self.reaction_counts_by_type())
 
     @strawberry_django.field(description="Only present, when the current user reacted to this post comment")
     def my_reaction(self, info) -> ReactionCounts:
         current_user = info.context.request.user
         if not current_user.is_anonymous:
             try:
-                reaction = PostCommentReactionModel.objects.filter(post_comment=self, reactor=current_user).first()
+                reaction = CommentReactionModel.objects.filter(post_comment=self, reactor=current_user).first()
                 if reaction:
                     return ReactionCounts(**{reaction.reaction_type: 1})
-            except PostCommentReactionModel.DoesNotExist:
+            except CommentReactionModel.DoesNotExist:
                 return ReactionCounts()
         return ReactionCounts()

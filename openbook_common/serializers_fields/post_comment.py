@@ -1,7 +1,6 @@
 from rest_framework.fields import Field
 
-from openbook_common.utils.model_loaders import get_post_comment_model
-from openbook_posts.models import PostCommentReaction
+from comments.models import CommentReaction
 
 
 class PostCommenterField(Field):
@@ -14,7 +13,7 @@ class PostCommenterField(Field):
 
     def to_representation(self, post_comment):
         request = self.context.get("request")
-        post = post_comment.post
+        post = post_comment.commentable
         post_commenter = post_comment.commenter
         post_community = post.community
 
@@ -56,13 +55,8 @@ class PostCommentReactionsEmojiCountField(Field):
 
     def to_representation(self, post_comment):
         request = self.context.get("request")
-        request_user = request.user
 
-        if request_user.is_anonymous:
-            PostComment = get_post_comment_model()
-            reaction_emoji_count = PostComment.get_reaction_counts_for_post_comment_with_id(post_comment.pk)
-        else:
-            reaction_emoji_count = request_user.get_reaction_counts_for_post_comment(post_comment=post_comment)
+        reaction_emoji_count = post_comment.reaction_counts_by_type()
 
         post_comment_reactions_serializer = self.emoji_count_serializer(
             reaction_emoji_count,
@@ -92,7 +86,7 @@ class PostCommentReactionField(Field):
                 serialized_commentReaction = self.comment_reaction_serializer(
                     comment_reaction, context={"request": request}
                 ).data
-            except PostCommentReaction.DoesNotExist:
+            except CommentReaction.DoesNotExist:
                 pass
 
         return serialized_commentReaction

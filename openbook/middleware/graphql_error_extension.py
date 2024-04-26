@@ -2,7 +2,7 @@ import json
 
 from graphql import GraphQLError
 from rest_framework.exceptions import ValidationError
-from django.core.exceptions import ValidationError as CoreValidationError
+from django.core.exceptions import ValidationError as CoreValidationError, ObjectDoesNotExist, PermissionDenied
 from djangorestframework_camel_case.util import camelize
 from strawberry.utils.await_maybe import await_maybe
 
@@ -33,3 +33,7 @@ class GraphQLErrorExtension(Extension):
                     "errors": json.dumps(camelize(validationError.get_full_details())),
                 },
             )
+        except ObjectDoesNotExist:
+            raise GraphQLError("Object not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
+        except PermissionDenied:
+            raise GraphQLError("Forbidden", extensions={"code": GraphQLErrorCodes.FORBIDDEN})

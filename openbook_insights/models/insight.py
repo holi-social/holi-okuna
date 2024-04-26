@@ -45,7 +45,7 @@ class Insight(ModelWithUUID):
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     header_image_blurhash = models.CharField(max_length=50, blank=True, null=True)
-    posts = models.ManyToManyField(Post, related_name="insights")
+    posts = models.ManyToManyField(Post, related_name="insights", blank=True)
     polls = models.ManyToManyField(Question, related_name="insights", null=True, blank=True)
     topic = models.ForeignKey(
         Topic,

@@ -55,16 +55,16 @@ def get_post_user_mention_model():
     return apps.get_model("openbook_posts.PostUserMention")
 
 
-def get_post_comment_user_mention_model():
-    return apps.get_model("openbook_posts.PostCommentUserMention")
+def get_comment_user_mention_model():
+    return apps.get_model("comments.CommentUserMention")
 
 
 def get_post_mute_model():
     return apps.get_model("openbook_posts.PostMute")
 
 
-def get_post_comment_mute_model():
-    return apps.get_model("openbook_posts.PostCommentMute")
+def get_comment_mute_model():
+    return apps.get_model("comments.CommentMute")
 
 
 def get_user_block_model():
@@ -95,16 +95,16 @@ def get_community_log_model():
     return apps.get_model("openbook_communities.CommunityLog")
 
 
-def get_post_comment_model():
-    return apps.get_model("openbook_posts.PostComment")
+def get_comment_model():
+    return apps.get_model("comments.Comment")
 
 
 def get_post_reaction_model():
     return apps.get_model("openbook_posts.PostReaction")
 
 
-def get_post_comment_reaction_model():
-    return apps.get_model("openbook_posts.PostCommentReaction")
+def get_comment_reaction_model():
+    return apps.get_model("comments.CommentReaction")
 
 
 def get_emoji_model():
@@ -281,3 +281,27 @@ def get_onboarding_step_model():
 
 def get_insight_model():
     return apps.get_model("openbook_insights.Insight")
+
+
+def get_quote_model():
+    return apps.get_model("openbook_insights.Quote")
+
+
+def get_quote_reaction_model():
+    return apps.get_model("openbook_insights.QuoteReaction")
+
+
+def get_recommendation_model():
+    return apps.get_model("openbook_insights.Recommendation")
+
+
+def get_recommendation_reaction_model():
+    return apps.get_model("openbook_insights.RecommendationReaction")
+
+
+def get_initiative_model():
+    return apps.get_model("openbook_insights.Initiative")
+
+
+def get_initiative_reaction_model():
+    return apps.get_model("openbook_insights.InitiativeReaction")

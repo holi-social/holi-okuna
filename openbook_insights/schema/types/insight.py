@@ -1,18 +1,24 @@
 import logging
-from typing import Annotated, List, Optional
+import uuid
+from typing import List, Optional
 
 import strawberry
 import strawberry_django
 from django.db.models import Q
 
-from openbook_auth.models import User as UserModel, UserBlock
+from comments.models import Comment as CommentModel
+from favorites.models import UserFavorite
+from openbook_auth.models import User as UserModel
+from openbook_auth.models import UserBlock
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import Paged
 from openbook_insights.models import Insight as InsightModel
+from openbook_insights.schema.types.discussion import Discussion
+from openbook_insights.schema.types.initiative import Initiative
 from openbook_insights.schema.types.quote import Quote
 from openbook_insights.schema.types.recommendation import Recommendation
 from openbook_posts.models import Post as PostModel
-from openbook_posts.models import PostComment as PostCommentModel
+from openbook_posts.schema.types import Post
 from openbook_terms.schema.types import Topic
 
 logger = logging.getLogger(__name__)
@@ -30,7 +36,7 @@ class Insight:
     topic: Optional[Topic]
 
     @strawberry_django.field()
-    def posts(self, info) -> List[Annotated["Post", strawberry.lazy("openbook_posts.schema.types")]]:
+    def posts(self, info) -> List[Post]:
         current_user = info.context.request.user
         return UserBlock.filter_blocked_objects(
             current_user,
@@ -53,10 +59,7 @@ class Insight:
             Q(
                 Q(curated_insights=self)
                 | (Q(posts__insights=self) & PostModel.is_visible_query(current_user, "posts"))
-                | (
-                    Q(posts_comments__post__insights=self)
-                    & PostCommentModel.is_visible_query(current_user, "posts_comments")
-                )
+                | (Q(comments__post__insights=self) & CommentModel.is_visible_query(current_user, "comments"))
             ),
             is_deleted=False,
         ).distinct()
@@ -71,10 +74,40 @@ class Insight:
     def quotes(self) -> list[Quote]:
         return self.quotes.all()
 
-    @strawberry_django.field()
+    @strawberry_django.field(
+        deprecation_reason="This type has been renamed. Keep for backwards compatibility. Versions 1.14.XX"
+    )
     def is_bookmarked(self, info) -> bool:
         current_user = info.context.request.user
         if current_user.is_anonymous:
             return False
 
-        return current_user.profile.favorite_insights.filter(id=self.id).exists()
+        return UserFavorite.objects.filter(user=current_user, favoritable_id=self.id).exists()
+
+    @strawberry_django.field()
+    def is_favorite(self, info) -> bool:
+        current_user = info.context.request.user
+        if current_user.is_anonymous:
+            return False
+
+        return UserFavorite.objects.filter(user=current_user, favoritable_id=self.id).exists()
+
+    @strawberry_django.field()
+    def initiatives(self) -> list[Initiative]:
+        return self.initiatives.all()
+
+    @strawberry_django.field()
+    def discussions(self) -> list[Discussion]:
+        return self.discussions.all()
+
+    @strawberry_django.field()
+    def quote(self, id: uuid.UUID) -> Quote:
+        return self.quotes.get(id=id)
+
+    @strawberry_django.field()
+    def recommendation(self, id: uuid.UUID) -> Recommendation:
+        return self.recommendations.get(id=id)
+
+    @strawberry_django.field()
+    def initiative(self, id: uuid.UUID) -> Initiative:
+        return self.initiatives.get(id=id)

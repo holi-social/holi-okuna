@@ -529,6 +529,19 @@ The local development server runs a separate process for the auto-reloader. You 
 python manage.py runserver --noreload
 ````
 
+## Troubleshooting
+
+Q: I encounter the error message `...but is an incompatible architecture (have 'arm64', need 'x86_64')` when
+starting `okuna-server` on an M1 Mac. How can I fix this?
+
+A: This error typically occurs when the architecture of the required package files does not match the architecture of
+your M1 Mac. You can resolve this issue by running the following command:
+
+````bash
+ARCHFLAGS="-arch arm64" pip install -r requirements.txt --compile --no-cache-dir
+````
+
+Once the installation is complete, try running `okuna-server` again.
 
 #### Happy coding 🎉!
 

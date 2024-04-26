@@ -10,39 +10,39 @@ from openbook_common.enums import FeatureToggleName, FeatureToggleType
 from openbook_common.models import FeatureToggle as FeatureToggleModel
 from openbook_common.tests.helpers import (
     make_community,
-    make_user,
-    make_post_comment,
     make_community_post,
+    make_post_comment,
+    make_user,
 )
 from openbook_common.utils.model_loaders import get_community_model
 from openbook_notifications.notifications import (
     Notification,
-    SpaceMembershipRequestNotification,
-    Workflow,
-    SpaceMembershipRequestApprovalUserNotification,
-    SpaceMembershipRequestApprovalAdminNotification,
-    SpaceMembershipRequestDeclineUserNotification,
-    SpaceMembershipRequestDeclineAdminNotification,
-    SpaceMembershipInviteNotification,
-    SpaceMembershipInviteApprovalUserNotification,
-    SpaceMembershipInviteApprovalAdminNotification,
-    SpaceMembershipInviteDeclineUserNotification,
-    PostCommentMentionNotification,
-    SpaceMembershipInviteDeclineAdminNotification,
     PostCommentAuthorNotification,
+    PostCommentMentionNotification,
+    SpaceMembershipInviteApprovalAdminNotification,
+    SpaceMembershipInviteApprovalUserNotification,
+    SpaceMembershipInviteDeclineAdminNotification,
+    SpaceMembershipInviteDeclineUserNotification,
+    SpaceMembershipInviteNotification,
+    SpaceMembershipRequestApprovalAdminNotification,
+    SpaceMembershipRequestApprovalUserNotification,
+    SpaceMembershipRequestDeclineAdminNotification,
+    SpaceMembershipRequestDeclineUserNotification,
+    SpaceMembershipRequestNotification,
     SpaceNewPostNotification,
+    Workflow,
 )
 from openbook_notifications.payloads import (
-    SpaceMembershipRequestPayload,
-    SpaceMembershipRequestApprovalUserPayload,
-    SpaceMembershipRequestApprovalAdminPayload,
-    SpaceMembershipRequestDeclinePayload,
     NotificationType,
-    SpaceMembershipInvitePayload,
+    PostCommentAuthorPayload,
+    PostCommentMentionPayload,
     SpaceMembershipInviteApprovalPayload,
     SpaceMembershipInviteDeclinePayload,
-    PostCommentMentionPayload,
-    PostCommentAuthorPayload,
+    SpaceMembershipInvitePayload,
+    SpaceMembershipRequestApprovalAdminPayload,
+    SpaceMembershipRequestApprovalUserPayload,
+    SpaceMembershipRequestDeclinePayload,
+    SpaceMembershipRequestPayload,
     SpaceNewPostPayload,
 )
 
@@ -89,7 +89,7 @@ class NotificationTestCase(TestCase):
 
         try:
             self.notification_instance.send()
-        except:
+        except:  # noqa: E722
             pytest.fail("Notification sending has not failed gracefully")
 
         assert mock_event_api_trigger.call_count == 1
@@ -335,7 +335,7 @@ class PostCommentAuthorNotificationTestCase(TestCase):
             notification_type=NotificationType.POST_COMMENT_AUTHOR.value,
         )
         cls.notification_instance = PostCommentAuthorNotification(
-            author=str(post_comment.post.creator.username),
+            author=str(post_comment.commentable.creator.username),
             payload=payload,
             transaction_id=transaction_id,
         )

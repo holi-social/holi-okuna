@@ -1,5 +1,5 @@
 import json
-from typing import Generic, List, Optional, TypeVar, Callable
+from typing import Generic, List, Optional, TypeVar
 
 import strawberry
 import strawberry_django
@@ -107,3 +107,8 @@ class Paged(Generic[T]):
             data = []
         self.data = data
         self.total_results = max(total_results, len(data))
+
+
+@strawberry.type
+class ReactionCounts:
+    HEART: int = 0

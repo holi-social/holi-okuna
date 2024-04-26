@@ -1,6 +1,11 @@
 from django.contrib import admin
 
-from openbook_insights.models import Insight, Recommendation, Quote, Initiative
+from openbook_insights.models import Discussion, Initiative, Insight, Quote, Recommendation
+
+
+class DiscussionInline(admin.TabularInline):
+    model = Discussion
+    extra = 0
 
 
 class InsightRecommendationInline(admin.TabularInline):
@@ -15,7 +20,7 @@ class InsightQuoteInline(admin.StackedInline):
     readonly_fields = ["id"]
     exclude = ["link_preview"]
     extra = 0
-    min_num = 2
+    min_num = 0
     max_num = 4
 
 
@@ -33,11 +38,8 @@ class InsightAdmin(admin.ModelAdmin):
     date_hierarchy = "date_published"
     filter_horizontal = ("posts", "polls")
     list_display = ("title", "description_preview", "creator", "header_image", "recommendations_count")
-    # This filter makes the admin UI slow when there is a lot of users
-    # list_filter = ("creator",)
 
-    # TODO: enable again after insights_v2 release
-    # inlines = [InsightRecommendationInline, InsightQuoteInline, InsightInitiativeInline]
+    inlines = [InsightRecommendationInline, InsightQuoteInline, InsightInitiativeInline, DiscussionInline]
 
     @admin.display(description="Description Preview")
     def description_preview(self, obj):
