@@ -139,8 +139,8 @@ class Question(ModelWithUUID):
             return pQ(is_deleted=False, status=Question.STATUS_PUBLISHED, is_public=True)
 
         return pQ(is_deleted=False) & (
-            (pQ(creator=user) & (pQ(community__isnull=True) | pQ(community__memberships__user__id=user.id)))
-            | (pQ(status=Question.STATUS_PUBLISHED) & (pQ(is_public=True) | pQ(community__memberships__user__id=user.id)))
+            (pQ(creator=user))
+            | (pQ(status=Question.STATUS_PUBLISHED) & (pQ(is_public=True)))
         )
 
 
