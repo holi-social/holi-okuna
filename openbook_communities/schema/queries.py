@@ -3,7 +3,7 @@ from typing import Annotated, List, Optional, Any, TypeAlias
 
 import strawberry
 import strawberry_django
-from asgiref.sync import async_to_sync, sync_to_async
+from asgiref.sync import async_to_sync
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Prefetch, F, Q
 from django.db.models.lookups import IContains
@@ -14,13 +14,18 @@ from strawberry.types import Info as StrawberryInfo
 from openbook_auth.models import User as UserModel
 from openbook_auth.utils import verify_authorized_user
 from openbook_common.schema.types import GeoJSON, Paged
-from openbook_common.types import GeolocationFeature
 from openbook_common.utils.helpers import is_uuid
 from openbook_common.validators import string_not_empty
 from openbook_communities.models import CollaborationTool as CollaborationToolModel
 from openbook_communities.models import Community as CommunityModel
 from openbook_communities.models import SpaceUserConnectionType
 from openbook_communities.models import Task as TaskModel
+from openbook_communities.models import Topic as TopicModel
+from openbook_communities.schema.helpers import (
+    filtered_spaces,
+    create_spaces_queryset,
+    create_filtered_spaces_query,
+)
 from openbook_communities.schema.types import (
     CollaborationTool,
     DiscoverSpaces,
@@ -32,52 +37,20 @@ from openbook_communities.schema.types import (
 Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
 
 
-@sync_to_async
-def spaces_for_filter(
-    offset: int,
-    limit: int,
-    topic_id: Optional[uuid.UUID] = None,
-    geolocation: Optional[GeolocationFeature] = None,
-    skill_ids: Optional[List[Optional[uuid.UUID]]] = None,
-    topic_slug: Optional[str] = None,
-    topic_slugs: Optional[List[Optional[str]]] = None,
-    skill_slugs: Optional[List[Optional[str]]] = None,
-    member_id: Optional[uuid.UUID] = None,
-):
-    query = Q()
-    if topic_id is not None:
-        query.add(Q(topics__id__contains=topic_id), Q.AND)
-    if geolocation is not None:
-        query.add(Q(geolocation__within=geolocation.geometry), Q.AND)
-    if skill_ids:
-        query.add(Q(tasks__skills__id__in=skill_ids), Q.AND)
-    if topic_slugs:
-        if topic_slug is not None:
-            topic_slugs.append(topic_slug)
-        query.add(Q(topics__slug__in=topic_slugs), Q.AND)
-    elif topic_slug is not None:
-        query.add(Q(topics__slug__contains=topic_slug), Q.AND)
-    if skill_slugs:
-        query.add(Q(tasks__skills__slug__in=skill_slugs), Q.AND)
-    if member_id:
-        user = UserModel.objects.get(username=member_id)
-        query.add(Q(memberships__user=user), Q.AND)
-
-    return Paged.of(
-        CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
-        .filter(query)
-        .annotate(member_count=Count("memberships"))
-        .order_by("-created")
-        .cache(ops=["fetch", "count"], timeout=300),
-        offset,
-        limit,
-    )
+def add_recommended_spaces_to_result(offset, limit, count, previous_queries, result, query):
+    for q in previous_queries:
+        query = query & ~q
+    queryset = create_spaces_queryset(query)
+    if len(result) < limit:
+        new_offset = max(0, offset - count)
+        result.extend(list(queryset[new_offset : new_offset + limit - len(result)]))
+    return queryset.count()
 
 
 @strawberry.type
 class Query:
     @strawberry_django.field()
-    async def spaces(
+    def spaces(
         self,
         topic_id: Optional[uuid.UUID] = None,
         location: Annotated[
@@ -96,17 +69,45 @@ class Query:
         offset: int = 0,
         limit: int = 10,
     ) -> Paged[Space]:
-        return await spaces_for_filter(
-            offset,
-            limit,
-            topic_id,
-            geolocation,
-            skill_ids,
-            topic_slug,
-            topic_slugs,
-            skill_slugs,
-            member_id,
+        spaces = async_to_sync(filtered_spaces)(
+            topic_id=topic_id,
+            geolocation=geolocation,
+            skill_ids=skill_ids,
+            topic_slug=topic_slug,
+            topic_slugs=topic_slugs,
+            skill_slugs=skill_slugs,
+            member_id=member_id,
         )
+
+        return Paged.of(spaces, offset, limit)
+
+    @strawberry_django.field()
+    def recommended_spaces(
+        self,
+        topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
+        geolocation: Optional[GeoJSON] = None,
+        offset: int = 0,
+        limit: int = 5,
+    ) -> Paged[Space]:
+        result = []
+        count = 0
+        queries = []
+
+        if topic_ids is not None:
+            query = create_filtered_spaces_query(topic_ids=topic_ids, geolocation=geolocation)
+            count = add_recommended_spaces_to_result(offset, limit, count, queries, result, query)
+            queries.append(query)
+
+        if geolocation is not None:
+            query = create_filtered_spaces_query(geolocation=geolocation)
+            count = count + add_recommended_spaces_to_result(offset, limit, count, queries, result, query)
+            queries.append(query)
+
+        default_topics = list(TopicModel.objects.filter(is_discover_spaces_default=True).values_list("id", flat=True))
+        query = create_filtered_spaces_query(topic_ids=default_topics)
+        count = count + add_recommended_spaces_to_result(offset, limit, count, queries, result, query)
+
+        return Paged(result, count)
 
     @strawberry_django.field()
     def discover_spaces(
@@ -127,44 +128,34 @@ class Query:
 
         # get all spaces by geolocation (independent of other filters)
         if geolocation is not None:
+            spaces = async_to_sync(filtered_spaces)(geolocation=geolocation)
             result.append(
                 DiscoverSpaces(
                     location_id=geolocation.id,
-                    spaces=async_to_sync(spaces_for_filter)(
-                        geolocation=geolocation,
-                        offset=offset,
-                        limit=limit,
-                    ),
+                    spaces=Paged.of(spaces, offset, limit),
                 )
             )
 
         # get all spaces by topic (independent of other filters)
         if topic_ids is not None:
             for topic_id in topic_ids:
+                spaces = async_to_sync(filtered_spaces)(topic_id=topic_id)
                 result.append(
                     DiscoverSpaces(
                         topic_id=topic_id,
-                        spaces=async_to_sync(spaces_for_filter)(
-                            topic_id=topic_id,
-                            offset=offset,
-                            limit=limit,
-                        ),
+                        spaces=Paged.of(spaces, offset, limit),
                     )
                 )
 
         # get all spaces by skill_id (including geolocation filter)
         if skill_ids is not None:
             for skill_id in skill_ids:
+                spaces = async_to_sync(filtered_spaces)(skill_ids=skill_ids, geolocation=geolocation)
                 result.append(
                     DiscoverSpaces(
                         skill_id=skill_id,
                         location_id=geolocation.id if geolocation else None,
-                        spaces=async_to_sync(spaces_for_filter)(
-                            skill_ids=skill_ids,
-                            geolocation=geolocation,
-                            offset=offset,
-                            limit=limit,
-                        ),
+                        spaces=Paged.of(spaces, offset, limit),
                     )
                 )
         return result

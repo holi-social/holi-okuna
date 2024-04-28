@@ -267,8 +267,8 @@ def make_category():
     return mixer.blend(Category)
 
 
-def make_topic():
-    return mixer.blend(Topic)
+def make_topic(is_discover_spaces_default=False):
+    return mixer.blend(Topic, is_discover_spaces_default=is_discover_spaces_default)
 
 
 def make_sdg():
