@@ -36,4 +36,4 @@ class FeedPostService:
     def get_feed_post(self, user, id_or_slug):
         post = self.repository.get_feed_post(id_or_slug)
         self.checker.check_can_query_registered_users_only_feed_posts(user=user, post=post)
-        return self.repository.get_feed_post(id_or_slug)
+        return post
