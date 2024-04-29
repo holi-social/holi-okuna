@@ -43,3 +43,11 @@ class Query:
             offset,
             limit,
         )
+
+    @strawberry_django.field()
+    def post(
+        self,
+        info,
+        id_or_slug: str,
+    ) -> FeedPost:
+        return FeedPostService().get_feed_post(user=info.context.request.user, id_or_slug=id_or_slug)
