@@ -8,7 +8,7 @@ from django.test import AsyncClient, TestCase
 from faker import Faker
 
 from feed_posts.enums import VisibilityLevel
-from feed_posts.tests.helpers import create_feed_post, my_posts
+from feed_posts.tests.helpers import create_feed_post, my_posts, posts_by_user_id
 from openbook import settings
 from openbook_common.tests.helpers import (
     make_user,
@@ -120,3 +120,45 @@ class TestFeedPosts(TestCase):
 
         #  first user can see only his 2 created feed posts
         assert data["totalResults"] == 2
+
+    def test_can_query_only_public_feed_posts_by_user_if_anonymous_user(self):
+        # user creates 2 public feed posts and 1 registered users only feed post
+        first_mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        assert first_mutation_response.errors is None
+
+        second_mutation_response = create_feed_post(user=self.user, input=self.another_public_feed_post_input_data)
+        assert second_mutation_response.errors is None
+
+        third_mutation_response = create_feed_post(
+            user=self.user, input=self.registered_users_only_feed_post_input_data
+        )
+        assert third_mutation_response.errors is None
+
+        # anonymous user queries user's feed posts
+        response = posts_by_user_id(user=AnonymousUser, user_id=self.user.pk)
+
+        data = response.data["postsByUserId"]
+
+        #  anonymous user can see only 2 public feed posts
+        assert data["totalResults"] == 2
+
+    def test_can_query_public_and_only_registered_user_feed_posts_if_authenticated_user(self):
+        # user creates 2 public feed posts and 1 registered users only feed post
+        first_mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        assert first_mutation_response.errors is None
+
+        second_mutation_response = create_feed_post(user=self.user, input=self.another_public_feed_post_input_data)
+        assert second_mutation_response.errors is None
+
+        third_mutation_response = create_feed_post(
+            user=self.user, input=self.registered_users_only_feed_post_input_data
+        )
+        assert third_mutation_response.errors is None
+
+        # another user queries user's feed posts
+        response = posts_by_user_id(user=self.another_user, user_id=self.user.pk)
+
+        data = response.data["postsByUserId"]
+
+        # another user can see all user's public and registered user only feed posts
+        assert data["totalResults"] == 3
