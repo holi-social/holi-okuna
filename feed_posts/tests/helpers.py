@@ -60,3 +60,34 @@ def my_posts(user):
         """,
         context_value=benedict({"request": {"user": user}}),
     )
+
+
+def posts_by_user_id(user, user_id):
+    return async_to_sync(schema.execute)(
+        """
+        query ($userId: UUID!){
+            postsByUserId(userId: $userId){
+               totalResults
+               data {
+                    id
+                    title
+                    description
+                    visibility
+                    image
+                    imageBlurhash
+                    category {
+                        id
+                    }
+                    topics {
+                        id
+                    }
+                    creator {
+                        id
+                    }
+                }
+            }
+        }
+        """,
+        context_value=benedict({"request": {"user": user}}),
+        variable_values={"userId": str(user_id)},
+    )

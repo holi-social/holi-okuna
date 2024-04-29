@@ -28,5 +28,5 @@ class FeedPostService:
             topics=topic_ids,
         )
 
-    def get_feed_posts_by_user(self, user):
-        return self.repository.get_feed_posts_by_user(user)
+    def get_feed_posts_by_user_id(self, user_id):
+        return self.repository.get_feed_posts_by_user_id(user_id)
