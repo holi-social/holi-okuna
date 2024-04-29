@@ -30,11 +30,15 @@ class Mutation:
         comment_text = data.get("text")
         commentable_type = data.get("commentable_type")
         commentable_id = data.get("commentable_id")
+        parent_comment_id = data.get("parent_comment_id")
 
         with transaction.atomic():
             commentable = CommentModel.get_commentable(commentable_id, commentable_type)
-            comment = commentable.comment_on(current_user, comment_text)
-
+            if parent_comment_id is not None:
+                parent_comment = CommentModel.objects.get(pk=parent_comment_id)
+                comment = commentable.comment_on(current_user, comment_text, parent_comment=parent_comment)
+            else:
+                comment = commentable.comment_on(current_user, comment_text)
         return comment
 
     @strawberry.mutation
