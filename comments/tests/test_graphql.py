@@ -69,10 +69,10 @@ class TestPostComments(TestCase):
         yield
         notifications_toggle.delete()
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_comment_mention_notification")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_commentable_author_notification")
     def test_should_mention_a_user_in_a_post_comment(
-        self, mock_send_post_comment_author_notification, mock_send_post_comment_mention_notification
+        self, mock_send_commentable_author_notification, mock_send_comment_mention_notification
     ):
         posting_user = make_user()
         mentioned_user = make_user(name="Mentioned")
@@ -91,16 +91,16 @@ class TestPostComments(TestCase):
         response = update_post_comment(commenter, input_data)
         assert response.errors is None
 
-        post_comment_data = response.data["updatePostComment"]["postComment"]
-        post_comment = Comment.objects.get(id=post_comment_data["id"])
+        comment_data = response.data["updatePostComment"]["postComment"]
+        comment = Comment.objects.get(id=comment_data["id"])
 
-        mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=post_comment)
-        mock_send_post_comment_author_notification.assert_called_once_with(post_comment=post_comment)
+        mock_send_comment_mention_notification.assert_called_once_with(comment=comment)
+        mock_send_commentable_author_notification.assert_called_once_with(comment=comment)
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_comment_mention_notification")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_commentable_author_notification")
     def test_should_not_send_an_author_notification_if_the_commenter_is_the_author(
-        self, mock_send_post_comment_author_notification, mock_send_post_comment_mention_notification
+        self, mock_send_commentable_author_notification, mock_send_comment_mention_notification
     ):
         posting_user = make_user()
         mentioned_user = make_user(name="Mentioned")
@@ -118,16 +118,16 @@ class TestPostComments(TestCase):
         response = update_post_comment(posting_user, input_data)
         assert response.errors is None
 
-        post_comment_data = response.data["updatePostComment"]["postComment"]
-        post_comment = Comment.objects.get(id=post_comment_data["id"])
+        comment_data = response.data["updatePostComment"]["postComment"]
+        comment = Comment.objects.get(id=comment_data["id"])
 
-        mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=post_comment)
-        mock_send_post_comment_author_notification.assert_not_called()
+        mock_send_comment_mention_notification.assert_called_once_with(comment=comment)
+        mock_send_commentable_author_notification.assert_not_called()
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_comment_mention_notification")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_commentable_author_notification")
     def test_should_not_send_an_author_notification_if_the_author_is_mentioned(
-        self, mock_send_post_comment_author_notification, mock_send_post_comment_mention_notification
+        self, mock_send_commentable_author_notification, mock_send_comment_mention_notification
     ):
         posting_user = make_user()
         commenter = make_user(name="Commenter")
@@ -145,11 +145,11 @@ class TestPostComments(TestCase):
         response = update_post_comment(commenter, input_data)
         assert response.errors is None
 
-        post_comment_data = response.data["updatePostComment"]["postComment"]
-        post_comment = Comment.objects.get(id=post_comment_data["id"])
+        comment_data = response.data["updatePostComment"]["postComment"]
+        comment = Comment.objects.get(id=comment_data["id"])
 
-        mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=post_comment)
-        mock_send_post_comment_author_notification.assert_not_called()
+        mock_send_comment_mention_notification.assert_called_once_with(comment=comment)
+        mock_send_commentable_author_notification.assert_not_called()
 
     def test_should_fetch_comments_and_their_stats(self):
         posting_user = make_user()
@@ -296,10 +296,10 @@ class TestAddingComments(TestCase):
         assert comment.text == "test approved"
         assert comment.commentable == post
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_comment_mention_notification")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_commentable_author_notification")
     def test_should_notify_mentioned_users_and_post_author(
-        self, mock_send_post_comment_author_notification, mock_send_post_comment_mention_notification
+        self, mock_send_commentable_author_notification, mock_send_comment_mention_notification
     ):
         post = make_post()
         commenter = make_user(name="Commenter")
@@ -317,11 +317,11 @@ class TestAddingComments(TestCase):
         comment_data = response.data["addComment"]
         comment = Comment.objects.get(pk=comment_data["id"])
 
-        mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=comment)
-        mock_send_post_comment_author_notification.assert_called_once_with(post_comment=comment)
+        mock_send_comment_mention_notification.assert_called_once_with(comment=comment)
+        mock_send_commentable_author_notification.assert_called_once_with(comment=comment)
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
-    def test_should_not_notify_author_about_their_own_comments(self, mock_send_post_comment_author_notification):
+    @mock.patch("openbook_notifications.notifications.Notifications.send_commentable_author_notification")
+    def test_should_not_notify_author_about_their_own_comments(self, mock_send_commentable_author_notification):
         post = make_post()
         post_author = post.creator
 
@@ -334,12 +334,12 @@ class TestAddingComments(TestCase):
         response = add_comment(post_author, input_data)
         assert response.errors is None
 
-        mock_send_post_comment_author_notification.assert_not_called()
+        mock_send_commentable_author_notification.assert_not_called()
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_comment_mention_notification")
+    @mock.patch("openbook_notifications.notifications.Notifications.send_commentable_author_notification")
     def test_should_only_notify_the_author_once_when_they_are_mentioned(
-        self, mock_send_post_comment_author_notification, mock_send_post_comment_mention_notification
+        self, mock_send_commentable_author_notification, mock_send_comment_mention_notification
     ):
         post = make_post()
         post_author = post.creator
@@ -357,8 +357,8 @@ class TestAddingComments(TestCase):
         comment_data = response.data["addComment"]
         comment = Comment.objects.get(pk=comment_data["id"])
 
-        mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=comment)
-        mock_send_post_comment_author_notification.assert_not_called()
+        mock_send_comment_mention_notification.assert_called_once_with(comment=comment)
+        mock_send_commentable_author_notification.assert_not_called()
 
 
 @pytest.mark.usefixtures("mock_novu_api")

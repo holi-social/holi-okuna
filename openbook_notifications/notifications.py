@@ -211,7 +211,7 @@ class Notifications:
         notification.send()
 
     @staticmethod
-    def send_post_comment_mention_notification(comment: Comment):
+    def send_comment_mention_notification(comment: Comment):
         notification = PostCommentMentionNotification(
             mentions=[str(mentioned_user.username) for mentioned_user in comment.mentions.all()],
             payload=PostCommentMentionPayload(
@@ -317,10 +317,14 @@ class Notification:
 
     @notifications_toggle
     def send(self):
+        print("recipients")
+        print(self.recipients)
         if not self.recipients:
             return
 
         try:
+            print("send")
+            print(self.payload)
             return EventApi(session=self.session).trigger(
                 name=self.workflow,
                 recipients=self.recipients,

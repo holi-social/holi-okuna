@@ -22,6 +22,6 @@ class CommentUserMention(ModelWithUUID):
         post_comment_user_mention = cls.objects.create(user=user, post_comment=comment)
 
         if notify:
-            Notifications.send_post_comment_mention_notification(comment=comment)
+            Notifications.send_comment_mention_notification(comment=comment)
 
         return post_comment_user_mention

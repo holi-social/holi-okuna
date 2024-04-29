@@ -263,7 +263,7 @@ class TestPayloads(TestCase):
 
         data_dict = payload.to_dict()
         self.assertEqual(data_dict["notificationType"], "POST_COMMENT_MENTION")
-        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
+        self.assertEqual(data_dict["notificationVersion"], "1.1.0")
         self.assertEqual(data_dict["data"]["user"]["id"], str(self.post_comment.commenter.username))
         self.assertEqual(data_dict["data"]["comment"]["id"], str(self.post_comment.id))
         self.assertEqual(
@@ -285,7 +285,7 @@ class TestPayloads(TestCase):
 
         data_dict = payload.to_dict()
         self.assertEqual(data_dict["notificationType"], "POST_COMMENT_AUTHOR")
-        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
+        self.assertEqual(data_dict["notificationVersion"], "1.1.0")
         self.assertEqual(data_dict["data"]["user"]["id"], str(self.post_comment.commentable.creator.username))
         self.assertEqual(data_dict["data"]["commenter"]["id"], str(self.post_comment.commenter.username))
         self.assertEqual(data_dict["data"]["comment"]["id"], str(self.post_comment.id))
