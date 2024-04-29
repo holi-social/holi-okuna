@@ -26,6 +26,7 @@ from .helpers import (
     delete_comment,
     get_commenters,
     get_comments,
+    get_comments_with_parent_comment_id,
     get_top_comment,
     remove_reaction_from_comment,
 )
@@ -286,6 +287,18 @@ class TestAddingComments(TestCase):
         assert comment.text == "test approved"
         assert comment.commentable == post
 
+    def test_should_add_a_comment_with_parent_comment(self):
+        post = make_post()
+        commenter = make_user(name="Commenter")
+
+        parent_comment = Comment.create_comment("It's greeeaat!", commenter, post)
+
+        # create a child comment
+        child_comment = Comment.create_comment("Just ok", commenter, post, parent_comment)
+
+        assert child_comment.commenter == commenter
+        assert child_comment.parent_comment.id == parent_comment.id
+
     @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
     @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
     def test_should_notify_mentioned_users_and_post_author(
@@ -483,6 +496,54 @@ class TestComments(TestCase):
         assert len(comments_data["data"]) == 2
         assert comments_data["data"][0]["text"] == "It's greeeaat!"
         assert comments_data["data"][1]["text"] == "Just ok"
+
+    def test_should_list_comments_with_parent_comment_id(self):
+        post = make_post()
+        commenter = make_user(name="Commenter")
+
+        parent_comment = Comment.create_comment("It's greeeaat!", commenter, post)
+
+        # create a child comment
+        Comment.create_comment("Just ok", commenter, post, parent_comment)
+
+        # create a non-child comment
+        Comment.create_comment("You didn't see me, right!", commenter, post)
+        response = get_comments_with_parent_comment_id(post.id, "POST", parent_comment_id=parent_comment.id)
+
+        assert response.errors is None
+        comments_data = response.data["commentable"]["comments"]
+        assert comments_data["totalResults"] == 1
+        assert len(comments_data["data"]) == 1
+        assert comments_data["data"][0]["text"] == "Just ok"
+
+    def test_should_list_child_comments_of_parent(self):
+        post = make_post()
+        commenter = make_user(name="Commenter")
+
+        parent_comment = Comment.create_comment("It's greeeaat!", commenter, post)
+
+        # create a child comment
+        child_comment = Comment.create_comment("Just ok", commenter, post, parent_comment)
+
+        # create a non-child comment
+        Comment.create_comment("You didn't see me, right!", commenter, post)
+        response = get_comments(post.id, "POST")
+
+        assert response.errors is None
+        comments_data = response.data["commentable"]["comments"]
+
+        # total results should be all except for the child
+        assert comments_data["totalResults"] == 2
+        assert len(comments_data["data"]) == 2
+
+        # first level comments check
+        assert comments_data["data"][0]["text"] == "It's greeeaat!"
+        assert comments_data["data"][1]["text"] == "You didn't see me, right!"
+
+        # second level comments check
+        assert comments_data["data"][0]["totalComments"] == 1
+        assert comments_data["data"][0]["childComments"][0]["id"] == str(child_comment.id)
+        assert comments_data["data"][1]["totalComments"] == 0
 
     def test_should_not_list_comments_for_private_commentables(self):
         post = make_community_post()
