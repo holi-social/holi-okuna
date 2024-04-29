@@ -5,7 +5,7 @@ from typing import List, Optional
 import strawberry
 import strawberry_django
 
-from comments.enums import CommentableType
+from comments.models.commentable import CommentableType
 from comments.models import Comment as CommentModel
 from comments.models import CommentReaction as CommentReactionModel
 from openbook_auth.schema.types import User

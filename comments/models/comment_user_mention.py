@@ -18,10 +18,10 @@ class CommentUserMention(ModelWithUUID):
         db_table = "openbook_posts_postcommentusermention"
 
     @classmethod
-    def create_comment_user_mention(cls, user, comment, notify=True):
+    def create_comment_user_mention(cls, user, comment, notify=False):
         post_comment_user_mention = cls.objects.create(user=user, post_comment=comment)
 
         if notify:
-            Notifications.send_post_comment_mention_notification(post_comment=comment)
+            Notifications.send_post_comment_mention_notification(comment=comment)
 
         return post_comment_user_mention

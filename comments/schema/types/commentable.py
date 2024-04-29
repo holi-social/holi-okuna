@@ -5,7 +5,7 @@ import strawberry
 import strawberry_django
 from django.db.models import Q
 
-from comments.enums import CommentableType
+from comments.models.commentable import CommentableType
 from comments.models import Comment as CommentModel
 from comments.schema.types.comment import Comment
 from openbook_auth.models import User as UserModel

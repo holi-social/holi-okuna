@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import uuid
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
 import sentry_sdk
 from novu.api import EventApi
@@ -8,10 +10,6 @@ from requests import Session
 from requests.adapters import HTTPAdapter, Retry
 from requests.exceptions import ConnectionError
 
-from comments.models import Comment
-from openbook_appointments.models import Appointment
-from openbook_auth.models import User
-from openbook_communities.models import Community, CommunityInvite, CommunityMembershipRequest
 from openbook_notifications.helpers import flatten_payload
 from openbook_notifications.payloads import (
     NotificationType,
@@ -49,6 +47,14 @@ class Workflow(Enum):
     SPACE_APPOINTMENT_CREATION = "space-appointment-creation"
     SPACE_APPOINTMENT_UPDATE = "space-appointment-update"
     SPACE_APPOINTMENT_DELETION = "space-appointment-deletion"
+
+
+if TYPE_CHECKING:
+    from openbook_auth.models import User
+    from openbook_communities.models import Community
+    from comments.models import Comment
+    from openbook_appointments.models import Appointment
+    from openbook_communities.models import CommunityInvite, CommunityMembershipRequest
 
 
 # Use this classes static methods to trigger notifications via the Notifications system (novu)
@@ -205,22 +211,22 @@ class Notifications:
         notification.send()
 
     @staticmethod
-    def send_post_comment_mention_notification(post_comment: Comment):
+    def send_post_comment_mention_notification(comment: Comment):
         notification = PostCommentMentionNotification(
-            mentions=[str(mentioned_user.username) for mentioned_user in post_comment.mentions.all()],
+            mentions=[str(mentioned_user.username) for mentioned_user in comment.mentions.all()],
             payload=PostCommentMentionPayload(
-                post_comment=post_comment,
+                comment=comment,
                 notification_type=NotificationType.POST_COMMENT_MENTION.value,
             ),
         )
         notification.send()
 
     @staticmethod
-    def send_post_comment_author_notification(post_comment: Comment):
+    def send_commentable_author_notification(comment: Comment):
         notification = PostCommentAuthorNotification(
-            author=str(post_comment.commentable.creator.username),
+            author=str(comment.commentable.creator.username),
             payload=PostCommentAuthorPayload(
-                post_comment=post_comment,
+                comment=comment,
                 notification_type=NotificationType.POST_COMMENT_AUTHOR.value,
             ),
         )

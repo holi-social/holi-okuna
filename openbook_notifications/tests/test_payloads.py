@@ -257,7 +257,7 @@ class TestPayloads(TestCase):
 
     def test_post_comment_mention_payload(self):
         payload = PostCommentMentionPayload(
-            post_comment=self.post_comment,
+            comment=self.post_comment,
             notification_type=NotificationType.POST_COMMENT_MENTION.value,
         )
 
@@ -279,7 +279,7 @@ class TestPayloads(TestCase):
 
     def test_post_comment_author_payload(self):
         payload = PostCommentAuthorPayload(
-            post_comment=self.post_comment,
+            comment=self.post_comment,
             notification_type=NotificationType.POST_COMMENT_AUTHOR.value,
         )
 

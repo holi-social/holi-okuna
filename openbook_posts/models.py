@@ -20,7 +20,7 @@ from pilkit.processors import ResizeToFit
 from rest_framework.exceptions import ValidationError
 from sortedm2m.fields import SortedManyToManyField
 
-from comments.models import Comment
+from comments.models import Comment, Commentable
 from openbook_auth.models import User, get_reactions
 from openbook_auth.models import UserBlock as UserBlockModel
 from openbook_common.enums import ReactionType
@@ -83,8 +83,9 @@ magic = get_magic()
 post_image_storage = default_storage
 
 
-class Post(ModelWithUUID):
+class Post(ModelWithUUID, Commentable):
     moderated_object = GenericRelation(ModeratedObject, related_query_name="posts")
+
     title = models.CharField(max_length=settings.POST_TITLE_MAX_LENGTH, blank=False, null=True)
     text = models.TextField(
         _("text"),
@@ -916,6 +917,10 @@ class Post(ModelWithUUID):
             | (pQ(status=Post.STATUS_PUBLISHED) & (pQ(is_public=True) | pQ(community__memberships__user__id=user.id)))
         )
 
+    @property
+    def context(self):
+        return self.title
+
 
 class TopPost(ModelWithUUID):
     post = models.OneToOneField(Post, on_delete=models.CASCADE, related_name="top_post")
@@ -1121,7 +1126,7 @@ class PostUserMention(ModelWithUUID):
         )
 
     @classmethod
-    def create_post_user_mention(cls, user, post, notify=True):
+    def create_post_user_mention(cls, user, post, notify=False):
         post_user_mention = cls.objects.create(user=user, post=post)
         if notify:
             PostUserMentionNotification = get_post_user_mention_notification_model()

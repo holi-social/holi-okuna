@@ -1,7 +1,7 @@
 from django.conf import settings
 from rest_framework import serializers
 
-from comments.enums import CommentableType
+from comments.models.commentable import CommentableType
 from comments.validators import comment_text_validators
 
 

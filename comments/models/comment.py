@@ -8,7 +8,7 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from comments.enums import CommentableType
+from .commentable import CommentableType, Commentable
 from comments.validators import comment_text_validators
 from openbook_auth.models import User, UserBlock
 from openbook_common.helpers import (
@@ -40,7 +40,7 @@ from openbook_moderation.models import ModeratedObject
 from .comment_reaction import CommentReaction
 
 
-class Comment(ModelWithUUID):
+class Comment(ModelWithUUID, Commentable):
     moderated_object = GenericRelation(ModeratedObject, related_query_name="post_comments")
 
     commentable_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -271,7 +271,7 @@ class Comment(ModelWithUUID):
             is_post_author_commenter = self.commenter.username == author.username
 
             if not is_post_author_mentioned and not is_post_author_commenter:
-                Notifications.send_post_comment_author_notification(post_comment=self)
+                Notifications.send_commentable_author_notification(comment=self)
 
     def update_comment(self, text):
         self.text = text
@@ -351,6 +351,20 @@ class Comment(ModelWithUUID):
     @staticmethod
     def is_visible_query(user, prefix=None):
         return PQ(prefix, is_deleted=False)
+
+    @property
+    def context(self):
+        return self.text
+
+    @property
+    def is_public(self):
+        # todo gregor: what does it mean in the context of comments?
+        # assume False as a safe default for now
+        return False
+
+    @property
+    def title(self) -> str:
+        return self.title
 
 
 class CommentLinks(models.Model):

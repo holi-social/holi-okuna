@@ -311,7 +311,7 @@ class PostCommentMentionNotificationTestCase(TestCase):
         post_comment = make_post_comment()
         transaction_id = str(uuid.uuid4())
         payload = PostCommentMentionPayload(
-            post_comment=post_comment,
+            comment=post_comment,
             notification_type=NotificationType.POST_COMMENT_MENTION.value,
         )
         cls.notification_instance = PostCommentMentionNotification(
@@ -331,7 +331,7 @@ class PostCommentAuthorNotificationTestCase(TestCase):
         post_comment = make_post_comment()
         transaction_id = str(uuid.uuid4())
         payload = PostCommentAuthorPayload(
-            post_comment=post_comment,
+            comment=post_comment,
             notification_type=NotificationType.POST_COMMENT_AUTHOR.value,
         )
         cls.notification_instance = PostCommentAuthorNotification(

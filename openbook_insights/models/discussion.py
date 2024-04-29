@@ -10,13 +10,13 @@ from rest_framework.exceptions import (
     ValidationError,
 )
 
-from comments.models import Comment
+from comments.models import Comment, Commentable
 from openbook_auth.models import User
 from openbook_common.models import ModelWithUUID
 from openbook_insights.models.insight import Insight
 
 
-class Discussion(ModelWithUUID):
+class Discussion(ModelWithUUID, Commentable):
     insight = ForeignKey(Insight, on_delete=CASCADE, related_name="discussions")
     question = TextField(null=False, blank=False, verbose_name="Question or talking point for discussion")
 
@@ -33,4 +33,26 @@ class Discussion(ModelWithUUID):
             raise ValidationError(_("You cannot remove a comment that does not belong to you"))
 
     def can_be_viewed(self, user: User) -> bool:
+        return True
+
+    @property
+    def text(self) -> str:
+        return self.question
+
+    @property
+    def creator(self):
+        return self.insight.creator
+
+    @property
+    def title(self):
+        return self.insight.title
+
+    @property
+    def context(self):
+        return self.question
+
+    @property
+    def is_public(self):
+        # todo gregor: what does it mean in the context of a discussion?
+        # assume Insights are always public for now
         return True
