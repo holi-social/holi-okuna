@@ -8,7 +8,7 @@ from django.test import AsyncClient, TestCase
 from faker import Faker
 
 from feed_posts.enums import VisibilityLevel
-from feed_posts.tests.helpers import create_feed_post, my_posts, posts_by_user_id
+from feed_posts.tests.helpers import create_feed_post, my_posts, posts_by_user_id, post
 from openbook import settings
 from openbook_common.tests.helpers import (
     make_user,
@@ -162,3 +162,70 @@ class TestFeedPosts(TestCase):
 
         # another user can see all user's public and registered user only feed posts
         assert data["totalResults"] == 3
+
+    def test_cannot_query_registered_only_users_feed_post_if_anonymous_user(self):
+        mutation_response = create_feed_post(user=self.user, input=self.registered_users_only_feed_post_input_data)
+        assert mutation_response.errors is None
+
+        post_id = mutation_response.data["createFeedPost"]["id"]
+
+        response = post(user=AnonymousUser, id_or_slug=post_id)
+
+        assert response.errors is not None
+        assert response.data is None
+
+        assert "You cannot query registered only users feed posts" in response.errors[0].extensions["errors"]
+
+    def test_can_query_public_feed_post_if_anonymous_user(self):
+        mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        assert mutation_response.errors is None
+
+        post_slug = mutation_response.data["createFeedPost"]["slug"]
+
+        response = post(user=AnonymousUser, id_or_slug=post_slug)
+
+        data = response.data["post"]
+
+        assert data["title"] == self.public_feed_post_input_data["title"]
+        assert data["description"] == self.public_feed_post_input_data["description"]
+        assert data["visibility"] == self.public_feed_post_input_data["visibility"]
+        assert data["category"]["id"] == self.public_feed_post_input_data["categoryId"]
+        assert len(data["topics"]) == len(self.public_feed_post_input_data["topicIds"])
+        assert data["creator"]["id"] == str(self.user.pk)
+        assert data["image"]
+
+    def test_can_query_registered_only_users_feed_post_if_authenticated_user(self):
+        mutation_response = create_feed_post(user=self.user, input=self.registered_users_only_feed_post_input_data)
+        assert mutation_response.errors is None
+
+        post_id = mutation_response.data["createFeedPost"]["id"]
+
+        response = post(user=self.another_user, id_or_slug=post_id)
+
+        data = response.data["post"]
+
+        assert data["title"] == self.registered_users_only_feed_post_input_data["title"]
+        assert data["description"] == self.registered_users_only_feed_post_input_data["description"]
+        assert data["visibility"] == self.registered_users_only_feed_post_input_data["visibility"]
+        assert data["category"]["id"] == self.registered_users_only_feed_post_input_data["categoryId"]
+        assert len(data["topics"]) == len(self.registered_users_only_feed_post_input_data["topicIds"])
+        assert data["creator"]["id"] == str(self.user.pk)
+        assert data["image"]
+
+    def test_can_query_public_feed_post_if_authenticated_user(self):
+        mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        assert mutation_response.errors is None
+
+        post_slug = mutation_response.data["createFeedPost"]["slug"]
+
+        response = post(user=self.another_user, id_or_slug=post_slug)
+
+        data = response.data["post"]
+
+        assert data["title"] == self.public_feed_post_input_data["title"]
+        assert data["description"] == self.public_feed_post_input_data["description"]
+        assert data["visibility"] == self.public_feed_post_input_data["visibility"]
+        assert data["category"]["id"] == self.public_feed_post_input_data["categoryId"]
+        assert len(data["topics"]) == len(self.public_feed_post_input_data["topicIds"])
+        assert data["creator"]["id"] == str(self.user.pk)
+        assert data["image"]
