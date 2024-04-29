@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from openbook_auth.models import User
     from openbook_communities.models import Community
     from openbook_posts.models import Post
-    from comments.models import Comment, Commentable
+    from comments.models import Comment
     from openbook_appointments.models import Appointment
 
 
@@ -199,7 +199,7 @@ class PostData:
         }
 
     @classmethod
-    def from_post(cls, post: Commentable):
+    def from_post(cls, post: Post):
         """
         Note: Currently, this method is implemented to handle only posts in spaces because it is the only place
         where users can create posts. In the future, our users will be able to create insight posts and inspiration
@@ -213,7 +213,7 @@ class PostData:
         )
 
 
-class PostCommentData:
+class CommentData:
     def __init__(self, id: str, text: str):
         self.id = id
         self.text = text
@@ -222,20 +222,20 @@ class PostCommentData:
         return {"id": self.id, "text": self.text}
 
     @classmethod
-    def from_post_comment(cls, post_comment: Comment):
-        mentioned_users = post_comment.mentions.all()
-        text = replace_mentions_with_full_names(text=post_comment.text, mentioned_users=mentioned_users)
+    def from_comment(cls, comment: Comment):
+        mentioned_users = comment.mentions.all()
+        text = replace_mentions_with_full_names(text=comment.text, mentioned_users=mentioned_users)
 
-        return cls(id=str(post_comment.id), text=text)
+        return cls(id=str(comment.id), text=text)
 
     @classmethod
-    def create_comment_link(cls, comment):
-        commentable_type_model = comment.commentable_type.model
+    def create_link(cls, comment):
+        comment_target = comment.commentable_type.model
 
-        if "post" == commentable_type_model:
+        if "post" == comment_target:
             return f"/post/{comment.commentable_id}?commentId={comment.id}"
 
-        if "discussion" == commentable_type_model:
+        if "discussion" == comment_target:
             return f"/insights/{comment.commentable.insight.id}/discussions/{comment.commentable_id}?commentId={comment.id}"
 
         return f"{settings.APP_URL}"
@@ -374,8 +374,8 @@ class PostCommentMentionPayload(Payload):
             data={
                 "user": UserData.from_user(comment.commenter).to_dict(),
                 "post": PostData.from_post(comment.commentable).to_dict(),
-                "comment": PostCommentData.from_post_comment(comment).to_dict(),
-                "commentLink": PostCommentData.create_comment_link(comment),
+                "comment": CommentData.from_comment(comment).to_dict(),
+                "commentLink": CommentData.create_link(comment),
                 "commentDatetime": datetime.now().isoformat(),
             },
             notification_type=notification_type,
@@ -396,8 +396,8 @@ class PostCommentAuthorPayload(Payload):
                 "user": UserData.from_user(comment.commentable.creator).to_dict(),
                 "commenter": UserData.from_user(comment.commenter).to_dict(),
                 "post": PostData.from_post(comment.commentable).to_dict(),
-                "comment": PostCommentData.from_post_comment(comment).to_dict(),
-                "commentLink": PostCommentData.create_comment_link(comment),
+                "comment": CommentData.from_comment(comment).to_dict(),
+                "commentLink": CommentData.create_link(comment),
                 "commentDatetime": datetime.now().isoformat(),
             },
             notification_type=notification_type,
