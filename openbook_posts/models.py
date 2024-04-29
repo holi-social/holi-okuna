@@ -919,7 +919,8 @@ class Post(ModelWithUUID, Commentable):
 
     @property
     def context(self):
-        return self.title
+        # tests use posts without community association
+        return self.community.title if self.community else self.title
 
 
 class TopPost(ModelWithUUID):
