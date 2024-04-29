@@ -270,6 +270,14 @@ class Query:
         return TaskModel.objects.get(id=id)
 
     @strawberry_django.field()
+    def recommended_tasks(self, info, offset: int = 0, limit: int = 5) -> Paged[Task]:
+        current_user = info.context.request.user
+        if not current_user or current_user.is_anonymous:
+            return Paged.of(TaskModel.objects.order_by("-created"), offset, limit)
+        # TODO Dummy implementation needs to be replaced
+        return Paged.of(TaskModel.objects.order_by("-created"), offset, limit)
+
+    @strawberry_django.field()
     def collaboration_tools(
         self, info: Info, space_id: uuid.UUID, offset: int = 0, limit: int = 10
     ) -> Paged[CollaborationTool]:
