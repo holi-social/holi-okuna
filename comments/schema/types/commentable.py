@@ -24,23 +24,20 @@ class Commentable:
     ) -> Paged[Comment]:
         current_user = info.context.request.user
 
-        # Fetch parent comments
-        parent_comments = CommentModel.objects.filter(
+        # Fetch root comments
+        root_comments = CommentModel.objects.filter(
             commentable_id=self.id,
             commentable_type__model=self.type.value,
             is_deleted=False,
             parent_comment_id=parent_comment_id,
         ).order_by("created")
 
-        # Prefetch related child comments for each parent comment
-        parent_comments = parent_comments.prefetch_related(
+        # Prefetch related replies for each root comment
+        root_comments = root_comments.prefetch_related(
             Prefetch("replies", queryset=CommentModel.objects.filter(is_deleted=False).order_by("created"))
         )
 
-        # Annotate each parent comment with the total count of comments (including children)
-        parent_comments = parent_comments.annotate(total_comments=Count("replies") + 1)
-
-        return UserBlockModel.paged(current_user, lambda comment: comment.commenter.id, parent_comments, offset, limit)
+        return UserBlockModel.paged(current_user, lambda comment: comment.commenter.id, root_comments, offset, limit)
 
     @strawberry_django.field()
     def commenters(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
