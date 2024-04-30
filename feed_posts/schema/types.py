@@ -34,3 +34,14 @@ class CreateFeedPostInput:
     visibility: VisibilityLevel
     topic_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     category_id: uuid.UUID
+
+
+@strawberry.input
+class UpdateFeedPostInput:
+    post_id: uuid.UUID
+    title: Optional[str] = strawberry.UNSET
+    description: Optional[str] = strawberry.UNSET
+    image: Optional[Upload] = strawberry.UNSET
+    visibility: Optional[VisibilityLevel] = strawberry.UNSET
+    topic_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    category_id: Optional[uuid.UUID] = strawberry.UNSET
