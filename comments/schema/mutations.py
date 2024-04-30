@@ -38,7 +38,7 @@ class Mutation:
                 # only DISCUSSION type supports replying to comments
                 if commentable_type is not CommentableType.DISCUSSION:
                     raise FieldError()
-                root_comment = CommentModel.objects.get(pk=parent_comment_id)
+                root_comment = commentable.comments.get(pk=parent_comment_id)
                 comment = root_comment.reply_to_comment(current_user, comment_text)
             else:
                 comment = commentable.comment_on(current_user, comment_text)
