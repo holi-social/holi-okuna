@@ -14,8 +14,8 @@ def get_comments(commentable_id, commentable_type, user=None, parent_comment_id=
                     totalResults
                     data {
                         text
-                        totalComments
-                        childComments {
+                        totalReplies
+                        replies {
                             id
                         }
                     }

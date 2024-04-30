@@ -541,9 +541,9 @@ class TestComments(TestCase):
         assert comments_data["data"][1]["text"] == "You didn't see me, right!"
 
         # second level comments check
-        assert comments_data["data"][0]["totalComments"] == 1
-        assert comments_data["data"][0]["childComments"][0]["id"] == str(child_comment.id)
-        assert comments_data["data"][1]["totalComments"] == 0
+        assert comments_data["data"][0]["totalReplies"] == 1
+        assert comments_data["data"][0]["replies"][0]["id"] == str(child_comment.id)
+        assert comments_data["data"][1]["totalReplies"] == 0
 
     def test_should_not_list_comments_for_private_commentables(self):
         post = make_community_post()

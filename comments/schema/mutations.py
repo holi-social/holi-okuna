@@ -35,8 +35,8 @@ class Mutation:
         with transaction.atomic():
             commentable = CommentModel.get_commentable(commentable_id, commentable_type)
             if parent_comment_id is not None:
-                parent_comment = CommentModel.objects.get(pk=parent_comment_id)
-                comment = commentable.comment_on(current_user, comment_text, parent_comment=parent_comment)
+                root_comment = CommentModel.objects.get(pk=parent_comment_id)
+                comment = root_comment.reply_to_comment(current_user, comment_text)
             else:
                 comment = commentable.comment_on(current_user, comment_text)
         return comment
