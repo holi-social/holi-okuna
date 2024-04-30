@@ -5,12 +5,35 @@ from django.contrib.auth.models import AnonymousUser
 from openbook.graphql_schema import schema
 
 
-def get_comments(commentable_id, commentable_type, user=None):
+def get_comments(commentable_id, commentable_type, user=None, parent_comment_id=None):
     return async_to_sync(schema.execute)(
         """
         query test($commentable_id: UUID!, $commentable_type: CommentableType!) {
             commentable(id: $commentable_id, type: $commentable_type) {
                 comments{
+                    totalResults
+                    data {
+                        text
+                        totalReplies
+                        replies {
+                            id
+                        }
+                    }
+                }
+            }
+        }
+        """,
+        context_value=benedict({"request": {"user": user or AnonymousUser}}),
+        variable_values={"commentable_id": str(commentable_id), "commentable_type": commentable_type},
+    )
+
+
+def get_comments_with_parent_comment_id(commentable_id, commentable_type, user=None, parent_comment_id=None):
+    return async_to_sync(schema.execute)(
+        """
+        query test($commentable_id: UUID!, $commentable_type: CommentableType!, $parent_comment_id: UUID) {
+            commentable(id: $commentable_id, type: $commentable_type) {
+                comments(parentCommentId: $parent_comment_id){
                     totalResults
                     data {
                         text
@@ -20,7 +43,11 @@ def get_comments(commentable_id, commentable_type, user=None):
         }
         """,
         context_value=benedict({"request": {"user": user or AnonymousUser}}),
-        variable_values={"commentable_id": str(commentable_id), "commentable_type": commentable_type},
+        variable_values={
+            "commentable_id": str(commentable_id),
+            "commentable_type": commentable_type,
+            "parent_comment_id": str(parent_comment_id) or None,
+        },
     )
 
 
