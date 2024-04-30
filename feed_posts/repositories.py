@@ -22,7 +22,8 @@ class FeedPostRepository:
             image=image,
         )
 
-        feed_post.topics.set(topics)
+        if topics is not None:
+            feed_post.topics.set(topics)
 
         return feed_post
 
