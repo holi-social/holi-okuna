@@ -28,7 +28,7 @@ class FeedPostRepository:
         return feed_post
 
     def get_feed_posts_by_user_id(self, user_id):
-        return FeedPost.objects.filter(creator_id=user_id)
+        return FeedPost.objects.filter(creator__username=user_id)
 
     def get_feed_post(self, id_or_slug):
         return FeedPost.objects.get(id=id_or_slug) if is_uuid(id_or_slug) else FeedPost.objects.get(slug=id_or_slug)

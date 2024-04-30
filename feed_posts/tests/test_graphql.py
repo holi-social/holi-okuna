@@ -135,7 +135,7 @@ class TestFeedPosts(TestCase):
         assert third_mutation_response.errors is None
 
         # anonymous user queries user's feed posts
-        response = posts_by_user_id(user=AnonymousUser, user_id=self.user.pk)
+        response = posts_by_user_id(user=AnonymousUser, user_id=self.user.username)
 
         data = response.data["postsByUserId"]
 
@@ -156,7 +156,7 @@ class TestFeedPosts(TestCase):
         assert third_mutation_response.errors is None
 
         # another user queries user's feed posts
-        response = posts_by_user_id(user=self.another_user, user_id=self.user.pk)
+        response = posts_by_user_id(user=self.another_user, user_id=self.user.username)
 
         data = response.data["postsByUserId"]
 
