@@ -3,7 +3,7 @@ import structlog
 from asgiref.sync import sync_to_async
 
 from openbook_auth.utils import verify_authorized_user
-from openbook_common.helpers import to_input_dict
+from openbook_common.helpers import to_input_dict, is_parameter_null
 from feed_posts.schema.types import FeedPost, CreateFeedPostInput, UpdateFeedPostInput
 from feed_posts.serializers import CreateFeedPostSerializer, UpdateFeedPostSerializer
 from feed_posts.services import FeedPostService
@@ -51,4 +51,5 @@ class Mutation:
             category_id=data.get("category_id"),
             topic_ids=data.get("topic_ids"),
             image=data.get("image"),
+            remove_image=is_parameter_null(data, "image"),
         )

@@ -41,7 +41,18 @@ class FeedPostService:
     def exists(self, post_id):
         return self.repository.exists(post_id)
 
-    def update_feed_post(self, user, post_id, title, description, visibility, category_id, topic_ids, image):
+    def update_feed_post(
+        self,
+        user,
+        post_id,
+        title=None,
+        description=None,
+        visibility=None,
+        category_id=None,
+        topic_ids=None,
+        image=None,
+        remove_image=False,
+    ):
         post = self.repository.get_feed_post(id_or_slug=str(post_id))
 
         self.checker.check_can_update_feed_post(user=user, post=post)
@@ -58,4 +69,5 @@ class FeedPostService:
             category=category,
             topics=topics,
             image=image,
+            remove_image=remove_image,
         )
