@@ -10,7 +10,8 @@ class CreateFeedPostSerializer(serializers.Serializer):
     title = serializers.CharField(
         min_length=settings.FEED_POST_TITLE_MIN_LENGTH,
         max_length=settings.FEED_POST_TITLE_MAX_LENGTH,
-        required=True,
+        required=False,
+        allow_blank=True,
     )
 
     description = serializers.CharField(
