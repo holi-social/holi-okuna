@@ -11,6 +11,7 @@ def create_feed_post(user, input):
             createFeedPost(input: $input) {
                 id
                 title
+                slug
                 description
                 visibility
                 image
@@ -41,6 +42,7 @@ def my_posts(user):
                data {
                     id
                     title
+                    slug
                     description
                     visibility
                     image
@@ -71,6 +73,7 @@ def posts_by_user_id(user, user_id):
                data {
                     id
                     title
+                    slug
                     description
                     visibility
                     image
@@ -90,4 +93,33 @@ def posts_by_user_id(user, user_id):
         """,
         context_value=benedict({"request": {"user": user}}),
         variable_values={"userId": str(user_id)},
+    )
+
+
+def post(user, id_or_slug):
+    return async_to_sync(schema.execute)(
+        """
+        query ($idOrSlug: String!){
+            post(idOrSlug: $idOrSlug){
+                    id
+                    title
+                    slug
+                    description
+                    visibility
+                    image
+                    imageBlurhash
+                    category {
+                        id
+                    }
+                    topics {
+                        id
+                    }
+                    creator {
+                        id
+                    }
+                }
+        }
+        """,
+        context_value=benedict({"request": {"user": user}}),
+        variable_values={"idOrSlug": id_or_slug},
     )
