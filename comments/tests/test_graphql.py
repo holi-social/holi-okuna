@@ -291,13 +291,12 @@ class TestAddingComments(TestCase):
         post = make_post()
         commenter = make_user(name="Commenter")
 
-        parent_comment = Comment.create_comment("It's greeeaat!", commenter, post)
+        root_comment = Comment.create_comment("It's greeeaat!", commenter, post)
 
-        # create a child comment
-        child_comment = Comment.create_comment("Just ok", commenter, post, parent_comment)
+        reply = Comment.create_comment("Just ok", commenter, post, root_comment)
 
-        assert child_comment.commenter == commenter
-        assert child_comment.parent_comment.id == parent_comment.id
+        assert reply.commenter == commenter
+        assert reply.parent_comment.id == root_comment.id
 
     @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
     @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
@@ -501,14 +500,12 @@ class TestComments(TestCase):
         post = make_post()
         commenter = make_user(name="Commenter")
 
-        parent_comment = Comment.create_comment("It's greeeaat!", commenter, post)
+        root_comment = Comment.create_comment("It's greeeaat!", commenter, post)
 
-        # create a child comment
-        Comment.create_comment("Just ok", commenter, post, parent_comment)
+        Comment.create_comment("Just ok", commenter, post, root_comment)
 
-        # create a non-child comment
         Comment.create_comment("You didn't see me, right!", commenter, post)
-        response = get_comments_with_parent_comment_id(post.id, "POST", parent_comment_id=parent_comment.id)
+        response = get_comments_with_parent_comment_id(post.id, "POST", parent_comment_id=root_comment.id)
 
         assert response.errors is None
         comments_data = response.data["commentable"]["comments"]
@@ -516,23 +513,22 @@ class TestComments(TestCase):
         assert len(comments_data["data"]) == 1
         assert comments_data["data"][0]["text"] == "Just ok"
 
-    def test_should_list_child_comments_of_parent(self):
+    def test_should_list_replies(self):
         post = make_post()
         commenter = make_user(name="Commenter")
 
-        parent_comment = Comment.create_comment("It's greeeaat!", commenter, post)
+        root_comment = Comment.create_comment("It's greeeaat!", commenter, post)
 
-        # create a child comment
-        child_comment = Comment.create_comment("Just ok", commenter, post, parent_comment)
+        reply = Comment.create_comment("Just ok", commenter, post, root_comment)
 
-        # create a non-child comment
+        # create a non-reply comment
         Comment.create_comment("You didn't see me, right!", commenter, post)
         response = get_comments(post.id, "POST")
 
         assert response.errors is None
         comments_data = response.data["commentable"]["comments"]
 
-        # total results should be all except for the child
+        # total results should be all except for the reply
         assert comments_data["totalResults"] == 2
         assert len(comments_data["data"]) == 2
 
@@ -542,7 +538,7 @@ class TestComments(TestCase):
 
         # second level comments check
         assert comments_data["data"][0]["totalReplies"] == 1
-        assert comments_data["data"][0]["replies"][0]["id"] == str(child_comment.id)
+        assert comments_data["data"][0]["replies"][0]["id"] == str(reply.id)
         assert comments_data["data"][1]["totalReplies"] == 0
 
     def test_should_not_list_comments_for_private_commentables(self):
