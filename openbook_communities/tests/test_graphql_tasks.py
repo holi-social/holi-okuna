@@ -909,7 +909,7 @@ class TestTaskRecommendations:
             regularity="ONE_TIME",
         )
 
-    def assert_filtered_tasks(self, filter_options, expected_spaces, totalResults=None):
+    def assert_filtered_tasks(self, filter_options, expected_spaces, total_results=None):
         def transform_space(space):
             return {"id": str(space.id)}
 
@@ -932,8 +932,8 @@ class TestTaskRecommendations:
         assert filter_response.errors is None
         expected_data = list(map(transform_space, expected_spaces))
         assert filter_response.data["recommendedTasks"]["data"] == expected_data
-        if totalResults is not None:
-            assert filter_response.data["recommendedTasks"]["totalResults"] == totalResults
+        if total_results is not None:
+            assert filter_response.data["recommendedTasks"]["totalResults"] == total_results
 
     def test_filters_for_recommended_spaces(self):
         skill1 = make_skill()
@@ -961,11 +961,6 @@ class TestTaskRecommendations:
             skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation3
         )
         task_remote_other_skill = self.create_task(skills=[other_skill.id], location_type="REMOTE")
-
-        print()
-        for name, value in locals().items():
-            if name.startswith("task_"):
-                print(f"{name}: {value.id}")
 
         self.assert_filtered_tasks(
             {},
