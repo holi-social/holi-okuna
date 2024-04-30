@@ -2,7 +2,7 @@ import uuid
 from typing import Optional
 import strawberry
 import strawberry_django
-from django.db.models import Q, Prefetch, Count
+from django.db.models import Q, Prefetch
 
 from comments.enums import CommentableType
 from comments.models import Comment as CommentModel
