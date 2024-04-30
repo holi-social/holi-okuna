@@ -24,7 +24,6 @@ class Commentable:
     ) -> Paged[Comment]:
         current_user = info.context.request.user
 
-        # Fetch root comments
         root_comments = CommentModel.objects.filter(
             commentable_id=self.id,
             commentable_type__model=self.type.value,
@@ -32,7 +31,6 @@ class Commentable:
             parent_comment_id=parent_comment_id,
         ).order_by("created")
 
-        # Prefetch related replies for each root comment
         root_comments = root_comments.prefetch_related(
             Prefetch("replies", queryset=CommentModel.objects.filter(is_deleted=False).order_by("created"))
         )
