@@ -2,7 +2,7 @@ import uuid
 from typing import Optional
 import strawberry
 import strawberry_django
-from django.db.models import Q, Prefetch
+from django.db.models import Q
 
 from comments.enums import CommentableType
 from comments.models import Comment as CommentModel
@@ -24,18 +24,14 @@ class Commentable:
     ) -> Paged[Comment]:
         current_user = info.context.request.user
 
-        root_comments = CommentModel.objects.filter(
+        comments = CommentModel.objects.filter(
             commentable_id=self.id,
             commentable_type__model=self.type.value,
             is_deleted=False,
             parent_comment_id=parent_comment_id,
         ).order_by("created")
 
-        root_comments = root_comments.prefetch_related(
-            Prefetch("replies", queryset=CommentModel.objects.filter(is_deleted=False).order_by("created"))
-        )
-
-        return UserBlockModel.paged(current_user, lambda comment: comment.commenter.id, root_comments, offset, limit)
+        return UserBlockModel.paged(current_user, lambda comment: comment.commenter.id, comments, offset, limit)
 
     @strawberry_django.field()
     def commenters(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
