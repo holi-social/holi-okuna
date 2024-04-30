@@ -37,10 +37,10 @@ from openbook_communities.schema.types import (
 Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
 
 
-def add_recommended_spaces_to_result(offset, limit, count, previous_queries, result, query):
+def add_to_result(offset, limit, count, previous_queries, queryset_creator, result, query):
     for q in previous_queries:
         query = query & ~q
-    queryset = create_spaces_queryset(query)
+    queryset = queryset_creator(query)
     if len(result) < limit:
         new_offset = max(0, offset - count)
         result.extend(list(queryset[new_offset : new_offset + limit - len(result)]))
@@ -95,17 +95,17 @@ class Query:
 
         if topic_ids is not None:
             query = create_filtered_spaces_query(topic_ids=topic_ids, geolocation=geolocation)
-            count = add_recommended_spaces_to_result(offset, limit, count, queries, result, query)
+            count = count + add_to_result(offset, limit, count, queries, create_spaces_queryset, result, query)
             queries.append(query)
 
         if geolocation is not None:
             query = create_filtered_spaces_query(geolocation=geolocation)
-            count = count + add_recommended_spaces_to_result(offset, limit, count, queries, result, query)
+            count = count + add_to_result(offset, limit, count, queries, create_spaces_queryset, result, query)
             queries.append(query)
 
         default_topics = list(TopicModel.objects.filter(is_discover_spaces_default=True).values_list("id", flat=True))
         query = create_filtered_spaces_query(topic_ids=default_topics)
-        count = count + add_recommended_spaces_to_result(offset, limit, count, queries, result, query)
+        count = count + add_to_result(offset, limit, count, queries, create_spaces_queryset, result, query)
 
         return Paged(result, count)
 
@@ -274,8 +274,35 @@ class Query:
         current_user = info.context.request.user
         if not current_user or current_user.is_anonymous:
             return Paged.of(TaskModel.objects.order_by("-created"), offset, limit)
-        # TODO Dummy implementation needs to be replaced
-        return Paged.of(TaskModel.objects.order_by("-created"), offset, limit)
+
+        skills = list(current_user.profile.skills.all())
+        tasks = []
+        count = 0
+        queries = []
+
+        def queryset_creator(query):
+            return TaskModel.objects.order_by("-created").filter(query).distinct()
+
+        locations_match = Q(geolocation__within=current_user.profile.geolocation)
+        if skills and current_user.profile.geolocation:
+            query = Q(skills__in=skills) & (locations_match | Q(location_type="REMOTE"))
+            count = count + add_to_result(offset, limit, count, queries, queryset_creator, tasks, query)
+            queries.append(query)
+
+        if skills:
+            query = Q(skills__in=skills)
+            count = count + add_to_result(offset, limit, count, queries, queryset_creator, tasks, query)
+            queries.append(query)
+
+        if current_user.profile.geolocation:
+            query = locations_match
+            count = count + add_to_result(offset, limit, count, queries, queryset_creator, tasks, query)
+            queries.append(query)
+
+        query = Q()
+        count = count + add_to_result(offset, limit, count, queries, queryset_creator, tasks, query)
+
+        return Paged(tasks, count)
 
     @strawberry_django.field()
     def collaboration_tools(

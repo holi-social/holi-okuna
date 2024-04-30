@@ -7,11 +7,14 @@ import pytest
 from asgiref.sync import async_to_sync
 from benedict import benedict
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.gis import geos
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.test import AsyncClient
+from faker import Faker
 
 from openbook.graphql_schema import schema
+from openbook.tests.test_data import geolocation_geometry
 from openbook_common.enums import VisibilityType
 from openbook_common.tests.helpers import (
     assert_is_unauthorized,
@@ -882,3 +885,208 @@ class TestTasks:
 
             assert expected_errors[input_key] in str(response.errors[0].message)
             assert (response.data["createTask"] if response.data else response.data) is None
+
+
+@pytest.mark.django_db
+class TestTaskRecommendations:
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        self.fake = Faker()
+        self.user = make_user()
+        self.space = make_community(creator=self.user)
+
+    def create_task(self, skills, location_type, geolocation=None, visibility=VisibilityType.PUBLIC):
+        return self.user.create_task(
+            geolocation=geolocation,
+            skills=skills,
+            location_type=location_type,
+            visibility=visibility,
+            space_id=self.space.id,
+            name=self.fake.text(max_nb_chars=20),
+            description=self.fake.text(max_nb_chars=20),
+            slots_available=3,
+            contact_email="some@email.de",
+            regularity="ONE_TIME",
+        )
+
+    def assert_filtered_tasks(self, filter_options, expected_spaces, totalResults=None):
+        def transform_space(space):
+            return {"id": str(space.id)}
+
+        recommended_tasks_query = """
+            query MyQuery($limit: Int, $offset: Int) {
+                recommendedTasks(limit: $limit, offset: $offset) {
+                    data {
+                        id
+                    }
+                    totalResults
+                }
+            }
+        """
+
+        filter_response = async_to_sync(schema.execute)(
+            recommended_tasks_query,
+            variable_values=filter_options,
+            context_value=benedict({"request": {"user": self.user}}),
+        )
+        assert filter_response.errors is None
+        expected_data = list(map(transform_space, expected_spaces))
+        assert filter_response.data["recommendedTasks"]["data"] == expected_data
+        if totalResults is not None:
+            assert filter_response.data["recommendedTasks"]["totalResults"] == totalResults
+
+    def test_filters_for_recommended_spaces(self):
+        skill1 = make_skill()
+        skill2 = make_skill()
+        other_skill = make_skill()
+
+        # locations inside geolocation filter
+        geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
+        # location outside geolocation filter
+        geolocation3 = geos.Point(9.76302, 53.5586627, srid=4326)
+
+        task_remote_2_skills = self.create_task(skills=[skill1.id, skill2.id], location_type="REMOTE")
+        task_onsite_2_skills = self.create_task(
+            skills=[skill1.id, skill2.id], location_type="ONSITE", geolocation=geolocation1
+        )
+        task_onsite_skill_1 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation1)
+        task_remote_skill_2 = self.create_task(skills=[skill2.id], location_type="REMOTE")
+        task_outside_onsite_skill_2 = self.create_task(
+            skills=[skill2.id], location_type="ONSITE", geolocation=geolocation3
+        )
+        task_onsite_other_skill = self.create_task(
+            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation1
+        )
+        task_outside_onsite_other_skill = self.create_task(
+            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation3
+        )
+        task_remote_other_skill = self.create_task(skills=[other_skill.id], location_type="REMOTE")
+
+        print()
+        for name, value in locals().items():
+            if name.startswith("task_"):
+                print(f"{name}: {value.id}")
+
+        self.assert_filtered_tasks(
+            {},
+            [
+                task_remote_other_skill,
+                task_outside_onsite_other_skill,
+                task_onsite_other_skill,
+                task_outside_onsite_skill_2,
+                task_remote_skill_2,
+            ],
+        )
+
+        self.user.profile.skills.add(skill1)
+        self.user.profile.skills.add(skill2)
+        self.user.profile.geolocation = geos.GEOSGeometry(json.dumps(geolocation_geometry))
+
+        self.assert_filtered_tasks(
+            {"limit": 10},
+            [
+                # skill matches and geo matches or remote
+                task_remote_skill_2,
+                task_onsite_skill_1,
+                task_onsite_2_skills,
+                task_remote_2_skills,
+                # only skill matches
+                task_outside_onsite_skill_2,
+                # only geo matches
+                task_onsite_other_skill,
+                # everything else
+                task_remote_other_skill,
+                task_outside_onsite_other_skill,
+            ],
+        )
+
+    def test_filters_for_recommended_spaces_paging(self):
+        skill1 = make_skill()
+        other_skill = make_skill()
+        self.user.profile.skills.add(skill1)
+        self.user.profile.geolocation = geos.GEOSGeometry(json.dumps(geolocation_geometry))
+
+        # locations inside geolocation filter
+        geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
+        # location outside geolocation filter
+        geolocation3 = geos.Point(9.76302, 53.5586627, srid=4326)
+        task_remote_skill1 = self.create_task(skills=[skill1.id], location_type="REMOTE")
+        task_onsite_skill1 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation1)
+        task_remote_skill2 = self.create_task(skills=[skill1.id], location_type="REMOTE")
+        task_onsite_skill2 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation1)
+        task_other_site_skill1 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation3)
+        task_other_site_skill2 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation3)
+        task_other_site_skill3 = self.create_task(skills=[skill1.id], location_type="ONSITE", geolocation=geolocation3)
+        task_onsite_other_skill1 = self.create_task(
+            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation1
+        )
+        task_onsite_other_skill2 = self.create_task(
+            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation1
+        )
+        task_onsite_other_skill3 = self.create_task(
+            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation1
+        )
+        task_outside_onsite_other_skill1 = self.create_task(
+            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation3
+        )
+        task_remote_other_skill1 = self.create_task(skills=[other_skill.id], location_type="REMOTE")
+        task_outside_onsite_other_skill2 = self.create_task(
+            skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation3
+        )
+        task_remote_other_skill2 = self.create_task(skills=[other_skill.id], location_type="REMOTE")
+
+        self.assert_filtered_tasks(
+            {"limit": 20},
+            [
+                # skill matches and geo matches or remote
+                task_onsite_skill2,
+                task_remote_skill2,
+                task_onsite_skill1,
+                task_remote_skill1,
+                # only skill matches
+                task_other_site_skill3,
+                task_other_site_skill2,
+                task_other_site_skill1,
+                # only geo matches
+                task_onsite_other_skill3,
+                task_onsite_other_skill2,
+                task_onsite_other_skill1,
+                # everything else
+                task_remote_other_skill2,
+                task_outside_onsite_other_skill2,
+                task_remote_other_skill1,
+                task_outside_onsite_other_skill1,
+            ],
+            14,
+        )
+
+        self.assert_filtered_tasks(
+            {"limit": 6, "offset": 2},
+            [
+                # skill matches and geo matches or remote
+                task_onsite_skill1,
+                task_remote_skill1,
+                # only skill matches
+                task_other_site_skill3,
+                task_other_site_skill2,
+                task_other_site_skill1,
+                # only geo matches
+                task_onsite_other_skill3,
+            ],
+            14,
+        )
+
+        self.assert_filtered_tasks(
+            {"limit": 6, "offset": 5},
+            [
+                task_other_site_skill2,
+                task_other_site_skill1,
+                # only geo matches
+                task_onsite_other_skill3,
+                task_onsite_other_skill2,
+                task_onsite_other_skill1,
+                # everything else
+                task_remote_other_skill2,
+            ],
+            14,
+        )
