@@ -20,7 +20,7 @@ class FeedPost:
     image: Optional[str]
     image_blurhash: Optional[str]
     visibility: VisibilityLevel
-    topics: List[Optional[Topic]]
+    topics: Optional[List[Topic]]
     category: FeedPostCategory
     creator: Optional[User]
     created_at: str
