@@ -4,6 +4,7 @@ from benedict import benedict
 from openbook.graphql_schema import schema
 
 
+# Mutations
 def create_feed_post(user, input):
     return async_to_sync(schema.execute)(
         """
@@ -33,6 +34,36 @@ def create_feed_post(user, input):
     )
 
 
+def update_feed_post(user, input):
+    return async_to_sync(schema.execute)(
+        """
+        mutation test($input: UpdateFeedPostInput!){
+            updateFeedPost(input: $input) {
+                id
+                title
+                slug
+                description
+                visibility
+                image
+                imageBlurhash
+                category {
+                    id
+                }
+                topics {
+                    id
+                }
+                creator {
+                    id
+                }
+            }
+        }
+        """,
+        context_value=benedict({"request": {"user": user}}),
+        variable_values={"input": input},
+    )
+
+
+# Queries
 def my_posts(user):
     return async_to_sync(schema.execute)(
         """
@@ -123,3 +154,9 @@ def post(user, id_or_slug):
         context_value=benedict({"request": {"user": user}}),
         variable_values={"idOrSlug": id_or_slug},
     )
+
+
+def update_input_data(post_id, input_data):
+    data = input_data.copy()
+    data["postId"] = post_id
+    return data

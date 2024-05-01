@@ -8,7 +8,14 @@ from django.test import AsyncClient, TestCase
 from faker import Faker
 
 from feed_posts.enums import VisibilityLevel
-from feed_posts.tests.helpers import create_feed_post, my_posts, posts_by_user_id, post
+from feed_posts.tests.helpers import (
+    create_feed_post,
+    my_posts,
+    posts_by_user_id,
+    post,
+    update_feed_post,
+    update_input_data,
+)
 from openbook import settings
 from openbook_common.tests.helpers import (
     make_user,
@@ -227,5 +234,55 @@ class TestFeedPosts(TestCase):
         assert data["visibility"] == self.public_feed_post_input_data["visibility"]
         assert data["category"]["id"] == self.public_feed_post_input_data["categoryId"]
         assert len(data["topics"]) == len(self.public_feed_post_input_data["topicIds"])
+        assert data["creator"]["id"] == str(self.user.pk)
+        assert data["image"]
+
+    def test_can_not_update_feed_post_if_anonymous_user(self):
+        mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        assert mutation_response.errors is None
+
+        post_id = mutation_response.data["createFeedPost"]["id"]
+
+        input_data = update_input_data(post_id=post_id, input_data=self.another_public_feed_post_input_data)
+
+        response = update_feed_post(user=AnonymousUser, input=input_data)
+
+        assert response.errors is not None
+        assert response.data is None
+
+        assert "Unauthorized" in str(response.errors[0].message)
+
+    def test_can_not_update_feed_post_if_not_owner(self):
+        mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        assert mutation_response.errors is None
+
+        post_id = mutation_response.data["createFeedPost"]["id"]
+
+        input_data = update_input_data(post_id=post_id, input_data=self.another_public_feed_post_input_data)
+
+        response = update_feed_post(user=self.another_user, input=input_data)
+
+        assert response.errors is not None
+        assert response.data is None
+
+        assert "You cannot update this feed post" in response.errors[0].extensions["errors"]
+
+    def test_can_update_feed_post_if_owner(self):
+        mutation_response = create_feed_post(user=self.user, input=self.another_public_feed_post_input_data)
+        assert mutation_response.errors is None
+
+        post_id = mutation_response.data["createFeedPost"]["id"]
+
+        input_data = update_input_data(post_id=post_id, input_data=self.registered_users_only_feed_post_input_data)
+
+        response = update_feed_post(user=self.user, input=input_data)
+
+        data = response.data["updateFeedPost"]
+
+        assert data["title"] == self.registered_users_only_feed_post_input_data["title"]
+        assert data["description"] == self.registered_users_only_feed_post_input_data["description"]
+        assert data["visibility"] == self.registered_users_only_feed_post_input_data["visibility"]
+        assert data["category"]["id"] == self.registered_users_only_feed_post_input_data["categoryId"]
+        assert len(data["topics"]) == len(self.registered_users_only_feed_post_input_data["topicIds"])
         assert data["creator"]["id"] == str(self.user.pk)
         assert data["image"]

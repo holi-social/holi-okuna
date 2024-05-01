@@ -32,3 +32,43 @@ class FeedPostRepository:
 
     def get_feed_post(self, id_or_slug):
         return FeedPost.objects.get(id=id_or_slug) if is_uuid(id_or_slug) else FeedPost.objects.get(slug=id_or_slug)
+
+    def exists(self, post_id):
+        return FeedPost.objects.filter(id=post_id).exists()
+
+    def update_feed_post(
+        self,
+        post_id,
+        title=None,
+        description=None,
+        visibility=None,
+        category=None,
+        topics=None,
+        image=None,
+        remove_image=False,
+    ):
+        post = FeedPost.objects.get(id=post_id)
+
+        if title is not None:
+            post.title = title
+
+        if description is not None:
+            post.description = description
+
+        if visibility is not None:
+            post.visibility = visibility
+
+        if category is not None:
+            post.category = category
+
+        if topics is not None:
+            post.topics.set(topics)
+
+        if remove_image:
+            post.delete_image()
+        elif image:
+            post.update_image(image)
+
+        post.save()
+
+        return post
