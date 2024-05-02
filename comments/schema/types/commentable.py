@@ -4,9 +4,9 @@ import strawberry
 import strawberry_django
 from django.db.models import Q
 
-from comments.models.commentable import CommentableType
 from comments.models import Comment as CommentModel
 from comments.schema.types.comment import Comment
+from comments.types import CommentableType
 from openbook_auth.models import User as UserModel
 from openbook_auth.models import UserBlock as UserBlockModel
 from openbook_auth.schema.types import User

@@ -1,7 +1,6 @@
 import uuid
 from abc import abstractmethod
-from enum import Enum
-import strawberry
+
 from django.db.models import Model
 
 
@@ -37,9 +36,3 @@ class Commentable(Model):
     @abstractmethod
     def is_public(self) -> bool:
         raise NotImplementedError
-
-
-@strawberry.enum
-class CommentableType(Enum):
-    POST = "post"
-    DISCUSSION = "discussion"

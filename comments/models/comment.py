@@ -8,7 +8,7 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from .commentable import CommentableType, Commentable
+from .commentable import Commentable
 from comments.validators import comment_text_validators
 from openbook_auth.models import User, UserBlock
 from openbook_common.helpers import (
@@ -38,6 +38,7 @@ from openbook_common.utils.model_loaders import (
 from openbook_moderation.models import ModeratedObject
 
 from .comment_reaction import CommentReaction
+from .commentable_type import CommentableType
 
 
 class Comment(ModelWithUUID, Commentable):

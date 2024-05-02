@@ -5,7 +5,7 @@ from asgiref.sync import sync_to_async
 from django.core.exceptions import PermissionDenied, FieldError
 from django.db import transaction
 
-from comments.enums import CommentableType
+from comments.types import CommentableType
 from comments.models import Comment as CommentModel
 from comments.schema.serializers import CommentSerializer
 from comments.schema.types.comment import Comment, CommentReactionInput, CreateCommentInput
