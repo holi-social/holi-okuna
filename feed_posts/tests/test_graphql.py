@@ -16,6 +16,7 @@ from feed_posts.tests.helpers import (
     update_feed_post,
     update_input_data,
     feed_posts,
+    delete_feed_post,
 )
 from openbook import settings
 from openbook_common.tests.helpers import (
@@ -354,3 +355,41 @@ class TestFeedPosts(TestCase):
 
         assert data["data"][0]["visibility"] == VisibilityLevel.REGISTERED_USERS_ONLY
         assert data["data"][1]["visibility"] == VisibilityLevel.PUBLIC
+
+    def test_can_not_delete_feed_post_if_anonymous_user(self):
+        mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        assert mutation_response.errors is None
+
+        post_id = mutation_response.data["createFeedPost"]["id"]
+
+        response = delete_feed_post(user=AnonymousUser, post_id=post_id)
+
+        assert response.errors is not None
+        assert response.data is None
+
+        assert "Unauthorized" in str(response.errors[0].message)
+
+    def test_can_not_delete_feed_post_if_not_owner(self):
+        mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        assert mutation_response.errors is None
+
+        post_id = mutation_response.data["createFeedPost"]["id"]
+
+        response = delete_feed_post(user=self.another_user, post_id=post_id)
+
+        assert response.errors is not None
+        assert response.data is None
+
+        assert "You cannot delete this feed post" in response.errors[0].extensions["errors"]
+
+    def test_can_delete_feed_post_if_owner(self):
+        mutation_response = create_feed_post(user=self.user, input=self.another_public_feed_post_input_data)
+        assert mutation_response.errors is None
+
+        post_id = mutation_response.data["createFeedPost"]["id"]
+
+        response = delete_feed_post(user=self.user, post_id=post_id)
+
+        data = response.data["deleteFeedPost"]
+
+        assert data["success"]
