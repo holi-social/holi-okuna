@@ -51,3 +51,19 @@ class Query:
         id_or_slug: str,
     ) -> FeedPost:
         return FeedPostService().get_feed_post(user=info.context.request.user, id_or_slug=id_or_slug)
+
+    @strawberry_django.field()
+    def feed_posts(
+        self,
+        info,
+        offset: int = 0,
+        limit: int = 2,
+    ) -> Paged[FeedPost]:
+        user = info.context.request.user
+        posts = FeedPostService().get_feed_posts()
+
+        return Paged.of(
+            posts.filter(visibility=VisibilityLevel.PUBLIC) if user.is_anonymous else posts,
+            offset,
+            limit,
+        )

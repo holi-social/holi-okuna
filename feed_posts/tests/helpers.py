@@ -127,6 +127,37 @@ def posts_by_user_id(user, user_id):
     )
 
 
+def feed_posts(user):
+    return async_to_sync(schema.execute)(
+        """
+        query{
+            feedPosts{
+               totalResults
+               data {
+                    id
+                    title
+                    slug
+                    description
+                    visibility
+                    image
+                    imageBlurhash
+                    category {
+                        id
+                    }
+                    topics {
+                        id
+                    }
+                    creator {
+                        id
+                    }
+                }
+            }
+        }
+        """,
+        context_value=benedict({"request": {"user": user}}),
+    )
+
+
 def post(user, id_or_slug):
     return async_to_sync(schema.execute)(
         """
@@ -156,6 +187,7 @@ def post(user, id_or_slug):
     )
 
 
+# Helpers
 def update_input_data(post_id, input_data):
     data = input_data.copy()
     data["postId"] = post_id
