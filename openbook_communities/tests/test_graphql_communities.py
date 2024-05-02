@@ -83,11 +83,9 @@ class TestCommunities(TestCase):
         geolocation2 = geos.Point(8.5798387, 53.5590841, srid=4326)
         # location outside geolocation filter
         geolocation3 = geos.Point(9.76302, 53.5586627, srid=4326)
-        space1 = make_community(
-            creator=creator, topics=[topic1, topic2], location="Location1", geolocation=geolocation1
-        )
-        space2 = make_community(topics=[topic1], location="Location2", geolocation=geolocation2)
-        space3 = make_community(topics=[topic2], location="Location3", geolocation=geolocation3)
+        space1 = make_community(creator=creator, topics=[topic1, topic2], geolocation=geolocation1)
+        space2 = make_community(topics=[topic1], geolocation=geolocation2)
+        space3 = make_community(topics=[topic2], geolocation=geolocation3)
         skill1 = make_skill()
         skill2 = make_skill()
         skill3 = make_skill()
@@ -160,6 +158,174 @@ class TestCommunities(TestCase):
             [],
         )
 
+    def test_filters_for_recommended_spaces(self):
+        topic1 = make_topic()
+        topic2 = make_topic()
+        default_topic = make_topic(is_discover_spaces_default=True)
+        uninteresting_topic = make_topic()
+
+        # locations inside geolocation filter
+        geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
+        geolocation2 = geos.Point(8.5798387, 53.5590841, srid=4326)
+        # location outside geolocation filter
+        geolocation3 = geos.Point(9.76302, 53.5586627, srid=4326)
+
+        topic1_and_2_inside_space = make_community(topics=[topic1, topic2], geolocation=geolocation1)
+        topic1_outside_space = make_community(topics=[topic1], geolocation=geolocation3)
+        topic2_inside_space = make_community(topics=[topic2], geolocation=geolocation2)
+        uninteresting_topic_inside_space = make_community(topics=[uninteresting_topic], geolocation=geolocation1)
+        default_topic_outside_space = make_community(topics=[default_topic], geolocation=geolocation3)
+        make_community(topics=[uninteresting_topic], geolocation=geolocation3)
+
+        recommended_spaces_query = """
+            query MyQuery($topicIds: [UUID], $geolocation: GeoJSON, $limit: Int, $offset: Int) {
+                recommendedSpaces(topicIds: $topicIds, geolocation: $geolocation, limit: $limit, offset: $offset) {
+                    data {
+                        id
+                    }
+                    totalResults
+                }
+            }
+        """
+
+        def transform_space(space):
+            return {"id": str(space.id)}
+
+        def assert_filtered_spaces(filter_options, expected_spaces):
+            filter_response = async_to_sync(schema.execute)(
+                recommended_spaces_query,
+                variable_values=filter_options,
+                context_value=benedict({"request": {"user": AnonymousUser}}),
+            )
+            assert filter_response.errors is None
+            expected_data = list(map(transform_space, expected_spaces))
+            assert filter_response.data["recommendedSpaces"]["data"] == expected_data
+
+        assert_filtered_spaces({}, [default_topic_outside_space])
+        assert_filtered_spaces(
+            {"topicIds": [str(topic2.id), str(topic1.id)], "geolocation": geolocation},
+            [
+                topic2_inside_space,
+                topic1_and_2_inside_space,
+                uninteresting_topic_inside_space,
+                default_topic_outside_space,
+            ],
+        )
+        assert_filtered_spaces(
+            {"topicIds": [str(topic1.id)]},
+            [
+                topic1_outside_space,
+                topic1_and_2_inside_space,
+                default_topic_outside_space,
+            ],
+        )
+        assert_filtered_spaces(
+            {"geolocation": geolocation},
+            [
+                uninteresting_topic_inside_space,
+                topic2_inside_space,
+                topic1_and_2_inside_space,
+                default_topic_outside_space,
+            ],
+        )
+
+    def test_filters_for_recommended_spaces_paging(self):
+        topic1 = make_topic()
+        default_topic = make_topic(is_discover_spaces_default=True)
+        uninteresting_topic = make_topic()
+
+        # locations inside geolocation filter
+        geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
+        # location outside geolocation filter
+        geolocation3 = geos.Point(9.76302, 53.5586627, srid=4326)
+
+        topic1_inside_space1 = make_community(topics=[topic1], geolocation=geolocation1)
+        topic1_inside_space2 = make_community(topics=[topic1], geolocation=geolocation1)
+        topic1_inside_space3 = make_community(topics=[topic1], geolocation=geolocation1)
+        uninteresting_topic_inside_space1 = make_community(topics=[uninteresting_topic], geolocation=geolocation1)
+        uninteresting_topic_inside_space2 = make_community(topics=[uninteresting_topic], geolocation=geolocation1)
+        uninteresting_topic_inside_space3 = make_community(topics=[uninteresting_topic], geolocation=geolocation1)
+        default_topic_outside_space1 = make_community(topics=[default_topic], geolocation=geolocation3)
+        default_topic_outside_space2 = make_community(topics=[default_topic], geolocation=geolocation3)
+        default_topic_outside_space3 = make_community(topics=[default_topic], geolocation=geolocation3)
+        make_community(topics=[uninteresting_topic], geolocation=geolocation3)
+
+        recommended_spaces_query = """
+            query MyQuery($topicIds: [UUID], $geolocation: GeoJSON, $limit: Int, $offset: Int) {
+                recommendedSpaces(topicIds: $topicIds, geolocation: $geolocation, limit: $limit, offset: $offset) {
+                    data {
+                        id
+                    }
+                    totalResults
+                }
+            }
+        """
+
+        def transform_space(space):
+            return {"id": str(space.id)}
+
+        def assert_filtered_spaces(filter_options, expected_spaces, total_results):
+            filter_response = async_to_sync(schema.execute)(
+                recommended_spaces_query,
+                variable_values=filter_options,
+                context_value=benedict({"request": {"user": AnonymousUser}}),
+            )
+            assert filter_response.errors is None
+            expected_data = list(map(transform_space, expected_spaces))
+            assert filter_response.data["recommendedSpaces"]["data"] == expected_data
+            assert filter_response.data["recommendedSpaces"]["totalResults"] == total_results
+
+        assert_filtered_spaces(
+            {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 2, "limit": 3},
+            [
+                topic1_inside_space1,
+                uninteresting_topic_inside_space3,
+                uninteresting_topic_inside_space2,
+            ],
+            9,
+        )
+        assert_filtered_spaces(
+            {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 2, "limit": 6},
+            [
+                topic1_inside_space1,
+                uninteresting_topic_inside_space3,
+                uninteresting_topic_inside_space2,
+                uninteresting_topic_inside_space1,
+                default_topic_outside_space3,
+                default_topic_outside_space2,
+            ],
+            9,
+        )
+        assert_filtered_spaces(
+            {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 4, "limit": 3},
+            [
+                uninteresting_topic_inside_space2,
+                uninteresting_topic_inside_space1,
+                default_topic_outside_space3,
+            ],
+            9,
+        )
+        assert_filtered_spaces(
+            {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 0, "limit": 20},
+            [
+                topic1_inside_space3,
+                topic1_inside_space2,
+                topic1_inside_space1,
+                uninteresting_topic_inside_space3,
+                uninteresting_topic_inside_space2,
+                uninteresting_topic_inside_space1,
+                default_topic_outside_space3,
+                default_topic_outside_space2,
+                default_topic_outside_space1,
+            ],
+            9,
+        )
+        assert_filtered_spaces(
+            {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 10, "limit": 20},
+            [],
+            9,
+        )
+
     def test_filters_for_discover_spaces(self):
         topic1 = make_topic()
         topic2 = make_topic()
@@ -168,9 +334,9 @@ class TestCommunities(TestCase):
         geolocation2 = geos.Point(8.5798387, 53.5590841, srid=4326)
         # location outside geolocation filter
         geolocation3 = geos.Point(9.76302, 53.5586627, srid=4326)
-        space1 = make_community(topics=[topic1, topic2], location="Location1", geolocation=geolocation1)
-        space2 = make_community(topics=[topic1], location="Location2", geolocation=geolocation2)
-        space3 = make_community(topics=[topic2], location="Location3", geolocation=geolocation3)
+        space1 = make_community(topics=[topic1, topic2], geolocation=geolocation1)
+        space2 = make_community(topics=[topic1], geolocation=geolocation2)
+        space3 = make_community(topics=[topic2], geolocation=geolocation3)
         skill1 = make_skill()
         skill2 = make_skill()
         skill3 = make_skill()

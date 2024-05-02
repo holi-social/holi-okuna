@@ -27,6 +27,7 @@ from .helpers import (
     delete_comment,
     get_commenters,
     get_comments,
+    get_comments_with_parent_comment_id,
     get_top_comment,
     remove_reaction_from_comment,
 )
@@ -296,6 +297,17 @@ class TestAddingComments(TestCase):
         assert comment.text == "test approved"
         assert comment.commentable == post
 
+    def test_should_add_a_comment_with_parent_comment(self):
+        post = make_post()
+        commenter = make_user(name="Commenter")
+
+        root_comment = Comment.create_comment("It's greeeaat!", commenter, post)
+
+        reply = Comment.create_comment("Just ok", commenter, post, root_comment)
+
+        assert reply.commenter == commenter
+        assert reply.parent_comment.id == root_comment.id
+
     @mock.patch("openbook_notifications.notifications.Notifications.send_comment_mention_notification")
     @mock.patch("openbook_notifications.notifications.Notifications.send_commentable_author_notification")
     def test_should_notify_mentioned_users_and_post_author(
@@ -488,6 +500,51 @@ class TestComments(TestCase):
         assert len(comments_data["data"]) == 2
         assert comments_data["data"][0]["text"] == "It's greeeaat!"
         assert comments_data["data"][1]["text"] == "Just ok"
+
+    def test_should_list_comments_with_parent_comment_id(self):
+        post = make_post()
+        commenter = make_user(name="Commenter")
+
+        root_comment = Comment.create_comment("It's greeeaat!", commenter, post)
+
+        Comment.create_comment("Just ok", commenter, post, root_comment)
+
+        Comment.create_comment("You didn't see me, right!", commenter, post)
+        response = get_comments_with_parent_comment_id(post.id, "POST", parent_comment_id=root_comment.id)
+
+        assert response.errors is None
+        comments_data = response.data["commentable"]["comments"]
+        assert comments_data["totalResults"] == 1
+        assert len(comments_data["data"]) == 1
+        assert comments_data["data"][0]["text"] == "Just ok"
+
+    def test_should_list_replies(self):
+        post = make_post()
+        commenter = make_user(name="Commenter")
+
+        root_comment = Comment.create_comment("It's greeeaat!", commenter, post)
+
+        reply = Comment.create_comment("Just ok", commenter, post, root_comment)
+
+        # create a non-reply comment
+        Comment.create_comment("You didn't see me, right!", commenter, post)
+        response = get_comments(post.id, "POST")
+
+        assert response.errors is None
+        comments_data = response.data["commentable"]["comments"]
+
+        # total results should be all except for the reply
+        assert comments_data["totalResults"] == 2
+        assert len(comments_data["data"]) == 2
+
+        # first level comments check
+        assert comments_data["data"][0]["text"] == "It's greeeaat!"
+        assert comments_data["data"][1]["text"] == "You didn't see me, right!"
+
+        # second level comments check
+        assert comments_data["data"][0]["totalReplies"] == 1
+        assert comments_data["data"][0]["replies"][0]["id"] == str(reply.id)
+        assert comments_data["data"][1]["totalReplies"] == 0
 
     def test_should_not_list_comments_for_private_commentables(self):
         post = make_community_post()

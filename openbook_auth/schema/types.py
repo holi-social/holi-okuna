@@ -36,6 +36,8 @@ class UpdateAuthenticatedUserInput:
     interests: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     sdgs: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     skills: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    tracking_consent_analytics: Optional[bool] = strawberry.UNSET
+    tracking_consent_personalization: Optional[bool] = strawberry.UNSET
 
 
 @strawberry.input
@@ -113,6 +115,12 @@ class User:
     def connection_status_to_space(self, info, space_id: uuid.UUID) -> List[Optional[SpaceUserConnectionType]]:
         space = CommunityModel.objects.get(id=space_id)
         return space.connection_status_to_user(self)
+
+
+@strawberry_django.type(UserModel)
+class AuthenticatedUser(User):
+    tracking_consent_analytics: Optional[bool]
+    tracking_consent_personalization: Optional[bool]
 
 
 @strawberry.input

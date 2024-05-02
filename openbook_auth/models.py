@@ -261,6 +261,9 @@ class User(ModelWithUUID, AbstractUser):
 
     is_moderator = models.BooleanField(default=False)
 
+    tracking_consent_analytics = models.BooleanField(blank=True, null=True, default=None)
+    tracking_consent_personalization = models.BooleanField(blank=True, null=True, default=None)
+
     JWT_TOKEN_TYPE_CHANGE_EMAIL = "CE"
     JWT_TOKEN_TYPE_PASSWORD_RESET = "PR"
 
@@ -791,6 +794,8 @@ class User(ModelWithUUID, AbstractUser):
         save=True,
         update_location=False,
         remove_avatar=False,
+        tracking_consent_analytics=None,
+        tracking_consent_personalization=None,
     ):
         profile = self.profile
 
@@ -838,6 +843,11 @@ class User(ModelWithUUID, AbstractUser):
                 self.delete_all_pending_connection_requests()
 
             self.visibility = visibility
+
+        if tracking_consent_analytics is not None:
+            self.tracking_consent_analytics = tracking_consent_analytics
+        if tracking_consent_personalization is not None:
+            self.tracking_consent_personalization = tracking_consent_personalization
 
         if last_name is not None:
             profile.last_name = normalize_spaces(last_name)

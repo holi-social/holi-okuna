@@ -1,3 +1,4 @@
+# ruff: noqa
 from hashlib import sha256
 import uuid
 from typing import List, Optional
@@ -138,7 +139,7 @@ class Community(ModelWithUUID):
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     cover_blurhash = models.CharField(max_length=50, blank=True, null=True)
-    created = models.DateTimeField(default=timezone.now, editable=False)
+    created = models.DateTimeField(default=timezone.now, editable=True)
     starrers = models.ManyToManyField(User, related_name="favorite_communities", blank=True)
     banned_users = models.ManyToManyField(User, related_name="banned_of_communities", blank=True)
     COMMUNITY_TYPE_PRIVATE = "T"

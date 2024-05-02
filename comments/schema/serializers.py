@@ -18,3 +18,6 @@ class CommentSerializer(serializers.Serializer):
         required=True,
         validators=comment_text_validators,
     )
+    parent_comment_id = serializers.UUIDField(
+        required=False,
+    )

@@ -15,10 +15,11 @@
       "title_fr": null,
       "title_it": null,
       "title_tr": null,
-      "title_pt_br": null
+      "title_pt_br": null,
+      "is_enabled": true
     }
   },
-    {
+  {
     "model": "openbook_terms.feedpostcategory",
     "pk": "1e4b0b27-a013-43fe-8ec2-0f0314c521e3",
     "fields": {
@@ -34,7 +35,8 @@
       "title_fr": null,
       "title_it": null,
       "title_tr": null,
-      "title_pt_br": null
+      "title_pt_br": null,
+      "is_enabled": true
     }
   },
   {
@@ -53,10 +55,11 @@
       "title_fr": null,
       "title_it": null,
       "title_tr": null,
-      "title_pt_br": null
+      "title_pt_br": null,
+      "is_enabled": true
     }
   },
-    {
+  {
     "model": "openbook_terms.feedpostcategory",
     "pk": "e0ee8820-8c2b-4084-94c6-1b1d6163bd05",
     "fields": {
@@ -72,10 +75,11 @@
       "title_fr": null,
       "title_it": null,
       "title_tr": null,
-      "title_pt_br": null
+      "title_pt_br": null,
+      "is_enabled": true
     }
   },
-      {
+  {
     "model": "openbook_terms.feedpostcategory",
     "pk": "66efe368-25e6-4dad-9665-298abb2ddb04",
     "fields": {
@@ -91,10 +95,11 @@
       "title_fr": null,
       "title_it": null,
       "title_tr": null,
-      "title_pt_br": null
+      "title_pt_br": null,
+      "is_enabled": false
     }
   },
-      {
+  {
     "model": "openbook_terms.feedpostcategory",
     "pk": "aac090da-1355-4fc5-a582-ef359c30b483",
     "fields": {
@@ -110,7 +115,8 @@
       "title_fr": null,
       "title_it": null,
       "title_tr": null,
-      "title_pt_br": null
+      "title_pt_br": null,
+      "is_enabled": false
     }
   }
 ]
