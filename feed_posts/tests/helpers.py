@@ -63,6 +63,20 @@ def update_feed_post(user, input):
     )
 
 
+def delete_feed_post(user, post_id):
+    return async_to_sync(schema.execute)(
+        """
+        mutation test($postId: UUID!){
+            deleteFeedPost(postId: $postId) {
+                success        
+            }
+        }
+        """,
+        context_value=benedict({"request": {"user": user}}),
+        variable_values={"postId": post_id},
+    )
+
+
 # Queries
 def my_posts(user):
     return async_to_sync(schema.execute)(

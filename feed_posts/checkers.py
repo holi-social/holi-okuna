@@ -12,3 +12,7 @@ class FeedPostChecker:
     def check_can_update_feed_post(self, user, post):
         if post.creator != user:
             raise ValidationError(_("You cannot update this feed post"))
+
+    def check_can_delete_feed_post(self, user, post):
+        if post.creator != user:
+            raise ValidationError(_("You cannot delete this feed post"))

@@ -75,3 +75,6 @@ class FeedPostRepository:
 
     def get_feed_posts(self):
         return FeedPost.objects.order_by("-created_at")
+
+    def delete_feed_post(self, post_id):
+        return FeedPost.objects.get(id=post_id).delete()

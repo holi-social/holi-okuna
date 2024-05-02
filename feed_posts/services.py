@@ -74,3 +74,8 @@ class FeedPostService:
 
     def get_feed_posts(self):
         return self.repository.get_feed_posts()
+
+    def delete_feed_post(self, user, post_id):
+        post = self.repository.get_feed_post(id_or_slug=str(post_id))
+        self.checker.check_can_delete_feed_post(user=user, post=post)
+        return self.repository.delete_feed_post(post_id)
