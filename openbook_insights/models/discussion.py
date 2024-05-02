@@ -10,13 +10,13 @@ from rest_framework.exceptions import (
     ValidationError,
 )
 
-from comments.models import Comment, Commentable
+from comments.models import Comment, CommentableNotificationContext
 from openbook_auth.models import User
 from openbook_common.models import ModelWithUUID
 from openbook_insights.models.insight import Insight
 
 
-class Discussion(ModelWithUUID, Commentable):
+class Discussion(ModelWithUUID, CommentableNotificationContext):
     insight = ForeignKey(Insight, on_delete=CASCADE, related_name="discussions")
     question = TextField(null=False, blank=False, verbose_name="Question or talking point for discussion")
 

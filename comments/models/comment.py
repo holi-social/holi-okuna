@@ -8,7 +8,7 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from .commentable import Commentable
+from .commentable_notification_context import CommentableNotificationContext
 from comments.validators import comment_text_validators
 from openbook_auth.models import User, UserBlock
 from openbook_common.helpers import (
@@ -41,7 +41,7 @@ from .comment_reaction import CommentReaction
 from .commentable_type import CommentableType
 
 
-class Comment(ModelWithUUID, Commentable):
+class Comment(ModelWithUUID, CommentableNotificationContext):
     moderated_object = GenericRelation(ModeratedObject, related_query_name="post_comments")
 
     commentable_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)

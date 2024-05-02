@@ -1,12 +1,11 @@
 import uuid
 from abc import abstractmethod
 
-from django.db.models import Model
 
-
-class Commentable(Model):
+class CommentableNotificationContext:
     """
-    represents an abstract domain model for comment parents
+    represents an abstract domain model for comment holding entities
+    and their dependent-on properties for sending comment-notifications
     """
 
     class Meta:
