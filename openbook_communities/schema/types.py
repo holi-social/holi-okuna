@@ -176,7 +176,7 @@ class Task:
     id: strawberry.auto
     name: strawberry.auto
     description: strawberry.auto
-    community: "Space"
+    space: "Space" = strawberry_django.field(field_name="community")
     creator: User
     created: strawberry.auto
     slots_available: strawberry.auto

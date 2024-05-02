@@ -15,6 +15,8 @@ from feed_posts.tests.helpers import (
     post,
     update_feed_post,
     update_input_data,
+    feed_posts,
+    delete_feed_post,
 )
 from openbook import settings
 from openbook_common.tests.helpers import (
@@ -65,7 +67,16 @@ class TestFeedPosts(TestCase):
             "visibility": VisibilityLevel.PUBLIC,
             "categoryId": str(make_feed_post_category().id),
             "topicIds": [str(make_topic().id) for _ in range(6)],
-            "image": SimpleUploadedFile(name="image_1.jpg", content=simple_jpeg_bytes),
+            "image": SimpleUploadedFile(name="image_3.jpg", content=simple_jpeg_bytes),
+        }
+
+        cls.another_registered_users_only_feed_post_input_data = {
+            "title": fake.text(max_nb_chars=settings.FEED_POST_TITLE_MAX_LENGTH),
+            "description": fake.text(max_nb_chars=settings.FEED_POST_DESCRIPTION_MAX_LENGTH),
+            "visibility": VisibilityLevel.REGISTERED_USERS_ONLY,
+            "categoryId": str(make_feed_post_category().id),
+            "topicIds": [str(make_topic().id) for _ in range(3)],
+            "image": SimpleUploadedFile(name="image_4.jpg", content=simple_jpeg_bytes),
         }
 
     def test_can_not_create_feed_post_if_anonymous_user(self):
@@ -149,7 +160,7 @@ class TestFeedPosts(TestCase):
         #  anonymous user can see only 2 public feed posts
         assert data["totalResults"] == 2
 
-    def test_can_query_public_and_only_registered_user_feed_posts_if_authenticated_user(self):
+    def test_can_query_public_and_only_registered_user_feed_posts_by_user_if_authenticated_user(self):
         # user creates 2 public feed posts and 1 registered users only feed post
         first_mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
         assert first_mutation_response.errors is None
@@ -286,3 +297,99 @@ class TestFeedPosts(TestCase):
         assert len(data["topics"]) == len(self.registered_users_only_feed_post_input_data["topicIds"])
         assert data["creator"]["id"] == str(self.user.pk)
         assert data["image"]
+
+    def test_can_query_only_public_feed_posts_if_anonymous_user(self):
+        # user creates 2 public feed posts and 2 registered users only feed post
+        first_mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        assert first_mutation_response.errors is None
+
+        second_mutation_response = create_feed_post(
+            user=self.user, input=self.registered_users_only_feed_post_input_data
+        )
+        assert second_mutation_response.errors is None
+
+        third_mutation_response = create_feed_post(user=self.user, input=self.another_public_feed_post_input_data)
+        assert third_mutation_response.errors is None
+
+        fourth_mutation_response = create_feed_post(
+            user=self.user, input=self.another_registered_users_only_feed_post_input_data
+        )
+        assert fourth_mutation_response.errors is None
+
+        # anonymous user queries feed posts
+        response = feed_posts(user=AnonymousUser)
+
+        data = response.data["feedPosts"]
+
+        #  anonymous user can see only 2 feed posts
+        assert data["totalResults"] == 2
+
+        assert data["data"][0]["visibility"] == VisibilityLevel.PUBLIC
+        assert data["data"][1]["visibility"] == VisibilityLevel.PUBLIC
+
+    def test_can_query_public_and_only_registered_user_feed_posts_if_authenticated_user(self):
+        # user creates 2 public feed posts and 2 registered users only feed post
+        first_mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        assert first_mutation_response.errors is None
+
+        second_mutation_response = create_feed_post(
+            user=self.user, input=self.registered_users_only_feed_post_input_data
+        )
+        assert second_mutation_response.errors is None
+
+        third_mutation_response = create_feed_post(user=self.user, input=self.another_public_feed_post_input_data)
+        assert third_mutation_response.errors is None
+
+        fourth_mutation_response = create_feed_post(
+            user=self.user, input=self.another_registered_users_only_feed_post_input_data
+        )
+        assert fourth_mutation_response.errors is None
+
+        # another user queries feed posts
+        response = feed_posts(user=self.another_user)
+
+        data = response.data["feedPosts"]
+
+        #  another user can see all 4 feed posts
+        assert data["totalResults"] == 4
+
+        assert data["data"][0]["visibility"] == VisibilityLevel.REGISTERED_USERS_ONLY
+        assert data["data"][1]["visibility"] == VisibilityLevel.PUBLIC
+
+    def test_can_not_delete_feed_post_if_anonymous_user(self):
+        mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        assert mutation_response.errors is None
+
+        post_id = mutation_response.data["createFeedPost"]["id"]
+
+        response = delete_feed_post(user=AnonymousUser, post_id=post_id)
+
+        assert response.errors is not None
+        assert response.data is None
+
+        assert "Unauthorized" in str(response.errors[0].message)
+
+    def test_can_not_delete_feed_post_if_not_owner(self):
+        mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        assert mutation_response.errors is None
+
+        post_id = mutation_response.data["createFeedPost"]["id"]
+
+        response = delete_feed_post(user=self.another_user, post_id=post_id)
+
+        assert response.errors is not None
+        assert response.data is None
+
+        assert "You cannot delete this feed post" in response.errors[0].extensions["errors"]
+
+    def test_can_delete_feed_post_if_owner(self):
+        mutation_response = create_feed_post(user=self.user, input=self.another_public_feed_post_input_data)
+        assert mutation_response.errors is None
+
+        post_id = mutation_response.data["createFeedPost"]["id"]
+
+        response = delete_feed_post(user=self.user, post_id=post_id)
+
+        data = response.data["deleteFeedPost"]
+
+        assert data["success"]
