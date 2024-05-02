@@ -22,7 +22,7 @@ class Query:
         user = verify_authorized_user(info)
 
         return Paged.of(
-            FeedPostService().get_feed_posts_by_user_id(user_id=user.pk),
+            FeedPostService().get_feed_posts_by_user_id(user_id=user.username),
             offset,
             limit,
         )
