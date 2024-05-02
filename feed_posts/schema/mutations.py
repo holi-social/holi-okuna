@@ -1,3 +1,5 @@
+import uuid
+
 import strawberry
 import structlog
 from asgiref.sync import sync_to_async
@@ -7,6 +9,7 @@ from openbook_common.helpers import to_input_dict, is_parameter_null
 from feed_posts.schema.types import FeedPost, CreateFeedPostInput, UpdateFeedPostInput
 from feed_posts.serializers import CreateFeedPostSerializer, UpdateFeedPostSerializer
 from feed_posts.services import FeedPostService
+from openbook_common.schema.types import Result
 
 logger = structlog.get_logger(__name__)
 
@@ -53,3 +56,12 @@ class Mutation:
             image=data.get("image"),
             remove_image=is_parameter_null(data, "image"),
         )
+
+    @strawberry.mutation
+    @sync_to_async
+    def delete_feed_post(self, info, post_id: uuid.UUID) -> Result:
+        user = verify_authorized_user(info)
+
+        FeedPostService().delete_feed_post(user=user, post_id=post_id)
+
+        return Result(success=True)
