@@ -72,3 +72,6 @@ class FeedPostRepository:
         post.save()
 
         return post
+
+    def get_feed_posts(self):
+        return FeedPost.objects.order_by("-created_at")

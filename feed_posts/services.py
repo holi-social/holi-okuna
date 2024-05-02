@@ -71,3 +71,6 @@ class FeedPostService:
             image=image,
             remove_image=remove_image,
         )
+
+    def get_feed_posts(self):
+        return self.repository.get_feed_posts()
