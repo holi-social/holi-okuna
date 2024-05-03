@@ -4,13 +4,13 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from comments.enums import CommentableType
 from comments.validators import comment_text_validators
-from openbook_auth.models import User, get_reactions
+from openbook_auth.models import User, UserBlock
 from openbook_common.helpers import (
     PQ,
     attr_filled,
@@ -105,38 +105,18 @@ class Comment(ModelWithUUID):
         return cls.objects.filter(count_query).count()
 
     @classmethod
-    def get_reaction_counts(cls, comment_id, reaction_type=None, reactor_id=None):
-        reactions_query = Q(
-            post_comment_id=comment_id,
-        )
-
-        if reaction_type:
-            reactions_query.add(Q(reaction_type=reaction_type), Q.AND)
-
-        if reactor_id:
-            reactions_query.add(Q(reactor__id=reactor_id), Q.AND)
-
-        return get_reactions(CommentReaction, reactions_query)
-
-    @classmethod
-    def get_top_comment(
-        cls,
-        commentable_id: uuid.UUID,
-        commentable_type: CommentableType,
-    ):
+    def get_top_comment(cls, commentable_id: uuid.UUID, commentable_type: CommentableType, user: User):
         return (
             cls.objects.filter(commentable_id=commentable_id)
             .filter(commentable_type__model=commentable_type.value)
             .filter(is_deleted=False)
+            .exclude(commenter_id__in=UserBlock.users_blocking_or_blocked(user))
             .order_by("-created")
             .first()
         )
 
     def count_replies(self):
         return self.replies.count()
-
-    def count_reactions(self):
-        return self.reactions.count()
 
     def count_mentions(self):
         return self.mentions.count()
@@ -189,6 +169,14 @@ class Comment(ModelWithUUID):
     def clear_reaction(self, reactor, reaction_type):
         return CommentReaction.remove_reaction(reactor=reactor, reaction_type=reaction_type, comment=self)
 
+    def count_reactions(self):
+        return self.reactions.count()
+
+    def reaction_counts_by_type(self):
+        reactions = self.reactions.values("reaction_type").annotate(count=Count("reaction_type")).all().cache()
+
+        return {reaction["reaction_type"]: reaction["count"] for reaction in reactions}
+
     def save(self, *args, **kwargs):
         """On save, update timestamps"""
         if not self.created:
@@ -229,13 +217,13 @@ class Comment(ModelWithUUID):
                     try:
                         user = User.objects.only("id", "username").get(username__iexact=username)
 
-                        user_can_see_post_comment = user.can_see_post_comment(post_comment=self)
+                        user_can_see_commentable = self.commentable.can_be_viewed(user)
                         user_is_commenter = user.pk == self.commenter_id
                         if not user_is_commenter:
                             CommentUserMention.create_comment_user_mention(
                                 user=user,
                                 comment=self,
-                                notify=user_can_see_post_comment,
+                                notify=user_can_see_commentable,
                             )
                             existing_mention_usernames.append(username)
                     except User.DoesNotExist:

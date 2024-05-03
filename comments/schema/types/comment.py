@@ -21,6 +21,7 @@ class CreateCommentInput:
     commentable_type: CommentableType
     commentable_id: uuid.UUID
     text: str
+    parent_comment_id: Optional[uuid.UUID] = strawberry.UNSET
 
 
 @strawberry.input
@@ -38,15 +39,12 @@ class Comment:
     mentions: List[Optional[User]]
     links: List[Optional[LinkPreview]]
     creator: User = strawberry_django.field(field_name="commenter", select_related="commenter__profile")
+    parent_comment_id: Optional[uuid.UUID]
+    replies: Optional[List["Comment"]]
 
     @strawberry_django.field()
     def reactions(self, info) -> ReactionCounts:
-        current_user = info.context.request.user
-        if current_user.is_anonymous:
-            reactions = CommentModel.get_reaction_counts(self.pk)
-        else:
-            reactions = current_user.get_reaction_counts_for_post_comment_with_id(self.pk)
-        return ReactionCounts(**reactions)
+        return ReactionCounts(**self.reaction_counts_by_type())
 
     @strawberry_django.field
     def my_reaction(self, info) -> ReactionCounts:
@@ -59,3 +57,7 @@ class Comment:
             except CommentReactionModel.DoesNotExist:
                 return ReactionCounts()
         return ReactionCounts()
+
+    @strawberry_django.field
+    def total_replies(self, info) -> int:
+        return self.count_replies()

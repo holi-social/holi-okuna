@@ -20,7 +20,7 @@ class FeedPost:
     image: Optional[str]
     image_blurhash: Optional[str]
     visibility: VisibilityLevel
-    topics: List[Optional[Topic]]
+    topics: Optional[List[Topic]]
     category: FeedPostCategory
     creator: Optional[User]
     created_at: str
@@ -32,5 +32,16 @@ class CreateFeedPostInput:
     description: str
     image: Optional[Upload] = strawberry.UNSET
     visibility: VisibilityLevel
-    topic_ids: List[Optional[uuid.UUID]]
+    topic_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     category_id: uuid.UUID
+
+
+@strawberry.input
+class UpdateFeedPostInput:
+    post_id: uuid.UUID
+    title: Optional[str] = strawberry.UNSET
+    description: Optional[str] = strawberry.UNSET
+    image: Optional[Upload] = strawberry.UNSET
+    visibility: Optional[VisibilityLevel] = strawberry.UNSET
+    topic_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
+    category_id: Optional[uuid.UUID] = strawberry.UNSET

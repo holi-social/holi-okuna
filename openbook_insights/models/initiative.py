@@ -19,6 +19,8 @@ class Initiative(ModelWithUUID):
     link = models.URLField(null=False, blank=False, validators=[url_safety_validator])
     link_preview = models.ForeignKey(LinkPreview, null=True, blank=True, on_delete=models.PROTECT)
 
+    comment = models.TextField(null=True, blank=True, verbose_name="Why I recommend this initiative")
+
     def react(self, reactor, reaction_type):
         return InitiativeReaction.create_reaction(reactor=reactor, reaction_type=reaction_type, initiative=self)
 

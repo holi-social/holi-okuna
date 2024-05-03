@@ -96,9 +96,9 @@ class Post:
     mentions: List[Optional[User]]
     links: List[Optional[LinkPreview]]
     is_public: strawberry.auto
-    space: Optional[
-        Annotated["Space", strawberry.lazy("openbook_communities.schema.types")]
-    ] = strawberry_django.field(field_name="community")
+    space: Optional[Annotated["Space", strawberry.lazy("openbook_communities.schema.types")]] = (
+        strawberry_django.field(field_name="community")
+    )
     creator: User = strawberry_django.field(select_related="creator__profile")
     inspiration_post_category: Optional[InspirationPostCategory]
 
@@ -187,12 +187,7 @@ class PostComment:
 
     @strawberry_django.field()
     def reactions(self, info) -> ReactionCounts:
-        current_user = info.context.request.user
-        if current_user.is_anonymous:
-            reactions = CommentModel.get_reaction_counts(self.pk)
-        else:
-            reactions = current_user.get_reaction_counts_for_post_comment_with_id(self.pk)
-        return ReactionCounts(**reactions)
+        return ReactionCounts(**self.reaction_counts_by_type())
 
     @strawberry_django.field(description="Only present, when the current user reacted to this post comment")
     def my_reaction(self, info) -> ReactionCounts:

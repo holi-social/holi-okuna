@@ -6,9 +6,11 @@ from django.core.management import call_command
 from django.test import AsyncClient
 
 from comments.models import Comment, CommentReaction
+from openbook_auth.models import UserBlock
 from openbook_common.enums import FeatureToggleName, FeatureToggleType, ReactionType
 from openbook_common.models import FeatureToggle as FeatureToggleModel
 from openbook_common.tests.helpers import (
+    make_community_post,
     make_fake_post_text,
     make_fake_post_title,
     make_insight,
@@ -24,6 +26,7 @@ from .helpers import (
     delete_comment,
     get_commenters,
     get_comments,
+    get_comments_with_parent_comment_id,
     get_top_comment,
     remove_reaction_from_comment,
 )
@@ -284,6 +287,17 @@ class TestAddingComments(TestCase):
         assert comment.text == "test approved"
         assert comment.commentable == post
 
+    def test_should_add_a_comment_with_parent_comment(self):
+        post = make_post()
+        commenter = make_user(name="Commenter")
+
+        root_comment = Comment.create_comment("It's greeeaat!", commenter, post)
+
+        reply = Comment.create_comment("Just ok", commenter, post, root_comment)
+
+        assert reply.commenter == commenter
+        assert reply.parent_comment.id == root_comment.id
+
     @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
     @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
     def test_should_notify_mentioned_users_and_post_author(
@@ -476,11 +490,66 @@ class TestComments(TestCase):
         response = get_comments(post.id, "POST")
 
         assert response.errors is None
-        commenters_data = response.data["commentable"]["comments"]
-        assert commenters_data["totalResults"] == 2
-        assert len(commenters_data["data"]) == 2
-        assert commenters_data["data"][0]["text"] == "It's greeeaat!"
-        assert commenters_data["data"][1]["text"] == "Just ok"
+        comments_data = response.data["commentable"]["comments"]
+        assert comments_data["totalResults"] == 2
+        assert len(comments_data["data"]) == 2
+        assert comments_data["data"][0]["text"] == "It's greeeaat!"
+        assert comments_data["data"][1]["text"] == "Just ok"
+
+    def test_should_list_comments_with_parent_comment_id(self):
+        post = make_post()
+        commenter = make_user(name="Commenter")
+
+        root_comment = Comment.create_comment("It's greeeaat!", commenter, post)
+
+        Comment.create_comment("Just ok", commenter, post, root_comment)
+
+        Comment.create_comment("You didn't see me, right!", commenter, post)
+        response = get_comments_with_parent_comment_id(post.id, "POST", parent_comment_id=root_comment.id)
+
+        assert response.errors is None
+        comments_data = response.data["commentable"]["comments"]
+        assert comments_data["totalResults"] == 1
+        assert len(comments_data["data"]) == 1
+        assert comments_data["data"][0]["text"] == "Just ok"
+
+    def test_should_list_replies(self):
+        post = make_post()
+        commenter = make_user(name="Commenter")
+
+        root_comment = Comment.create_comment("It's greeeaat!", commenter, post)
+
+        reply = Comment.create_comment("Just ok", commenter, post, root_comment)
+
+        # create a non-reply comment
+        Comment.create_comment("You didn't see me, right!", commenter, post)
+        response = get_comments(post.id, "POST")
+
+        assert response.errors is None
+        comments_data = response.data["commentable"]["comments"]
+
+        # total results should be all except for the reply
+        assert comments_data["totalResults"] == 2
+        assert len(comments_data["data"]) == 2
+
+        # first level comments check
+        assert comments_data["data"][0]["text"] == "It's greeeaat!"
+        assert comments_data["data"][1]["text"] == "You didn't see me, right!"
+
+        # second level comments check
+        assert comments_data["data"][0]["totalReplies"] == 1
+        assert comments_data["data"][0]["replies"][0]["id"] == str(reply.id)
+        assert comments_data["data"][1]["totalReplies"] == 0
+
+    def test_should_not_list_comments_for_private_commentables(self):
+        post = make_community_post()
+        non_community_member = make_user()
+        Comment.create_comment("It's greeeaat!", post.creator, post)
+
+        response = get_comments(post.id, "POST", non_community_member)
+
+        assert response.errors is not None
+        assert response.data is None
 
     def test_should_list_people_who_are_commenting_on_the_content(self):
         post = make_post()
@@ -519,3 +588,20 @@ class TestComments(TestCase):
         assert response.errors is None
         top_comment_data = response.data["commentable"]["topComment"]
         assert top_comment_data["text"] == "Latest comment"
+
+    def test_should_not_get_the_most_interesting_comment_from_my_blocked_users(self):
+        post = make_post()
+        blocker = make_user(name="Blocker")
+        commenter = make_user(name="Commenter")
+        last_commenter = make_user(name="Last Commenter")
+
+        Comment.create_comment("2nd latest comment", commenter, post)
+        Comment.create_comment("Latest comment by a user I blocked", last_commenter, post)
+
+        UserBlock.create_user_block(blocker.id, last_commenter.id)
+
+        response = get_top_comment(post.id, "POST", blocker)
+
+        assert response.errors is None
+        top_comment_data = response.data["commentable"]["topComment"]
+        assert top_comment_data["text"] == "2nd latest comment"

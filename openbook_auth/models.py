@@ -56,6 +56,7 @@ from openbook_common.utils.model_loaders import (
     get_follow_notification_model,
     get_connection_confirmed_notification_model,
     get_connection_request_notification_model,
+    get_post_reaction_model,
     get_post_reaction_notification_model,
     get_device_model,
     get_post_mute_model,
@@ -66,7 +67,6 @@ from openbook_common.utils.model_loaders import (
     get_moderation_report_model,
     get_moderation_penalty_model,
     get_comment_mute_model,
-    get_comment_reaction_model,
     get_post_comment_reaction_notification_model,
     get_top_post_model,
     get_top_post_community_exclusion_model,
@@ -260,6 +260,9 @@ class User(ModelWithUUID, AbstractUser):
     invite_count = models.SmallIntegerField(default=0)
 
     is_moderator = models.BooleanField(default=False)
+
+    tracking_consent_analytics = models.BooleanField(blank=True, null=True, default=None)
+    tracking_consent_personalization = models.BooleanField(blank=True, null=True, default=None)
 
     JWT_TOKEN_TYPE_CHANGE_EMAIL = "CE"
     JWT_TOKEN_TYPE_PASSWORD_RESET = "PR"
@@ -791,6 +794,8 @@ class User(ModelWithUUID, AbstractUser):
         save=True,
         update_location=False,
         remove_avatar=False,
+        tracking_consent_analytics=None,
+        tracking_consent_personalization=None,
     ):
         profile = self.profile
 
@@ -838,6 +843,11 @@ class User(ModelWithUUID, AbstractUser):
                 self.delete_all_pending_connection_requests()
 
             self.visibility = visibility
+
+        if tracking_consent_analytics is not None:
+            self.tracking_consent_analytics = tracking_consent_analytics
+        if tracking_consent_personalization is not None:
+            self.tracking_consent_personalization = tracking_consent_personalization
 
         if last_name is not None:
             profile.last_name = normalize_spaces(last_name)
@@ -1308,20 +1318,6 @@ class User(ModelWithUUID, AbstractUser):
     def get_reaction_for_post_with_id(self, post_id):
         return self.post_reactions.filter(post_id=post_id).get()
 
-    def get_reactions_for_post_with_id(self, post_id, max_id=None, emoji_id=None):
-        Post = get_post_model()
-        post = Post.objects.get(pk=post_id)
-
-        return self.get_reactions_for_post(post=post, max_id=max_id, emoji_id=emoji_id)
-
-    def get_reactions_for_post(self, post, max_id=None, emoji_id=None):
-        check_can_get_reactions_for_post(user=self, post=post)
-
-        reactions_query = self._make_get_reactions_for_post_query(post=post, emoji_id=emoji_id, max_id=max_id)
-
-        PostReaction = get_post_reaction_model()
-        return PostReaction.objects.filter(reactions_query)
-
     def count_posts_for_community(self, community):
         Post = get_post_model()
         community_posts_query = self._make_get_community_with_id_posts_query(
@@ -1390,70 +1386,8 @@ class User(ModelWithUUID, AbstractUser):
 
         return get_reactions(model, reactions_query)
 
-    def get_reaction_counts_for_post_comment_with_id(self, post_comment_id, reaction_type=None):
-        Comment = get_comment_model()
-        post_comment = Comment.objects.get(pk=post_comment_id)
-        return self.get_reaction_counts_for_post_comment(post_comment=post_comment, reaction_type=reaction_type)
-
-    def get_reaction_counts_for_post_comment(self, post_comment, reaction_type=None):
-        check_can_get_reactions_for_post_comment(user=self, post_comment=post_comment)
-
-        reactions_query = Q(
-            post_comment_id=post_comment.pk,
-        )
-
-        if reaction_type:
-            reactions_query.add(Q(reaction_type=reaction_type), Q.AND)
-
-        if hasattr(post_comment.commentable, "community"):
-            post_comment_community = post_comment.commentable.community
-        else:
-            post_comment_community = None
-
-        if post_comment_community:
-            if not self.is_staff_of_community_with_name(community_name=post_comment_community.name):
-                # Exclude blocked users reactions
-                blocked_users_query = ~Q(
-                    Q(reactor__blocked_by_users__blocker_id=self.pk) | Q(reactor__user_blocks__blocked_user_id=self.pk)
-                )
-                blocked_users_query_staff_members = Q(
-                    reactor__communities_memberships__community_id=post_comment_community.pk
-                )
-                blocked_users_query_staff_members.add(
-                    Q(reactor__communities_memberships__is_administrator=True)
-                    | Q(reactor__communities_memberships__is_moderator=True),
-                    Q.AND,
-                )
-
-                blocked_users_query.add(~blocked_users_query_staff_members, Q.AND)
-                reactions_query.add(blocked_users_query, Q.AND)
-        else:
-            # Show all, even blocked users reactions
-            blocked_users_query = ~Q(
-                Q(reactor__blocked_by_users__blocker_id=self.pk) | Q(reactor__user_blocks__blocked_user_id=self.pk)
-            )
-            reactions_query.add(blocked_users_query, Q.AND)
-
-        return get_reactions(get_comment_reaction_model(), reactions_query)
-
     def get_reaction_for_post_comment_with_id(self, post_comment_id):
         return self.comment_reactions.filter(post_comment_id=post_comment_id).get()
-
-    def get_reactions_for_post_comment_with_id(self, post_comment_id, reaction_type=None):
-        Post_comment = get_comment_model()
-        post_comment = Post_comment.objects.get(pk=post_comment_id)
-
-        return self.get_reactions_for_post_comment(post_comment=post_comment, reaction_type=reaction_type)
-
-    def get_reactions_for_post_comment(self, post_comment, reaction_type=None):
-        check_can_get_reactions_for_post_comment(user=self, post_comment=post_comment)
-
-        reactions_query = self._make_get_reactions_for_post_comment_query(
-            post_comment=post_comment, reaction_type=reaction_type
-        )
-
-        CommentReaction = get_comment_reaction_model()
-        return CommentReaction.objects.filter(reactions_query)
 
     def react_to_post_with_id(self, post_id, reaction_type):
         Post = get_post_model()
@@ -1479,15 +1413,6 @@ class User(ModelWithUUID, AbstractUser):
                 self._send_post_reaction_push_notification(post_reaction=post_reaction)
 
         return post_reaction
-
-    def delete_reaction_with_id_for_post_with_id(self, post_reaction_id, post_id):
-        Post = get_post_model()
-        post = Post.objects.get(pk=post_id)
-        check_can_delete_reaction_with_id_for_post(user=self, post_reaction_id=post_reaction_id, post=post)
-        PostReaction = get_post_reaction_model()
-        post_reaction = PostReaction.objects.filter(pk=post_reaction_id).get()
-        self._delete_post_reaction_notification(post_reaction=post_reaction)
-        post_reaction.delete()
 
     def react_to_post_comment_with_id(self, post_comment_id, reaction_type):
         Comment = get_comment_model()
@@ -4432,12 +4357,6 @@ class User(ModelWithUUID, AbstractUser):
     def _send_post_reaction_push_notification(self, post_reaction):
         helpers.send_post_reaction_push_notification(post_reaction=post_reaction)
 
-    def _delete_post_reaction_notification(self, post_reaction):
-        PostReactionNotification = get_post_reaction_notification_model()
-        PostReactionNotification.delete_post_reaction_notification(
-            post_reaction_id=post_reaction.pk, owner_id=post_reaction.post.creator_id
-        )
-
     def _create_post_comment_reaction_notification(self, post_comment_reaction):
         PostCommentReactionNotification = get_post_comment_reaction_notification_model()
         PostCommentReactionNotification.create_post_comment_reaction_notification(
@@ -4678,75 +4597,6 @@ class User(ModelWithUUID, AbstractUser):
         Post = get_post_model()
         return Post.objects.filter(community_posts_query).exists()
 
-    def _make_get_reactions_for_post_query(self, post, max_id=None, emoji_id=None):
-        reactions_query = Q(post_id=post.pk)
-
-        # If reactions are private, return only own reactions
-        if not post.public_reactions:
-            reactions_query = Q(reactor_id=self.pk)
-
-        post_community = post.community
-
-        if post_community:
-            if not self.is_staff_of_community_with_name(community_name=post_community.name):
-                blocked_users_query = ~Q(
-                    Q(reactor__blocked_by_users__blocker_id=self.pk) | Q(reactor__user_blocks__blocked_user_id=self.pk)
-                )
-                blocked_users_query_staff_members = Q(reactor__communities_memberships__community_id=post_community.pk)
-                blocked_users_query_staff_members.add(
-                    Q(reactor__communities_memberships__is_administrator=True)
-                    | Q(reactor__communities_memberships__is_moderator=True),
-                    Q.AND,
-                )
-
-                blocked_users_query.add(~blocked_users_query_staff_members, Q.AND)
-                reactions_query.add(blocked_users_query, Q.AND)
-        else:
-            blocked_users_query = ~Q(
-                Q(reactor__blocked_by_users__blocker_id=self.pk) | Q(reactor__user_blocks__blocked_user_id=self.pk)
-            )
-            reactions_query.add(blocked_users_query, Q.AND)
-
-        if max_id:
-            reactions_query.add(Q(id__lt=max_id), Q.AND)
-
-        if emoji_id:
-            reactions_query.add(Q(emoji_id=emoji_id), Q.AND)
-
-        return reactions_query
-
-    def _make_get_reactions_for_post_comment_query(self, post_comment, reaction_type=None):
-        reactions_query = Q(post_comment_id=post_comment.pk)
-
-        post_comment_community = post_comment.commentable.community
-
-        if post_comment_community:
-            if not self.is_staff_of_community_with_name(community_name=post_comment_community.name):
-                blocked_users_query = ~Q(
-                    Q(reactor__blocked_by_users__blocker_id=self.pk) | Q(reactor__user_blocks__blocked_user_id=self.pk)
-                )
-                blocked_users_query_staff_members = Q(
-                    reactor__communities_memberships__community_id=post_comment_community.pk
-                )
-                blocked_users_query_staff_members.add(
-                    Q(reactor__communities_memberships__is_administrator=True)
-                    | Q(reactor__communities_memberships__is_moderator=True),
-                    Q.AND,
-                )
-
-                blocked_users_query.add(~blocked_users_query_staff_members, Q.AND)
-                reactions_query.add(blocked_users_query, Q.AND)
-        else:
-            blocked_users_query = ~Q(
-                Q(reactor__blocked_by_users__blocker_id=self.pk) | Q(reactor__user_blocks__blocked_user_id=self.pk)
-            )
-            reactions_query.add(blocked_users_query, Q.AND)
-
-        if reaction_type:
-            reactions_query.add(Q(reaction_type=reaction_type), Q.AND)
-
-        return reactions_query
-
     def _make_get_post_comment_with_id_query(self, post_comment_id, post, post_comment_parent_id=None):
         post_comments_query = self._make_get_comments_for_post_query(
             post=post, post_comment_parent_id=post_comment_parent_id
@@ -4881,6 +4731,7 @@ class User(ModelWithUUID, AbstractUser):
 
     @staticmethod
     def is_visible_ignore_blocked_query(prefix=None):
+        """Filter blocked (deleted) users as well as users without a profile (Django admin users) or users without an identity"""
         pQ = PrefixedQ(prefix)
         return pQ(is_deleted=False) & pQ(profile__isnull=False) & pQ(identity__isnull=False)
 

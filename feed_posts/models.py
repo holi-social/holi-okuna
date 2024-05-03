@@ -18,7 +18,7 @@ from feed_posts.helpers import upload_to_feed_post_images_directory
 
 
 class FeedPost(ModelWithUUID):
-    title = models.CharField(max_length=settings.FEED_POST_TITLE_MAX_LENGTH, blank=False, null=False)
+    title = models.CharField(max_length=settings.FEED_POST_TITLE_MAX_LENGTH, blank=True, null=True)
 
     slug = models.SlugField(max_length=settings.FEED_POST_SLUG_MAX_LENGTH, blank=False, null=False, unique=True)
 
