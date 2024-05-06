@@ -316,30 +316,6 @@ class Query:
             limit,
         )
 
-        def queryset_creator(query):
-            return TaskModel.objects.order_by("-created").filter(query).distinct()
-
-        locations_match = Q(geolocation__within=current_user.profile.geolocation)
-        if skills and current_user.profile.geolocation:
-            query = Q(skills__in=skills) & (locations_match | Q(location_type="REMOTE"))
-            count = count + add_to_result(offset, limit, count, queries, queryset_creator, tasks, query)
-            queries.append(query)
-
-        if skills:
-            query = Q(skills__in=skills)
-            count = count + add_to_result(offset, limit, count, queries, queryset_creator, tasks, query)
-            queries.append(query)
-
-        if current_user.profile.geolocation:
-            query = locations_match
-            count = count + add_to_result(offset, limit, count, queries, queryset_creator, tasks, query)
-            queries.append(query)
-
-        query = Q()
-        count = count + add_to_result(offset, limit, count, queries, queryset_creator, tasks, query)
-
-        return Paged(tasks, count)
-
     @strawberry_django.field()
     def collaboration_tools(
         self, info: Info, space_id: uuid.UUID, offset: int = 0, limit: int = 10
