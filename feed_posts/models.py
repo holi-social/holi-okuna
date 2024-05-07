@@ -2,14 +2,13 @@ import uuid
 
 from django.contrib.gis.db import models
 from django.core.files.storage import default_storage
-
 from django.utils.text import slugify
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFit
 
+from feed_posts.enums import VisibilityLevel
+from feed_posts.helpers import upload_to_feed_post_images_directory
 from openbook import settings
 from openbook_auth.models import User
 from openbook_common.enums import ReactionType
@@ -17,8 +16,6 @@ from openbook_common.helpers import ExifRotate, generate_blurhash
 from openbook_common.models import ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field
 from openbook_terms.models import Topic, FeedPostCategory
-from feed_posts.enums import VisibilityLevel
-from feed_posts.helpers import upload_to_feed_post_images_directory
 
 
 class FeedPost(ModelWithUUID):
