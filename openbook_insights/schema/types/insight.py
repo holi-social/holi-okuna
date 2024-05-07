@@ -51,15 +51,18 @@ class Insight:
         return self.posts.filter(PostModel.is_visible_query(current_user)).distinct().count()
 
     @strawberry_django.field(
-        description="A list of all users involved. Curator of the insight, Authors of all the posts and all commenters of those posts"
+        description="A list of all users involved interacting with the insight (excluding the insight creator). Includes authors of all the posts and all commenters of any posts and discussions"
     )
     def involved_users(self, info, offset: int = 0, limit: int = 3) -> Paged[User]:
         current_user = info.context.request.user
         query = UserModel.objects.filter(
             Q(
-                Q(curated_insights=self)
-                | (Q(posts__insights=self) & PostModel.is_visible_query(current_user, "posts"))
+                (Q(posts__insights=self) & PostModel.is_visible_query(current_user, "posts"))
                 | (Q(comments__post__insights=self) & CommentModel.is_visible_query(current_user, "comments"))
+                | (
+                    Q(comments__commentable_id__in=self.discussions.values_list("id", flat=True))
+                    & CommentModel.is_visible_query(current_user, "comments")
+                )
             ),
             is_deleted=False,
         ).distinct()
