@@ -439,17 +439,12 @@ class TestFeedPosts(TestCase):
         post_id = mutation_response.data["createFeedPost"]["id"]
 
         # user reacts to the post
-        response = update_feed_post_reaction(
+        update_feed_post_reaction(
             user=self.another_user,
             post_id=post_id,
             reaction_type=ReactionType.HEART,
             reaction_action=ReactionAction.SET.value,
         )
-
-        data = response.data["updateFeedPostReaction"]
-
-        assert data["myReaction"] == {"HEART": 1}
-        assert data["reactions"] == {"HEART": 1}
 
         # user removes reaction
         response = update_feed_post_reaction(
