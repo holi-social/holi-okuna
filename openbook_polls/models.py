@@ -101,7 +101,7 @@ class Question(ModelWithUUID):
 
         self.modified = timezone.now()
         
-        question = super(Question, self).save(*args, **kwargs)
+        super(Question, self).save(*args, **kwargs)
 
         return self
 
