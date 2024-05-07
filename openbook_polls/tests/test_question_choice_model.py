@@ -17,7 +17,6 @@ class PollModelTest(TestAssertionsMixin, TestCase):
         question_text = make_fake_question_text()
 
         Question = get_question_model()
-        Choice = get_choice_model()
 
         question = Question.create_question(
             creator=space_creator,

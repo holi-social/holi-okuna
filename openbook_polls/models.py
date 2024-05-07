@@ -19,7 +19,6 @@ from openbook_polls.checkers import (
 from rest_framework.exceptions import ValidationError
 
 from openbook_common.helpers import (
-    PQ,
     PrefixedQ,
     attr_filled,
 )
@@ -101,8 +100,6 @@ class Question(ModelWithUUID):
             self.created = timezone.now()
 
         self.modified = timezone.now()
-
-        question = super(Question, self).save(*args, **kwargs)
 
         return self
 

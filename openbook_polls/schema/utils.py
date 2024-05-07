@@ -16,6 +16,6 @@ def resolve_question(current_user, question_id):
         try:
             return QuestionModel.objects.filter(QuestionModel.is_visible_query(current_user)).distinct().get(id=question_id)
         except QuestionModel.DoesNotExist:
-            raise GraphQLError("Forbidden", extensions={"code": GraphQLErrorCodes.FORBIDDEN})
+            raise GraphQLError("Forbidden", extensions={"code": GraphQLErrorCodes.FORBIDDEN}) from None
     except QuestionModel.DoesNotExist:
-        raise GraphQLError("Question not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND})
+        raise GraphQLError("Question not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND}) from None

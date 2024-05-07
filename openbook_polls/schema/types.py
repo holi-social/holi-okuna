@@ -5,7 +5,6 @@ import strawberry_django
 from openbook_polls.models import Question as QuestionModel
 from openbook_polls.models import Choice as ChoiceModel
 from openbook_auth.schema.types import User
-from typing import Optional
 from typing import List, Optional
 
 @strawberry.input
