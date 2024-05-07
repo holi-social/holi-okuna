@@ -2,13 +2,17 @@ import uuid
 
 from django.contrib.gis.db import models
 from django.core.files.storage import default_storage
+
 from django.utils.text import slugify
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFit
 
 from openbook import settings
 from openbook_auth.models import User
+from openbook_common.enums import ReactionType
 from openbook_common.helpers import ExifRotate, generate_blurhash
 from openbook_common.models import ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field
@@ -81,3 +85,21 @@ class FeedPost(ModelWithUUID):
             self.delete_image()
 
         self.image = image
+
+
+class FeedPostReaction(ModelWithUUID):
+    feed_post = models.ForeignKey(FeedPost, on_delete=models.CASCADE, related_name="reactions")
+    created = models.DateTimeField(editable=False)
+    reactor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="feed_post_reactions")
+    reaction_type = models.CharField(max_length=20, choices=ReactionType.choices)
+
+    class Meta:
+        unique_together = (
+            "reactor",
+            "feed_post",
+        )
+
+    def save(self, *args, **kwargs):
+        if not self.created:
+            self.created = timezone.now()
+        return super(FeedPostReaction, self).save(*args, **kwargs)
