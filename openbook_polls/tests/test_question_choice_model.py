@@ -5,7 +5,7 @@ from openbook_common.tests.helpers import (
     make_fake_question_text,
     make_user,
 )
-from openbook_common.utils.model_loaders import get_question_model, get_choice_model
+from openbook_common.utils.model_loaders import get_question_model
 
 
 class PollModelTest(TestAssertionsMixin, TestCase):
