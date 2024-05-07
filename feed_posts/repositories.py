@@ -1,4 +1,10 @@
-from feed_posts.models import FeedPost
+import uuid
+
+from django.db.models import Q
+
+from feed_posts.models import FeedPost, FeedPostReaction
+from openbook_auth.models import User, get_reactions
+from openbook_common.enums import ReactionType
 from openbook_common.utils.helpers import is_uuid
 
 
@@ -78,3 +84,29 @@ class FeedPostRepository:
 
     def delete_feed_post(self, post_id):
         return FeedPost.objects.get(id=post_id).delete()
+
+
+class FeedPostReactionRepository:
+    def get_reaction_by_user(self, feed_post: FeedPost, reactor: User):
+        return FeedPostReaction.objects.filter(feed_post=feed_post, reactor=reactor).first()
+
+    def create_reaction(self, feed_post: FeedPost, reactor: User, reaction_type: ReactionType):
+        return FeedPostReaction.objects.create(feed_post=feed_post, reactor=reactor, reaction_type=reaction_type)
+
+    def remove_reaction(self, feed_post: FeedPost, reactor: User, reaction_type: ReactionType):
+        return FeedPostReaction.objects.filter(
+            feed_post=feed_post, reactor=reactor, reaction_type=reaction_type
+        ).delete()
+
+    def count(self, post_id: uuid.UUID, reactor_id: uuid.UUID = None, reaction_type: ReactionType = None):
+        reactions_query = Q(
+            feed_post_id=post_id,
+        )
+
+        if reaction_type:
+            reactions_query.add(Q(reaction_type=reaction_type), Q.AND)
+
+        if reactor_id:
+            reactions_query.add(Q(reactor__id=reactor_id), Q.AND)
+
+        return get_reactions(FeedPostReaction, reactions_query)
