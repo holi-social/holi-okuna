@@ -89,17 +89,12 @@ class FeedPost(ModelWithUUID):
 
 class FeedPostReaction(ModelWithUUID):
     feed_post = models.ForeignKey(FeedPost, on_delete=models.CASCADE, related_name="reactions")
-    created = models.DateTimeField(editable=False)
     reactor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="feed_post_reactions")
     reaction_type = models.CharField(max_length=20, choices=ReactionType.choices)
+    created_at = models.DateTimeField(editable=False, auto_now_add=True)
 
     class Meta:
         unique_together = (
             "reactor",
             "feed_post",
         )
-
-    def save(self, *args, **kwargs):
-        if not self.created:
-            self.created = timezone.now()
-        return super(FeedPostReaction, self).save(*args, **kwargs)
