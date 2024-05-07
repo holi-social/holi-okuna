@@ -1,6 +1,4 @@
-import datetime
 import uuid
-from django.utils import timezone
 
 import strawberry
 import strawberry_django
@@ -8,7 +6,7 @@ from openbook_polls.models import Question as QuestionModel
 from openbook_polls.models import Choice as ChoiceModel
 from openbook_auth.schema.types import User
 from typing import Optional
-from typing import TYPE_CHECKING, Annotated, List, Optional, TypeVar
+from typing import List, Optional
 
 @strawberry.input
 class CreateQuestionInput:

@@ -1,12 +1,9 @@
-import uuid
-
 import strawberry
 from asgiref.sync import sync_to_async
 from strawberry.types import Info
 from openbook_polls.schema.types import (
       CreateQuestionInput,
-      Question,
-      Choice
+      Question
  )
 
 from openbook_auth.utils import verify_authorized_user
@@ -18,7 +15,6 @@ from openbook_common.helpers import to_input_dict
 class Mutation:
     @strawberry.mutation
     @sync_to_async
-    #mutation for creating a new question (so far no frontend design for this! The poll is created via Django UI!)
     def create_question(self, info: Info, input: CreateQuestionInput) -> Question:
           current_user = verify_authorized_user(info)
 

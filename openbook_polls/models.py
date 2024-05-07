@@ -1,32 +1,18 @@
-import datetime
-from datetime import timedelta
 
 from django.db import models
-from openbook_auth.models import User, get_reactions
+from openbook_auth.models import User
 from django.utils import timezone
 
 from openbook_common.models import (
     ModelWithUUID,
-    OrderedModelWithUUID,
 )
 
 from openbook_common.utils.helpers import (
-    delete_file_field,
-    extract_usernames_from_string,
     get_magic,
-    sha256sum,
-    write_in_memory_file_to_disk,
 )
 
 from openbook_polls.checkers import (
     check_can_be_published,
-    check_can_be_updated,
-)
-
-from openbook_common.utils.model_loaders import (
-    get_user_model,
-    get_question_model,
-    get_choice_model,
 )
 
 
@@ -34,7 +20,6 @@ from rest_framework.exceptions import ValidationError
 
 from openbook_common.helpers import (
     PQ,
-    ExifRotate,
     PrefixedQ,
     attr_filled,
 )
@@ -102,7 +87,6 @@ class Question(ModelWithUUID):
     def _publish(self):
         self.status = Question.STATUS_PUBLISHED
         self.created = timezone.now()
-        #self._process_quesiton_subscribers()
         self.save()
 
     def is_draft(self):

@@ -23,7 +23,6 @@ class TestPolls(TestCase):
         question_text = make_fake_question_text()
 
         question = posting_user.create_question(
-            # creator=posting_user,
             question_text=question_text,
             created=None,
             is_draft=False,
@@ -42,7 +41,6 @@ class TestPolls(TestCase):
         question_text = make_fake_question_text()
 
         question = posting_user.create_question(
-            # creator=posting_user,
             question_text=question_text,
             created=None,
             is_draft=True,
