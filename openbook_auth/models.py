@@ -90,6 +90,7 @@ from openbook_common.utils.model_loaders import (
     get_quote_reaction_model,
     get_recommendation_reaction_model,
     get_initiative_reaction_model,
+    get_feed_post_reaction_model,
 )
 from openbook_common.validators import name_characters_validator
 from openbook_hashtags.queries import (
@@ -1376,6 +1377,9 @@ class User(ModelWithUUID, AbstractUser):
         elif reactable_type == ReactableType.INITIATIVE:
             model = get_initiative_reaction_model()
             field_name = "initiative_id"
+        elif reactable_type == ReactableType.FEED_POST:
+            model = get_feed_post_reaction_model()
+            field_name = "feed_post_id"
         else:
             raise ValueError("Invalid reactable type")
 

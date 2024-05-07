@@ -17,8 +17,10 @@ from feed_posts.tests.helpers import (
     update_input_data,
     feed_posts,
     delete_feed_post,
+    update_feed_post_reaction,
 )
 from openbook import settings
+from openbook_common.enums import ReactionType, ReactionAction
 from openbook_common.tests.helpers import (
     make_user,
     make_topic,
@@ -393,3 +395,66 @@ class TestFeedPosts(TestCase):
         data = response.data["deleteFeedPost"]
 
         assert data["success"]
+
+    def test_can_not_react_to_feed_post_if_anonymous_user(self):
+        mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        assert mutation_response.errors is None
+
+        post_id = mutation_response.data["createFeedPost"]["id"]
+
+        response = update_feed_post_reaction(
+            user=AnonymousUser,
+            post_id=post_id,
+            reaction_type=ReactionType.HEART,
+            reaction_action=ReactionAction.SET.value,
+        )
+
+        assert response.errors is not None
+        assert response.data is None
+
+        assert "Unauthorized" in str(response.errors[0].message)
+
+    def test_can_react_to_feed_post_if_authenticated_user(self):
+        mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        assert mutation_response.errors is None
+
+        post_id = mutation_response.data["createFeedPost"]["id"]
+
+        response = update_feed_post_reaction(
+            user=self.another_user,
+            post_id=post_id,
+            reaction_type=ReactionType.HEART,
+            reaction_action=ReactionAction.SET.value,
+        )
+
+        data = response.data["updateFeedPostReaction"]
+
+        assert data["myReaction"] == {"HEART": 1}
+        assert data["reactions"] == {"HEART": 1}
+
+    def test_can_remove_reaction_to_feed_post_if_authenticated_user(self):
+        mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        assert mutation_response.errors is None
+
+        post_id = mutation_response.data["createFeedPost"]["id"]
+
+        # user reacts to the post
+        update_feed_post_reaction(
+            user=self.another_user,
+            post_id=post_id,
+            reaction_type=ReactionType.HEART,
+            reaction_action=ReactionAction.SET.value,
+        )
+
+        # user removes reaction
+        response = update_feed_post_reaction(
+            user=self.another_user,
+            post_id=post_id,
+            reaction_type=ReactionType.HEART,
+            reaction_action=ReactionAction.REMOVE.value,
+        )
+
+        data = response.data["updateFeedPostReaction"]
+
+        assert data["myReaction"] == {"HEART": 0}
+        assert data["reactions"] == {"HEART": 0}
