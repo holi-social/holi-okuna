@@ -100,6 +100,8 @@ class Question(ModelWithUUID):
             self.created = timezone.now()
 
         self.modified = timezone.now()
+        
+        question = super(Question, self).save(*args, **kwargs)
 
         return self
 
