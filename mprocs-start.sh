@@ -15,4 +15,3 @@ eval "$(gcloud beta emulators pubsub env-init)"
 python3 manage.py migrate
 python3 manage.py collectstatic --no-input
 python3 start_server.py --reload || echo 'maybe you need to execute "python manage.py migrate" again?'
-
