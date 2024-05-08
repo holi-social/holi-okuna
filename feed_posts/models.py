@@ -7,18 +7,19 @@ from django.utils.translation import gettext_lazy as _
 from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFit
 
+from feed_posts.enums import VisibilityLevel
+from feed_posts.helpers import upload_to_feed_post_images_directory
 from openbook import settings
 from openbook_auth.models import User
+from openbook_common.enums import ReactionType
 from openbook_common.helpers import ExifRotate, generate_blurhash
 from openbook_common.models import ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field
 from openbook_terms.models import Topic, FeedPostCategory
-from feed_posts.enums import VisibilityLevel
-from feed_posts.helpers import upload_to_feed_post_images_directory
 
 
 class FeedPost(ModelWithUUID):
-    title = models.CharField(max_length=settings.FEED_POST_TITLE_MAX_LENGTH, blank=False, null=False)
+    title = models.CharField(max_length=settings.FEED_POST_TITLE_MAX_LENGTH, blank=True, null=True)
 
     slug = models.SlugField(max_length=settings.FEED_POST_SLUG_MAX_LENGTH, blank=False, null=False, unique=True)
 
@@ -81,3 +82,16 @@ class FeedPost(ModelWithUUID):
             self.delete_image()
 
         self.image = image
+
+
+class FeedPostReaction(ModelWithUUID):
+    feed_post = models.ForeignKey(FeedPost, on_delete=models.CASCADE, related_name="reactions")
+    reactor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="feed_post_reactions")
+    reaction_type = models.CharField(max_length=20, choices=ReactionType.choices)
+    created_at = models.DateTimeField(editable=False, auto_now_add=True)
+
+    class Meta:
+        unique_together = (
+            "reactor",
+            "feed_post",
+        )

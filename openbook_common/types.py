@@ -30,3 +30,4 @@ class ReactableType(Enum):
     QUOTE = "quote"
     RECOMMENDATION = "recommendation"
     INITIATIVE = "initiative"
+    FEED_POST = "feed_post"
