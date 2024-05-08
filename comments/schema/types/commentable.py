@@ -1,5 +1,6 @@
 import uuid
 from typing import Optional
+
 import strawberry
 import strawberry_django
 from django.db.models import Q

@@ -22,6 +22,7 @@ from openbook_common.tests.helpers import (
 from openbook_insights.models.discussion import Discussion
 
 from .helpers import (
+    get_comment_by_id,
     add_comment,
     add_reaction_to_comment,
     delete_comment,
@@ -482,6 +483,17 @@ class TestComments(TestCase):
         )
         yield
         notifications_toggle.delete()
+
+    def test_comment_by_id(self):
+        post = make_post()
+        user = make_user(name="User")
+
+        comment = Comment.create_comment("New comment.", user, post)
+
+        response = get_comment_by_id(comment.id, user)
+
+        assert response.errors is None
+        assert response.data["commentById"]["id"] == str(comment.id)
 
     def test_should_list_comments(self):
         post = make_post()

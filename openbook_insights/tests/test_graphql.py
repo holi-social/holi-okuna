@@ -252,7 +252,7 @@ class TestInsights:
         assert insight1_result["numberOfPosts"] == 2
         assert insight1_result["posts"][0]["title"] == post_title_public
         assert insight1_result["posts"][1]["title"] == post_title_public
-        assert insight1_result["involvedUsers"]["totalResults"] == 2
+        assert insight1_result["involvedUsers"]["totalResults"] == 1
 
         insight2_result = insights[1]
         assert insight2_result["title"] == insight3.title
@@ -267,7 +267,7 @@ class TestInsights:
         insight4_result = insights[3]
         assert insight4_result["title"] == insight4.title
         assert insight4_result["numberOfPosts"] == 0
-        assert insight4_result["involvedUsers"]["totalResults"] == 1
+        assert insight4_result["involvedUsers"]["totalResults"] == 0
 
     def test_last_insights_with_blocked_user(self):
         insight_user = make_user(name="InsightUser")

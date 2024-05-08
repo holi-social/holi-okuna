@@ -320,3 +320,7 @@ def get_initiative_model():
 
 def get_initiative_reaction_model():
     return apps.get_model("openbook_insights.InitiativeReaction")
+
+
+def get_feed_post_reaction_model():
+    return apps.get_model("feed_posts.FeedPostReaction")

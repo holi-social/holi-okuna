@@ -1,8 +1,8 @@
 import json
 import logging
+from unittest import TestCase
 from unittest import mock
 from uuid import uuid4
-from unittest import TestCase
 
 import blurhash
 import pytest
@@ -17,7 +17,7 @@ from django.test import AsyncClient
 from requests.models import Response
 
 from openbook.graphql_schema import schema
-from openbook.tests.test_data import geolocation
+from openbook.tests.test_data import geolocation, geolocation_geometry
 from openbook_common.enums import VisibilityType
 from openbook_common.tests.helpers import (
     assert_is_unauthorized,
@@ -191,19 +191,21 @@ class TestCommunities(TestCase):
         def transform_space(space):
             return {"id": str(space.id)}
 
-        def assert_filtered_spaces(filter_options, expected_spaces):
+        def assert_filtered_spaces(user, expected_spaces):
             filter_response = async_to_sync(schema.execute)(
                 recommended_spaces_query,
-                variable_values=filter_options,
-                context_value=benedict({"request": {"user": AnonymousUser}}),
+                context_value=benedict({"request": {"user": user}}),
             )
             assert filter_response.errors is None
             expected_data = list(map(transform_space, expected_spaces))
             assert filter_response.data["recommendedSpaces"]["data"] == expected_data
 
-        assert_filtered_spaces({}, [default_topic_outside_space])
+        assert_filtered_spaces(AnonymousUser, [default_topic_outside_space])
+        user = make_user()
+        user.profile.geolocation = geos.GEOSGeometry(json.dumps(geolocation_geometry))
+        user.profile.interests.add(topic1, topic2)
         assert_filtered_spaces(
-            {"topicIds": [str(topic2.id), str(topic1.id)], "geolocation": geolocation},
+            user,
             [
                 topic2_inside_space,
                 topic1_and_2_inside_space,
@@ -211,16 +213,20 @@ class TestCommunities(TestCase):
                 default_topic_outside_space,
             ],
         )
+        user = make_user()
+        user.profile.interests.add(topic1)
         assert_filtered_spaces(
-            {"topicIds": [str(topic1.id)]},
+            user,
             [
                 topic1_outside_space,
                 topic1_and_2_inside_space,
                 default_topic_outside_space,
             ],
         )
+        user = make_user()
+        user.profile.geolocation = geos.GEOSGeometry(json.dumps(geolocation_geometry))
         assert_filtered_spaces(
-            {"geolocation": geolocation},
+            user,
             [
                 uninteresting_topic_inside_space,
                 topic2_inside_space,
@@ -233,6 +239,9 @@ class TestCommunities(TestCase):
         topic1 = make_topic()
         default_topic = make_topic(is_discover_spaces_default=True)
         uninteresting_topic = make_topic()
+        user = make_user()
+        user.profile.geolocation = geos.GEOSGeometry(json.dumps(geolocation_geometry))
+        user.profile.interests.add(topic1)
 
         # locations inside geolocation filter
         geolocation1 = geos.Point(8.5541567, 53.5101827, srid=4326)
@@ -264,11 +273,11 @@ class TestCommunities(TestCase):
         def transform_space(space):
             return {"id": str(space.id)}
 
-        def assert_filtered_spaces(filter_options, expected_spaces, total_results):
+        def assert_filtered_spaces(user, filter_options, expected_spaces, total_results):
             filter_response = async_to_sync(schema.execute)(
                 recommended_spaces_query,
                 variable_values=filter_options,
-                context_value=benedict({"request": {"user": AnonymousUser}}),
+                context_value=benedict({"request": {"user": user}}),
             )
             assert filter_response.errors is None
             expected_data = list(map(transform_space, expected_spaces))
@@ -276,6 +285,7 @@ class TestCommunities(TestCase):
             assert filter_response.data["recommendedSpaces"]["totalResults"] == total_results
 
         assert_filtered_spaces(
+            user,
             {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 2, "limit": 3},
             [
                 topic1_inside_space1,
@@ -285,6 +295,7 @@ class TestCommunities(TestCase):
             9,
         )
         assert_filtered_spaces(
+            user,
             {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 2, "limit": 6},
             [
                 topic1_inside_space1,
@@ -297,6 +308,7 @@ class TestCommunities(TestCase):
             9,
         )
         assert_filtered_spaces(
+            user,
             {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 4, "limit": 3},
             [
                 uninteresting_topic_inside_space2,
@@ -306,6 +318,7 @@ class TestCommunities(TestCase):
             9,
         )
         assert_filtered_spaces(
+            user,
             {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 0, "limit": 20},
             [
                 topic1_inside_space3,
@@ -321,6 +334,7 @@ class TestCommunities(TestCase):
             9,
         )
         assert_filtered_spaces(
+            user,
             {"topicIds": [str(topic1.id)], "geolocation": geolocation, "offset": 10, "limit": 20},
             [],
             9,

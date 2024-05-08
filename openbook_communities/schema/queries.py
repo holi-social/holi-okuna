@@ -84,6 +84,7 @@ class Query:
     @strawberry_django.field()
     def recommended_spaces(
         self,
+        info,
         topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
         geolocation: Optional[GeoJSON] = None,
         offset: int = 0,
@@ -93,15 +94,20 @@ class Query:
         count = 0
         queries = []
 
-        if topic_ids is not None:
-            query = create_filtered_spaces_query(topic_ids=topic_ids, geolocation=geolocation)
-            count = count + add_to_result(offset, limit, count, queries, create_spaces_queryset, result, query)
-            queries.append(query)
+        current_user = info.context.request.user
+        if current_user and not current_user.is_anonymous:
+            topic_ids = list(current_user.profile.interests.values_list("id", flat=True).all())
+            geolocation = current_user.geolocation
 
-        if geolocation is not None:
-            query = create_filtered_spaces_query(geolocation=geolocation)
-            count = count + add_to_result(offset, limit, count, queries, create_spaces_queryset, result, query)
-            queries.append(query)
+            if topic_ids is not None:
+                query = create_filtered_spaces_query(topic_ids=topic_ids, geolocation=geolocation)
+                count = count + add_to_result(offset, limit, count, queries, create_spaces_queryset, result, query)
+                queries.append(query)
+
+            if geolocation is not None:
+                query = create_filtered_spaces_query(geolocation=geolocation)
+                count = count + add_to_result(offset, limit, count, queries, create_spaces_queryset, result, query)
+                queries.append(query)
 
         default_topics = list(TopicModel.objects.filter(is_discover_spaces_default=True).values_list("id", flat=True))
         query = create_filtered_spaces_query(topic_ids=default_topics)

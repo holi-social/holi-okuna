@@ -77,6 +77,46 @@ def delete_feed_post(user, post_id):
     )
 
 
+def update_feed_post_reaction(
+    user,
+    post_id,
+    reaction_type,
+    reaction_action,
+):
+    return async_to_sync(schema.execute)(
+        """
+        mutation test($postId: UUID!, $reactionType: ReactionType!, $reactionAction: ReactionAction!){
+            updateFeedPostReaction(postId: $postId, reactionType: $reactionType, reactionAction: $reactionAction) {
+                id
+                title
+                slug
+                description
+                visibility
+                image
+                imageBlurhash
+                category {
+                    id
+                }
+                topics {
+                    id
+                }
+                creator {
+                    id
+                }
+                myReaction {
+                    HEART
+                }
+                reactions {
+                    HEART
+                }
+            }
+        }
+        """,
+        context_value=benedict({"request": {"user": user}}),
+        variable_values={"postId": post_id, "reactionType": reaction_type, "reactionAction": reaction_action},
+    )
+
+
 # Queries
 def my_posts(user):
     return async_to_sync(schema.execute)(
