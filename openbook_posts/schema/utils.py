@@ -15,4 +15,4 @@ def resolve_post(current_user, post_id):
         # Check if post is visible => return 403 otherwise
         return PostModel.objects.filter(PostModel.is_visible_query(current_user)).get(id=post_id)
     except PostModel.DoesNotExist:
-        raise PermissionDenied()
+        raise PermissionDenied() from None
