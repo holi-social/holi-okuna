@@ -10,6 +10,7 @@ def get_polls_with_id(poll, user=None):
     assert response.errors is None
     return response.data["pollById"]
 
+
 def get_poll_with_id_raw(question_id, user=None):
     return async_to_sync(schema.execute)(
         f"""

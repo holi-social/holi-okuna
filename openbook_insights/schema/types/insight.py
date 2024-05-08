@@ -51,7 +51,7 @@ class Insight:
     def number_of_posts(self, info) -> int:
         current_user = info.context.request.user
         return self.posts.filter(PostModel.is_visible_query(current_user)).distinct().count()
-    
+
     @strawberry_django.field()
     def polls(self, info) -> List[Question]:
         current_user = info.context.request.user

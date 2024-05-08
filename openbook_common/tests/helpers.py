@@ -61,6 +61,7 @@ def make_fake_post_title():
 def make_fake_post_text():
     return fake.text(max_nb_chars=settings.POST_MAX_LENGTH)
 
+
 def make_fake_question_text():
     return fake.text(max_nb_chars=200)
 

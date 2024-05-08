@@ -1,4 +1,3 @@
-
 from django.db import models
 from openbook_auth.models import User
 from django.utils import timezone
@@ -47,11 +46,10 @@ class Question(ModelWithUUID):
 
     is_public = models.BooleanField(default=False, db_index=True)
 
-    
     @classmethod
     def create_question(
         cls,
-        creator, 
+        creator,
         question_text=None,
         created=None,
         is_draft=False,
@@ -60,25 +58,26 @@ class Question(ModelWithUUID):
         if not is_public:
             raise ValidationError("A poll requires to be public to be posted to.")
 
-        question = Question.objects.create(creator=creator, created=created, question_text=question_text, is_public=is_public)
+        question = Question.objects.create(
+            creator=creator, created=created, question_text=question_text, is_public=is_public
+        )
 
         if question_text:
-            question.question_text=question_text
-        
+            question.question_text = question_text
+
         if not is_draft:
             question.publish()
         else:
             question.save()
-        
+
         return question
 
-
     def is_text_only_question(self):
-        return self.has_text() 
-    
+        return self.has_text()
+
     def has_text(self):
         return attr_filled(self, "text")
-    
+
     def publish(self):
         check_can_be_published(question=self)
         self._publish()
@@ -100,20 +99,20 @@ class Question(ModelWithUUID):
             self.created = timezone.now()
 
         self.modified = timezone.now()
-        
+
         super(Question, self).save(*args, **kwargs)
 
         return self
 
     def delete(self, *args, **kwargs):
         super(Question, self).delete(*args, **kwargs)
-    
+
     @staticmethod
     def does_exist_query(prefix=None):
         pQ = PrefixedQ(prefix)
 
         return pQ(is_deleted=False)
-    
+
     @staticmethod
     def is_visible_query(user, prefix=None):
         pQ = PrefixedQ(prefix)
@@ -122,8 +121,7 @@ class Question(ModelWithUUID):
             return pQ(is_deleted=False, status=Question.STATUS_PUBLISHED, is_public=True)
 
         return pQ(is_deleted=False) & (
-            (pQ(creator=user))
-            | (pQ(status=Question.STATUS_PUBLISHED) & (pQ(is_public=True)))
+            (pQ(creator=user)) | (pQ(status=Question.STATUS_PUBLISHED) & (pQ(is_public=True)))
         )
 
 
@@ -134,7 +132,3 @@ class Choice(ModelWithUUID):
 
     def __str__(self):
         return self.choice_text
-    
-
-
-

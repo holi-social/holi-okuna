@@ -2885,14 +2885,14 @@ class User(ModelWithUUID, AbstractUser):
             is_draft=is_draft,
             circles_ids=circles_ids,
         )
-    
+
     def create_question(
         self,
         question_text=None,
         created=None,
         is_draft=False,
-        is_public=True,  #it should be None, work with visibility
-        #is_public=None,
+        is_public=True,  # it should be None, work with visibility
+        # is_public=None,
     ):
         Question = get_question_model()
         return Question.create_question(

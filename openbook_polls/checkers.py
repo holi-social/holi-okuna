@@ -12,7 +12,7 @@ def check_can_be_updated(question, text=None):
 def check_is_draft(question):
     if not question.is_draft():
         raise ValidationError(_("Question is not a draft"))
-    
+
 
 def check_is_not_published(question):
     Question = get_question_model()
@@ -28,4 +28,3 @@ def check_is_not_empty(quesiton):
 def check_can_be_published(question):
     check_is_draft(question=question)
     check_is_not_empty(quesiton=question)
-

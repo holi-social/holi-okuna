@@ -10,7 +10,6 @@ class ChoiceInline(admin.TabularInline):
     min_num = 2
 
 
-
 class QuestionAdmin(admin.ModelAdmin):
     inlines = [ChoiceInline]
     list_display = [
@@ -19,9 +18,7 @@ class QuestionAdmin(admin.ModelAdmin):
         "created",
         "creator",
     ]
-    list_filter = (
-        ("created", DateRangeQuickSelectListFilterBuilder(title="Created")),
-    )
+    list_filter = (("created", DateRangeQuickSelectListFilterBuilder(title="Created")),)
 
 
 admin.site.register(Question, QuestionAdmin)

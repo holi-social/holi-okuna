@@ -7,9 +7,11 @@ from openbook_polls.models import Choice as ChoiceModel
 from openbook_auth.schema.types import User
 from typing import List, Optional
 
+
 @strawberry.input
 class CreateQuestionInput:
     question_text: str
+
 
 @strawberry.input
 class CreateChoiceInput:
@@ -17,10 +19,12 @@ class CreateChoiceInput:
     choice_text: str
     votes: int
 
+
 @strawberry.input
 class UpdateQuestionInput:
     question_id: uuid.UUID
     question_text: Optional[str] = strawberry.UNSET
+
 
 @strawberry_django.type(QuestionModel)
 class Question:
@@ -33,7 +37,7 @@ class Question:
     is_public: strawberry.auto
 
     @strawberry_django.field()
-    def choices(self, info)-> List["Choice"]:
+    def choices(self, info) -> List["Choice"]:
         return ChoiceModel.objects.filter(question=self)
 
 
