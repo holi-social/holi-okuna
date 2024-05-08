@@ -5,13 +5,11 @@ import strawberry
 import strawberry_django
 from strawberry.file_uploads import Upload
 
-from feed_posts.services import FeedPostReactionService
-from openbook_common.types import ReactableType
-from openbook_common.schema.types import ReactionCounts
-
 from feed_posts.enums import VisibilityLevel
 from feed_posts.models import FeedPost as FeedPostModel, FeedPostReaction as FeedPostReactionModel
+from feed_posts.services import FeedPostReactionService
 from openbook_auth.schema.types import User
+from openbook_common.schema.types import ReactionCounts
 from openbook_terms.schema.types import Topic, FeedPostCategory
 
 
@@ -30,12 +28,8 @@ class FeedPost:
     created_at: str
 
     @strawberry_django.field()
-    def reactions(self, info) -> ReactionCounts:
-        current_user = info.context.request.user
-        if current_user.is_anonymous:
-            reactions = FeedPostReactionService().count(post_id=self.pk)
-        else:
-            reactions = current_user.get_reactions_count(reactable_type=ReactableType.FEED_POST, reactable_id=self.pk)
+    def reactions(self) -> ReactionCounts:
+        reactions = FeedPostReactionService().count(post_id=self.pk)
         return ReactionCounts(**reactions)
 
     @strawberry_django.field()
