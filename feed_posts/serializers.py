@@ -72,4 +72,5 @@ class UpdateFeedPostSerializer(serializers.Serializer):
         allow_empty_file=False,
         required=False,
         max_upload_size=settings.FEED_POST_IMAGE_MAX_SIZE,
+        allow_null=True,
     )
