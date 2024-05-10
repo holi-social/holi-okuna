@@ -59,7 +59,7 @@ class FeedPostService:
 
         category = FeedPostCategory.objects.get(id=category_id)
 
-        topics = Topic.objects.filter(id__in=topic_ids)
+        topics = Topic.objects.filter(id__in=topic_ids or [])
 
         return self.repository.update_feed_post(
             post_id=post_id,
