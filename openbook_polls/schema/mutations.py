@@ -1,11 +1,15 @@
 import strawberry
 from asgiref.sync import sync_to_async
 from strawberry.types import Info
-from openbook_polls.schema.types import CreateQuestionInput, Question
-
+from openbook_polls.schema.types import CreateQuestionInput, Question, Choice
+from openbook_polls.models import Choice as ChoiceModel
 from openbook_auth.utils import verify_authorized_user
 from openbook_polls.serializers.poll_serializers import CreateQuestionSerializer
 from openbook_common.helpers import to_input_dict
+
+from openbook_common.enums import ReactionAction
+
+import uuid
 
 
 @strawberry.type
@@ -21,5 +25,17 @@ class Mutation:
 
         return current_user.create_question(**data)
 
-
-# add mutation for votes + 1
+    # add mutation for votes + 1
+    @strawberry.mutation
+    @sync_to_async
+    def update_votes(
+        self,
+        info: Info,
+        id: uuid.UUID,
+        vote_action: ReactionAction,
+    ) -> Choice:
+        choice = ChoiceModel.objects.get(id=id)
+        if vote_action == ReactionAction.INCREMENT:
+            choice.votes += 1
+            choice.save()
+        return choice
