@@ -9,6 +9,8 @@ class ChoiceInline(admin.TabularInline):
     extra = 0
     min_num = 2
 
+    readonly_fields = ["votes"]
+
 
 class QuestionAdmin(admin.ModelAdmin):
     inlines = [ChoiceInline]
