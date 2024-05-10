@@ -17,7 +17,6 @@ class CreateQuestionInput:
 class CreateChoiceInput:
     question_id: uuid.UUID
     choice_text: str
-    votes: int
 
 
 @strawberry.input
