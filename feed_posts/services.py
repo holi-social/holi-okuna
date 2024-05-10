@@ -1,5 +1,5 @@
 from feed_posts.checkers import FeedPostChecker
-from feed_posts.repositories import FeedPostRepository
+from feed_posts.repositories import FeedPostRepository, FeedPostReactionRepository
 from openbook_terms.models import FeedPostCategory, Topic
 
 
@@ -59,7 +59,7 @@ class FeedPostService:
 
         category = FeedPostCategory.objects.get(id=category_id)
 
-        topics = Topic.objects.filter(id__in=topic_ids)
+        topics = Topic.objects.filter(id__in=topic_ids) if topic_ids else None
 
         return self.repository.update_feed_post(
             post_id=post_id,
@@ -79,3 +79,20 @@ class FeedPostService:
         post = self.repository.get_feed_post(id_or_slug=str(post_id))
         self.checker.check_can_delete_feed_post(user=user, post=post)
         return self.repository.delete_feed_post(post_id)
+
+
+class FeedPostReactionService:
+    def __init__(self):
+        self.repository = FeedPostReactionRepository()
+
+    def get_reaction_by_user(self, feed_post, reactor):
+        return self.repository.get_reaction_by_user(feed_post=feed_post, reactor=reactor)
+
+    def create_reaction(self, feed_post, reactor, reaction_type):
+        return self.repository.create_reaction(feed_post=feed_post, reactor=reactor, reaction_type=reaction_type)
+
+    def remove_reaction(self, feed_post, reactor, reaction_type):
+        return self.repository.remove_reaction(feed_post=feed_post, reactor=reactor, reaction_type=reaction_type)
+
+    def count(self, post_id, reactor_id=None, reaction_type=None):
+        return self.repository.count(post_id=post_id, reactor_id=reactor_id, reaction_type=reaction_type)

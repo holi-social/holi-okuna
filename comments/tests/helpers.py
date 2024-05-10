@@ -5,6 +5,20 @@ from django.contrib.auth.models import AnonymousUser
 from openbook.graphql_schema import schema
 
 
+def get_comment_by_id(id, user=None):
+    return async_to_sync(schema.execute)(
+        """
+        query GetComment($id: UUID!) {
+            commentById(id: $id) {
+                id
+            }
+        }
+        """,
+        context_value=benedict({"request": {"user": user or AnonymousUser}}),
+        variable_values={"id": str(id)},
+    )
+
+
 def get_comments(commentable_id, commentable_type, user=None, parent_comment_id=None):
     return async_to_sync(schema.execute)(
         """

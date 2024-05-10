@@ -5,15 +5,16 @@ from datetime import datetime, timedelta
 import pytz
 import requests
 import structlog
+from dateutil import parser
 from django.conf import settings
 from django_rq import job
+from requests import RequestException
 from rest_framework.exceptions import ValidationError
 
 from openbook.settings import CHAT_SERVER_NAME, CHAT_SERVER_URL
-from openbook_auth.errors import OryRequestError
-from openbook_auth.models import User
-from dateutil import parser
 from openbook.settings import ORY_SESSION_EXPIRY_IN_H
+from openbook_auth.errors import OryRequestError, MatrixRequestError
+from openbook_auth.models import User
 from openbook_common.utils.synchronized_set import SynchronizedSet
 
 logger = structlog.get_logger(__name__)
@@ -69,8 +70,16 @@ def create_matrix_user_account(identity: str):
     """try to create a matrix account with the provided identity. Returns True, when the call created a new account, False otherwise"""
     url = f"{CHAT_SERVER_URL}/_synapse/admin/v2/users/%40{identity}%3A{CHAT_SERVER_NAME}"
     headers = {"Authorization": f"Bearer {settings.CHAT_ADMIN_ACCESS_TOKEN}"}
-    response = requests.put(url, headers=headers, json={}, timeout=30)
-    return response.status_code == 201
+    try:
+        response = requests.put(url, headers=headers, json={}, timeout=30)
+        if response.status_code >= 400:
+            response_data = response.json()
+            error = response_data.get("error")
+            raise MatrixRequestError("Error creating user account in Matrix Server", error, response.status_code)
+        # status_code is 200, when the user already exists and 201, when it was created
+        return response.status_code == 201
+    except RequestException as ex:
+        raise MatrixRequestError("Could not send request to the Matrix Server", str(ex), 0)
 
 
 def send_extend_ory_session(session_id: str):
