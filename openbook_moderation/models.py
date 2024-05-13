@@ -23,6 +23,9 @@ from openbook_common.utils.model_loaders import (
 
 if typing.TYPE_CHECKING:
     from comments.models import Comment
+    from openbook_communities.models import Task
+    from feed_posts.models import FeedPost
+    from openbook_appointments.models import Appointment
 
 
 class ModerationCategory(ModelWithUUID):
@@ -88,6 +91,9 @@ class ModeratedObject(ModelWithUUID):
     OBJECT_TYPE_COMMUNITY = "C"
     OBJECT_TYPE_USER = "U"
     OBJECT_TYPE_HASHTAG = "H"
+    OBJECT_TYPE_TASK = "ST"
+    OBJECT_TYPE_FEED_POST = "FP"
+    OBJECT_TYPE_APPOINTMENT = "APPT"
 
     OBJECT_TYPES = (
         (OBJECT_TYPE_POST, "Post"),
@@ -95,6 +101,9 @@ class ModeratedObject(ModelWithUUID):
         (OBJECT_TYPE_COMMUNITY, "Community"),
         (OBJECT_TYPE_USER, "User"),
         (OBJECT_TYPE_HASHTAG, "Hashtag"),
+        (OBJECT_TYPE_TASK, "Space Task"),
+        (OBJECT_TYPE_FEED_POST, "Feed Post"),
+        (OBJECT_TYPE_APPOINTMENT, "Space Appointment"),
     )
 
     object_type = models.CharField(max_length=5, choices=OBJECT_TYPES)
@@ -191,6 +200,32 @@ class ModeratedObject(ModelWithUUID):
         return cls._get_or_create_moderated_object(
             object_type=cls.OBJECT_TYPE_HASHTAG,
             content_object=hashtag,
+            category_id=category_id,
+        )
+
+    @classmethod
+    def get_or_create_moderated_object_for_task(cls, task: "Task", category_id: uuid.UUID):
+        return cls._get_or_create_moderated_object(
+            object_type=cls.OBJECT_TYPE_TASK,
+            content_object=task,
+            category_id=category_id,
+        )
+
+    @classmethod
+    def get_or_create_moderated_object_for_feed_post(cls, feed_post: "FeedPost", category_id: uuid.UUID):
+        return cls._get_or_create_moderated_object(
+            object_type=cls.OBJECT_TYPE_FEED_POST,
+            content_object=feed_post,
+            category_id=category_id,
+        )
+
+    @classmethod
+    def get_or_create_moderated_object_for_appointment(
+        cls, appointment: "Appointment", category_id: uuid.UUID
+    ) -> typing.Self:
+        return cls._get_or_create_moderated_object(
+            object_type=cls.OBJECT_TYPE_APPOINTMENT,
+            content_object=appointment,
             category_id=category_id,
         )
 
@@ -455,6 +490,49 @@ class ModerationReport(ModelWithUUID):
             moderated_object=moderated_object,
         )
         return community_moderation_report
+
+    @classmethod
+    def create_task_moderation_report(
+        cls, reporter_id: uuid.UUID, task: "Task", category_id: uuid.UUID, description: str
+    ) -> typing.Self:
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_task(task=task, category_id=category_id)
+
+        return cls.objects.create(
+            reporter_id=reporter_id,
+            category_id=category_id,
+            description=description,
+            moderated_object=moderated_object,
+        )
+
+    @classmethod
+    def create_feed_post_moderation_report(
+        cls, reporter_id: uuid.UUID, feed_post: "FeedPost", category_id: uuid.UUID, description: str
+    ) -> typing.Self:
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_feed_post(
+            feed_post=feed_post, category_id=category_id
+        )
+
+        return cls.objects.create(
+            reporter_id=reporter_id,
+            category_id=category_id,
+            description=description,
+            moderated_object=moderated_object,
+        )
+
+    @classmethod
+    def create_appointment_moderation_report(
+        cls, reporter_id: uuid.UUID, appointment: "Appointment", category_id: uuid.UUID, description: str
+    ) -> typing.Self:
+        moderated_object = ModeratedObject.get_or_create_moderated_object_for_appointment(
+            appointment=appointment, category_id=category_id
+        )
+
+        return cls.objects.create(
+            reporter_id=reporter_id,
+            category_id=category_id,
+            description=description,
+            moderated_object=moderated_object,
+        )
 
 
 class ModerationPenalty(ModelWithUUID):

@@ -1,4 +1,11 @@
+import typing
+from typing import Type
+
 from django.apps import apps
+
+if typing.TYPE_CHECKING:
+    from feed_posts.models import FeedPost
+    from openbook_appointments.models import Appointment
 
 
 def get_circle_model():
@@ -301,5 +308,13 @@ def get_initiative_reaction_model():
     return apps.get_model("openbook_insights.InitiativeReaction")
 
 
+def get_feed_post_model() -> Type["FeedPost"]:
+    return apps.get_model("feed_posts.FeedPost")
+
+
 def get_feed_post_reaction_model():
     return apps.get_model("feed_posts.FeedPostReaction")
+
+
+def get_appointment_model() -> Type["Appointment"]:
+    return apps.get_model("openbook_appointments.Appointment")
