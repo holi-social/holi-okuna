@@ -7,3 +7,4 @@ import strawberry
 class CommentableType(Enum):
     POST = "post"
     DISCUSSION = "discussion"
+    FEED_POST = "feedpost"

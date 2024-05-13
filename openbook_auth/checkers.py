@@ -953,6 +953,33 @@ def check_has_not_reported_hashtag_with_id(user, hashtag_id):
         )
 
 
+def check_has_not_reported_task_with_id(user, task_id) -> None:
+    if user.has_reported_task_with_id(task_id=task_id):
+        raise ValidationError(_("You have already reported this task."))
+
+
+def check_can_report_task(user, task):
+    check_has_not_reported_task_with_id(user=user, task_id=task.pk)
+
+
+def check_has_not_reported_feed_post_with_id(user, feed_post_id) -> None:
+    if user.has_reported_feed_post_with_id(feed_post_id=feed_post_id):
+        raise ValidationError(_("You have already reported this post."))
+
+
+def check_can_report_feed_post(user, feed_post):
+    check_has_not_reported_feed_post_with_id(user=user, feed_post_id=feed_post.pk)
+
+
+def check_has_not_reported_appointment_with_id(user, appointment_id) -> None:
+    if user.has_reported_appointment_with_id(appointment_id=appointment_id):
+        raise ValidationError(_("You have already reported this appointment."))
+
+
+def check_can_report_appointment(user, appointment):
+    check_has_not_reported_appointment_with_id(user, appointment.pk)
+
+
 def check_password_reset_verification_token_is_valid(user, password_verification_token):
     try:
         token_contents = jwt.decode(
