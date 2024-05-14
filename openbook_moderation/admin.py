@@ -77,7 +77,7 @@ class ModeratedObjectAdmin(ModelAdmin):
         "object_id",
         "content_type",
         linkify(field_name="content_object"),
-        "object_full",
+        "object_full_repr",
     ]
 
     def response_change(self, request, obj):
@@ -104,10 +104,12 @@ class ModeratedObjectAdmin(ModelAdmin):
         return self.object_to_text(obj, 100)
 
     @admin.display(description="Content")
-    def object_full(self, obj):
+    def object_full_repr(self, obj):
         return self.object_to_text(obj)
 
     def object_to_text(self, obj, length=None):
+        if obj is None or obj.content_object is None:
+            return "ERROR: Content was deleted"
         match obj.object_type:
             case ModeratedObject.OBJECT_TYPE_POST:
                 return (
