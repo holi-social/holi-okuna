@@ -118,9 +118,9 @@ class ModeratedObjectAdmin(ModelAdmin):
 
         match obj.object_type:
             case ModeratedObject.OBJECT_TYPE_POST:
-                return (
-                    str(obj.content_object.id) + " / " + obj.content_object.title + " / " + obj.content_object.text
-                )[:length]
+                return f"{str(obj.content_object.id)} / {obj.content_object.title} / {obj.content_object.text}"[
+                    :length
+                ]
             case ModeratedObject.OBJECT_TYPE_POST_COMMENT:
                 return (str(obj.content_object.id) + " / " + obj.content_object.text)[:length]
             case ModeratedObject.OBJECT_TYPE_USER:
