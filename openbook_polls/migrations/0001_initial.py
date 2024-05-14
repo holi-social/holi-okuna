@@ -5,6 +5,8 @@ import django.utils.timezone
 import uuid
 from django.conf import settings
 from django.db import migrations, models
+from django.conf import settings
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
@@ -44,11 +46,11 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "abstract": False,
+                'abstract': False,
             },
         ),
         migrations.CreateModel(
-            name="Choice",
+            name='Choice',
             fields=[
                 ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ("choice_text", models.CharField(max_length=200)),
@@ -61,7 +63,7 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "abstract": False,
+                'abstract': False,
             },
         ),
     ]

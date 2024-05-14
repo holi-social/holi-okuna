@@ -34,3 +34,26 @@ def get_poll_with_id_raw(poll_id, user=None):
         """,
         context_value=benedict({"request": {"user": user or AnonymousUser}}),
     )
+
+
+def create_poll(user, info):
+    return async_to_sync(schema.execute)(
+        """ 
+        mutation test($input: CreatePollInput!){
+            createPoll(input: $input) {
+                created
+                id
+                isPublic
+                modified
+                questionText
+                choices {
+                    choiceText
+                    id
+                    votes
+                }
+            }
+        }
+        """,
+        context_value=benedict({"request": {"user": user}}),
+        variable_values={"input": info},
+    )

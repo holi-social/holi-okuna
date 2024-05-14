@@ -10,6 +10,7 @@ from openbook_common.tests.helpers import (
 from openbook_polls.tests.helpers import (
     get_polls_with_id,
     get_poll_with_id_raw,
+    create_poll,
 )
 
 logger = logging.getLogger(__name__)
@@ -52,3 +53,36 @@ class TestPolls(TestCase):
         poll_data = response.data["pollById"]
         assert poll_data is None
         assert "Forbidden" in response.errors[0].message
+
+    def test_cant_fetch_deleted_poll(self):
+        posting_user = make_user()
+
+        question_text = make_fake_question_text()
+
+        question = posting_user.create_poll(
+            question_text=question_text,
+            is_draft=False,
+            is_public=True,
+        )
+        question.delete()
+
+        response = get_poll_with_id_raw(question.id)
+
+        question_data = response.data
+        assert question_data is None
+
+    def test_user_can_create_poll(self):
+        user = make_user()
+
+        question_text=make_fake_question_text()
+
+        input_data = {
+            "questionText": question_text,
+        }
+
+        response = create_poll(user, input_data)
+
+        poll_data = response.data["createPoll"]
+
+        assert poll_data["questionText"] == input_data["questionText"]
+        assert poll_data["isPublic"] is True
