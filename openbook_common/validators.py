@@ -1,3 +1,4 @@
+# ruff: noqa
 import re
 
 from rest_framework.exceptions import ValidationError
@@ -101,7 +102,7 @@ def url_safety_validator(url: str):
     if threat_types:
         logger.debug(f"The link has the following threat types: {threat_types}")
         raise ValidationError(
-            _("The link cannot be posted as it was detected as malicious"),
+            _("Unsafe link detected, please check."),
         )
 
 

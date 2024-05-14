@@ -15,7 +15,7 @@ from openbook import settings
 from openbook_auth.models import User
 from openbook_common.enums import ReactionType
 from openbook_common.helpers import ExifRotate, generate_blurhash
-from openbook_common.models import ModelWithUUID
+from openbook_common.models import ModelWithUUID, LinkPreview
 from openbook_common.utils.helpers import delete_file_field
 from openbook_terms.models import Topic, FeedPostCategory
 
@@ -60,6 +60,8 @@ class FeedPost(ModelWithUUID):
     )
 
     image_blurhash = models.CharField(max_length=50, blank=True, null=True)
+
+    link_preview = models.ForeignKey(LinkPreview, null=True, blank=True, on_delete=models.SET_NULL)
 
     def save(self, *args, **kwargs):
         if self.image:

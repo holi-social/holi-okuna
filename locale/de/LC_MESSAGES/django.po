@@ -1455,8 +1455,8 @@ msgid "No supported language with the provided code exists."
 msgstr "Es existiert keine unterstützte Sprache mit dem angegebenen Code."
 
 #: openbook_common/validators.py:105
-msgid "The link cannot be posted as it was detected as malicious"
-msgstr ""
+msgid "Unsafe link detected, please check."
+msgstr "Unsicheren Link erkannt, bitte überprüfen."
 
 #: openbook_common/views.py:62
 msgid "Domain is okay to be proxied"
