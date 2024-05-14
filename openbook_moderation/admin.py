@@ -1,9 +1,9 @@
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin
 from django.http import HttpResponseRedirect
-from modeltranslation.admin import TranslationAdmin
-from django.utils.html import format_html
 from django.urls import reverse
+from django.utils.html import format_html
+from modeltranslation.admin import TranslationAdmin
 
 from openbook_moderation.models import (
     ModerationCategory,
@@ -76,7 +76,6 @@ class ModeratedObjectAdmin(ModelAdmin):
         "object_type",
         "object_id",
         "content_type",
-        linkify(field_name="content_object"),
         "object_full",
     ]
 
