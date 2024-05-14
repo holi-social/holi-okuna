@@ -21,8 +21,8 @@ def get_post_model():
     return apps.get_model("openbook_posts.Post")
 
 
-def get_question_model():
-    return apps.get_model("openbook_polls.Question")
+def get_poll_model():
+    return apps.get_model("openbook_polls.Poll")
 
 
 def get_choice_model():

@@ -25,11 +25,11 @@ from openbook_common.helpers import (
 magic = get_magic()
 
 
-class Question(ModelWithUUID):
+class Poll(ModelWithUUID):
     question_text = models.CharField(max_length=200)
     created = models.DateTimeField(editable=False, db_index=True)
     modified = models.DateTimeField(db_index=True, default=timezone.now)
-    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="question", null=True)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="poll", null=True)
 
     is_edited = models.BooleanField(default=False)
     is_closed = models.BooleanField(default=False)
@@ -47,48 +47,48 @@ class Question(ModelWithUUID):
     is_public = models.BooleanField(default=False, db_index=True)
 
     @classmethod
-    def create_question(
+    def create_poll(
         cls,
         creator,
         question_text=None,
         created=None,
         is_draft=False,
         is_public=False,
-    ) -> "Question":
+    ) -> "Poll":
         if not is_public:
             raise ValidationError("A poll requires to be public to be posted to.")
 
-        question = Question.objects.create(
+        poll = Poll.objects.create(
             creator=creator, created=created, question_text=question_text, is_public=is_public
         )
 
         if question_text:
-            question.question_text = question_text
+            poll.question_text = question_text
 
         if not is_draft:
-            question.publish()
+            poll.publish()
         else:
-            question.save()
+            poll.save()
 
-        return question
+        return poll
 
-    def is_text_only_question(self):
+    def is_text_only_poll(self):
         return self.has_text()
 
     def has_text(self):
         return attr_filled(self, "text")
 
     def publish(self):
-        check_can_be_published(question=self)
+        check_can_be_published(poll=self)
         self._publish()
 
     def _publish(self):
-        self.status = Question.STATUS_PUBLISHED
+        self.status = Poll.STATUS_PUBLISHED
         self.created = timezone.now()
         self.save()
 
     def is_draft(self):
-        return self.status == Question.STATUS_DRAFT
+        return self.status == Poll.STATUS_DRAFT
 
     def is_empty(self):
         return not self.question_text
@@ -100,12 +100,12 @@ class Question(ModelWithUUID):
 
         self.modified = timezone.now()
 
-        super(Question, self).save(*args, **kwargs)
+        super(Poll, self).save(*args, **kwargs)
 
         return self
 
     def delete(self, *args, **kwargs):
-        super(Question, self).delete(*args, **kwargs)
+        super(Poll, self).delete(*args, **kwargs)
 
     @staticmethod
     def does_exist_query(prefix=None):
@@ -118,15 +118,15 @@ class Question(ModelWithUUID):
         pQ = PrefixedQ(prefix)
 
         if user.is_anonymous:
-            return pQ(is_deleted=False, status=Question.STATUS_PUBLISHED, is_public=True)
+            return pQ(is_deleted=False, status=Poll.STATUS_PUBLISHED, is_public=True)
 
         return pQ(is_deleted=False) & (
-            (pQ(creator=user)) | (pQ(status=Question.STATUS_PUBLISHED) & (pQ(is_public=True)))
+            (pQ(creator=user)) | (pQ(status=Poll.STATUS_PUBLISHED) & (pQ(is_public=True)))
         )
 
 
 class Choice(ModelWithUUID):
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="question")
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="poll")
     choice_text = models.CharField(max_length=200)
     votes = models.IntegerField(default=0)
 

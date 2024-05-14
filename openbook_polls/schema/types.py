@@ -2,31 +2,31 @@ import uuid
 
 import strawberry
 import strawberry_django
-from openbook_polls.models import Question as QuestionModel
+from openbook_polls.models import Poll as PollModel
 from openbook_polls.models import Choice as ChoiceModel
 from openbook_auth.schema.types import User
 from typing import List, Optional
 
 
 @strawberry.input
-class CreateQuestionInput:
+class CreatePollInput:
     question_text: str
 
 
 @strawberry.input
 class CreateChoiceInput:
-    question_id: uuid.UUID
+    poll_id: uuid.UUID
     choice_text: str
 
 
 @strawberry.input
-class UpdateQuestionInput:
-    question_id: uuid.UUID
+class UpdatePollInput:
+    poll_id: uuid.UUID
     question_text: Optional[str] = strawberry.UNSET
 
 
-@strawberry_django.type(QuestionModel)
-class Question:
+@strawberry_django.type(PollModel)
+class Poll:
     id: strawberry.auto
     question_text: strawberry.auto
     modified: strawberry.auto
@@ -37,7 +37,7 @@ class Question:
 
     @strawberry_django.field()
     def choices(self, info) -> List["Choice"]:
-        return ChoiceModel.objects.filter(question=self)
+        return ChoiceModel.objects.filter(poll=self)
 
 
 @strawberry_django.type(ChoiceModel)

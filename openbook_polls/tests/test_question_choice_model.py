@@ -5,20 +5,20 @@ from openbook_common.tests.helpers import (
     make_fake_question_text,
     make_user,
 )
-from openbook_common.utils.model_loaders import get_question_model
+from openbook_common.utils.model_loaders import get_poll_model
 
 
 class PollModelTest(TestAssertionsMixin, TestCase):
     fixtures = ["openbook_moderation/fixtures/moderation_categories.json"]
 
-    def test_create_question_success(self):
+    def test_create_poll_success(self):
         space_creator = make_user()
 
         question_text = make_fake_question_text()
 
-        Question = get_question_model()
+        Poll = get_poll_model()
 
-        question = Question.create_question(
+        poll = Poll.create_poll(
             creator=space_creator,
             question_text=question_text,
             created=None,
@@ -26,5 +26,5 @@ class PollModelTest(TestAssertionsMixin, TestCase):
             is_public=True,
         )
 
-        self.assertEqual(question.question_text, question_text)
-        self.assertTrue(question.is_public)
+        self.assertEqual(poll.question_text, question_text)
+        self.assertTrue(poll.is_public)

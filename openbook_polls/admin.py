@@ -1,7 +1,7 @@
 from django.contrib import admin
 from rangefilter.filters import DateRangeQuickSelectListFilterBuilder
 
-from .models import Choice, Question
+from .models import Choice, Poll
 
 
 class ChoiceInline(admin.TabularInline):
@@ -12,7 +12,7 @@ class ChoiceInline(admin.TabularInline):
     readonly_fields = ["votes"]
 
 
-class QuestionAdmin(admin.ModelAdmin):
+class PollAdmin(admin.ModelAdmin):
     inlines = [ChoiceInline]
     list_display = [
         "id",
@@ -23,4 +23,4 @@ class QuestionAdmin(admin.ModelAdmin):
     list_filter = (("created", DateRangeQuickSelectListFilterBuilder(title="Created")),)
 
 
-admin.site.register(Question, QuestionAdmin)
+admin.site.register(Poll, PollAdmin)

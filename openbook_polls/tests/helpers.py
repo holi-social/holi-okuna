@@ -11,11 +11,11 @@ def get_polls_with_id(poll, user=None):
     return response.data["pollById"]
 
 
-def get_poll_with_id_raw(question_id, user=None):
+def get_poll_with_id_raw(poll_id, user=None):
     return async_to_sync(schema.execute)(
         f"""
         query {{
-            pollById(id: "{question_id}") {{
+            pollById(id: "{poll_id}") {{
                 choices {{
                     choiceText
                     id

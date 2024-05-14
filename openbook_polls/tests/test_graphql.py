@@ -22,14 +22,14 @@ class TestPolls(TestCase):
 
         question_text = make_fake_question_text()
 
-        question = posting_user.create_question(
+        poll = posting_user.create_poll(
             question_text=question_text,
             created=None,
             is_draft=False,
             is_public=True,
         )
 
-        poll_data = get_polls_with_id(question)
+        poll_data = get_polls_with_id(poll)
 
         assert poll_data["questionText"] == question_text
         assert poll_data["creator"]["id"] == str(posting_user.uuid)
@@ -40,15 +40,15 @@ class TestPolls(TestCase):
 
         question_text = make_fake_question_text()
 
-        question = posting_user.create_question(
+        poll = posting_user.create_poll(
             question_text=question_text,
             created=None,
             is_draft=True,
             is_public=True,
         )
 
-        response = get_poll_with_id_raw(question.id)
+        response = get_poll_with_id_raw(poll.id)
 
-        question_data = response.data["pollById"]
-        assert question_data is None
+        poll_data = response.data["pollById"]
+        assert poll_data is None
         assert "Forbidden" in response.errors[0].message

@@ -2,22 +2,22 @@ from graphql import GraphQLError
 
 from openbook_auth.models import UserBlock as UserBlockModel
 from openbook.graphql_errors import GraphQLErrorCodes
-from openbook_polls.models import Question as QuestionModel
+from openbook_polls.models import Poll as PollModel
 
 
-def resolve_question(current_user, question_id):
+def resolve_poll(current_user, poll_id):
     try:
         # Check if poll exists and user is not blocked => return 404 otherwise
-        question: QuestionModel = QuestionModel.objects.filter(QuestionModel.does_exist_query()).get(id=question_id)
+        poll: PollModel = PollModel.objects.filter(PollModel.does_exist_query()).get(id=poll_id)
         UserBlockModel.filter_single_object(
             current_user,
-            question,
+            poll,
             lambda p: None if p.creator is None else p.creator.id,
         )
         try:
             # Check if poll is visible => return 403 otherwise
-            return QuestionModel.objects.filter(QuestionModel.is_visible_query(current_user)).get(id=question_id)
-        except QuestionModel.DoesNotExist:
+            return PollModel.objects.filter(PollModel.is_visible_query(current_user)).get(id=poll_id)
+        except PollModel.DoesNotExist:
             raise GraphQLError("Forbidden", extensions={"code": GraphQLErrorCodes.FORBIDDEN}) from None
-    except QuestionModel.DoesNotExist:
-        raise GraphQLError("Question not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND}) from None
+    except PollModel.DoesNotExist:
+        raise GraphQLError("Poll not found", extensions={"code": GraphQLErrorCodes.NOT_FOUND}) from None
