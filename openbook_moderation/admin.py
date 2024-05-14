@@ -113,8 +113,9 @@ class ModeratedObjectAdmin(ModelAdmin):
         return self.object_to_text(obj)
 
     def object_to_text(self, obj, length=None):
-        if obj is None or obj.content_object is None:
+        if obj is None or not hasattr(obj, "content_object") or obj.content_object is None:
             return "ERROR: Content was deleted"
+
         match obj.object_type:
             case ModeratedObject.OBJECT_TYPE_POST:
                 return (
