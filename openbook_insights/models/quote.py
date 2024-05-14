@@ -37,7 +37,6 @@ class Quote(ModelWithUUID):
             self.link_preview = LinkPreview.from_url(self.link)
 
         if self.link != self.link_preview.requested_url:
-            self.link_preview.delete()
             self.link_preview = LinkPreview.from_url(self.link)
 
         super().save(*args, **kwargs)

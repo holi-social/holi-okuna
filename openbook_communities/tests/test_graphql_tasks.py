@@ -935,7 +935,7 @@ class TestTaskRecommendations:
         if total_results is not None:
             assert filter_response.data["recommendedTasks"]["totalResults"] == total_results
 
-    def test_filters_for_recommended_spaces(self):
+    def test_filters_for_recommended_tasks(self):
         skill1 = make_skill()
         skill2 = make_skill()
         other_skill = make_skill()
@@ -995,7 +995,7 @@ class TestTaskRecommendations:
             ],
         )
 
-    def test_filters_for_recommended_spaces_paging(self):
+    def test_filters_for_recommended_tasks_paging(self):
         skill1 = make_skill()
         other_skill = make_skill()
         self.user.profile.skills.add(skill1)
