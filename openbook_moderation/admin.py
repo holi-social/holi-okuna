@@ -66,7 +66,7 @@ class ModeratedObjectAdmin(ModelAdmin):
         return True
 
     change_form_template = "moderation_changeform.html"
-    list_display = ("id", "object_type", "status", "verified")
+    list_display = ("id", "object_type", linkify(field_name="content_object"), "object_repr", "status", "verified")
     readonly_fields = [
         "verified",
         "category",
@@ -100,7 +100,7 @@ class ModeratedObjectAdmin(ModelAdmin):
         return super().response_change(request, obj)
 
     @admin.display(description="Content")
-    def object(self, obj):
+    def object_repr(self, obj):
         return self.object_to_text(obj, 100)
 
     @admin.display(description="Content")
