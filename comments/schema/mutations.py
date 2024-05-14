@@ -35,8 +35,8 @@ class Mutation:
         with transaction.atomic():
             commentable = CommentModel.get_commentable(commentable_id, commentable_type)
             if parent_comment_id is not None:
-                # only DISCUSSION and FEED_POST types support replying to comments
-                if commentable_type is not (CommentableType.DISCUSSION or CommentableType.FEED_POST):
+                # POST type does not support replying to comments
+                if commentable_type is CommentableType.POST:
                     raise FieldError()
 
                 parent_comment = CommentModel.objects.get(pk=parent_comment_id, commentable_id=commentable.id)
