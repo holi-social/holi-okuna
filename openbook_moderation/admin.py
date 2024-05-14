@@ -66,7 +66,7 @@ class ModeratedObjectAdmin(ModelAdmin):
         return True
 
     change_form_template = "moderation_changeform.html"
-    list_display = ("id", "object_type", "content_object", "object", "status", "verified")
+    list_display = ("id", "object_type", "object", "status", "verified")
     readonly_fields = [
         "verified",
         "category",
