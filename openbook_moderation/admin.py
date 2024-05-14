@@ -66,7 +66,7 @@ class ModeratedObjectAdmin(ModelAdmin):
         return True
 
     change_form_template = "moderation_changeform.html"
-    list_display = ("id", "object_type", linkify(field_name="content_object"), "object", "status", "verified")
+    list_display = ("id", "object_type", "content_object", "object", "status", "verified")
     readonly_fields = [
         "verified",
         "category",
@@ -76,6 +76,7 @@ class ModeratedObjectAdmin(ModelAdmin):
         "object_type",
         "object_id",
         "content_type",
+        linkify(field_name="content_object"),
         "object_full",
     ]
 
