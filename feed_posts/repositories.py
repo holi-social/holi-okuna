@@ -18,6 +18,7 @@ class FeedPostRepository:
         category,
         creator,
         image,
+        link_preview,
     ):
         feed_post = FeedPost.objects.create(
             title=title,
@@ -26,6 +27,7 @@ class FeedPostRepository:
             category=category,
             creator=creator,
             image=image,
+            link_preview=link_preview,
         )
 
         if topics is not None:
@@ -52,6 +54,7 @@ class FeedPostRepository:
         topics=None,
         image=None,
         remove_image=False,
+        link_preview=None,
     ):
         post = FeedPost.objects.get(id=post_id)
 
@@ -74,6 +77,8 @@ class FeedPostRepository:
             post.delete_image()
         elif image:
             post.update_image(image)
+
+        post.link_preview = link_preview
 
         post.save()
 
