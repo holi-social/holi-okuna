@@ -31,12 +31,12 @@ class FeedPost(ModelWithUUID):
 
     topics = models.ManyToManyField(Topic, related_name="feed_posts", blank=True, db_index=True)
 
-    category = models.ForeignKey(FeedPostCategory, on_delete=models.SET_NULL, null=True)
+    category = models.ForeignKey(FeedPostCategory, on_delete=models.PROTECT, null=True)
 
     creator = models.ForeignKey(
         User,
         related_name="created_feed_posts",
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
     )
 
