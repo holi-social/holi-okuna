@@ -14,7 +14,7 @@ from openbook_common.serializers_fields.user import (
     IsFollowingField,
     AreNewPostNotificationsEnabledForUserField,
 )
-from openbook_common.validators import hex_color_validator
+from openbook_common.validators import hex_color_validator, sanitize_text
 from openbook_communities.models import Community, CommunityMembership, CommunityMembershipRequest
 from openbook_communities.serializers_fields import (
     IsInvitedField,
@@ -68,6 +68,7 @@ class UpdateCommunitySerializer(serializers.Serializer):
     description = serializers.CharField(
         required=False,
         allow_blank=True,
+        validators=[sanitize_text]
     )
     rules = serializers.CharField(max_length=settings.COMMUNITY_RULES_MAX_LENGTH, required=False, allow_blank=True)
     user_adjective = serializers.CharField(

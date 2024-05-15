@@ -7,7 +7,7 @@ from openbook_categories.validators import category_name_exists
 from openbook_common.serializers import CommonCommunityMembershipSerializer, GeolocationPointSerializer
 from openbook_common.serializers_fields.community import CommunityPostsCountField
 from openbook_common.serializers_fields.request import RestrictedImageFileSizeField
-from openbook_common.validators import hex_color_validator, url_safety_validator
+from openbook_common.validators import hex_color_validator, url_safety_validator, sanitize_text
 from openbook_communities.models import CollaborationTool, Community, ExternalLinkType, Task, VisibilityType
 from openbook_communities.serializers_fields import (
     IsInvitedField,
@@ -39,6 +39,7 @@ class CreateCommunitySerializer(serializers.Serializer):
     description = serializers.CharField(
         max_length=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH,
         required=True,
+        validators=[sanitize_text]
     )
     rules = serializers.CharField(max_length=settings.COMMUNITY_RULES_MAX_LENGTH, allow_blank=True, required=False)
     user_adjective = serializers.CharField(
@@ -93,6 +94,7 @@ class ValidateCommunitySerializer(serializers.Serializer):
     description = serializers.CharField(
         max_length=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH,
         required=True,
+        validators=[sanitize_text]
     )
     topics = serializers.ListField(
         min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
@@ -120,6 +122,7 @@ class UpdateOnboardingStepSerializer(serializers.Serializer):
         max_length=settings.ONBOARDING_STEP_TEXT_MAX_LENGTH,
         required=False,
         allow_blank=False,
+        validators=[sanitize_text]
     )
 
 
@@ -136,6 +139,7 @@ class UpdateCommunitySerializer(serializers.Serializer):
     description = serializers.CharField(
         max_length=settings.COMMUNITY_DESCRIPTION_MAX_LENGTH,
         required=False,
+        validators=[sanitize_text]
     )
     topics = serializers.ListField(
         min_length=settings.COMMUNITY_TOPICS_MIN_AMOUNT,
@@ -171,6 +175,7 @@ class UpdateCommunitySerializer(serializers.Serializer):
         required=False,
         max_length=settings.COMMUNITY_CONTACT_DESCRIPTION_MAX_LENGTH,
         allow_blank=True,
+        validators=[sanitize_text]
     )
     contact_email = serializers.EmailField(
         required=False,
@@ -327,6 +332,7 @@ class AddCollaborationToolSerializer(serializers.Serializer):
         max_length=settings.COLLABORATION_TOOL_DESCRIPTION_MAX_LENGTH,
         required=False,
         allow_blank=True,
+        validators=[sanitize_text]
     )
     collection_type = serializers.ChoiceField(
         allow_blank=False, required=False, choices=CollaborationTool.CollectionType.choices
@@ -358,6 +364,7 @@ class UpdateCollaborationToolSerializer(serializers.Serializer):
         max_length=settings.COLLABORATION_TOOL_DESCRIPTION_MAX_LENGTH,
         required=False,
         allow_blank=True,
+        validators=[sanitize_text]
     )
     collection_type = serializers.ChoiceField(required=False, choices=CollaborationTool.CollectionType.choices)
     thumbnail = RestrictedImageFileSizeField(
@@ -381,6 +388,7 @@ class CreateTaskSerializer(serializers.Serializer):
     description = serializers.CharField(
         max_length=settings.TASK_DESCRIPTION_MAX_LENGTH,
         required=True,
+        validators=[sanitize_text]
     )
     slots_available = serializers.IntegerField(required=True, max_value=600)
     location = serializers.CharField(
@@ -431,6 +439,7 @@ class UpdateTaskSerializer(serializers.Serializer):
     description = serializers.CharField(
         max_length=settings.TASK_DESCRIPTION_MAX_LENGTH,
         required=True,
+        validators=[sanitize_text]
     )
     slots_available = serializers.IntegerField(required=False, max_value=600)
     location = serializers.CharField(

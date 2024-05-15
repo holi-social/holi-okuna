@@ -21,7 +21,7 @@ from openbook_common.serializers_fields.request import (
     FriendlyUrlField,
     RestrictedImageFileSizeField,
 )
-from openbook_common.validators import name_characters_validator
+from openbook_common.validators import name_characters_validator, sanitize_text, url_safety_validator
 
 
 class UpdateAuthenticatedUserSerializer(serializers.Serializer):
@@ -62,8 +62,9 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
         max_length=settings.PROFILE_ABOUT_ME_MAX_LENGTH,
         required=False,
         allow_blank=True,
+        validators=[sanitize_text]
     )
-    url = FriendlyUrlField(required=False, allow_blank=True)
+    url = FriendlyUrlField(required=False, allow_blank=True, validators=[url_safety_validator])
     location = serializers.CharField(
         max_length=settings.PROFILE_LOCATION_MAX_LENGTH,
         required=False,

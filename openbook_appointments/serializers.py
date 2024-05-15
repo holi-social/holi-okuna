@@ -5,6 +5,7 @@ from openbook_appointments.enums import PermissionType
 from openbook_appointments.validators import space_member_exists, appointment_exists
 from openbook_common.serializers import GeolocationPointSerializer
 from openbook_common.serializers_fields.request import RestrictedImageFileSizeField
+from openbook_common.validators import sanitize_text
 from openbook_communities.validators import community_id_exists
 
 
@@ -61,6 +62,7 @@ class CreateAppointmentSerializer(serializers.Serializer):
         required=False,
         allow_blank=True,
         allow_null=True,
+        validators=[sanitize_text]
     )
 
     thumbnail = RestrictedImageFileSizeField(
@@ -89,6 +91,7 @@ class CreateAppointmentSerializer(serializers.Serializer):
         required=False,
         allow_blank=True,
         allow_null=True,
+        validators=[sanitize_text]
     )
 
 
@@ -131,6 +134,7 @@ class UpdateAppointmentSerializer(serializers.Serializer):
         required=False,
         allow_blank=True,
         allow_null=True,
+        validators=[sanitize_text]
     )
 
     thumbnail = RestrictedImageFileSizeField(
@@ -155,4 +159,5 @@ class UpdateAppointmentSerializer(serializers.Serializer):
         required=False,
         allow_null=True,
         allow_blank=True,
+        validators=[sanitize_text]
     )
