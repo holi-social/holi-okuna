@@ -62,7 +62,7 @@ class CreateAppointmentSerializer(serializers.Serializer):
         required=False,
         allow_blank=True,
         allow_null=True,
-        validators=[sanitize_text]
+        validators=[sanitize_text],
     )
 
     thumbnail = RestrictedImageFileSizeField(
@@ -91,7 +91,7 @@ class CreateAppointmentSerializer(serializers.Serializer):
         required=False,
         allow_blank=True,
         allow_null=True,
-        validators=[sanitize_text]
+        validators=[sanitize_text],
     )
 
 
@@ -134,7 +134,7 @@ class UpdateAppointmentSerializer(serializers.Serializer):
         required=False,
         allow_blank=True,
         allow_null=True,
-        validators=[sanitize_text]
+        validators=[sanitize_text],
     )
 
     thumbnail = RestrictedImageFileSizeField(
@@ -159,5 +159,5 @@ class UpdateAppointmentSerializer(serializers.Serializer):
         required=False,
         allow_null=True,
         allow_blank=True,
-        validators=[sanitize_text]
+        validators=[sanitize_text],
     )

@@ -65,11 +65,7 @@ class UpdateCommunitySerializer(serializers.Serializer):
         required=False,
     )
     title = serializers.CharField(max_length=settings.COMMUNITY_TITLE_MAX_LENGTH, required=False)
-    description = serializers.CharField(
-        required=False,
-        allow_blank=True,
-        validators=[sanitize_text]
-    )
+    description = serializers.CharField(required=False, allow_blank=True, validators=[sanitize_text])
     rules = serializers.CharField(max_length=settings.COMMUNITY_RULES_MAX_LENGTH, required=False, allow_blank=True)
     user_adjective = serializers.CharField(
         max_length=settings.COMMUNITY_USER_ADJECTIVE_MAX_LENGTH,

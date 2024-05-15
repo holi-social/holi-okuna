@@ -59,10 +59,7 @@ class UpdateAuthenticatedUserSerializer(serializers.Serializer):
     followers_count_visible = serializers.BooleanField(required=False, default=None, allow_null=True)
     community_posts_visible = serializers.BooleanField(required=False, default=None, allow_null=True)
     about_me = serializers.CharField(
-        max_length=settings.PROFILE_ABOUT_ME_MAX_LENGTH,
-        required=False,
-        allow_blank=True,
-        validators=[sanitize_text]
+        max_length=settings.PROFILE_ABOUT_ME_MAX_LENGTH, required=False, allow_blank=True, validators=[sanitize_text]
     )
     url = FriendlyUrlField(required=False, allow_blank=True, validators=[url_safety_validator])
     location = serializers.CharField(

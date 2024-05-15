@@ -93,7 +93,6 @@ class FeedPostService:
         return self.repository.delete_feed_post(post_id)
 
 
-
 class FeedPostReactionService:
     def __init__(self):
         self.repository = FeedPostReactionRepository()

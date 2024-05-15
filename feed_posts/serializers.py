@@ -23,7 +23,7 @@ class CreateFeedPostSerializer(serializers.Serializer):
         min_length=settings.FEED_POST_DESCRIPTION_MIN_LENGTH,
         max_length=settings.FEED_POST_DESCRIPTION_MAX_LENGTH,
         required=True,
-        validators=[sanitize_text]
+        validators=[sanitize_text],
     )
 
     visibility = serializers.ChoiceField(required=True, choices=VisibilityLevel.choices)
@@ -58,7 +58,7 @@ class UpdateFeedPostSerializer(serializers.Serializer):
         min_length=settings.FEED_POST_DESCRIPTION_MIN_LENGTH,
         max_length=settings.FEED_POST_DESCRIPTION_MAX_LENGTH,
         required=False,
-        validators=[sanitize_text]
+        validators=[sanitize_text],
     )
 
     visibility = serializers.ChoiceField(required=False, choices=VisibilityLevel.choices)
