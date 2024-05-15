@@ -9,6 +9,7 @@ from openbook_common.utils.model_loaders import (
     get_post_model,
     get_post_reaction_model,
 )
+from openbook_common.validators import sanitize_text
 
 SORT_CHOICES = ["ASC", "DESC"]
 
@@ -92,4 +93,4 @@ def post_text_hashtags_validator(post_text):
             )
 
 
-post_text_validators = [post_text_hashtags_validator]
+post_text_validators = [post_text_hashtags_validator, sanitize_text]
