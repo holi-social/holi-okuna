@@ -232,6 +232,9 @@ class CommentData:
     def create_link(cls, comment):
         comment_target = comment.commentable_type.model
 
+        if "feedpost" == comment_target:
+            return f"/feed-posts/{comment.commentable_id}/comment/{comment.id}"
+
         if "post" == comment_target:
             return f"/post/{comment.commentable_id}?commentId={comment.id}"
 
