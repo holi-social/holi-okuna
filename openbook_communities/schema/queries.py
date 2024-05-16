@@ -5,7 +5,7 @@ import strawberry
 import strawberry_django
 from asgiref.sync import async_to_sync
 from django.core.exceptions import PermissionDenied
-from django.db.models import Count, Prefetch, F, Q
+from django.db.models import Count, Prefetch, F, Q, Case, When, Value, IntegerField
 from django.db.models.lookups import IContains
 from django.utils.translation import gettext_lazy as _
 from strawberry.django.context import StrawberryDjangoContext
@@ -23,7 +23,6 @@ from openbook_communities.models import Task as TaskModel
 from openbook_communities.models import Topic as TopicModel
 from openbook_communities.schema.helpers import (
     filtered_spaces,
-    create_spaces_queryset,
     create_filtered_spaces_query,
 )
 from openbook_communities.schema.types import (
@@ -35,16 +34,6 @@ from openbook_communities.schema.types import (
 )
 
 Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
-
-
-def add_to_result(offset, limit, count, previous_queries, queryset_creator, result, query):
-    for q in previous_queries:
-        query = query & ~q
-    queryset = queryset_creator(query)
-    if len(result) < limit:
-        new_offset = max(0, offset - count)
-        result.extend(list(queryset[new_offset : new_offset + limit - len(result)]))
-    return queryset.count()
 
 
 @strawberry.type
@@ -85,35 +74,45 @@ class Query:
     def recommended_spaces(
         self,
         info,
-        topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
-        geolocation: Optional[GeoJSON] = None,
         offset: int = 0,
         limit: int = 5,
     ) -> Paged[Space]:
-        result = []
-        count = 0
-        queries = []
-
         current_user = info.context.request.user
+
+        whens = []
+
         if current_user and not current_user.is_anonymous:
             topic_ids = list(current_user.profile.interests.values_list("id", flat=True).all())
             geolocation = current_user.geolocation
 
-            if topic_ids is not None:
-                query = create_filtered_spaces_query(topic_ids=topic_ids, geolocation=geolocation)
-                count = count + add_to_result(offset, limit, count, queries, create_spaces_queryset, result, query)
-                queries.append(query)
+            if topic_ids:
+                whens.append(
+                    When(create_filtered_spaces_query(topic_ids=topic_ids, geolocation=geolocation), then=Value(10))
+                )
 
-            if geolocation is not None:
-                query = create_filtered_spaces_query(geolocation=geolocation)
-                count = count + add_to_result(offset, limit, count, queries, create_spaces_queryset, result, query)
-                queries.append(query)
+            if geolocation:
+                whens.append(When(create_filtered_spaces_query(geolocation=geolocation), then=Value(20)))
 
         default_topics = list(TopicModel.objects.filter(is_discover_spaces_default=True).values_list("id", flat=True))
-        query = create_filtered_spaces_query(topic_ids=default_topics)
-        count = count + add_to_result(offset, limit, count, queries, create_spaces_queryset, result, query)
+        if default_topics:
+            whens.append(When(create_filtered_spaces_query(topic_ids=default_topics), then=Value(30)))
 
-        return Paged(result, count)
+        return Paged.of(
+            CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
+            .annotate(member_count=Count("memberships"))
+            .annotate(
+                custom_order=Case(
+                    *whens,
+                    output_field=IntegerField(),
+                )
+            )
+            .filter(custom_order__isnull=False)
+            .distinct()
+            .order_by("custom_order", "-created")
+            .cache(ops=["fetch", "count"], timeout=300),
+            offset,
+            limit,
+        )
 
     @strawberry_django.field()
     def discover_spaces(
@@ -282,33 +281,29 @@ class Query:
             return Paged.of(TaskModel.objects.order_by("-created"), offset, limit)
 
         skills = list(current_user.profile.skills.all())
-        tasks = []
-        count = 0
-        queries = []
-
-        def queryset_creator(query):
-            return TaskModel.objects.order_by("-created").filter(query).distinct()
+        whens = []
 
         locations_match = Q(geolocation__within=current_user.profile.geolocation)
+
         if skills and current_user.profile.geolocation:
-            query = Q(skills__in=skills) & (locations_match | Q(location_type="REMOTE"))
-            count = count + add_to_result(offset, limit, count, queries, queryset_creator, tasks, query)
-            queries.append(query)
-
+            whens.append(When(Q(skills__in=skills) & (locations_match | Q(location_type="REMOTE")), then=Value(10)))
         if skills:
-            query = Q(skills__in=skills)
-            count = count + add_to_result(offset, limit, count, queries, queryset_creator, tasks, query)
-            queries.append(query)
-
+            whens.append(When(skills__in=skills, then=Value(20)))
         if current_user.profile.geolocation:
-            query = locations_match
-            count = count + add_to_result(offset, limit, count, queries, queryset_creator, tasks, query)
-            queries.append(query)
-
-        query = Q()
-        count = count + add_to_result(offset, limit, count, queries, queryset_creator, tasks, query)
-
-        return Paged(tasks, count)
+            whens.append(When(locations_match, then=Value(30)))
+        return Paged.of(
+            TaskModel.objects.annotate(
+                custom_order=Case(
+                    *whens,
+                    default=Value(100),
+                    output_field=IntegerField(),
+                )
+            )
+            .distinct()
+            .order_by("custom_order", "-created"),
+            offset,
+            limit,
+        )
 
     @strawberry_django.field()
     def collaboration_tools(

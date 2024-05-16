@@ -15,7 +15,7 @@ from openbook import settings
 from openbook_auth.models import User
 from openbook_common.enums import ReactionType
 from openbook_common.helpers import ExifRotate, generate_blurhash
-from openbook_common.models import ModelWithUUID
+from openbook_common.models import ModelWithUUID, LinkPreview
 from openbook_common.utils.helpers import delete_file_field
 from openbook_terms.models import Topic, FeedPostCategory
 
@@ -31,12 +31,12 @@ class FeedPost(ModelWithUUID):
 
     topics = models.ManyToManyField(Topic, related_name="feed_posts", blank=True, db_index=True)
 
-    category = models.ForeignKey(FeedPostCategory, on_delete=models.SET_NULL, null=True)
+    category = models.ForeignKey(FeedPostCategory, on_delete=models.PROTECT, null=True)
 
     creator = models.ForeignKey(
         User,
         related_name="created_feed_posts",
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
     )
 
@@ -60,6 +60,8 @@ class FeedPost(ModelWithUUID):
     )
 
     image_blurhash = models.CharField(max_length=50, blank=True, null=True)
+
+    link_preview = models.ForeignKey(LinkPreview, null=True, blank=True, on_delete=models.SET_NULL)
 
     def save(self, *args, **kwargs):
         if self.image:

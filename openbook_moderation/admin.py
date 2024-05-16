@@ -1,9 +1,9 @@
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin
 from django.http import HttpResponseRedirect
-from modeltranslation.admin import TranslationAdmin
-from django.utils.html import format_html
 from django.urls import reverse
+from django.utils.html import format_html
+from modeltranslation.admin import TranslationAdmin
 
 from openbook_moderation.models import (
     ModerationCategory,
@@ -21,9 +21,14 @@ def linkify(field_name):
     """
 
     def _linkify(obj):
-        linked_obj = getattr(obj, field_name)
+        try:
+            linked_obj = getattr(obj, field_name)
+        except:  # noqa: E722
+            return "-"
+
         if linked_obj is None:
             return "-"
+
         app_label = linked_obj._meta.app_label
         model_name = linked_obj._meta.model_name
         view_name = f"admin:{app_label}_{model_name}_change"
@@ -66,7 +71,7 @@ class ModeratedObjectAdmin(ModelAdmin):
         return True
 
     change_form_template = "moderation_changeform.html"
-    list_display = ("id", "object_type", linkify(field_name="content_object"), "object", "status", "verified")
+    list_display = ("id", "object_type", linkify(field_name="content_object"), "object_repr", "status", "verified")
     readonly_fields = [
         "verified",
         "category",
@@ -77,7 +82,7 @@ class ModeratedObjectAdmin(ModelAdmin):
         "object_id",
         "content_type",
         linkify(field_name="content_object"),
-        "object_full",
+        "object_full_repr",
     ]
 
     def response_change(self, request, obj):
@@ -100,19 +105,22 @@ class ModeratedObjectAdmin(ModelAdmin):
         return super().response_change(request, obj)
 
     @admin.display(description="Content")
-    def object(self, obj):
+    def object_repr(self, obj):
         return self.object_to_text(obj, 100)
 
     @admin.display(description="Content")
-    def object_full(self, obj):
+    def object_full_repr(self, obj):
         return self.object_to_text(obj)
 
     def object_to_text(self, obj, length=None):
+        if obj is None or not hasattr(obj, "content_object") or obj.content_object is None:
+            return "ERROR: Content was deleted"
+
         match obj.object_type:
             case ModeratedObject.OBJECT_TYPE_POST:
-                return (
-                    str(obj.content_object.id) + " / " + obj.content_object.title + " / " + obj.content_object.text
-                )[:length]
+                return f"{str(obj.content_object.id)} / {obj.content_object.title} / {obj.content_object.text}"[
+                    :length
+                ]
             case ModeratedObject.OBJECT_TYPE_POST_COMMENT:
                 return (str(obj.content_object.id) + " / " + obj.content_object.text)[:length]
             case ModeratedObject.OBJECT_TYPE_USER:

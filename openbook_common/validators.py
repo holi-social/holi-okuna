@@ -1,9 +1,13 @@
+# ruff: noqa
 import re
 
+from graphql import GraphQLError
 from rest_framework.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
+from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.enums import ReactionType
+from openbook_common.helpers import extract_urls_from_string
 from openbook_common.utils.model_loaders import (
     get_emoji_model,
     get_emoji_group_model,
@@ -100,11 +104,17 @@ def url_safety_validator(url: str):
 
     if threat_types:
         logger.debug(f"The link has the following threat types: {threat_types}")
-        raise ValidationError(
-            _("The link cannot be posted as it was detected as malicious"),
+        raise GraphQLError(
+            _("Unsafe link detected, please check."), extensions={"code": GraphQLErrorCodes.MALICIOUS_URL}
         )
 
 
 def string_not_empty(string):
     if not re.match("\\S", string):
         raise ValidationError("You must provide at least one character in the search string")
+
+
+def sanitize_text(text: str):
+    urls = extract_urls_from_string(text)
+    for url in urls:
+        url_safety_validator(url)

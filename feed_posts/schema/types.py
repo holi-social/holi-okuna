@@ -10,6 +10,7 @@ from feed_posts.models import FeedPost as FeedPostModel, FeedPostReaction as Fee
 from feed_posts.services import FeedPostReactionService
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import ReactionCounts
+from openbook_posts.schema.types import LinkPreview
 from openbook_terms.schema.types import Topic, FeedPostCategory
 
 
@@ -19,6 +20,7 @@ class FeedPost:
     title: strawberry.auto
     slug: strawberry.auto
     description: strawberry.auto
+    link_preview: Optional[LinkPreview]
     image: Optional[str]
     image_blurhash: Optional[str]
     visibility: VisibilityLevel

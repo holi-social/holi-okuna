@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import ValidationError
 
 from openbook_common.utils.helpers import extract_hashtags_from_string
+from openbook_common.validators import sanitize_text
 
 
 def comment_text_hashtags_validator(post_text):
@@ -25,4 +26,4 @@ def comment_text_hashtags_validator(post_text):
             )
 
 
-comment_text_validators = [comment_text_hashtags_validator]
+comment_text_validators = [comment_text_hashtags_validator, sanitize_text]

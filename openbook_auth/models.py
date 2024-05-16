@@ -5,7 +5,7 @@ import secrets
 from datetime import datetime, timedelta
 from enum import Enum
 from itertools import chain
-from typing import Iterable, Set, Callable
+from typing import Iterable, Set, Callable, Type
 from uuid import UUID
 
 import strawberry
@@ -90,7 +90,9 @@ from openbook_common.utils.model_loaders import (
     get_quote_reaction_model,
     get_recommendation_reaction_model,
     get_initiative_reaction_model,
+    get_feed_post_model,
     get_feed_post_reaction_model,
+    get_appointment_model,
 )
 from openbook_common.validators import name_characters_validator
 from openbook_hashtags.queries import (
@@ -109,6 +111,9 @@ from openbook_translation import translation_strategy
 
 if typing.TYPE_CHECKING:
     from comments.models import Comment
+    from openbook_communities.models import Task
+    from feed_posts.models import FeedPost
+    from openbook_appointments.models import Appointment
 
 logger = logging.getLogger(__name__)
 
@@ -1261,6 +1266,36 @@ class User(ModelWithUUID, AbstractUser):
             reporter_id=self.pk,
             moderated_object__object_id=hashtag_id,
             moderated_object__object_type=ModeratedObject.OBJECT_TYPE_HASHTAG,
+        ).exists()
+
+    def has_reported_task_with_id(self, task_id: UUID) -> bool:
+        ModeratedObject = get_moderated_object_model()
+        ModerationReport = get_moderation_report_model()
+
+        return ModerationReport.objects.filter(
+            reporter_id=self.pk,
+            moderated_object__object_id=task_id,
+            moderated_object__object_type=ModeratedObject.OBJECT_TYPE_TASK,
+        ).exists()
+
+    def has_reported_feed_post_with_id(self, feed_post_id: UUID) -> bool:
+        ModeratedObject = get_moderated_object_model()
+        ModerationReport = get_moderation_report_model()
+
+        return ModerationReport.objects.filter(
+            reporter_id=self.pk,
+            moderated_object__object_id=feed_post_id,
+            moderated_object__object_type=ModeratedObject.OBJECT_TYPE_FEED_POST,
+        ).exists()
+
+    def has_reported_appointment_with_id(self, appointment_id: UUID) -> bool:
+        ModeratedObject = get_moderated_object_model()
+        ModerationReport = get_moderation_report_model()
+
+        return ModerationReport.objects.filter(
+            reporter_id=self.pk,
+            moderated_object__object_id=appointment_id,
+            moderated_object__object_type=ModeratedObject.OBJECT_TYPE_APPOINTMENT,
         ).exists()
 
     def has_profile_community_posts_visible(self):
@@ -4181,6 +4216,48 @@ class User(ModelWithUUID, AbstractUser):
             category_id=category_id,
             reporter_id=self.pk,
             description=description,
+        )
+
+    def report_space_task_by_id(self, task_id: UUID, category_id: UUID, description: str = None):
+        TaskModel: Type["Task"] = get_task_model()
+        task = TaskModel.objects.get(pk=task_id)
+
+        return self.report_space_task(task, category_id, description)
+
+    def report_space_task(self, task: "Task", category_id: UUID, description: str = None):
+        check_can_report_task(user=self, task=task)
+        ModerationReport = get_moderation_report_model()
+
+        ModerationReport.create_task_moderation_report(
+            task=task, category_id=category_id, reporter_id=self.pk, description=description
+        )
+
+    def report_feed_post_by_id(self, feed_post_id: UUID, category_id: UUID, description: str = None) -> None:
+        FeedPostModel = get_feed_post_model()
+        feed_post = FeedPostModel.objects.get(pk=feed_post_id)
+
+        self.report_feed_post(feed_post, category_id, description)
+
+    def report_feed_post(self, feed_post: "FeedPost", category_id: UUID, description: str = None) -> None:
+        check_can_report_feed_post(user=self, feed_post=feed_post)
+        ModerationReport = get_moderation_report_model()
+
+        ModerationReport.create_feed_post_moderation_report(
+            feed_post=feed_post, category_id=category_id, reporter_id=self.pk, description=description
+        )
+
+    def report_appointment_by_id(self, appointment_id: UUID, category_id: UUID, description: str = None) -> None:
+        Appointments = get_appointment_model()
+        appointment = Appointments.objects.get(pk=appointment_id)
+
+        self.report_appointment(appointment, category_id, description)
+
+    def report_appointment(self, appointment: "Appointment", category_id: UUID, description: str = None) -> None:
+        check_can_report_appointment(user=self, appointment=appointment)
+        ModerationReport = get_moderation_report_model()
+
+        ModerationReport.create_appointment_moderation_report(
+            appointment=appointment, category_id=category_id, reporter_id=self.pk, description=description
         )
 
     def create_invite(self, nickname):

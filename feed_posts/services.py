@@ -1,5 +1,7 @@
 from feed_posts.checkers import FeedPostChecker
 from feed_posts.repositories import FeedPostRepository, FeedPostReactionRepository
+from openbook_common.helpers import extract_urls_from_string
+from openbook_common.models import LinkPreview
 from openbook_terms.models import FeedPostCategory, Topic
 
 
@@ -20,6 +22,10 @@ class FeedPostService:
     ):
         category = FeedPostCategory.objects.get(id=category_id)
 
+        urls = extract_urls_from_string(description)
+
+        link_preview = LinkPreview.from_url(urls[0]) if len(urls) > 0 else None
+
         return self.repository.create_feed_post(
             title=title,
             visibility=visibility,
@@ -28,6 +34,7 @@ class FeedPostService:
             creator=creator,
             image=image,
             topics=topic_ids,
+            link_preview=link_preview,
         )
 
     def get_feed_posts_by_user_id(self, user_id):
@@ -61,6 +68,10 @@ class FeedPostService:
 
         topics = Topic.objects.filter(id__in=topic_ids) if topic_ids else None
 
+        urls = extract_urls_from_string(description)
+
+        link_preview = LinkPreview.from_url(urls[0]) if len(urls) > 0 else None
+
         return self.repository.update_feed_post(
             post_id=post_id,
             title=title,
@@ -70,6 +81,7 @@ class FeedPostService:
             topics=topics,
             image=image,
             remove_image=remove_image,
+            link_preview=link_preview,
         )
 
     def get_feed_posts(self):
