@@ -20,7 +20,7 @@ from pilkit.processors import ResizeToFit
 from rest_framework.exceptions import ValidationError
 from sortedm2m.fields import SortedManyToManyField
 
-from comments.models import Comment, CommentableNotificationContext
+from comments.models import Comment
 from openbook_auth.models import User, get_reactions
 from openbook_auth.models import UserBlock as UserBlockModel
 from openbook_common.enums import ReactionType
@@ -83,7 +83,7 @@ magic = get_magic()
 post_image_storage = default_storage
 
 
-class Post(ModelWithUUID, CommentableNotificationContext):
+class Post(ModelWithUUID):
     moderated_object = GenericRelation(ModeratedObject, related_query_name="posts")
 
     title = models.CharField(max_length=settings.POST_TITLE_MAX_LENGTH, blank=False, null=True)

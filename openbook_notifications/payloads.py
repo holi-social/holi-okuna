@@ -373,6 +373,9 @@ class PostCommentMentionPayload(Payload):
         super().__init__(
             data={
                 "user": UserData.from_user(comment.commenter).to_dict(),
+                # todo gregor: build a new notification that references generic commentables
+                # better than this post-specific notification
+                # this post can be a Discussion, a space Post or a Feed Post
                 "post": PostData.from_post(comment.commentable).to_dict(),
                 "comment": CommentData.from_comment(comment).to_dict(),
                 "commentLink": CommentData.create_link(comment),
@@ -395,6 +398,9 @@ class PostCommentAuthorPayload(Payload):
             data={
                 "user": UserData.from_user(comment.commentable.creator).to_dict(),
                 "commenter": UserData.from_user(comment.commenter).to_dict(),
+                # todo gregor: build a new notification that abstracts generic author mentioning notification
+                # in a better way than this post-specific notification
+                # this post can be a Discussion, a space Post or a Feed Post
                 "post": PostData.from_post(comment.commentable).to_dict(),
                 "comment": CommentData.from_comment(comment).to_dict(),
                 "commentLink": CommentData.create_link(comment),
