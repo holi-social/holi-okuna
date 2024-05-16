@@ -178,8 +178,8 @@ class TestCommunities(TestCase):
         make_community(topics=[uninteresting_topic], geolocation=geolocation3)
 
         recommended_spaces_query = """
-            query MyQuery($topicIds: [UUID], $geolocation: GeoJSON, $limit: Int, $offset: Int) {
-                recommendedSpaces(topicIds: $topicIds, geolocation: $geolocation, limit: $limit, offset: $offset) {
+            query MyQuery($limit: Int, $offset: Int) {
+                recommendedSpaces(limit: $limit, offset: $offset) {
                     data {
                         id
                     }
@@ -234,6 +234,13 @@ class TestCommunities(TestCase):
                 default_topic_outside_space,
             ],
         )
+        user = make_user()
+        assert_filtered_spaces(
+            user,
+            [
+                default_topic_outside_space,
+            ],
+        )
 
     def test_filters_for_recommended_spaces_paging(self):
         topic1 = make_topic()
@@ -260,8 +267,8 @@ class TestCommunities(TestCase):
         make_community(topics=[uninteresting_topic], geolocation=geolocation3)
 
         recommended_spaces_query = """
-            query MyQuery($topicIds: [UUID], $geolocation: GeoJSON, $limit: Int, $offset: Int) {
-                recommendedSpaces(topicIds: $topicIds, geolocation: $geolocation, limit: $limit, offset: $offset) {
+            query MyQuery($limit: Int, $offset: Int) {
+                recommendedSpaces(limit: $limit, offset: $offset) {
                     data {
                         id
                     }

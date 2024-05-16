@@ -84,8 +84,6 @@ class Query:
     def recommended_spaces(
         self,
         info,
-        topic_ids: Optional[List[Optional[uuid.UUID]]] = None,
-        geolocation: Optional[GeoJSON] = None,
         offset: int = 0,
         limit: int = 5,
     ) -> Paged[Space]:
@@ -97,16 +95,17 @@ class Query:
             topic_ids = list(current_user.profile.interests.values_list("id", flat=True).all())
             geolocation = current_user.geolocation
 
-            if topic_ids is not None:
+            if topic_ids:
                 whens.append(
                     When(create_filtered_spaces_query(topic_ids=topic_ids, geolocation=geolocation), then=Value(10))
                 )
 
-            if geolocation is not None:
+            if geolocation:
                 whens.append(When(create_filtered_spaces_query(geolocation=geolocation), then=Value(20)))
 
         default_topics = list(TopicModel.objects.filter(is_discover_spaces_default=True).values_list("id", flat=True))
-        whens.append(When(create_filtered_spaces_query(topic_ids=default_topics), then=Value(30)))
+        if default_topics:
+            whens.append(When(create_filtered_spaces_query(topic_ids=default_topics), then=Value(30)))
 
         return Paged.of(
             CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
