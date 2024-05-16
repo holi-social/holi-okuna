@@ -43,3 +43,4 @@ class AppVersionAdmin(admin.ModelAdmin):
 class FeatureToggleAdmin(admin.ModelAdmin):
     readonly_fields = ("created",)
     list_display = ("name", "status", "created")
+    ordering = ("name",)
