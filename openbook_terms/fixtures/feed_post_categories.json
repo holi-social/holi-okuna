@@ -3,6 +3,7 @@
     "model": "openbook_terms.feedpostcategory",
     "pk": "cf42a976-7d85-49c7-98b6-a59d2b8b63a6",
     "fields": {
+      "idx": 1,
       "slug": "topic-for-conversation",
       "title": "Topic for conversation",
       "title_es": null,
@@ -16,13 +17,26 @@
       "title_it": null,
       "title_tr": null,
       "title_pt_br": null,
-      "is_enabled": true
+      "is_enabled": true,
+      "label": "Conversation topic",
+      "label_es": null,
+      "label_en": "Conversation topic",
+      "label_de": "Gesprächsthema",
+      "label_nl": null,
+      "label_da": null,
+      "label_hu": null,
+      "label_sv": null,
+      "label_fr": null,
+      "label_it": null,
+      "label_tr": null,
+      "label_pt_br": null
     }
   },
   {
     "model": "openbook_terms.feedpostcategory",
     "pk": "1e4b0b27-a013-43fe-8ec2-0f0314c521e3",
     "fields": {
+      "idx": 2,
       "slug": "personal-experience",
       "title": "Personal experience",
       "title_es": null,
@@ -36,13 +50,26 @@
       "title_it": null,
       "title_tr": null,
       "title_pt_br": null,
-      "is_enabled": true
+      "is_enabled": true,
+      "label": "Experience",
+      "label_es": null,
+      "label_en": "Experience",
+      "label_de": "Erfahrung",
+      "label_nl": null,
+      "label_da": null,
+      "label_hu": null,
+      "label_sv": null,
+      "label_fr": null,
+      "label_it": null,
+      "label_tr": null,
+      "label_pt_br": null
     }
   },
   {
     "model": "openbook_terms.feedpostcategory",
     "pk": "c6bbd246-1cd3-4fe0-bd1c-63f403609093",
     "fields": {
+      "idx": 3,
       "slug": "recommendation",
       "title": "Recommendation",
       "title_es": null,
@@ -56,18 +83,31 @@
       "title_it": null,
       "title_tr": null,
       "title_pt_br": null,
-      "is_enabled": true
+      "is_enabled": true,
+      "label": "Recommendation",
+      "label_es": null,
+      "label_en": "Recommendation",
+      "label_de": "Empfehlung",
+      "label_nl": null,
+      "label_da": null,
+      "label_hu": null,
+      "label_sv": null,
+      "label_fr": null,
+      "label_it": null,
+      "label_tr": null,
+      "label_pt_br": null
     }
   },
   {
     "model": "openbook_terms.feedpostcategory",
     "pk": "e0ee8820-8c2b-4084-94c6-1b1d6163bd05",
     "fields": {
+      "idx": 4,
       "slug": "raise-awareness",
-      "title": "Raise awareness",
+      "title": "Generate support for...",
       "title_es": null,
-      "title_en": "Raise awareness",
-      "title_de": "Aufmerksam machen auf...",
+      "title_en": "Generate support for...",
+      "title_de": "Unterstützung generieren...",
       "title_nl": null,
       "title_da": null,
       "title_hu": null,
@@ -76,13 +116,26 @@
       "title_it": null,
       "title_tr": null,
       "title_pt_br": null,
-      "is_enabled": true
+      "is_enabled": true,
+      "label": "Support",
+      "label_es": null,
+      "label_en": "Support",
+      "label_de": "Unterstützung",
+      "label_nl": null,
+      "label_da": null,
+      "label_hu": null,
+      "label_sv": null,
+      "label_fr": null,
+      "label_it": null,
+      "label_tr": null,
+      "label_pt_br": null
     }
   },
   {
     "model": "openbook_terms.feedpostcategory",
     "pk": "66efe368-25e6-4dad-9665-298abb2ddb04",
     "fields": {
+      "idx": 5,
       "slug": "offer-or-search",
       "title": "Offer or search",
       "title_es": null,
@@ -96,13 +149,26 @@
       "title_it": null,
       "title_tr": null,
       "title_pt_br": null,
-      "is_enabled": false
+      "is_enabled": false,
+      "label": "Offer or search",
+      "label_es": null,
+      "label_en": "Offer or search",
+      "label_de": "Angebot oder Suche",
+      "label_nl": null,
+      "label_da": null,
+      "label_hu": null,
+      "label_sv": null,
+      "label_fr": null,
+      "label_it": null,
+      "label_tr": null,
+      "label_pt_br": null
     }
   },
   {
     "model": "openbook_terms.feedpostcategory",
     "pk": "aac090da-1355-4fc5-a582-ef359c30b483",
     "fields": {
+      "idx": 6,
       "slug": "event",
       "title": "Event",
       "title_es": null,
@@ -116,7 +182,19 @@
       "title_it": null,
       "title_tr": null,
       "title_pt_br": null,
-      "is_enabled": false
+      "is_enabled": false,
+      "label": "Event",
+      "label_es": null,
+      "label_en": "Event",
+      "label_de": "Event",
+      "label_nl": null,
+      "label_da": null,
+      "label_hu": null,
+      "label_sv": null,
+      "label_fr": null,
+      "label_it": null,
+      "label_tr": null,
+      "label_pt_br": null
     }
   }
 ]
