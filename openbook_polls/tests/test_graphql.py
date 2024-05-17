@@ -2,11 +2,11 @@ import logging
 from unittest import TestCase
 
 import pytest
+
 from openbook_common.tests.helpers import (
     make_fake_question_text,
     make_user,
 )
-
 from openbook_polls.tests.helpers import (
     get_polls_with_id,
     get_poll_with_id_raw,
@@ -74,7 +74,7 @@ class TestPolls(TestCase):
     def test_user_can_create_poll(self):
         user = make_user()
 
-        question_text=make_fake_question_text()
+        question_text = make_fake_question_text()
 
         input_data = {
             "questionText": question_text,

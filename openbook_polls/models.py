@@ -1,25 +1,20 @@
 from django.db import models
-from openbook_auth.models import User
 from django.utils import timezone
-
-from openbook_common.models import (
-    ModelWithUUID,
-)
-
-from openbook_common.utils.helpers import (
-    get_magic,
-)
-
-from openbook_polls.checkers import (
-    check_can_be_published,
-)
-
-
 from rest_framework.exceptions import ValidationError
 
+from openbook_auth.models import User
 from openbook_common.helpers import (
     PrefixedQ,
     attr_filled,
+)
+from openbook_common.models import (
+    ModelWithUUID,
+)
+from openbook_common.utils.helpers import (
+    get_magic,
+)
+from openbook_polls.checkers import (
+    check_can_be_published,
 )
 
 magic = get_magic()
@@ -58,9 +53,7 @@ class Poll(ModelWithUUID):
         if not is_public:
             raise ValidationError("A poll requires to be public to be posted to.")
 
-        poll = Poll.objects.create(
-            creator=creator, created=created, question_text=question_text, is_public=is_public
-        )
+        poll = Poll.objects.create(creator=creator, created=created, question_text=question_text, is_public=is_public)
 
         if question_text:
             poll.question_text = question_text
@@ -120,9 +113,7 @@ class Poll(ModelWithUUID):
         if user.is_anonymous:
             return pQ(is_deleted=False, status=Poll.STATUS_PUBLISHED, is_public=True)
 
-        return pQ(is_deleted=False) & (
-            (pQ(creator=user)) | (pQ(status=Poll.STATUS_PUBLISHED) & (pQ(is_public=True)))
-        )
+        return pQ(is_deleted=False) & ((pQ(creator=user)) | (pQ(status=Poll.STATUS_PUBLISHED) & (pQ(is_public=True))))
 
 
 class Choice(ModelWithUUID):
