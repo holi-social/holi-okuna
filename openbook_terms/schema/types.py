@@ -59,6 +59,7 @@ class InspirationPostCategory:
 @strawberry_django.type(FeedPostCategoryModel)
 class FeedPostCategory:
     id: strawberry.auto
+    idx: strawberry.auto
     slug: strawberry.auto
     is_enabled: strawberry.auto
 
@@ -66,3 +67,8 @@ class FeedPostCategory:
     def title(self, info) -> str:
         with translation.override(get_language_from_request(info.context.request)):
             return self.title
+
+    @strawberry_django.field(only=["label"])
+    def label(self, info) -> str:
+        with translation.override(get_language_from_request(info.context.request)):
+            return self.label

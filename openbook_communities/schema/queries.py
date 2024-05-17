@@ -36,16 +36,6 @@ from openbook_communities.schema.types import (
 Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
 
 
-def add_to_result(offset, limit, count, previous_queries, queryset_creator, result, query):
-    for q in previous_queries:
-        query = query & ~q
-    queryset = queryset_creator(query)
-    if len(result) < limit:
-        new_offset = max(0, offset - count)
-        result.extend(list(queryset[new_offset : new_offset + limit - len(result)]))
-    return queryset.count()
-
-
 @strawberry.type
 class Query:
     @strawberry_django.field()

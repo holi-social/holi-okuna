@@ -56,3 +56,5 @@ class FeedPostCategory(Term):
     """
 
     is_enabled = models.BooleanField(_("enabled"), default=True)
+    idx = models.IntegerField(_("idx"), default=0)
+    label = models.CharField(_("label"), max_length=settings.TERM_TITLE_MAX_LENGTH, blank=True)
