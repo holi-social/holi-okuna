@@ -4,12 +4,9 @@ from strawberry.types import Info
 from openbook_polls.schema.types import CreatePollInput, Poll, Choice
 from openbook_polls.models import Choice as ChoiceModel
 from openbook_polls.models import Vote as VoteModel
-from openbook_polls.models import Poll as PollModel
 from openbook_auth.utils import verify_authorized_user
 from openbook_polls.serializers.poll_serializers import CreatePollSerializer
 from openbook_common.helpers import to_input_dict
-
-from openbook_common.enums import ReactionAction
 
 import uuid
 
