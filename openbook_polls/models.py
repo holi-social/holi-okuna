@@ -1,20 +1,25 @@
 from django.db import models
-from django.utils import timezone
-from rest_framework.exceptions import ValidationError
-
 from openbook_auth.models import User
-from openbook_common.helpers import (
-    PrefixedQ,
-    attr_filled,
-)
+from django.utils import timezone
+
 from openbook_common.models import (
     ModelWithUUID,
 )
+
 from openbook_common.utils.helpers import (
     get_magic,
 )
+
 from openbook_polls.checkers import (
     check_can_be_published,
+)
+
+
+from rest_framework.exceptions import ValidationError
+
+from openbook_common.helpers import (
+    PrefixedQ,
+    attr_filled,
 )
 
 magic = get_magic()
@@ -123,3 +128,13 @@ class Choice(ModelWithUUID):
 
     def __str__(self):
         return self.choice_text
+
+
+class Vote(ModelWithUUID):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
+    voting_time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "choice", "poll")
