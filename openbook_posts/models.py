@@ -22,7 +22,6 @@ from sortedm2m.fields import SortedManyToManyField
 
 from comments.models import Comment
 from openbook_auth.models import User, get_reactions
-from openbook_auth.models import UserBlock as UserBlockModel
 from openbook_common.enums import ReactionType
 from openbook_common.helpers import (
     ExifRotate,
@@ -467,11 +466,6 @@ class Post(ModelWithUUID):
         return target_subscriptions
 
     def can_be_viewed(self, user: User) -> bool:
-        UserBlockModel.filter_single_object(
-            user,
-            self,
-            lambda p: None if p.creator is None else p.creator.id,
-        )
         post = Post.objects.filter(Post.is_visible_query(user)).distinct().get(id=self.id)
 
         return post is not None
