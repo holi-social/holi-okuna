@@ -1526,63 +1526,6 @@ class User(ModelWithUUID, AbstractUser):
     def comment_post(self, post, text):
         check_can_comment_in_post(user=self, post=post)
         post_comment = post.comment(text=text, commenter=self)
-        post_commenter = self
-
-        Post = get_post_model()
-
-        # Language should also be prefetched here, for some reason it doesnt work....
-        post_notification_target_users = Post.get_post_comment_notification_target_users(
-            post=post, post_commenter=post_commenter
-        )
-        PostCommentNotification = get_post_comment_notification_model()
-
-        for post_notification_target_user in post_notification_target_users:
-            if (
-                post_notification_target_user.pk == post_commenter.pk
-                or not post_notification_target_user.can_see_post_comment(post_comment=post_comment)
-            ):
-                continue
-            post_notification_target_user_is_post_creator = post_notification_target_user.id == post.creator.id
-            post_notification_target_has_comment_notifications_enabled = (
-                post_notification_target_user.has_comment_notifications_enabled_for_post_with_id(
-                    post_id=post_comment.commentable_id
-                )
-            )
-
-            if post_notification_target_has_comment_notifications_enabled:
-                target_user_language_code = get_notification_language_code_for_target_user(
-                    post_notification_target_user
-                )
-                with translation.override(target_user_language_code):
-                    if post_notification_target_user_is_post_creator:
-                        notification_message = {
-                            "en": _("%(post_commenter_name)s · %(post_commenter_username)s commented on your post.")
-                            % {
-                                "post_commenter_username": post_commenter.username,
-                                "post_commenter_name": post_commenter.profile.name,
-                            }
-                        }
-                    else:
-                        notification_message = {
-                            "en": _(
-                                "%(post_commenter_name)s · @%(post_commenter_username)s commented on a post you also commented on."
-                            )
-                            % {
-                                "post_commenter_username": post_commenter.username,
-                                "post_commenter_name": post_commenter.profile.name,
-                            }
-                        }
-
-                    self._send_post_comment_push_notification(
-                        post_comment=post_comment,
-                        notification_message=notification_message,
-                        notification_target_user=post_notification_target_user,
-                    )
-
-            PostCommentNotification.create_post_comment_notification(
-                post_comment_id=post_comment.pk,
-                owner_id=post_notification_target_user.id,
-            )
 
         return post_comment
 
