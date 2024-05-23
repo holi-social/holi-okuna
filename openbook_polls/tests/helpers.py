@@ -57,3 +57,18 @@ def create_poll(user, info):
         context_value=benedict({"request": {"user": user}}),
         variable_values={"input": info},
     )
+
+
+def update_votes(poll_id, user):
+    return async_to_sync(schema.execute)(
+        f"""
+        mutation {{
+            updateVotes(id:"{poll_id}") {{
+                votes
+                id
+                choiceText
+            }}
+        }}
+        """,
+        context_value=benedict({"request": {"user": user or AnonymousUser}}),
+    )

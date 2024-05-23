@@ -7,11 +7,7 @@ from openbook_common.tests.helpers import (
     make_fake_question_text,
     make_user,
 )
-from openbook_polls.tests.helpers import (
-    get_polls_with_id,
-    get_poll_with_id_raw,
-    create_poll,
-)
+from openbook_polls.tests.helpers import get_polls_with_id, get_poll_with_id_raw, create_poll, update_votes
 
 logger = logging.getLogger(__name__)
 
@@ -86,3 +82,33 @@ class TestPolls(TestCase):
 
         assert poll_data["questionText"] == input_data["questionText"]
         assert poll_data["isPublic"] is True
+
+    def test_unauthorized_user_cant_vote(self):
+        posting_user = make_user()
+
+        question_text = make_fake_question_text()
+
+        poll = posting_user.create_poll(
+            question_text=question_text,
+            is_draft=False,
+            is_public=True,
+        )
+
+        response = update_votes(poll.id, user=None)
+
+        assert response.data is None
+
+    def test_user_cant_vote_with_wrong_id(self):
+        posting_user = make_user()
+
+        question_text = make_fake_question_text()
+
+        poll = posting_user.create_poll(
+            question_text=question_text,
+            is_draft=False,
+            is_public=True,
+        )
+
+        response = update_votes(poll.id, posting_user)
+
+        assert response.data is None
