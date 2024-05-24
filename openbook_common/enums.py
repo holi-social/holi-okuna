@@ -13,7 +13,6 @@ class ReactionType(TextChoices):
 class ReactionAction(Enum):
     SET = "SET"
     REMOVE = "REMOVE"
-    INCREMENT = "INCREMENT"
 
 
 @strawberry.enum

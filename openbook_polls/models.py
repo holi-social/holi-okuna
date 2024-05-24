@@ -98,7 +98,7 @@ class Poll(ModelWithUUID):
 
         self.modified = timezone.now()
 
-        super(Poll, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
         return self
 
