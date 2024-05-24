@@ -42,7 +42,13 @@ class Commentable:
             UserModel.objects.select_related("profile")
             .filter(UserModel.is_visible_ignore_blocked_query())
             .filter(
-                Q(comments__commentable_id=self.id, comments__commentable_type__model=self.type.value)
+                (
+                    Q(comments__commentable_id=self.id, comments__commentable_type__model=self.type.value)
+                    | Q(
+                        comments__parent_comment__commentable_id=self.id,
+                        comments__parent_comment__commentable_type__model=self.type.value,
+                    )
+                )
                 & CommentModel.is_visible_query(current_user, "comments")
             )
             .distinct()
