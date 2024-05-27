@@ -54,14 +54,14 @@ class FeedPost:
         return CommentModel.total_comments(commentable_id=self.id, commentable_type=CommentableType.FEED_POST)
 
     @strawberry_django.field()
-    def commenters(self, info) -> Paged[User]:
+    def commenters(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
         current_user = info.context.request.user
 
         commenters = CommentModel.get_commenters(
             commentable_id=self.id, commentable_type=CommentableType.FEED_POST, user=current_user
         )
 
-        return UserBlockModel.paged(current_user, lambda user: user.id, commenters, offset=0, limit=5)
+        return UserBlockModel.paged(current_user, lambda user: user.id, commenters, offset, limit)
 
 
 @strawberry.input
