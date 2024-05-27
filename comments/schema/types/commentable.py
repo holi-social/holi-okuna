@@ -65,6 +65,6 @@ class Commentable:
     def total_comments(self) -> int:
         return CommentModel.objects.filter(
             commentable_id=self.id,
-            commentable_type__model=CommentableType.FEED_POST.value,
+            commentable_type__model=self.type.value,
             is_deleted=False,
         ).count()
