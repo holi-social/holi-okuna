@@ -3,15 +3,20 @@ from typing import Optional, List
 
 import strawberry
 import strawberry_django
+from django.db.models import Q
 from strawberry.file_uploads import Upload
 
+from comments.enums import CommentableType
 from feed_posts.enums import VisibilityLevel
 from feed_posts.models import FeedPost as FeedPostModel, FeedPostReaction as FeedPostReactionModel
 from feed_posts.services import FeedPostReactionService
 from openbook_auth.schema.types import User
-from openbook_common.schema.types import ReactionCounts
+from openbook_common.schema.types import ReactionCounts, Paged
 from openbook_posts.schema.types import LinkPreview
 from openbook_terms.schema.types import Topic, FeedPostCategory
+from comments.models import Comment as CommentModel
+from openbook_auth.models import User as UserModel
+from openbook_auth.models import UserBlock as UserBlockModel
 
 
 @strawberry_django.type(FeedPostModel)
@@ -45,6 +50,39 @@ class FeedPost:
             except FeedPostReactionModel.DoesNotExist:
                 return ReactionCounts()
         return ReactionCounts()
+
+    @strawberry_django.field()
+    def total_comments(self) -> int:
+        return CommentModel.objects.filter(
+            commentable_id=self.id,
+            commentable_type__model=CommentableType.FEED_POST.value,
+            is_deleted=False,
+        ).count()
+
+    @strawberry_django.field()
+    def commenters(self, info) -> Paged[User]:
+        current_user = info.context.request.user
+
+        commenters = (
+            UserModel.objects.select_related("profile")
+            .filter(UserModel.is_visible_ignore_blocked_query())
+            .filter(
+                (
+                    Q(
+                        comments__commentable_id=self.id,
+                        comments__commentable_type__model=CommentableType.FEED_POST.value,
+                    )
+                    | Q(
+                        comments__parent_comment__commentable_id=self.id,
+                        comments__parent_comment__commentable_type__model=CommentableType.FEED_POST.value,
+                    )
+                )
+                & CommentModel.is_visible_query(current_user, "comments")
+            )
+            .distinct()
+        )
+
+        return UserBlockModel.paged(current_user, lambda user: user.id, commenters, offset=0, limit=5)
 
 
 @strawberry.input
