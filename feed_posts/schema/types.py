@@ -3,7 +3,6 @@ from typing import Optional, List
 
 import strawberry
 import strawberry_django
-from django.db.models import Q
 from strawberry.file_uploads import Upload
 
 from comments.enums import CommentableType
@@ -15,7 +14,6 @@ from openbook_common.schema.types import ReactionCounts, Paged
 from openbook_posts.schema.types import LinkPreview
 from openbook_terms.schema.types import Topic, FeedPostCategory
 from comments.models import Comment as CommentModel
-from openbook_auth.models import User as UserModel
 from openbook_auth.models import UserBlock as UserBlockModel
 
 
@@ -53,33 +51,14 @@ class FeedPost:
 
     @strawberry_django.field()
     def total_comments(self) -> int:
-        return CommentModel.objects.filter(
-            commentable_id=self.id,
-            commentable_type__model=CommentableType.FEED_POST.value,
-            is_deleted=False,
-        ).count()
+        return CommentModel.total_comments(commentable_id=self.id, commentable_type=CommentableType.FEED_POST)
 
     @strawberry_django.field()
     def commenters(self, info) -> Paged[User]:
         current_user = info.context.request.user
 
-        commenters = (
-            UserModel.objects.select_related("profile")
-            .filter(UserModel.is_visible_ignore_blocked_query())
-            .filter(
-                (
-                    Q(
-                        comments__commentable_id=self.id,
-                        comments__commentable_type__model=CommentableType.FEED_POST.value,
-                    )
-                    | Q(
-                        comments__parent_comment__commentable_id=self.id,
-                        comments__parent_comment__commentable_type__model=CommentableType.FEED_POST.value,
-                    )
-                )
-                & CommentModel.is_visible_query(current_user, "comments")
-            )
-            .distinct()
+        commenters = CommentModel.get_commenters(
+            commentable_id=self.id, commentable_type=CommentableType.FEED_POST, user=current_user
         )
 
         return UserBlockModel.paged(current_user, lambda user: user.id, commenters, offset=0, limit=5)
