@@ -60,3 +60,11 @@ class Commentable:
     def top_comment(self, info) -> Optional[Comment]:
         current_user = info.context.request.user
         return CommentModel.get_top_comment(self.id, self.type, current_user)
+
+    @strawberry_django.field()
+    def total_comments(self) -> int:
+        return CommentModel.objects.filter(
+            commentable_id=self.id,
+            commentable_type__model=CommentableType.FEED_POST.value,
+            is_deleted=False,
+        ).count()
