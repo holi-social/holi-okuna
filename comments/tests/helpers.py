@@ -34,6 +34,7 @@ def get_comments(commentable_id, commentable_type, user=None, parent_comment_id=
                         }
                     }
                 }
+                totalComments
             }
         }
         """,
@@ -53,6 +54,7 @@ def get_comments_with_parent_comment_id(commentable_id, commentable_type, user=N
                         text
                     }
                 }
+            totalComments
             }
         }
         """,
@@ -76,6 +78,7 @@ def get_commenters(commentable_id, commentable_type, user=None):
                         firstName
                     }
                 }
+                totalComments
             }
         }
         """,
