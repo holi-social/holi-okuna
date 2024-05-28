@@ -96,6 +96,7 @@ class FeedPostReactionRepository:
         return FeedPostReaction.objects.filter(feed_post=feed_post, reactor=reactor).first()
 
     def create_reaction(self, feed_post: FeedPost, reactor: User, reaction_type: ReactionType):
+        FeedPostReaction.objects.filter(feed_post=feed_post, reactor=reactor).delete()
         return FeedPostReaction.objects.create(feed_post=feed_post, reactor=reactor, reaction_type=reaction_type)
 
     def remove_reaction(self, feed_post: FeedPost, reactor: User, reaction_type: ReactionType):
