@@ -1,6 +1,8 @@
 from django.db import models
 from openbook_auth.models import User
 from django.utils import timezone
+from django.db import transaction
+
 
 from openbook_common.models import (
     ModelWithUUID,
@@ -129,6 +131,11 @@ class Choice(ModelWithUUID):
     def __str__(self):
         return self.choice_text
 
+    @transaction.atomic
+    def increment_votes(self):
+        self.votes += 1
+        self.save()
+
 
 class Vote(ModelWithUUID):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -137,4 +144,4 @@ class Vote(ModelWithUUID):
     voting_time = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("user", "choice", "poll")
+        unique_together = ("user", "poll")

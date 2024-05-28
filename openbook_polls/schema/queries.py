@@ -22,7 +22,4 @@ class Query:
         current_user = verify_authorized_user(info)
         poll = PollModel.objects.get(id=id)
 
-        if VoteModel.objects.filter(user=current_user, poll=poll).exists():
-            return True
-        else:
-            return False
+        return VoteModel.objects.filter(user=current_user, poll=poll).exists()
