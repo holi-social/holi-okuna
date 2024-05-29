@@ -26,6 +26,10 @@ def create_feed_post(user, input):
                 creator {
                     id
                 }
+                mentions {
+                    id
+                    fullName
+                }
             }
         }
         """,
@@ -54,6 +58,10 @@ def update_feed_post(user, input):
                 }
                 creator {
                     id
+                }
+                mentions {
+                    id
+                    fullName
                 }
             }
         }
