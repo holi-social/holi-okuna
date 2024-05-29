@@ -8,7 +8,7 @@ from strawberry.file_uploads import Upload
 from comments.enums import CommentableType
 from feed_posts.enums import VisibilityLevel
 from feed_posts.models import FeedPost as FeedPostModel, FeedPostReaction as FeedPostReactionModel
-from feed_posts.services import FeedPostReactionService
+from feed_posts.services import FeedPostReactionService, FeedPostMentionService
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import ReactionCounts, Paged
 from openbook_posts.schema.types import LinkPreview
@@ -31,6 +31,10 @@ class FeedPost:
     category: FeedPostCategory
     creator: Optional[User]
     created_at: str
+
+    @strawberry_django.field()
+    def mentions(self) -> Optional[List[Optional[User]]]:
+        return FeedPostMentionService().get_mentions(post_id=self.pk)
 
     @strawberry_django.field()
     def reactions(self) -> ReactionCounts:
