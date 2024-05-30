@@ -14,6 +14,8 @@ if TYPE_CHECKING:
     from openbook_posts.models import Post
     from comments.models import Comment
     from openbook_appointments.models import Appointment
+    from openbook_insights.models import Discussion
+    from feed_posts.models import FeedPost
 
 
 class NotificationType(Enum):
@@ -183,6 +185,38 @@ class AppointmentData:
         )
 
 
+class CommentableData:
+    def __init__(self, id: str, title: str, context: str, is_public: bool):
+        self.id = id
+        self.title = title
+        self.context = context
+        self.is_public = is_public
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "context": self.context,
+            "isPublic": self.is_public,
+        }
+
+    @classmethod
+    def from_commentable(cls, commentable: Post | FeedPost | Discussion):
+        # context, is_public and title are deprecated:
+        # some of the commentable models don't have those fields anymore
+        # notification content is now generic for Space Update Posts, Feed Posts and Insight Discussions
+        context = getattr(commentable, "context", None)
+        title = getattr(commentable, "title", None)
+        is_public = getattr(commentable, "is_public", False)
+
+        return cls(
+            id=str(commentable.id),
+            title=title,
+            context=context,
+            is_public=is_public,
+        )
+
+
 class PostData:
     def __init__(self, id: str, title: str, context: str, is_public: bool):
         self.id = id
@@ -200,11 +234,6 @@ class PostData:
 
     @classmethod
     def from_post(cls, post: Post):
-        """
-        Note: Currently, this method is implemented to handle only posts in spaces because it is the only place
-        where users can create posts. In the future, our users will be able to create insight posts and inspiration
-        posts and the context of this method should be updated accordingly.
-        """
         return cls(
             id=str(post.id),
             title=post.title if post.title else "",
@@ -229,18 +258,19 @@ class CommentData:
         return cls(id=str(comment.id), text=text)
 
     @classmethod
-    def create_link(cls, comment):
+    def create_link(cls, comment, comment_commentable_context_id):
         comment_target = comment.commentable_type.model
 
         if "feedpost" == comment_target:
-            return f"/feed-posts/{comment.commentable_id}/comment/{comment.id}"
+            return f"/feed-posts/{comment.commentable_id}?commentId={comment.id}"
 
         if "post" == comment_target:
-            return f"/post/{comment.commentable_id}?commentId={comment.id}"
+            return f"/spaces/{comment_commentable_context_id}/updates/{comment.commentable_id}?commentId={comment.id}"
 
         if "discussion" == comment_target:
-            return f"/insights/{comment.commentable.insight.id}/discussions/{comment.commentable_id}?commentId={comment.id}"
+            return f"/insights/{comment_commentable_context_id}/discussions/{comment.commentable_id}?commentId={comment.id}"
 
+        # default to base url
         return f"{settings.APP_URL}"
 
 
@@ -371,18 +401,17 @@ class PostCommentMentionPayload(Payload):
     def __init__(
         self,
         comment: Comment,
+        comment_commentable_context_id: str,
         notification_type: NotificationType,
     ):
         super().__init__(
             data={
                 "user": UserData.from_user(comment.commenter).to_dict(),
-                # todo gregor: build a new notification that references generic commentables
-                # better than this post-specific notification
-                # this post can be a Discussion, a space Post or a Feed Post
-                "post": PostData.from_post(comment.commentable).to_dict(),
                 "comment": CommentData.from_comment(comment).to_dict(),
-                "commentLink": CommentData.create_link(comment),
+                "commentLink": CommentData.create_link(comment, comment_commentable_context_id),
                 "commentDatetime": datetime.now().isoformat(),
+                # post field is deprecated, notification content is generic for all commentables in novu
+                "post": CommentableData.from_commentable(comment.commentable).to_dict(),
             },
             notification_type=notification_type,
             notification_version=PostCommentMentionPayload.NOTIFICATION_VERSION,
@@ -395,19 +424,18 @@ class PostCommentAuthorPayload(Payload):
     def __init__(
         self,
         comment: Comment,
+        comment_commentable_context_id: str,
         notification_type: NotificationType,
     ):
         super().__init__(
             data={
                 "user": UserData.from_user(comment.commentable.creator).to_dict(),
                 "commenter": UserData.from_user(comment.commenter).to_dict(),
-                # todo gregor: build a new notification that abstracts generic author mentioning notification
-                # in a better way than this post-specific notification
-                # this post can be a Discussion, a space Post or a Feed Post
-                "post": PostData.from_post(comment.commentable).to_dict(),
                 "comment": CommentData.from_comment(comment).to_dict(),
-                "commentLink": CommentData.create_link(comment),
+                "commentLink": CommentData.create_link(comment, comment_commentable_context_id),
                 "commentDatetime": datetime.now().isoformat(),
+                # post field is deprecated, notification content is generic for all commentables in novu
+                "post": CommentableData.from_commentable(comment.commentable).to_dict(),
             },
             notification_type=notification_type,
             notification_version=PostCommentAuthorPayload.NOTIFICATION_VERSION,

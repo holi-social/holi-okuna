@@ -50,9 +50,3 @@ class Discussion(ModelWithUUID):
     @property
     def context(self):
         return self.question
-
-    @property
-    def is_public(self):
-        # todo gregor: what does it mean in the context of a discussion?
-        # assume Insights are always public for now
-        return True

@@ -37,7 +37,7 @@ from openbook_common.utils.model_loaders import (
 from openbook_moderation.models import ModeratedObject
 
 from .comment_reaction import CommentReaction
-from .commentable_type import CommentableType
+from .commentable_type import EnabledCommentableType
 
 
 class Comment(ModelWithUUID):
@@ -80,7 +80,7 @@ class Comment(ModelWithUUID):
     @staticmethod
     def get_commentable(
         commentable_id: uuid.UUID,
-        commentable_type: CommentableType,
+        commentable_type: EnabledCommentableType,
     ):
         commentable_content_type = ContentType.objects.get(model=commentable_type.value)
         commentable = commentable_content_type.get_object_for_this_type(pk=commentable_id)
@@ -105,7 +105,7 @@ class Comment(ModelWithUUID):
         return cls.objects.filter(count_query).count()
 
     @classmethod
-    def get_top_comment(cls, commentable_id: uuid.UUID, commentable_type: CommentableType, user: User):
+    def get_top_comment(cls, commentable_id: uuid.UUID, commentable_type: EnabledCommentableType, user: User):
         return (
             cls.objects.filter(commentable_id=commentable_id)
             .filter(commentable_type__model=commentable_type.value)
@@ -224,9 +224,14 @@ class Comment(ModelWithUUID):
                             CommentUserMention.create_comment_user_mention(
                                 user=user,
                                 comment=self,
-                                notify=user_can_see_commentable,
                             )
                             existing_mention_usernames.append(username)
+
+                            if user_can_see_commentable:
+                                from openbook_notifications.notifications import Notifications
+
+                                Notifications.send_comment_mention_notification(comment=self)
+
                     except User.DoesNotExist:
                         pass
 

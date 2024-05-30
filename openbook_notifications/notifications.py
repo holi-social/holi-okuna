@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+import logging
 from enum import Enum
 from typing import List, Optional, TYPE_CHECKING
 
@@ -9,7 +10,9 @@ from novu.api import EventApi
 from requests import Session
 from requests.adapters import HTTPAdapter, Retry
 from requests.exceptions import ConnectionError
+from rest_framework.exceptions import ValidationError
 
+from openbook_common.utils.model_loaders import get_insight_model, get_community_model
 from openbook_notifications.helpers import flatten_payload
 from openbook_notifications.payloads import (
     NotificationType,
@@ -51,10 +54,12 @@ class Workflow(Enum):
 
 if TYPE_CHECKING:
     from openbook_auth.models import User
-    from openbook_communities.models import Community
     from comments.models import Comment
     from openbook_appointments.models import Appointment
     from openbook_communities.models import CommunityInvite, CommunityMembershipRequest
+    from openbook_communities.models import Community
+
+logger = logging.getLogger(__name__)
 
 
 # Use this classes static methods to trigger notifications via the Notifications system (novu)
@@ -211,26 +216,62 @@ class Notifications:
         notification.send()
 
     @staticmethod
+    def _find_comment_commentable_context_id(comment: Comment):
+        comment_target = comment.commentable_type.model
+
+        if "feedpost" == comment_target:
+            return None
+
+        if "post" == comment_target:
+            Community = get_community_model()
+            space = Community.objects.filter(posts__id=comment.commentable_id).first()
+            if not space:
+                raise ValidationError("No community found for space post")
+
+            return space.id
+
+        if "discussion" == comment_target:
+            Insight = get_insight_model()
+            insight = Insight.objects.filter(discussions__id=comment.commentable_id).first()
+            if not insight:
+                raise ValidationError("No insight found for discussion")
+
+            return insight.id
+
+        raise ValidationError("Can not find context for comment commentable")
+
+    @staticmethod
     def send_comment_mention_notification(comment: Comment):
-        notification = PostCommentMentionNotification(
-            mentions=[str(mentioned_user.username) for mentioned_user in comment.mentions.all()],
-            payload=PostCommentMentionPayload(
-                comment=comment,
-                notification_type=NotificationType.POST_COMMENT_MENTION.value,
-            ),
-        )
-        notification.send()
+        try:
+            comment_commentable_context_id = Notifications._find_comment_commentable_context_id(comment)
+            notification = PostCommentMentionNotification(
+                mentions=[str(mentioned_user.username) for mentioned_user in comment.mentions.all()],
+                payload=PostCommentMentionPayload(
+                    comment=comment,
+                    comment_commentable_context_id=comment_commentable_context_id,
+                    notification_type=NotificationType.POST_COMMENT_MENTION.value,
+                ),
+            )
+            notification.send()
+        except ValidationError:
+            logger.error("Comment Mention Notification cannot be send")
 
     @staticmethod
     def send_commentable_author_notification(comment: Comment):
-        notification = PostCommentAuthorNotification(
-            author=str(comment.commentable.creator.username),
-            payload=PostCommentAuthorPayload(
-                comment=comment,
-                notification_type=NotificationType.POST_COMMENT_AUTHOR.value,
-            ),
-        )
-        notification.send()
+        try:
+            comment_commentable_context_id = Notifications._find_comment_commentable_context_id(comment)
+
+            notification = PostCommentAuthorNotification(
+                author=str(comment.commentable.creator.username),
+                payload=PostCommentAuthorPayload(
+                    comment=comment,
+                    comment_commentable_context_id=comment_commentable_context_id,
+                    notification_type=NotificationType.POST_COMMENT_AUTHOR.value,
+                ),
+            )
+            notification.send()
+        except ValidationError:
+            logger.error("Commentable Author Notification cannot be send")
 
     @staticmethod
     def send_space_new_post_notification(post, collaborators: List[User]):

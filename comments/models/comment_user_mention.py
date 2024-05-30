@@ -3,7 +3,6 @@ from django.db import models
 from openbook_common.models import (
     ModelWithUUID,
 )
-from openbook_notifications.notifications import Notifications
 
 
 class CommentUserMention(ModelWithUUID):
@@ -18,10 +17,7 @@ class CommentUserMention(ModelWithUUID):
         db_table = "openbook_posts_postcommentusermention"
 
     @classmethod
-    def create_comment_user_mention(cls, user, comment, notify=False):
+    def create_comment_user_mention(cls, user, comment):
         post_comment_user_mention = cls.objects.create(user=user, post_comment=comment)
-
-        if notify:
-            Notifications.send_comment_mention_notification(comment=comment)
 
         return post_comment_user_mention

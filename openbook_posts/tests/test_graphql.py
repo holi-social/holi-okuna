@@ -5,6 +5,7 @@ import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.test import AsyncClient
+from novu.api import EventApi
 
 from comments.models import Comment
 from openbook_common.enums import FeatureToggleName, FeatureToggleType, VisibilityType
@@ -41,12 +42,20 @@ def client():
     return AsyncClient()
 
 
+@pytest.fixture(scope="class")
+def mock_novu_api():
+    with mock.patch.object(EventApi, "trigger"):
+        # prevent sending novu notifications
+        yield
+
+
 @pytest.fixture(scope="session")
 def django_db_setup(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
         call_command("loaddata", "openbook_moderation/fixtures/moderation_categories.json")
 
 
+@pytest.mark.usefixtures("mock_novu_api")
 @pytest.mark.django_db
 class TestPosts(TestCase):
     @pytest.fixture(autouse=True)

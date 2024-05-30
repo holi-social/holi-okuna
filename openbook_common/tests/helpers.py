@@ -13,6 +13,7 @@ from mixer.backend.django import mixer
 from PIL import Image
 
 from comments.models import Comment
+from feed_posts.models import FeedPost
 from openbook.graphql_schema import schema
 from openbook_auth.models import EngagementLevelChoice, User, UserProfile
 from openbook_categories.models import Category
@@ -29,6 +30,7 @@ from openbook_common.utils.helpers import get_random_pastel_color
 from openbook_communities.models import CollaborationTool, Community, ExternalLink, SpacesRelationship, Task
 from openbook_devices.models import Device
 from openbook_hashtags.models import Hashtag
+from openbook_insights.models import Discussion
 from openbook_insights.models.insight import Insight
 from openbook_lists.models import List as ListModel
 from openbook_moderation.models import (
@@ -624,7 +626,19 @@ def check_app_version(version: str, build_number: str):
     return response
 
 
-def make_post_comment():
+def make_space_post_comment():
+    space = make_community()
+    post_author = make_user()
+    post = mixer.blend(Post, creator=post_author, community=space, is_public=True, status=Post.STATUS_PUBLISHED)
+    commenter = make_user()
+    text = fake.paragraph()
+
+    post_comment = mixer.blend(Comment, commenter=commenter, commentable=post, text=text)
+
+    return post_comment
+
+
+def make_space_post_comment_with_mention():
     space = make_community()
     post_author = make_user()
     post = mixer.blend(Post, creator=post_author, community=space, is_public=True, status=Post.STATUS_PUBLISHED)
@@ -634,6 +648,34 @@ def make_post_comment():
 
     post_comment = mixer.blend(
         Comment, commenter=commenter, commentable=post, text=f"@{mentioned_user.username} {text}"
+    )
+
+    return post_comment
+
+
+def make_feed_post_comment_with_mention():
+    post_author = make_user()
+    feed_post = mixer.blend(FeedPost, creator=post_author)
+    commenter = make_user()
+    mentioned_user = make_user()
+    text = fake.paragraph()
+
+    post_comment = mixer.blend(
+        Comment, commenter=commenter, commentable=feed_post, text=f"@{mentioned_user.username} {text}"
+    )
+
+    return post_comment
+
+
+def make_insight_discussion_comment_with_mention():
+    insight = make_insight()
+    discussion = mixer.blend(Discussion, insight=insight, question="Question")
+    commenter = make_user()
+    mentioned_user = make_user()
+    text = fake.paragraph()
+
+    post_comment = mixer.blend(
+        Comment, commenter=commenter, commentable=discussion, text=f"@{mentioned_user.username} {text}"
     )
 
     return post_comment

@@ -16,7 +16,7 @@ from openbook_common.tests.helpers import (
     make_fake_post_title,
     make_insight,
     make_post,
-    make_post_comment,
+    make_space_post_comment,
     make_user,
 )
 from openbook_insights.models.discussion import Discussion
@@ -386,7 +386,7 @@ class TestDeletingComments(TestCase):
         notifications_toggle.delete()
 
     def test_should_delete_own_comment(self):
-        comment = make_post_comment()
+        comment = make_space_post_comment()
         commenter = comment.commenter
         comment.react(commenter, "HEART")
 
@@ -399,7 +399,7 @@ class TestDeletingComments(TestCase):
 
     def test_should_not_be_able_to_delete_others_comments(self):
         other_user = make_user(name="Other")
-        comment = make_post_comment()
+        comment = make_space_post_comment()
         commenter = comment.commenter
         comment.react(commenter, "HEART")
 
@@ -424,7 +424,7 @@ class TestDeletingComments(TestCase):
         assert Comment.objects.filter(pk=comment.id).exists() is True
 
     def test_should_not_be_able_to_delete_a_comment_that_does_not_exist(self):
-        comment = make_post_comment()
+        comment = make_space_post_comment()
         commenter = comment.commenter
 
         response = delete_comment(commenter, "00000000-0000-0000-0000-000000000000")
@@ -446,7 +446,7 @@ class TestReactingToComments(TestCase):
         notifications_toggle.delete()
 
     def test_should_be_able_to_react_to_a_comment(self):
-        comment = make_post_comment()
+        comment = make_space_post_comment()
         commenter = comment.commenter
         other_user = make_user(name="Other")
 
@@ -459,7 +459,7 @@ class TestReactingToComments(TestCase):
         assert updated_comment["reactions"]["HEART"] == 2
 
     def test_should_be_able_to_remove_a_reaction_to_a_comment(self):
-        comment = make_post_comment()
+        comment = make_space_post_comment()
         commenter = comment.commenter
         other_user = make_user(name="Other")
         comment.react(other_user, ReactionType.HEART)

@@ -1,11 +1,18 @@
+from unittest import mock
+
 import pytest
 from django.test import TestCase
+from novu.api import EventApi
 
 from openbook_common.tests.helpers import (
     make_community,
     make_community_post,
-    make_post_comment,
+    make_space_post_comment,
     make_user,
+    make_space_post_comment_with_mention,
+    make_feed_post_comment_with_mention,
+    make_insight_discussion_comment_with_mention,
+    make_insight,
 )
 from openbook_notifications.helpers import replace_mentions_with_full_names
 from openbook_notifications.payloads import (
@@ -26,6 +33,14 @@ from openbook_notifications.payloads import (
 )
 
 
+@pytest.fixture(scope="class")
+def mock_novu_api():
+    with mock.patch.object(EventApi, "trigger"):
+        # prevent sending novu notifications
+        yield
+
+
+@pytest.mark.usefixtures("mock_novu_api")
 @pytest.mark.django_db
 class TestPayloads(TestCase):
     def setUp(self):
@@ -35,7 +50,11 @@ class TestPayloads(TestCase):
         self.notification_type = "TEST_NOTIFICATION_TYPE"
         self.approver = make_user(name="Test", last_name="Approver")
         self.post = make_community_post()
-        self.post_comment = make_post_comment()
+        self.space_post_comment = make_space_post_comment()
+        self.space_post_comment_with_mention = make_space_post_comment_with_mention()
+        self.feed_post_comment_with_mention = make_feed_post_comment_with_mention()
+        self.insight = make_insight()
+        self.insight_discussion_comment_with_mention = make_insight_discussion_comment_with_mention()
 
     def test_user_data_to_dict(self):
         user_data = UserData(
@@ -46,10 +65,10 @@ class TestPayloads(TestCase):
             avatar_default_color="#FFF000",
             avatar_label="TU",
         )
-        data_dict = user_data.to_dict()
+        result = user_data.to_dict()
 
         self.assertEqual(
-            data_dict,
+            result,
             {
                 "id": "test-user-id",
                 "fullName": "Test User",
@@ -62,10 +81,10 @@ class TestPayloads(TestCase):
 
     def test_user_data_from_user(self):
         user_data = UserData.from_user(self.user)
-        data_dict = user_data.to_dict()
+        result = user_data.to_dict()
 
         self.assertEqual(
-            data_dict,
+            result,
             {
                 "id": str(self.user.username),
                 "fullName": "Test User",
@@ -85,10 +104,10 @@ class TestPayloads(TestCase):
             avatar_blurhash="test-blurhash",
             avatar_default_color="#FFF000",
         )
-        data_dict = space_data.to_dict()
+        result = space_data.to_dict()
 
         self.assertEqual(
-            data_dict,
+            result,
             {
                 "id": "test-space-id",
                 "name": "test-space",
@@ -101,10 +120,10 @@ class TestPayloads(TestCase):
 
     def test_space_data_from_community(self):
         space_data = SpaceData.from_community(self.space)
-        data_dict = space_data.to_dict()
+        result = space_data.to_dict()
 
         self.assertEqual(
-            data_dict,
+            result,
             {
                 "id": str(self.space.id),
                 "name": "test-space",
@@ -120,10 +139,10 @@ class TestPayloads(TestCase):
             "key": "value",
         }
         payload = Payload(data=data, notification_type=self.notification_type, notification_version="1.0.0")
-        data_dict = payload.to_dict()
+        result = payload.to_dict()
 
         self.assertEqual(
-            data_dict,
+            result,
             {
                 "data": data,
                 "notificationType": self.notification_type,
@@ -138,16 +157,16 @@ class TestPayloads(TestCase):
             message="I'm interested in becoming a member of your space",
         )
 
-        data_dict = payload.to_dict()
+        result = payload.to_dict()
 
-        self.assertEqual(data_dict["notificationType"], "SPACE_MEMBERSHIP_REQUEST")
-        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
-        self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
-        self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
-        self.assertEqual(data_dict["data"]["requestMessage"], "I'm interested in becoming a member of your space")
-        self.assertIsNotNone(data_dict["data"]["requestDatetime"])
+        self.assertEqual(result["notificationType"], "SPACE_MEMBERSHIP_REQUEST")
+        self.assertEqual(result["notificationVersion"], "1.0.0")
+        self.assertEqual(result["data"]["user"]["id"], str(self.user.username))
+        self.assertEqual(result["data"]["space"]["id"], str(self.space.id))
+        self.assertEqual(result["data"]["requestMessage"], "I'm interested in becoming a member of your space")
+        self.assertIsNotNone(result["data"]["requestDatetime"])
         self.assertEqual(
-            data_dict["data"]["collaboratorsLink"],
+            result["data"]["collaboratorsLink"],
             "https://staging.dev.holi.social/spaces/test-space/collaborators/manage?tab=pending&userId="
             + str(self.user.username),
         )
@@ -155,14 +174,14 @@ class TestPayloads(TestCase):
     def test_space_membership_request_approval_user_payload(self):
         payload = SpaceMembershipRequestApprovalUserPayload(user=self.user, space=self.space, approver=self.approver)
 
-        data_dict = payload.to_dict()
+        result = payload.to_dict()
 
-        self.assertEqual(data_dict["notificationType"], "SPACE_MEMBERSHIP_REQUEST_APPROVAL_USER")
-        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
-        self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
-        self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
-        self.assertEqual(data_dict["data"]["approver"]["id"], str(self.approver.id))
-        self.assertIsNotNone(data_dict["data"]["approvalDatetime"])
+        self.assertEqual(result["notificationType"], "SPACE_MEMBERSHIP_REQUEST_APPROVAL_USER")
+        self.assertEqual(result["notificationVersion"], "1.0.0")
+        self.assertEqual(result["data"]["user"]["id"], str(self.user.username))
+        self.assertEqual(result["data"]["space"]["id"], str(self.space.id))
+        self.assertEqual(result["data"]["approver"]["id"], str(self.approver.id))
+        self.assertIsNotNone(result["data"]["approvalDatetime"])
 
     def test_space_membership_request_approval_admin_payload(self):
         payload = SpaceMembershipRequestApprovalAdminPayload(
@@ -170,12 +189,12 @@ class TestPayloads(TestCase):
             space=self.space,
         )
 
-        data_dict = payload.to_dict()
+        result = payload.to_dict()
 
-        self.assertEqual(data_dict["notificationType"], "SPACE_MEMBERSHIP_REQUEST_APPROVAL_ADMIN")
-        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
-        self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
-        self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
+        self.assertEqual(result["notificationType"], "SPACE_MEMBERSHIP_REQUEST_APPROVAL_ADMIN")
+        self.assertEqual(result["notificationVersion"], "1.0.0")
+        self.assertEqual(result["data"]["user"]["id"], str(self.user.username))
+        self.assertEqual(result["data"]["space"]["id"], str(self.space.id))
 
         payload = SpaceMembershipRequestApprovalUserPayload(
             user=self.user,
@@ -183,16 +202,16 @@ class TestPayloads(TestCase):
             approver=self.admin,
         )
 
-        data_dict = payload.to_dict()
+        result = payload.to_dict()
 
-        self.assertEqual(data_dict["notificationType"], "SPACE_MEMBERSHIP_REQUEST_APPROVAL_USER")
-        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
-        self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
-        self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
-        self.assertEqual(data_dict["data"]["approver"]["id"], str(self.admin.username))
-        self.assertIsNotNone(data_dict["data"]["approvalDatetime"])
+        self.assertEqual(result["notificationType"], "SPACE_MEMBERSHIP_REQUEST_APPROVAL_USER")
+        self.assertEqual(result["notificationVersion"], "1.0.0")
+        self.assertEqual(result["data"]["user"]["id"], str(self.user.username))
+        self.assertEqual(result["data"]["space"]["id"], str(self.space.id))
+        self.assertEqual(result["data"]["approver"]["id"], str(self.admin.username))
+        self.assertIsNotNone(result["data"]["approvalDatetime"])
         self.assertEqual(
-            data_dict["data"]["spaceLink"],
+            result["data"]["spaceLink"],
             "https://staging.dev.holi.social/spaces/test-space",
         )
 
@@ -204,14 +223,14 @@ class TestPayloads(TestCase):
             notification_type=NotificationType.SPACE_MEMBERSHIP_REQUEST_DECLINE_USER.value,
         )
 
-        data_dict = payload.to_dict()
+        result = payload.to_dict()
 
-        self.assertEqual(data_dict["notificationType"], "SPACE_MEMBERSHIP_REQUEST_DECLINE_USER")
-        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
-        self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
-        self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
-        self.assertEqual(data_dict["data"]["denier"]["id"], str(self.admin.username))
-        self.assertIsNotNone(data_dict["data"]["denialDatetime"])
+        self.assertEqual(result["notificationType"], "SPACE_MEMBERSHIP_REQUEST_DECLINE_USER")
+        self.assertEqual(result["notificationVersion"], "1.0.0")
+        self.assertEqual(result["data"]["user"]["id"], str(self.user.username))
+        self.assertEqual(result["data"]["space"]["id"], str(self.space.id))
+        self.assertEqual(result["data"]["denier"]["id"], str(self.admin.username))
+        self.assertIsNotNone(result["data"]["denialDatetime"])
 
     def test_space_membership_invite_payload(self):
         payload = SpaceMembershipInvitePayload(
@@ -219,13 +238,13 @@ class TestPayloads(TestCase):
             space=self.space,
         )
 
-        data_dict = payload.to_dict()
+        result = payload.to_dict()
 
-        self.assertEqual(data_dict["notificationType"], "SPACE_MEMBERSHIP_INVITE")
-        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
-        self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
-        self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
-        self.assertIsNotNone(data_dict["data"]["inviteDatetime"])
+        self.assertEqual(result["notificationType"], "SPACE_MEMBERSHIP_INVITE")
+        self.assertEqual(result["notificationVersion"], "1.0.0")
+        self.assertEqual(result["data"]["user"]["id"], str(self.user.username))
+        self.assertEqual(result["data"]["space"]["id"], str(self.space.id))
+        self.assertIsNotNone(result["data"]["inviteDatetime"])
 
     def test_space_membership_invite_approval_payload(self):
         payload = SpaceMembershipInviteApprovalPayload(
@@ -234,12 +253,12 @@ class TestPayloads(TestCase):
             notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_APPROVAL_USER.value,
         )
 
-        data_dict = payload.to_dict()
+        result = payload.to_dict()
 
-        self.assertEqual(data_dict["notificationType"], "SPACE_MEMBERSHIP_INVITE_APPROVAL_USER")
-        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
-        self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
-        self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
+        self.assertEqual(result["notificationType"], "SPACE_MEMBERSHIP_INVITE_APPROVAL_USER")
+        self.assertEqual(result["notificationVersion"], "1.0.0")
+        self.assertEqual(result["data"]["user"]["id"], str(self.user.username))
+        self.assertEqual(result["data"]["space"]["id"], str(self.space.id))
 
     def test_space_membership_invite_decline_payload(self):
         payload = SpaceMembershipInviteDeclinePayload(
@@ -248,56 +267,102 @@ class TestPayloads(TestCase):
             notification_type=NotificationType.SPACE_MEMBERSHIP_INVITE_DECLINE_USER.value,
         )
 
-        data_dict = payload.to_dict()
+        result = payload.to_dict()
 
-        self.assertEqual(data_dict["notificationType"], "SPACE_MEMBERSHIP_INVITE_DECLINE_USER")
-        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
-        self.assertEqual(data_dict["data"]["user"]["id"], str(self.user.username))
-        self.assertEqual(data_dict["data"]["space"]["id"], str(self.space.id))
+        self.assertEqual(result["notificationType"], "SPACE_MEMBERSHIP_INVITE_DECLINE_USER")
+        self.assertEqual(result["notificationVersion"], "1.0.0")
+        self.assertEqual(result["data"]["user"]["id"], str(self.user.username))
+        self.assertEqual(result["data"]["space"]["id"], str(self.space.id))
 
-    def test_post_comment_mention_payload(self):
+    def test_can_map_space_post_comment_mention_payload(self):
         payload = PostCommentMentionPayload(
-            comment=self.post_comment,
+            comment=self.space_post_comment_with_mention,
+            comment_commentable_context_id=self.space.id,
             notification_type=NotificationType.POST_COMMENT_MENTION.value,
         )
 
-        data_dict = payload.to_dict()
-        self.assertEqual(data_dict["notificationType"], "POST_COMMENT_MENTION")
-        self.assertEqual(data_dict["notificationVersion"], "1.1.0")
-        self.assertEqual(data_dict["data"]["user"]["id"], str(self.post_comment.commenter.username))
-        self.assertEqual(data_dict["data"]["comment"]["id"], str(self.post_comment.id))
+        result = payload.to_dict()
+
+        self.assertIsNotNone(result["notificationVersion"])
+        self.assertEqual(result["notificationType"], "POST_COMMENT_MENTION")
+        self.assertEqual(result["data"]["user"]["id"], str(self.space_post_comment_with_mention.commenter.username))
+        self.assertEqual(result["data"]["comment"]["id"], str(self.space_post_comment_with_mention.id))
         self.assertEqual(
-            data_dict["data"]["comment"]["text"],
+            result["data"]["comment"]["text"],
             replace_mentions_with_full_names(
-                text=self.post_comment.text, mentioned_users=self.post_comment.mentions.all()
+                text=self.space_post_comment_with_mention.text,
+                mentioned_users=self.space_post_comment_with_mention.mentions.all(),
             ),
         )
-        self.assertEqual(data_dict["data"]["post"]["id"], str(self.post_comment.commentable_id))
-        self.assertEqual(data_dict["data"]["post"]["title"], self.post_comment.commentable.title)
-        self.assertEqual(data_dict["data"]["post"]["context"], self.post_comment.commentable.community.title)
-        self.assertIsNotNone(data_dict["data"]["commentDatetime"])
+
+        self.assertEqual(result["data"]["post"]["id"], str(self.space_post_comment_with_mention.commentable_id))
+        self.assertEqual(result["data"]["post"]["title"], self.space_post_comment_with_mention.commentable.title)
+        self.assertEqual(
+            result["data"]["post"]["context"], self.space_post_comment_with_mention.commentable.community.title
+        )
+
+    def test_can_generate_space_post_comment_mention_notification_link(self):
+        payload = PostCommentMentionPayload(
+            comment=self.space_post_comment_with_mention,
+            comment_commentable_context_id=self.space.id,
+            notification_type=NotificationType.POST_COMMENT_MENTION.value,
+        )
+
+        result = payload.to_dict()
+
+        self.assertEqual(
+            result["data"]["commentLink"],
+            f"/spaces/{self.space.id}/updates/{self.space_post_comment_with_mention.commentable_id}?commentId={self.space_post_comment_with_mention.id}",
+        )
+
+    def test_can_generate_feed_post_comment_mention_notification_link(self):
+        payload = PostCommentMentionPayload(
+            comment=self.feed_post_comment_with_mention,
+            comment_commentable_context_id=self.space.id,
+            notification_type=NotificationType.POST_COMMENT_MENTION.value,
+        )
+
+        result = payload.to_dict()
+        self.assertEqual(
+            result["data"]["commentLink"],
+            f"/feed-posts/{self.feed_post_comment_with_mention.commentable_id}?commentId={self.feed_post_comment_with_mention.id}",
+        )
+
+    def test_can_generate_insight_discussion_comment_mention_notification_link(self):
+        payload = PostCommentMentionPayload(
+            comment=self.insight_discussion_comment_with_mention,
+            comment_commentable_context_id=self.insight.id,
+            notification_type=NotificationType.POST_COMMENT_MENTION.value,
+        )
+
+        result = payload.to_dict()
+        self.assertEqual(
+            result["data"]["commentLink"],
+            f"/insights/{self.insight.id}/discussions/{self.insight_discussion_comment_with_mention.commentable_id}?commentId={self.insight_discussion_comment_with_mention.id}",
+        )
 
     def test_post_comment_author_payload(self):
         payload = PostCommentAuthorPayload(
-            comment=self.post_comment,
+            comment=self.space_post_comment,
+            comment_commentable_context_id=self.space.id,
             notification_type=NotificationType.POST_COMMENT_AUTHOR.value,
         )
 
-        data_dict = payload.to_dict()
-        self.assertEqual(data_dict["notificationType"], "POST_COMMENT_AUTHOR")
-        self.assertEqual(data_dict["notificationVersion"], "1.1.0")
-        self.assertEqual(data_dict["data"]["user"]["id"], str(self.post_comment.commentable.creator.username))
-        self.assertEqual(data_dict["data"]["commenter"]["id"], str(self.post_comment.commenter.username))
-        self.assertEqual(data_dict["data"]["comment"]["id"], str(self.post_comment.id))
+        result = payload.to_dict()
+        self.assertIsNotNone(result["notificationVersion"])
+        self.assertEqual(result["notificationType"], "POST_COMMENT_AUTHOR")
+        self.assertEqual(result["data"]["user"]["id"], str(self.space_post_comment.commentable.creator.username))
+        self.assertEqual(result["data"]["commenter"]["id"], str(self.space_post_comment.commenter.username))
+        self.assertEqual(result["data"]["comment"]["id"], str(self.space_post_comment.id))
         self.assertEqual(
-            data_dict["data"]["comment"]["text"],
+            result["data"]["comment"]["text"],
             replace_mentions_with_full_names(
-                text=self.post_comment.text, mentioned_users=self.post_comment.mentions.all()
+                text=self.space_post_comment.text, mentioned_users=self.space_post_comment.mentions.all()
             ),
         )
-        self.assertEqual(data_dict["data"]["post"]["id"], str(self.post_comment.commentable_id))
-        self.assertEqual(data_dict["data"]["post"]["title"], self.post_comment.commentable.title)
-        self.assertIsNotNone(data_dict["data"]["commentDatetime"])
+        self.assertEqual(result["data"]["post"]["id"], str(self.space_post_comment.commentable_id))
+        self.assertEqual(result["data"]["post"]["title"], self.space_post_comment.commentable.title)
+        self.assertIsNotNone(result["data"]["commentDatetime"])
 
     def test_space_new_post_payload(self):
         payload = SpaceNewPostPayload(
@@ -305,10 +370,10 @@ class TestPayloads(TestCase):
             notification_type=NotificationType.SPACE_NEW_POST.value,
         )
 
-        data_dict = payload.to_dict()
-        self.assertEqual(data_dict["notificationType"], "SPACE_NEW_POST")
-        self.assertEqual(data_dict["notificationVersion"], "1.0.0")
-        self.assertEqual(data_dict["data"]["user"]["id"], str(self.post.creator.username))
-        self.assertEqual(data_dict["data"]["post"]["id"], str(self.post.id))
-        self.assertEqual(data_dict["data"]["space"]["id"], str(self.post.community.id))
-        self.assertIsNotNone(data_dict["data"]["createdDatetime"])
+        result = payload.to_dict()
+        self.assertEqual(result["notificationType"], "SPACE_NEW_POST")
+        self.assertEqual(result["notificationVersion"], "1.0.0")
+        self.assertEqual(result["data"]["user"]["id"], str(self.post.creator.username))
+        self.assertEqual(result["data"]["post"]["id"], str(self.post.id))
+        self.assertEqual(result["data"]["space"]["id"], str(self.post.community.id))
+        self.assertIsNotNone(result["data"]["createdDatetime"])
