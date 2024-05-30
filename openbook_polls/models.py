@@ -2,6 +2,7 @@ from django.db import models
 from openbook_auth.models import User
 from django.utils import timezone
 from django.db import transaction
+from django.db.models import F
 
 
 from openbook_common.models import (
@@ -133,7 +134,7 @@ class Choice(ModelWithUUID):
 
     @transaction.atomic
     def increment_votes(self):
-        self.votes += 1
+        self.votes = F("votes")+1
         self.save()
 
 
