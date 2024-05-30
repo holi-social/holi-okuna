@@ -3,6 +3,7 @@ import tempfile
 import uuid
 from typing import List, Optional
 
+from PIL import Image
 from asgiref.sync import async_to_sync
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -10,7 +11,6 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 from faker import Faker
 from mixer.backend.django import mixer
-from PIL import Image
 
 from comments.models import Comment
 from openbook.graphql_schema import schema
@@ -592,9 +592,13 @@ def assert_is_unauthorized(response):
 
 
 def assert_is_forbidden(response):
-    assert response.data is None
     assert "Forbidden" in str(response.errors[0].message)
     assert "FORBIDDEN" == str(response.errors[0].extensions["code"])
+
+
+def assert_is_404(response):
+    assert "Object not found" in str(response.errors[0].message)
+    assert "NOT_FOUND" == str(response.errors[0].extensions["code"])
 
 
 def create_large_image_file():

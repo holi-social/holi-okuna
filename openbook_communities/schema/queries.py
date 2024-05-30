@@ -263,16 +263,23 @@ class Query:
         )
 
     @strawberry_django.field()
-    def tasks_by_space_id(self, space_id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Task]:
+    def tasks_by_space_id(self, info, space_id: uuid.UUID, offset: int = 0, limit: int = 10) -> Paged[Task]:
+        current_user = info.context.request.user
         return Paged.of(
-            TaskModel.objects.filter(community__id=space_id).order_by("-created"),
+            TaskModel.objects.filter(community__id=space_id)
+            .filter(TaskModel.is_visible_query(current_user))
+            .order_by("-created"),
             offset,
             limit,
         )
 
     @strawberry_django.field()
-    def task_by_id(self, id: uuid.UUID) -> Optional[Task]:
-        return TaskModel.objects.get(id=id)
+    def task_by_id(self, info, id: uuid.UUID) -> Optional[Task]:
+        current_user = info.context.request.user
+        task = TaskModel.objects.get(id=id)
+        if TaskModel.objects.filter(id=id).filter(TaskModel.is_visible_query(current_user)).exists():
+            return task
+        raise PermissionDenied()
 
     @strawberry_django.field()
     def recommended_tasks(self, info, offset: int = 0, limit: int = 5) -> Paged[Task]:
