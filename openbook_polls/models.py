@@ -134,7 +134,7 @@ class Choice(ModelWithUUID):
 
     @transaction.atomic
     def increment_votes(self):
-        self.votes = F("votes")+1
+        self.votes = F("votes") + 1
         self.save()
 
 
