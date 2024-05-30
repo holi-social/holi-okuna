@@ -2043,9 +2043,9 @@ class User(ModelWithUUID, AbstractUser):
             )
 
         # deferred import to circumvent circular imports
-        from openbook_notifications.notifications import Notifications
+        from openbook_notifications.services import NotificationsService
 
-        Notifications.send_space_membership_request_notification(
+        NotificationsService.send_space_membership_request_notification(
             membership_request=membership_request,
             recipients=staff_members,
             requester=self,
@@ -2088,13 +2088,13 @@ class User(ModelWithUUID, AbstractUser):
         )
 
         # deferred import to circumvent circular imports
-        from openbook_notifications.notifications import Notifications
+        from openbook_notifications.services import NotificationsService
 
-        Notifications.send_space_membership_request_approval_user_notification(
+        NotificationsService.send_space_membership_request_approval_user_notification(
             requester=user_to_approve, space=community_to_join, approver=self
         )
 
-        Notifications.send_space_membership_request_approval_admin_notification(
+        NotificationsService.send_space_membership_request_approval_admin_notification(
             recipients=community_to_join.get_staff_members(), requester=user_to_approve, space=community_to_join
         )
         return community_to_join
@@ -2119,11 +2119,13 @@ class User(ModelWithUUID, AbstractUser):
         self.notify_membership_approval(community_to_join, self, membership_request=membership_request, invite=invite)
 
         # deferred import to circumvent circular imports
-        from openbook_notifications.notifications import Notifications
+        from openbook_notifications.services import NotificationsService
 
-        Notifications.send_space_membership_invite_approval_user_notification(invitee=self, space=community_to_join)
+        NotificationsService.send_space_membership_invite_approval_user_notification(
+            invitee=self, space=community_to_join
+        )
 
-        Notifications.send_space_membership_invite_approval_admin_notification(
+        NotificationsService.send_space_membership_invite_approval_admin_notification(
             recipients=community_to_join.get_staff_members(), invitee=self, space=community_to_join
         )
 
@@ -2151,12 +2153,14 @@ class User(ModelWithUUID, AbstractUser):
         self.notify_invite_declined(community_to_join, inviting_admin, self)
 
         # deferred import to circumvent circular imports
-        from openbook_notifications.notifications import Notifications
+        from openbook_notifications.services import NotificationsService
 
-        Notifications.send_space_membership_invite_decline_user_notification(invitee=self, space=community_to_join)
+        NotificationsService.send_space_membership_invite_decline_user_notification(
+            invitee=self, space=community_to_join
+        )
 
         if inviting_admin:
-            Notifications.send_space_membership_invite_decline_admin_notification(
+            NotificationsService.send_space_membership_invite_decline_admin_notification(
                 recipient=inviting_admin, invitee=self, space=community_to_join
             )
 
@@ -2210,12 +2214,12 @@ class User(ModelWithUUID, AbstractUser):
         community.remove_membership_request(user_to_revoke_request_for)
 
         # deferred import to circumvent circular imports
-        from openbook_notifications.notifications import Notifications
+        from openbook_notifications.services import NotificationsService
 
-        Notifications.send_space_membership_request_decline_user_notification(
+        NotificationsService.send_space_membership_request_decline_user_notification(
             requester=user_to_revoke_request_for, space=community, denier=self
         )
-        Notifications.send_space_membership_request_decline_admin_notification(
+        NotificationsService.send_space_membership_request_decline_admin_notification(
             recipients=community.get_staff_members(),
             requester=user_to_revoke_request_for,
             space=community,
@@ -2278,9 +2282,9 @@ class User(ModelWithUUID, AbstractUser):
     def invite_user_to_community(self, user, community):
         community_invite = community.create_invite(creator=self, invited_user=user)
         # deferred import to circumvent circular imports
-        from openbook_notifications.notifications import Notifications
+        from openbook_notifications.services import NotificationsService
 
-        Notifications.send_space_membership_invite_notification(
+        NotificationsService.send_space_membership_invite_notification(
             inviter=self,
             recipient=user,
             space=community,
@@ -2916,14 +2920,14 @@ class User(ModelWithUUID, AbstractUser):
             is_public=is_public,
         )
 
-        from openbook_notifications.notifications import Notifications
+        from openbook_notifications.services import NotificationsService
 
         collaborators = self.get_community_with_name_members(community_name=post.community.name).exclude(
             id=post.creator.id
         )
 
         if collaborators:
-            Notifications.send_space_new_post_notification(post=post, collaborators=list(collaborators))
+            NotificationsService.send_space_new_post_notification(post=post, collaborators=list(collaborators))
 
         return post
 

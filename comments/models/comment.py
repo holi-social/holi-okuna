@@ -228,9 +228,9 @@ class Comment(ModelWithUUID):
                             existing_mention_usernames.append(username)
 
                             if user_can_see_commentable:
-                                from openbook_notifications.notifications import Notifications
+                                from openbook_notifications.services import NotificationsService
 
-                                Notifications.send_comment_mention_notification(comment=self)
+                                NotificationsService.send_comment_mention_notification(comment=self)
 
                     except User.DoesNotExist:
                         pass
@@ -265,7 +265,7 @@ class Comment(ModelWithUUID):
             self.links.clear()
 
     def _notify_post_author(self):
-        from openbook_notifications.notifications import Notifications
+        from openbook_notifications.services import NotificationsService
 
         # do we find somebody to notify?
         # Discussions don't have a creator, but its fine for now to not notify Curators.
@@ -276,7 +276,7 @@ class Comment(ModelWithUUID):
             is_post_author_commenter = self.commenter.username == author.username
 
             if not is_post_author_mentioned and not is_post_author_commenter:
-                Notifications.send_commentable_author_notification(comment=self)
+                NotificationsService.send_commentable_author_notification(comment=self)
 
     def update_comment(self, text):
         self.text = text

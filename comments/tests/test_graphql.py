@@ -71,8 +71,8 @@ class TestPostComments(TestCase):
         yield
         notifications_toggle.delete()
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_comment_mention_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_commentable_author_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_comment_mention_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_commentable_author_notification")
     def test_should_mention_a_user_in_a_post_comment(
         self, mock_send_commentable_author_notification, mock_send_comment_mention_notification
     ):
@@ -99,8 +99,8 @@ class TestPostComments(TestCase):
         mock_send_comment_mention_notification.assert_called_once_with(comment=comment)
         mock_send_commentable_author_notification.assert_called_once_with(comment=comment)
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_comment_mention_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_commentable_author_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_comment_mention_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_commentable_author_notification")
     def test_should_not_send_an_author_notification_if_the_commenter_is_the_author(
         self, mock_send_commentable_author_notification, mock_send_comment_mention_notification
     ):
@@ -126,8 +126,8 @@ class TestPostComments(TestCase):
         mock_send_comment_mention_notification.assert_called_once_with(comment=comment)
         mock_send_commentable_author_notification.assert_not_called()
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_comment_mention_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_commentable_author_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_comment_mention_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_commentable_author_notification")
     def test_should_not_send_an_author_notification_if_the_author_is_mentioned(
         self, mock_send_commentable_author_notification, mock_send_comment_mention_notification
     ):
@@ -309,8 +309,8 @@ class TestAddingComments(TestCase):
         assert reply.commenter == commenter
         assert reply.parent_comment.id == root_comment.id
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_comment_mention_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_commentable_author_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_comment_mention_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_commentable_author_notification")
     def test_should_notify_mentioned_users_and_post_author(
         self, mock_send_commentable_author_notification, mock_send_comment_mention_notification
     ):
@@ -333,7 +333,7 @@ class TestAddingComments(TestCase):
         mock_send_comment_mention_notification.assert_called_once_with(comment=comment)
         mock_send_commentable_author_notification.assert_called_once_with(comment=comment)
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_commentable_author_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_commentable_author_notification")
     def test_should_not_notify_author_about_their_own_comments(self, mock_send_commentable_author_notification):
         post = make_post()
         post_author = post.creator
@@ -349,8 +349,8 @@ class TestAddingComments(TestCase):
 
         mock_send_commentable_author_notification.assert_not_called()
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_comment_mention_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_commentable_author_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_comment_mention_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_commentable_author_notification")
     def test_should_only_notify_the_author_once_when_they_are_mentioned(
         self, mock_send_commentable_author_notification, mock_send_comment_mention_notification
     ):

@@ -360,7 +360,7 @@ class TestPosts(TestCase):
         assert response.data is None
         assert "Field 'visibility' of required type 'VisibilityType!' was not provided" in response.errors[0].message
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_new_post_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_new_post_notification")
     def test_space_user_can_create_space_post_2(self, mock_send_space_new_post_notification):
         space_admin = make_user()
         member_user = make_user()
@@ -406,7 +406,7 @@ class TestPosts(TestCase):
 
         mock_send_space_new_post_notification.assert_called_with(post=post, collaborators=[member_user])
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_new_post_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_new_post_notification")
     def test_member_user_can_create_only_member_visibility_space_post_2(self, mock_send_space_new_post_notification):
         space_admin = make_user()
         member_user = make_user()

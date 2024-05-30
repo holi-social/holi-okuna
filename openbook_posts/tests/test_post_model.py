@@ -1,7 +1,6 @@
 from django.test import TestCase
 from rest_framework.exceptions import ValidationError
 
-from openbook_circles.models import Circle
 from openbook_common.tests.assertions import TestAssertionsMixin
 from openbook_common.tests.helpers import (
     make_community,
