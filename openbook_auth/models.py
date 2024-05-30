@@ -87,6 +87,9 @@ from openbook_common.utils.model_loaders import (
     get_notification_model,
     get_task_model,
     get_insight_model,
+    get_poll_model,
+    get_choice_model,
+    get_insight_model,
     get_quote_reaction_model,
     get_recommendation_reaction_model,
     get_initiative_reaction_model,
@@ -2920,6 +2923,22 @@ class User(ModelWithUUID, AbstractUser):
             created=created,
             is_draft=is_draft,
             circles_ids=circles_ids,
+        )
+
+    def create_poll(
+        self,
+        question_text=None,
+        created=None,
+        is_draft=False,
+        is_public=True,
+    ):
+        Poll = get_poll_model()
+        return Poll.create_poll(
+            question_text=question_text,
+            creator=self,
+            is_public=is_public,
+            created=created,
+            is_draft=is_draft,
         )
 
     def create_encircled_post(

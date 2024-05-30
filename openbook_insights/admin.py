@@ -36,7 +36,7 @@ class InsightAdmin(admin.ModelAdmin):
     model = Insight
     search_fields = ("title", "description")
     date_hierarchy = "date_published"
-    filter_horizontal = ("posts",)
+    filter_horizontal = ("posts", "polls")
     list_display = ("title", "description_preview", "creator", "header_image", "recommendations_count")
 
     inlines = [InsightRecommendationInline, InsightQuoteInline, InsightInitiativeInline, DiscussionInline]

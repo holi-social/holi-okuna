@@ -28,6 +28,14 @@ def get_post_model():
     return apps.get_model("openbook_posts.Post")
 
 
+def get_poll_model():
+    return apps.get_model("openbook_polls.Poll")
+
+
+def get_choice_model():
+    return apps.get_model("openbook_polls.Choice")
+
+
 def get_top_post_model():
     return apps.get_model("openbook_posts.TopPost")
 
