@@ -512,6 +512,8 @@ class TestComments(TestCase):
         assert len(comments_data["data"]) == 2
         assert comments_data["data"][0]["text"] == "It's greeeaat!"
         assert comments_data["data"][1]["text"] == "Just ok"
+        total_comments = response.data["commentable"]["totalComments"]
+        assert total_comments == 2
 
     def test_should_list_comments_with_parent_comment_id(self):
         post = make_post()
@@ -529,6 +531,8 @@ class TestComments(TestCase):
         assert comments_data["totalResults"] == 1
         assert len(comments_data["data"]) == 1
         assert comments_data["data"][0]["text"] == "Just ok"
+        total_comments = response.data["commentable"]["totalComments"]
+        assert total_comments == 3
 
     def test_should_list_replies(self):
         post = make_post()
@@ -589,6 +593,8 @@ class TestComments(TestCase):
             ("Commenter", "Last Commenter"),
             (commenters_data["data"][0]["firstName"], commenters_data["data"][1]["firstName"]),
         )
+        post_total_comments = response.data["commentable"]["totalComments"]
+        assert post_total_comments == 2
 
     def test_should_get_the_most_interesting_comment_for_the_content(self):
         post = make_post()

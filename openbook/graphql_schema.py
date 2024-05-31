@@ -29,6 +29,8 @@ from openbook_notifications.schema import mutations as notifications_mutations
 from openbook_notifications.schema import queries as notifications_queries
 from openbook_posts.schema import mutations as posts_mutations
 from openbook_posts.schema import queries as posts_queries
+from openbook_polls.schema import mutations as polls_mutations
+from openbook_polls.schema import queries as polls_queries
 from openbook_terms.schema import queries as terms_queries
 from feed_posts.schema import mutations as feed_posts_mutations
 from feed_posts.schema import queries as feed_posts_queries
@@ -65,6 +67,7 @@ Query = merge_types(
     (
         auth_queries.Query,
         posts_queries.Query,
+        polls_queries.Query,
         communities_queries.Query,
         terms_queries.Query,
         insights_queries.Query,
@@ -83,6 +86,7 @@ Mutation = merge_types(
         auth_mutations.Mutation,
         connections_mutations.Mutation,
         posts_mutations.Mutation,
+        polls_mutations.Mutation,
         communities_mutations.Mutation,
         notifications_mutations.Mutation,
         moderation_mutations.Mutation,

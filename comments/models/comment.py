@@ -38,6 +38,7 @@ from openbook_moderation.models import ModeratedObject
 
 from .comment_reaction import CommentReaction
 from .commentable_type import EnabledCommentableType
+from ..types import CommentableType
 
 
 class Comment(ModelWithUUID):
@@ -114,6 +115,26 @@ class Comment(ModelWithUUID):
             .order_by("-created")
             .first()
         )
+
+    @classmethod
+    def get_commenters(cls, commentable_id: uuid.UUID, commentable_type: CommentableType, user: User):
+        return (
+            User.objects.select_related("profile")
+            .filter(User.is_visible_ignore_blocked_query())
+            .filter(
+                Q(comments__commentable_id=commentable_id, comments__commentable_type__model=commentable_type.value)
+                & cls.is_visible_query(user, "comments")
+            )
+            .distinct()
+        )
+
+    @classmethod
+    def total_comments(cls, commentable_id: uuid.UUID, commentable_type: CommentableType) -> int:
+        return cls.objects.filter(
+            commentable_id=commentable_id,
+            commentable_type__model=commentable_type.value,
+            is_deleted=False,
+        ).count()
 
     def count_replies(self):
         return self.replies.count()

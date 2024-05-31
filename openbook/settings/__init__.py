@@ -96,6 +96,7 @@ INSTALLED_APPS = [
     "openbook_connections",
     "openbook_importer",
     "openbook_insights",
+    "openbook_polls",
     "openbook_lists",
     "openbook_follows",
     "openbook_communities",

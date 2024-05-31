@@ -5,13 +5,16 @@ import strawberry
 import strawberry_django
 from strawberry.file_uploads import Upload
 
+from comments.types import CommentableType
 from feed_posts.enums import VisibilityLevel
 from feed_posts.models import FeedPost as FeedPostModel, FeedPostReaction as FeedPostReactionModel
 from feed_posts.services import FeedPostReactionService
 from openbook_auth.schema.types import User
-from openbook_common.schema.types import ReactionCounts
+from openbook_common.schema.types import ReactionCounts, Paged
 from openbook_posts.schema.types import LinkPreview
 from openbook_terms.schema.types import Topic, FeedPostCategory
+from comments.models import Comment as CommentModel
+from openbook_auth.models import UserBlock as UserBlockModel
 
 
 @strawberry_django.type(FeedPostModel)
@@ -45,6 +48,20 @@ class FeedPost:
             except FeedPostReactionModel.DoesNotExist:
                 return ReactionCounts()
         return ReactionCounts()
+
+    @strawberry_django.field()
+    def total_comments(self) -> int:
+        return CommentModel.total_comments(commentable_id=self.id, commentable_type=CommentableType.FEED_POST)
+
+    @strawberry_django.field()
+    def commenters(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
+        current_user = info.context.request.user
+
+        commenters = CommentModel.get_commenters(
+            commentable_id=self.id, commentable_type=CommentableType.FEED_POST, user=current_user
+        )
+
+        return UserBlockModel.paged(current_user, lambda user: user.id, commenters, offset, limit)
 
 
 @strawberry.input

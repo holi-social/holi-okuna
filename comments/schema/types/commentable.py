@@ -3,12 +3,10 @@ from typing import Optional
 
 import strawberry
 import strawberry_django
-from django.db.models import Q
 
 from comments.models import Comment as CommentModel
 from comments.schema.types.comment import Comment
 from comments.types import CommentableType
-from openbook_auth.models import User as UserModel
 from openbook_auth.models import UserBlock as UserBlockModel
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import Paged
@@ -38,15 +36,7 @@ class Commentable:
     def commenters(self, info, offset: int = 0, limit: int = 10) -> Paged[User]:
         current_user = info.context.request.user
 
-        commenters = (
-            UserModel.objects.select_related("profile")
-            .filter(UserModel.is_visible_ignore_blocked_query())
-            .filter(
-                Q(comments__commentable_id=self.id, comments__commentable_type__model=self.type.value)
-                & CommentModel.is_visible_query(current_user, "comments")
-            )
-            .distinct()
-        )
+        commenters = CommentModel.get_commenters(commentable_id=self.id, commentable_type=self.type, user=current_user)
 
         return UserBlockModel.paged(current_user, lambda user: user.id, commenters, offset, limit)
 
@@ -54,3 +44,7 @@ class Commentable:
     def top_comment(self, info) -> Optional[Comment]:
         current_user = info.context.request.user
         return CommentModel.get_top_comment(self.id, self.type, current_user)
+
+    @strawberry_django.field()
+    def total_comments(self) -> int:
+        return CommentModel.total_comments(commentable_id=self.id, commentable_type=self.type)

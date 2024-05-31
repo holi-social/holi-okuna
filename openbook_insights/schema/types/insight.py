@@ -20,6 +20,8 @@ from openbook_insights.schema.types.recommendation import Recommendation
 from openbook_posts.models import Post as PostModel
 from openbook_posts.schema.types import Post
 from openbook_terms.schema.types import Topic
+from openbook_polls.models import Poll as PollModel
+from openbook_polls.schema.types import Poll
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +51,15 @@ class Insight:
     def number_of_posts(self, info) -> int:
         current_user = info.context.request.user
         return self.posts.filter(PostModel.is_visible_query(current_user)).distinct().count()
+
+    @strawberry_django.field()
+    def polls(self, info) -> List[Poll]:
+        current_user = info.context.request.user
+        return UserBlock.filter_blocked_objects(
+            current_user,
+            lambda polls: None if polls.creator is None else polls.creator.id,
+            self.polls.filter(PollModel.is_visible_query(current_user)).distinct().order_by("created"),
+        )
 
     @strawberry_django.field(
         description="A list of all users involved interacting with the insight (excluding the insight creator). Includes authors of all the posts and all commenters of any posts and discussions"
