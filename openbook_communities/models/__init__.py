@@ -1,28 +1,28 @@
 # ruff: noqa
-from hashlib import sha256
 import uuid
+from enum import Enum
+from hashlib import sha256
 from typing import List, Optional
 
+import strawberry
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
-from django.core.files.storage import default_storage
 from django.contrib.gis.db import models
-from django.db.models import QuerySet
-from django.db import transaction
-
-from django.utils import timezone
-
-from django.contrib.gis.db.models import Q
 from django.contrib.gis.db.models import Count
+from django.contrib.gis.db.models import Q
+from django.core.files.storage import default_storage
+from django.db import transaction
+from django.db.models import QuerySet
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from imagekit.models import ProcessedImageField
 from pilkit.processors import ResizeToFill, ResizeToFit
-import strawberry
 
 from openbook.settings import COLOR_ATTR_MAX_LENGTH
-from django.utils.translation import gettext_lazy as _
-
-from openbook_common.helpers import ExifRotate, generate_blurhash
-from openbook_common.models import ModelWithUUID
+from openbook_auth.models import User
 from openbook_common.enums import VisibilityType
+from openbook_common.helpers import ExifRotate, generate_blurhash, PrefixedQ
+from openbook_common.models import ModelWithUUID
 from openbook_common.utils.helpers import delete_file_field, extract_and_capitalize_domain_name
 from openbook_common.utils.model_loaders import (
     get_community_invite_model,
@@ -49,14 +49,10 @@ from openbook_communities.queries import (
     make_search_joined_communities_query_for_user,
     make_get_joined_communities_query_for_user,
 )
-from imagekit.models import ProcessedImageField
-from openbook_notifications.api import NotificationApi
-
-from openbook_auth.models import User
 from openbook_moderation.models import ModeratedObject
+from openbook_notifications.api import NotificationApi
 from openbook_posts.models import Post
 from openbook_terms.models import SDG, Topic, Skill
-from enum import Enum
 
 community_image_storage = default_storage
 community_task_image_storage = default_storage
@@ -1305,6 +1301,15 @@ class Task(ModelWithUUID):
         blank=True,
         null=True,
     )
+
+    @staticmethod
+    def is_visible_query(user, prefix=None):
+        pQ = PrefixedQ(prefix)
+
+        if user.is_anonymous:
+            return pQ(visibility=VisibilityType.PUBLIC)
+
+        return pQ(visibility=VisibilityType.PUBLIC) | pQ(community__memberships__user__id=user.id)
 
     def clear_skills(self):
         self.skills.clear()
