@@ -19,7 +19,10 @@ class Query:
         offset: int = 0,
         limit: int = 10,
     ) -> Paged[FeedPost]:
-        user = verify_authorized_user(info)
+        user = info.context.request.user
+
+        if user.is_anonymous:
+            return Paged.empty()
 
         return Paged.of(
             FeedPostService().get_feed_posts_by_user_id(user_id=user.username),
