@@ -120,7 +120,7 @@ class TestFeedPosts(TestCase):
         assert data["creator"]["id"] == str(self.user.pk)
         assert data["image"]
 
-    def test_can_not_query_my_posts_if_anonymous_user(self):
+    def test_can_query_my_posts_if_anonymous_user(self):
         first_mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
         assert first_mutation_response.errors is None
 
@@ -131,10 +131,11 @@ class TestFeedPosts(TestCase):
 
         response = my_posts(user=AnonymousUser)
 
-        assert response.errors is not None
-        assert response.data is None
+        assert response.errors is None
 
-        assert "Unauthorized" in str(response.errors[0].message)
+        data = response.data["myPosts"]
+
+        assert data["totalResults"] == 0
 
     def test_can_query_my_posts_if_authenticated_user(self):
         # first user creates 2 feed posts
