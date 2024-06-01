@@ -102,6 +102,10 @@ class Paged(Generic[T]):
         total_results = await query.acount()
         return sync_to_async(Paged)(data=query[offset : offset + limit], total_results=total_results)
 
+    @staticmethod
+    def empty():
+        return Paged(data=None, total_results=0)
+
     def __init__(self, data=None, total_results=0):
         if data is None:
             data = []
