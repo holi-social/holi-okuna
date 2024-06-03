@@ -1,7 +1,12 @@
+import uuid
+
 from feed_posts.checkers import FeedPostChecker
+from feed_posts.models import FeedPostMention
 from feed_posts.repositories import FeedPostRepository, FeedPostReactionRepository
+from openbook_auth.models import User
 from openbook_common.helpers import extract_urls_from_string
 from openbook_common.models import LinkPreview
+from openbook_common.utils.helpers import extract_usernames_from_string
 from openbook_terms.models import FeedPostCategory, Topic
 
 
@@ -9,6 +14,7 @@ class FeedPostService:
     def __init__(self):
         self.repository = FeedPostRepository()
         self.checker = FeedPostChecker()
+        self.mention_service = FeedPostMentionService()
 
     def create_feed_post(
         self,
@@ -26,7 +32,7 @@ class FeedPostService:
 
         link_preview = LinkPreview.from_url(urls[0]) if len(urls) > 0 else None
 
-        return self.repository.create_feed_post(
+        post = self.repository.create_feed_post(
             title=title,
             visibility=visibility,
             description=description,
@@ -36,6 +42,10 @@ class FeedPostService:
             topics=topic_ids,
             link_preview=link_preview,
         )
+
+        self.mention_service.add_mentions(post_id=post.id, description=description, creator=creator)
+
+        return post
 
     def get_feed_posts_by_user_id(self, user_id):
         return self.repository.get_feed_posts_by_user_id(user_id)
@@ -72,6 +82,8 @@ class FeedPostService:
 
         link_preview = LinkPreview.from_url(urls[0]) if len(urls) > 0 else None
 
+        self.mention_service.add_mentions(post_id=post.id, description=description, creator=user)
+
         return self.repository.update_feed_post(
             post_id=post_id,
             title=title,
@@ -90,6 +102,7 @@ class FeedPostService:
     def delete_feed_post(self, user, post_id):
         post = self.repository.get_feed_post(id_or_slug=str(post_id))
         self.checker.check_can_delete_feed_post(user=user, post=post)
+        self.mention_service.delete_mentions(post_id=post_id)
         return self.repository.delete_feed_post(post_id)
 
 
@@ -108,3 +121,24 @@ class FeedPostReactionService:
 
     def count(self, post_id, reactor_id=None, reaction_type=None):
         return self.repository.count(post_id=post_id, reactor_id=reactor_id, reaction_type=reaction_type)
+
+
+class FeedPostMentionService:
+    def get_mentions(self, post_id: uuid.UUID):
+        mention_ids = (
+            FeedPostMention.objects.filter(feed_post__id=post_id).values_list("mention", flat=True).distinct()
+        )
+        return User.objects.filter(id__in=mention_ids)
+
+    def delete_mentions(self, post_id: uuid.UUID):
+        return FeedPostMention.objects.filter(feed_post__id=post_id).delete()
+
+    def add_mentions(self, post_id: uuid.UUID, description: str, creator: User):
+        self.delete_mentions(post_id=post_id)
+
+        usernames = [username.lower() for username in extract_usernames_from_string(string=description)]
+        mentions = User.objects.filter(username__in=usernames).exclude(id=creator.id)
+
+        return FeedPostMention.objects.bulk_create(
+            [FeedPostMention(feed_post_id=post_id, mention=mention) for mention in mentions]
+        )

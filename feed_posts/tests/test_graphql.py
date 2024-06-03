@@ -44,6 +44,7 @@ class TestFeedPosts(TestCase):
     def setUpTestData(cls):
         cls.user = make_user()
         cls.another_user = make_user()
+        cls.yet_another_user = make_user()
 
         cls.public_feed_post_input_data = {
             "title": fake.text(max_nb_chars=settings.FEED_POST_TITLE_MAX_LENGTH),
@@ -81,6 +82,24 @@ class TestFeedPosts(TestCase):
             "image": SimpleUploadedFile(name="image_4.jpg", content=simple_jpeg_bytes),
         }
 
+        cls.feed_post_with_mentions_input_data = {
+            "title": fake.text(max_nb_chars=settings.FEED_POST_TITLE_MAX_LENGTH),
+            "description": f"@{cls.another_user.username} @{cls.yet_another_user.username} {fake.text(max_nb_chars=100)}",
+            "visibility": VisibilityLevel.PUBLIC,
+            "categoryId": str(make_feed_post_category().id),
+            "topicIds": [str(make_topic().id) for _ in range(6)],
+            "image": SimpleUploadedFile(name="image_1.jpg", content=simple_jpeg_bytes),
+        }
+
+        cls.another_feed_post_with_mentions_input_data = {
+            "title": fake.text(max_nb_chars=settings.FEED_POST_TITLE_MAX_LENGTH),
+            "description": f"@{cls.another_user.username} {fake.text(max_nb_chars=100)}",
+            "visibility": VisibilityLevel.PUBLIC,
+            "categoryId": str(make_feed_post_category().id),
+            "topicIds": [str(make_topic().id) for _ in range(6)],
+            "image": SimpleUploadedFile(name="image_1.jpg", content=simple_jpeg_bytes),
+        }
+
     def test_can_not_create_feed_post_if_anonymous_user(self):
         response = create_feed_post(user=AnonymousUser, input=self.public_feed_post_input_data)
 
@@ -101,7 +120,7 @@ class TestFeedPosts(TestCase):
         assert data["creator"]["id"] == str(self.user.pk)
         assert data["image"]
 
-    def test_can_not_query_my_posts_if_anonymous_user(self):
+    def test_can_query_my_posts_if_anonymous_user(self):
         first_mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
         assert first_mutation_response.errors is None
 
@@ -112,10 +131,11 @@ class TestFeedPosts(TestCase):
 
         response = my_posts(user=AnonymousUser)
 
-        assert response.errors is not None
-        assert response.data is None
+        assert response.errors is None
 
-        assert "Unauthorized" in str(response.errors[0].message)
+        data = response.data["myPosts"]
+
+        assert data["totalResults"] == 0
 
     def test_can_query_my_posts_if_authenticated_user(self):
         # first user creates 2 feed posts
@@ -458,3 +478,47 @@ class TestFeedPosts(TestCase):
 
         assert data["myReaction"] == {"HEART": 0}
         assert data["reactions"] == {"HEART": 0}
+
+    def test_can_mention_users_in_feed_post(self):
+        # create feed post with 2 mentioned users
+        response = create_feed_post(user=self.user, input=self.feed_post_with_mentions_input_data)
+        data = response.data["createFeedPost"]
+
+        assert len(data["mentions"]) == 2
+        assert data["mentions"][0]["id"] == self.another_user.username
+        assert data["mentions"][0]["fullName"] == self.another_user.profile.full_name()
+        assert data["mentions"][1]["id"] == self.yet_another_user.username
+        assert data["mentions"][1]["fullName"] == self.yet_another_user.profile.full_name()
+
+    def test_can_update_mentioned_users_in_feed_post(self):
+        # create feed post with 2 mentioned users
+        mutation_response = create_feed_post(user=self.user, input=self.feed_post_with_mentions_input_data)
+        assert mutation_response.errors is None
+
+        mutation_data = mutation_response.data["createFeedPost"]
+        assert len(mutation_data["mentions"]) == 2
+
+        # update feed post with 1 mentioned user
+        post_id = mutation_data["id"]
+        input_data = update_input_data(post_id=post_id, input_data=self.another_feed_post_with_mentions_input_data)
+        response = update_feed_post(user=self.user, input=input_data)
+        data = response.data["updateFeedPost"]
+
+        assert len(data["mentions"]) == 1
+        assert data["mentions"][0]["id"] == self.another_user.username
+        assert data["mentions"][0]["fullName"] == self.another_user.profile.full_name()
+
+    def test_can_delete_mentioned_users_in_feed_post(self):
+        # create feed post with 2 mentioned users
+        mutation_response = create_feed_post(user=self.user, input=self.feed_post_with_mentions_input_data)
+        assert mutation_response.errors is None
+
+        mutation_data = mutation_response.data["createFeedPost"]
+        assert len(mutation_data["mentions"]) == 2
+
+        # update feed post with no mentioned users
+        post_id = mutation_data["id"]
+        input_data = update_input_data(post_id=post_id, input_data=self.public_feed_post_input_data)
+        response = update_feed_post(user=self.user, input=input_data)
+        data = response.data["updateFeedPost"]
+        assert len(data["mentions"]) == 0

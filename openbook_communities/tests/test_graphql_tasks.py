@@ -23,6 +23,8 @@ from openbook_common.tests.helpers import (
     make_skill,
     make_user,
     simple_jpeg_bytes,
+    assert_is_forbidden,
+    assert_is_404,
 )
 
 logger = logging.getLogger(__name__)
@@ -885,6 +887,159 @@ class TestTasks:
 
             assert expected_errors[input_key] in str(response.errors[0].message)
             assert (response.data["createTask"] if response.data else response.data) is None
+
+    def test_anonymous_and_non_members_only_sees_public_tasks_by_space(self):
+        user = make_user()
+        non_member = make_user()
+        space = make_community(creator=user)
+        public_task = make_community_task(space, visibility=VisibilityType.PUBLIC)
+        make_community_task(space, visibility=VisibilityType.MEMBERS)
+
+        tasks_query = """
+            query MyQuery($id: UUID!) {
+                tasksBySpaceId(spaceId: $id) {
+                    data {
+                        id
+                    }
+                    totalResults
+                }
+            }
+        """
+        response = async_to_sync(schema.execute)(
+            tasks_query,
+            variable_values={"id": str(space.id)},
+            context_value=benedict({"request": {"user": AnonymousUser}}),
+        )
+        assert response.errors is None
+        assert response.data["tasksBySpaceId"]["totalResults"] == 1
+        assert response.data["tasksBySpaceId"]["data"][0]["id"] == str(public_task.id)
+
+        response = async_to_sync(schema.execute)(
+            tasks_query,
+            variable_values={"id": str(space.id)},
+            context_value=benedict({"request": {"user": non_member}}),
+        )
+        assert response.errors is None
+        assert response.data["tasksBySpaceId"]["totalResults"] == 1
+        assert response.data["tasksBySpaceId"]["data"][0]["id"] == str(public_task.id)
+
+    def test_members_sees_private_tasks_by_space(self):
+        user = make_user()
+        space = make_community(creator=user)
+        make_community_task(space, visibility=VisibilityType.PUBLIC)
+        make_community_task(space, visibility=VisibilityType.MEMBERS)
+
+        tasks_query = """
+            query MyQuery($id: UUID!) {
+                tasksBySpaceId(spaceId: $id) {
+                    data {
+                        id
+                    }
+                    totalResults
+                }
+            }
+        """
+        response = async_to_sync(schema.execute)(
+            tasks_query,
+            variable_values={"id": str(space.id)},
+            context_value=benedict({"request": {"user": user}}),
+        )
+        assert response.errors is None
+        assert response.data["tasksBySpaceId"]["totalResults"] == 2
+
+    def test_anonymous_only_sees_public_tasks_by_id(self):
+        user = make_user()
+        non_member = make_user()
+        space = make_community(creator=user)
+        public_task = make_community_task(space, visibility=VisibilityType.PUBLIC)
+        private_task = make_community_task(space, visibility=VisibilityType.MEMBERS)
+
+        tasks_query = """
+            query MyQuery($id: UUID!) {
+                taskById(id: $id) {
+                    id
+                }
+            }
+        """
+        response = async_to_sync(schema.execute)(
+            tasks_query,
+            variable_values={"id": str(public_task.id)},
+            context_value=benedict({"request": {"user": AnonymousUser}}),
+        )
+        assert response.errors is None
+        assert response.data["taskById"]["id"] == str(public_task.id)
+
+        response = async_to_sync(schema.execute)(
+            tasks_query,
+            variable_values={"id": str(public_task.id)},
+            context_value=benedict({"request": {"user": non_member}}),
+        )
+        assert response.errors is None
+        assert response.data["taskById"]["id"] == str(public_task.id)
+
+        response = async_to_sync(schema.execute)(
+            tasks_query,
+            variable_values={"id": str(private_task.id)},
+            context_value=benedict({"request": {"user": AnonymousUser}}),
+        )
+        assert_is_forbidden(response)
+
+        response = async_to_sync(schema.execute)(
+            tasks_query,
+            variable_values={"id": str(private_task.id)},
+            context_value=benedict({"request": {"user": non_member}}),
+        )
+        assert_is_forbidden(response)
+
+        response = async_to_sync(schema.execute)(
+            tasks_query,
+            variable_values={"id": "00000000-0000-0000-0000-000000000004"},
+            context_value=benedict({"request": {"user": AnonymousUser}}),
+        )
+        assert_is_404(response)
+
+        response = async_to_sync(schema.execute)(
+            tasks_query,
+            variable_values={"id": "00000000-0000-0000-0000-000000000004"},
+            context_value=benedict({"request": {"user": non_member}}),
+        )
+        assert_is_404(response)
+
+    def test_members_see_private_tasks(self):
+        user = make_user()
+        space = make_community(creator=user)
+        public_task = make_community_task(space, visibility=VisibilityType.PUBLIC)
+        private_task = make_community_task(space, visibility=VisibilityType.MEMBERS)
+
+        tasks_query = """
+            query MyQuery($id: UUID!) {
+                taskById(id: $id) {
+                    id
+                }
+            }
+        """
+        response = async_to_sync(schema.execute)(
+            tasks_query,
+            variable_values={"id": str(public_task.id)},
+            context_value=benedict({"request": {"user": user}}),
+        )
+        assert response.errors is None
+        assert response.data["taskById"]["id"] == str(public_task.id)
+
+        response = async_to_sync(schema.execute)(
+            tasks_query,
+            variable_values={"id": str(private_task.id)},
+            context_value=benedict({"request": {"user": user}}),
+        )
+        assert response.errors is None
+        assert response.data["taskById"]["id"] == str(private_task.id)
+
+        response = async_to_sync(schema.execute)(
+            tasks_query,
+            variable_values={"id": "00000000-0000-0000-0000-000000000004"},
+            context_value=benedict({"request": {"user": user}}),
+        )
+        assert_is_404(response)
 
 
 @pytest.mark.django_db

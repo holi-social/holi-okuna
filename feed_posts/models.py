@@ -119,3 +119,15 @@ class FeedPostReaction(ModelWithUUID):
             "reactor",
             "feed_post",
         )
+
+
+class FeedPostMention(ModelWithUUID):
+    feed_post = models.ForeignKey(FeedPost, on_delete=models.CASCADE, related_name="mentions")
+    mention = models.ForeignKey(User, on_delete=models.CASCADE, related_name="feed_post_mentions")
+    created_at = models.DateTimeField(editable=False, auto_now_add=True)
+
+    class Meta:
+        unique_together = (
+            "feed_post",
+            "mention",
+        )
