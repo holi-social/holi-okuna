@@ -184,9 +184,10 @@ class AppointmentData:
 
 
 class PostData:
-    def __init__(self, id: str, title: str, context: str, is_public: bool):
+    def __init__(self, id: str, title: str, text: str, context: str, is_public: bool):
         self.id = id
         self.title = title
+        self.text = text
         self.context = context
         self.is_public = is_public
 
@@ -194,6 +195,7 @@ class PostData:
         return {
             "id": self.id,
             "title": self.title,
+            "text": self.text,
             "context": self.context,
             "isPublic": self.is_public,
         }
@@ -203,6 +205,7 @@ class PostData:
         return cls(
             id=str(post.id),
             title=post.title if post.title else "",
+            text=post.text,
             context=post.community.title,
             is_public=post.is_public,
         )
