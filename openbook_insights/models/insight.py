@@ -45,7 +45,7 @@ class Insight(ModelWithUUID):
         max_length=settings.IMAGE_URL_MAX_LENGTH,
     )
     header_image_blurhash = models.CharField(max_length=50, blank=True, null=True)
-    # todo gregor: remove this as soon as we don't show legacy Post-based Insights in the app anymore
+    # keep post field for as long as we show legacy Post-based Insights in the app
     posts = models.ManyToManyField(Post, related_name="insights", blank=True)
     polls = models.ManyToManyField(Poll, related_name="insights", null=True, blank=True)
     topic = models.ForeignKey(

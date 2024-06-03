@@ -43,12 +43,6 @@ class Discussion(CommentNotificationMixin, ModelWithUUID):
     def creator(self):
         return self.insight.creator
 
-    # todo gregor: check if used, maybe refactor: move this into the context below and
-    # include the create_link logic from the payload mapping into the model
-    @property
-    def url(self):
-        return self.insight.url
-
     @property
     def comment_notification_context(self) -> CommentNotificationContext:
         return CommentNotificationContext(id=self.id, title=self.insight.title, context=self.question)
