@@ -202,9 +202,8 @@ class CommentableData:
 
     @classmethod
     def from_commentable(cls, commentable: Post | FeedPost | Discussion):
-        # context, is_public and title are deprecated:
         # some of the commentable models don't have those fields anymore
-        # notification content is now generic for Space Update Posts, Feed Posts and Insight Discussions
+        # the notification templates can fall back to a generic body text in that case
         context = getattr(commentable, "context", None)
         title = getattr(commentable, "title", None)
         is_public = getattr(commentable, "is_public", False)
