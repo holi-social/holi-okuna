@@ -288,7 +288,6 @@ class Comment(ModelWithUUID):
         from openbook_notifications.services import NotificationsService
 
         # do we find somebody to notify?
-        # Discussions don't have a creator, but its fine for now to not notify Curators.
         author = getattr(self.commentable, "creator", None)
 
         if author:
@@ -376,14 +375,6 @@ class Comment(ModelWithUUID):
     @staticmethod
     def is_visible_query(user, prefix=None):
         return PQ(prefix, is_deleted=False)
-
-    @property
-    def context(self):
-        return self.text
-
-    @property
-    def title(self) -> str:
-        return self.title
 
 
 class CommentLinks(models.Model):

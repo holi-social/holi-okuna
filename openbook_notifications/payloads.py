@@ -14,8 +14,6 @@ if TYPE_CHECKING:
     from openbook_posts.models import Post
     from comments.models import Comment
     from openbook_appointments.models import Appointment
-    from openbook_insights.models import Discussion
-    from feed_posts.models import FeedPost
 
 
 class NotificationType(Enum):
@@ -182,37 +180,6 @@ class AppointmentData:
             end_date_time_utc=end_date_time_utc.isoformat(),
             timezone=timezone,
             starts_and_ends_on_same_day=appointment.starts_and_ends_on_same_day,
-        )
-
-
-class CommentableData:
-    def __init__(self, id: str, title: str, context: str, is_public: bool):
-        self.id = id
-        self.title = title
-        self.context = context
-        self.is_public = is_public
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "title": self.title,
-            "context": self.context,
-            "isPublic": self.is_public,
-        }
-
-    @classmethod
-    def from_commentable(cls, commentable: Post | FeedPost | Discussion):
-        # some of the commentable models don't have those fields anymore
-        # the notification templates can fall back to a generic body text in that case
-        context = getattr(commentable, "context", None)
-        title = getattr(commentable, "title", None)
-        is_public = getattr(commentable, "is_public", False)
-
-        return cls(
-            id=str(commentable.id),
-            title=title,
-            context=context,
-            is_public=is_public,
         )
 
 
