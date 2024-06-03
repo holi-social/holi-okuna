@@ -1124,7 +1124,7 @@ class PostUserMention(ModelWithUUID):
         )
 
     @classmethod
-    def create_post_user_mention(cls, user, post, notify=False):
+    def create_post_user_mention(cls, user, post, notify=True):
         post_user_mention = cls.objects.create(user=user, post=post)
         if notify:
             PostUserMentionNotification = get_post_user_mention_notification_model()
