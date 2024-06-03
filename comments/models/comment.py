@@ -37,8 +37,7 @@ from openbook_common.utils.model_loaders import (
 from openbook_moderation.models import ModeratedObject
 
 from .comment_reaction import CommentReaction
-from .commentable_type import EnabledCommentableType
-from ..types import CommentableType
+from .enabled_commentable_type import EnabledCommentableType
 
 
 class Comment(ModelWithUUID):
@@ -117,7 +116,7 @@ class Comment(ModelWithUUID):
         )
 
     @classmethod
-    def get_commenters(cls, commentable_id: uuid.UUID, commentable_type: CommentableType, user: User):
+    def get_commenters(cls, commentable_id: uuid.UUID, commentable_type: EnabledCommentableType, user: User):
         return (
             User.objects.select_related("profile")
             .filter(User.is_visible_ignore_blocked_query())
@@ -129,7 +128,7 @@ class Comment(ModelWithUUID):
         )
 
     @classmethod
-    def total_comments(cls, commentable_id: uuid.UUID, commentable_type: CommentableType) -> int:
+    def total_comments(cls, commentable_id: uuid.UUID, commentable_type: EnabledCommentableType) -> int:
         return cls.objects.filter(
             commentable_id=commentable_id,
             commentable_type__model=commentable_type.value,
