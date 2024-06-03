@@ -21,6 +21,10 @@ from rest_framework.exceptions import ValidationError
 from sortedm2m.fields import SortedManyToManyField
 
 from comments.models import Comment
+from comments.models.commentable_notification_context import (
+    CommentNotificationMixin,
+    CommentNotificationContext,
+)
 from openbook_auth.models import User, get_reactions
 from openbook_common.enums import ReactionType
 from openbook_common.helpers import (
@@ -82,7 +86,7 @@ magic = get_magic()
 post_image_storage = default_storage
 
 
-class Post(ModelWithUUID):
+class Post(CommentNotificationMixin, ModelWithUUID):
     moderated_object = GenericRelation(ModeratedObject, related_query_name="posts")
 
     title = models.CharField(max_length=settings.POST_TITLE_MAX_LENGTH, blank=False, null=True)
@@ -912,9 +916,8 @@ class Post(ModelWithUUID):
         )
 
     @property
-    def context(self):
-        # tests use posts without community association
-        return self.community.title if self.community else self.title
+    def comment_notification_context(self) -> CommentNotificationContext:
+        return CommentNotificationContext(id=self.id, title=self.title, context=self.community.title)
 
 
 class TopPost(ModelWithUUID):

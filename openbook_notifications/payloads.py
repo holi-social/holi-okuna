@@ -236,7 +236,7 @@ class PostData:
         return cls(
             id=str(post.id),
             title=post.title if post.title else "",
-            context=post.context,
+            context=post.community.title,
             is_public=post.is_public,
         )
 
@@ -409,8 +409,8 @@ class PostCommentMentionPayload(Payload):
                 "comment": CommentData.from_comment(comment).to_dict(),
                 "commentLink": CommentData.create_link(comment, comment_commentable_context_id),
                 "commentDatetime": datetime.now().isoformat(),
-                # post field is deprecated, notification content is generic for all commentables in novu
-                "post": CommentableData.from_commentable(comment.commentable).to_dict(),
+                # have commentable context into post field, to keep the existing workflows and frontend parts happy
+                "post": comment.commentable.comment_notification_context.to_dict(),
             },
             notification_type=notification_type,
             notification_version=PostCommentMentionPayload.NOTIFICATION_VERSION,
@@ -433,8 +433,8 @@ class PostCommentAuthorPayload(Payload):
                 "comment": CommentData.from_comment(comment).to_dict(),
                 "commentLink": CommentData.create_link(comment, comment_commentable_context_id),
                 "commentDatetime": datetime.now().isoformat(),
-                # post field is deprecated, notification content is generic for all commentables in novu
-                "post": CommentableData.from_commentable(comment.commentable).to_dict(),
+                # have commentable context into post field, to keep the existing workflows and frontend parts happy
+                "post": comment.commentable.comment_notification_context.to_dict(),
             },
             notification_type=notification_type,
             notification_version=PostCommentAuthorPayload.NOTIFICATION_VERSION,

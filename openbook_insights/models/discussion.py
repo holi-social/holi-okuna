@@ -11,12 +11,16 @@ from rest_framework.exceptions import (
 )
 
 from comments.models import Comment
+from comments.models.commentable_notification_context import (
+    CommentNotificationMixin,
+    CommentNotificationContext,
+)
 from openbook_auth.models import User
 from openbook_common.models import ModelWithUUID
 from openbook_insights.models.insight import Insight
 
 
-class Discussion(ModelWithUUID):
+class Discussion(CommentNotificationMixin, ModelWithUUID):
     insight = ForeignKey(Insight, on_delete=CASCADE, related_name="discussions")
     question = TextField(null=False, blank=False, verbose_name="Question or talking point for discussion")
 
@@ -36,17 +40,15 @@ class Discussion(ModelWithUUID):
         return True
 
     @property
-    def text(self) -> str:
-        return self.question
-
-    @property
     def creator(self):
         return self.insight.creator
 
+    # todo gregor: check if used, maybe refactor: move this into the context below and
+    # include the create_link logic from the payload mapping into the model
     @property
-    def title(self):
-        return self.insight.title
+    def url(self):
+        return self.insight.url
 
     @property
-    def context(self):
-        return self.question
+    def comment_notification_context(self) -> CommentNotificationContext:
+        return CommentNotificationContext(id=self.id, title=self.insight.title, context=self.question)

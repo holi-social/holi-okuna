@@ -382,12 +382,6 @@ class Comment(ModelWithUUID):
         return self.text
 
     @property
-    def is_public(self):
-        # todo gregor: what does it mean in the context of comments?
-        # assume False as a safe default for now
-        return False
-
-    @property
     def title(self) -> str:
         return self.title
 
