@@ -358,6 +358,9 @@ class TestCommunities(TestCase):
         space1 = make_community(topics=[topic1, topic2], geolocation=geolocation1)
         space2 = make_community(topics=[topic1], geolocation=geolocation2)
         space3 = make_community(topics=[topic2], geolocation=geolocation3)
+        space_deleted = make_community(topics=[topic1], geolocation=geolocation2)  # deleted spaces should not be shown
+        space_deleted.is_deleted = True
+        space_deleted.save()
         skill1 = make_skill()
         skill2 = make_skill()
         skill3 = make_skill()

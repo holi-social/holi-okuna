@@ -1,10 +1,12 @@
-from typing import List, Optional
 import uuid
-from django.db.models import Count, Q
+from typing import List, Optional
+
 from asgiref.sync import sync_to_async
+from django.db.models import Count, Q
+
+from openbook_auth.models import User as UserModel
 from openbook_common.types import GeolocationFeature
 from openbook_communities.models import Community as CommunityModel
-from openbook_auth.models import User as UserModel
 
 
 @sync_to_async
@@ -63,6 +65,7 @@ def create_spaces_queryset(query):
     return (
         CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
         .filter(query)
+        .filter(is_deleted=False)
         .annotate(member_count=Count("memberships"))
         .order_by("-created")
         .cache(ops=["fetch", "count"], timeout=300)
