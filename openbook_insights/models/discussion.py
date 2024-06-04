@@ -11,12 +11,16 @@ from rest_framework.exceptions import (
 )
 
 from comments.models import Comment
+from comments.models.commentable_notification_context import (
+    CommentNotificationMixin,
+    CommentNotificationContext,
+)
 from openbook_auth.models import User
 from openbook_common.models import ModelWithUUID
 from openbook_insights.models.insight import Insight
 
 
-class Discussion(ModelWithUUID):
+class Discussion(CommentNotificationMixin, ModelWithUUID):
     insight = ForeignKey(Insight, on_delete=CASCADE, related_name="discussions")
     question = TextField(null=False, blank=False, verbose_name="Question or talking point for discussion")
 
@@ -34,3 +38,11 @@ class Discussion(ModelWithUUID):
 
     def can_be_viewed(self, user: User) -> bool:
         return True
+
+    @property
+    def creator(self):
+        return self.insight.creator
+
+    @property
+    def comment_notification_context(self) -> CommentNotificationContext:
+        return CommentNotificationContext(id=self.id, title=self.insight.title, context=self.question)

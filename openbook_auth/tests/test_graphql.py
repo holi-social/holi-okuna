@@ -727,8 +727,8 @@ class TestUsers:
         mock_publish_user_deleted_event.assert_called_once_with(user=user)
         mock_delete_subscriber.assert_called_once_with(user_id=str(user.username))
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_request_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_invite_notification")
     @mock.patch("openbook_auth.tasks.requests.delete")
     @mock.patch("openbook_auth.schema.mutations.publish_user_deleted_event")
     @mock.patch("openbook_auth.schema.mutations.publish_space_deleted_event")
@@ -816,8 +816,8 @@ class TestUsers:
             [mock.call(transaction_id=str(membership_request.id)), mock.call(transaction_id=str(own_invite.id))]
         )
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_request_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_invite_notification")
     @mock.patch("openbook_auth.tasks.requests.delete")
     @mock.patch("openbook_auth.schema.mutations.publish_user_deleted_event")
     @mock.patch("openbook_auth.schema.mutations.publish_space_deleted_event")

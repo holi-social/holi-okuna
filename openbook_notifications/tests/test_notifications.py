@@ -1,4 +1,5 @@
 import uuid
+from unittest import mock
 from unittest.mock import patch
 
 import pytest
@@ -11,7 +12,7 @@ from openbook_common.models import FeatureToggle as FeatureToggleModel
 from openbook_common.tests.helpers import (
     make_community,
     make_community_post,
-    make_post_comment,
+    make_space_post_comment,
     make_user,
 )
 from openbook_common.utils.model_loaders import get_community_model
@@ -45,6 +46,13 @@ from openbook_notifications.payloads import (
     SpaceMembershipRequestPayload,
     SpaceNewPostPayload,
 )
+
+
+@pytest.fixture(scope="class", autouse=True)
+def mock_novu_api():
+    with mock.patch.object(EventApi, "trigger"):
+        # prevent sending novu notifications
+        yield
 
 
 @pytest.mark.django_db
@@ -308,10 +316,11 @@ class SpaceMembershipInviteDeclineAdminNotificationTestCase(TestCase):
 class PostCommentMentionNotificationTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        post_comment = make_post_comment()
+        post_comment = make_space_post_comment()
         transaction_id = str(uuid.uuid4())
         payload = PostCommentMentionPayload(
-            post_comment=post_comment,
+            comment=post_comment,
+            comment_commentable_context_id="someSpaceId",
             notification_type=NotificationType.POST_COMMENT_MENTION.value,
         )
         cls.notification_instance = PostCommentMentionNotification(
@@ -328,10 +337,11 @@ class PostCommentMentionNotificationTestCase(TestCase):
 class PostCommentAuthorNotificationTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        post_comment = make_post_comment()
+        post_comment = make_space_post_comment()
         transaction_id = str(uuid.uuid4())
         payload = PostCommentAuthorPayload(
-            post_comment=post_comment,
+            comment=post_comment,
+            comment_commentable_context_id="someSpaceId",
             notification_type=NotificationType.POST_COMMENT_AUTHOR.value,
         )
         cls.notification_instance = PostCommentAuthorNotification(

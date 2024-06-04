@@ -1,3 +1,5 @@
+# ruff: noqa
+
 from hashlib import sha256
 from django_rq import job
 
@@ -8,6 +10,7 @@ from openbook_common.utils.model_loaders import get_user_model
 #    app_id=settings.ONE_SIGNAL_APP_ID,
 #    app_auth_key=settings.ONE_SIGNAL_API_KEY
 # )
+
 
 # TODO(SF) this currently does nothing and can be removed
 @job("default")

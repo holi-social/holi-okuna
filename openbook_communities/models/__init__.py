@@ -865,9 +865,6 @@ class Community(ModelWithUUID):
             if membership.is_administrator:
                 roles.append(SpaceUserConnectionType.ADMINISTRATOR)
 
-            # if membership.is_moderator:
-            #     roles.append(SpaceUserConnectionType.MODERATOR)
-
         return roles
 
     def _update_cover(self, cover, save=True):
@@ -971,7 +968,8 @@ class CommunityLog(ModelWithUUID):
 
     source_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+", null=False, blank=False)
     target_user = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="+", null=True, blank=False)
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="+", null=True, blank=True)
+
+    post = models.ForeignKey("openbook_posts.Post", on_delete=models.CASCADE, related_name="+", null=True, blank=True)
     community = models.ForeignKey(
         Community,
         on_delete=models.CASCADE,
@@ -1672,4 +1670,4 @@ class OnboardingStep(ModelWithUUID):
         return community
 
 
-from .network_relationship import SpacesRelationship  # noqa: F401
+from .network_relationship import SpacesRelationship  # noqa: F401, E402
