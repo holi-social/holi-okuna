@@ -306,6 +306,7 @@ class Query:
                     output_field=IntegerField(),
                 )
             )
+            .filter(TaskModel.is_visible_query(current_user))
             .distinct()
             .order_by("custom_order", "-created"),
             offset,
