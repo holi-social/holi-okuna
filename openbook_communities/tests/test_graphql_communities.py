@@ -503,14 +503,14 @@ class TestCommunities(TestCase):
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_request_notification")
     @mock.patch(
-        "openbook_notifications.notifications.Notifications.send_space_membership_request_approval_user_notification"
+        "openbook_notifications.services.NotificationsService.send_space_membership_request_approval_user_notification"
     )
     @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
     @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
     @mock.patch(
-        "openbook_notifications.notifications.Notifications.send_space_membership_request_approval_admin_notification"
+        "openbook_notifications.services.NotificationsService.send_space_membership_request_approval_admin_notification"
     )
     def test_space_membership_request_approval_process(
         self,
@@ -716,7 +716,7 @@ class TestCommunities(TestCase):
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_request_notification")
     def test_space_membership_request_with_message(
         self,
         mock_send_space_membership_request_notification,
@@ -822,12 +822,12 @@ class TestCommunities(TestCase):
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_request_notification")
     @mock.patch(
-        "openbook_notifications.notifications.Notifications.send_space_membership_request_decline_user_notification"
+        "openbook_notifications.services.NotificationsService.send_space_membership_request_decline_user_notification"
     )
     @mock.patch(
-        "openbook_notifications.notifications.Notifications.send_space_membership_request_decline_admin_notification"
+        "openbook_notifications.services.NotificationsService.send_space_membership_request_decline_admin_notification"
     )
     @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
     @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
@@ -952,7 +952,7 @@ class TestCommunities(TestCase):
         mock_publish_space_user_added_event.assert_not_called()
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_request_notification")
     def test_space_membership_request_only_visible_to_admins(self, mock_send_space_membership_request_notification):
         # GIVEN a space with an admin and other users
         user = make_user()
@@ -1330,8 +1330,8 @@ class TestCommunities(TestCase):
 
         mock_invalidate_discover_spaces_query_cache.assert_called()
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_request_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_invite_notification")
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
     @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
@@ -1507,14 +1507,14 @@ class TestCommunities(TestCase):
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_invite_notification")
     @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
     @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
     @mock.patch(
-        "openbook_notifications.notifications.Notifications.send_space_membership_invite_approval_user_notification"
+        "openbook_notifications.services.NotificationsService.send_space_membership_invite_approval_user_notification"
     )
     @mock.patch(
-        "openbook_notifications.notifications.Notifications.send_space_membership_invite_approval_admin_notification"
+        "openbook_notifications.services.NotificationsService.send_space_membership_invite_approval_admin_notification"
     )
     def test_space_invite_approval_process(
         self,
@@ -1713,14 +1713,14 @@ class TestCommunities(TestCase):
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_invite_notification")
     @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
     @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
     @mock.patch(
-        "openbook_notifications.notifications.Notifications.send_space_membership_invite_decline_user_notification"
+        "openbook_notifications.services.NotificationsService.send_space_membership_invite_decline_user_notification"
     )
     @mock.patch(
-        "openbook_notifications.notifications.Notifications.send_space_membership_invite_decline_admin_notification"
+        "openbook_notifications.services.NotificationsService.send_space_membership_invite_decline_admin_notification"
     )
     def test_space_invite_rejection_process(
         self,
@@ -1892,8 +1892,8 @@ class TestCommunities(TestCase):
 
         mock_publish_space_user_left_event.assert_called_once_with(user=space_creator, community=space)
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_request_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_invite_notification")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_left_event")
     @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
     @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
@@ -2053,8 +2053,8 @@ class TestCommunities(TestCase):
 
         mock_publish_space_user_removed_event.assert_called_once_with(user=member_user, community=space)
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_request_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_invite_notification")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_left_event")
     @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
     @mock.patch("openbook_notifications.api.NotificationApi.delete_in_app_messages")
@@ -2397,8 +2397,8 @@ class TestCommunities(TestCase):
         mock_invalidate_discover_spaces_query_cache.assert_called_once()
         mock_publish_space_deleted_event.assert_called_once_with(community)
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_request_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_request_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_invite_notification")
     @mock.patch("openbook_communities.schema.mutations.publish_space_deleted_event")
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_notifications.api.NotificationApi.cancel_workflow")
@@ -3132,7 +3132,7 @@ class TestCommunities(TestCase):
         assert len(tasks_external) == 1
         assert tasks_external[0].get("id") == str(public_task.id)
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_space_membership_invite_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_invite_notification")
     def test_can_invite_user_to_space(self, mock_send_space_membership_invite_notification):
         invitee = make_user()
         admin = make_user()

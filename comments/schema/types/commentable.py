@@ -4,9 +4,9 @@ from typing import Optional
 import strawberry
 import strawberry_django
 
-from comments.enums import CommentableType
 from comments.models import Comment as CommentModel
 from comments.schema.types.comment import Comment
+from comments.types import CommentableType
 from openbook_auth.models import UserBlock as UserBlockModel
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import Paged

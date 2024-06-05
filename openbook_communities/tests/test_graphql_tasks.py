@@ -1048,10 +1048,11 @@ class TestTaskRecommendations:
     def setup(self):
         self.fake = Faker()
         self.user = make_user()
-        self.space = make_community(creator=self.user)
+        self.space_owner = make_user()
+        self.space = make_community(creator=self.space_owner)
 
     def create_task(self, skills, location_type, geolocation=None, visibility=VisibilityType.PUBLIC):
-        return self.user.create_task(
+        return self.space_owner.create_task(
             geolocation=geolocation,
             skills=skills,
             location_type=location_type,
@@ -1116,6 +1117,9 @@ class TestTaskRecommendations:
             skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation3
         )
         task_remote_other_skill = self.create_task(skills=[other_skill.id], location_type="REMOTE")
+
+        # member only tasks are not visible to non-members
+        self.create_task(skills=[skill1.id], location_type="REMOTE", visibility=VisibilityType.MEMBERS)
 
         self.assert_filtered_tasks(
             {},

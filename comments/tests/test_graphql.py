@@ -4,6 +4,7 @@ from unittest import TestCase, mock
 import pytest
 from django.core.management import call_command
 from django.test import AsyncClient
+from novu.api import EventApi
 
 from comments.models import Comment, CommentReaction
 from openbook_auth.models import UserBlock
@@ -15,7 +16,7 @@ from openbook_common.tests.helpers import (
     make_fake_post_title,
     make_insight,
     make_post,
-    make_post_comment,
+    make_space_post_comment,
     make_user,
 )
 from openbook_insights.models.discussion import Discussion
@@ -52,6 +53,14 @@ def django_db_setup(django_db_setup, django_db_blocker):
         call_command("loaddata", "openbook_moderation/fixtures/moderation_categories.json")
 
 
+@pytest.fixture(scope="class")
+def mock_novu_api():
+    with mock.patch.object(EventApi, "trigger"):
+        # prevent sending novu notifications
+        yield
+
+
+@pytest.mark.usefixtures("mock_novu_api")
 @pytest.mark.django_db
 class TestPostComments(TestCase):
     @pytest.fixture(autouse=True)
@@ -62,10 +71,10 @@ class TestPostComments(TestCase):
         yield
         notifications_toggle.delete()
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_comment_mention_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_commentable_author_notification")
     def test_should_mention_a_user_in_a_post_comment(
-        self, mock_send_post_comment_author_notification, mock_send_post_comment_mention_notification
+        self, mock_send_commentable_author_notification, mock_send_comment_mention_notification
     ):
         posting_user = make_user()
         mentioned_user = make_user(name="Mentioned")
@@ -84,16 +93,16 @@ class TestPostComments(TestCase):
         response = update_post_comment(commenter, input_data)
         assert response.errors is None
 
-        post_comment_data = response.data["updatePostComment"]["postComment"]
-        post_comment = Comment.objects.get(id=post_comment_data["id"])
+        comment_data = response.data["updatePostComment"]["postComment"]
+        comment = Comment.objects.get(id=comment_data["id"])
 
-        mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=post_comment)
-        mock_send_post_comment_author_notification.assert_called_once_with(post_comment=post_comment)
+        mock_send_comment_mention_notification.assert_called_once_with(comment=comment)
+        mock_send_commentable_author_notification.assert_called_once_with(comment=comment)
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_comment_mention_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_commentable_author_notification")
     def test_should_not_send_an_author_notification_if_the_commenter_is_the_author(
-        self, mock_send_post_comment_author_notification, mock_send_post_comment_mention_notification
+        self, mock_send_commentable_author_notification, mock_send_comment_mention_notification
     ):
         posting_user = make_user()
         mentioned_user = make_user(name="Mentioned")
@@ -111,16 +120,16 @@ class TestPostComments(TestCase):
         response = update_post_comment(posting_user, input_data)
         assert response.errors is None
 
-        post_comment_data = response.data["updatePostComment"]["postComment"]
-        post_comment = Comment.objects.get(id=post_comment_data["id"])
+        comment_data = response.data["updatePostComment"]["postComment"]
+        comment = Comment.objects.get(id=comment_data["id"])
 
-        mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=post_comment)
-        mock_send_post_comment_author_notification.assert_not_called()
+        mock_send_comment_mention_notification.assert_called_once_with(comment=comment)
+        mock_send_commentable_author_notification.assert_not_called()
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_comment_mention_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_commentable_author_notification")
     def test_should_not_send_an_author_notification_if_the_author_is_mentioned(
-        self, mock_send_post_comment_author_notification, mock_send_post_comment_mention_notification
+        self, mock_send_commentable_author_notification, mock_send_comment_mention_notification
     ):
         posting_user = make_user()
         commenter = make_user(name="Commenter")
@@ -138,11 +147,11 @@ class TestPostComments(TestCase):
         response = update_post_comment(commenter, input_data)
         assert response.errors is None
 
-        post_comment_data = response.data["updatePostComment"]["postComment"]
-        post_comment = Comment.objects.get(id=post_comment_data["id"])
+        comment_data = response.data["updatePostComment"]["postComment"]
+        comment = Comment.objects.get(id=comment_data["id"])
 
-        mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=post_comment)
-        mock_send_post_comment_author_notification.assert_not_called()
+        mock_send_comment_mention_notification.assert_called_once_with(comment=comment)
+        mock_send_commentable_author_notification.assert_not_called()
 
     def test_should_fetch_comments_and_their_stats(self):
         posting_user = make_user()
@@ -259,6 +268,7 @@ class TestPostComments(TestCase):
         assert updated_post_comment["reactions"]["HEART"] == 0
 
 
+@pytest.mark.usefixtures("mock_novu_api")
 @pytest.mark.django_db
 class TestAddingComments(TestCase):
     @pytest.fixture(autouse=True)
@@ -299,10 +309,10 @@ class TestAddingComments(TestCase):
         assert reply.commenter == commenter
         assert reply.parent_comment.id == root_comment.id
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_comment_mention_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_commentable_author_notification")
     def test_should_notify_mentioned_users_and_post_author(
-        self, mock_send_post_comment_author_notification, mock_send_post_comment_mention_notification
+        self, mock_send_commentable_author_notification, mock_send_comment_mention_notification
     ):
         post = make_post()
         commenter = make_user(name="Commenter")
@@ -320,37 +330,29 @@ class TestAddingComments(TestCase):
         comment_data = response.data["addComment"]
         comment = Comment.objects.get(pk=comment_data["id"])
 
-        mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=comment)
-        mock_send_post_comment_author_notification.assert_called_once_with(post_comment=comment)
+        mock_send_comment_mention_notification.assert_called_once_with(comment=comment)
+        mock_send_commentable_author_notification.assert_called_once_with(comment=comment)
 
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
-    def test_should_not_notify_author_about_their_own_comments(
-        self, mock_send_post_comment_author_notification, mock_send_post_comment_mention_notification
-    ):
+    @mock.patch("openbook_notifications.services.NotificationsService.send_commentable_author_notification")
+    def test_should_not_notify_author_about_their_own_comments(self, mock_send_commentable_author_notification):
         post = make_post()
         post_author = post.creator
-        mentioned_user = make_user(name="Mentioned")
 
         input_data = {
             "commentableType": "POST",
             "commentableId": str(post.id),
-            "text": f"comment text 1 @{mentioned_user.username}",
+            "text": "comment text",
         }
 
         response = add_comment(post_author, input_data)
         assert response.errors is None
 
-        comment_data = response.data["addComment"]
-        comment = Comment.objects.get(pk=comment_data["id"])
+        mock_send_commentable_author_notification.assert_not_called()
 
-        mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=comment)
-        mock_send_post_comment_author_notification.assert_not_called()
-
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_mention_notification")
-    @mock.patch("openbook_notifications.notifications.Notifications.send_post_comment_author_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_comment_mention_notification")
+    @mock.patch("openbook_notifications.services.NotificationsService.send_commentable_author_notification")
     def test_should_only_notify_the_author_once_when_they_are_mentioned(
-        self, mock_send_post_comment_author_notification, mock_send_post_comment_mention_notification
+        self, mock_send_commentable_author_notification, mock_send_comment_mention_notification
     ):
         post = make_post()
         post_author = post.creator
@@ -368,10 +370,11 @@ class TestAddingComments(TestCase):
         comment_data = response.data["addComment"]
         comment = Comment.objects.get(pk=comment_data["id"])
 
-        mock_send_post_comment_mention_notification.assert_called_once_with(post_comment=comment)
-        mock_send_post_comment_author_notification.assert_not_called()
+        mock_send_comment_mention_notification.assert_called_once_with(comment=comment)
+        mock_send_commentable_author_notification.assert_not_called()
 
 
+@pytest.mark.usefixtures("mock_novu_api")
 @pytest.mark.django_db
 class TestDeletingComments(TestCase):
     @pytest.fixture(autouse=True)
@@ -383,7 +386,7 @@ class TestDeletingComments(TestCase):
         notifications_toggle.delete()
 
     def test_should_delete_own_comment(self):
-        comment = make_post_comment()
+        comment = make_space_post_comment()
         commenter = comment.commenter
         comment.react(commenter, "HEART")
 
@@ -396,7 +399,7 @@ class TestDeletingComments(TestCase):
 
     def test_should_not_be_able_to_delete_others_comments(self):
         other_user = make_user(name="Other")
-        comment = make_post_comment()
+        comment = make_space_post_comment()
         commenter = comment.commenter
         comment.react(commenter, "HEART")
 
@@ -412,7 +415,7 @@ class TestDeletingComments(TestCase):
         commenter = make_user()
         insight = make_insight()
         discussion = Discussion.objects.create(insight=insight, question="Let's discuss")
-        comment = Comment.create_comment(text="This is mine, hans off", commenter=commenter, commentable=discussion)
+        comment = Comment.create_comment(text="This is mine, hands off", commenter=commenter, commentable=discussion)
 
         response = delete_comment(other_user, comment.id)
 
@@ -421,7 +424,7 @@ class TestDeletingComments(TestCase):
         assert Comment.objects.filter(pk=comment.id).exists() is True
 
     def test_should_not_be_able_to_delete_a_comment_that_does_not_exist(self):
-        comment = make_post_comment()
+        comment = make_space_post_comment()
         commenter = comment.commenter
 
         response = delete_comment(commenter, "00000000-0000-0000-0000-000000000000")
@@ -431,6 +434,7 @@ class TestDeletingComments(TestCase):
         assert Comment.objects.filter(pk=comment.id).exists() is True
 
 
+@pytest.mark.usefixtures("mock_novu_api")
 @pytest.mark.django_db
 class TestReactingToComments(TestCase):
     @pytest.fixture(autouse=True)
@@ -442,7 +446,7 @@ class TestReactingToComments(TestCase):
         notifications_toggle.delete()
 
     def test_should_be_able_to_react_to_a_comment(self):
-        comment = make_post_comment()
+        comment = make_space_post_comment()
         commenter = comment.commenter
         other_user = make_user(name="Other")
 
@@ -455,7 +459,7 @@ class TestReactingToComments(TestCase):
         assert updated_comment["reactions"]["HEART"] == 2
 
     def test_should_be_able_to_remove_a_reaction_to_a_comment(self):
-        comment = make_post_comment()
+        comment = make_space_post_comment()
         commenter = comment.commenter
         other_user = make_user(name="Other")
         comment.react(other_user, ReactionType.HEART)
@@ -469,6 +473,7 @@ class TestReactingToComments(TestCase):
         assert updated_comment["reactions"]["HEART"] == 1
 
 
+@pytest.mark.usefixtures("mock_novu_api")
 @pytest.mark.django_db
 class TestComments(TestCase):
     @pytest.fixture(autouse=True)

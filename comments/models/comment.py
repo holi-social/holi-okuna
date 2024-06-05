@@ -8,7 +8,6 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from comments.enums import CommentableType
 from comments.validators import comment_text_validators
 from openbook_auth.models import User, UserBlock
 from openbook_common.helpers import (
@@ -38,6 +37,7 @@ from openbook_common.utils.model_loaders import (
 from openbook_moderation.models import ModeratedObject
 
 from .comment_reaction import CommentReaction
+from .enabled_commentable_type import EnabledCommentableType
 
 
 class Comment(ModelWithUUID):
@@ -80,7 +80,7 @@ class Comment(ModelWithUUID):
     @staticmethod
     def get_commentable(
         commentable_id: uuid.UUID,
-        commentable_type: CommentableType,
+        commentable_type: EnabledCommentableType,
     ):
         commentable_content_type = ContentType.objects.get(model=commentable_type.value)
         commentable = commentable_content_type.get_object_for_this_type(pk=commentable_id)
@@ -105,7 +105,7 @@ class Comment(ModelWithUUID):
         return cls.objects.filter(count_query).count()
 
     @classmethod
-    def get_top_comment(cls, commentable_id: uuid.UUID, commentable_type: CommentableType, user: User):
+    def get_top_comment(cls, commentable_id: uuid.UUID, commentable_type: EnabledCommentableType, user: User):
         return (
             cls.objects.filter(commentable_id=commentable_id)
             .filter(commentable_type__model=commentable_type.value)
@@ -116,7 +116,7 @@ class Comment(ModelWithUUID):
         )
 
     @classmethod
-    def get_commenters(cls, commentable_id: uuid.UUID, commentable_type: CommentableType, user: User):
+    def get_commenters(cls, commentable_id: uuid.UUID, commentable_type: EnabledCommentableType, user: User):
         return (
             User.objects.select_related("profile")
             .filter(User.is_visible_ignore_blocked_query())
@@ -128,7 +128,7 @@ class Comment(ModelWithUUID):
         )
 
     @classmethod
-    def total_comments(cls, commentable_id: uuid.UUID, commentable_type: CommentableType) -> int:
+    def total_comments(cls, commentable_id: uuid.UUID, commentable_type: EnabledCommentableType) -> int:
         return cls.objects.filter(
             commentable_id=commentable_id,
             commentable_type__model=commentable_type.value,
@@ -211,6 +211,7 @@ class Comment(ModelWithUUID):
         self._process_post_comment_mentions()
         self._process_post_comment_hashtags()
         self._process_post_comment_links()
+        self._notify_post_author()
 
         return post_comment
 
@@ -236,16 +237,21 @@ class Comment(ModelWithUUID):
                 if username not in existing_mention_usernames:
                     try:
                         user = User.objects.only("id", "username").get(username__iexact=username)
-
                         user_can_see_commentable = self.commentable.can_be_viewed(user)
                         user_is_commenter = user.pk == self.commenter_id
+
                         if not user_is_commenter:
                             CommentUserMention.create_comment_user_mention(
                                 user=user,
                                 comment=self,
-                                notify=user_can_see_commentable,
                             )
                             existing_mention_usernames.append(username)
+
+                            if user_can_see_commentable:
+                                from openbook_notifications.services import NotificationsService
+
+                                NotificationsService.send_comment_mention_notification(comment=self)
+
                     except User.DoesNotExist:
                         pass
 
@@ -277,6 +283,19 @@ class Comment(ModelWithUUID):
             self.links.set(LinkPreview.parse_text(self.text))
         else:
             self.links.clear()
+
+    def _notify_post_author(self):
+        from openbook_notifications.services import NotificationsService
+
+        # do we find somebody to notify?
+        author = getattr(self.commentable, "creator", None)
+
+        if author:
+            is_post_author_mentioned = self.mentions.filter(username=author.username).exists()
+            is_post_author_commenter = self.commenter.username == author.username
+
+            if not is_post_author_mentioned and not is_post_author_commenter:
+                NotificationsService.send_commentable_author_notification(comment=self)
 
     def update_comment(self, text):
         self.text = text

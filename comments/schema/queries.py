@@ -4,7 +4,7 @@ import strawberry
 import strawberry_django
 from django.core.exceptions import PermissionDenied
 
-from comments.enums import CommentableType
+from comments.schema.types import CommentableType
 from comments.models import Comment as CommentModel
 from comments.schema.types.commentable import Commentable
 from comments.schema.types.comment import Comment

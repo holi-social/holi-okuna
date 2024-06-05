@@ -1524,79 +1524,11 @@ class User(ModelWithUUID, AbstractUser):
         post = Post.objects.filter(pk=post_id).get()
         post_comment = self.comment_post(post=post, text=text)
 
-        from openbook_notifications.notifications import Notifications
-
-        if post_comment.mentions.exists():
-            Notifications.send_post_comment_mention_notification(post_comment=post_comment)
-
-        is_post_author_mentioned = post_comment.mentions.filter(username=post.creator.username).exists()
-        is_post_author_commenter = post_comment.commenter.username == post.creator.username
-
-        if not is_post_author_mentioned and not is_post_author_commenter:
-            Notifications.send_post_comment_author_notification(post_comment=post_comment)
-
         return post_comment
 
     def comment_post(self, post, text):
         check_can_comment_in_post(user=self, post=post)
         post_comment = post.comment(text=text, commenter=self)
-        post_commenter = self
-
-        Post = get_post_model()
-
-        # Language should also be prefetched here, for some reason it doesnt work....
-        post_notification_target_users = Post.get_post_comment_notification_target_users(
-            post=post, post_commenter=post_commenter
-        )
-        PostCommentNotification = get_post_comment_notification_model()
-
-        for post_notification_target_user in post_notification_target_users:
-            if (
-                post_notification_target_user.pk == post_commenter.pk
-                or not post_notification_target_user.can_see_post_comment(post_comment=post_comment)
-            ):
-                continue
-            post_notification_target_user_is_post_creator = post_notification_target_user.id == post.creator.id
-            post_notification_target_has_comment_notifications_enabled = (
-                post_notification_target_user.has_comment_notifications_enabled_for_post_with_id(
-                    post_id=post_comment.commentable_id
-                )
-            )
-
-            if post_notification_target_has_comment_notifications_enabled:
-                target_user_language_code = get_notification_language_code_for_target_user(
-                    post_notification_target_user
-                )
-                with translation.override(target_user_language_code):
-                    if post_notification_target_user_is_post_creator:
-                        notification_message = {
-                            "en": _("%(post_commenter_name)s · %(post_commenter_username)s commented on your post.")
-                            % {
-                                "post_commenter_username": post_commenter.username,
-                                "post_commenter_name": post_commenter.profile.name,
-                            }
-                        }
-                    else:
-                        notification_message = {
-                            "en": _(
-                                "%(post_commenter_name)s · @%(post_commenter_username)s commented on a post you also commented on."
-                            )
-                            % {
-                                "post_commenter_username": post_commenter.username,
-                                "post_commenter_name": post_commenter.profile.name,
-                            }
-                        }
-
-                    self._send_post_comment_push_notification(
-                        post_comment=post_comment,
-                        notification_message=notification_message,
-                        notification_target_user=post_notification_target_user,
-                    )
-
-            PostCommentNotification.create_post_comment_notification(
-                post_comment_id=post_comment.pk,
-                owner_id=post_notification_target_user.id,
-            )
 
         return post_comment
 
@@ -2114,9 +2046,9 @@ class User(ModelWithUUID, AbstractUser):
             )
 
         # deferred import to circumvent circular imports
-        from openbook_notifications.notifications import Notifications
+        from openbook_notifications.services import NotificationsService
 
-        Notifications.send_space_membership_request_notification(
+        NotificationsService.send_space_membership_request_notification(
             membership_request=membership_request,
             recipients=staff_members,
             requester=self,
@@ -2159,13 +2091,13 @@ class User(ModelWithUUID, AbstractUser):
         )
 
         # deferred import to circumvent circular imports
-        from openbook_notifications.notifications import Notifications
+        from openbook_notifications.services import NotificationsService
 
-        Notifications.send_space_membership_request_approval_user_notification(
+        NotificationsService.send_space_membership_request_approval_user_notification(
             requester=user_to_approve, space=community_to_join, approver=self
         )
 
-        Notifications.send_space_membership_request_approval_admin_notification(
+        NotificationsService.send_space_membership_request_approval_admin_notification(
             recipients=community_to_join.get_staff_members(), requester=user_to_approve, space=community_to_join
         )
         return community_to_join
@@ -2190,11 +2122,13 @@ class User(ModelWithUUID, AbstractUser):
         self.notify_membership_approval(community_to_join, self, membership_request=membership_request, invite=invite)
 
         # deferred import to circumvent circular imports
-        from openbook_notifications.notifications import Notifications
+        from openbook_notifications.services import NotificationsService
 
-        Notifications.send_space_membership_invite_approval_user_notification(invitee=self, space=community_to_join)
+        NotificationsService.send_space_membership_invite_approval_user_notification(
+            invitee=self, space=community_to_join
+        )
 
-        Notifications.send_space_membership_invite_approval_admin_notification(
+        NotificationsService.send_space_membership_invite_approval_admin_notification(
             recipients=community_to_join.get_staff_members(), invitee=self, space=community_to_join
         )
 
@@ -2222,12 +2156,14 @@ class User(ModelWithUUID, AbstractUser):
         self.notify_invite_declined(community_to_join, inviting_admin, self)
 
         # deferred import to circumvent circular imports
-        from openbook_notifications.notifications import Notifications
+        from openbook_notifications.services import NotificationsService
 
-        Notifications.send_space_membership_invite_decline_user_notification(invitee=self, space=community_to_join)
+        NotificationsService.send_space_membership_invite_decline_user_notification(
+            invitee=self, space=community_to_join
+        )
 
         if inviting_admin:
-            Notifications.send_space_membership_invite_decline_admin_notification(
+            NotificationsService.send_space_membership_invite_decline_admin_notification(
                 recipient=inviting_admin, invitee=self, space=community_to_join
             )
 
@@ -2281,12 +2217,12 @@ class User(ModelWithUUID, AbstractUser):
         community.remove_membership_request(user_to_revoke_request_for)
 
         # deferred import to circumvent circular imports
-        from openbook_notifications.notifications import Notifications
+        from openbook_notifications.services import NotificationsService
 
-        Notifications.send_space_membership_request_decline_user_notification(
+        NotificationsService.send_space_membership_request_decline_user_notification(
             requester=user_to_revoke_request_for, space=community, denier=self
         )
-        Notifications.send_space_membership_request_decline_admin_notification(
+        NotificationsService.send_space_membership_request_decline_admin_notification(
             recipients=community.get_staff_members(),
             requester=user_to_revoke_request_for,
             space=community,
@@ -2349,9 +2285,9 @@ class User(ModelWithUUID, AbstractUser):
     def invite_user_to_community(self, user, community):
         community_invite = community.create_invite(creator=self, invited_user=user)
         # deferred import to circumvent circular imports
-        from openbook_notifications.notifications import Notifications
+        from openbook_notifications.services import NotificationsService
 
-        Notifications.send_space_membership_invite_notification(
+        NotificationsService.send_space_membership_invite_notification(
             inviter=self,
             recipient=user,
             space=community,
@@ -3003,14 +2939,14 @@ class User(ModelWithUUID, AbstractUser):
             is_public=is_public,
         )
 
-        from openbook_notifications.notifications import Notifications
+        from openbook_notifications.services import NotificationsService
 
         collaborators = self.get_community_with_name_members(community_name=post.community.name).exclude(
             id=post.creator.id
         )
 
         if collaborators:
-            Notifications.send_space_new_post_notification(post=post, collaborators=list(collaborators))
+            NotificationsService.send_space_new_post_notification(post=post, collaborators=list(collaborators))
 
         return post
 

@@ -9,6 +9,7 @@ from pilkit.processors import ResizeToFit
 from rest_framework.exceptions import ValidationError
 
 from comments.models import Comment
+from comments.models.commentable_notification_context import CommentNotificationMixin, CommentNotificationContext
 from feed_posts.enums import VisibilityLevel
 from feed_posts.helpers import upload_to_feed_post_images_directory
 from openbook import settings
@@ -20,7 +21,7 @@ from openbook_common.utils.helpers import delete_file_field
 from openbook_terms.models import Topic, FeedPostCategory
 
 
-class FeedPost(ModelWithUUID):
+class FeedPost(CommentNotificationMixin, ModelWithUUID):
     title = models.CharField(max_length=settings.FEED_POST_TITLE_MAX_LENGTH, blank=True, null=True)
 
     slug = models.SlugField(max_length=settings.FEED_POST_SLUG_MAX_LENGTH, blank=False, null=False, unique=True)
@@ -101,6 +102,10 @@ class FeedPost(ModelWithUUID):
 
     def can_be_viewed(self, user: User) -> bool:
         return True
+
+    @property
+    def comment_notification_context(self) -> CommentNotificationContext:
+        return CommentNotificationContext(id=self.id, title=self.title, context=None)
 
 
 class FeedPostReaction(ModelWithUUID):

@@ -21,8 +21,11 @@ from rest_framework.exceptions import ValidationError
 from sortedm2m.fields import SortedManyToManyField
 
 from comments.models import Comment
+from comments.models.commentable_notification_context import (
+    CommentNotificationMixin,
+    CommentNotificationContext,
+)
 from openbook_auth.models import User, get_reactions
-from openbook_auth.models import UserBlock as UserBlockModel
 from openbook_common.enums import ReactionType
 from openbook_common.helpers import (
     ExifRotate,
@@ -83,8 +86,9 @@ magic = get_magic()
 post_image_storage = default_storage
 
 
-class Post(ModelWithUUID):
+class Post(CommentNotificationMixin, ModelWithUUID):
     moderated_object = GenericRelation(ModeratedObject, related_query_name="posts")
+
     title = models.CharField(max_length=settings.POST_TITLE_MAX_LENGTH, blank=False, null=True)
     text = models.TextField(
         _("text"),
@@ -466,11 +470,6 @@ class Post(ModelWithUUID):
         return target_subscriptions
 
     def can_be_viewed(self, user: User) -> bool:
-        UserBlockModel.filter_single_object(
-            user,
-            self,
-            lambda p: None if p.creator is None else p.creator.id,
-        )
         post = Post.objects.filter(Post.is_visible_query(user)).distinct().get(id=self.id)
 
         return post is not None
@@ -915,6 +914,10 @@ class Post(ModelWithUUID):
             (pQ(creator=user) & (pQ(community__isnull=True) | pQ(community__memberships__user__id=user.id)))
             | (pQ(status=Post.STATUS_PUBLISHED) & (pQ(is_public=True) | pQ(community__memberships__user__id=user.id)))
         )
+
+    @property
+    def comment_notification_context(self) -> CommentNotificationContext:
+        return CommentNotificationContext(id=self.id, title=self.title, context=self.community.title)
 
 
 class TopPost(ModelWithUUID):

@@ -9,7 +9,7 @@ from openbook_auth.models import User
 from openbook_common.schema.types import GeolocationPointInput
 from openbook_common.utils.model_loaders import get_community_model, get_user_model
 from openbook_communities.models import Community
-from openbook_notifications.notifications import Notifications
+from openbook_notifications.services import NotificationsService
 from .checkers import AppointmentChecker
 from .repositories import AppointmentRepository, VideoCallLinkRepository, LocationDetailsRepository
 
@@ -79,7 +79,7 @@ class AppointmentService:
         if appointment.ends_in_future:
             recipients = self.determine_recipients(invite_only, participants, space, creator)
 
-            Notifications.send_space_appointment_creation_notification(
+            NotificationsService.send_space_appointment_creation_notification(
                 space=space,
                 appointment=appointment,
                 recipients=recipients,
@@ -172,7 +172,7 @@ class AppointmentService:
         if appointment.ends_in_future and (location_changed or date_time_changed):
             recipients = self.determine_recipients(invite_only, participants, space, user)
 
-            Notifications.send_space_appointment_update_notification(
+            NotificationsService.send_space_appointment_update_notification(
                 space=space,
                 appointment=updated_appointment,
                 location_changed=location_changed,
@@ -290,7 +290,7 @@ class AppointmentService:
             if recipients.contains(user):
                 recipients = recipients.exclude(id__exact=user.id)
 
-            Notifications.send_space_appointment_deletion_notification(
+            NotificationsService.send_space_appointment_deletion_notification(
                 space=space,
                 appointment=appointment,
                 recipients=recipients,
