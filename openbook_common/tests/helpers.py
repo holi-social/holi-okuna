@@ -311,6 +311,7 @@ def make_community(
     admins: List[User] = None,
     moderators: List[User] = None,
     relationships: list[SpacesRelationship] = None,
+    is_deleted: bool = False,
 ) -> Community:
     if not creator:
         creator = make_user()
@@ -350,6 +351,7 @@ def make_community(
     if relationships:
         community.network_relationships.set(relationships)
 
+    community.is_deleted = is_deleted
     community.save()
 
     return community

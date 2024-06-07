@@ -176,9 +176,7 @@ class TestCommunities(TestCase):
         uninteresting_topic_inside_space = make_community(topics=[uninteresting_topic], geolocation=geolocation1)
         default_topic_outside_space = make_community(topics=[default_topic], geolocation=geolocation3)
         make_community(topics=[uninteresting_topic], geolocation=geolocation3)
-        moderated_space = make_community(topics=[topic2], geolocation=geolocation2)
-        moderated_space.is_deleted = True
-        moderated_space.save()
+        make_community(topics=[topic2], geolocation=geolocation2, is_deleted=True)  # deleted spaces are not shown
 
         recommended_spaces_query = """
             query MyQuery($limit: Int, $offset: Int) {
@@ -361,9 +359,7 @@ class TestCommunities(TestCase):
         space1 = make_community(topics=[topic1, topic2], geolocation=geolocation1)
         space2 = make_community(topics=[topic1], geolocation=geolocation2)
         space3 = make_community(topics=[topic2], geolocation=geolocation3)
-        space_deleted = make_community(topics=[topic1], geolocation=geolocation2)  # deleted spaces should not be shown
-        space_deleted.is_deleted = True
-        space_deleted.save()
+        make_community(topics=[topic1], geolocation=geolocation2, is_deleted=True)  # deleted spaces are not be shown
         skill1 = make_skill()
         skill2 = make_skill()
         skill3 = make_skill()
@@ -442,17 +438,37 @@ class TestCommunities(TestCase):
         creator1 = make_user()
         creator2 = make_user()
         creator3 = make_user()
-        space1 = make_community(creator=creator1)
-        space2 = make_community(creator=creator2)
-        space3 = make_community()
-        space4 = make_community()
-        space_with_invites = make_community(creator=creator3)
 
-        creator3.invite_user_to_community(user=creator1, community=space_with_invites)
-        creator2.invite_user_to_community(user=creator1, community=space2)
-        creator1.accept_membership_invite_to_community_for_username(space2.name)
-        creator1.enable_new_post_notifications_for_community_with_name(space3.name)
-        creator1.request_membership_to_community_with_name(community_name=space4.name)
+        space_creator = make_community(creator=creator1)
+
+        space_member = make_community(creator=creator2)
+        creator2.invite_user_to_community(user=creator1, community=space_member)
+        creator1.accept_membership_invite_to_community_for_username(space_member.name)
+
+        space_follower = make_community()
+        creator1.enable_new_post_notifications_for_community_with_name(space_follower.name)
+
+        space_request_membership = make_community()
+        creator1.request_membership_to_community_with_name(community_name=space_request_membership.name)
+
+        space_invited = make_community(creator=creator3)
+        creator3.invite_user_to_community(user=creator1, community=space_invited)
+
+        # repeat the setup with deleted space to ensure they are not shown
+        make_community(creator=creator1, is_deleted=True)  # deleted space is not shown
+
+        space_deleted_member = make_community(creator=creator2, is_deleted=True)  # deleted space is not shown
+        creator2.invite_user_to_community(user=creator1, community=space_deleted_member)
+        creator1.accept_membership_invite_to_community_for_username(space_deleted_member.name)
+
+        space_deleted_follower = make_community(is_deleted=True)  # deleted space is not shown
+        creator1.enable_new_post_notifications_for_community_with_name(space_deleted_follower.name)
+
+        space_deleted_request_membership = make_community(is_deleted=True)  # deleted space is not shown
+        creator1.request_membership_to_community_with_name(community_name=space_deleted_request_membership.name)
+
+        space_deleted_invite = make_community(creator=creator2, is_deleted=True)  # deleted space is not shown
+        creator2.invite_user_to_community(user=creator1, community=space_deleted_invite)
 
         response = async_to_sync(schema.execute)(
             """
@@ -478,31 +494,31 @@ class TestCommunities(TestCase):
         assert created_section["section"] == "Created"
         assert created_section["type"] == SpaceUserConnectionType.CREATOR.value
         assert created_section["spaces"]["totalResults"] == 1
-        assert created_section["spaces"]["data"][0]["id"] == str(space1.id)
+        assert created_section["spaces"]["data"][0]["id"] == str(space_creator.id)
 
         joined_section = response[1]
         assert joined_section["section"] == "Joined"
         assert joined_section["type"] == SpaceUserConnectionType.MEMBER.value
         assert joined_section["spaces"]["totalResults"] == 1
-        assert joined_section["spaces"]["data"][0]["id"] == str(space2.id)
+        assert joined_section["spaces"]["data"][0]["id"] == str(space_member.id)
 
         requested_section = response[2]
         assert requested_section["section"] == "Requested"
         assert requested_section["type"], SpaceUserConnectionType.MEMBERSHIP_REQUESTOR.value
         assert requested_section["spaces"]["totalResults"] == 1
-        assert requested_section["spaces"]["data"][0]["id"] == str(space4.id)
+        assert requested_section["spaces"]["data"][0]["id"] == str(space_request_membership.id)
 
         invited_section = response[3]
         assert invited_section["section"] == "Invited"
         assert invited_section["type"], SpaceUserConnectionType.MEMBERSHIP_INVITEE.value
         assert invited_section["spaces"]["totalResults"] == 1
-        assert invited_section["spaces"]["data"][0]["id"] == str(space_with_invites.id)
+        assert invited_section["spaces"]["data"][0]["id"] == str(space_invited.id)
 
         following_section = response[4]
         assert following_section["section"] == "Following"
         assert following_section["type"], SpaceUserConnectionType.FOLLOWER.value
         assert following_section["spaces"]["totalResults"] == 1
-        assert following_section["spaces"]["data"][0]["id"] == str(space3.id)
+        assert following_section["spaces"]["data"][0]["id"] == str(space_follower.id)
 
     @mock.patch("openbook_communities.schema.mutations.invalidate_discover_spaces_query_cache")
     @mock.patch("openbook_communities.schema.mutations.publish_space_user_added_event")
