@@ -211,8 +211,8 @@ def assert_collaboration_tools(community_id, user, expected):
     assert response.data["spaceById"]["collaborationTools"] == expected
 
 
-def get_space_by_id_with_appointments(space_id, user):
-    response = async_to_sync(schema.execute)(
+def get_space_by_id_with_appointments_raw(space_id, user):
+    return async_to_sync(schema.execute)(
         """
         query($id:String!) {
             spaceById(idOrName:$id) {
@@ -250,5 +250,8 @@ def get_space_by_id_with_appointments(space_id, user):
         context_value=benedict({"request": {"user": user}}),
     )
 
+
+def get_space_by_id_with_appointments(space_id, user):
+    response = get_space_by_id_with_appointments_raw(space_id, user)
     assert response.errors is None
     return response.data["spaceById"]

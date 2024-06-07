@@ -374,13 +374,15 @@ class Space:
         if current_user.is_anonymous or not current_user.is_member_of_community_with_id(self.id):
             # Retrieve upcoming public appointments
             public_appointments = self.appointments.filter(
-                invite_only=False, end_date_time__gte=current_datetime
+                invite_only=False, end_date_time__gte=current_datetime, is_deleted=False
             ).order_by("start_date_time")
 
             return Paged.of(public_appointments, offset, limit)
 
         # If the user is a member of the space, retrieve all upcoming appointments
-        appointments = self.appointments.all().filter(end_date_time__gte=current_datetime).order_by("start_date_time")
+        appointments = self.appointments.filter(end_date_time__gte=current_datetime, is_deleted=False).order_by(
+            "start_date_time"
+        )
 
         return Paged.of(appointments, offset, limit)
 
