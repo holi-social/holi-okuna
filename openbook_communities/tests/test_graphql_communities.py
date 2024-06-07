@@ -176,6 +176,9 @@ class TestCommunities(TestCase):
         uninteresting_topic_inside_space = make_community(topics=[uninteresting_topic], geolocation=geolocation1)
         default_topic_outside_space = make_community(topics=[default_topic], geolocation=geolocation3)
         make_community(topics=[uninteresting_topic], geolocation=geolocation3)
+        moderated_space = make_community(topics=[topic2], geolocation=geolocation2)
+        moderated_space.is_deleted = True
+        moderated_space.save()
 
         recommended_spaces_query = """
             query MyQuery($limit: Int, $offset: Int) {
