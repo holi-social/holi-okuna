@@ -51,7 +51,6 @@ from openbook_communities.queries import (
 )
 from openbook_moderation.models import ModeratedObject
 from openbook_notifications.api import NotificationApi
-from openbook_posts.models import Post
 from openbook_terms.models import SDG, Topic, Skill
 
 community_image_storage = default_storage
@@ -1303,11 +1302,12 @@ class Task(ModelWithUUID):
     @staticmethod
     def is_visible_query(user, prefix=None):
         pQ = PrefixedQ(prefix)
-
+        space_not_moderated = pQ(community__is_deleted=False)
         if user.is_anonymous:
-            return pQ(visibility=VisibilityType.PUBLIC)
-
-        return pQ(visibility=VisibilityType.PUBLIC) | pQ(community__memberships__user__id=user.id)
+            return space_not_moderated & pQ(visibility=VisibilityType.PUBLIC)
+        return space_not_moderated & (
+            pQ(visibility=VisibilityType.PUBLIC) | pQ(community__memberships__user__id=user.id)
+        )
 
     def clear_skills(self):
         self.skills.clear()

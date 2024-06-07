@@ -1050,14 +1050,18 @@ class TestTaskRecommendations:
         self.user = make_user()
         self.space_owner = make_user()
         self.space = make_community(creator=self.space_owner)
+        self.space_deleted_owner = make_user()
+        self.space_deleted = make_community(creator=self.space_deleted_owner, is_deleted=True)
 
-    def create_task(self, skills, location_type, geolocation=None, visibility=VisibilityType.PUBLIC):
-        return self.space_owner.create_task(
+    def create_task(self, skills, location_type, geolocation=None, visibility=VisibilityType.PUBLIC, space=None):
+        if space is None:
+            space = self.space
+        return space.creator.create_task(
             geolocation=geolocation,
             skills=skills,
             location_type=location_type,
             visibility=visibility,
-            space_id=self.space.id,
+            space_id=space.id,
             name=self.fake.text(max_nb_chars=20),
             description=self.fake.text(max_nb_chars=20),
             slots_available=3,
@@ -1117,6 +1121,9 @@ class TestTaskRecommendations:
             skills=[other_skill.id], location_type="ONSITE", geolocation=geolocation3
         )
         task_remote_other_skill = self.create_task(skills=[other_skill.id], location_type="REMOTE")
+
+        # tasks from moderated spaces are not shown
+        self.create_task(space=self.space_deleted, skills=[skill2.id], location_type="REMOTE")
 
         # member only tasks are not visible to non-members
         self.create_task(skills=[skill1.id], location_type="REMOTE", visibility=VisibilityType.MEMBERS)

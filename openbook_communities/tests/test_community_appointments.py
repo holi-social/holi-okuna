@@ -1,13 +1,12 @@
+import logging
+from datetime import datetime
 from unittest import mock
 from unittest.mock import patch
 
 import pytest
-import logging
+from django.contrib.auth.models import AnonymousUser
 from django.test import AsyncClient, TestCase
 from django.utils import timezone
-import datetime
-
-from django.contrib.auth.models import AnonymousUser
 
 from openbook_appointments.services import AppointmentService
 from openbook_common.tests.helpers import make_user, make_community
@@ -39,6 +38,7 @@ class TestSpaceAppointments(TestCase):
         cls.member_user = make_user()
         cls.external_user = make_user()
         cls.space = make_community(creator=cls.admin_user)
+        cls.space_deleted = make_community(creator=cls.admin_user, is_deleted=True)
 
         cls.space.add_member(cls.member_user)
         cls.location_details = {
@@ -57,8 +57,8 @@ class TestSpaceAppointments(TestCase):
             title="Public Appointment",
             invite_only=False,
             participant_ids=[],
-            start_date_time=timezone.make_aware(datetime.datetime(2023, 1, 15, 12)),
-            end_date_time=timezone.make_aware(datetime.datetime(2023, 1, 15, 13)),
+            start_date_time=timezone.make_aware(datetime(2023, 1, 15, 12)),
+            end_date_time=timezone.make_aware(datetime(2023, 1, 15, 13)),
             location_details=cls.location_details,
             description="This is an old public appointment",
             permission="ADMINS",
@@ -71,8 +71,8 @@ class TestSpaceAppointments(TestCase):
             title="Public Appointment",
             invite_only=False,
             participant_ids=[],
-            start_date_time=timezone.make_aware(datetime.datetime(2024, 6, 16, 8)),
-            end_date_time=timezone.make_aware(datetime.datetime(2024, 6, 16, 10)),
+            start_date_time=timezone.make_aware(datetime(2024, 6, 16, 8)),
+            end_date_time=timezone.make_aware(datetime(2024, 6, 16, 10)),
             location_details=cls.location_details,
             description="This is a public appointment where everybody is welcome",
             permission="ADMINS",
@@ -85,8 +85,8 @@ class TestSpaceAppointments(TestCase):
             title="Digital Public Appointment",
             invite_only=False,
             participant_ids=[],
-            start_date_time=timezone.make_aware(datetime.datetime(2024, 6, 16, 11)),
-            end_date_time=timezone.make_aware(datetime.datetime(2024, 6, 16, 12)),
+            start_date_time=timezone.make_aware(datetime(2024, 6, 16, 11)),
+            end_date_time=timezone.make_aware(datetime(2024, 6, 16, 12)),
             description="This is a public appointment where everybody is welcome",
             permission="ADMINS",
             creator=cls.admin_user,
@@ -98,8 +98,8 @@ class TestSpaceAppointments(TestCase):
             title="On-site Public Appointment",
             invite_only=False,
             participant_ids=[],
-            start_date_time=timezone.make_aware(datetime.datetime(2024, 6, 17, 8)),
-            end_date_time=timezone.make_aware(datetime.datetime(2024, 6, 17, 10)),
+            start_date_time=timezone.make_aware(datetime(2024, 6, 17, 8)),
+            end_date_time=timezone.make_aware(datetime(2024, 6, 17, 10)),
             location_details=cls.location_details,
             description="This is a another public appointment where everybody is welcome",
             permission="ADMINS",
@@ -111,14 +111,29 @@ class TestSpaceAppointments(TestCase):
             title="Public Appointment",
             invite_only=True,
             participant_ids=[],
-            start_date_time=timezone.make_aware(datetime.datetime(2024, 6, 18, 8)),
-            end_date_time=timezone.make_aware(datetime.datetime(2024, 6, 18, 10)),
+            start_date_time=timezone.make_aware(datetime(2024, 6, 18, 8)),
+            end_date_time=timezone.make_aware(datetime(2024, 6, 18, 10)),
             location_details=cls.location_details,
             description="This is a invite_only appointment where only invited people are welcome",
             permission="PARTICIPANTS",
             creator=cls.admin_user,
             video_call_link="https://zoom.us/j/123456789",
         )
+
+        cls.deleted_appointment = AppointmentService().create_appointment(
+            space_id=cls.space.id,
+            title="On-site Public Appointment",
+            invite_only=False,
+            participant_ids=[],
+            start_date_time=timezone.make_aware(datetime(2024, 6, 17, 8)),
+            end_date_time=timezone.make_aware(datetime(2024, 6, 17, 10)),
+            location_details=cls.location_details,
+            description="This is a another public appointment where everybody is welcome",
+            permission="ADMINS",
+            creator=cls.admin_user,
+        )
+        cls.deleted_appointment.is_deleted = True
+        cls.deleted_appointment.save()
 
     @patch("django.utils.timezone.now", return_value=mock_current_datetime)
     def test_can_only_retrieve_upcoming_appointments(self, mock_current_datetime):

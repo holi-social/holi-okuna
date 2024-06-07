@@ -12,6 +12,7 @@ from faker import Faker
 
 from openbook import settings
 from openbook_appointments.enums import PermissionType, StatusType
+from openbook_appointments.services import AppointmentService
 from openbook_appointments.tests.helpers import (
     create_appointment,
     appointments,
@@ -23,6 +24,7 @@ from openbook_appointments.tests.helpers import (
 from openbook_common.tests.helpers import (
     make_community,
     make_user,
+    assert_is_404,
 )
 from openbook_notifications.notifications import (
     SpaceAppointmentCreationNotification,
@@ -43,7 +45,7 @@ def client():
 
 @pytest.mark.django_db
 class TestAppointments(TestCase):
-    mock_current_datetime = timezone.datetime(2024, 1, 1, 12, 0, 0)
+    mock_current_datetime = timezone.make_aware(timezone.datetime(2024, 1, 1, 12, 0, 0), tz)
 
     # prevent sending novu notifications
     @pytest.fixture(scope="class", autouse=True)
@@ -145,6 +147,26 @@ class TestAppointments(TestCase):
             "videoCallLink": "https://zoom.us/j/712889134",
             "videoCallInfo": fake.text(max_nb_chars=settings.VIDEO_CALL_LINK_DESCRIPTION_MAX_LENGTH),
         }
+
+    def test_can_not_create_appointment_on_moderated_space(self):
+        space_deleted = make_community(is_deleted=True)
+        appointment_on_deleted_space = {
+            "spaceId": str(space_deleted.id),
+            "title": fake.text(max_nb_chars=settings.APPOINTMENT_TITLE_MAX_LENGTH),
+            "inviteOnly": False,
+            "participantIds": [],
+            "startDateTime": "2024-01-02T08:00:00",
+            "endDateTime": "2024-01-02T10:00:00",
+            "locationDetails": TestAppointments.location_details,
+            "description": fake.text(max_nb_chars=settings.APPOINTMENT_DESCRIPTION_MAX_LENGTH),
+            "permission": PermissionType.ADMINS,
+            "videoCallLink": "https://zoom.us/j/712889134",
+            "videoCallInfo": fake.text(max_nb_chars=settings.VIDEO_CALL_LINK_DESCRIPTION_MAX_LENGTH),
+        }
+        response = create_appointment(self.admin, appointment_on_deleted_space)
+
+        assert response.errors is not None
+        assert response.data is None
 
     def test_can_not_create_appointment_if_not_admin_or_member(self):
         response = create_appointment(self.external_member, self.public_appointment_input_data)
@@ -269,6 +291,56 @@ class TestAppointments(TestCase):
         past_appointments_response = appointments(user=self.admin, space_id=self.space.id, status_type=StatusType.PAST)
         assert past_appointments_response.errors is None
         assert past_appointments_response.data["appointments"]["totalResults"] == 1
+
+    @patch("django.utils.timezone.now", return_value=mock_current_datetime)
+    def test_moderated_appointments_are_not_shown(self, mock_current_datetime):
+        deleted_appointment = AppointmentService().create_appointment(
+            space_id=self.space.id,
+            title="On-site Public Appointment DELETED",
+            invite_only=False,
+            participant_ids=[],
+            start_date_time=timezone.make_aware(datetime(2024, 6, 17, 8)),
+            end_date_time=timezone.make_aware(datetime(2024, 6, 17, 10)),
+            location_details=self.location_details,
+            description="This is a another public appointment where everybody is welcome",
+            permission="ADMINS",
+            creator=self.admin,
+        )
+        deleted_appointment.is_deleted = True
+        deleted_appointment.save()
+
+        upcoming_appointments_response = appointments(
+            user=self.admin, space_id=self.space.id, status_type=StatusType.UPCOMING
+        )
+        assert upcoming_appointments_response.errors is None
+        assert upcoming_appointments_response.data["appointments"]["totalResults"] == 0
+
+    @patch("django.utils.timezone.now", return_value=mock_current_datetime)
+    def test_appointment_from_moderated_spaces_are_not_shown(self, mock_current_datetime):
+        space_deleted = make_community(is_deleted=True)
+        space_deleted.add_member(self.admin)
+        space_deleted.add_administrator(self.admin)
+        delete_appointment = AppointmentService().create_appointment(
+            space_id=space_deleted.id,
+            title="On-site Public Appointment on DELETED Space",
+            invite_only=False,
+            participant_ids=[],
+            start_date_time=timezone.make_aware(datetime(2024, 6, 17, 8)),
+            end_date_time=timezone.make_aware(datetime(2024, 6, 17, 10)),
+            location_details=self.location_details,
+            description="This is a another public appointment where everybody is welcome",
+            permission="ADMINS",
+            creator=self.admin,
+        )
+
+        upcoming_appointments_response = appointments(
+            user=self.admin, space_id=space_deleted.id, status_type=StatusType.UPCOMING
+        )
+        assert upcoming_appointments_response.errors is None
+        assert upcoming_appointments_response.data["appointments"]["totalResults"] == 0
+
+        appointment_response = appointment(user=self.admin, id_or_slug=str(delete_appointment.id))
+        assert_is_404(appointment_response)
 
     @patch("django.utils.timezone.now", return_value=mock_current_datetime)
     def test_can_query_all_appointments_if_member(self, mock_current_datetime):

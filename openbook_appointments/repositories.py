@@ -53,7 +53,7 @@ class AppointmentRepository:
     ) -> list[Appointment]:
         current_datetime = timezone.now()
 
-        query = Q(space__id=space_id)
+        query = Q(space__id=space_id, space__is_deleted=False)
 
         match status_type:
             case StatusType.UPCOMING:
@@ -134,9 +134,9 @@ class AppointmentRepository:
 
     def get_appointment(self, id_or_slug: str, allow_deleted: bool = False) -> Appointment:
         if is_uuid(id_or_slug):
-            appointment = Appointment.objects.get(id=id_or_slug)
+            appointment = Appointment.objects.get(space__is_deleted=False, id=id_or_slug)
         else:
-            appointment = Appointment.objects.get(slug=id_or_slug)
+            appointment = Appointment.objects.get(space__is_deleted=False, slug=id_or_slug)
 
         if appointment.is_deleted and not allow_deleted:
             raise ObjectDoesNotExist()

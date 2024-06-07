@@ -106,7 +106,7 @@ class Query:
                     output_field=IntegerField(),
                 )
             )
-            .filter(custom_order__isnull=False)
+            .filter(custom_order__isnull=False, is_deleted=False)
             .distinct()
             .order_by("custom_order", "-created")
             .cache(ops=["fetch", "count"], timeout=300),
@@ -172,19 +172,20 @@ class Query:
         created_spaces = MySpaces(section=_("Created"), type=SpaceUserConnectionType.CREATOR)
         created_spaces.query = (
             CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
-            .filter(creator=current_user)
+            .filter(creator=current_user, is_deleted=False)
             .order_by("-created")
         )
         member_spaces = MySpaces(section=_("Joined"), type=SpaceUserConnectionType.MEMBER)
         member_spaces.query = (
             CommunityModel.objects.prefetch_related("links", "memberships__user__profile")
-            .filter(Q(memberships__user=current_user), ~Q(creator=current_user))
+            .filter(Q(memberships__user=current_user), ~Q(creator=current_user), Q(is_deleted=False))
+            .filter(is_deleted=False)
             .order_by("-created")
         )
         invited_spaces = MySpaces(section=_("Invited"), type=SpaceUserConnectionType.MEMBERSHIP_INVITEE)
         invited_spaces.query = (
             CommunityModel.objects.prefetch_related("links", "invites__invited_user__profile")
-            .filter(Q(invites__invited_user=current_user))
+            .filter(Q(invites__invited_user=current_user), Q(is_deleted=False))
             .order_by("-created")
         )
         requested_spaces = MySpaces(section=_("Requested"), type=SpaceUserConnectionType.MEMBERSHIP_REQUESTOR)
@@ -193,8 +194,7 @@ class Query:
                 "links", "invites__invited_user__profile", "membership_requests__user__profile"
             )
             .filter(
-                Q(membership_requests__user=current_user),
-                ~Q(invites__invited_user=current_user),
+                Q(membership_requests__user=current_user), ~Q(invites__invited_user=current_user), Q(is_deleted=False)
             )
             .order_by("-created")
         )
@@ -213,6 +213,7 @@ class Query:
                 ~Q(memberships__user=current_user),
                 ~Q(invites__invited_user=current_user),
                 ~Q(membership_requests__user=current_user),
+                Q(is_deleted=False),
             )
             .order_by("-created")
         )
@@ -339,6 +340,7 @@ class Query:
         return Paged.of(
             CommunityModel.objects.annotate(member_count=Count("memberships"))
             .filter(title_query)
+            .filter(is_deleted=False)
             # Bug HOLI-6780: added created as second order criterion for deterministic order.
             # This still has wrong order if while paging the membership counts change. Signed off by Max.
             .order_by("-member_count", "-created"),
