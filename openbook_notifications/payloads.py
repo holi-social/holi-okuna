@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from openbook_posts.models import Post
     from comments.models import Comment
     from openbook_appointments.models import Appointment
+    from openbook_polls.models import Poll
 
 
 class NotificationType(Enum):
@@ -33,6 +34,7 @@ class NotificationType(Enum):
     SPACE_APPOINTMENT_CREATION = "SPACE_APPOINTMENT_CREATION"
     SPACE_APPOINTMENT_UPDATE = "SPACE_APPOINTMENT_UPDATE"
     SPACE_APPOINTMENT_DELETION = "SPACE_APPOINTMENT_DELETION"
+    POLL_UPDATES = "POLL_UPDATES"
 
 
 class UserData:
@@ -241,6 +243,23 @@ class CommentData:
 
         # default to base url
         return f"{settings.APP_URL}"
+
+
+class PollData:
+    def __init__(self, id: str, title: str, insight_id: str):
+        self.id = id
+        self.title = title
+        self.insight_id = insight_id
+
+    def to_dict(self):
+        return {"id": self.id, "title": self.title, "insightId": self.insight_id}
+
+    @classmethod
+    def from_poll(cls, poll: Poll):
+        # TODO: Update the following line when the relationship between insight and post
+        #  changes from many-to-many to one-to-many.
+        insight = poll.insights.first()
+        return cls(id=str(poll.id), title=poll.question_text, insight_id=str(insight.id))
 
 
 class Payload:
@@ -477,4 +496,17 @@ class SpaceAppointmentDeletionPayload(Payload):
             },
             notification_type=NotificationType.SPACE_APPOINTMENT_DELETION.value,
             notification_version=SpaceAppointmentDeletionPayload.NOTIFICATION_VERSION,
+        )
+
+
+class PollUpdatesPayload(Payload):
+    NOTIFICATION_VERSION = "1.0.0"
+
+    def __init__(self, poll: Poll):
+        super().__init__(
+            data={
+                "poll": PollData.from_poll(poll).to_dict(),
+            },
+            notification_type=NotificationType.POLL_UPDATES.value,
+            notification_version=PollUpdatesPayload.NOTIFICATION_VERSION,
         )

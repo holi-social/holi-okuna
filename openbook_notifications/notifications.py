@@ -25,6 +25,7 @@ from openbook_notifications.payloads import (
     SpaceMembershipRequestDeclinePayload,
     SpaceMembershipRequestPayload,
     SpaceNewPostPayload,
+    PollUpdatesPayload,
 )
 from openbook_notifications.toggles import notifications_toggle
 
@@ -46,6 +47,7 @@ class Workflow(Enum):
     SPACE_APPOINTMENT_CREATION = "space-appointment-creation"
     SPACE_APPOINTMENT_UPDATE = "space-appointment-update"
     SPACE_APPOINTMENT_DELETION = "space-appointment-deletion"
+    POLL_UPDATES = "poll-updates"
 
 
 # INTERNAL USE ONLY, use NotificationsService  to trigger notifications
@@ -322,6 +324,21 @@ class SpaceAppointmentDeletionNotification(Notification):
     ):
         super().__init__(
             workflow=Workflow.SPACE_APPOINTMENT_DELETION.value,
+            recipients=recipients,
+            payload=payload.to_dict(),
+            transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
+        )
+
+
+class PollUpdatesNotification(Notification):
+    def __init__(
+        self,
+        recipients: List[str],
+        payload: PollUpdatesPayload,
+        transaction_id: Optional[str] = None,
+    ):
+        super().__init__(
+            workflow=Workflow.POLL_UPDATES.value,
             recipients=recipients,
             payload=payload.to_dict(),
             transaction_id=transaction_id if transaction_id else str(uuid.uuid4()),
