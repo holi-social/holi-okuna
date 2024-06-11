@@ -2,8 +2,7 @@ from django.db import models
 from openbook_auth.models import User
 from django.utils import timezone
 from django.db import transaction
-from django.db.models import F
-
+from django.db.models import F, Sum
 
 from openbook_common.models import (
     ModelWithUUID,
@@ -12,6 +11,7 @@ from openbook_common.models import (
 from openbook_common.utils.helpers import (
     get_magic,
 )
+from openbook_notifications.services import NotificationsService
 
 from openbook_polls.checkers import (
     check_can_be_published,
@@ -146,3 +146,12 @@ class Vote(ModelWithUUID):
 
     class Meta:
         unique_together = ("user", "poll")
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        total_votes = Vote.objects.filter(poll=self.poll).aggregate(total_votes=Sum("choice__votes"))["total_votes"]
+        voters = User.objects.filter(vote__poll=self.poll).distinct()
+
+        if total_votes == 30 or total_votes == 100:
+            NotificationsService.send_poll_updates_notification(poll=self.poll, recipients=voters)
+        return self

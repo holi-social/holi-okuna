@@ -24,6 +24,7 @@ from openbook_notifications.notifications import (
     SpaceAppointmentCreationNotification,
     SpaceAppointmentUpdateNotification,
     SpaceAppointmentDeletionNotification,
+    PollUpdatesNotification,
 )
 from openbook_notifications.payloads import (
     SpaceMembershipRequestPayload,
@@ -40,8 +41,8 @@ from openbook_notifications.payloads import (
     SpaceAppointmentCreationPayload,
     SpaceAppointmentUpdatePayload,
     SpaceAppointmentDeletionPayload,
+    PollUpdatesPayload,
 )
-
 
 if TYPE_CHECKING:
     from openbook_auth.models import User
@@ -49,6 +50,7 @@ if TYPE_CHECKING:
     from openbook_appointments.models import Appointment
     from openbook_communities.models import CommunityInvite, CommunityMembershipRequest
     from openbook_communities.models import Community
+    from openbook_polls.models import Poll
 
 logger = logging.getLogger(__name__)
 
@@ -314,5 +316,16 @@ class NotificationsService:
         notification = SpaceAppointmentDeletionNotification(
             recipients=[str(recipient.username) for recipient in recipients],
             payload=SpaceAppointmentDeletionPayload(space=space, appointment=appointment),
+        )
+        notification.send()
+
+    @staticmethod
+    def send_poll_updates_notification(
+        poll: Poll,
+        recipients: List[User],
+    ):
+        notification = PollUpdatesNotification(
+            recipients=[str(recipient.username) for recipient in recipients],
+            payload=PollUpdatesPayload(poll=poll),
         )
         notification.send()
