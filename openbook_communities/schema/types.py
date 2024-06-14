@@ -1,12 +1,14 @@
 import logging
 import uuid
-from typing import Annotated, List, Optional, TypeVar
+from typing import Annotated, List, Optional, TypeVar, TypeAlias, Any
 
 import strawberry
 import strawberry_django
 from django.db.models import Q
 from django.utils import timezone
+from strawberry.django.context import StrawberryDjangoContext
 from strawberry.file_uploads import Upload
+from strawberry.types import Info as StrawberryInfo
 
 from openbook_appointments.schema.types import Appointment
 from openbook_auth.models import User as UserModel
@@ -38,6 +40,7 @@ from openbook_terms.schema.types import SDG, Skill, Topic
 logger = logging.getLogger(__name__)
 
 GenericType = TypeVar("GenericType")
+Info: TypeAlias = StrawberryInfo[StrawberryDjangoContext, Any]
 
 
 @strawberry.input
@@ -254,7 +257,6 @@ class Space:
     cover_blurhash: Optional[str]
     location: strawberry.auto
     links: List[Optional[ExternalLink]]
-    tasks: List[Optional["Task"]]
     topics: List[Optional[Topic]]
     sdgs: List[Optional[SDG]]
     contact_description: Optional[str]
@@ -402,6 +404,11 @@ class Space:
             offset,
             limit,
         )
+
+    @strawberry_django.field()
+    def tasks(self, info: Info) -> list[Task]:
+        current_user: UserModel = info.context.request.user
+        return TaskModel.objects.filter(community=self).filter(TaskModel.is_visible_query(current_user))
 
 
 @strawberry.type
