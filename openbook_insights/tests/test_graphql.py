@@ -178,11 +178,7 @@ class TestInsights:
         post_title_draft = make_fake_post_title()
 
         now = timezone.now()
-        insight1 = Insight.objects.create(
-            creator=insight_user,
-            title="Insight 1",
-            date_published=now,
-        )
+        insight1 = Insight.objects.create(creator=insight_user, title="Insight 1", date_published=now)
 
         post1 = posting_user.create_post(text=post_text_public, title=post_title_public, is_public=True)
         post2 = posting_user.create_post(text=post_text_public, title=post_title_public, is_public=True)
@@ -319,6 +315,38 @@ class TestInsights:
         insight1_result = insights[0]
         assert insight1_result["title"] == insight1.title
         assert len(insight1_result["posts"]) == 1
+
+    def test_insight_authors(self):
+        user_aa = make_user(name="firstA", last_name="lastA")
+        user_bc = make_user(name="firstB", last_name="lastC")
+        user_cb = make_user(name="firstC", last_name="lastB")
+        make_user(name="firstOther", last_name="other")
+
+        now = timezone.now()
+        Insight.objects.create(creator=user_aa, title="Insight 1", date_published=now)
+        Insight.objects.create(creator=user_bc, title="Insight 2", date_published=now)
+        Insight.objects.create(creator=user_cb, title="Insight 3", date_published=now)
+        Insight.objects.create(creator=None, title="Insight 3", date_published=now)
+        Insight.objects.create(creator=user_bc, title="Insight 3", date_published=now)
+
+        response = async_to_sync(schema.execute)(
+            """
+            query {
+                insightAuthors {
+                    totalResults
+                    data {
+                        firstName
+                        lastName
+                    }
+                }
+            }
+            """,
+            context_value=benedict({"request": {"user": AnonymousUser}}),
+        )
+        assert response.data["insightAuthors"]["totalResults"] == 3
+        assert response.data["insightAuthors"]["data"][0]["firstName"] == "firstA"
+        assert response.data["insightAuthors"]["data"][1]["firstName"] == "firstB"
+        assert response.data["insightAuthors"]["data"][2]["firstName"] == "firstC"
 
 
 @pytest.mark.django_db
