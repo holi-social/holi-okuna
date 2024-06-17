@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 import pytest
 from asgiref.sync import async_to_sync
@@ -10,6 +11,7 @@ from django.test import AsyncClient
 from django.utils import timezone
 
 from openbook.graphql_schema import schema
+from openbook_auth.models import User
 from openbook_common.tests.helpers import (
     make_fake_post_text,
     make_fake_post_title,
@@ -320,14 +322,16 @@ class TestInsights:
         user_aa = make_user(name="firstA", last_name="lastA")
         user_bc = make_user(name="firstB", last_name="lastC")
         user_cb = make_user(name="firstC", last_name="lastB")
-        make_user(name="firstOther", last_name="other")
+        make_user(name="firstOther", last_name="lastOther")
+        user_without_profile = User.objects.create(username=str(uuid.uuid4()), email="ab@test.de", password="password")
 
         now = timezone.now()
         Insight.objects.create(creator=user_aa, title="Insight 1", date_published=now)
         Insight.objects.create(creator=user_bc, title="Insight 2", date_published=now)
         Insight.objects.create(creator=user_cb, title="Insight 3", date_published=now)
-        Insight.objects.create(creator=None, title="Insight 3", date_published=now)
-        Insight.objects.create(creator=user_bc, title="Insight 3", date_published=now)
+        Insight.objects.create(creator=None, title="Insight 4", date_published=now)
+        Insight.objects.create(creator=user_bc, title="Insight 5", date_published=now)
+        Insight.objects.create(creator=user_without_profile, title="Insight 6", date_published=now)
 
         response = async_to_sync(schema.execute)(
             """
@@ -337,12 +341,19 @@ class TestInsights:
                     data {
                         firstName
                         lastName
+                        id
+                        avatar
+                        avatarBlurhash
+                        avatarLabel
+                        avatarDefaultColor
+                        fullName
                     }
                 }
             }
             """,
             context_value=benedict({"request": {"user": AnonymousUser}}),
         )
+        assert response.errors is None
         assert response.data["insightAuthors"]["totalResults"] == 3
         assert response.data["insightAuthors"]["data"][0]["firstName"] == "firstA"
         assert response.data["insightAuthors"]["data"][1]["firstName"] == "firstB"

@@ -72,7 +72,7 @@ class Query:
     @strawberry_django.field()
     def insight_authors(self, limit: int = 10, offset: int = 0) -> Paged[User]:
         return Paged.of(
-            UserModel.objects.filter(curated_insights__isnull=False)
+            UserModel.objects.filter(curated_insights__isnull=False, profile__isnull=False)
             .order_by("profile__name", "profile__last_name")
             .distinct(),
             limit=limit,
