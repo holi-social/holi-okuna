@@ -270,6 +270,8 @@ class User(ModelWithUUID, AbstractUser):
 
     is_moderator = models.BooleanField(default=False)
 
+    is_staff = models.BooleanField(default=False)
+
     tracking_consent_analytics = models.BooleanField(blank=True, null=True, default=None)
     tracking_consent_personalization = models.BooleanField(blank=True, null=True, default=None)
 

@@ -121,6 +121,7 @@ class User:
 class AuthenticatedUser(User):
     tracking_consent_analytics: Optional[bool]
     tracking_consent_personalization: Optional[bool]
+    is_staff: bool
 
 
 @strawberry.input

@@ -130,6 +130,7 @@ class TestUsers:
                     engagementLevel
                     trackingConsentAnalytics
                     trackingConsentPersonalization
+                    isStaff
                 }
             }
         """
@@ -148,6 +149,7 @@ class TestUsers:
         assert authenticated_user["engagementLevel"] == user.profile.engagement_level
         assert authenticated_user["trackingConsentAnalytics"] == user.tracking_consent_analytics
         assert authenticated_user["trackingConsentPersonalization"] == user.tracking_consent_personalization
+        assert authenticated_user["isStaff"] == user.is_staff
 
         mock_create_or_update_subscriber.assert_called_once_with(
             user=user, locale=mock_get_language_from_request.return_value
