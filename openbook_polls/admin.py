@@ -12,6 +12,7 @@ class ChoiceInline(admin.TabularInline):
     readonly_fields = ["votes"]
 
 
+@admin.register(Poll)
 class PollAdmin(admin.ModelAdmin):
     inlines = [ChoiceInline]
     list_display = [
@@ -21,6 +22,3 @@ class PollAdmin(admin.ModelAdmin):
         "creator",
     ]
     list_filter = (("created", DateRangeQuickSelectListFilterBuilder(title="Created")),)
-
-
-admin.site.register(Poll, PollAdmin)

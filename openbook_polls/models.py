@@ -49,6 +49,9 @@ class Poll(ModelWithUUID):
 
     is_public = models.BooleanField(default=False, db_index=True)
 
+    def __str__(self) -> str:
+        return f'"{self.question_text}" ({self.id})'
+
     @classmethod
     def create_poll(
         cls,
