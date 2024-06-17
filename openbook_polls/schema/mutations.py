@@ -40,7 +40,8 @@ class Mutation:
                 raise Exception("User has already voted for this poll")
 
             choice.increment_votes()
-
             VoteModel.objects.create(user=current_user, choice=choice, poll=poll)
+
+            choice.refresh_from_db()
 
         return choice
