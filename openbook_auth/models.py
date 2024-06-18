@@ -270,7 +270,8 @@ class User(ModelWithUUID, AbstractUser):
 
     is_moderator = models.BooleanField(default=False)
 
-    is_staff = models.BooleanField(default=False)
+    # introduced in HOLI-8545 as a means to be able to filter out employees within PostHog analytics
+    is_employee = models.BooleanField(default=False, help_text='Designates whether the user is an employee.', verbose_name='employee status')
 
     tracking_consent_analytics = models.BooleanField(blank=True, null=True, default=None)
     tracking_consent_personalization = models.BooleanField(blank=True, null=True, default=None)
