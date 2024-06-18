@@ -32,7 +32,7 @@ class Poll(ModelWithUUID):
     question_text = models.CharField(max_length=200)
     created = models.DateTimeField(editable=False, db_index=True)
     modified = models.DateTimeField(db_index=True, default=timezone.now)
-    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="poll", null=True)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name="polls", null=True)
 
     is_edited = models.BooleanField(default=False)
     is_closed = models.BooleanField(default=False)
@@ -124,11 +124,11 @@ class Poll(ModelWithUUID):
         if user.is_anonymous:
             return pQ(is_deleted=False, status=Poll.STATUS_PUBLISHED, is_public=True)
 
-        return pQ(is_deleted=False) & ((pQ(creator=user)) | (pQ(status=Poll.STATUS_PUBLISHED) & (pQ(is_public=True))))
+        return pQ(is_deleted=False) & (pQ(creator=user) | (pQ(status=Poll.STATUS_PUBLISHED) & pQ(is_public=True)))
 
 
 class Choice(ModelWithUUID):
-    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="poll")
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="choices")
     choice_text = models.CharField(max_length=200)
     votes = models.IntegerField(default=0)
 
@@ -139,6 +139,9 @@ class Choice(ModelWithUUID):
     def increment_votes(self):
         self.votes = F("votes") + 1
         self.save()
+
+    class Meta:
+        order_with_respect_to = "poll"
 
 
 class Vote(ModelWithUUID):
