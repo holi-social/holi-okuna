@@ -130,7 +130,7 @@ class TestUsers:
                     engagementLevel
                     trackingConsentAnalytics
                     trackingConsentPersonalization
-                    isStaff
+                    isEmployee
                 }
             }
         """

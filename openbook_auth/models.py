@@ -12,7 +12,6 @@ import strawberry
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models
 from django.core import validators
 from django.core.cache import caches
@@ -86,9 +85,7 @@ from openbook_common.utils.model_loaders import (
     get_user_notifications_subscription_model,
     get_notification_model,
     get_task_model,
-    get_insight_model,
     get_poll_model,
-    get_choice_model,
     get_insight_model,
     get_quote_reaction_model,
     get_recommendation_reaction_model,
@@ -271,7 +268,9 @@ class User(ModelWithUUID, AbstractUser):
     is_moderator = models.BooleanField(default=False)
 
     # introduced in HOLI-8545 as a means to be able to filter out employees within PostHog analytics
-    is_employee = models.BooleanField(default=False, help_text='Designates whether the user is an employee.', verbose_name='employee status')
+    is_employee = models.BooleanField(
+        default=False, help_text="Designates whether the user is an employee.", verbose_name="employee status"
+    )
 
     tracking_consent_analytics = models.BooleanField(blank=True, null=True, default=None)
     tracking_consent_personalization = models.BooleanField(blank=True, null=True, default=None)
