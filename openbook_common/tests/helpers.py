@@ -294,11 +294,13 @@ def make_community_invites_enabled():
     return fake.boolean()
 
 
-def make_community_task(community, skills=None, visibility=VisibilityType.MEMBERS):
+def make_community_task(community, skills=None, visibility=VisibilityType.MEMBERS, is_deleted=False):
     if not skills:
         skills = [make_skill()]
 
-    return mixer.blend(Task, community=community, skills=skills, visibility=visibility)
+    deleted_at = timezone.now() if is_deleted else None
+
+    return mixer.blend(Task, community=community, skills=skills, visibility=visibility, deleted_at=deleted_at)
 
 
 def make_community(

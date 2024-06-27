@@ -19,6 +19,8 @@ from openbook_common.utils.model_loaders import (
     get_moderation_penalty_model,
     get_post_model,
     get_user_model,
+    get_task_model,
+    get_appointment_model,
 )
 
 if typing.TYPE_CHECKING:
@@ -281,6 +283,8 @@ class ModeratedObject(ModelWithUUID):
         Community = get_community_model()
         User = get_user_model()
         ModerationPenalty = get_moderation_penalty_model()
+        Task = get_task_model()
+        Appointment = get_appointment_model()
 
         content_object = self.content_object
         moderation_severity = self.category.severity
@@ -289,7 +293,7 @@ class ModeratedObject(ModelWithUUID):
         if self.is_approved():
             if isinstance(content_object, User):
                 penalty_targets = [content_object]
-            elif isinstance(content_object, Post):
+            elif isinstance(content_object, (Post, Task, Appointment)):
                 penalty_targets = [content_object.creator]
             elif isinstance(content_object, Comment):
                 penalty_targets = [content_object.commenter]
@@ -326,11 +330,9 @@ class ModeratedObject(ModelWithUUID):
                     expiration=moderation_expiration,
                 )
 
-            if (
-                isinstance(content_object, Post)
-                or isinstance(content_object, Comment)
-                or isinstance(content_object, Community)
-            ) or (isinstance(content_object, User) and moderation_severity == ModerationCategory.SEVERITY_CRITICAL):
+            if isinstance(content_object, (Post, Comment, Community, Task, Appointment)) or (
+                isinstance(content_object, User) and moderation_severity == ModerationCategory.SEVERITY_CRITICAL
+            ):
                 content_object.soft_delete()
 
                 if moderation_severity == ModerationCategory.SEVERITY_CRITICAL and isinstance(content_object, Post):
