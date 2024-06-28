@@ -9,6 +9,7 @@ class Connection(ModelWithUUID):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="connections")
     target_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="targeted_connections", null=False)
     target_connection = models.OneToOneField("self", on_delete=models.CASCADE, null=True)
+    created = models.DateTimeField(editable=False, auto_now_add=True)
 
     class Meta:
         unique_together = ("user", "target_user")
