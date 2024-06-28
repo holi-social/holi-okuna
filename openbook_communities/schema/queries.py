@@ -278,8 +278,13 @@ class Query:
     def task_by_id(self, info, id: uuid.UUID) -> Optional[Task]:
         current_user = info.context.request.user
         task = TaskModel.objects.get(id=id)
+
+        if task.deleted_at:
+            raise TaskModel.DoesNotExist()
+
         if TaskModel.objects.filter(id=id).filter(TaskModel.is_visible_query(current_user)).exists():
             return task
+
         raise PermissionDenied()
 
     @strawberry_django.field()

@@ -1,6 +1,5 @@
 from asgiref.sync import async_to_sync
 from benedict import benedict
-from django.contrib.auth.models import AnonymousUser
 
 from openbook.graphql_schema import schema
 from openbook_communities.enums import UpdateConnectionAction

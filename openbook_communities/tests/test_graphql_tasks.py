@@ -1041,6 +1041,81 @@ class TestTasks:
         )
         assert_is_404(response)
 
+    def test_deleted_tasks_cannot_be_fetched(self) -> None:
+        user = make_user()
+        space = make_community(creator=user)
+
+        deleted_task = make_community_task(space, is_deleted=True)
+
+        tasks_query = """
+            query Task($id: UUID!) {
+                taskById(id: $id) {
+                    id
+                }
+            }
+        """
+
+        response = async_to_sync(schema.execute)(
+            tasks_query,
+            variable_values={"id": str(deleted_task.id)},
+            context_value=benedict({"request": {"user": user}}),
+        )
+
+        assert_is_404(response)
+
+    def test_deleted_tasks_are_not_returned_by_space_id(self) -> None:
+        user = make_user()
+        space = make_community(creator=user)
+
+        _public_task = make_community_task(space, visibility=VisibilityType.PUBLIC)
+        deleted_task = make_community_task(space, is_deleted=True)
+
+        query = """
+            query TasksBySpace($spaceId: UUID!) {
+                tasksBySpaceId(spaceId: $spaceId) {
+                    data {
+                        id
+                    }
+                    
+                    totalResults
+                }
+            }
+        """
+
+        response = async_to_sync(schema.execute)(
+            query, variable_values={"spaceId": str(space.id)}, context_value=benedict({"request": {"user": user}})
+        )
+
+        assert response.errors is None
+        assert str(deleted_task.id) not in [task["id"] for task in response.data["tasksBySpaceId"]["data"]]
+        assert response.data["tasksBySpaceId"]["totalResults"] == 1
+
+    def test_deleted_tasks_are_not_returned_with_space(self) -> None:
+        user = make_user()
+        space = make_community(creator=user)
+
+        _public_task = make_community_task(space, visibility=VisibilityType.PUBLIC)
+        deleted_task = make_community_task(space, is_deleted=True)
+
+        query = """
+            query Space($spaceId: String!) {
+                spaceById(idOrName: $spaceId) {
+                    id
+                    tasks {
+                        id
+                    }
+                }
+            }
+        """
+
+        response = async_to_sync(schema.execute)(
+            query, variable_values={"spaceId": str(space.id)}, context_value=benedict({"request": {"user": user}})
+        )
+
+        assert response.errors is None
+        assert str(deleted_task.id) not in [task["id"] for task in response.data["spaceById"]["tasks"]]
+        assert len(response.data["spaceById"]["tasks"]) == 1
+
 
 @pytest.mark.django_db
 class TestTaskRecommendations:

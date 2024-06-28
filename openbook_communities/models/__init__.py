@@ -1299,14 +1299,25 @@ class Task(ModelWithUUID):
         null=True,
     )
 
+    deleted_at = models.DateTimeField(blank=True, null=True, default=None)
+
+    @property
+    def is_deleted(self) -> bool:
+        return self.deleted_at is not None
+
     @staticmethod
     def is_visible_query(user, prefix=None):
         pQ = PrefixedQ(prefix)
         space_not_moderated = pQ(community__is_deleted=False)
+        not_deleted = pQ(deleted_at=None)
+
         if user.is_anonymous:
-            return space_not_moderated & pQ(visibility=VisibilityType.PUBLIC)
-        return space_not_moderated & (
-            pQ(visibility=VisibilityType.PUBLIC) | pQ(community__memberships__user__id=user.id)
+            return space_not_moderated & not_deleted & pQ(visibility=VisibilityType.PUBLIC)
+
+        return (
+            space_not_moderated
+            & not_deleted
+            & (pQ(visibility=VisibilityType.PUBLIC) | pQ(community__memberships__user__id=user.id))
         )
 
     def clear_skills(self):
@@ -1399,6 +1410,14 @@ class Task(ModelWithUUID):
 
         self.save()
         return self
+
+    def soft_delete(self, save: bool = True) -> None:
+        if self.is_deleted:
+            return
+
+        self.deleted_at = timezone.now()
+        if save:
+            self.save()
 
     def _update_thumbnail(self, thumbnail, save=True):
         if self.thumbnail:
