@@ -425,7 +425,7 @@ class TestFeedPosts(TestCase):
         response = update_feed_post_reaction(
             user=AnonymousUser,
             post_id=post_id,
-            reaction_type=ReactionType.HEART,
+            reaction_type=ReactionType.SUPPORT,
             reaction_action=ReactionAction.SET.value,
         )
 
@@ -443,14 +443,14 @@ class TestFeedPosts(TestCase):
         response = update_feed_post_reaction(
             user=self.another_user,
             post_id=post_id,
-            reaction_type=ReactionType.HEART,
+            reaction_type=ReactionType.LOVE,
             reaction_action=ReactionAction.SET.value,
         )
 
         data = response.data["updateFeedPostReaction"]
 
-        assert data["myReaction"] == {"HEART": 1}
-        assert data["reactions"] == {"HEART": 1}
+        assert data["myReaction"]["LOVE"] == 1
+        assert data["reactions"]["LOVE"] == 1
 
     def test_can_remove_reaction_to_feed_post_if_authenticated_user(self):
         mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
@@ -462,7 +462,7 @@ class TestFeedPosts(TestCase):
         update_feed_post_reaction(
             user=self.another_user,
             post_id=post_id,
-            reaction_type=ReactionType.HEART,
+            reaction_type=ReactionType.SUPPORT,
             reaction_action=ReactionAction.SET.value,
         )
 
@@ -470,14 +470,45 @@ class TestFeedPosts(TestCase):
         response = update_feed_post_reaction(
             user=self.another_user,
             post_id=post_id,
-            reaction_type=ReactionType.HEART,
+            reaction_type=ReactionType.SUPPORT,
             reaction_action=ReactionAction.REMOVE.value,
         )
 
         data = response.data["updateFeedPostReaction"]
 
-        assert data["myReaction"] == {"HEART": 0}
-        assert data["reactions"] == {"HEART": 0}
+        assert data["myReaction"]["SUPPORT"] == 0
+        assert data["reactions"]["SUPPORT"] == 0
+
+    def test_can_update_reaction_to_feed_post_if_authenticated_user(self):
+        mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        assert mutation_response.errors is None
+
+        post_id = mutation_response.data["createFeedPost"]["id"]
+
+        response = update_feed_post_reaction(
+            user=self.another_user,
+            post_id=post_id,
+            reaction_type=ReactionType.LOVE,
+            reaction_action=ReactionAction.SET.value,
+        )
+
+        data = response.data["updateFeedPostReaction"]
+
+        assert data["myReaction"]["LOVE"] == 1
+        assert data["reactions"]["LOVE"] == 1
+
+        response = update_feed_post_reaction(
+            user=self.another_user,
+            post_id=post_id,
+            reaction_type=ReactionType.SUPPORT,
+            reaction_action=ReactionAction.SET.value,
+
+        )
+        data = response.data["updateFeedPostReaction"]
+        assert data["myReaction"]["LOVE"] == 0
+        assert data["reactions"]["LOVE"] == 0
+        assert data["myReaction"]["SUPPORT"] == 1
+        assert data["reactions"]["SUPPORT"] == 1
 
     def test_can_mention_users_in_feed_post(self):
         # create feed post with 2 mentioned users

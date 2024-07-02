@@ -54,9 +54,21 @@ def get_post_with_id_raw(post_id, user=None):
                 }}
                 myReaction {{
                     HEART
+                    LOVE
+                    SUPPORT
+                    HOPE
+                    CELEBRATE
+                    INSIGHT
+                    SUCCESS
                 }}
                 reactions {{
                     HEART
+                    LOVE
+                    SUPPORT
+                    HOPE
+                    CELEBRATE
+                    INSIGHT
+                    SUCCESS
                 }}
             }}
         }}
@@ -167,9 +179,21 @@ def react_to_post(post, action, posting_user):
             updatePostReaction(id: $id, reactionType: $reactionType, reactionAction: $reactionAction) {
                 myReaction {
                     HEART
+                    LOVE
+                    SUPPORT
+                    HOPE
+                    CELEBRATE
+                    INSIGHT
+                    SUCCESS
                 }
                 reactions {
                     HEART
+                    LOVE
+                    SUPPORT
+                    HOPE
+                    CELEBRATE
+                    INSIGHT
+                    SUCCESS
                 }
             }
         }

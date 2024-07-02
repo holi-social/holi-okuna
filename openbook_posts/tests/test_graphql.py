@@ -216,18 +216,21 @@ class TestPosts(TestCase):
         executed = react_to_post(post, "SET", posting_user)  # setting twice is same as setting once
         updated_post = executed.data["updatePostReaction"]
 
-        assert updated_post["myReaction"]["HEART"] == 1
-        assert updated_post["reactions"]["HEART"] == 1
+        assert updated_post["myReaction"]["HEART"] == 0
+        assert updated_post["reactions"]["HEART"] == 0
+
+        assert updated_post["myReaction"]["LOVE"] == 1
+        assert updated_post["reactions"]["LOVE"] == 1
 
         post_data = get_post_with_id_data(post, other_user)
-        assert post_data["myReaction"]["HEART"] == 0
-        assert post_data["reactions"]["HEART"] == 1
+        assert post_data["myReaction"]["LOVE"] == 0
+        assert post_data["reactions"]["LOVE"] == 1
 
         react_to_post(post, "REMOVE", posting_user)
         executed = react_to_post(post, "REMOVE", posting_user)  # setting twice is same as setting once
         updated_post = executed.data["updatePostReaction"]
-        assert updated_post["myReaction"]["HEART"] == 0
-        assert updated_post["reactions"]["HEART"] == 0
+        assert updated_post["myReaction"]["LOVE"] == 0
+        assert updated_post["reactions"]["LOVE"] == 0
 
     def test_space_user_can_create_space_post(self):
         space_admin = make_user()

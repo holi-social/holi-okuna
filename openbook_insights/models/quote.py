@@ -71,11 +71,11 @@ class QuoteReaction(ModelWithUUID):
     @classmethod
     def create_reaction(cls, reactor: User, reaction_type: ReactionType, quote: Quote):
         QuoteReaction.objects.filter(reactor=reactor, quote=quote).delete()
-        return QuoteReaction.objects.create(reactor=reactor, reaction_type=reaction_type, quote=quote)
+        return QuoteReaction.objects.create(reactor=reactor, reaction_type=ReactionType.get_value(reaction_type), quote=quote)
 
     @classmethod
     def remove_reaction(cls, reactor: User, reaction_type: ReactionType, quote: Quote):
-        return QuoteReaction.objects.filter(reactor=reactor, reaction_type=reaction_type, quote=quote).delete()
+        return QuoteReaction.objects.filter(reactor=reactor, reaction_type=ReactionType.get_value(reaction_type), quote=quote).delete()
 
     @classmethod
     def count_reactions(cls, quote_id: uuid.UUID, reactor_id: uuid.UUID = None, reaction_type: ReactionType = None):

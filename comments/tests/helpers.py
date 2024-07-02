@@ -134,16 +134,26 @@ def delete_comment(user, comment_id):
     )
 
 
-def add_reaction_to_comment(comment, posting_user):
+def add_reaction_to_comment(comment, reaction_type, posting_user):
     return async_to_sync(schema.execute)(
         """
         mutation test($input: CommentReactionInput!) {
             addReactionToComment(input: $input) {
                 myReaction {
-                    HEART
+                    LOVE
+                    SUPPORT
+                    HOPE
+                    CELEBRATE
+                    INSIGHT
+                    SUCCESS
                 }
                 reactions {
-                    HEART
+                    LOVE
+                    SUPPORT
+                    HOPE
+                    CELEBRATE
+                    INSIGHT
+                    SUCCESS
                 }
             }
         }
@@ -152,22 +162,32 @@ def add_reaction_to_comment(comment, posting_user):
         variable_values={
             "input": {
                 "commentId": str(comment.id),
-                "reactionType": "HEART",
+                "reactionType": reaction_type,
             }
         },
     )
 
 
-def remove_reaction_from_comment(comment, posting_user):
+def remove_reaction_from_comment(comment, reaction_type, posting_user):
     return async_to_sync(schema.execute)(
         """
         mutation test($input: CommentReactionInput!) {
             removeReactionFromComment(input: $input) {
                 myReaction {
-                    HEART
+                    LOVE
+                    SUPPORT
+                    HOPE
+                    CELEBRATE
+                    INSIGHT
+                    SUCCESS
                 }
                 reactions {
-                    HEART
+                    LOVE
+                    SUPPORT
+                    HOPE
+                    CELEBRATE
+                    INSIGHT
+                    SUCCESS
                 }
             }
         }
@@ -176,7 +196,7 @@ def remove_reaction_from_comment(comment, posting_user):
         variable_values={
             "input": {
                 "commentId": str(comment.id),
-                "reactionType": "HEART",
+                "reactionType": reaction_type,
             }
         },
     )

@@ -190,7 +190,7 @@ class TestPostComments(TestCase):
 
         post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
         comment = post.comment(text="comment text", commenter=comment_user)
-        reaction = comment.react(posting_user, "HEART")
+        reaction = comment.react(posting_user, "SUPPORT")
         post.comment(text="comment text 2", commenter=comment_user)
 
         response = delete_post_comment(comment.id, comment_user)
@@ -211,7 +211,7 @@ class TestPostComments(TestCase):
 
         post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
         comment = post.comment(text="comment text", commenter=comment_user)
-        reaction = comment.react(posting_user, "HEART")
+        reaction = comment.react(posting_user, "SUPPORT")
         post.comment(text="comment text 2", commenter=comment_user)
 
         response = delete_post_comment(comment.id, other_user)
@@ -230,7 +230,7 @@ class TestPostComments(TestCase):
 
         post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
         comment = post.comment(text="comment text", commenter=comment_user)
-        reaction = comment.react(posting_user, "HEART")
+        reaction = comment.react(posting_user, "SUPPORT")
         post.comment(text="comment text 2", commenter=comment_user)
 
         response = delete_post_comment("00000000-0000-0000-0000-000000000000", comment_user)
@@ -250,22 +250,22 @@ class TestPostComments(TestCase):
         post = posting_user.create_post(text=post_text, title=post_title, is_public=True)
         comment = post.comment(text="comment text", commenter=other_user)
 
-        react_to_post_comment(comment, "SET", posting_user)
-        executed = react_to_post_comment(comment, "SET", posting_user)  # setting twice is same as setting once
+        react_to_post_comment(comment, ReactionType.SUPPORT, "SET", posting_user)
+        executed = react_to_post_comment(comment, ReactionType.SUPPORT, "SET", posting_user)  # setting twice is same as setting once
         updated_post_comment = executed.data["updatePostCommentReaction"]
 
-        assert updated_post_comment["myReaction"]["HEART"] == 1
-        assert updated_post_comment["reactions"]["HEART"] == 1
+        assert updated_post_comment["myReaction"]["SUPPORT"] == 1
+        assert updated_post_comment["reactions"]["SUPPORT"] == 1
 
         post_data = get_post(post, other_user)
-        assert post_data["comments"][0]["myReaction"]["HEART"] == 0
-        assert post_data["comments"][0]["reactions"]["HEART"] == 1
+        assert post_data["comments"][0]["myReaction"]["SUPPORT"] == 0
+        assert post_data["comments"][0]["reactions"]["SUPPORT"] == 1
 
-        react_to_post_comment(comment, "REMOVE", posting_user)
-        executed = react_to_post_comment(comment, "REMOVE", posting_user)  # setting twice is same as setting once
+        react_to_post_comment(comment, ReactionType.SUPPORT, "REMOVE", posting_user)
+        executed = react_to_post_comment(comment, ReactionType.SUPPORT, "REMOVE", posting_user)  # setting twice is same as setting once
         updated_post_comment = executed.data["updatePostCommentReaction"]
-        assert updated_post_comment["myReaction"]["HEART"] == 0
-        assert updated_post_comment["reactions"]["HEART"] == 0
+        assert updated_post_comment["myReaction"]["SUPPORT"] == 0
+        assert updated_post_comment["reactions"]["SUPPORT"] == 0
 
 
 @pytest.mark.usefixtures("mock_novu_api")
@@ -388,7 +388,7 @@ class TestDeletingComments(TestCase):
     def test_should_delete_own_comment(self):
         comment = make_space_post_comment()
         commenter = comment.commenter
-        comment.react(commenter, "HEART")
+        comment.react(commenter, "SUPPORT")
 
         response = delete_comment(commenter, comment.id)
 
@@ -401,7 +401,7 @@ class TestDeletingComments(TestCase):
         other_user = make_user(name="Other")
         comment = make_space_post_comment()
         commenter = comment.commenter
-        comment.react(commenter, "HEART")
+        comment.react(commenter, "SUPPORT")
 
         response = delete_comment(other_user, comment.id)
 
@@ -449,28 +449,31 @@ class TestReactingToComments(TestCase):
         comment = make_space_post_comment()
         commenter = comment.commenter
         other_user = make_user(name="Other")
+        reactor = make_user()
 
-        add_reaction_to_comment(comment, other_user)
-        response = add_reaction_to_comment(comment, commenter)
+        add_reaction_to_comment(comment, ReactionType.LOVE, other_user)
+        add_reaction_to_comment(comment, ReactionType.LOVE, reactor)
+        response = add_reaction_to_comment(comment, ReactionType.SUPPORT, commenter)
 
         assert response.errors is None
         updated_comment = response.data["addReactionToComment"]
-        assert updated_comment["myReaction"]["HEART"] == 1
-        assert updated_comment["reactions"]["HEART"] == 2
+        assert updated_comment["myReaction"]["LOVE"] == 0
+        assert updated_comment["reactions"]["SUPPORT"] == 1
+        assert updated_comment["reactions"]["LOVE"] == 2
 
     def test_should_be_able_to_remove_a_reaction_to_a_comment(self):
         comment = make_space_post_comment()
         commenter = comment.commenter
         other_user = make_user(name="Other")
-        comment.react(other_user, ReactionType.HEART)
-        comment.react(commenter, ReactionType.HEART)
+        comment.react(other_user, ReactionType.SUPPORT)
+        comment.react(commenter, ReactionType.SUPPORT)
 
-        response = remove_reaction_from_comment(comment, commenter)
+        response = remove_reaction_from_comment(comment, ReactionType.SUPPORT, commenter)
 
         assert response.errors is None
         updated_comment = response.data["removeReactionFromComment"]
-        assert updated_comment["myReaction"]["HEART"] == 0
-        assert updated_comment["reactions"]["HEART"] == 1
+        assert updated_comment["myReaction"]["SUPPORT"] == 0
+        assert updated_comment["reactions"]["SUPPORT"] == 1
 
 
 @pytest.mark.usefixtures("mock_novu_api")

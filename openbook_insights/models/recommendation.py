@@ -78,13 +78,13 @@ class RecommendationReaction(ModelWithUUID):
     def create_reaction(cls, reactor: User, reaction_type: ReactionType, recommendation: Recommendation):
         RecommendationReaction.objects.filter(reactor=reactor, recommendation=recommendation).delete()
         return RecommendationReaction.objects.create(
-            reactor=reactor, reaction_type=reaction_type, recommendation=recommendation
+            reactor=reactor, reaction_type=ReactionType.get_value(reaction_type), recommendation=recommendation
         )
 
     @classmethod
     def remove_reaction(cls, reactor: User, reaction_type: ReactionType, recommendation: Recommendation):
         return RecommendationReaction.objects.filter(
-            reactor=reactor, reaction_type=reaction_type, recommendation=recommendation
+            reactor=reactor, reaction_type=ReactionType.get_value(reaction_type), recommendation=recommendation
         ).delete()
 
     @classmethod

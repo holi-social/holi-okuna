@@ -22,10 +22,20 @@ def get_post_with_id_raw(post_id, user=None):
                         fullName
                     }}
                     myReaction {{
-                        HEART
+                        LOVE
+                        SUPPORT
+                        HOPE
+                        CELEBRATE
+                        INSIGHT
+                        SUCCESS
                     }}
                     reactions {{
-                        HEART
+                        LOVE
+                        SUPPORT
+                        HOPE
+                        CELEBRATE
+                        INSIGHT
+                        SUCCESS
                     }}
                 }}
                 mentions {{
@@ -67,16 +77,26 @@ def delete_post_comment(post_comment_id, user):
     )
 
 
-def react_to_post_comment(post_comment, action, posting_user):
+def react_to_post_comment(post_comment, reaction_type, action, posting_user):
     return async_to_sync(schema.execute)(
         """
         mutation test($id: UUID!, $reactionType: ReactionType!, $reactionAction: ReactionAction!) {
             updatePostCommentReaction(id: $id, reactionType: $reactionType, reactionAction: $reactionAction) {
                 myReaction {
-                    HEART
+                    LOVE
+                    SUPPORT
+                    HOPE
+                    CELEBRATE
+                    INSIGHT
+                    SUCCESS
                 }
                 reactions {
-                    HEART
+                    LOVE
+                    SUPPORT
+                    HOPE
+                    CELEBRATE
+                    INSIGHT
+                    SUCCESS
                 }
             }
         }
@@ -84,7 +104,7 @@ def react_to_post_comment(post_comment, action, posting_user):
         context_value=benedict({"request": {"user": posting_user}}),
         variable_values={
             "id": str(post_comment.id),
-            "reactionType": "HEART",
+            "reactionType": reaction_type,
             "reactionAction": action,
         },
     )

@@ -112,10 +112,20 @@ def update_feed_post_reaction(
                     id
                 }
                 myReaction {
-                    HEART
+                    LOVE
+                    SUPPORT
+                    HOPE
+                    CELEBRATE
+                    INSIGHT
+                    SUCCESS
                 }
                 reactions {
-                    HEART
+                    LOVE
+                    SUPPORT
+                    HOPE
+                    CELEBRATE
+                    INSIGHT
+                    SUCCESS
                 }
             }
         }
