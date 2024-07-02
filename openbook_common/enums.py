@@ -6,7 +6,20 @@ from django.db.models import TextChoices
 
 @strawberry.enum
 class ReactionType(TextChoices):
-    HEART = ("HEART",)
+    HEART = ("HEART",)  # Deprecated
+    LOVE = ("LOVE",)
+    SUPPORT = ("SUPPORT",)
+    HOPE = ("HOPE",)
+    CELEBRATE = ("CELEBRATE",)
+    INSIGHT = ("INSIGHT",)
+    SUCCESS = ("SUCCESS",)
+
+    # 'HEART' is deprecated, use 'LOVE' instead
+    @classmethod
+    def get_value(cls, value):
+        if value == cls.HEART:
+            return cls.LOVE
+        return value
 
 
 @strawberry.enum

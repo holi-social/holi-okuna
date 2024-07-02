@@ -115,4 +115,10 @@ class Paged(Generic[T]):
 
 @strawberry.type
 class ReactionCounts:
-    HEART: int = 0
+    HEART: int = 0  # Deprecated
+    LOVE: int = 0
+    SUPPORT: int = 0
+    HOPE: int = 0
+    CELEBRATE: int = 0
+    INSIGHT: int = 0
+    SUCCESS: int = 0

@@ -1073,11 +1073,11 @@ class PostReaction(ModelWithUUID):
     @classmethod
     def create_reaction(cls, reactor, reaction_type, post):
         PostReaction.objects.filter(reactor=reactor, post=post).delete()
-        return PostReaction.objects.create(reactor=reactor, reaction_type=reaction_type, post=post)
+        return PostReaction.objects.create(reactor=reactor, reaction_type=ReactionType.get_value(reaction_type), post=post)
 
     @classmethod
     def remove_reaction(cls, reactor, reaction_type, post):
-        return PostReaction.objects.filter(reactor=reactor, reaction_type=reaction_type, post=post).delete()
+        return PostReaction.objects.filter(reactor=reactor, reaction_type=ReactionType.get_value(reaction_type), post=post).delete()
 
     @classmethod
     def count_reactions_for_post_with_id(cls, post_id, reactor_id=None, reaction_type=None):

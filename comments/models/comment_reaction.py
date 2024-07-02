@@ -24,12 +24,12 @@ class CommentReaction(ModelWithUUID):
     @classmethod
     def create_reaction(cls, reactor, reaction_type, comment):
         CommentReaction.objects.filter(reactor=reactor, post_comment=comment).delete()
-        return CommentReaction.objects.create(reactor=reactor, reaction_type=reaction_type, post_comment=comment)
+        return CommentReaction.objects.create(reactor=reactor, reaction_type=ReactionType.get_value(reaction_type), post_comment=comment)
 
     @classmethod
     def remove_reaction(cls, reactor, reaction_type, comment):
         return CommentReaction.objects.filter(
-            reactor=reactor, reaction_type=reaction_type, post_comment=comment
+            reactor=reactor, reaction_type=ReactionType.get_value(reaction_type), post_comment=comment
         ).delete()
 
     def save(self, *args, **kwargs):
