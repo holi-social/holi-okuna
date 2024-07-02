@@ -502,7 +502,6 @@ class TestFeedPosts(TestCase):
             post_id=post_id,
             reaction_type=ReactionType.SUPPORT,
             reaction_action=ReactionAction.SET.value,
-
         )
         data = response.data["updateFeedPostReaction"]
         assert data["myReaction"]["LOVE"] == 0

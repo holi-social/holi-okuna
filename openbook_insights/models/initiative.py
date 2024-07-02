@@ -66,7 +66,9 @@ class InitiativeReaction(ModelWithUUID):
     @classmethod
     def create_reaction(cls, reactor: User, reaction_type: ReactionType, initiative: Initiative):
         InitiativeReaction.objects.filter(reactor=reactor, initiative=initiative).delete()
-        return InitiativeReaction.objects.create(reactor=reactor, reaction_type=ReactionType.get_value(reaction_type), initiative=initiative)
+        return InitiativeReaction.objects.create(
+            reactor=reactor, reaction_type=ReactionType.get_value(reaction_type), initiative=initiative
+        )
 
     @classmethod
     def remove_reaction(cls, reactor: User, reaction_type: ReactionType, initiative: Initiative):

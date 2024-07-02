@@ -251,7 +251,9 @@ class TestPostComments(TestCase):
         comment = post.comment(text="comment text", commenter=other_user)
 
         react_to_post_comment(comment, ReactionType.SUPPORT, "SET", posting_user)
-        executed = react_to_post_comment(comment, ReactionType.SUPPORT, "SET", posting_user)  # setting twice is same as setting once
+        executed = react_to_post_comment(
+            comment, ReactionType.SUPPORT, "SET", posting_user
+        )  # setting twice is same as setting once
         updated_post_comment = executed.data["updatePostCommentReaction"]
 
         assert updated_post_comment["myReaction"]["SUPPORT"] == 1
@@ -262,7 +264,9 @@ class TestPostComments(TestCase):
         assert post_data["comments"][0]["reactions"]["SUPPORT"] == 1
 
         react_to_post_comment(comment, ReactionType.SUPPORT, "REMOVE", posting_user)
-        executed = react_to_post_comment(comment, ReactionType.SUPPORT, "REMOVE", posting_user)  # setting twice is same as setting once
+        executed = react_to_post_comment(
+            comment, ReactionType.SUPPORT, "REMOVE", posting_user
+        )  # setting twice is same as setting once
         updated_post_comment = executed.data["updatePostCommentReaction"]
         assert updated_post_comment["myReaction"]["SUPPORT"] == 0
         assert updated_post_comment["reactions"]["SUPPORT"] == 0
