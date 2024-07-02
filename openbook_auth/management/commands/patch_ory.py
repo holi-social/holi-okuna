@@ -1,12 +1,12 @@
-from django.core.management import BaseCommand
 import requests
+from django.core.management import BaseCommand
+
 from openbook.settings import ORY_BASE_URL
 from openbook_auth.management.common import (
     ORY_HEADER,
     no_ory_errors,
     get_ory_user,
 )
-
 from openbook_auth.tasks import update_ory
 
 
@@ -19,6 +19,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--id", required=False)
         parser.add_argument("--email", required=False)
+        parser.add_argument("--new_email", required=False)
         parser.add_argument("--password", required=False)
         parser.add_argument("--identity", required=False)
         parser.add_argument("--verified", action="store_true", required=False)
@@ -40,6 +41,8 @@ class Command(BaseCommand):
             self.set_password(ory_user_id, options["password"])
         if options["identity"]:
             self.set_identity(ory_user_id, options["identity"])
+        if options["new_email"]:
+            self.set_new_email(ory_user_id, options["new_email"])
 
     def set_verified(self, ory_id):
         body_data = [
@@ -56,6 +59,14 @@ class Command(BaseCommand):
         response = requests.put(f"{ORY_BASE_URL}/admin/identities/{ory_id}", headers=ORY_HEADER, json=ory_user)
         if no_ory_errors(response):
             print(f"User {ory_id} password set to {new_password}")
+
+    def set_new_email(self, ory_id, new_email):
+        body_data = [
+            {"op": "add", "path": "/traits/email", "value": new_email},
+        ]
+        response = requests.patch(f"{ORY_BASE_URL}/admin/identities/{ory_id}", headers=ORY_HEADER, json=body_data)
+        if no_ory_errors(response):
+            print(f"User {ory_id} email set to {new_email}")
 
     def set_identity(self, ory_id, identity):
         body_data = [
