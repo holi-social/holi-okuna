@@ -379,10 +379,6 @@ resource "google_cloud_run_service" "okuna" {
           }
         }
         env {
-          name  = "INSPIRATION_SPACE_ID"
-          value = local.environment == "production" ? "12ed0bc1-722d-4ba6-9d07-c0a7b303edea" : "38e8c60c-0d64-4b65-ae0c-c094eb97b94f"
-        }
-        env {
           name  = "CHAT_SERVER_NAME"
           value = local.environment == "production" ? "holi.social" : "development-chat.holi.social"
         }
