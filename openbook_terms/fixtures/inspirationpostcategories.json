@@ -1,0 +1,116 @@
+[
+  {
+    "model": "openbook_terms.inspirationpostcategory",
+    "pk": "ac9e18cf-af85-4e9f-948e-6a4a0d207e1c",
+    "fields": {
+      "slug": "helping-hand",
+      "title": "Helping Hand",
+      "title_es": null,
+      "title_en": "Helping Hand",
+      "title_de": "Helfende Hand",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.inspirationpostcategory",
+    "pk": "c10424fb-8bb2-426b-b916-7bb4dd99e8f9",
+    "fields": {
+      "slug": "people-of-change",
+      "title": "People of Change",
+      "title_es": null,
+      "title_en": "People of Change",
+      "title_de": "Personen des Wandels",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.inspirationpostcategory",
+    "pk": "e5b8819c-0182-418a-bd61-f388b9af4828",
+    "fields": {
+      "slug": "tip-of-the-day",
+      "title": "Tip of the Day",
+      "title_es": null,
+      "title_en": "Tip of the Day",
+      "title_de": "Tipp des Tages",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.inspirationpostcategory",
+    "pk": "796d6fe1-f40d-40da-8287-59e028c3550b",
+    "fields": {
+      "slug": "news-of-the-app",
+      "title": "News about holi",
+      "title_es": null,
+      "title_en": "News about holi",
+      "title_de": "Neues von holi",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.inspirationpostcategory",
+    "pk": "f4db9d8b-2beb-4877-9f3f-5b0e96527e14",
+    "fields": {
+      "slug": "event-recommendation",
+      "title": "Event Recommendation",
+      "title_es": null,
+      "title_en": "Event Recommendation",
+      "title_de": "Event-Empfehlung",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  },
+  {
+    "model": "openbook_terms.inspirationpostcategory",
+    "pk": "7eb596a6-3568-4048-9cf3-597ec8ed55f5",
+    "fields": {
+      "slug": "insight-highlight",
+      "title": "Insight Highlight",
+      "title_es": null,
+      "title_en": "Insight Highlight",
+      "title_de": "Insight Highlight",
+      "title_nl": null,
+      "title_da": null,
+      "title_hu": null,
+      "title_sv": null,
+      "title_fr": null,
+      "title_it": null,
+      "title_tr": null,
+      "title_pt_br": null
+    }
+  }
+]

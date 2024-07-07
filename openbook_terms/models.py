@@ -44,6 +44,12 @@ class Skill(Term):
     """
 
 
+class InspirationPostCategory(Term):
+    """
+    Inspiration Posts have an assigned category that is displayed above the post.
+    """
+
+
 class FeedPostCategory(Term):
     """
     Feed Posts have an assigned category that is displayed above the post.

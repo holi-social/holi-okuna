@@ -679,6 +679,8 @@ NOVU_API_URL = os.environ.get("NOVU_API_URL", "https://eu.api.novu.co")
 
 NovuConfig().configure(NOVU_API_URL, NOVU_API_KEY)
 
+INSPIRATION_SPACE_ID = os.environ.get("INSPIRATION_SPACE_ID", "00000000-0000-0000-0000-000000000001")
+
 CHAT_SERVER_NAME = os.environ.get("CHAT_SERVER_NAME")
 CHAT_SERVER_URL = os.environ.get("CHAT_SERVER_URL")
 CHAT_ADMIN_ACCESS_TOKEN = os.environ.get("CHAT_ADMIN_ACCESS_TOKEN")

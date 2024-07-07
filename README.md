@@ -128,7 +128,7 @@ Use `python3 okuna-cli.py clean` to reset all local state, including database an
    And fill the DB with some fixture data:
 
    ```bash
-   python3 manage.py loaddata emoji-groups.json emojis.json badges.json categories.json languages.json topics.json skills.json sdgs.json moderation_categories.json feed_post_categories.json
+   python3 manage.py loaddata emoji-groups.json emojis.json badges.json categories.json languages.json topics.json skills.json sdgs.json inspirationpostcategories.json moderation_categories.json feed_post_categories.json
    ```
 
    In addition, there is also a users.json you can load, if you want.
