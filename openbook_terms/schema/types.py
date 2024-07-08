@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import strawberry
 import strawberry_django
 from django.utils import translation
@@ -60,3 +62,9 @@ class FeedPostCategory:
     def label(self, info) -> str:
         with translation.override(get_language_from_request(info.context.request)):
             return self.label
+
+@strawberry.type()
+class InspirationPostCategory:
+    id: UUID
+    slug: str
+    title: str
