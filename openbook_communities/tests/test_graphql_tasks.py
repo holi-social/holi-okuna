@@ -1200,6 +1200,10 @@ class TestTaskRecommendations:
         # tasks from moderated spaces are not shown
         self.create_task(space=self.space_deleted, skills=[skill2.id], location_type="REMOTE")
 
+        # moderated tasks are not shown
+        moderated_task = self.create_task(skills=[skill2.id], location_type="REMOTE")
+        moderated_task.soft_delete()
+
         # member only tasks are not visible to non-members
         self.create_task(skills=[skill1.id], location_type="REMOTE", visibility=VisibilityType.MEMBERS)
 
