@@ -5,10 +5,10 @@ import strawberry_django
 from django.utils import translation
 from django.utils.translation import get_language_from_request
 
+from openbook_terms.models import FeedPostCategory as FeedPostCategoryModel
 from openbook_terms.models import SDG as SDG_MODEL
 from openbook_terms.models import Skill as SkillModel
 from openbook_terms.models import Topic as TopicModel
-from openbook_terms.models import FeedPostCategory as FeedPostCategoryModel
 
 
 @strawberry_django.type(TopicModel)
@@ -62,6 +62,7 @@ class FeedPostCategory:
     def label(self, info) -> str:
         with translation.override(get_language_from_request(info.context.request)):
             return self.label
+
 
 @strawberry.type()
 class InspirationPostCategory:
