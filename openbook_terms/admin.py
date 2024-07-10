@@ -1,8 +1,8 @@
 from django.contrib import admin
-from .models import InspirationPostCategory, Topic, SDG, Skill, FeedPostCategory
+from .models import Topic, SDG, Skill, FeedPostCategory
 
 
-@admin.register(InspirationPostCategory, SDG, Skill, FeedPostCategory)
+@admin.register(SDG, Skill, FeedPostCategory)
 class TermAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("title",)}
     list_display = ("title", "id")
