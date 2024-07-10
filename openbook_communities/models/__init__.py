@@ -1249,7 +1249,7 @@ class Task(ModelWithUUID):
     )
     creator = models.ForeignKey(
         User,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name="created_tasks",
         blank=True,
         null=True,
