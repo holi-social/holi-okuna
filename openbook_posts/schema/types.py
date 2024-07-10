@@ -100,7 +100,10 @@ class Post:
         strawberry_django.field(field_name="community")
     )
     creator: User = strawberry_django.field(select_related="creator__profile")
-    inspiration_post_category: Optional[InspirationPostCategory]
+
+    @strawberry_django.field()
+    def inspiration_post_category(self) -> Optional[InspirationPostCategory]:
+        return None
 
     @strawberry_django.field()
     def image(self) -> Optional[PostImage]:
