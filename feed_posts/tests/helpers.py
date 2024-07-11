@@ -254,3 +254,26 @@ def update_input_data(post_id, input_data):
     data = input_data.copy()
     data["postId"] = post_id
     return data
+
+
+def all_posts(user):
+    return async_to_sync(schema.execute)(
+        """
+        query {
+            allPosts {
+               totalResults
+               data {
+                    ... on Post {
+                        id
+                        isPublic
+                    }
+                    ... on FeedPost {
+                        id
+                        visibility
+                    }
+                }
+            }
+        }
+        """,
+        context_value=benedict({"request": {"user": user}}),
+    )

@@ -18,14 +18,16 @@ from feed_posts.tests.helpers import (
     feed_posts,
     delete_feed_post,
     update_feed_post_reaction,
+    all_posts,
 )
 from openbook import settings
-from openbook_common.enums import ReactionType, ReactionAction
+from openbook_common.enums import ReactionType, ReactionAction, VisibilityType
 from openbook_common.tests.helpers import (
     make_user,
     make_topic,
     make_feed_post_category,
     simple_jpeg_bytes,
+    make_community,
 )
 
 logger = logging.getLogger(__name__)
@@ -45,6 +47,8 @@ class TestFeedPosts(TestCase):
         cls.user = make_user()
         cls.another_user = make_user()
         cls.yet_another_user = make_user()
+        cls.space = make_community(creator=cls.user)
+        cls.space.add_member(cls.yet_another_user)
 
         cls.public_feed_post_input_data = {
             "title": fake.text(max_nb_chars=settings.FEED_POST_TITLE_MAX_LENGTH),
@@ -98,6 +102,18 @@ class TestFeedPosts(TestCase):
             "categoryId": str(make_feed_post_category().id),
             "topicIds": [str(make_topic().id) for _ in range(6)],
             "image": SimpleUploadedFile(name="image_1.jpg", content=simple_jpeg_bytes),
+        }
+
+        cls.public_space_post = {
+            "title": fake.text(max_nb_chars=settings.POST_TITLE_MAX_LENGTH),
+            "text": fake.text(max_nb_chars=settings.POST_MAX_LENGTH),
+            "visibility": VisibilityType.PUBLIC.value,
+        }
+
+        cls.private_space_post = {
+            "title": fake.text(max_nb_chars=settings.POST_TITLE_MAX_LENGTH),
+            "text": fake.text(max_nb_chars=settings.POST_MAX_LENGTH),
+            "visibility": VisibilityType.MEMBERS.value,
         }
 
     def test_can_not_create_feed_post_if_anonymous_user(self):
@@ -522,3 +538,165 @@ class TestFeedPosts(TestCase):
         response = update_feed_post(user=self.user, input=input_data)
         data = response.data["updateFeedPost"]
         assert len(data["mentions"]) == 0
+
+    def test_can_query_only_public_posts_if_anonymous_user(self):
+        # user creates 2 public feed posts
+        first_mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        assert first_mutation_response.errors is None
+        first_public_feed_post = first_mutation_response.data["createFeedPost"]
+
+        second_mutation_response = create_feed_post(
+            user=self.user, input=self.registered_users_only_feed_post_input_data
+        )
+        assert second_mutation_response.errors is None
+
+        # user creates 2 registered users only feed post
+        third_mutation_response = create_feed_post(user=self.user, input=self.another_public_feed_post_input_data)
+        assert third_mutation_response.errors is None
+        second_public_feed_post = third_mutation_response.data["createFeedPost"]
+
+        fourth_mutation_response = create_feed_post(
+            user=self.user, input=self.another_registered_users_only_feed_post_input_data
+        )
+        assert fourth_mutation_response.errors is None
+
+        # user create public space post
+        public_space_post = self.user.create_community_post(
+            space_id=self.space.id,
+            title=self.public_space_post["title"],
+            text=self.public_space_post["text"],
+            visibility=self.public_space_post["visibility"],
+        )
+
+        # user create private space post
+        self.user.create_community_post(
+            space_id=self.space.id,
+            title=self.private_space_post["title"],
+            text=self.private_space_post["text"],
+            visibility=self.private_space_post["visibility"],
+        )
+
+        # anonymous user queries all posts
+        response = all_posts(user=AnonymousUser)
+
+        data = response.data["allPosts"]
+
+        #  anonymous user can see only 3 posts; a space post and 2 feed posts sorted by creation date
+        assert data["totalResults"] == 3
+
+        assert data["data"][0]["id"] == str(public_space_post.id)
+        assert data["data"][0]["isPublic"]
+
+        assert data["data"][1]["id"] == second_public_feed_post["id"]
+        assert data["data"][1]["visibility"] == VisibilityLevel.PUBLIC
+
+        assert data["data"][2]["id"] == first_public_feed_post["id"]
+        assert data["data"][2]["visibility"] == VisibilityLevel.PUBLIC
+
+    def test_can_query_all_feed_posts_but_only_public_space_posts_if_authenticated(self):
+        # user creates 2 public feed posts
+        first_mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        first_public_feed_post = first_mutation_response.data["createFeedPost"]
+
+        second_mutation_response = create_feed_post(
+            user=self.user, input=self.registered_users_only_feed_post_input_data
+        )
+        first_registered_users_only_feed_post = second_mutation_response.data["createFeedPost"]
+
+        # user creates 2 registered users only feed post
+        third_mutation_response = create_feed_post(user=self.user, input=self.another_public_feed_post_input_data)
+        second_public_feed_post = third_mutation_response.data["createFeedPost"]
+
+        fourth_mutation_response = create_feed_post(
+            user=self.user, input=self.another_registered_users_only_feed_post_input_data
+        )
+        second_registered_users_only_feed_post = fourth_mutation_response.data["createFeedPost"]
+
+        # user create public space post
+        public_space_post = self.user.create_community_post(
+            space_id=self.space.id,
+            title=self.public_space_post["title"],
+            text=self.public_space_post["text"],
+            visibility=self.public_space_post["visibility"],
+        )
+
+        # user create private space post
+        self.user.create_community_post(
+            space_id=self.space.id,
+            title=self.private_space_post["title"],
+            text=self.private_space_post["text"],
+            visibility=self.private_space_post["visibility"],
+        )
+
+        # authenticated user queries all posts
+        response = all_posts(user=self.another_user)
+
+        data = response.data["allPosts"]
+
+        # authenticated user can see only 5 posts; a public space post and all feed posts sorted by creation date
+        assert data["totalResults"] == 5
+
+        assert data["data"][0]["id"] == str(public_space_post.id)
+        assert data["data"][0]["isPublic"]
+
+        assert data["data"][1]["id"] == second_registered_users_only_feed_post["id"]
+        assert data["data"][1]["visibility"] == VisibilityLevel.REGISTERED_USERS_ONLY
+
+        assert data["data"][2]["id"] == second_public_feed_post["id"]
+        assert data["data"][2]["visibility"] == VisibilityLevel.PUBLIC
+
+        assert data["data"][3]["id"] == first_registered_users_only_feed_post["id"]
+        assert data["data"][3]["visibility"] == VisibilityLevel.REGISTERED_USERS_ONLY
+
+        assert data["data"][4]["id"] == first_public_feed_post["id"]
+        assert data["data"][4]["visibility"] == VisibilityLevel.PUBLIC
+
+    def test_can_query_all_feed_posts_and_all_space_posts_if_member(self):
+        # user creates 2 public feed posts
+        first_mutation_response = create_feed_post(user=self.user, input=self.public_feed_post_input_data)
+        first_public_feed_post = first_mutation_response.data["createFeedPost"]
+
+        second_mutation_response = create_feed_post(
+            user=self.user, input=self.registered_users_only_feed_post_input_data
+        )
+        first_registered_users_only_feed_post = second_mutation_response.data["createFeedPost"]
+
+        # user creates 2 registered users only feed post
+        third_mutation_response = create_feed_post(user=self.user, input=self.another_public_feed_post_input_data)
+        second_public_feed_post = third_mutation_response.data["createFeedPost"]
+
+        fourth_mutation_response = create_feed_post(
+            user=self.user, input=self.another_registered_users_only_feed_post_input_data
+        )
+        second_registered_users_only_feed_post = fourth_mutation_response.data["createFeedPost"]
+
+        # user create public space post
+        public_space_post = self.user.create_community_post(
+            space_id=self.space.id,
+            title=self.public_space_post["title"],
+            text=self.public_space_post["text"],
+            visibility=self.public_space_post["visibility"],
+        )
+
+        # user create private space post
+        private_space_post = self.user.create_community_post(
+            space_id=self.space.id,
+            title=self.private_space_post["title"],
+            text=self.private_space_post["text"],
+            visibility=self.private_space_post["visibility"],
+        )
+
+        # space member queries all posts
+        response = all_posts(user=self.yet_another_user)
+
+        data = response.data["allPosts"]
+
+        # space member can see only all posts
+        assert data["totalResults"] == 6
+
+        assert data["data"][0]["id"] == str(private_space_post.id)
+        assert data["data"][1]["id"] == str(public_space_post.id)
+        assert data["data"][2]["id"] == second_registered_users_only_feed_post["id"]
+        assert data["data"][3]["id"] == second_public_feed_post["id"]
+        assert data["data"][4]["id"] == first_registered_users_only_feed_post["id"]
+        assert data["data"][5]["id"] == first_public_feed_post["id"]
