@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional, List
+from typing import Optional, List, Union
 
 import strawberry
 import strawberry_django
@@ -11,7 +11,7 @@ from feed_posts.models import FeedPost as FeedPostModel, FeedPostReaction as Fee
 from feed_posts.services import FeedPostReactionService, FeedPostMentionService
 from openbook_auth.schema.types import User
 from openbook_common.schema.types import ReactionCounts, Paged
-from openbook_posts.schema.types import LinkPreview
+from openbook_posts.schema.types import LinkPreview, Post
 from openbook_terms.schema.types import Topic, FeedPostCategory
 from comments.models import Comment as CommentModel
 from openbook_auth.models import UserBlock as UserBlockModel
@@ -87,3 +87,6 @@ class UpdateFeedPostInput:
     visibility: Optional[VisibilityLevel] = strawberry.UNSET
     topic_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     category_id: Optional[uuid.UUID] = strawberry.UNSET
+
+
+GenericPost = Union[FeedPost, Post]
