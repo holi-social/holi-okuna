@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional, List, Union
+from typing import Optional, List
 
 import strawberry
 import strawberry_django
@@ -89,4 +89,4 @@ class UpdateFeedPostInput:
     category_id: Optional[uuid.UUID] = strawberry.UNSET
 
 
-GenericPost = Union[FeedPost, Post]
+GenericPost = strawberry.union("GenericPost", (FeedPost, Post))
