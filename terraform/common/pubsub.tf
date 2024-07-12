@@ -11,7 +11,7 @@ resource "google_kms_crypto_key" "pubsub_okuna" {
   rotation_period = "100000s"
 
   lifecycle {
-    prevent_destroy = false
+    prevent_destroy = true
   }
 }
 
@@ -28,7 +28,7 @@ resource "google_pubsub_topic" "okuna_staging" {
   name         = "okuna_staging"
   kms_key_name = google_kms_crypto_key.pubsub_okuna.id
   message_storage_policy {
-    allowed_persistence_regions = ["europe-north1"]
+    allowed_persistence_regions = [local.default_region]
   }
   depends_on = [google_kms_crypto_key_iam_binding.pubsub_okuna]
 }
@@ -38,7 +38,7 @@ resource "google_pubsub_topic" "okuna_production" {
   name         = "okuna_production"
   kms_key_name = google_kms_crypto_key.pubsub_okuna.id
   message_storage_policy {
-    allowed_persistence_regions = ["europe-north1"]
+    allowed_persistence_regions = [local.default_region]
   }
 }
 

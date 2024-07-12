@@ -5,4 +5,6 @@ locals {
 
   # the dns name can be at most 64 chars in total
   dns_name = "${trimsuffix(substr(local.environment, 0, 34), ".-")}.${data.terraform_remote_state.holi_okuna_common_state.outputs.dns_okuna_domain}"
+
+  default_region = data.terraform_remote_state.holi_infra_state.outputs.default_region
 }
