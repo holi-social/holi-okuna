@@ -6,12 +6,11 @@ resource "google_project_service_identity" "pubsub_serviceaccount" {
 }
 
 resource "google_kms_crypto_key" "pubsub_okuna" {
-  name            = "pubsub-key-okuna"
-  key_ring        = data.terraform_remote_state.holi_infra_state.outputs.kms_shared_key_ring_id
-  rotation_period = "100000s"
+  name     = "pubsub-key-okuna"
+  key_ring = data.terraform_remote_state.holi_infra_state.outputs.kms_shared_key_ring_id
 
   lifecycle {
-    prevent_destroy = false
+    prevent_destroy = true
   }
 }
 
@@ -28,7 +27,7 @@ resource "google_pubsub_topic" "okuna_staging" {
   name         = "okuna_staging"
   kms_key_name = google_kms_crypto_key.pubsub_okuna.id
   message_storage_policy {
-    allowed_persistence_regions = ["europe-north1"]
+    allowed_persistence_regions = [local.default_region]
   }
   depends_on = [google_kms_crypto_key_iam_binding.pubsub_okuna]
 }
@@ -38,7 +37,7 @@ resource "google_pubsub_topic" "okuna_production" {
   name         = "okuna_production"
   kms_key_name = google_kms_crypto_key.pubsub_okuna.id
   message_storage_policy {
-    allowed_persistence_regions = ["europe-north1"]
+    allowed_persistence_regions = [local.default_region]
   }
 }
 

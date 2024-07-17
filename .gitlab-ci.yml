@@ -116,11 +116,11 @@ build_docker:
       - $API_BASE_URL_PATH
     name: "${CI_JOB_NAME}_${CI_JOB_ID}"
     #when: on_failure # can't do that for api base url, but can't define multiple artifacts
-    expire_in: 1 month
+    expire_in: 1 week
   script:
     - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
     - terraform/environments/scripts/create-or-update-env.sh $ENVIRONMENT_ID $CI_COMMIT_SHA
-    - echo "$(terraform/environments/scripts/get-api-domain.sh)" > $API_BASE_URL_PATH
+    - echo "$(terraform/environments/scripts/get-output.sh api_domain)" > $API_BASE_URL_PATH
   resource_group: $ENVIRONMENT_ID # never execute terraform in parallel on the same environment
   interruptible: false
 
