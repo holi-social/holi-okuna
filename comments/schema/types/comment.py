@@ -22,6 +22,7 @@ class CreateCommentInput:
     commentable_id: uuid.UUID
     text: str
     parent_comment_id: Optional[uuid.UUID] = strawberry.UNSET
+    language: Optional[str] = strawberry.UNSET
 
 
 @strawberry.input
@@ -61,3 +62,7 @@ class Comment:
     @strawberry_django.field
     def total_replies(self, info) -> int:
         return self.count_replies()
+
+    @strawberry_django.field
+    def language(self, info) -> Optional[str]:
+        return self.language_code

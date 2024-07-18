@@ -69,7 +69,7 @@ class FeedPost:
 
     @strawberry_django.field()
     def language(self) -> Optional[str]:
-        return self.languageCode
+        return self.language_code
 
 @strawberry.input
 class CreateFeedPostInput:

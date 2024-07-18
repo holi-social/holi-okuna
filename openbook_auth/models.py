@@ -5,7 +5,7 @@ import secrets
 from datetime import datetime, timedelta
 from enum import Enum
 from itertools import chain
-from typing import Iterable, Set, Callable, Type
+from typing import Iterable, Set, Callable, Type, Optional
 from uuid import UUID
 
 import strawberry
@@ -1521,16 +1521,16 @@ class User(ModelWithUUID, AbstractUser):
     def get_replies_count_for_post_comment(self, post_comment):
         return post_comment.count_replies_with_user(user=self)
 
-    def comment_post_with_id(self, post_id, text):
+    def comment_post_with_id(self, post_id, text, language: Optional[str]):
         Post = get_post_model()
         post = Post.objects.filter(pk=post_id).get()
-        post_comment = self.comment_post(post=post, text=text)
+        post_comment = self.comment_post(post=post, text=text, language=language)
 
         return post_comment
 
-    def comment_post(self, post, text):
+    def comment_post(self, post, text, language=None):
         check_can_comment_in_post(user=self, post=post)
-        post_comment = post.comment(text=text, commenter=self)
+        post_comment = post.comment(text=text, commenter=self, language=language)
 
         return post_comment
 
@@ -2849,6 +2849,7 @@ class User(ModelWithUUID, AbstractUser):
         title=None,
         is_public=None,
         circles_ids=None,
+        language=None,
     ):
         Post = get_post_model()
         return Post.create_post(
@@ -2861,6 +2862,7 @@ class User(ModelWithUUID, AbstractUser):
             created=created,
             is_draft=is_draft,
             circles_ids=circles_ids,
+            language=language,
         )
 
     def create_poll(
@@ -2909,9 +2911,9 @@ class User(ModelWithUUID, AbstractUser):
         post = Post.objects.get(id=post_id)
         return self.update_post(post=post, text=text)
 
-    def update_post(self, post, text=None):
+    def update_post(self, post, text=None, language=None):
         check_can_update_post(user=self, post=post)
-        post.update(text=text)
+        post.update(text=text, language=language)
         return post
 
     def create_community_post(
@@ -2925,6 +2927,7 @@ class User(ModelWithUUID, AbstractUser):
         created=None,
         is_draft=False,
         visibility=None,
+        language=None,
     ):
         check_can_post_to_community_with_id(user=self, community_id=space_id)
         is_public = self._get_post_visibility_by_community_id(visibility, space_id)
@@ -2939,6 +2942,7 @@ class User(ModelWithUUID, AbstractUser):
             created=created,
             is_draft=is_draft,
             is_public=is_public,
+            language=language,
         )
 
         from openbook_notifications.services import NotificationsService
@@ -2962,6 +2966,7 @@ class User(ModelWithUUID, AbstractUser):
         is_draft=False,
         visibility=None,
         remove_image=False,
+        language=None,
     ):
         Post = get_post_model()
         post = Post.objects.get(id=post_id)
@@ -2974,6 +2979,7 @@ class User(ModelWithUUID, AbstractUser):
             is_draft=is_draft,
             is_public=is_public,
             remove_image=remove_image,
+            language=language,
         )
 
         return post

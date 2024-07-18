@@ -66,7 +66,7 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
 
     link_preview = models.ForeignKey(LinkPreview, null=True, blank=True, on_delete=models.SET_NULL)
 
-    languageCode = models.CharField(max_length=2, choices=LanguageCode.choices, blank=True, null=True)
+    language_code = models.CharField(max_length=2, choices=LanguageCode.choices, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if self.image:

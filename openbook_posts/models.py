@@ -111,7 +111,7 @@ class Post(CommentNotificationMixin, ModelWithUUID):
         blank=True,
     )
     language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, related_name="posts")
-    languageCode = models.CharField(max_length=2, choices=LanguageCode.choices, blank=True, null=True)
+    language_code = models.CharField(max_length=2, choices=LanguageCode.choices, blank=True, null=True)
     is_edited = models.BooleanField(default=False)
     is_closed = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
@@ -170,7 +170,7 @@ class Post(CommentNotificationMixin, ModelWithUUID):
         if image and video:
             raise ValidationError(_("A post must have an image or a video, not both."))
 
-        post = Post.objects.create(creator=creator, created=created, title=title, is_public=is_public, languageCode=language)
+        post = Post.objects.create(creator=creator, created=created, title=title, is_public=is_public, language_code=language)
 
         Community = get_community_model()
         if community_id:
@@ -224,7 +224,7 @@ class Post(CommentNotificationMixin, ModelWithUUID):
             self.language = get_language_for_text(text)
 
         if language:
-            self.languageCode = language
+            self.language_code = language
 
         if remove_image:
             self._delete_media_image()
@@ -552,7 +552,7 @@ class Post(CommentNotificationMixin, ModelWithUUID):
     def update(self, text=None, language=None):
         check_can_be_updated(post=self, text=text)
         self.text = text
-        self.languageCode = language
+        self.language_code = language
         self.is_edited = True
         self.language = get_language_for_text(text)
         self.save()

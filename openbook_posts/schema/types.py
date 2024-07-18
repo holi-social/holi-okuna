@@ -178,7 +178,7 @@ class Post:
 
     @strawberry_django.field()
     def language(self) -> Optional[str]:
-        return self.languageCode
+        return self.language_code
 
 @strawberry_django.type(CommentModel)
 class PostComment:
@@ -209,4 +209,4 @@ class PostComment:
 
     @strawberry_django.field()
     def language(self) -> Optional[str]:
-        return self.languageCode
+        return self.language_code

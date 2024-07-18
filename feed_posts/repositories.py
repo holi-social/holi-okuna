@@ -29,7 +29,7 @@ class FeedPostRepository:
             creator=creator,
             image=image,
             link_preview=link_preview,
-            languageCode=language,
+            language_code=language,
         )
 
         if topics is not None:
@@ -82,7 +82,7 @@ class FeedPostRepository:
             post.update_image(image)
 
         if language is not None:
-            post.languageCode = language
+            post.language_code = language
 
         post.link_preview = link_preview
 

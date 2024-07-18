@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='post',
-            name='languageCode',
+            name='language_code',
             field=models.CharField(blank=True, choices=[('ar', 'Arabic'), ('az', 'Azerbaijani'), ('bg', 'Bulgarian'), ('bn', 'Bengali'), ('ca', 'Catalan'), ('cs', 'Czech'), ('da', 'Danish'), ('de', 'German'), ('el', 'Greek'), ('en', 'English'), ('eo', 'Esperanto'), ('es', 'Spanish'), ('et', 'Estonian'), ('fa', 'Persian'), ('fi', 'Finnish'), ('fr', 'French'), ('ga', 'Irish'), ('he', 'Hebrew'), ('hi', 'Hindi'), ('hu', 'Hungarian'), ('id', 'Indonesian'), ('it', 'Italian'), ('ja', 'Japanese'), ('ko', 'Korean'), ('lt', 'Lithuanian'), ('lv', 'Latvian'), ('ms', 'Malay'), ('nb', 'Norwegian Bokmal'), ('nl', 'Dutch'), ('pl', 'Polish'), ('pt', 'Portuguese'), ('ro', 'Romanian'), ('ru', 'Russian'), ('sk', 'Slovak'), ('sl', 'Slovenian'), ('sq', 'Albanian'), ('sr', 'Serbian'), ('sv', 'Swedish'), ('th', 'Thai'), ('tl', 'Tagalog'), ('tr', 'Turkish'), ('uk', 'Ukrainian'), ('ur', 'Urdu'), ('vi', 'Vietnamese'), ('zh', 'Chinese Simplified'), ('zt', 'Chinese Traditional')], max_length=2, null=True),
         ),
     ]

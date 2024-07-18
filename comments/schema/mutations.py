@@ -31,6 +31,7 @@ class Mutation:
         commentable_type = data.get("commentable_type")
         commentable_id = data.get("commentable_id")
         parent_comment_id = data.get("parent_comment_id")
+        language = data.get("language")
 
         with transaction.atomic():
             commentable = CommentModel.get_commentable(commentable_id, commentable_type)
@@ -40,9 +41,9 @@ class Mutation:
                     raise FieldError()
 
                 parent_comment = CommentModel.objects.get(pk=parent_comment_id, commentable_id=commentable.id)
-                comment = parent_comment.reply_to_comment(current_user, comment_text)
+                comment = parent_comment.reply_to_comment(current_user, comment_text, language)
             else:
-                comment = commentable.comment_on(current_user, comment_text)
+                comment = commentable.comment_on(current_user, comment_text, language)
         return comment
 
     @strawberry.mutation
