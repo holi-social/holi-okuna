@@ -118,10 +118,7 @@ class CreateCommunityPostSerializer(CreatePostSerializer):
         validators=post_text_validators,
     )
     visibility = serializers.ChoiceField(VisibilityType.choices)
-    language = serializers.CharField(
-        max_length=2, required=False, allow_blank=True
-    )
-
+    language = serializers.CharField(max_length=2, required=False, allow_blank=True)
 
 
 class PostCreatorProfileBadgeSerializer(serializers.ModelSerializer):

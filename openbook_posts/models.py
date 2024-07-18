@@ -170,7 +170,9 @@ class Post(CommentNotificationMixin, ModelWithUUID):
         if image and video:
             raise ValidationError(_("A post must have an image or a video, not both."))
 
-        post = Post.objects.create(creator=creator, created=created, title=title, is_public=is_public, language_code=language)
+        post = Post.objects.create(
+            creator=creator, created=created, title=title, is_public=is_public, language_code=language
+        )
 
         Community = get_community_model()
         if community_id:

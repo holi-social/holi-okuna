@@ -71,6 +71,7 @@ class FeedPost:
     def language(self) -> Optional[str]:
         return self.language_code
 
+
 @strawberry.input
 class CreateFeedPostInput:
     title: str

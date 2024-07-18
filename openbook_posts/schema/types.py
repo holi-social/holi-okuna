@@ -180,6 +180,7 @@ class Post:
     def language(self) -> Optional[str]:
         return self.language_code
 
+
 @strawberry_django.type(CommentModel)
 class PostComment:
     id: strawberry.auto
