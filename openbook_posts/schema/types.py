@@ -176,6 +176,9 @@ class Post:
                 return ReactionCounts()
         return ReactionCounts()
 
+    @strawberry_django.field()
+    def language(self) -> Optional[str]:
+        return self.languageCode
 
 @strawberry_django.type(CommentModel)
 class PostComment:
@@ -203,3 +206,7 @@ class PostComment:
             except CommentReactionModel.DoesNotExist:
                 return ReactionCounts()
         return ReactionCounts()
+
+    @strawberry_django.field()
+    def language(self) -> Optional[str]:
+        return self.languageCode
