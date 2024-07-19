@@ -38,7 +38,7 @@ setup:
 unit-test:
   image: "gitlab.holi.team:5050/app/holi-docker/holi-okuna-builder"
   services:
-    - name: postgis/postgis:12-3.3-alpine
+    - name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/postgis/postgis:12-3.3-alpine'
       alias: postgres
   stage: "test"
   variables:
@@ -83,7 +83,7 @@ lint:
     - release/*
 
 build_docker:
-  image: docker:20.10
+  image: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:20.10'
   stage: "build"
   services:
     - docker:20.10-dind
@@ -126,7 +126,7 @@ build_docker:
 
 .e2e:
   stage: "deploy"
-  image: "archlinux:base"
+  image: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/archlinux:base'
   script:
     - API_BASE_URL=`cat $API_BASE_URL_PATH`
     - echo "e2e tests against $CI_ENVIRONMENT_SLUG environment go here and against $API_BASE_URL"
@@ -147,7 +147,7 @@ review_deploy:
 review_destroy:
   stage: destroy
   image:
-    name: "hashicorp/terraform:1.6.1"
+    name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/hashicorp/terraform:1.6.1'
     # default entrypoint is terraform command, but we want to run shell scripts
     entrypoint: ["/bin/sh", "-c"]
   variables:
