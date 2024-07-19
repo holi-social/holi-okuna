@@ -1,6 +1,7 @@
 # Create your models here.
 import uuid
 from datetime import timedelta
+from typing import Optional
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
@@ -40,6 +41,7 @@ from openbook_common.models import (
     ModelWithUUID,
     OrderedModelWithUUID,
 )
+from openbook_common.types import LanguageCode
 from openbook_common.utils.helpers import (
     delete_file_field,
     extract_hashtags_from_string,
@@ -109,6 +111,7 @@ class Post(CommentNotificationMixin, ModelWithUUID):
         blank=True,
     )
     language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, related_name="posts")
+    language_code = models.CharField(max_length=2, choices=LanguageCode.choices, blank=True, null=True)
     is_edited = models.BooleanField(default=False)
     is_closed = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
@@ -159,6 +162,7 @@ class Post(CommentNotificationMixin, ModelWithUUID):
         is_draft=False,
         title=None,
         is_public=False,
+        language=None,
     ) -> "Post":
         if not community_name and not community_id and not circles_ids and not is_public:
             raise ValidationError(_("A post requires circles or a community or to be public to be posted to."))
@@ -166,7 +170,9 @@ class Post(CommentNotificationMixin, ModelWithUUID):
         if image and video:
             raise ValidationError(_("A post must have an image or a video, not both."))
 
-        post = Post.objects.create(creator=creator, created=created, title=title, is_public=is_public)
+        post = Post.objects.create(
+            creator=creator, created=created, title=title, is_public=is_public, language_code=language
+        )
 
         Community = get_community_model()
         if community_id:
@@ -204,6 +210,7 @@ class Post(CommentNotificationMixin, ModelWithUUID):
         is_draft=False,
         title=None,
         remove_image=False,
+        language=None,
     ) -> "Post":
         if image and video:
             raise ValidationError(_("A post must have an image or a video, not both."))
@@ -217,6 +224,9 @@ class Post(CommentNotificationMixin, ModelWithUUID):
         if text:
             self.text = text
             self.language = get_language_for_text(text)
+
+        if language:
+            self.language_code = language
 
         if remove_image:
             self._delete_media_image()
@@ -516,11 +526,11 @@ class Post(CommentNotificationMixin, ModelWithUUID):
     def has_links(self):
         return self.links.exists()
 
-    def comment(self, text, commenter):
-        return Comment.create_comment(text=text, commenter=commenter, commentable=self)
+    def comment(self, text, commenter, language=None):
+        return Comment.create_comment(text=text, commenter=commenter, commentable=self, language=language)
 
-    def comment_on(self, commenter: User, text: str):
-        return commenter.comment_post_with_id(post_id=self.pk, text=text)
+    def comment_on(self, commenter: User, text: str, language: Optional[str]):
+        return commenter.comment_post_with_id(post_id=self.pk, text=text, language=language)
 
     def delete_comment(self, commenter: User, id: uuid.UUID):
         commenter.delete_comment_with_id(post_comment_id=id)
@@ -541,9 +551,10 @@ class Post(CommentNotificationMixin, ModelWithUUID):
     def is_encircled_post(self):
         return not self.community and not self.is_public
 
-    def update(self, text=None):
+    def update(self, text=None, language=None):
         check_can_be_updated(post=self, text=text)
         self.text = text
+        self.language_code = language
         self.is_edited = True
         self.language = get_language_for_text(text)
         self.save()

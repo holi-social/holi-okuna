@@ -47,6 +47,7 @@ class CreatePostInput:
     text: str
     image: Optional[Upload] = strawberry.UNSET
     visibility: VisibilityType
+    language: Optional[str] = strawberry.UNSET
 
 
 @strawberry.input
@@ -56,6 +57,7 @@ class UpdatePostInput:
     text: Optional[str] = strawberry.UNSET
     image: Optional[Upload] = strawberry.UNSET
     visibility: Optional[VisibilityType] = strawberry.UNSET
+    language: Optional[str] = strawberry.UNSET
 
 
 @strawberry_django.type(LinkPreviewModel)
@@ -176,6 +178,10 @@ class Post:
                 return ReactionCounts()
         return ReactionCounts()
 
+    @strawberry_django.field()
+    def language(self) -> Optional[str]:
+        return self.language_code
+
 
 @strawberry_django.type(CommentModel)
 class PostComment:
@@ -203,3 +209,7 @@ class PostComment:
             except CommentReactionModel.DoesNotExist:
                 return ReactionCounts()
         return ReactionCounts()
+
+    @strawberry_django.field()
+    def language(self) -> Optional[str]:
+        return self.language_code
