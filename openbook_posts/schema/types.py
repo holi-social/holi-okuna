@@ -47,6 +47,7 @@ class CreatePostInput:
     text: str
     image: Optional[Upload] = strawberry.UNSET
     visibility: VisibilityType
+    language: Optional[str] = strawberry.UNSET
 
 
 @strawberry.input
@@ -56,6 +57,7 @@ class UpdatePostInput:
     text: Optional[str] = strawberry.UNSET
     image: Optional[Upload] = strawberry.UNSET
     visibility: Optional[VisibilityType] = strawberry.UNSET
+    language: Optional[str] = strawberry.UNSET
 
 
 @strawberry_django.type(LinkPreviewModel)
