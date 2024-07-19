@@ -30,7 +30,10 @@ class FeedPostAdminModel(admin.ModelAdmin):
         return ", ".join([topic.title for topic in obj.topics.all()])
 
     def display_language(self, obj):
-        return LanguageCode(obj.language_code).label
+        language_code = obj.language_code
+        if language_code:
+            return LanguageCode(language_code).label
+        return ""
 
     display_topics.short_description = "Topics"
     display_language.short_description = "Language"
