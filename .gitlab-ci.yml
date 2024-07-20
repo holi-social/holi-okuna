@@ -27,7 +27,7 @@ default:
     - 1cpu-4gb # build on smaller machine
 
 setup:
-  image: "gitlab.holi.team:5050/app/holi-docker/holi-okuna-builder"
+  image: "europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/holi-okuna-builder"
   stage: "setup"
   script:
     - python3 -m venv venv
@@ -36,7 +36,7 @@ setup:
     - pip install -r requirements.txt --exists-action s
 
 unit-test:
-  image: "gitlab.holi.team:5050/app/holi-docker/holi-okuna-builder"
+  image: "europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/holi-okuna-builder"
   services:
     - name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/postgis/postgis:12-3.3-alpine'
       alias: postgres
@@ -55,7 +55,7 @@ unit-test:
     - 4cpu-4gb # more cpu, quicker testing
 
 lint:
-  image: "gitlab.holi.team:5050/app/holi-docker/holi-okuna-builder"
+  image: "europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/holi-okuna-builder"
   stage: test
   variables:
     GIT_STRATEGY: clone
@@ -104,7 +104,7 @@ build_docker:
 .deploy:
   stage: "deploy"
   image:
-    name: "gitlab.holi.team:5050/app/holi-docker/terraform-gcloud"
+    name: "europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/terraform-gcloud"
     # default entrypoint is terraform command, but we want to run shell scripts
     # entrypoint: ["/bin/sh", "-c"]
   variables:
