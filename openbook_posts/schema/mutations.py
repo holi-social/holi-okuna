@@ -43,9 +43,10 @@ class Mutation:
 
         comment_text = data.get("text")
         post_id = data.get("post_id")
+        language = data.get("language")
 
         with transaction.atomic():
-            post_comment = current_user.comment_post_with_id(post_id=post_id, text=comment_text)
+            post_comment = current_user.comment_post_with_id(post_id=post_id, text=comment_text, language=language)
 
         return CreatePostCommentOutput(post_comment=post_comment, post_by_id=resolve_post(current_user, post_id))
 

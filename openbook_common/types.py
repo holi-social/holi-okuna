@@ -1,7 +1,9 @@
 import json
 from enum import Enum
 
+import strawberry
 from django.contrib.gis import geos
+from django.db.models import TextChoices
 
 
 # Helper class for the result of parsing GeoJSON
@@ -31,3 +33,53 @@ class ReactableType(Enum):
     RECOMMENDATION = "recommendation"
     INITIATIVE = "initiative"
     FEED_POST = "feed_post"
+
+
+@strawberry.enum
+class LanguageCode(TextChoices):
+    ARABIC = ("ar",)
+    AZERBAIJANI = ("az",)
+    BULGARIAN = ("bg",)
+    BENGALI = ("bn",)
+    CATALAN = ("ca",)
+    CZECH = ("cs",)
+    DANISH = ("da",)
+    GERMAN = ("de",)
+    GREEK = ("el",)
+    ENGLISH = ("en",)
+    ESPERANTO = ("eo",)
+    SPANISH = ("es",)
+    ESTONIAN = ("et",)
+    PERSIAN = ("fa",)
+    FINNISH = ("fi",)
+    FRENCH = ("fr",)
+    IRISH = ("ga",)
+    HEBREW = ("he",)
+    HINDI = ("hi",)
+    HUNGARIAN = ("hu",)
+    INDONESIAN = ("id",)
+    ITALIAN = ("it",)
+    JAPANESE = ("ja",)
+    KOREAN = ("ko",)
+    LITHUANIAN = ("lt",)
+    LATVIAN = ("lv",)
+    MALAY = ("ms",)
+    NORWEGIAN_BOKMAL = ("nb",)
+    DUTCH = ("nl",)
+    POLISH = ("pl",)
+    PORTUGUESE = ("pt",)
+    ROMANIAN = ("ro",)
+    RUSSIAN = ("ru",)
+    SLOVAK = ("sk",)
+    SLOVENIAN = ("sl",)
+    ALBANIAN = ("sq",)
+    SERBIAN = ("sr",)
+    SWEDISH = ("sv",)
+    THAI = ("th",)
+    TAGALOG = ("tl",)
+    TURKISH = ("tr",)
+    UKRAINIAN = ("uk",)
+    URDU = ("ur",)
+    VIETNAMESE = ("vi",)
+    CHINESE_SIMPLIFIED = ("zh",)
+    CHINESE_TRADITIONAL = ("zt",)

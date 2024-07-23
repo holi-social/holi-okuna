@@ -8,6 +8,7 @@ from feed_posts.validators import (
 )
 from openbook import settings
 from openbook_common.serializers_fields.request import RestrictedImageFileSizeField
+from openbook_common.types import LanguageCode
 from openbook_common.validators import sanitize_text
 
 
@@ -41,6 +42,8 @@ class CreateFeedPostSerializer(serializers.Serializer):
         required=False,
         max_upload_size=settings.FEED_POST_IMAGE_MAX_SIZE,
     )
+
+    language = serializers.CharField(max_length=2, required=False, allow_blank=True)
 
 
 class UpdateFeedPostSerializer(serializers.Serializer):
@@ -77,3 +80,5 @@ class UpdateFeedPostSerializer(serializers.Serializer):
         max_upload_size=settings.FEED_POST_IMAGE_MAX_SIZE,
         allow_null=True,
     )
+
+    language = serializers.CharField(max_length=2, required=False, allow_blank=True, default=LanguageCode.ENGLISH)

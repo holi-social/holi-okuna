@@ -21,3 +21,5 @@ class CommentSerializer(serializers.Serializer):
     parent_comment_id = serializers.UUIDField(
         required=False,
     )
+
+    language = serializers.CharField(max_length=2, required=False, allow_blank=True)

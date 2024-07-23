@@ -67,6 +67,10 @@ class FeedPost:
 
         return UserBlockModel.paged(current_user, lambda user: user.id, commenters, offset, limit)
 
+    @strawberry_django.field()
+    def language(self) -> Optional[str]:
+        return self.language_code
+
 
 @strawberry.input
 class CreateFeedPostInput:
@@ -76,6 +80,7 @@ class CreateFeedPostInput:
     visibility: VisibilityLevel
     topic_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     category_id: uuid.UUID
+    language: Optional[str] = strawberry.UNSET
 
 
 @strawberry.input
@@ -87,6 +92,7 @@ class UpdateFeedPostInput:
     visibility: Optional[VisibilityLevel] = strawberry.UNSET
     topic_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     category_id: Optional[uuid.UUID] = strawberry.UNSET
+    language: Optional[str] = strawberry.UNSET
 
 
 GenericPost = strawberry.union("GenericPost", (FeedPost, Post))

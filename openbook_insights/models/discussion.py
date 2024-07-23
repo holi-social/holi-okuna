@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 
 from django.db.models import (
     CASCADE,
@@ -24,8 +25,8 @@ class Discussion(CommentNotificationMixin, ModelWithUUID):
     insight = ForeignKey(Insight, on_delete=CASCADE, related_name="discussions")
     question = TextField(null=False, blank=False, verbose_name="Question or talking point for discussion")
 
-    def comment_on(self, commenter: User, text: str):
-        return Comment.create_comment(text=text, commenter=commenter, commentable=self)
+    def comment_on(self, commenter: User, text: str, language: Optional[str]):
+        return Comment.create_comment(text=text, commenter=commenter, commentable=self, language=language)
 
     def delete_comment(self, commenter: User, id: uuid.UUID):
         comment = Comment.objects.get(pk=id)
