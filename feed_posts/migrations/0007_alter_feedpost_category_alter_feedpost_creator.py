@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("feed_posts", "0006_feedpost_link_preview"),
         ("openbook_terms", "0008_feedpostcategory_is_enabled"),

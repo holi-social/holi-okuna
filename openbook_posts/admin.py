@@ -57,6 +57,7 @@ class PostAdmin(admin.ModelAdmin):
         "title",
         "created",
         "creator",
+        "language_code",
         "is_public",
         "status",
         "is_deleted",

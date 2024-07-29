@@ -13,6 +13,7 @@ class PostCommentAdmin(admin.ModelAdmin):
         "text",
         "created",
         "commenter",
+        "language_code",
         "count_replies",
         "count_reactions",
         "count_mentions",

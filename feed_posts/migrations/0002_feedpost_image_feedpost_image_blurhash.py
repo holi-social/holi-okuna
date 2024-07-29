@@ -6,20 +6,25 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('feed_posts', '0001_initial'),
+        ("feed_posts", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='feedpost',
-            name='image',
-            field=imagekit.models.fields.ProcessedImageField(blank=True, max_length=500, null=True, upload_to=feed_posts.helpers.upload_to_feed_post_images_directory, verbose_name='thumbnail'),
+            model_name="feedpost",
+            name="image",
+            field=imagekit.models.fields.ProcessedImageField(
+                blank=True,
+                max_length=500,
+                null=True,
+                upload_to=feed_posts.helpers.upload_to_feed_post_images_directory,
+                verbose_name="thumbnail",
+            ),
         ),
         migrations.AddField(
-            model_name='feedpost',
-            name='image_blurhash',
+            model_name="feedpost",
+            name="image_blurhash",
             field=models.CharField(blank=True, max_length=50, null=True),
         ),
     ]

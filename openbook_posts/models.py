@@ -33,10 +33,8 @@ from openbook_common.helpers import (
     PrefixedQ,
     attr_filled,
     generate_blurhash,
-    get_language_for_text,
 )
 from openbook_common.models import (
-    Language,
     LinkPreview,
     ModelWithUUID,
     OrderedModelWithUUID,
@@ -110,8 +108,9 @@ class Post(CommentNotificationMixin, ModelWithUUID):
         null=True,
         blank=True,
     )
-    language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, related_name="posts")
-    language_code = models.CharField(max_length=2, choices=LanguageCode.choices, blank=True, null=True)
+    language_code = models.CharField(
+        max_length=2, choices=LanguageCode.choices, blank=True, null=True, verbose_name=_("language")
+    )
     is_edited = models.BooleanField(default=False)
     is_closed = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
@@ -182,7 +181,6 @@ class Post(CommentNotificationMixin, ModelWithUUID):
 
         if text:
             post.text = text
-            post.language = get_language_for_text(text)
 
         if image:
             post.add_media(file=image)
@@ -223,7 +221,6 @@ class Post(CommentNotificationMixin, ModelWithUUID):
 
         if text:
             self.text = text
-            self.language = get_language_for_text(text)
 
         if language:
             self.language_code = language
@@ -556,7 +553,6 @@ class Post(CommentNotificationMixin, ModelWithUUID):
         self.text = text
         self.language_code = language
         self.is_edited = True
-        self.language = get_language_for_text(text)
         self.save()
 
     def get_media(self):
