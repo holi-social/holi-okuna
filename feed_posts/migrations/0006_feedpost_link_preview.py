@@ -5,16 +5,17 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('feed_posts', '0005_remove_feedpostreaction_created_and_more'),
-        ('openbook_common', '0009_linkpreview_icon'),
+        ("feed_posts", "0005_remove_feedpostreaction_created_and_more"),
+        ("openbook_common", "0009_linkpreview_icon"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='feedpost',
-            name='link_preview',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='openbook_common.linkpreview'),
+            model_name="feedpost",
+            name="link_preview",
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to="openbook_common.linkpreview"
+            ),
         ),
     ]

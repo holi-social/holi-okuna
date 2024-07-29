@@ -13,10 +13,8 @@ from openbook_auth.models import User, UserBlock
 from openbook_common.helpers import (
     PQ,
     attr_filled,
-    get_language_for_text,
 )
 from openbook_common.models import (
-    Language,
     LinkPreview,
     ModelWithUUID,
 )
@@ -59,8 +57,9 @@ class Comment(ModelWithUUID):
         null=False,
         validators=comment_text_validators,
     )
-    language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, related_name="post_comments")
-    language_code = models.CharField(max_length=2, choices=LanguageCode.choices, blank=True, null=True)
+    language_code = models.CharField(
+        max_length=2, choices=LanguageCode.choices, blank=True, null=True, verbose_name=_("language")
+    )
     is_edited = models.BooleanField(default=False, null=False, blank=False)
     # This only happens if the comment was reported and found with critical severity content
     is_deleted = models.BooleanField(default=False)
@@ -95,7 +94,6 @@ class Comment(ModelWithUUID):
             commenter=commenter,
             commentable=commentable,
             parent_comment=parent_comment,
-            language=get_language_for_text(text),
             language_code=language,
         )
 
@@ -204,7 +202,7 @@ class Comment(ModelWithUUID):
 
         self.modified = timezone.now()
 
-        self.full_clean(exclude=["language"])
+        self.full_clean()
 
         post_comment = super(Comment, self).save(*args, **kwargs)
 
@@ -300,7 +298,6 @@ class Comment(ModelWithUUID):
     def update_comment(self, text):
         self.text = text
         self.is_edited = True
-        self.language = get_language_for_text(text)
         self.save()
 
     def soft_delete(self):

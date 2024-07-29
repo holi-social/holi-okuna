@@ -7,23 +7,34 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('feed_posts', '0007_alter_feedpost_category_alter_feedpost_creator'),
+        ("feed_posts", "0007_alter_feedpost_category_alter_feedpost_creator"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='FeedPostMention',
+            name="FeedPostMention",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('feed_post', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='mentions', to='feed_posts.feedpost')),
-                ('mention', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='feed_post_mentions', to=settings.AUTH_USER_MODEL)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "feed_post",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="mentions", to="feed_posts.feedpost"
+                    ),
+                ),
+                (
+                    "mention",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="feed_post_mentions",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('feed_post', 'mention')},
+                "unique_together": {("feed_post", "mention")},
             },
         ),
     ]

@@ -2,7 +2,6 @@ from django.contrib import admin
 from rangefilter.filters import DateRangeQuickSelectListFilterBuilder
 
 from feed_posts.models import FeedPost
-from openbook_common.types import LanguageCode
 
 
 @admin.register(FeedPost)
@@ -17,7 +16,7 @@ class FeedPostAdminModel(admin.ModelAdmin):
         "visibility",
         "category",
         "display_topics",
-        "display_language",
+        "language_code",
         "creator",
         "created_at",
     )
@@ -29,11 +28,4 @@ class FeedPostAdminModel(admin.ModelAdmin):
     def display_topics(self, obj):
         return ", ".join([topic.title for topic in obj.topics.all()])
 
-    def display_language(self, obj):
-        language_code = obj.language_code
-        if language_code:
-            return LanguageCode(language_code).label
-        return ""
-
     display_topics.short_description = "Topics"
-    display_language.short_description = "Language"
