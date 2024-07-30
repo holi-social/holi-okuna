@@ -116,7 +116,6 @@ build_docker:
     #when: on_failure # can't do that for api base url, but can't define multiple artifacts
     expire_in: 1 week
   script:
-    - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
     - terraform/environments/scripts/create-or-update-env.sh $ENVIRONMENT_ID $CI_COMMIT_SHA
     - echo "$(terraform/environments/scripts/get-output.sh api_domain)" > $API_BASE_URL_PATH
   resource_group: $ENVIRONMENT_ID # never execute terraform in parallel on the same environment
@@ -156,7 +155,6 @@ review_destroy:
     action: stop
   dependencies: [] # explicitly disable artifact usage
   script:
-    - export GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_CLOUD_SERVICE_ACCOUNT}
     # branch may have been deleted, so we clone and checkout main
     - git clone $CI_REPOSITORY_URL main-clone
     - cd main-clone
