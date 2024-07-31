@@ -31,14 +31,14 @@ def track_user_delete(sender, instance, **kwargs):
 @receiver(post_save, sender=Community)
 def track_community_save(sender, instance, created, **kwargs):
     if created:
-        track_event(instance.creator, Event.COMMUNITY_CREATED)
+        track_event(instance.creator, Event.SPACE_CREATED)
     else:
-        track_event(instance.creator, Event.COMMUNITY_UPDATED)
+        track_event(instance.creator, Event.SPACE_UPDATED)
 
 
 @receiver(post_delete, sender=Community)
 def track_community_delete(sender, instance, **kwargs):
-    track_event(instance.creator, Event.COMMUNITY_DELETED)
+    track_event(instance.creator, Event.SPACE_DELETED)
 
 
 # ---- posts ----
@@ -46,14 +46,14 @@ def track_community_delete(sender, instance, **kwargs):
 def track_post_save(sender, instance, created, **kwargs):
     if created:
         if instance.community:
-            track_event(instance.creator, Event.COMMUNITY_POST_CREATED)
+            track_event(instance.creator, Event.SPACE_POST_CREATED)
         else:
             # TODO posts that are not associated with a community might not be used at the moment
             # as I understand they were used in the past and we might use them again in the future
             track_event(instance.creator, Event.POST_CREATED)
     else:
         if instance.community:
-            track_event(instance.creator, Event.COMMUNITY_POST_UPDATED)
+            track_event(instance.creator, Event.SPACE_POST_UPDATED)
         else:
             # TODO posts that are not associated with a community might not be used at the moment
             # as I understand they were used in the past and we might use them again in the future
@@ -63,7 +63,7 @@ def track_post_save(sender, instance, created, **kwargs):
 @receiver(post_delete, sender=Post)
 def track_post_delete(sender, instance, **kwargs):
     if instance.community:
-        track_event(instance.creator, Event.COMMUNITY_POST_DELETED)
+        track_event(instance.creator, Event.SPACE_POST_DELETED)
     else:
         # TODO posts that are not associated with a community might not be used at the moment
         # as I understand they were used in the past and we might use them again in the future
@@ -89,7 +89,7 @@ def track_feed_post_delete(sender, instance, **kwargs):
 def track_comment_save(sender, instance, created, **kwargs):
     if created:
         if instance.commentable_type == ContentType.objects.get_for_model(Post) and instance.commentable.community:
-            track_event(instance.commenter, Event.COMMUNITY_POST_COMMENT_CREATED)
+            track_event(instance.commenter, Event.SPACE_POST_COMMENT_CREATED)
         elif instance.commentable_type == ContentType.objects.get_for_model(Post):
             # TODO posts that are not associated with a community might not be used at the moment
             # as I understand they were used in the past and we might use them again in the future
@@ -100,7 +100,7 @@ def track_comment_save(sender, instance, created, **kwargs):
             track_event(instance.commenter, Event.INSIGHT_DISCUSSION_COMMENT_CREATED)
     else:
         if instance.commentable_type == ContentType.objects.get_for_model(Post) and instance.commentable.community:
-            track_event(instance.commenter, Event.COMMUNITY_POST_COMMENT_UPDATED)
+            track_event(instance.commenter, Event.SPACE_POST_COMMENT_UPDATED)
         elif instance.commentable_type == ContentType.objects.get_for_model(Post):
             # TODO posts that are not associated with a community might not be used at the moment
             # as I understand they were used in the past and we might use them again in the future
@@ -114,7 +114,7 @@ def track_comment_save(sender, instance, created, **kwargs):
 @receiver(post_delete, sender=Comment)
 def track_comment_delete(sender, instance, **kwargs):
     if instance.commentable_type == ContentType.objects.get_for_model(Post) and instance.commentable.community:
-        track_event(instance.commenter, Event.COMMUNITY_POST_COMMENT_DELETED)
+        track_event(instance.commenter, Event.SPACE_POST_COMMENT_DELETED)
     elif instance.commentable_type == ContentType.objects.get_for_model(Post):
         # TODO posts that are not associated with a community might not be used at the moment
         # as I understand they were used in the past and we might use them again in the future
@@ -145,13 +145,13 @@ def track_appointment_delete(sender, instance, **kwargs):
 @receiver(post_save, sender=Task)
 def track_community_task_save(sender, instance, created, **kwargs):
     if created:
-        track_event(instance.creator, Event.COMMUNITY_TASK_CREATED)
+        track_event(instance.creator, Event.SPACE_TASK_CREATED)
     elif not instance.is_deleted:
-        track_event(instance.creator, Event.COMMUNITY_TASK_UPDATED)
+        track_event(instance.creator, Event.SPACE_TASK_UPDATED)
     else:
-        track_event(instance.creator, Event.COMMUNITY_TASK_DELETED)
+        track_event(instance.creator, Event.SPACE_TASK_DELETED)
 
 
 @receiver(post_delete, sender=Task)
 def track_community_task_delete(sender, instance, **kwargs):
-    track_event(instance.creator, Event.COMMUNITY_TASK_DELETED)
+    track_event(instance.creator, Event.SPACE_TASK_DELETED)

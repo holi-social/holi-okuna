@@ -6,17 +6,17 @@ class Event(Enum):
     USER_UPDATED = "user_updated"
     USER_DELETED = "user_deleted"
 
-    COMMUNITY_CREATED = "community_created"
-    COMMUNITY_UPDATED = "community_updated"
-    COMMUNITY_DELETED = "community_deleted"
+    SPACE_CREATED = "space_created"
+    SPACE_UPDATED = "space_updated"
+    SPACE_DELETED = "space_deleted"
 
-    COMMUNITY_POST_CREATED = "community_post_created"
-    COMMUNITY_POST_UPDATED = "community_post_updated"
-    COMMUNITY_POST_DELETED = "community_post_deleted"
+    SPACE_POST_CREATED = "space_post_created"
+    SPACE_POST_UPDATED = "space_post_updated"
+    SPACE_POST_DELETED = "space_post_deleted"
 
-    COMMUNITY_POST_COMMENT_CREATED = "community_post_comment_created"
-    COMMUNITY_POST_COMMENT_UPDATED = "community_post_comment_updated"
-    COMMUNITY_POST_COMMENT_DELETED = "community_post_comment_deleted"
+    SPACE_POST_COMMENT_CREATED = "space_post_comment_created"
+    SPACE_POST_COMMENT_UPDATED = "space_post_comment_updated"
+    SPACE_POST_COMMENT_DELETED = "space_post_comment_deleted"
 
     POST_CREATED = "post_created"
     POST_UPDATED = "post_updated"
@@ -42,6 +42,6 @@ class Event(Enum):
     APPOINTMENT_UPDATED = "appointment_updated"
     APPOINTMENT_DELETED = "appointment_deleted"
 
-    COMMUNITY_TASK_CREATED = "community_task_created"
-    COMMUNITY_TASK_UPDATED = "community_task_updated"
-    COMMUNITY_TASK_DELETED = "community_task_deleted"
+    SPACE_TASK_CREATED = "space_task_created"
+    SPACE_TASK_UPDATED = "space_task_updated"
+    SPACE_TASK_DELETED = "space_task_deleted"

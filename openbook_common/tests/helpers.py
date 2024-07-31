@@ -81,6 +81,8 @@ def make_user(
     date_joined=None,
     identity=None,
     email=None,
+    tracking_consent_analytics=False,
+    tracking_consent_personalization=False,
 ) -> User:
     defined_arguments = {k: v for k, v in locals().items() if v is not None}
     defined_arguments.setdefault("username", str(uuid.uuid4()))
