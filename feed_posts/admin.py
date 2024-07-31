@@ -16,6 +16,7 @@ class FeedPostAdminModel(admin.ModelAdmin):
         "visibility",
         "category",
         "display_topics",
+        "language_code",
         "creator",
         "created_at",
     )
@@ -25,6 +26,6 @@ class FeedPostAdminModel(admin.ModelAdmin):
     search_fields = ("title", "creator")
 
     def display_topics(self, obj):
-        return ", ".join([topic.name for topic in obj.topics.all()])
+        return ", ".join([topic.title for topic in obj.topics.all()])
 
     display_topics.short_description = "Topics"

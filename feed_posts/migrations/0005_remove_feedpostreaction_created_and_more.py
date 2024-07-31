@@ -5,19 +5,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('feed_posts', '0004_feedpostreaction'),
+        ("feed_posts", "0004_feedpostreaction"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='feedpostreaction',
-            name='created',
+            model_name="feedpostreaction",
+            name="created",
         ),
         migrations.AddField(
-            model_name='feedpostreaction',
-            name='created_at',
+            model_name="feedpostreaction",
+            name="created_at",
             field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now),
             preserve_default=False,
         ),

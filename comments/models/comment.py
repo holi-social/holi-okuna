@@ -13,13 +13,12 @@ from openbook_auth.models import User, UserBlock
 from openbook_common.helpers import (
     PQ,
     attr_filled,
-    get_language_for_text,
 )
 from openbook_common.models import (
-    Language,
     LinkPreview,
     ModelWithUUID,
 )
+from openbook_common.types import LanguageCode
 from openbook_common.utils.helpers import (
     extract_hashtags_from_string,
     extract_usernames_from_string,
@@ -58,7 +57,9 @@ class Comment(ModelWithUUID):
         null=False,
         validators=comment_text_validators,
     )
-    language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, related_name="post_comments")
+    language_code = models.CharField(
+        max_length=2, choices=LanguageCode.choices, blank=True, null=True, verbose_name=_("language")
+    )
     is_edited = models.BooleanField(default=False, null=False, blank=False)
     # This only happens if the comment was reported and found with critical severity content
     is_deleted = models.BooleanField(default=False)
@@ -87,13 +88,13 @@ class Comment(ModelWithUUID):
         return commentable
 
     @classmethod
-    def create_comment(cls, text, commenter, commentable, parent_comment=None):
+    def create_comment(cls, text, commenter, commentable, parent_comment=None, language: str = None):
         comment = Comment.objects.create(
             text=text,
             commenter=commenter,
             commentable=commentable,
             parent_comment=parent_comment,
-            language=get_language_for_text(text),
+            language_code=language,
         )
 
         return comment
@@ -173,12 +174,9 @@ class Comment(ModelWithUUID):
 
         return self.replies.filter(count_query).count()
 
-    def reply_to_comment(self, commenter, text):
+    def reply_to_comment(self, commenter, text, language=None):
         post_comment = Comment.create_comment(
-            text=text,
-            commenter=commenter,
-            commentable=self.commentable,
-            parent_comment=self,
+            text=text, commenter=commenter, commentable=self.commentable, parent_comment=self, language=language
         )
 
         return post_comment
@@ -204,7 +202,7 @@ class Comment(ModelWithUUID):
 
         self.modified = timezone.now()
 
-        self.full_clean(exclude=["language"])
+        self.full_clean()
 
         post_comment = super(Comment, self).save(*args, **kwargs)
 
@@ -300,7 +298,6 @@ class Comment(ModelWithUUID):
     def update_comment(self, text):
         self.text = text
         self.is_edited = True
-        self.language = get_language_for_text(text)
         self.save()
 
     def soft_delete(self):

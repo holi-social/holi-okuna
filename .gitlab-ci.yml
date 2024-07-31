@@ -21,13 +21,15 @@ stages:
 default:
   before_script:
     - set -eux
-    - env
+    # env -0 | sort -z | tr '\0' '\n': Sort env output alphabetically, keeping multiline variables intact
+    # egrep: Remove sensitive information from the output of env
+    - env -0 | sort -z | tr '\0' '\n' | egrep -ve '^(DOCKER_AUTH_CONFIG|GOOGLE_APPLICATION_CREDENTIALS)=.*'
   interruptible: true
   tags:
     - 1cpu-4gb # build on smaller machine
 
 setup:
-  image: "gitlab.holi.team:5050/app/holi-docker/holi-okuna-builder"
+  image: "europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/holi-okuna-builder"
   stage: "setup"
   script:
     - python3 -m venv venv
@@ -36,9 +38,9 @@ setup:
     - pip install -r requirements.txt --exists-action s
 
 unit-test:
-  image: "gitlab.holi.team:5050/app/holi-docker/holi-okuna-builder"
+  image: "europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/holi-okuna-builder"
   services:
-    - name: postgis/postgis:12-3.3-alpine
+    - name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/postgis/postgis:12-3.3-alpine'
       alias: postgres
   stage: "test"
   variables:
@@ -55,7 +57,7 @@ unit-test:
     - 4cpu-4gb # more cpu, quicker testing
 
 lint:
-  image: "gitlab.holi.team:5050/app/holi-docker/holi-okuna-builder"
+  image: "europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/holi-okuna-builder"
   stage: test
   variables:
     GIT_STRATEGY: clone
@@ -83,15 +85,13 @@ lint:
     - release/*
 
 build_docker:
-  image: docker:20.10
+  image: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:20.10'
   stage: "build"
   services:
     - docker:20.10-dind
   variables:
     # this could be fetched via terraform output ("gcr_location" in infra project), but then we would need an extra job for terraform
     GCR_IMAGE: europe-north1-docker.pkg.dev/holi-shared/docker/holi-okuna
-  before_script:
-    - cat $GOOGLE_CLOUD_SERVICE_ACCOUNT | docker login -u _json_key --password-stdin https://europe-north1-docker.pkg.dev
   script:
     - docker pull $GCR_IMAGE || true # Allows us to use --cache-from, we need to tag with latest in the next command for this to work
     - docker build --cache-from $GCR_IMAGE -t $GCR_IMAGE:latest -t $GCR_IMAGE:$CI_COMMIT_SHA -t $GCR_IMAGE:$CI_COMMIT_REF_SLUG .
@@ -104,7 +104,7 @@ build_docker:
 .deploy:
   stage: "deploy"
   image:
-    name: "gitlab.holi.team:5050/app/holi-docker/terraform-gcloud"
+    name: "europe-north1-docker.pkg.dev/holi-shared/docker/holi-docker/terraform-gcloud"
     # default entrypoint is terraform command, but we want to run shell scripts
     # entrypoint: ["/bin/sh", "-c"]
   variables:
@@ -118,6 +118,7 @@ build_docker:
     #when: on_failure # can't do that for api base url, but can't define multiple artifacts
     expire_in: 1 week
   script:
+    # gcloud auth is needed for the migration, triggered via gcloud command
     - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
     - terraform/environments/scripts/create-or-update-env.sh $ENVIRONMENT_ID $CI_COMMIT_SHA
     - echo "$(terraform/environments/scripts/get-output.sh api_domain)" > $API_BASE_URL_PATH
@@ -126,7 +127,7 @@ build_docker:
 
 .e2e:
   stage: "deploy"
-  image: "archlinux:base"
+  image: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/archlinux:base'
   script:
     - API_BASE_URL=`cat $API_BASE_URL_PATH`
     - echo "e2e tests against $CI_ENVIRONMENT_SLUG environment go here and against $API_BASE_URL"
@@ -147,7 +148,7 @@ review_deploy:
 review_destroy:
   stage: destroy
   image:
-    name: "hashicorp/terraform:1.6.1"
+    name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/hashicorp/terraform:1.6.1'
     # default entrypoint is terraform command, but we want to run shell scripts
     entrypoint: ["/bin/sh", "-c"]
   variables:
@@ -158,7 +159,6 @@ review_destroy:
     action: stop
   dependencies: [] # explicitly disable artifact usage
   script:
-    - export GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_CLOUD_SERVICE_ACCOUNT}
     # branch may have been deleted, so we clone and checkout main
     - git clone $CI_REPOSITORY_URL main-clone
     - cd main-clone

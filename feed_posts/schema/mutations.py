@@ -26,7 +26,6 @@ class Mutation:
         serializer = CreateFeedPostSerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-
         return FeedPostService().create_feed_post(
             title=data.get("title"),
             visibility=data.get("visibility"),
@@ -35,6 +34,7 @@ class Mutation:
             topic_ids=data.get("topic_ids"),
             image=data.get("image"),
             creator=user,
+            language=data.get("language"),
         )
 
     @strawberry.mutation
@@ -57,6 +57,7 @@ class Mutation:
             topic_ids=data.get("topic_ids"),
             image=data.get("image"),
             remove_image=is_parameter_null(data, "image"),
+            language=data.get("language"),
         )
 
     @strawberry.mutation

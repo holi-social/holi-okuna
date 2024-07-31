@@ -7,30 +7,54 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('openbook_terms', '0007_feedpostcategory'),
+        ("openbook_terms", "0007_feedpostcategory"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='FeedPost',
+            name="FeedPost",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('title', models.CharField(max_length=128)),
-                ('slug', models.SlugField(max_length=300, unique=True)),
-                ('description', models.TextField(max_length=5000)),
-                ('visibility', models.CharField(choices=[('PUBLIC', 'Public'), ('REGISTERED_USERS_ONLY', 'Registered Users Only')], default='PUBLIC', max_length=21)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('category', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='openbook_terms.feedpostcategory')),
-                ('creator', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='created_feed_posts', to=settings.AUTH_USER_MODEL)),
-                ('topics', models.ManyToManyField(blank=True, db_index=True, related_name='feed_posts', to='openbook_terms.topic')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("title", models.CharField(max_length=128)),
+                ("slug", models.SlugField(max_length=300, unique=True)),
+                ("description", models.TextField(max_length=5000)),
+                (
+                    "visibility",
+                    models.CharField(
+                        choices=[("PUBLIC", "Public"), ("REGISTERED_USERS_ONLY", "Registered Users Only")],
+                        default="PUBLIC",
+                        max_length=21,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "category",
+                    models.ForeignKey(
+                        null=True, on_delete=django.db.models.deletion.SET_NULL, to="openbook_terms.feedpostcategory"
+                    ),
+                ),
+                (
+                    "creator",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="created_feed_posts",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "topics",
+                    models.ManyToManyField(
+                        blank=True, db_index=True, related_name="feed_posts", to="openbook_terms.topic"
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]

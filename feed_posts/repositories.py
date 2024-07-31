@@ -19,6 +19,7 @@ class FeedPostRepository:
         creator,
         image,
         link_preview,
+        language,
     ):
         feed_post = FeedPost.objects.create(
             title=title,
@@ -28,6 +29,7 @@ class FeedPostRepository:
             creator=creator,
             image=image,
             link_preview=link_preview,
+            language_code=language,
         )
 
         if topics is not None:
@@ -55,6 +57,7 @@ class FeedPostRepository:
         image=None,
         remove_image=False,
         link_preview=None,
+        language=None,
     ):
         post = FeedPost.objects.get(id=post_id)
 
@@ -77,6 +80,9 @@ class FeedPostRepository:
             post.delete_image()
         elif image:
             post.update_image(image)
+
+        if language is not None:
+            post.language_code = language
 
         post.link_preview = link_preview
 

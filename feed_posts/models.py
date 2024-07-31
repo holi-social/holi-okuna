@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 
 from django.contrib.gis.db import models
 from django.core.files.storage import default_storage
@@ -17,6 +18,7 @@ from openbook_auth.models import User
 from openbook_common.enums import ReactionType
 from openbook_common.helpers import ExifRotate, generate_blurhash
 from openbook_common.models import ModelWithUUID, LinkPreview
+from openbook_common.types import LanguageCode
 from openbook_common.utils.helpers import delete_file_field
 from openbook_terms.models import Topic, FeedPostCategory
 
@@ -64,6 +66,10 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
 
     link_preview = models.ForeignKey(LinkPreview, null=True, blank=True, on_delete=models.SET_NULL)
 
+    language_code = models.CharField(
+        max_length=2, choices=LanguageCode.choices, blank=True, null=True, verbose_name=_("language")
+    )
+
     def save(self, *args, **kwargs):
         if self.image:
             self.image_blurhash = generate_blurhash(self.image)
@@ -88,8 +94,8 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
 
         self.image = image
 
-    def comment_on(self, commenter: User, text: str):
-        return Comment.create_comment(text=text, commenter=commenter, commentable=self)
+    def comment_on(self, commenter: User, text: str, language: Optional[str]):
+        return Comment.create_comment(text=text, commenter=commenter, commentable=self, language=language)
 
     def delete_comment(self, commenter: User, id: uuid.UUID):
         comment = Comment.objects.get(pk=id)

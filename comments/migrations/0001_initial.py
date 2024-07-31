@@ -7,8 +7,8 @@ import django.utils.timezone
 import uuid
 from comments.validators import comment_text_hashtags_validator
 
-class Migration(migrations.Migration):
 
+class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
@@ -25,7 +25,10 @@ class Migration(migrations.Migration):
                 migrations.CreateModel(
                     name="Comment",
                     fields=[
-                        ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                        (
+                            "id",
+                            models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False),
+                        ),
                         ("commentable_id", models.UUIDField()),
                         ("created", models.DateTimeField(db_index=True, editable=False)),
                         ("modified", models.DateTimeField(db_index=True, default=django.utils.timezone.now)),
@@ -41,7 +44,9 @@ class Migration(migrations.Migration):
                         ("is_deleted", models.BooleanField(default=False)),
                         (
                             "commentable_type",
-                            models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="contenttypes.contenttype"),
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE, to="contenttypes.contenttype"
+                            ),
                         ),
                         (
                             "commenter",
@@ -68,7 +73,10 @@ class Migration(migrations.Migration):
                 migrations.CreateModel(
                     name="CommentUserMention",
                     fields=[
-                        ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                        (
+                            "id",
+                            models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False),
+                        ),
                         (
                             "post_comment",
                             models.ForeignKey(
@@ -94,15 +102,24 @@ class Migration(migrations.Migration):
                 migrations.CreateModel(
                     name="CommentLinks",
                     fields=[
-                        ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                        (
+                            "id",
+                            models.BigAutoField(
+                                auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                            ),
+                        ),
                         (
                             "linkpreview",
-                            models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="openbook_common.linkpreview"),
+                            models.ForeignKey(
+                                on_delete=django.db.models.deletion.CASCADE, to="openbook_common.linkpreview"
+                            ),
                         ),
                         (
                             "postcomment",
                             models.ForeignKey(
-                                db_column="postcomment_id", on_delete=django.db.models.deletion.CASCADE, to="comments.comment"
+                                db_column="postcomment_id",
+                                on_delete=django.db.models.deletion.CASCADE,
+                                to="comments.comment",
                             ),
                         ),
                     ],
@@ -117,7 +134,7 @@ class Migration(migrations.Migration):
                         blank=True, related_name="+", through="comments.CommentLinks", to="openbook_common.linkpreview"
                     ),
                 ),
-                        migrations.AddField(
+                migrations.AddField(
                     model_name="comment",
                     name="mentions",
                     field=models.ManyToManyField(
@@ -141,13 +158,18 @@ class Migration(migrations.Migration):
                 migrations.CreateModel(
                     name="CommentReaction",
                     fields=[
-                        ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                        (
+                            "id",
+                            models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False),
+                        ),
                         ("created", models.DateTimeField(editable=False)),
                         ("reaction_type", models.CharField(choices=[("HEART", "Heart")], max_length=20)),
                         (
                             "post_comment",
                             models.ForeignKey(
-                                on_delete=django.db.models.deletion.CASCADE, related_name="reactions", to="comments.comment"
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="reactions",
+                                to="comments.comment",
                             ),
                         ),
                         (
@@ -167,7 +189,10 @@ class Migration(migrations.Migration):
                 migrations.CreateModel(
                     name="CommentMute",
                     fields=[
-                        ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                        (
+                            "id",
+                            models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False),
+                        ),
                         (
                             "muter",
                             models.ForeignKey(
@@ -179,7 +204,9 @@ class Migration(migrations.Migration):
                         (
                             "post_comment",
                             models.ForeignKey(
-                                on_delete=django.db.models.deletion.CASCADE, related_name="mutes", to="comments.comment"
+                                on_delete=django.db.models.deletion.CASCADE,
+                                related_name="mutes",
+                                to="comments.comment",
                             ),
                         ),
                     ],
@@ -190,7 +217,9 @@ class Migration(migrations.Migration):
                 ),
                 migrations.AddIndex(
                     model_name="comment",
-                    index=models.Index(fields=["commentable_type", "commentable_id"], name="openbook_po_comment_62fb0e_idx"),
+                    index=models.Index(
+                        fields=["commentable_type", "commentable_id"], name="openbook_po_comment_62fb0e_idx"
+                    ),
                 ),
             ],
             # We're reusing the old schema, so don't re-create any of it
