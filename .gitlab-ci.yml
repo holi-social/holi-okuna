@@ -21,7 +21,9 @@ stages:
 default:
   before_script:
     - set -eux
-    - env
+    # env -0 | sort -z | tr '\0' '\n': Sort env output alphabetically, keeping multiline variables intact
+    # egrep: Remove sensitive information from the output of env
+    - env -0 | sort -z | tr '\0' '\n' | egrep -ve '^(DOCKER_AUTH_CONFIG|GOOGLE_APPLICATION_CREDENTIALS)=.*'
   interruptible: true
   tags:
     - 1cpu-4gb # build on smaller machine
@@ -116,6 +118,8 @@ build_docker:
     #when: on_failure # can't do that for api base url, but can't define multiple artifacts
     expire_in: 1 week
   script:
+    # gcloud auth is needed for the migration, triggered via gcloud command
+    - gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
     - terraform/environments/scripts/create-or-update-env.sh $ENVIRONMENT_ID $CI_COMMIT_SHA
     - echo "$(terraform/environments/scripts/get-output.sh api_domain)" > $API_BASE_URL_PATH
   resource_group: $ENVIRONMENT_ID # never execute terraform in parallel on the same environment
