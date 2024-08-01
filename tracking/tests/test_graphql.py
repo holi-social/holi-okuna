@@ -17,6 +17,14 @@ from openbook_common.tests.helpers import (
 
 logger = logging.getLogger(__name__)
 
+standard_properties = {
+    "trackingConsentAnalytics": True,
+    "trackingConsentPersonalization": True,
+    "event_version__major": 1,
+    "event_version__minor": 0,
+    "event_version__patch": 0,
+}
+
 
 @pytest.mark.django_db
 class TestTracking(TestCase):
@@ -60,8 +68,5 @@ class TestTracking(TestCase):
         mock_posthog_capture.assert_any_call(
             distinct_id=user.username,
             event="space_created",
-            properties={
-                "trackingConsentAnalytics": True,
-                "trackingConsentPersonalization": True,
-            },
+            properties=standard_properties,
         )

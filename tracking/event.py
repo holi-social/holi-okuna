@@ -1,47 +1,58 @@
 from enum import Enum
+from dataclasses import dataclass
+from typing import Dict
+
+
+@dataclass
+class EventPayload:
+    name: str
+    properties: Dict[str, str]
+    event_version__major: int
+    event_version__minor: int
+    event_version__patch: int
 
 
 class Event(Enum):
-    USER_CREATED = "user_created"
-    USER_UPDATED = "user_updated"
-    USER_DELETED = "user_deleted"
+    USER_CREATED = EventPayload("user_created", {}, 1, 0, 0)
+    USER_UPDATED = EventPayload("user_updated", {}, 1, 0, 0)
+    USER_DELETED = EventPayload("user_deleted", {}, 1, 0, 0)
 
-    SPACE_CREATED = "space_created"
-    SPACE_UPDATED = "space_updated"
-    SPACE_DELETED = "space_deleted"
+    SPACE_CREATED = EventPayload("space_created", {}, 1, 0, 0)
+    SPACE_UPDATED = EventPayload("space_updated", {}, 1, 0, 0)
+    SPACE_DELETED = EventPayload("space_deleted", {}, 1, 0, 0)
 
-    SPACE_POST_CREATED = "space_post_created"
-    SPACE_POST_UPDATED = "space_post_updated"
-    SPACE_POST_DELETED = "space_post_deleted"
+    SPACE_POST_CREATED = EventPayload("space_post_created", {}, 1, 0, 0)
+    SPACE_POST_UPDATED = EventPayload("space_post_updated", {}, 1, 0, 0)
+    SPACE_POST_DELETED = EventPayload("space_post_deleted", {}, 1, 0, 0)
 
-    SPACE_POST_COMMENT_CREATED = "space_post_comment_created"
-    SPACE_POST_COMMENT_UPDATED = "space_post_comment_updated"
-    SPACE_POST_COMMENT_DELETED = "space_post_comment_deleted"
+    SPACE_POST_COMMENT_CREATED = EventPayload("space_post_comment_created", {}, 1, 0, 0)
+    SPACE_POST_COMMENT_UPDATED = EventPayload("space_post_comment_updated", {}, 1, 0, 0)
+    SPACE_POST_COMMENT_DELETED = EventPayload("space_post_comment_deleted", {}, 1, 0, 0)
 
-    POST_CREATED = "post_created"
-    POST_UPDATED = "post_updated"
-    POST_DELETED = "post_deleted"
+    POST_CREATED = EventPayload("post_created", {}, 1, 0, 0)
+    POST_UPDATED = EventPayload("post_updated", {}, 1, 0, 0)
+    POST_DELETED = EventPayload("post_deleted", {}, 1, 0, 0)
 
-    POST_COMMENT_CREATED = "post_comment_created"
-    POST_COMMENT_UPDATED = "post_comment_updated"
-    POST_COMMENT_DELETED = "post_comment_deleted"
+    POST_COMMENT_CREATED = EventPayload("post_comment_created", {}, 1, 0, 0)
+    POST_COMMENT_UPDATED = EventPayload("post_comment_updated", {}, 1, 0, 0)
+    POST_COMMENT_DELETED = EventPayload("post_comment_deleted", {}, 1, 0, 0)
 
-    FEED_POST_CREATED = "feed_post_created"
-    FEED_POST_UPDATED = "feed_post_updated"
-    FEED_POST_DELETED = "feed_post_deleted"
+    FEED_POST_CREATED = EventPayload("feed_post_created", {}, 1, 0, 0)
+    FEED_POST_UPDATED = EventPayload("feed_post_updated", {}, 1, 0, 0)
+    FEED_POST_DELETED = EventPayload("feed_post_deleted", {}, 1, 0, 0)
 
-    FEED_POST_COMMENT_CREATED = "feed_post_comment_created"
-    FEED_POST_COMMENT_UPDATED = "feed_post_comment_updated"
-    FEED_POST_COMMENT_DELETED = "feed_post_comment_deleted"
+    FEED_POST_COMMENT_CREATED = EventPayload("feed_post_comment_created", {}, 1, 0, 0)
+    FEED_POST_COMMENT_UPDATED = EventPayload("feed_post_comment_updated", {}, 1, 0, 0)
+    FEED_POST_COMMENT_DELETED = EventPayload("feed_post_comment_deleted", {}, 1, 0, 0)
 
-    INSIGHT_DISCUSSION_COMMENT_CREATED = "insight_discussion_comment_created"
-    INSIGHT_DISCUSSION_COMMENT_UPDATED = "insight_discussion_comment_updated"
-    INSIGHT_DISCUSSION_COMMENT_DELETED = "insight_discussion_comment_deleted"
+    INSIGHT_DISCUSSION_COMMENT_CREATED = EventPayload("insight_discussion_comment_created", {}, 1, 0, 0)
+    INSIGHT_DISCUSSION_COMMENT_UPDATED = EventPayload("insight_discussion_comment_updated", {}, 1, 0, 0)
+    INSIGHT_DISCUSSION_COMMENT_DELETED = EventPayload("insight_discussion_comment_deleted", {}, 1, 0, 0)
 
-    APPOINTMENT_CREATED = "appointment_created"
-    APPOINTMENT_UPDATED = "appointment_updated"
-    APPOINTMENT_DELETED = "appointment_deleted"
+    APPOINTMENT_CREATED = EventPayload("appointment_created", {}, 1, 0, 0)
+    APPOINTMENT_UPDATED = EventPayload("appointment_updated", {}, 1, 0, 0)
+    APPOINTMENT_DELETED = EventPayload("appointment_deleted", {}, 1, 0, 0)
 
-    SPACE_TASK_CREATED = "space_task_created"
-    SPACE_TASK_UPDATED = "space_task_updated"
-    SPACE_TASK_DELETED = "space_task_deleted"
+    SPACE_TASK_CREATED = EventPayload("space_task_created", {}, 1, 0, 0)
+    SPACE_TASK_UPDATED = EventPayload("space_task_updated", {}, 1, 0, 0)
+    SPACE_TASK_DELETED = EventPayload("space_task_deleted", {}, 1, 0, 0)
