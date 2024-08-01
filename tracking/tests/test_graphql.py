@@ -34,7 +34,31 @@ class TestTracking(TestCase):
     def tearDown(self):
         del sys._called_from_test
 
-    # TODO test that trackingConsentAnalytics & trackingConsentPersonalization are included in events
+    @mock.patch("posthog.Posthog.capture")
+    def test_no_tracking_without_analytics_consent(self, mock_posthog_capture):
+        graphql_query = """
+            mutation test($input: CreateSpaceInput!) {
+                createSpace(input: $input) {
+                    id
+                }
+            }
+        """
+        topic_ids = [str(make_topic().id) for _ in range(2)]
+        valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+        valid_input = {"title": "valid", "description": "valid", "topics": topic_ids, "cover": valid_image}
+
+        user = make_user(
+            tracking_consent_analytics=False,
+            tracking_consent_personalization=True,
+        )
+        response = async_to_sync(schema.execute)(
+            graphql_query,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"input": valid_input},
+        )
+        assert response.errors is None
+        mock_posthog_capture.assert_not_called()
+
     # TODO test that we only track on trackingConsentAnalytics
     # TODO test we don't track if only trackingConsentPersonalization is given
     # TODO test that user ID is correct
