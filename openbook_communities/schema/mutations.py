@@ -238,8 +238,9 @@ class Mutation:
                 )
 
             publish_space_deleted_event(space)
-
+            track_event(current_user, Event("space_deleted", {"id": str(space.id)}, 1, 0, 0))
             invalidate_discover_spaces_query_cache()
+
         except CommunityModel.DoesNotExist:
             # the space does not exist in the first place, which is just as good as deleting it
             Result(success=True)

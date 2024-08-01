@@ -123,3 +123,32 @@ class TestTracking(TestCase):
             event="space_updated",
             properties={**standard_properties, "id": str(space.id)},
         )
+
+    @mock.patch("posthog.Posthog.capture")
+    def test_emits_tracking_event_space_deleted(self, mock_posthog_capture):
+        user = make_user(
+            tracking_consent_analytics=True,
+            tracking_consent_personalization=True,
+        )
+        space = make_community(creator=user)
+        mock_posthog_capture.reset_mock()
+
+        graphql_query = """
+            mutation test($id: UUID!) {
+                deleteSpace(id: $id) {
+                    success
+                }
+            }
+        """
+        response = async_to_sync(schema.execute)(
+            graphql_query,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"id": str(space.id)},
+        )
+
+        assert response.errors is None
+        mock_posthog_capture.assert_called_once_with(
+            distinct_id=user.username,
+            event="space_deleted",
+            properties={**standard_properties, "id": str(space.id)},
+        )
