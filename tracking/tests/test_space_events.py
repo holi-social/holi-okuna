@@ -14,6 +14,7 @@ from openbook_common.tests.helpers import (
     make_topic,
     make_community,
     make_skill,
+    make_community_task,
     simple_jpeg_bytes,
 )
 
@@ -204,6 +205,44 @@ class TestSpaceEvents(TestCase):
             distinct_id=user.username,
             event="space_task_created",
             properties={**standard_properties, "space_id": str(space.id), "space_task_id": str(task_id)},
+        )
+
+    @mock.patch("posthog.Posthog.capture")
+    def test_emits_tracking_event_space_task_updated(self, mock_posthog_capture):
+        user = make_user(
+            tracking_consent_analytics=True,
+            tracking_consent_personalization=True,
+        )
+        space = make_community(creator=user)
+        skill = make_skill()
+        task = make_community_task(space)
+        mock_posthog_capture.reset_mock()
+
+        graphql_query = """
+            mutation test($input: UpdateTaskInput!) {
+                updateTask(input: $input) {
+                    id
+                }
+            }
+        """
+
+        response = async_to_sync(schema.execute)(
+            graphql_query,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={
+                "input": {
+                    **self.__input_create_task(space, skill),
+                    "taskId": str(task.id),
+                }
+            },
+        )
+
+        assert response.errors is None
+
+        mock_posthog_capture.assert_called_once_with(
+            distinct_id=user.username,
+            event="space_task_updated",
+            properties={**standard_properties, "space_id": str(space.id), "space_task_id": str(task.id)},
         )
 
 

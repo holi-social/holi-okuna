@@ -296,7 +296,7 @@ def make_community_invites_enabled():
     return fake.boolean()
 
 
-def make_community_task(community, skills=None, visibility=VisibilityType.MEMBERS, is_deleted=False):
+def make_community_task(community, skills=None, visibility=VisibilityType.MEMBERS, is_deleted=False) -> Task:
     if not skills:
         skills = [make_skill()]
 
