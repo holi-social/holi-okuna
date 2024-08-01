@@ -26,6 +26,9 @@ standard_properties = {
 }
 
 
+# TODO maybe use https://pypi.org/project/django-lifecycle/0.5.0/ instead
+
+
 @pytest.mark.django_db
 class TestTracking(TestCase):
     def setUp(self):
@@ -60,12 +63,6 @@ class TestTracking(TestCase):
         )
         assert response.errors is None
         mock_posthog_capture.assert_not_called()
-
-    # TODO test that we only track on trackingConsentAnalytics
-    # TODO test we don't track if only trackingConsentPersonalization is given
-    # TODO test that user ID is correct
-
-    # TODO maybe use https://pypi.org/project/django-lifecycle/0.5.0/ instead
 
     @mock.patch("posthog.Posthog.capture")
     def test_emits_tracking_event_create_space(self, mock_posthog_capture):
