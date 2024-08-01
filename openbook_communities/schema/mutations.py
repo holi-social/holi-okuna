@@ -1,13 +1,13 @@
 import uuid
 from typing import Optional
 
-import requests
 import strawberry
 import structlog
 from asgiref.sync import sync_to_async
 from django.db import transaction
 from graphql import GraphQLError
 
+from openbook.graphql_errors import GraphQLErrorCodes
 from openbook.helpers import (
     publish_space_created_event,
     publish_space_updated_event,
@@ -20,7 +20,6 @@ from openbook.utils import invalidate_discover_spaces_query_cache
 from openbook_auth.models import User as UserModel
 from openbook_auth.schema.types import UpdateConnectionAction
 from openbook_auth.utils import verify_authorized_user
-from openbook.graphql_errors import GraphQLErrorCodes
 from openbook_common.helpers import is_parameter_null, to_input_dict
 from openbook_common.schema.types import GeolocationPointInput, Result
 from openbook_communities.models import Community as CommunityModel
@@ -55,6 +54,8 @@ from openbook_communities.serializers.communities_serializers import (
 from openbook_communities.serializers.community_serializers import (
     CommunityUserConnectionSerializer,
 )
+from tracking.event import Event
+from tracking.tracking import track_event
 
 logger = structlog.get_logger(__name__)
 
@@ -174,16 +175,18 @@ class Mutation:
         serializer = CreateCommunitySerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        community = current_user.create_community(
-            title=data.get("title"),
-            type=CommunityModel.COMMUNITY_TYPE_PUBLIC,
-            description=data.get("description"),
-            cover=data.get("cover"),
-            invites_enabled=True,
-            topic_ids=data.get("topics"),
-        )
+        with transaction.atomic():
+            community = current_user.create_community(
+                title=data.get("title"),
+                type=CommunityModel.COMMUNITY_TYPE_PUBLIC,
+                description=data.get("description"),
+                cover=data.get("cover"),
+                invites_enabled=True,
+                topic_ids=data.get("topics"),
+            )
 
         publish_space_created_event(community=community)
+        track_event(current_user, Event.SPACE_CREATED)
         invalidate_discover_spaces_query_cache()
 
         return community

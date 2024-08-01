@@ -4,12 +4,18 @@ from posthog import Posthog
 
 from openbook.settings import POSTHOG_API_KEY, POSTHOG_HOST
 from tracking.event import Event
+from typing import Protocol
 
 posthog: Posthog | None = None
 
 
+class User(Protocol):
+    username: str
+    tracking_consent_analytics: bool
+    tracking_consent_personalization: bool
+
+
 def initialize():
-    # print(f"initialize {POSTHOG_API_KEY} {POSTHOG_HOST}", file=sys.stderr)
     if POSTHOG_API_KEY and POSTHOG_HOST:
         global posthog
         posthog = Posthog(
@@ -20,10 +26,8 @@ def initialize():
         )
 
 
-def track_event(user, event: Event):
-    # print(f"track_event {event} {posthog} {user}", file=sys.stderr)
+def track_event(user: User, event: Event):
     if posthog is not None and user.tracking_consent_analytics:
-        # print(f"track_event capture {event}", file=sys.stderr)
         posthog.capture(
             distinct_id=user.username,
             event=event.value.name,

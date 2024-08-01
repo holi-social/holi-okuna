@@ -66,6 +66,12 @@ class TestTracking(TestCase):
 
     @mock.patch("posthog.Posthog.capture")
     def test_emits_tracking_event_create_space(self, mock_posthog_capture):
+        user = make_user(
+            tracking_consent_analytics=True,
+            tracking_consent_personalization=True,
+        )
+        mock_posthog_capture.reset_mock()
+
         graphql_query = """
             mutation test($input: CreateSpaceInput!) {
                 createSpace(input: $input) {
@@ -73,11 +79,6 @@ class TestTracking(TestCase):
                 }
             }
         """
-
-        user = make_user(
-            tracking_consent_analytics=True,
-            tracking_consent_personalization=True,
-        )
         response = async_to_sync(schema.execute)(
             graphql_query,
             context_value=benedict({"request": {"user": user}}),
@@ -85,7 +86,7 @@ class TestTracking(TestCase):
         )
 
         assert response.errors is None
-        mock_posthog_capture.assert_any_call(
+        mock_posthog_capture.assert_called_once_with(
             distinct_id=user.username,
             event="space_created",
             properties=standard_properties,

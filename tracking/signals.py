@@ -27,15 +27,6 @@ def track_user_delete(sender, instance, **kwargs):
     track_event(instance, Event.USER_DELETED)
 
 
-# ---- communities ----
-@receiver(post_save, sender=Community)
-def track_community_save(sender, instance, created, **kwargs):
-    if created:
-        track_event(instance.creator, Event.SPACE_CREATED)
-    else:
-        track_event(instance.creator, Event.SPACE_UPDATED)
-
-
 @receiver(post_delete, sender=Community)
 def track_community_delete(sender, instance, **kwargs):
     track_event(instance.creator, Event.SPACE_DELETED)
