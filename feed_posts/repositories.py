@@ -5,6 +5,7 @@ from django.db.models import Q
 from feed_posts.models import FeedPost, FeedPostReaction
 from openbook_auth.models import User, get_reactions
 from openbook_common.enums import ReactionType
+from openbook_common.schema.types import GeolocationPointInput
 from openbook_common.utils.helpers import is_uuid
 
 
@@ -20,6 +21,8 @@ class FeedPostRepository:
         image,
         link_preview,
         language,
+        location,
+        geolocation,
     ):
         feed_post = FeedPost.objects.create(
             title=title,
@@ -30,6 +33,8 @@ class FeedPostRepository:
             image=image,
             link_preview=link_preview,
             language_code=language,
+            location=location,
+            geolocation=GeolocationPointInput.to_point(geolocation),
         )
 
         if topics is not None:
@@ -58,6 +63,8 @@ class FeedPostRepository:
         remove_image=False,
         link_preview=None,
         language=None,
+        location=None,
+        geolocation=None,
     ):
         post = FeedPost.objects.get(id=post_id)
 
@@ -83,6 +90,12 @@ class FeedPostRepository:
 
         if language is not None:
             post.language_code = language
+
+        if location is not None:
+            post.location = location
+
+        if geolocation is not None:
+            post.geolocation = GeolocationPointInput.to_point(geolocation)
 
         post.link_preview = link_preview
 
