@@ -6,7 +6,6 @@ from comments.models import Comment
 from feed_posts.models import FeedPost
 from openbook_appointments.models import Appointment
 from openbook_auth.models import User
-from openbook_communities.models import Task
 from openbook_insights.models import Discussion as InsightDiscussion
 from openbook_posts.models import Post
 from tracking.event import Event
@@ -125,8 +124,3 @@ def track_appointment_save(sender, instance, created, **kwargs):
 @receiver(post_delete, sender=Appointment)
 def track_appointment_delete(sender, instance, **kwargs):
     track_event(instance.creator, Event.APPOINTMENT_DELETED)
-
-
-@receiver(post_delete, sender=Task)
-def track_community_task_delete(sender, instance, **kwargs):
-    track_event(instance.creator, Event.SPACE_TASK_DELETED)

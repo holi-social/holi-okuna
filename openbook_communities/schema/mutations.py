@@ -339,7 +339,12 @@ class Mutation:
         current_user = verify_authorized_user(info)
 
         with transaction.atomic():
-            current_user.delete_task_with_id(task_id=id)
+            task = current_user.delete_task_with_id(task_id=id)
+
+        track_event(
+            current_user,
+            Event("space_task_deleted", {"space_id": str(task.community_id), "space_task_id": str(task.id)}, 1, 0, 0),
+        )
 
         return Result(success=True)
 
