@@ -34,6 +34,12 @@ class TestTracking(TestCase):
     def tearDown(self):
         del sys._called_from_test
 
+    @staticmethod
+    def __input_create_space():
+        topic_ids = [str(make_topic().id) for _ in range(2)]
+        valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
+        return {"title": "valid", "description": "valid", "topics": topic_ids, "cover": valid_image}
+
     @mock.patch("posthog.Posthog.capture")
     def test_no_tracking_without_analytics_consent(self, mock_posthog_capture):
         graphql_query = """
@@ -43,10 +49,6 @@ class TestTracking(TestCase):
                 }
             }
         """
-        topic_ids = [str(make_topic().id) for _ in range(2)]
-        valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
-        valid_input = {"title": "valid", "description": "valid", "topics": topic_ids, "cover": valid_image}
-
         user = make_user(
             tracking_consent_analytics=False,
             tracking_consent_personalization=True,
@@ -54,7 +56,7 @@ class TestTracking(TestCase):
         response = async_to_sync(schema.execute)(
             graphql_query,
             context_value=benedict({"request": {"user": user}}),
-            variable_values={"input": valid_input},
+            variable_values={"input": self.__input_create_space()},
         )
         assert response.errors is None
         mock_posthog_capture.assert_not_called()
@@ -74,9 +76,6 @@ class TestTracking(TestCase):
                 }
             }
         """
-        topic_ids = [str(make_topic().id) for _ in range(2)]
-        valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
-        valid_input = {"title": "valid", "description": "valid", "topics": topic_ids, "cover": valid_image}
 
         user = make_user(
             tracking_consent_analytics=True,
@@ -85,7 +84,7 @@ class TestTracking(TestCase):
         response = async_to_sync(schema.execute)(
             graphql_query,
             context_value=benedict({"request": {"user": user}}),
-            variable_values={"input": valid_input},
+            variable_values={"input": self.__input_create_space()},
         )
 
         assert response.errors is None
