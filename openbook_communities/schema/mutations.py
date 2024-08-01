@@ -271,21 +271,30 @@ class Mutation:
         serializer = CreateTaskSerializer(data=to_input_dict(input))
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        return current_user.create_task(
-            space_id=data.get("space_id"),
-            name=data.get("name"),
-            description=data.get("description"),
-            slots_available=data.get("slots_available"),
-            visibility=data.get("visibility"),
-            location_type=data.get("location_type"),
-            location=data.get("location"),
-            geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
-            regularity=data.get("regularity"),
-            contact_email=data.get("contact_email"),
-            contact_phone=data.get("contact_phone"),
-            skills=data.get("skills"),
-            thumbnail=data.get("thumbnail"),
+        space_id = data.get("space_id")
+        with transaction.atomic():
+            task = current_user.create_task(
+                space_id=space_id,
+                name=data.get("name"),
+                description=data.get("description"),
+                slots_available=data.get("slots_available"),
+                visibility=data.get("visibility"),
+                location_type=data.get("location_type"),
+                location=data.get("location"),
+                geolocation=(GeolocationPointInput.to_point(data.get("geolocation"))),
+                regularity=data.get("regularity"),
+                contact_email=data.get("contact_email"),
+                contact_phone=data.get("contact_phone"),
+                skills=data.get("skills"),
+                thumbnail=data.get("thumbnail"),
+            )
+
+        track_event(
+            current_user,
+            Event("space_task_created", {"space_id": str(space_id), "space_task_id": str(task.id)}, 1, 0, 0),
         )
+
+        return task
 
     @strawberry.mutation
     @sync_to_async

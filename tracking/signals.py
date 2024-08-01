@@ -127,17 +127,6 @@ def track_appointment_delete(sender, instance, **kwargs):
     track_event(instance.creator, Event.APPOINTMENT_DELETED)
 
 
-# ---- comunity tasks ----
-@receiver(post_save, sender=Task)
-def track_community_task_save(sender, instance, created, **kwargs):
-    if created:
-        track_event(instance.creator, Event.SPACE_TASK_CREATED)
-    elif not instance.is_deleted:
-        track_event(instance.creator, Event.SPACE_TASK_UPDATED)
-    else:
-        track_event(instance.creator, Event.SPACE_TASK_DELETED)
-
-
 @receiver(post_delete, sender=Task)
 def track_community_task_delete(sender, instance, **kwargs):
     track_event(instance.creator, Event.SPACE_TASK_DELETED)

@@ -1,5 +1,5 @@
-import sys
 import logging
+import sys
 from unittest import mock
 
 import pytest
@@ -13,6 +13,7 @@ from openbook_common.tests.helpers import (
     make_user,
     make_topic,
     make_community,
+    make_skill,
     simple_jpeg_bytes,
 )
 
@@ -31,7 +32,7 @@ standard_properties = {
 
 
 @pytest.mark.django_db
-class TestTracking(TestCase):
+class TestSpaceEvents(TestCase):
     def setUp(self):
         sys._called_from_test = True
 
@@ -40,9 +41,28 @@ class TestTracking(TestCase):
 
     @staticmethod
     def __input_create_space():
-        topic_ids = [str(make_topic().id) for _ in range(2)]
-        valid_image = SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)
-        return {"title": "valid", "description": "valid", "topics": topic_ids, "cover": valid_image}
+        return {
+            "title": "valid",
+            "description": "valid",
+            "topics": [str(make_topic().id) for _ in range(2)],
+            "cover": (SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)),
+        }
+
+    @staticmethod
+    def __input_create_task(space, skill):
+        return {
+            "spaceId": str(space.id),
+            "name": "Valid name",
+            "description": "Valid description",
+            "visibility": "MEMBERS",
+            "locationType": "HYBRID",
+            "regularity": "REGULARLY",
+            "contactEmail": "email@email.com",
+            "skills": [str(skill.id)],
+            "slotsAvailable": 1,
+            "location": "Hamburg, Germany",
+            "contactPhone": "+49176176176176",
+        }
 
     @mock.patch("posthog.Posthog.capture")
     def test_no_tracking_without_analytics_consent(self, mock_posthog_capture):
@@ -152,3 +172,40 @@ class TestTracking(TestCase):
             event="space_deleted",
             properties={**standard_properties, "id": str(space.id)},
         )
+
+    @mock.patch("posthog.Posthog.capture")
+    def test_emits_tracking_event_space_task_created(self, mock_posthog_capture):
+        user = make_user(
+            tracking_consent_analytics=True,
+            tracking_consent_personalization=True,
+        )
+        space = make_community(creator=user)
+        skill = make_skill()
+        mock_posthog_capture.reset_mock()
+
+        graphql_query = """
+            mutation test($input: CreateTaskInput!) {
+                createTask(input: $input) {
+                    id
+                }
+            }
+        """
+        input = self.__input_create_task(space, skill)
+        response = async_to_sync(schema.execute)(
+            graphql_query,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"input": input},
+        )
+
+        assert response.errors is None
+        task_id = response.data["createTask"]["id"]
+
+        mock_posthog_capture.assert_called_once_with(
+            distinct_id=user.username,
+            event="space_task_created",
+            properties={**standard_properties, "space_id": str(space.id), "space_task_id": str(task_id)},
+        )
+
+
+# TODO space_task_updated
+# TODO space_task_deleted
