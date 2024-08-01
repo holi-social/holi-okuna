@@ -12,6 +12,7 @@ from openbook.graphql_schema import schema
 from openbook_common.tests.helpers import (
     make_user,
     make_topic,
+    make_community,
     simple_jpeg_bytes,
 )
 
@@ -65,7 +66,7 @@ class TestTracking(TestCase):
         mock_posthog_capture.assert_not_called()
 
     @mock.patch("posthog.Posthog.capture")
-    def test_emits_tracking_event_create_space(self, mock_posthog_capture):
+    def test_emits_tracking_event_space_created(self, mock_posthog_capture):
         user = make_user(
             tracking_consent_analytics=True,
             tracking_consent_personalization=True,
@@ -89,5 +90,34 @@ class TestTracking(TestCase):
         mock_posthog_capture.assert_called_once_with(
             distinct_id=user.username,
             event="space_created",
+            properties=standard_properties,
+        )
+
+    @mock.patch("posthog.Posthog.capture")
+    def test_emits_tracking_event_space_updated(self, mock_posthog_capture):
+        user = make_user(
+            tracking_consent_analytics=True,
+            tracking_consent_personalization=True,
+        )
+        space = make_community(creator=user)
+        mock_posthog_capture.reset_mock()
+
+        graphql_query = """
+            mutation test($input: UpdateSpaceInput!) {
+                updateSpace(input: $input) {
+                    onboarding { steps { text } }
+                }
+            }
+        """
+        response = async_to_sync(schema.execute)(
+            graphql_query,
+            context_value=benedict({"request": {"user": user}}),
+            variable_values={"input": {"id": str(space.id), "title": "New Space Title"}},
+        )
+
+        assert response.errors is None
+        mock_posthog_capture.assert_called_once_with(
+            distinct_id=user.username,
+            event="space_updated",
             properties=standard_properties,
         )

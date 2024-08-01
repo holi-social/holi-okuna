@@ -219,6 +219,7 @@ class Mutation:
         )
 
         publish_space_updated_event(community=space)
+        track_event(current_user, Event.SPACE_UPDATED)
         invalidate_discover_spaces_query_cache()
 
         return space
