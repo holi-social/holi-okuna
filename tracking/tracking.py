@@ -30,12 +30,12 @@ def track_event(user: User, event: Event):
     if posthog is not None and user.tracking_consent_analytics:
         posthog.capture(
             distinct_id=user.username,
-            event=event.value.name,
+            event=event.name,
             properties={
-                **event.value.properties,
-                "event_version__major": event.value.event_version__major,
-                "event_version__minor": event.value.event_version__minor,
-                "event_version__patch": event.value.event_version__patch,
+                **event.properties,
+                "event_version__major": event.event_version__major,
+                "event_version__minor": event.event_version__minor,
+                "event_version__patch": event.event_version__patch,
                 "trackingConsentAnalytics": user.tracking_consent_analytics,
                 "trackingConsentPersonalization": user.tracking_consent_personalization,
             },

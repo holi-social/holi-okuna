@@ -87,10 +87,12 @@ class TestTracking(TestCase):
         )
 
         assert response.errors is None
+        space_id = response.data["createSpace"]["id"]
+
         mock_posthog_capture.assert_called_once_with(
             distinct_id=user.username,
             event="space_created",
-            properties=standard_properties,
+            properties={**standard_properties, "id": space_id},
         )
 
     @mock.patch("posthog.Posthog.capture")
@@ -119,5 +121,5 @@ class TestTracking(TestCase):
         mock_posthog_capture.assert_called_once_with(
             distinct_id=user.username,
             event="space_updated",
-            properties=standard_properties,
+            properties={**standard_properties, "id": str(space.id)},
         )

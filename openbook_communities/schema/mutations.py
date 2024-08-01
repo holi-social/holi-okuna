@@ -176,7 +176,7 @@ class Mutation:
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         with transaction.atomic():
-            community = current_user.create_community(
+            space = current_user.create_community(
                 title=data.get("title"),
                 type=CommunityModel.COMMUNITY_TYPE_PUBLIC,
                 description=data.get("description"),
@@ -185,11 +185,11 @@ class Mutation:
                 topic_ids=data.get("topics"),
             )
 
-        publish_space_created_event(community=community)
-        track_event(current_user, Event.SPACE_CREATED)
+        publish_space_created_event(community=space)
+        track_event(current_user, Event("space_created", {"id": str(space.id)}, 1, 0, 0))
         invalidate_discover_spaces_query_cache()
 
-        return community
+        return space
 
     @strawberry.mutation
     @sync_to_async
@@ -219,7 +219,7 @@ class Mutation:
         )
 
         publish_space_updated_event(community=space)
-        track_event(current_user, Event.SPACE_UPDATED)
+        track_event(current_user, Event("space_updated", {"id": str(space.id)}, 1, 0, 0))
         invalidate_discover_spaces_query_cache()
 
         return space
