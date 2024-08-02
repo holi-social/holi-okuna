@@ -18,6 +18,7 @@ from openbook_common.tests.helpers import (
     simple_jpeg_bytes,
 )
 
+
 logger = logging.getLogger(__name__)
 
 standard_properties = {
@@ -29,12 +30,10 @@ standard_properties = {
 }
 
 
-# TODO maybe use https://pypi.org/project/django-lifecycle/0.5.0/ instead
-
-
 @pytest.mark.django_db
 class TestSpaceEvents(TestCase):
     def setUp(self):
+        # used to set up the posthog client to not actually send events
         sys._called_from_test = True
 
     def tearDown(self):
@@ -87,7 +86,7 @@ class TestSpaceEvents(TestCase):
         mock_posthog_capture.assert_not_called()
 
     @mock.patch("posthog.Posthog.capture")
-    def test_emits_tracking_event_space_created(self, mock_posthog_capture):
+    def test_tracks_space_created(self, mock_posthog_capture):
         user = make_user(
             tracking_consent_analytics=True,
             tracking_consent_personalization=True,
@@ -117,7 +116,7 @@ class TestSpaceEvents(TestCase):
         )
 
     @mock.patch("posthog.Posthog.capture")
-    def test_emits_tracking_event_space_updated(self, mock_posthog_capture):
+    def test_tracks_space_updated(self, mock_posthog_capture):
         user = make_user(
             tracking_consent_analytics=True,
             tracking_consent_personalization=True,
@@ -146,7 +145,7 @@ class TestSpaceEvents(TestCase):
         )
 
     @mock.patch("posthog.Posthog.capture")
-    def test_emits_tracking_event_space_deleted(self, mock_posthog_capture):
+    def test_tracks_space_deleted(self, mock_posthog_capture):
         user = make_user(
             tracking_consent_analytics=True,
             tracking_consent_personalization=True,
@@ -175,7 +174,7 @@ class TestSpaceEvents(TestCase):
         )
 
     @mock.patch("posthog.Posthog.capture")
-    def test_emits_tracking_event_space_task_created(self, mock_posthog_capture):
+    def test_tracks_space_task_created(self, mock_posthog_capture):
         user = make_user(
             tracking_consent_analytics=True,
             tracking_consent_personalization=True,
@@ -208,7 +207,7 @@ class TestSpaceEvents(TestCase):
         )
 
     @mock.patch("posthog.Posthog.capture")
-    def test_emits_tracking_event_space_task_updated(self, mock_posthog_capture):
+    def test_tracks_space_task_updated(self, mock_posthog_capture):
         user = make_user(
             tracking_consent_analytics=True,
             tracking_consent_personalization=True,
@@ -246,7 +245,7 @@ class TestSpaceEvents(TestCase):
         )
 
     @mock.patch("posthog.Posthog.capture")
-    def test_emits_tracking_event_space_task_deleted(self, mock_posthog_capture):
+    def test_tracks_space_task_deleted(self, mock_posthog_capture):
         user = make_user(
             tracking_consent_analytics=True,
             tracking_consent_personalization=True,
