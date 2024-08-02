@@ -111,8 +111,8 @@ class TestSpaceEvents(TestCase):
 
         mock_posthog_capture.assert_called_once_with(
             distinct_id=user.username,
-            event="space_created",
-            properties={**standard_properties, "id": space_id},
+            event="spaceCreated",
+            properties={**standard_properties, "spaceId": space_id},
         )
 
     @mock.patch("posthog.Posthog.capture")
@@ -140,8 +140,8 @@ class TestSpaceEvents(TestCase):
         assert response.errors is None
         mock_posthog_capture.assert_called_once_with(
             distinct_id=user.username,
-            event="space_updated",
-            properties={**standard_properties, "id": str(space.id)},
+            event="spaceUpdated",
+            properties={**standard_properties, "spaceId": str(space.id)},
         )
 
     @mock.patch("posthog.Posthog.capture")
@@ -169,8 +169,8 @@ class TestSpaceEvents(TestCase):
         assert response.errors is None
         mock_posthog_capture.assert_called_once_with(
             distinct_id=user.username,
-            event="space_deleted",
-            properties={**standard_properties, "id": str(space.id)},
+            event="spaceDeleted",
+            properties={**standard_properties, "spaceId": str(space.id)},
         )
 
     @mock.patch("posthog.Posthog.capture")
@@ -202,8 +202,8 @@ class TestSpaceEvents(TestCase):
 
         mock_posthog_capture.assert_called_once_with(
             distinct_id=user.username,
-            event="space_task_created",
-            properties={**standard_properties, "space_id": str(space.id), "space_task_id": str(task_id)},
+            event="taskCreated",
+            properties={**standard_properties, "spaceId": str(space.id), "taskId": str(task_id)},
         )
 
     @mock.patch("posthog.Posthog.capture")
@@ -240,8 +240,8 @@ class TestSpaceEvents(TestCase):
 
         mock_posthog_capture.assert_called_once_with(
             distinct_id=user.username,
-            event="space_task_updated",
-            properties={**standard_properties, "space_id": str(space.id), "space_task_id": str(task.id)},
+            event="taskUpdated",
+            properties={**standard_properties, "spaceId": str(space.id), "taskId": str(task.id)},
         )
 
     @mock.patch("posthog.Posthog.capture")
@@ -272,6 +272,6 @@ class TestSpaceEvents(TestCase):
 
         mock_posthog_capture.assert_called_once_with(
             distinct_id=user.username,
-            event="space_task_deleted",
-            properties={**standard_properties, "space_id": str(space.id), "space_task_id": str(task.id)},
+            event="taskDeleted",
+            properties={**standard_properties, "spaceId": str(space.id), "taskId": str(task.id)},
         )

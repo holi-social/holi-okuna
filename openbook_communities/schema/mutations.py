@@ -186,7 +186,7 @@ class Mutation:
             )
 
         publish_space_created_event(community=space)
-        track_event(current_user, Event("space_created", {"id": str(space.id)}, 1, 0, 0))
+        track_event(current_user, Event("spaceCreated", {"spaceId": str(space.id)}, 1, 0, 0))
         invalidate_discover_spaces_query_cache()
 
         return space
@@ -219,7 +219,7 @@ class Mutation:
         )
 
         publish_space_updated_event(community=space)
-        track_event(current_user, Event("space_updated", {"id": str(space.id)}, 1, 0, 0))
+        track_event(current_user, Event("spaceUpdated", {"spaceId": str(space.id)}, 1, 0, 0))
         invalidate_discover_spaces_query_cache()
 
         return space
@@ -238,7 +238,7 @@ class Mutation:
                 )
 
             publish_space_deleted_event(space)
-            track_event(current_user, Event("space_deleted", {"id": str(space.id)}, 1, 0, 0))
+            track_event(current_user, Event("spaceDeleted", {"spaceId": str(space.id)}, 1, 0, 0))
             invalidate_discover_spaces_query_cache()
 
         except CommunityModel.DoesNotExist:
@@ -291,7 +291,7 @@ class Mutation:
 
         track_event(
             current_user,
-            Event("space_task_created", {"space_id": str(space_id), "space_task_id": str(task.id)}, 1, 0, 0),
+            Event("taskCreated", {"spaceId": str(space_id), "taskId": str(task.id)}, 1, 0, 0),
         )
 
         return task
@@ -328,7 +328,7 @@ class Mutation:
 
         track_event(
             current_user,
-            Event("space_task_updated", {"space_id": str(space_id), "space_task_id": str(task.id)}, 1, 0, 0),
+            Event("taskUpdated", {"spaceId": str(space_id), "taskId": str(task.id)}, 1, 0, 0),
         )
 
         return task
@@ -343,7 +343,7 @@ class Mutation:
 
         track_event(
             current_user,
-            Event("space_task_deleted", {"space_id": str(task.community_id), "space_task_id": str(task.id)}, 1, 0, 0),
+            Event("taskDeleted", {"spaceId": str(task.community_id), "taskId": str(task.id)}, 1, 0, 0),
         )
 
         return Result(success=True)
