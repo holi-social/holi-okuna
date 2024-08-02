@@ -5,21 +5,27 @@ resource "google_project_service_identity" "pubsub_serviceaccount" {
   service = "pubsub.googleapis.com"
 }
 
+# TODO can be deleted once unused (no more messages in queue encrypted with this key)
 resource "google_kms_crypto_key" "pubsub_okuna" {
   name     = "pubsub-key-okuna"
   key_ring = data.terraform_remote_state.holi_infra_state.outputs.kms_shared_key_ring_id
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
 
-resource "google_kms_crypto_key_iam_binding" "pubsub_okuna" {
+# TODO can be deleted once unused (no more messages in queue encrypted with this key)
+resource "google_kms_crypto_key_iam_member" "pubsub_okuna_old" {
   crypto_key_id = google_kms_crypto_key.pubsub_okuna.id
   role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-  members = [
-    "serviceAccount:${google_project_service_identity.pubsub_serviceaccount.email}",
-  ]
+  member        = "serviceAccount:${google_project_service_identity.pubsub_serviceaccount.email}"
+}
+
+resource "google_kms_crypto_key_iam_member" "pubsub_okuna" {
+  crypto_key_id = data.terraform_remote_state.holi_infra_state.outputs.artifact_registry_cloudfunctions_key_id
+  role          = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+  member        = "serviceAccount:${google_project_service_identity.pubsub_serviceaccount.email}"
 }
 
 resource "google_pubsub_topic" "okuna_staging" {
@@ -29,7 +35,7 @@ resource "google_pubsub_topic" "okuna_staging" {
   message_storage_policy {
     allowed_persistence_regions = [local.default_region]
   }
-  depends_on = [google_kms_crypto_key_iam_binding.pubsub_okuna]
+  depends_on = [google_kms_crypto_key_iam_member.pubsub_okuna, google_kms_crypto_key_iam_member.pubsub_okuna_old]
 }
 
 resource "google_pubsub_topic" "okuna_production" {
