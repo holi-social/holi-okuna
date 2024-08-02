@@ -115,7 +115,6 @@ INSTALLED_APPS = [
     "favorites",
     "comments",
     "feed_posts",
-    "tracking",
 ]
 
 MODELTRANSLATION_FALLBACK_LANGUAGES = ("en",)

@@ -1,12 +1,22 @@
 import sys
+from dataclasses import dataclass
+from typing import Protocol, Dict
 
+from django.conf import settings
 from posthog import Posthog
 
 from openbook.settings import POSTHOG_API_KEY, POSTHOG_HOST
-from tracking.event import Event
-from typing import Protocol
 
 posthog: Posthog | None = None
+
+
+@dataclass
+class Event:
+    name: str
+    properties: Dict[str, str]
+    event_version__major: int
+    event_version__minor: int
+    event_version__patch: int
 
 
 class User(Protocol):
@@ -15,13 +25,13 @@ class User(Protocol):
     tracking_consent_personalization: bool
 
 
-def initialize():
+def initialize_tracking():
     if POSTHOG_API_KEY and POSTHOG_HOST:
         global posthog
         posthog = Posthog(
             api_key=POSTHOG_API_KEY,
             host=POSTHOG_HOST,
-            debug=True,  # TODO disable
+            debug=settings.DEBUG,
             disabled=hasattr(sys, "_called_from_test"),  # don't actually send events in the context of unit testing
         )
 

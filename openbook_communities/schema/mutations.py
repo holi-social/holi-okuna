@@ -54,8 +54,7 @@ from openbook_communities.serializers.communities_serializers import (
 from openbook_communities.serializers.community_serializers import (
     CommunityUserConnectionSerializer,
 )
-from tracking.event import Event
-from tracking.tracking import track_event
+from openbook_common.tracking import track_event, Event
 
 logger = structlog.get_logger(__name__)
 
