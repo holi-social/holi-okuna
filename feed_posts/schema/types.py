@@ -10,7 +10,7 @@ from feed_posts.enums import VisibilityLevel
 from feed_posts.models import FeedPost as FeedPostModel, FeedPostReaction as FeedPostReactionModel
 from feed_posts.services import FeedPostReactionService, FeedPostMentionService
 from openbook_auth.schema.types import User
-from openbook_common.schema.types import ReactionCounts, Paged
+from openbook_common.schema.types import ReactionCounts, Paged, GeolocationPointInput, GeolocationPoint
 from openbook_posts.schema.types import LinkPreview, Post
 from openbook_terms.schema.types import Topic, FeedPostCategory
 from comments.models import Comment as CommentModel
@@ -23,6 +23,7 @@ class FeedPost:
     title: strawberry.auto
     slug: strawberry.auto
     description: strawberry.auto
+    location: Optional[str]
     link_preview: Optional[LinkPreview]
     image: Optional[str]
     image_blurhash: Optional[str]
@@ -71,6 +72,10 @@ class FeedPost:
     def language(self) -> Optional[str]:
         return self.language_code
 
+    @strawberry_django.field()
+    def geolocation(self) -> Optional[GeolocationPoint]:
+        return GeolocationPoint.from_point(self.geolocation)
+
 
 @strawberry.input
 class CreateFeedPostInput:
@@ -81,6 +86,8 @@ class CreateFeedPostInput:
     topic_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     category_id: uuid.UUID
     language: Optional[str] = strawberry.UNSET
+    location: Optional[str] = strawberry.UNSET
+    geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
 
 
 @strawberry.input
@@ -93,6 +100,8 @@ class UpdateFeedPostInput:
     topic_ids: Optional[List[Optional[uuid.UUID]]] = strawberry.UNSET
     category_id: Optional[uuid.UUID] = strawberry.UNSET
     language: Optional[str] = strawberry.UNSET
+    location: Optional[str] = strawberry.UNSET
+    geolocation: Optional[GeolocationPointInput] = strawberry.UNSET
 
 
 GenericPost = strawberry.union("GenericPost", (FeedPost, Post))

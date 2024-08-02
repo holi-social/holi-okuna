@@ -26,6 +26,8 @@ class FeedPostService:
         image,
         topic_ids=None,
         language=None,
+        location=None,
+        geolocation=None,
     ):
         category = FeedPostCategory.objects.get(id=category_id)
 
@@ -43,6 +45,8 @@ class FeedPostService:
             topics=topic_ids,
             link_preview=link_preview,
             language=language,
+            location=location,
+            geolocation=geolocation,
         )
 
         self.mention_service.add_mentions(post_id=post.id, description=description, creator=creator)
@@ -72,6 +76,8 @@ class FeedPostService:
         image=None,
         remove_image=False,
         language=None,
+        location=None,
+        geolocation=None,
     ):
         post = self.repository.get_feed_post(id_or_slug=str(post_id))
 
@@ -98,6 +104,8 @@ class FeedPostService:
             remove_image=remove_image,
             link_preview=link_preview,
             language=language,
+            location=location,
+            geolocation=geolocation,
         )
 
     def get_feed_posts(self):

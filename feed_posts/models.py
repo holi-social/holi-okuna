@@ -70,6 +70,15 @@ class FeedPost(CommentNotificationMixin, ModelWithUUID):
         max_length=2, choices=LanguageCode.choices, blank=True, null=True, verbose_name=_("language")
     )
 
+    location = models.CharField(
+        max_length=settings.COMPLETE_ADDRESS_MAX_LENGTH,
+        blank=True,
+        null=True,
+        db_index=True,
+    )
+
+    geolocation = models.PointField(blank=True, null=True, spatial_index=True)
+
     def save(self, *args, **kwargs):
         if self.image:
             self.image_blurhash = generate_blurhash(self.image)
