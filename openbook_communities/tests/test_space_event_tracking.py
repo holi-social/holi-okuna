@@ -36,15 +36,6 @@ class TestSpaceEvents(TestCase):
         initialize_tracking(PostHogConfig(api_key="fake_api_key", host="fake_host", disable_for_testing=True))
 
     @staticmethod
-    def __input_create_space():
-        return {
-            "title": "valid",
-            "description": "valid",
-            "topics": [str(make_topic().id) for _ in range(2)],
-            "cover": (SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)),
-        }
-
-    @staticmethod
     def __input_create_task(space, skill):
         return {
             "spaceId": str(space.id),
@@ -66,6 +57,12 @@ class TestSpaceEvents(TestCase):
             tracking_consent_analytics=True,
             tracking_consent_personalization=True,
         )
+        input_create_space = {
+            "title": "valid",
+            "description": "valid",
+            "topics": [str(make_topic().id) for _ in range(2)],
+            "cover": (SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)),
+        }
         mock_posthog_capture.reset_mock()
 
         graphql_query = """
@@ -78,7 +75,7 @@ class TestSpaceEvents(TestCase):
         response = async_to_sync(schema.execute)(
             graphql_query,
             context_value=benedict({"request": {"user": user}}),
-            variable_values={"input": self.__input_create_space()},
+            variable_values={"input": input_create_space},
         )
 
         assert response.errors is None
@@ -165,11 +162,10 @@ class TestSpaceEvents(TestCase):
                 }
             }
         """
-        input = self.__input_create_task(space, skill)
         response = async_to_sync(schema.execute)(
             graphql_query,
             context_value=benedict({"request": {"user": user}}),
-            variable_values={"input": input},
+            variable_values={"input": (self.__input_create_task(space, skill))},
         )
 
         assert response.errors is None
@@ -205,7 +201,7 @@ class TestSpaceEvents(TestCase):
             context_value=benedict({"request": {"user": user}}),
             variable_values={
                 "input": {
-                    **self.__input_create_task(space, skill),
+                    **(self.__input_create_task(space, skill)),
                     "taskId": str(task.id),
                 }
             },
