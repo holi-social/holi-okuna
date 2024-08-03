@@ -1,5 +1,4 @@
 # ruff: noqa
-import sys
 import uuid
 from enum import Enum
 from hashlib import sha256

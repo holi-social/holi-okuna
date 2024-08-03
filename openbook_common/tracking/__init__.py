@@ -1,4 +1,3 @@
-import sys
 from dataclasses import dataclass
 from typing import Protocol, Dict
 from logging import getLogger
