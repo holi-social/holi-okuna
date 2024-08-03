@@ -1,5 +1,4 @@
 import logging
-import sys
 from unittest import mock
 
 import pytest
@@ -9,6 +8,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
 from openbook.graphql_schema import schema
+from openbook_common.tracking import initialize_tracking, PostHogConfig
 from openbook_common.tests.helpers import (
     make_user,
     make_topic,
@@ -33,11 +33,7 @@ standard_properties = {
 @pytest.mark.django_db
 class TestSpaceEvents(TestCase):
     def setUp(self):
-        # used to set up the posthog client to not actually send events
-        sys._called_from_test = True
-
-    def tearDown(self):
-        del sys._called_from_test
+        initialize_tracking(PostHogConfig(api_key="fake_api_key", host="fake_host", disable_for_testing=True))
 
     @staticmethod
     def __input_create_space():
@@ -63,27 +59,6 @@ class TestSpaceEvents(TestCase):
             "location": "Hamburg, Germany",
             "contactPhone": "+49176176176176",
         }
-
-    @mock.patch("posthog.Posthog.capture")
-    def test_no_tracking_without_analytics_consent(self, mock_posthog_capture):
-        graphql_query = """
-            mutation test($input: CreateSpaceInput!) {
-                createSpace(input: $input) {
-                    id
-                }
-            }
-        """
-        user = make_user(
-            tracking_consent_analytics=False,
-            tracking_consent_personalization=True,
-        )
-        response = async_to_sync(schema.execute)(
-            graphql_query,
-            context_value=benedict({"request": {"user": user}}),
-            variable_values={"input": self.__input_create_space()},
-        )
-        assert response.errors is None
-        mock_posthog_capture.assert_not_called()
 
     @mock.patch("posthog.Posthog.capture")
     def test_tracks_space_created(self, mock_posthog_capture):

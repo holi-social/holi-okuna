@@ -1,11 +1,12 @@
 import sys
 from dataclasses import dataclass
 from typing import Protocol, Dict
+from logging import getLogger
 
 from django.conf import settings
 from posthog import Posthog
 
-from openbook.settings import POSTHOG_API_KEY, POSTHOG_HOST
+logger = getLogger("tracking")
 
 posthog: Posthog | None = None
 
@@ -19,25 +20,35 @@ class Event:
     event_version__patch: int
 
 
-class User(Protocol):
+@dataclass
+class PostHogConfig:
+    api_key: str
+    host: str
+    disable_for_testing: bool
+
+
+class TrackingUser(Protocol):
     username: str
     tracking_consent_analytics: bool
     tracking_consent_personalization: bool
 
 
-def initialize_tracking():
-    if POSTHOG_API_KEY and POSTHOG_HOST:
+def initialize_tracking(config: PostHogConfig):
+    if config.api_key and config.host:
         global posthog
         posthog = Posthog(
-            api_key=POSTHOG_API_KEY,
-            host=POSTHOG_HOST,
+            api_key=config.api_key,
+            host=config.host,
             debug=settings.DEBUG,
-            disabled=hasattr(sys, "_called_from_test"),  # don't actually send events in the context of unit testing
+            disabled=config.disable_for_testing,
         )
+    else:
+        logger.info("POSTHOG_API_KEY and/or POSTHOG_HOST are not set, disabling tracking")
 
 
-def track_event(user: User, event: Event):
+def track_event(user: TrackingUser, event: Event):
     if posthog is not None and user.tracking_consent_analytics:
+        logger.debug("track_event %s", event)
         posthog.capture(
             distinct_id=user.username,
             event=event.name,
