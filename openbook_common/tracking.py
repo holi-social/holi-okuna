@@ -53,8 +53,10 @@ def initialize_tracking(config: PostHogConfig):
 
 
 def track(user: TrackingUser, event: TrackingEvent):
+    """Sends a tracking event to PostHog.
+    Non-blocking & guaranteed to not raise an Exception."""
     if posthog is not None and user.tracking_consent_analytics:
-        logger.debug("track %s", event)
+        logger.debug("tracking event %s", event)
         try:
             posthog.capture(
                 distinct_id=user.username,
