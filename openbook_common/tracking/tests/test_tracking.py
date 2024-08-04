@@ -23,7 +23,7 @@ class TestTracking(unittest.TestCase):
     @mock.patch("posthog.Posthog.capture")
     def test_no_tracking_without_analytics_consent(self, mock_posthog_capture):
         user = UserForTest("donald_trump", False, faker.boolean())
-        track(user, TrackingEvent("testEvent", {}, 1, 0, 0))
+        track(user, TrackingEvent("testEvent"))
         mock_posthog_capture.assert_not_called()
 
     @mock.patch("posthog.Posthog.capture")
@@ -62,5 +62,21 @@ class TestTracking(unittest.TestCase):
                 "trackingConsentAnalytics": consent_analytics,
                 "trackingConsentPersonalization": consent_personalization,
                 "random_name": "random_value",
+            },
+        )
+
+    @mock.patch("posthog.Posthog.capture")
+    def test_adds_default_properties_and_version(self, mock_posthog_capture):
+        user = UserForTest("donald_trump", True, True)
+        track(user, TrackingEvent("testEvent"))
+        mock_posthog_capture.assert_called_once_with(
+            distinct_id=user.username,
+            event="testEvent",
+            properties={
+                "event_version__major": 1,
+                "event_version__minor": 0,
+                "event_version__patch": 0,
+                "trackingConsentAnalytics": True,
+                "trackingConsentPersonalization": True,
             },
         )

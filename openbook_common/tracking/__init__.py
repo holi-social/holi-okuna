@@ -18,6 +18,13 @@ class TrackingEvent:
     event_version__minor: int
     event_version__patch: int
 
+    def __init__(self, name, properties=None, event_version__major=1, event_version__minor=0, event_version__patch=0):
+        self.name = name
+        self.properties = {} if properties is None else properties
+        self.event_version__major = event_version__major
+        self.event_version__minor = event_version__minor
+        self.event_version__patch = event_version__patch
+
 
 @dataclass
 class PostHogConfig:

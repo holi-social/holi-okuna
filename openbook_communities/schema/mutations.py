@@ -185,7 +185,7 @@ class Mutation:
             )
 
         publish_space_created_event(community=space)
-        track(current_user, TrackingEvent("spaceCreated", {"spaceId": str(space.id)}, 1, 0, 0))
+        track(current_user, TrackingEvent("spaceCreated", {"spaceId": str(space.id)}))
         invalidate_discover_spaces_query_cache()
 
         return space
@@ -218,7 +218,7 @@ class Mutation:
         )
 
         publish_space_updated_event(community=space)
-        track(current_user, TrackingEvent("spaceUpdated", {"spaceId": str(space.id)}, 1, 0, 0))
+        track(current_user, TrackingEvent("spaceUpdated", {"spaceId": str(space.id)}))
         invalidate_discover_spaces_query_cache()
 
         return space
@@ -237,7 +237,7 @@ class Mutation:
                 )
 
             publish_space_deleted_event(space)
-            track(current_user, TrackingEvent("spaceDeleted", {"spaceId": str(space.id)}, 1, 0, 0))
+            track(current_user, TrackingEvent("spaceDeleted", {"spaceId": str(space.id)}))
             invalidate_discover_spaces_query_cache()
 
         except CommunityModel.DoesNotExist:
@@ -290,7 +290,7 @@ class Mutation:
 
         track(
             current_user,
-            TrackingEvent("taskCreated", {"spaceId": str(space_id), "taskId": str(task.id)}, 1, 0, 0),
+            TrackingEvent("taskCreated", {"spaceId": str(space_id), "taskId": str(task.id)}),
         )
 
         return task
@@ -327,7 +327,7 @@ class Mutation:
 
         track(
             current_user,
-            TrackingEvent("taskUpdated", {"spaceId": str(space_id), "taskId": str(task.id)}, 1, 0, 0),
+            TrackingEvent("taskUpdated", {"spaceId": str(space_id), "taskId": str(task.id)}),
         )
 
         return task
@@ -342,7 +342,7 @@ class Mutation:
 
         track(
             current_user,
-            TrackingEvent("taskDeleted", {"spaceId": str(task.community_id), "taskId": str(task.id)}, 1, 0, 0),
+            TrackingEvent("taskDeleted", {"spaceId": str(task.community_id), "taskId": str(task.id)}),
         )
 
         return Result(success=True)
