@@ -711,7 +711,10 @@ class TestUsers:
     @mock.patch("openbook_auth.tasks.requests.delete")
     @mock.patch("openbook_auth.schema.mutations.publish_user_deleted_event")
     @mock.patch("openbook_notifications.api.NotificationApi.delete_subscriber")
-    def test_can_delete_authenticated_user(self, mock_delete_subscriber, mock_publish_user_deleted_event, mock_delete):
+    @mock.patch("openbook_auth.schema.mutations.track")
+    def test_can_delete_authenticated_user(
+        self, mock_track, mock_delete_subscriber, mock_publish_user_deleted_event, mock_delete
+    ):
         mock_delete.return_value = self.create_response(204)
 
         user = make_user(name="Fritz", last_name="Meier")
@@ -736,6 +739,7 @@ class TestUsers:
 
         mock_publish_user_deleted_event.assert_called_once_with(user=user)
         mock_delete_subscriber.assert_called_once_with(user_id=str(user.username))
+        mock_track.assert_called_once_with(user, TrackingEvent("userDeleted"))
 
     @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_request_notification")
     @mock.patch("openbook_notifications.services.NotificationsService.send_space_membership_invite_notification")

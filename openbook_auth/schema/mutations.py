@@ -113,6 +113,8 @@ class Mutation:
             error_message = response.error.error if response.error else "Unknown"
             raise Exception(f"Deleting user {current_user.username} in ory failed: {error_message}")
 
+        track(current_user, TrackingEvent("userDeleted"))
+
         # crude hack to prevent concurrent user references (e.g. mentions in comments) to let the user deletion fail
         # we just retry a couple of times
         for count in range(3, -1, -1):
