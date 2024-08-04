@@ -2,6 +2,7 @@
 
 import json
 import logging
+import sys
 from datetime import datetime, timedelta
 from unittest import mock
 from unittest.mock import call
@@ -43,6 +44,7 @@ from openbook_common.tests.helpers import (
     assert_paged_results_equal,
     assert_is_forbidden,
 )
+from openbook_common.tracking import TrackingEvent
 from openbook_communities.enums import UpdateConnectionAction
 from openbook_communities.models import SpaceUserConnectionType
 from openbook_communities.tests.helpers import (
@@ -267,8 +269,10 @@ class TestUsers:
     @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
+    @mock.patch("openbook_auth.schema.mutations.track")
     def test_can_update_authenticated_user(
         self,
+        mock_track,
         mock_create_or_update_subscriber,
         mock_get_language_from_request,
         mock_publish_user_name_updated_event,
@@ -348,13 +352,16 @@ class TestUsers:
         mock_create_or_update_subscriber.assert_called_once_with(
             user=user, locale=mock_get_language_from_request.return_value
         )
+        mock_track.assert_called_once_with(user, TrackingEvent("userUpdated"))
 
     @mock.patch("openbook_auth.tasks.requests.patch")
     @mock.patch("openbook_auth.schema.mutations.publish_user_name_updated_event")
     @mock.patch("django.utils.translation.get_language_from_request", return_value="en")
     @mock.patch("openbook_notifications.api.NotificationApi.create_or_update_subscriber")
+    @mock.patch("openbook_auth.schema.mutations.track")
     def test_can_update_authenticated_user_v2(
         self,
+        mock_track,
         mock_create_or_update_subscriber,
         mock_get_language_from_request,
         mock_publish_user_name_updated_event,
@@ -443,6 +450,7 @@ class TestUsers:
         mock_create_or_update_subscriber.assert_called_once_with(
             user=user, locale=mock_get_language_from_request.return_value
         )
+        mock_track.assert_called_once_with(user, TrackingEvent("userUpdated"))
 
     @mock.patch("openbook_auth.tasks.requests.put")
     @mock.patch("openbook_auth.tasks.requests.patch")
