@@ -4,13 +4,13 @@ from faker import Faker
 from unittest import mock
 from dataclasses import dataclass
 
-from openbook_common.tracking import TrackingUser, Event, track_event, initialize_tracking, PostHogConfig
+from openbook_common.tracking import TrackingUser, TrackingEvent, track, initialize_tracking, PostHogConfig
 
 faker = Faker()
 
 
 @dataclass
-class TestTrackingUser(TrackingUser):
+class UserForTest(TrackingUser):
     username: str
     tracking_consent_analytics: bool
     tracking_consent_personalization: bool
@@ -22,8 +22,8 @@ class TestTracking(unittest.TestCase):
 
     @mock.patch("posthog.Posthog.capture")
     def test_no_tracking_without_analytics_consent(self, mock_posthog_capture):
-        user = TestTrackingUser("donald_trump", False, faker.boolean())
-        track_event(user, Event("testEvent", {}, 1, 0, 0))
+        user = UserForTest("donald_trump", False, faker.boolean())
+        track(user, TrackingEvent("testEvent", {}, 1, 0, 0))
         mock_posthog_capture.assert_not_called()
 
     @mock.patch("posthog.Posthog.capture")
@@ -31,8 +31,8 @@ class TestTracking(unittest.TestCase):
         username = "donald_trump"
         consent_analytics = True
         consent_personalization = faker.boolean()
-        user = TestTrackingUser(username, consent_analytics, consent_personalization)
-        track_event(user, Event("testEvent", {}, 1, 2, 3))
+        user = UserForTest(username, consent_analytics, consent_personalization)
+        track(user, TrackingEvent("testEvent", {}, 1, 2, 3))
         mock_posthog_capture.assert_called_once_with(
             distinct_id=username,
             event="testEvent",
@@ -50,8 +50,8 @@ class TestTracking(unittest.TestCase):
         username = "donald_trump"
         consent_analytics = True
         consent_personalization = faker.boolean()
-        user = TestTrackingUser(username, consent_analytics, consent_personalization)
-        track_event(user, Event("testEvent", {"random_name": "random_value"}, 1, 2, 3))
+        user = UserForTest(username, consent_analytics, consent_personalization)
+        track(user, TrackingEvent("testEvent", {"random_name": "random_value"}, 1, 2, 3))
         mock_posthog_capture.assert_called_once_with(
             distinct_id=username,
             event="testEvent",

@@ -11,7 +11,7 @@ posthog: Posthog | None = None
 
 
 @dataclass
-class Event:
+class TrackingEvent:
     name: str
     properties: Dict[str, str]
     event_version__major: int
@@ -45,9 +45,9 @@ def initialize_tracking(config: PostHogConfig):
         logger.info("POSTHOG_API_KEY and/or POSTHOG_HOST are not set, disabling tracking")
 
 
-def track_event(user: TrackingUser, event: Event):
+def track(user: TrackingUser, event: TrackingEvent):
     if posthog is not None and user.tracking_consent_analytics:
-        logger.debug("track_event %s", event)
+        logger.debug("track %s", event)
         posthog.capture(
             distinct_id=user.username,
             event=event.name,

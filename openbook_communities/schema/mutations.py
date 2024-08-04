@@ -54,7 +54,7 @@ from openbook_communities.serializers.communities_serializers import (
 from openbook_communities.serializers.community_serializers import (
     CommunityUserConnectionSerializer,
 )
-from openbook_common.tracking import track_event, Event
+from openbook_common.tracking import track, TrackingEvent
 
 logger = structlog.get_logger(__name__)
 
@@ -185,7 +185,7 @@ class Mutation:
             )
 
         publish_space_created_event(community=space)
-        track_event(current_user, Event("spaceCreated", {"spaceId": str(space.id)}, 1, 0, 0))
+        track(current_user, TrackingEvent("spaceCreated", {"spaceId": str(space.id)}, 1, 0, 0))
         invalidate_discover_spaces_query_cache()
 
         return space
@@ -218,7 +218,7 @@ class Mutation:
         )
 
         publish_space_updated_event(community=space)
-        track_event(current_user, Event("spaceUpdated", {"spaceId": str(space.id)}, 1, 0, 0))
+        track(current_user, TrackingEvent("spaceUpdated", {"spaceId": str(space.id)}, 1, 0, 0))
         invalidate_discover_spaces_query_cache()
 
         return space
@@ -237,7 +237,7 @@ class Mutation:
                 )
 
             publish_space_deleted_event(space)
-            track_event(current_user, Event("spaceDeleted", {"spaceId": str(space.id)}, 1, 0, 0))
+            track(current_user, TrackingEvent("spaceDeleted", {"spaceId": str(space.id)}, 1, 0, 0))
             invalidate_discover_spaces_query_cache()
 
         except CommunityModel.DoesNotExist:
@@ -288,9 +288,9 @@ class Mutation:
                 thumbnail=data.get("thumbnail"),
             )
 
-        track_event(
+        track(
             current_user,
-            Event("taskCreated", {"spaceId": str(space_id), "taskId": str(task.id)}, 1, 0, 0),
+            TrackingEvent("taskCreated", {"spaceId": str(space_id), "taskId": str(task.id)}, 1, 0, 0),
         )
 
         return task
@@ -325,9 +325,9 @@ class Mutation:
                 remove_thumbnail=is_parameter_null(data, "thumbnail"),
             )
 
-        track_event(
+        track(
             current_user,
-            Event("taskUpdated", {"spaceId": str(space_id), "taskId": str(task.id)}, 1, 0, 0),
+            TrackingEvent("taskUpdated", {"spaceId": str(space_id), "taskId": str(task.id)}, 1, 0, 0),
         )
 
         return task
@@ -340,9 +340,9 @@ class Mutation:
         with transaction.atomic():
             task = current_user.delete_task_with_id(task_id=id)
 
-        track_event(
+        track(
             current_user,
-            Event("taskDeleted", {"spaceId": str(task.community_id), "taskId": str(task.id)}, 1, 0, 0),
+            TrackingEvent("taskDeleted", {"spaceId": str(task.community_id), "taskId": str(task.id)}, 1, 0, 0),
         )
 
         return Result(success=True)
