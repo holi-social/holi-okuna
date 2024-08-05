@@ -80,3 +80,13 @@ class TestTracking(unittest.TestCase):
                 "trackingConsentPersonalization": True,
             },
         )
+
+    @mock.patch("posthog.Posthog.capture")
+    def test_does_not_raise(self, mock_posthog_capture):
+        mock_posthog_capture.side_effect = Exception("Boom!")
+        user = UserForTest("donald_trump", True, True)
+        # noinspection PyBroadException
+        try:
+            track(user, TrackingEvent("testEvent"))
+        except Exception:
+            self.fail("No exception should have been raised")
