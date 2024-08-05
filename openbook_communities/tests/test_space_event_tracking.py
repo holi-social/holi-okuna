@@ -8,7 +8,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
 from openbook.graphql_schema import schema
-from openbook_common.tracking import initialize_tracking, PostHogConfig
+from openbook_common.tracking import initialize_tracking, PostHogConfig, TrackingEvent
 from openbook_common.tests.helpers import (
     make_user,
     make_topic,
@@ -20,14 +20,6 @@ from openbook_common.tests.helpers import (
 
 
 logger = logging.getLogger(__name__)
-
-standard_properties = {
-    "trackingConsentAnalytics": True,
-    "trackingConsentPersonalization": True,
-    "event_version__major": 1,
-    "event_version__minor": 0,
-    "event_version__patch": 0,
-}
 
 
 @pytest.mark.django_db
@@ -51,8 +43,8 @@ class TestSpaceEvents(TestCase):
             "contactPhone": "+49176176176176",
         }
 
-    @mock.patch("posthog.Posthog.capture")
-    def test_tracks_space_created(self, mock_posthog_capture):
+    @mock.patch("openbook_communities.schema.mutations.track")
+    def test_tracks_space_created(self, mock_track):
         user = make_user(
             tracking_consent_analytics=True,
             tracking_consent_personalization=True,
@@ -63,7 +55,7 @@ class TestSpaceEvents(TestCase):
             "topics": [str(make_topic().id) for _ in range(2)],
             "cover": (SimpleUploadedFile(name="cover.jpg", content=simple_jpeg_bytes)),
         }
-        mock_posthog_capture.reset_mock()
+        mock_track.reset_mock()
 
         graphql_query = """
             mutation test($input: CreateSpaceInput!) {
@@ -81,20 +73,16 @@ class TestSpaceEvents(TestCase):
         assert response.errors is None
         space_id = response.data["createSpace"]["id"]
 
-        mock_posthog_capture.assert_called_once_with(
-            distinct_id=user.username,
-            event="spaceCreated",
-            properties={**standard_properties, "spaceId": space_id},
-        )
+        mock_track.assert_called_once_with(user, TrackingEvent("spaceCreated", {"spaceId": space_id}))
 
-    @mock.patch("posthog.Posthog.capture")
-    def test_tracks_space_updated(self, mock_posthog_capture):
+    @mock.patch("openbook_communities.schema.mutations.track")
+    def test_tracks_space_updated(self, mock_track):
         user = make_user(
             tracking_consent_analytics=True,
             tracking_consent_personalization=True,
         )
         space = make_community(creator=user)
-        mock_posthog_capture.reset_mock()
+        mock_track.reset_mock()
 
         graphql_query = """
             mutation test($input: UpdateSpaceInput!) {
@@ -110,20 +98,17 @@ class TestSpaceEvents(TestCase):
         )
 
         assert response.errors is None
-        mock_posthog_capture.assert_called_once_with(
-            distinct_id=user.username,
-            event="spaceUpdated",
-            properties={**standard_properties, "spaceId": str(space.id)},
-        )
 
-    @mock.patch("posthog.Posthog.capture")
-    def test_tracks_space_deleted(self, mock_posthog_capture):
+        mock_track.assert_called_once_with(user, TrackingEvent("spaceUpdated", {"spaceId": space.id}))
+
+    @mock.patch("openbook_communities.schema.mutations.track")
+    def test_tracks_space_deleted(self, mock_track):
         user = make_user(
             tracking_consent_analytics=True,
             tracking_consent_personalization=True,
         )
         space = make_community(creator=user)
-        mock_posthog_capture.reset_mock()
+        mock_track.reset_mock()
 
         graphql_query = """
             mutation test($id: UUID!) {
@@ -139,21 +124,17 @@ class TestSpaceEvents(TestCase):
         )
 
         assert response.errors is None
-        mock_posthog_capture.assert_called_once_with(
-            distinct_id=user.username,
-            event="spaceDeleted",
-            properties={**standard_properties, "spaceId": str(space.id)},
-        )
+        mock_track.assert_called_once_with(user, TrackingEvent("spaceDeleted", {"spaceId": space.id}))
 
-    @mock.patch("posthog.Posthog.capture")
-    def test_tracks_space_task_created(self, mock_posthog_capture):
+    @mock.patch("openbook_communities.schema.mutations.track")
+    def test_tracks_space_task_created(self, mock_track):
         user = make_user(
             tracking_consent_analytics=True,
             tracking_consent_personalization=True,
         )
         space = make_community(creator=user)
         skill = make_skill()
-        mock_posthog_capture.reset_mock()
+        mock_track.reset_mock()
 
         graphql_query = """
             mutation test($input: CreateTaskInput!) {
@@ -171,14 +152,12 @@ class TestSpaceEvents(TestCase):
         assert response.errors is None
         task_id = response.data["createTask"]["id"]
 
-        mock_posthog_capture.assert_called_once_with(
-            distinct_id=user.username,
-            event="taskCreated",
-            properties={**standard_properties, "spaceId": str(space.id), "taskId": str(task_id)},
+        mock_track.assert_called_once_with(
+            user, TrackingEvent("taskCreated", {"spaceId": str(space.id), "taskId": str(task_id)})
         )
 
-    @mock.patch("posthog.Posthog.capture")
-    def test_tracks_space_task_updated(self, mock_posthog_capture):
+    @mock.patch("openbook_communities.schema.mutations.track")
+    def test_tracks_space_task_updated(self, mock_track):
         user = make_user(
             tracking_consent_analytics=True,
             tracking_consent_personalization=True,
@@ -186,7 +165,7 @@ class TestSpaceEvents(TestCase):
         space = make_community(creator=user)
         skill = make_skill()
         task = make_community_task(space)
-        mock_posthog_capture.reset_mock()
+        mock_track.reset_mock()
 
         graphql_query = """
             mutation test($input: UpdateTaskInput!) {
@@ -209,21 +188,19 @@ class TestSpaceEvents(TestCase):
 
         assert response.errors is None
 
-        mock_posthog_capture.assert_called_once_with(
-            distinct_id=user.username,
-            event="taskUpdated",
-            properties={**standard_properties, "spaceId": str(space.id), "taskId": str(task.id)},
+        mock_track.assert_called_once_with(
+            user, TrackingEvent("taskUpdated", {"spaceId": str(space.id), "taskId": str(task.id)})
         )
 
-    @mock.patch("posthog.Posthog.capture")
-    def test_tracks_space_task_deleted(self, mock_posthog_capture):
+    @mock.patch("openbook_communities.schema.mutations.track")
+    def test_tracks_space_task_deleted(self, mock_track):
         user = make_user(
             tracking_consent_analytics=True,
             tracking_consent_personalization=True,
         )
         space = make_community(creator=user)
         task = make_community_task(space)
-        mock_posthog_capture.reset_mock()
+        mock_track.reset_mock()
 
         graphql_query = """
             mutation test($id: UUID!) {
@@ -241,8 +218,6 @@ class TestSpaceEvents(TestCase):
 
         assert response.errors is None
 
-        mock_posthog_capture.assert_called_once_with(
-            distinct_id=user.username,
-            event="taskDeleted",
-            properties={**standard_properties, "spaceId": str(space.id), "taskId": str(task.id)},
+        mock_track.assert_called_once_with(
+            user, TrackingEvent("taskDeleted", {"spaceId": str(space.id), "taskId": str(task.id)})
         )
