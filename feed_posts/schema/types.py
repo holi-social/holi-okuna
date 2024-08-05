@@ -31,7 +31,10 @@ class FeedPost:
     topics: Optional[List[Topic]]
     category: FeedPostCategory
     creator: Optional[User]
-    created_at: str
+
+    @strawberry_django.field()
+    def created_at(self) -> str:
+        return self.created_at.isoformat()
 
     @strawberry_django.field()
     def mentions(self) -> Optional[List[Optional[User]]]:
