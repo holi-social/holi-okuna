@@ -1,3 +1,11 @@
+# For upgrading all dependencies to their highest compatible versions:
+#
+# sed -i '' 's/[~=]=/>=/' requirements.txt          # replace all version specifiers with a companion specifier
+# pip install -U -r requirements.txt                # now upgrade all packages in requirements.txt
+# pip freeze | sed 's/==/~=/' > requirements.txt    # freeze adds any transient dependencies and makes them explicit
+#                                                   # then, we transform the exact matches to compatibility matches
+#
+# Afterwards, some packages might need a downgrade or version tweak for the bundle fitting together and fitting the code
 adrf~=0.1.7
 aiofiles~=24.1.0
 aiohappyeyeballs~=2.3.4
