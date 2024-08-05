@@ -99,7 +99,7 @@ class TestSpaceEvents(TestCase):
 
         assert response.errors is None
 
-        mock_track.assert_called_once_with(user, TrackingEvent("spaceUpdated", {"spaceId": space.id}))
+        mock_track.assert_called_once_with(user, TrackingEvent("spaceUpdated", {"spaceId": str(space.id)}))
 
     @mock.patch("openbook_communities.schema.mutations.track")
     def test_tracks_space_deleted(self, mock_track):
@@ -124,7 +124,7 @@ class TestSpaceEvents(TestCase):
         )
 
         assert response.errors is None
-        mock_track.assert_called_once_with(user, TrackingEvent("spaceDeleted", {"spaceId": space.id}))
+        mock_track.assert_called_once_with(user, TrackingEvent("spaceDeleted", {"spaceId": str(space.id)}))
 
     @mock.patch("openbook_communities.schema.mutations.track")
     def test_tracks_space_task_created(self, mock_track):
