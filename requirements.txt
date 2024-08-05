@@ -1,7 +1,6 @@
-ASGIMiddlewareStaticFile==0.6.1
-Unidecode==1.3.8
 adrf==0.1.6
 appdirs==1.4.4
+ASGIMiddlewareStaticFile==0.6.1
 bandit==1.7.8
 beautifulsoup4==4.12.3
 blurhash-python==1.2.2
@@ -83,6 +82,7 @@ termcolor==2.4.0
 text-unidecode==1.3
 tldextract==5.1.2
 toml==0.10.2
+Unidecode==1.3.8
 uritools==4.0.2; python_version ~= '3.5'
 url-normalize==1.4.3
 urlextract==1.9.0
