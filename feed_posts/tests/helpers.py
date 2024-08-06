@@ -30,6 +30,11 @@ def create_feed_post(user, input):
                     id
                     fullName
                 }
+                location
+                geolocation {
+                    latitude
+                    longitude
+                }
             }
         }
         """,
@@ -62,6 +67,11 @@ def update_feed_post(user, input):
                 mentions {
                     id
                     fullName
+                }
+                location
+                geolocation {
+                    latitude
+                    longitude
                 }
             }
         }
@@ -117,6 +127,11 @@ def update_feed_post_reaction(
                 reactions {
                     HEART
                 }
+                location
+                geolocation {
+                    latitude
+                    longitude
+                }
             }
         }
         """,
@@ -149,6 +164,11 @@ def my_posts(user):
                     creator {
                         id
                     }
+                    location
+                    geolocation {
+                        latitude
+                        longitude
+                    }
                 }
             }
         }
@@ -179,6 +199,11 @@ def posts_by_user_id(user, user_id):
                     }
                     creator {
                         id
+                    }
+                    location
+                    geolocation {
+                        latitude
+                        longitude
                     }
                 }
             }
@@ -212,6 +237,11 @@ def feed_posts(user):
                     creator {
                         id
                     }
+                    location
+                    geolocation {
+                        latitude
+                        longitude
+                    }
                 }
             }
         }
@@ -240,6 +270,11 @@ def post(user, id_or_slug):
                     }
                     creator {
                         id
+                    }
+                    location
+                    geolocation {
+                        latitude
+                        longitude
                     }
                 }
         }

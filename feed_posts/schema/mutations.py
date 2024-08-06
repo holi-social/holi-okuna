@@ -35,6 +35,8 @@ class Mutation:
             image=data.get("image"),
             creator=user,
             language=data.get("language"),
+            location=data.get("location"),
+            geolocation=data.get("geolocation"),
         )
 
     @strawberry.mutation
@@ -58,6 +60,8 @@ class Mutation:
             image=data.get("image"),
             remove_image=is_parameter_null(data, "image"),
             language=data.get("language"),
+            location=data.get("location"),
+            geolocation=data.get("geolocation"),
         )
 
     @strawberry.mutation
