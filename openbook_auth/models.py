@@ -280,6 +280,12 @@ class User(ModelWithUUID, AbstractUser):
 
     last_seen_notification_timestamp = models.DateTimeField(null=True, blank=True)
 
+    is_verified = models.BooleanField(
+        default=False,
+        help_text="Indicates whether the user's account has been verified.",
+        verbose_name="Account Verified",
+    )
+
     @property
     def uuid(self):
         return self.id
