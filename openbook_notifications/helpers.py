@@ -1,9 +1,3 @@
-from django.utils import translation
-from django.utils.translation import gettext_lazy as _
-
-from openbook_common.utils.model_loaders import get_notification_model
-from openbook_translation import translation_strategy
-
 import logging
 
 logger = logging.getLogger(__name__)
