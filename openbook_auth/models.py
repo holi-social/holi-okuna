@@ -142,6 +142,17 @@ class UserConnectionStatus(Enum):
     PENDING_CONFIRMATION = "PENDING_CONFIRMATION"  # pending confirmation by currently authenticated user
 
 
+@strawberry.enum
+class UserRole(models.TextChoices):
+    INTERNAL = ("INTERNAL",)
+    REGULAR = ("REGULAR",)
+    MODERATOR = ("MODERATOR",)
+    REDACTOR = ("REDACTOR",)
+    JOURNALIST = ("JOURNALIST",)
+    FOUNDER = ("FOUNDER",)
+    COMMUNITY_MANAGER = ("COMMUNITY_MANAGER",)
+
+
 class UserWithProfileManager(UserManager):
     def get_queryset(self):
         return super().get_queryset().select_related("profile")
@@ -285,6 +296,8 @@ class User(ModelWithUUID, AbstractUser):
         help_text="Indicates whether the user's account has been verified.",
         verbose_name="Account Verified",
     )
+
+    role = models.CharField(max_length=50, choices=UserRole.choices, blank=False, null=True, default=UserRole.REGULAR)
 
     @property
     def uuid(self):
